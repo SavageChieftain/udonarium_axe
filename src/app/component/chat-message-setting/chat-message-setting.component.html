@@ -1,0 +1,54 @@
+<div id="file-list">
+  <div class="table">
+    <div class="table-cell" style="width: 16em">立ち絵をウィンドウ内に表示:</div>
+    <div class="table-cell">
+      <input
+        type="checkbox"
+        value="isTachieInWindow"
+        [(ngModel)]="chatTabList.isTachieInWindow"
+        name="tachieInWindow"
+        (click)="changeTachieInWindow()"
+      />
+    </div>
+  </div>
+  <div class="table">
+    <div class="table-cell" style="width: 16em">
+      マウスのウィンドウ離脱時<br />
+      ウィンドウ外の立ち絵を保持:
+    </div>
+    <div class="table-cell">
+      <input
+        type="checkbox"
+        value="isKeepTachieOutWindow"
+        [(ngModel)]="chatTabList.isKeepTachieOutWindow"
+        name="isKeepTachieOutWindow"
+        (click)="changeKeepTachieOutWindow()"
+        [attr.disabled]="chatTabList.isTachieInWindow ? '' : null"
+      />
+    </div>
+  </div>
+  <div class="table">
+    <div class="table-cell" style="width: 16em">簡易表示で時間を表示:</div>
+    <div class="table-cell">
+      <input
+        type="checkbox"
+        value="simpleDispFlagTime"
+        [(ngModel)]="chatTabList.simpleDispFlagTime"
+        name="hideInventory"
+        (click)="changeDispFlagTime()"
+      />
+    </div>
+  </div>
+  <div class="table">
+    <div class="table-cell" style="width: 16em">簡易表示でIDを表示:</div>
+    <div class="table-cell">
+      <input
+        type="checkbox"
+        value="simpleDispFlagUserId"
+        [(ngModel)]="chatTabList.simpleDispFlagUserId"
+        name="hideInventory"
+        (click)="changeDispFlagUserId()"
+      />
+    </div>
+  </div>
+</div>

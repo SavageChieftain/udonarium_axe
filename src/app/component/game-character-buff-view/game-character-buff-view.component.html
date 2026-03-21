@@ -1,0 +1,19 @@
+@if (character) {
+  <div class="controller">
+    @if (character.buffDataElement) {
+      <div class="table">
+        @for (childElement of character.buffDataElement.children; track childElement) {
+          <div class="flex-item">
+            <div
+              class="table-row"
+              game-data-element-buff
+              [gameDataElement]="$any(childElement)"
+              [isEdit]="isEdit"
+              [isPieceMode]="false"
+            ></div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

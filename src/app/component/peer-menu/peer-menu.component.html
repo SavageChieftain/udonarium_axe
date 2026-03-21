@@ -1,0 +1,147 @@
+@if (myPeer) {
+  <div>
+    <button (click)="changeIcon()">アイコンを変更する</button>
+  </div>
+}
+<div class="user">
+  <div class="user_icon">
+    @if (myPeer) {
+      @if (myPeer.image) {
+        <div
+          class="image cover"
+          [style.background-image]="'url(' + myPeer.image.url + ')' | safe: 'style'"
+          (click)="changeIcon()"
+        ></div>
+      }
+    }
+  </div>
+  <div class="user_info">
+    @if (myPeer) {
+      <span>あなたのニックネーム：</span>
+    }
+    <input class="is-caret" [(ngModel)]="myPeer.name" placeholder="ニックネーム" /><br />
+    <span>ID：</span>
+    @if (networkService.isOpen) {
+      <span style="font-weight: bold">{{ networkService.peerContext.userId }}</span>
+    }
+    @if (!networkService.isOpen) {
+      <span style="font-weight: bold">???</span>
+    }
+    <br />
+    <div>
+      <span>ブラウザ時刻：</span>
+      <span>{{ myTime | date: 'yy/MM/dd HH:mm:ss' }}</span>
+    </div>
+  </div>
+</div>
+@if (networkService.peerContext.isRoom) {
+  <hr />
+  <div>
+    <span
+      >ルーム名：
+      @if (networkService.isOpen) {
+        <span style="font-weight: bold"
+          >{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span
+        >
+      }
+    </span>
+  </div>
+  <div>
+    <span
+      >パスワード：
+      @if (networkService.peerContext.hasPassword) {
+        <span>
+          @if (networkService.isOpen) {
+            <span style="font-weight: bold">{{
+              isPasswordVisible ? networkService.peerContext.password : '●●●●●●●●'
+            }}</span>
+          }
+          <button style="padding: 2px; margin-left: 1em; font-size: 1em" (click)="togglePasswordVisibility()">
+            <span class="material-icons" style="font-size: 1em; vertical-align: text-bottom">{{
+              isPasswordVisible ? 'visibility' : 'visibility_off'
+            }}</span>
+          </button>
+        </span>
+      }
+    </span>
+  </div>
+  <div>
+    @if (networkService.peerIds.length > 1) {
+      <button (click)="showReConnect()" class="danger">
+        <span>再接続</span>
+      </button>
+    }
+  </div>
+}
+<hr />
+<div>
+  <span
+    ><input class="is-caret" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
+    秒以上通信できない参加者情報をチャットに表示</span
+  ><br />
+  <span>詳細を表示<input type="checkbox" value="dispDetailFlag" [(ngModel)]="dispDetailFlag" /></span><br />
+</div>
+@for (context of networkService.peerContexts; track context) {
+  <div style="font-size: 15px">
+    <div>
+      @if (!context.isOpen) {
+        <span>[接続中]</span>
+      }
+      <span>他の参加者：{{ findUserId(context.peerId) }} [{{ findPeerName(context.peerId) }}] </span>
+      @if (findPeerTimeReceive(context.peerId) <= 0) {
+        <span>接続確認：[-:--:--]</span>
+      }
+      @if (findPeerTimeReceive(context.peerId) > 0) {
+        <span>接続確認：[{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}]</span>
+      }
+      <br />
+      @if (dispDetailFlag) {
+        <div>
+          @if (findPeerTimeReceive(context.peerId) > 0) {
+            <span>往復通信時間：{{ findPeerTimeLatency(context.peerId) }}秒</span>
+          }
+          <br />
+        </div>
+      }
+      @if (myPeer.name === '円柱_') {
+        <div>
+          <span
+            >伝送時間+時計誤差合計　受信：{{ findPeerTimeDiffDown(context.peerId) }}ms 送信：{{
+              findPeerTimeDiffUp(context.peerId)
+            }}ms</span
+          ><br />
+          <span>相手の生存信号到着割合：{{ findPeerDegreeOfSuccess(context.peerId) }}</span
+          ><br />
+        </div>
+      }
+    </div>
+  </div>
+}
+<div>
+  @if (!networkService.peerContext.isRoom) {
+    <input class="is-caret" [(ngModel)]="targetUserId" placeholder="接続したい相手のID" name="targetUserId" />
+    <button (click)="connectPeer()" [disabled]="!networkService.isOpen">プライベート接続</button><br />
+  }
+  @if (networkService.peerIds.length <= 1) {
+    <button (click)="showLobby()" [disabled]="!networkService.isOpen">ロビー（ルーム一覧）を表示</button>
+  }
+</div>
+<div>
+  <span style="font-size: 12px">{{ help }}</span>
+</div>
+@if (!networkService.peerContext.isRoom) {
+  @if (networkService.peerContexts.length < 1) {
+    <div style="font-size: 12px">※プライベート接続を使用する場合は、お互いのIDをユドナリウム外で共有してください。</div>
+  }
+  @if (networkService.peerContexts.length < 1) {
+    <div style="font-size: 12px">※一人で動作確認を行いたい場合はブラウザを2つ開くと良いと思います。</div>
+  }
+}
+@if (networkService.peerContext.isRoom) {
+  <div style="font-size: 12px">※ルーム機能を利用している時はプライベート接続を利用できません。</div>
+  <div style="font-size: 12px">
+    <font color="#FF5555"
+      >※接続情報のメッセージを出すタブの変更は<br />チャットウィンドウのタブ設定から行ってください。</font
+    >
+  </div>
+}

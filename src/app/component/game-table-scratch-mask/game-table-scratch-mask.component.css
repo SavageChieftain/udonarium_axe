@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  position: absolute;
+}
+
+.component {
+  position: absolute;
+  cursor: grab;
+}

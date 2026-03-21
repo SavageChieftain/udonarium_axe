@@ -1,0 +1,51 @@
+@if (!isConnected) {
+  <div>
+    <button (click)="reload()" [disabled]="isReloading">一覧を更新</button>
+    <button (click)="showRoomSetting()">新しいルームを作成する</button>
+    <hr />
+    @if (rooms.length) {
+      <table class="room-list">
+        <tr>
+          <th>ルームID</th>
+          <th class="room-name">ルーム名</th>
+          <th>パスワード</th>
+          <th>参加者</th>
+          <th></th>
+        </tr>
+        @for (room of rooms; track room) {
+          <tr>
+            <td class="is-small-font">{{ room.peerContexts[0]?.roomId }}</td>
+            <td class="room-name">{{ room.roomName }}</td>
+            @if (room.peerContexts[0].hasPassword) {
+              <td>
+                <i class="material-icons" style="vertical-align: middle; font-size: 0.9rem">lock</i>
+              </td>
+            }
+            @if (!room.peerContexts[0].hasPassword) {
+              <td>-</td>
+            }
+            <td>{{ room.peerContexts.length }}人</td>
+            <td>
+              @if (0 < room.alias.length) {
+                <button
+                  [disabled]="room.peerContexts[0]?.roomId === currentRoom"
+                  type="submit"
+                  (click)="connect(room.peerContexts)"
+                >
+                  接続
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </table>
+    }
+    @if (rooms.length < 1) {
+      <span style="font-size: 12px">{{ help }}</span>
+    }
+  </div>
+} @else {
+  <span style="font-size: 12px"
+    >別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）</span
+  >
+}

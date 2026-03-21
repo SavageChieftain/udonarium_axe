@@ -1,0 +1,361 @@
+<div class="component is-pointer-events-none" [@fadeInOut]="'in'" appDraggable #draggablePanel>
+  @switch (tabletopObject.aliasName) {
+    @case ('numberResource') {}
+    @case ('card') {
+      <ng-container *ngTemplateOutlet="overviewCard; context: { card: tabletopObject }"></ng-container>
+    }
+    @case ('card-stack') {
+      <ng-container *ngTemplateOutlet="overviewCard; context: { card: tabletopObject }"></ng-container>
+    }
+    @case ('text-note') {
+      <ng-container *ngTemplateOutlet="overviewNote; context: { note: tabletopObject }"></ng-container>
+    }
+    @case ('character') {
+      <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
+    }
+    @case ('dice-symbol') {
+      <ng-container *ngTemplateOutlet="overviewDiceSymbol; context: { dice: tabletopObject }"></ng-container>
+    }
+    @case ('range') {
+      <ng-container *ngTemplateOutlet="overviewRange; context: { range: tabletopObject }"></ng-container>
+    }
+    @default {
+      <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
+    }
+  }
+</div>
+
+@if (isOpenImageView) {
+  <ng-container *ngTemplateOutlet="imageView"></ng-container>
+}
+
+<ng-template #overviewCard let-card="card">
+  <div
+    class="component-content is-small-size"
+    [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    [ngStyle]="{ width: overViewCardWidth + 'px' }"
+  >
+    @if (hasImage) {
+      <div style="position: relative">
+        <img class="card-image" [src]="imageUrl | safe: 'resourceUrl'" />
+        <button class="zoom-button" (click)="chanageImageView(true)">
+          <i class="material-icons">zoom_in</i>
+        </button>
+        @if (card.hasOwner && 0 < card.ownerName.length) {
+          <div class="component-owner position-right-bottom">
+            <div class="owner-tag">{{ card.ownerName }}</div>
+          </div>
+        }
+      </div>
+    }
+    @if (0 < card?.name?.length) {
+      <div
+        class="component-title title-background"
+        [ngClass]="{ 'with-button-marign': hasImage }"
+        [ngStyle]="{ width: overViewCardWidthNoMargin + 'px' }"
+      >
+        @if (card.isVisible === null || card.isVisible) {
+          {{ card.name }}
+        }
+        @if (card.isVisible !== null && !card.isVisible) {
+          カード
+        }
+      </div>
+    }
+    <div
+      class="component-background"
+      [ngStyle]="{ width: overViewCardWidth + 'px', 'max-height': overViewCardMaxHeight + 'px' }"
+    >
+      @if (hasDataElms && card.isVisible) {
+        <div
+          class="grid-container-root"
+          [ngStyle]="{ width: overViewCardWidth + 'px', 'max-height': overViewCardMaxHeight + 'px' }"
+        >
+          <div class="grid-container">
+            @for (dataElm of dataElms; track dataElm) {
+              <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #overviewNote let-note="note">
+  <div
+    class="component-content is-large-size"
+    [ngStyle]="{ 'max-width': 1000 + 'px', width: overViewNoteWidth + 'px' }"
+    [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+  >
+    <div class="component-title title-background" [ngStyle]="{ 'max-width': 1000 + 'px' }">{{ note.title }}</div>
+    <div
+      class="component-background text-note-container"
+      [ngStyle]="{ width: overViewNoteWidth + 'px', 'max-height': overViewNoteMaxHeight + 'px' }"
+    >
+      <div style="position: relative; width: 100%">
+        <div class="is-fill">
+          <textarea class="textarea is-caret" [(ngModel)]="note.text" spellcheck="false"></textarea>
+        </div>
+        <div class="textarea-spacer">{{ note.text }}</div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #overviewCharacter let-character="character">
+  <div class="component-content character-grid-container is-middle-size">
+    <div
+      class="title-bg-area title-background"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    ></div>
+    @if (hasImage) {
+      <div
+        class="image-area character-image-box"
+        [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+      >
+        <img class="character-image" [src]="imageUrl | safe: 'resourceUrl'" />
+      </div>
+    }
+    <div
+      class="title-area component-title"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    >
+      {{ character.name }}
+    </div>
+    <div class="void-area is-pointer-events-none"></div>
+    <div
+      class="dataElm-area component-background"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    >
+      @if (hasDataElms) {
+        <div
+          class="grid-container-root"
+          [ngStyle]="{ width: overViewCharacterWidth + 'px', 'max-height': overViewCharacterMaxHeight + 'px' }"
+        >
+          @for (dataElm of inventoryDataElms; track dataElm) {
+            @if (dataElm && dataElm.name !== newLineString) {
+              <div class="grid-container">
+                <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #overviewDiceSymbol let-dice="dice">
+  <div class="component-content character-grid-container is-middle-size">
+    <div
+      class="title-bg-area title-background"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    ></div>
+    <div
+      class="title-area component-title"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    >
+      {{ dice.name }}:
+      @if (dice.isVisible) {
+        {{ dice.face }}
+      }
+      @if (!dice.isVisible) {
+        ???
+      }
+    </div>
+    @if (dice.hasOwner && 0 < dice.ownerName.length) {
+      <div
+        class="owner-name-area component-owner"
+        [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+      >
+        <div class="owner-tag">{{ dice.ownerName }}</div>
+      </div>
+    }
+    @if (hasImage) {
+      <div
+        class="image-area character-image-box"
+        [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+      >
+        <img
+          class="character-image"
+          [ngClass]="{ 'is-black-mask': !dice.isVisible, 'is-harf-black-mask': dice.isMine }"
+          [src]="imageUrl | safe: 'resourceUrl'"
+        />
+      </div>
+    }
+    <div class="void-area is-pointer-events-none"></div>
+    <div
+      class="dataElm-area component-background"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    >
+      @if (hasDataElms && dice.isVisible) {
+        <div class="grid-container-root">
+          <div class="grid-container">
+            @for (dataElm of dataElms; track dataElm) {
+              @if (dataElm && dataElm.name !== newLineString) {
+                <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #overviewRange let-range="range">
+  <div class="component-content character-grid-container is-middle-size">
+    <div
+      class="title-bg-area title-background"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    ></div>
+    <div
+      class="title-area component-title"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    >
+      {{ range.name }}
+    </div>
+    <div class="void-area is-pointer-events-none"></div>
+    <div
+      class="dataElm-area component-background"
+      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    >
+      @if (hasRangeElms) {
+        <div
+          class="grid-container-root"
+          [ngStyle]="{ width: overViewCharacterWidth + 'px', 'max-height': overViewCharacterMaxHeight + 'px' }"
+        >
+          @for (dataElm of rangeElms; track dataElm) {
+            @if (dataElm && dataElm.name !== 'name') {
+              @if (
+                (range.type !== 'CIRCLE' && range.type !== 'SQUARE' && range.type !== 'DIAMOND') ||
+                dataElm.name !== 'width'
+              ) {
+                <div class="grid-container">
+                  <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
+                </div>
+              }
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #dataElement let-dataElm="dataElm">
+  @if (0 < dataElm.children.length) {
+    <div class="section" style="padding-top: 0.5em">
+      @if (0 < dataElm.name.trim().length) {
+        <div class="section-text">{{ dataElm.name }}</div>
+      }
+      <div class="grid-container indetnt">
+        @for (childElm of dataElm.children; track childElm) {
+          <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: childElm }"></ng-container>
+        }
+      </div>
+    </div>
+  } @else {
+    @switch (dataElm.type) {
+      @case ('note') {
+        <div class="section">
+          <div>
+            {{ dataElm.name }}
+            <span [hidden]="!isUrlText(dataElm.value)">
+              &nbsp;&nbsp;URL編集:<input id="{{ dataElm.myIdentifer }}" type="checkbox" (change)="changeChk()" />
+            </span>
+          </div>
+          <div class="note" style="position: relative">
+            <div class="is-fill">
+              <textarea
+                class="textarea"
+                [(ngModel)]="dataElm.value"
+                spellcheck="false"
+                (focus)="textFocus(dataElm.myIdentifer)"
+                [hidden]="!isEditUrl(dataElm.myIdentifer) && isUrlText(dataElm.value)"
+              ></textarea>
+              <span
+                class="textarea-url"
+                [innerHTML]="escapeHtml(dataElm.value) | linky: { stripPrefix: false }"
+                [hidden]="isEditUrl(dataElm.myIdentifer) || !isUrlText(dataElm.value)"
+              ></span>
+            </div>
+            <div class="textarea-spacer">{{ dataElm.value }}</div>
+          </div>
+        </div>
+      }
+      @case ('markdown') {
+        <div class="section">
+          <div>{{ dataElm.name }}</div>
+          <div class="note" style="position: relative">
+            <div class="is-fill">
+              <span
+                class="textarea-markdown"
+                [innerHTML]="escapeHtmlMarkDown(dataElm.value, dataElm.myIdentifer)"
+              ></span>
+            </div>
+            <div class="textarea-spacer" [innerHTML]="escapeHtmlMarkDown(dataElm.value, dataElm.myIdentifer)"></div>
+          </div>
+        </div>
+      }
+      @case ('check') {
+        <div class="tag">{{ dataElm.name }}</div>
+        <div class="value">
+          @if (dataElm.value !== 0) {
+            <input type="checkbox" checked (click)="dataElm.value = 0" />
+          }
+          @if (dataElm.value === 0) {
+            <input type="checkbox" (click)="dataElm.value = 1" />
+          }
+        </div>
+      }
+      @case ('numberResource') {
+        <div class="tag">{{ dataElm.name }}</div>
+        <div class="value">
+          <div style="display: inline-block; width: min-content">
+            <div class="hidden-spacer" style="margin-right: 2em">{{ dataElm.currentValue }}</div>
+            <input
+              class="input is-caret"
+              type="number"
+              [style]="'color:' + dataElm.nowValueColor + ';'"
+              size="1"
+              [(ngModel)]="dataElm.currentValue"
+            />
+          </div>
+          <div style="display: inline">/ {{ dataElm.value }}</div>
+        </div>
+        <div class="section" style="line-height: 1em">
+          <input
+            type="range"
+            [style]="
+              'font-size: 0.8em; width: 100%; --min: 0; --max:' +
+                dataElm.value +
+                '; --val:' +
+                dataElm.currentValue +
+                ';' | safe: 'style'
+            "
+            min="0"
+            max="{{ dataElm.value }}"
+            [(ngModel)]="dataElm.currentValue"
+          />
+        </div>
+      }
+      @default {
+        <div class="tag">{{ dataElm.name }}</div>
+        <div class="value">
+          <div class="hidden-spacer">{{ dataElm.value }}</div>
+          <input class="input is-caret" size="1" [(ngModel)]="dataElm.value" />
+        </div>
+      }
+    }
+    <div class="section border"></div>
+  }
+</ng-template>
+
+<ng-template #imageView>
+  <div class="image-view-background is-fill" (click)="chanageImageView(false)" [@fadeInOut]="'in'">
+    <div class="close-button is-pointer-events-none"><i class="material-icons">close</i></div>
+    <img class="contain-image" [src]="imageUrl | safe: 'resourceUrl'" />
+  </div>
+</ng-template>

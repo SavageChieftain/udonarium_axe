@@ -1,0 +1,206 @@
+import { Injectable, NgZone, inject } from '@angular/core';
+
+import { ChatTab } from '@axe/chat-tab';
+import { ChatTabList } from '@axe/chat-tab-list';
+
+import { Config } from '@axe/config';
+
+import { FileArchiver } from '@axe/core/file-storage/file-archiver';
+import { ImageFile, ImageState } from '@axe/core/file-storage/image-file';
+import { ImageStorage } from '@axe/core/file-storage/image-storage';
+import { MimeType } from '@axe/core/file-storage/mime-type';
+import { GameObject } from '@axe/core/synchronize-object/game-object';
+import { PromiseQueue } from '@axe/core/system/util/promise-queue';
+import { XmlUtil } from '@axe/core/system/util/xml-util';
+import { DataSummarySetting } from '@axe/data-summary-setting';
+import { Room } from '@axe/room';
+
+import { saveAs } from 'file-saver';
+
+import * as Beautify from 'vkbeautify';
+//本家PR #92より
+import { ImageTagList } from '@axe/image-tag-list';
+//
+type UpdateCallback = (percent: number) => void;
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SaveDataService {
+  private ngZone = inject(NgZone);
+
+  private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
+
+  saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
+    return SaveDataService.queue.add((resolve: (value: Promise<void>) => void, _reject: (reason?: unknown) => void) =>
+      resolve(this._saveRoomAsync(fileName, updateCallback))
+    );
+  }
+
+  private _saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
+    const files: File[] = [];
+    const roomXml = this.convertToXml(new Room());
+    const chatXml = this.convertToXml(ChatTabList.instance);
+    const configXml = this.convertToXml(Config.instance);
+    const summarySetting = this.convertToXml(DataSummarySetting.instance);
+    files.push(new File([roomXml], 'data.xml', { type: 'text/plain' }));
+    files.push(new File([chatXml], 'chat.xml', { type: 'text/plain' }));
+
+    files.push(new File([configXml], 'config.xml', { type: 'text/plain' }));
+
+    files.push(new File([summarySetting], 'summary.xml', { type: 'text/plain' }));
+    //本家PR #92より
+    //    files = files.concat(this.searchImageFiles(roomXml));
+    //    files = files.concat(this.searchImageFiles(chatXml));
+
+    let images: ImageFile[] = [];
+    images = images.concat(this.searchImageFiles(roomXml));
+    images = images.concat(this.searchImageFiles(chatXml));
+    for (const image of images) {
+      if (image.state === ImageState.COMPLETE) {
+        files.push(
+          new File([image.blob!], image.identifier + '.' + MimeType.extension(image.blob!.type), {
+            type: image.blob!.type,
+          })
+        );
+      }
+    }
+
+    const imageTagXml = this.convertToXml(ImageTagList.create(images));
+    files.push(new File([imageTagXml], 'imagetag.xml', { type: 'text/plain' }));
+
+    return this.saveAsync(files, this.appendTimestamp(fileName), updateCallback);
+  }
+
+  saveGameObjectAsync(
+    gameObject: GameObject,
+    fileName: string = 'xml_data',
+    updateCallback?: UpdateCallback
+  ): Promise<void> {
+    return SaveDataService.queue.add((resolve: (value: Promise<void>) => void, _reject: (reason?: unknown) => void) =>
+      resolve(this._saveGameObjectAsync(gameObject, fileName, updateCallback))
+    );
+  }
+
+  private _saveGameObjectAsync(
+    gameObject: GameObject,
+    fileName: string = 'xml_data',
+    updateCallback?: UpdateCallback
+  ): Promise<void> {
+    const files: File[] = [];
+    const xml: string = this.convertToXml(gameObject);
+
+    files.push(new File([xml], 'data.xml', { type: 'text/plain' }));
+    //本家PR #92より
+    //    files = files.concat(this.searchImageFiles(xml));
+    let images: ImageFile[] = [];
+    images = images.concat(this.searchImageFiles(xml));
+    for (const image of images) {
+      if (image.state === ImageState.COMPLETE) {
+        files.push(
+          new File([image.blob!], image.identifier + '.' + MimeType.extension(image.blob!.type), {
+            type: image.blob!.type,
+          })
+        );
+      }
+    }
+
+    const imageTagXml = this.convertToXml(ImageTagList.create(images));
+    files.push(new File([imageTagXml], 'imagetag.xml', { type: 'text/plain' }));
+
+    return this.saveAsync(files, this.appendTimestamp(fileName), updateCallback);
+  }
+
+  private saveAsync(files: File[], zipName: string, updateCallback?: UpdateCallback): Promise<void> {
+    let progresPercent = -1;
+    return FileArchiver.instance.saveAsync(files, zipName, (meta) => {
+      const percent = meta.percent | 0;
+      if (percent <= progresPercent) return;
+      progresPercent = percent;
+      this.ngZone.run(() => updateCallback && updateCallback(progresPercent));
+    });
+  }
+
+  private convertToXml(gameObject: GameObject): string {
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+    //    return xmlDeclaration + '\n' + gameObject.toXml();
+    return xmlDeclaration + '\n' + Beautify.xml(gameObject.toXml(), 2);
+  }
+
+  //本家PR #92より
+  //  private searchImageFiles(xml: string): File[] {
+  private searchImageFiles(xml: string): ImageFile[] {
+    //
+    const xmlElement: Element = XmlUtil.xml2element(xml);
+
+    //本家PR #92より
+    //    let files: File[] = [];
+    const files: ImageFile[] = [];
+    //
+    if (!xmlElement) return files;
+
+    const images: { [identifier: string]: ImageFile } = {};
+    let imageElements = xmlElement.ownerDocument.querySelectorAll('*[type="image"]');
+
+    for (let i = 0; i < imageElements.length; i++) {
+      const identifier = imageElements[i].innerHTML;
+      images[identifier] = ImageStorage.instance.get(identifier);
+    }
+
+    imageElements = xmlElement.ownerDocument.querySelectorAll('*[imageIdentifier], *[backgroundImageIdentifier]');
+
+    for (let i = 0; i < imageElements.length; i++) {
+      const identifier = imageElements[i].getAttribute('imageIdentifier');
+      if (identifier) images[identifier] = ImageStorage.instance.get(identifier);
+      const backgroundImageIdentifier = imageElements[i].getAttribute('backgroundImageIdentifier');
+      if (backgroundImageIdentifier)
+        images[backgroundImageIdentifier] = ImageStorage.instance.get(backgroundImageIdentifier);
+    }
+    for (const identifier in images) {
+      const image = images[identifier];
+      //本家PR #92より
+      //      if (image && image.state === ImageState.COMPLETE) {
+      //        files.push(new File([image.blob], image.identifier + '.' + MimeType.extension(image.blob.type), { type: image.blob.type }));
+      //      }
+      if (image) {
+        files.push(image);
+      }
+    }
+    return files;
+  }
+
+  saveHtmlChatLog(chatTab: ChatTab, fileName: string) {
+    const text: string = chatTab.logHtml();
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, fileName + '.html');
+  }
+
+  saveHtmlChatLogAll(fileName: string) {
+    const text: string = ChatTabList.instance.logHtml();
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, fileName + '.html');
+  }
+
+  saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string) {
+    const text: string = chatTab.logHtmlCoc();
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, fileName + '.html');
+  }
+
+  saveHtmlChatLogAllCoc(fileName: string) {
+    const text: string = ChatTabList.instance.logHtmlCoc();
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, fileName + '.html');
+  }
+
+  private appendTimestamp(fileName: string): string {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = ('00' + (date.getMonth() + 1)).slice(-2);
+    const day = ('00' + date.getDate()).slice(-2);
+    const hours = ('00' + date.getHours()).slice(-2);
+    const minutes = ('00' + date.getMinutes()).slice(-2);
+
+    return fileName + `_${year}-${month}-${day}_${hours}${minutes}`;
+  }
+}

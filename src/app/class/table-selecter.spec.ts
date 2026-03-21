@@ -1,0 +1,57 @@
+import { TestBed } from '@angular/core/testing';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { TableSelecter } from './table-selecter';
+import { ObjectStore } from './core/synchronize-object/object-store';
+
+describe('TableSelecter', () => {
+  let store: ObjectStore;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    store = ObjectStore.instance;
+    const allObjects = store.getObjects();
+    allObjects.forEach((obj) => store.delete(obj, false));
+    store.clearDeleteHistory();
+    (TableSelecter as any)._instance = undefined;
+  });
+
+  afterEach(() => {
+    const allObjects = store.getObjects();
+    allObjects.forEach((obj) => store.delete(obj, false));
+    store.clearDeleteHistory();
+    (TableSelecter as any)._instance = undefined;
+    vi.restoreAllMocks();
+  });
+
+  describe('instance (singleton)', () => {
+    it('シングルトンインスタンスを返す', () => {
+      const instance1 = TableSelecter.instance;
+      const instance2 = TableSelecter.instance;
+      expect(instance1).toBe(instance2);
+    });
+
+    it('identifierが"TableSelecter"', () => {
+      expect(TableSelecter.instance.identifier).toBe('TableSelecter');
+    });
+  });
+
+  describe('SyncVar デフォルト値', () => {
+    it('viewTableIdentifier がデフォルト空文字', () => {
+      expect(TableSelecter.instance.viewTableIdentifier).toBe('');
+    });
+
+    it('tableGridDummy がデフォルト false', () => {
+      expect(TableSelecter.instance.tableGridDummy).toBe(false);
+    });
+  });
+
+  describe('プロパティ', () => {
+    it('gridShow のデフォルトはfalse', () => {
+      expect(TableSelecter.instance.gridShow).toBe(false);
+    });
+
+    it('gridSnap のデフォルトはtrue', () => {
+      expect(TableSelecter.instance.gridSnap).toBe(true);
+    });
+  });
+});

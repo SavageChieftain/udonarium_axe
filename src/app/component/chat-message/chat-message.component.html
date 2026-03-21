@@ -1,0 +1,82 @@
+<div class="container">
+  <div [@flyInOut]="animeState">
+    @if (!chatSimpleDispFlag) {
+      <div
+        class="message"
+        [ngClass]="{
+          'direct-message': (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
+          'system-message': chatMessage.isSystem,
+          'dicebot-message': chatMessage.isDicebot,
+        }"
+      >
+        <div class="image">
+          @if (0 < imageFile.url.length) {
+            <img [src]="imageFile.url | safe: 'resourceUrl'" />
+          }
+        </div>
+        <div class="body" [ngStyle]="{ color: chatMessage.messColor }">
+          <div class="title">
+            <span class="msg-name">{{ chatMessage.name }}</span>
+            <span class="tip msg-from">{{ chatMessage.from }}</span>
+            <span class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'y/M/d H:mm' }}</span>
+          </div>
+          <div class="text msg-text">
+            @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
+              <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linky: { stripPrefix: false } | safe"></span>
+              @if (chatMessage.isSecret) {
+                <button (click)="discloseMessage()">内容を公開</button>
+              }
+            } @else {
+              <span>（シークレットダイス）</span>
+            }
+            @if (chatMessage.fixd) {
+              &nbsp;(編集済)
+            }
+            @if (chatMessage.changeable) {
+              <div class="fix" (click)="clickFix()">&nbsp;[編集]</div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+    @if (chatSimpleDispFlag) {
+      <div
+        class="message-small"
+        [ngClass]="{
+          'direct-message': (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
+          'system-message': chatMessage.isSystem,
+          'dicebot-message': chatMessage.isDicebot,
+        }"
+      >
+        <div class="body" [ngStyle]="{ color: chatMessage.messColor }">
+          <span class="title">
+            <font class="msg-name">{{ chatMessage.name }}</font
+            >：
+            @if (simpleDispFlagUserId) {
+              <font class="tip msg-from">{{ chatMessage.from }}</font>
+            }
+            @if (simpleDispFlagTime) {
+              <font class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'H:mm' }}</font>
+            }
+            <font class="text msg-text">
+              @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
+                <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linky: { stripPrefix: false } | safe"></span>
+                @if (chatMessage.isSecret) {
+                  <button (click)="discloseMessage()">内容を公開</button>
+                }
+              } @else {
+                <span>（シークレットダイス）</span>
+              }
+              @if (chatMessage.fixd) {
+                &nbsp;(編集済)
+              }
+              @if (chatMessage.changeable) {
+                <div class="fix" (click)="clickFix()">&nbsp;[編集]</div>
+              }
+            </font>
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

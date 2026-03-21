@@ -1,0 +1,217 @@
+:host {
+  display: block;
+}
+
+.is-grab {
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.is-grabbing {
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+.is-3d {
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
+.will-change {
+  will-change: opacity;
+}
+
+.is-transition {
+  -webkit-transition: -webkit-transform 132ms linear;
+  transition: transform 132ms linear;
+}
+
+.is-pointer-events-none {
+  pointer-events: none;
+}
+
+.is-pointer-events-auto {
+  pointer-events: auto;
+}
+
+.component {
+  position: absolute;
+  height: auto;
+  width: auto;
+  backface-visibility: hidden;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -moz-user-drag: none;
+  -webkit-user-drag: none;
+  min-width: 25px;
+  min-height: 25px;
+}
+
+.dummy-will-change {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  will-change: opacity;
+}
+
+.component-content {
+  backface-visibility: hidden;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card-image {
+  display: block;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  height: auto;
+  width: 100%;
+}
+
+.lock-icon-mark {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  z-index: 1;
+  padding: 2px;
+  background-color: #444;
+  border-radius: 100%;
+  color: #CCC;
+  font-size: 8px;
+  top: 5px;
+}
+
+.thumbnail-transform {
+  position: absolute;
+  transform: scale(0.9);
+}
+
+.is-translucent {
+  filter: opacity(0.8);
+}
+
+.rotate-grab {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  cursor: -moz-default;
+  cursor: -webkit-default;
+  cursor: default;
+  z-index: 1;
+  padding: 2px;
+  background-color: #CCCCCC;
+  border-radius: 100%;
+  color: #444;
+  font-size: 8px;
+  z-index: 11;
+}
+
+.rotate-grab {
+  display: none;
+}
+
+.component:hover .rotate-grab {
+  display: block;
+  opacity: 0.5;
+}
+
+.component:active .rotate-grab {
+  display: none;
+}
+
+.component .rotate-grab:hover, .component .rotate-grab:active {
+  display: block;
+  opacity: 1;
+}
+
+.of-left-top {
+  top: -10px;
+  left: -10px;
+  border-radius: 14px;
+}
+
+.of-left-bottom {
+  bottom: -10px;
+  left: -10px;
+  border-radius: 14px;
+}
+
+.of-right-bottom {
+  bottom: -10px;
+  right: -10px;
+  border-radius: 14px;
+}
+
+.of-right-top {
+  top: -10px;
+  right: -10px;
+  border-radius: 14px;
+}
+
+.border-bg {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background-color: rgba(204, 204, 204, 0.5);
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  z-index: -1;
+}
+
+.border-bg {
+  display: none;
+}
+
+.component:hover .border-bg {
+  display: block;
+}
+
+.component:active .border-bg {
+  display: none;
+}
+
+.name-tag {
+  box-sizing: border-box;
+  font-size: 15px;
+  padding: 3px 9px;
+  border-radius: 24px;
+  position: absolute;
+  top: 0;
+  color: whitesmoke !important;
+  opacity: 0.9;
+  z-index: 10;
+}
+
+.has-length-limit {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 18em;
+}
+
+.is-nowrap {
+  white-space: nowrap;
+}
+
+.is-black-background {
+  color: #CCC;
+  background-color: rgba(30, 30, 30, 0.8);
+}
+
+.material-icons {
+  display: none;
+}
+.component:hover .material-icons, .component:active .material-icons {
+  display: inline;
+}

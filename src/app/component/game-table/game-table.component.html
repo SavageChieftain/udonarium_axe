@@ -1,0 +1,106 @@
+<div
+  class="background-image is-pointer-events-none"
+  [ngClass]="[backgroundFilterType ? 'is-filter' : '', backgroundFilterType]"
+  [style.background-image]="'url(' + backgroundImage.url + ')' | safe: 'style'"
+></div>
+<div class="component is-fill is-perspective" [ngClass]="{ 'is-grabbing': isPointerDragging }" #root>
+  <div class="component-content is-fill is-3d-2" #gameTable>
+    <div
+      id="app-game-table"
+      class="game-table table-image is-3d-2"
+      [style.background-image]="'url(' + tableImage.url + ')' | safe: 'style'"
+      #gameObjects
+    >
+      <canvas class="grid-canvas is-fill is-pointer-events-none" #gridCanvas></canvas>
+      @if (terrains.length > 0) {
+        <div class="layer">
+          <div class="dummy"></div>
+          @for (terrain of terrains; track trackByGameObject($index, terrain)) {
+            <terrain class="is-3d will-change-transform" [terrain]="terrain"></terrain>
+          }
+        </div>
+      }
+      @for (mask of tableMasks; track trackByGameObject($index, mask)) {
+        <game-table-mask class="is-3d will-change-transform" [gameTableMask]="mask"> </game-table-mask>
+      }
+      @for (scratchMask of tableScratchMasks; track trackByGameObject($index, scratchMask)) {
+        <game-table-scratch-mask class="is-3d will-change-transform" [gameTableScratchMask]="scratchMask">
+        </game-table-scratch-mask>
+      }
+      @if (textNotes.length > 0) {
+        <div class="layer">
+          <div class="dummy"></div>
+          @for (textNote of textNotes; track trackByGameObject($index, textNote)) {
+            <text-note
+              class="is-3d will-change-transform"
+              [textNote]="textNote"
+              [appTooltip]="textNote"
+              [ngStyle]="{ 'z-index': textNote.zindex }"
+            ></text-note>
+          }
+        </div>
+      }
+      @for (cardStack of cardStacks; track trackByGameObject($index, cardStack)) {
+        <card-stack
+          class="is-3d will-change-transform"
+          [cardStack]="cardStack"
+          [appTooltip]="cardStack"
+          [ngStyle]="{
+            'z-index': cardStack.zindex,
+            transform: 'translateZ(' + cardStack.zindex * 0.001 + 'px)',
+          }"
+        ></card-stack>
+      }
+      @for (card of cards; track trackByGameObject($index, card)) {
+        <card
+          class="is-3d will-change-transform"
+          [card]="card"
+          [appTooltip]="card"
+          [ngStyle]="{
+            'z-index': card.zindex,
+            transform: 'translateZ(' + card.zindex * 0.001 + 'px)',
+          }"
+        ></card>
+      }
+      <div class="range">
+        <div class="dummy"></div>
+        @for (cursor of peerCursors; track trackByGameObject($index, cursor)) {
+          <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
+        }
+      </div>
+      @for (range of ranges; track trackByGameObject($index, range)) {
+        <range class="is-3d will-change-transform" [range]="range"></range>
+      }
+      @if (diceSymbols.length > 0) {
+        <div class="layer">
+          <div class="dummy"></div>
+          @for (diceSymbol of diceSymbols; track trackByGameObject($index, diceSymbol)) {
+            <dice-symbol
+              class="is-3d will-change-transform"
+              [diceSymbol]="diceSymbol"
+              [appTooltip]="diceSymbol"
+            ></dice-symbol>
+          }
+        </div>
+      }
+      @if (characters.length > 0) {
+        <div class="layer">
+          <div class="dummy"></div>
+          @for (character of characters; track trackByGameObject($index, character)) {
+            <game-character
+              class="is-3d will-change-transform"
+              [gameCharacter]="character"
+              [appTooltip]="character"
+            ></game-character>
+          }
+        </div>
+      }
+      <div class="layer cursor-layer">
+        <div class="dummy"></div>
+        @for (cursor of peerCursors; track trackByGameObject($index, cursor)) {
+          <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,111 @@
+<div
+  class="component"
+  [ngClass]="{ 'submenu-panel': isSubmenu, 'is-max-limit': !isSubmenu, 'pointer-events-none': isPointerDragging }"
+  (mouseleave)="hideSubMenu()"
+  #root
+>
+  @if (0 < title.length) {
+    <div class="title">{{ title }}</div>
+  }
+  <div style="display: flex; align-items: top">
+    @if (altitudeHande) {
+      <div
+        class="altitude ruler"
+        style="display: flex; align-self: stretch; flex-direction: column; align-content: center"
+      >
+        <div style="margin-top: 2em">高</div>
+        <div style="align-self: center; margin-top: auto; margin-bottom: auto">0</div>
+        <div style="margin-bottom: 2em">低</div>
+      </div>
+    }
+    @if (altitudeHande) {
+      <div class="altitude">
+        <input
+          #altitudeSlider
+          class="altitude"
+          title="{{ altitudeHande.altitude }}"
+          [(ngModel)]="altitudeHande.altitude"
+          type="range"
+          max="12"
+          min="-12"
+          step="0.5"
+          orient="vertical"
+        />
+      </div>
+    }
+    <div style="flex-grow: 1">
+      @if (altitudeHande) {
+        <div>
+          <div class="title" [style.color]="titleColor" [style.font-weight]="titleBold ? 'bolder' : 'normal'">
+            @if (altitudeHande) {
+              <span style="font-size: small">
+                (高度
+                <input
+                  type="number"
+                  step="0.1"
+                  style="font-size: small; width: 3.6em; text-align: right"
+                  [(ngModel)]="altitudeHande.altitude"
+                />)</span
+              >
+            }
+          </div>
+        </div>
+      }
+      <ul>
+        @if (title !== 'インデックス') {
+          @for (action of actions; track action) {
+            <ng-container
+              *ngTemplateOutlet="action?.type === 'separator' ? separator : actionMenu; context: { action: action }"
+            ></ng-container>
+          }
+        }
+        @if (title === 'インデックス') {
+          @for (action of actions; track action) {
+            <ng-container
+              *ngTemplateOutlet="action?.type === 'separator' ? separator : indexMenu; context: { action: action }"
+            ></ng-container>
+          }
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<ng-template #indexMenu let-action="action">
+  <li class="hasHighlight" (click)="indexAction(action.line, action.id)">
+    <div class="menu-title">{{ action.line }}:{{ action.name }}</div>
+  </li>
+</ng-template>
+
+<ng-template #actionMenu let-action="action">
+  <li class="hasHighlight" (click)="doAction(action)" (mouseenter)="showSubMenu(action)">
+    <div class="menu-title">
+      @if (action.name && action.name.indexOf('☑') === 0) {
+        <input type="checkbox" [disabled]="action.disabled" checked />
+      }
+      @if (action.name && action.name.indexOf('☐') === 0) {
+        <input type="checkbox" [disabled]="action.disabled" />
+      }
+      @if (action.name && action.name.indexOf('◉') === 0) {
+        <input type="radio" [disabled]="action.disabled" checked />
+      }
+      @if (action.name && action.name.indexOf('○') === 0) {
+        <input type="radio" [disabled]="action.disabled" />
+      }
+      {{ action.name.replace('☑', '').replace('☐', '').replace('◉', '').replace('○', '') }}
+    </div>
+    @if (action.subActions) {
+      <div class="sub-menu-arrow">
+        <i class="material-icons" style="font-size: 1em; vertical-align: bottom">arrow_forward_ios</i>
+      </div>
+    }
+    @if (subMenu && parentMenu === action) {
+      <context-menu [title]="action.name" [actions]="subMenu" [isSubmenu]="true"></context-menu>
+    }
+  </li>
+</ng-template>
+<ng-template #separator let-action="action">
+  <li>
+    <hr class="separator" />
+  </li>
+</ng-template>

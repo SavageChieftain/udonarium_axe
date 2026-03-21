@@ -1,0 +1,29 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { PasswordCheckComponent } from './password-check.component';
+import { ModalService } from 'service/modal.service';
+
+describe('PasswordCheckComponent', () => {
+  let component: PasswordCheckComponent;
+  let fixture: ComponentFixture<PasswordCheckComponent>;
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      imports: [PasswordCheckComponent],
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    // Provide ModalService.option for constructor
+    const modalService = TestBed.inject(ModalService);
+    // Use reflection to set private modalContext
+    (modalService as any).modalContext = { option: { peerId: 'test-peer-id', title: 'Test Title' } };
+
+    fixture = TestBed.createComponent(PasswordCheckComponent);
+    component = fixture.componentInstance;
+  });
+
+  it('should be created', () => {
+    expect(component).toBeTruthy();
+  });
+});

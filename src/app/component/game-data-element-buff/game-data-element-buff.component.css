@@ -1,0 +1,226 @@
+.game-data-element{
+  margin-left: 10px;
+}
+.table {
+  display:table; 
+  /*padding-left: 10px;*/
+  /*border:1px solid #FF0000;*/
+  width :100%;
+  box-sizing: border-box;
+
+}
+.table-row {
+  padding-top: 10px;
+  display:table-row;
+  /*border:5px solid #00FF00;*/
+  /*border-bottom:1px dotted #888;*/
+  /*width :100%;*/
+  box-sizing: border-box;
+  }
+
+.table-cell-2 {
+  display:table-cell;
+  vertical-align: middle;
+  padding: 0.0em 0.0em 0.0em 0.0em;
+  /*border:1px solid #0000FF;*/
+  /*border-bottom:1px dotted #888;*/
+  /*box-sizing: border-box;*/
+}
+
+
+.table-cell {
+  display:table-cell;
+  vertical-align: bottom;
+  padding: 0.5em 0.0em 0.1em 0.5em;
+  /*border:1px solid #0000FF;*/
+  border-bottom:1px dotted #888;
+  box-sizing: border-box;
+}
+.table-cell_solid {
+  width :10px;
+  white-space: nowrap;
+}
+.table-cell_inner-table {
+  display:table-cell;
+  vertical-align: bottom;
+  padding: 0.2em 0.0em 0.1em 0.5em;
+  border: none;
+  /*border-bottom:1px solid #0ff;*/
+  box-sizing: border-box;
+}
+.table-cell_inner-table-title {
+  border-bottom: 1px solid #444;
+  border-left: 8px solid #444;
+  padding-left:8px;
+}
+.box {
+  display: inline-block;
+  margin: 10px;
+  /*border:1px solid #FFF;*/
+}
+.hidden-spacer {
+  visibility: hidden;
+  height: 0;
+  /*background: #0FF;*/
+  max-width : 20em;
+  overflow: hidden;
+  padding: 0 3px;
+  box-sizing: border-box;
+}
+
+/*button*/
+
+input, textarea, select{
+/*.input {*/
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+
+  color: #444;
+  font-family: Cambria, Georgia;
+  font-size: 1.0em;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.inputLock{
+/*.input {*/
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+
+  color: #444;
+  font-family: Cambria, Georgia;
+  font-size: 1.0em;
+  padding: 2px;
+  box-sizing: border-box;
+  width:100%;
+  min-width:10px; 
+  font-weight: bold;
+}
+
+input:hover, textarea:hover, select:hover  {
+  background: #EEE;
+}
+input:focus, textarea:focus, select:focus  {
+  background: #FFF;
+}
+button i {
+  font-size: 1.0rem;
+}
+
+button:hover  {
+  background: #444;
+  color: #CCC;
+}
+
+.table-cell button{
+  font-size: 0.5rem;
+}
+
+input[type='range'] {
+  --slider-track-color: transparent; /* #ccc */
+  --slider-fill-color: #555; /*#777 */
+  --slider-border-color: #777;
+  --slider-height: 0.8em;
+  --slider-thumb-size: 1.0em;
+  --range: calc(var(--max) - var(--min));
+  --ratio: calc((var(--val) - var(--min))/var(--range));
+  --sx: calc(.5*var(--slider-thumb-size) + var(--ratio)*(100% - var(--slider-thumb-size)));
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font: 1em/1 arial, sans-serif;
+  outline: 0;
+  appearance: none;
+}
+
+input[type='range'], input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  box-sizing: border-box;
+  border-top: solid 1px var(--slider-border-color);
+  border-bottom: solid 1px var(--slider-border-color);
+  border-radius: var(--slider-height);
+  height: var(--slider-height);
+  background: var(--slider-track-color);
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0/var(--sx) 100% no-repeat var(--slider-track-color);
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-track {
+  box-sizing: border-box;
+  border: solid 1px var(--slider-border-color);
+  border-radius: var(--slider-height);
+  height: var(--slider-height);
+  background: var(--slider-track-color);
+}
+
+input[type='range']::-ms-track {
+  box-sizing: border-box;
+  border: solid 1px var(--slider-border-color);
+  border-radius: var(--slider-height);
+  height: var(--slider-height);
+  background: var(--slider-track-color);
+}
+
+input[type='range']::-moz-range-progress {
+  height: var(--slider-height);
+  background: var(--slider-fill-color);
+  border-radius: var(--slider-height);
+}
+
+input[type='range']::-ms-fill-lower {
+  height: var(--slider-height);
+  background: var(--slider-fill-color);
+  border-radius: var(--slider-height);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  margin-top: calc((var(--slider-height) - var(--slider-thumb-size)) / 2 - 1px);
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  box-sizing: border-box;
+  border: solid 1px  var(--slider-border-color);
+  border-radius: 2em;
+  background: #ddd;
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  box-sizing: border-box;
+  border: solid 1px  var(--slider-border-color);
+  border-radius: 2em;
+  background: #ddd;
+  cursor: pointer;
+}
+
+input[type='range']::-ms-thumb {
+  margin-top: 0;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  box-sizing: border-box;
+  border: solid 1px  var(--slider-border-color);
+  border-radius: 2em;
+  background: #ddd;
+  cursor: pointer;
+}
+
+input[type='range']::-ms-tooltip {
+  display: none;
+}
+
+/*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
+キャレットの点滅で負荷がかかることへの対策不透明度指定*/
+.is-caret {
+  caret-color: rgba(0,0,0,0.95);
+}

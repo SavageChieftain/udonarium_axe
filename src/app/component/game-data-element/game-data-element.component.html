@@ -1,0 +1,278 @@
+@if (gameDataElement) {
+  @if (gameDataElement.children.length < 1) {
+    @if (isEdit) {
+      <div class="table-cell table-cell_solid">
+        @if (!isImage) {
+          <ng-container *ngTemplateOutlet="editButtons"></ng-container>
+          <select (change)="setElementType($any($event.target).value)" [ngModel]="gameDataElement.type">
+            <option value="">通常</option>
+            <option value="numberResource">リソース</option>
+            <option value="note">ノート</option>
+            <option value="markdown">チェック/表</option>
+            <option value="check">単一チェック</option>
+          </select>
+        }
+        @if (isImage && indexNum >= 1) {
+          <ng-container *ngTemplateOutlet="editButtonsImageTop"></ng-container>
+        }
+        @if (isImage && indexNum < 1) {
+          <ng-container *ngTemplateOutlet="editButtonsImageMiddle"></ng-container>
+        }
+      </div>
+    }
+    <div class="table-cell table-cell_solid">
+      @if (isTagLocked) {
+        @if (!isImage) {
+          <div style="font-family: Cambria, Georgia; font-size: 0.9rem">
+            {{ name }}
+          </div>
+        }
+      }
+      @if (!isTagLocked) {
+        @if (!isImage) {
+          <div class="hidden-spacer" style="font-family: Cambria, Georgia; font-size: 0.9rem">
+            {{ name }}
+          </div>
+          <input
+            class="is-caret"
+            style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 0.9rem"
+            size="1"
+            [(ngModel)]="name"
+            placeholder="Value"
+          />
+        }
+      }
+    </div>
+    <div class="table-cell">
+      @switch (gameDataElement.type) {
+        @case ('numberResource') {
+          <input
+            [style]="
+              'font-size: 1.0em; min-width: 90px; width: 90%; --min: 0; --max: ' +
+                value +
+                '; --val:' +
+                currentValue +
+                ';' | safe: 'style'
+            "
+            [(ngModel)]="currentValue"
+            type="range"
+            min="0"
+            max="{{ value }}"
+          />
+          <br />
+          <input
+            class="is-caret"
+            style="width: 5em; text-align: right"
+            size="1"
+            type="number"
+            [(ngModel)]="currentValue"
+            placeholder="Value"
+          />
+          /
+          <input class="is-caret" style="width: 5em" size="1" type="number" [(ngModel)]="value" placeholder="Value" />
+        }
+        @case ('note') {
+          <span [hidden]="!isUrlText(value)" style="font-size: 0.8em">
+            &nbsp;&nbsp;URL編集:<input
+              id="{{ gameDataElement.myIdentifer + '_elm' }}"
+              type="checkbox"
+              (change)="changeChk()"
+            />
+          </span>
+          <!--
+            <textarea style="width:100%; height:5em; min-width:50px; resize: none; font-size: 0.8em;" [(ngModel)]="value" placeholder="Note"></textarea>
+            -->
+          <textarea
+            class="textarea-url is-caret"
+            style="width: 100%; height: 5em; min-width: 50px; resize: none; font-size: 0.8em"
+            [(ngModel)]="value"
+            placeholder="Note"
+            [hidden]="!isEditUrl(gameDataElement.myIdentifer + '_elm') && isUrlText(gameDataElement.value)"
+            (focus)="textFocus(gameDataElement.myIdentifer + '_elm')"
+          >
+          </textarea>
+          <div
+            [hidden]="isEditUrl(gameDataElement.myIdentifer + '_elm') || !isUrlText(gameDataElement.value)"
+            style="width: 100%; max-width: 200px; min-width: 50px"
+          >
+            <!--overflow:scroll;height:5em;-->
+            <span
+              class="textarea-url"
+              style="width: 100%; min-width: 50px; font-size: 0.8em"
+              [innerHTML]="escapeHtml(value) | linky: { stripPrefix: false }"
+            ></span>
+          </div>
+        }
+        @case ('markdown') {
+          <span style="font-size: 0.8em">
+            &nbsp;&nbsp;内容編集:<input
+              id="{{ gameDataElement.myIdentifer + '_elm' }}"
+              type="checkbox"
+              (change)="changeChk()"
+            />
+          </span>
+          <textarea
+            class="textarea-markdown is-caret"
+            style="width: 100%; height: 5em; min-width: 50px; resize: none; font-size: 0.8em"
+            [(ngModel)]="value"
+            placeholder="Note"
+            [hidden]="!isEditMarkDown(gameDataElement.myIdentifer + '_elm')"
+            (focus)="textFocus(gameDataElement.myIdentifer + '_elm')"
+          >
+          </textarea>
+          <div
+            [hidden]="isEditMarkDown(gameDataElement.myIdentifer + '_elm')"
+            style="width: 100%; max-width: 200px; min-width: 50px"
+          >
+            <div
+              class="textarea-markdown"
+              style="width: 100%; min-width: 50px; font-size: 0.8em"
+              [innerHTML]="escapeHtmlMarkDown(gameDataElement.value, gameDataElement.myIdentifer)"
+            ></div>
+          </div>
+        }
+        @case ('check') {
+          @if (gameDataElement.value !== 0) {
+            <input type="checkbox" checked (click)="gameDataElement.value = 0" />
+          }
+          @if (gameDataElement.value === 0) {
+            <input type="checkbox" (click)="gameDataElement.value = 1" />
+          }
+        }
+        @default {
+          @if (!isImage) {
+            <div class="hidden-spacer" style="font-size: 1em; font-family: Cambria, Georgia">
+              {{ value }}
+            </div>
+            <input
+              class="is-caret"
+              style="width: 100%; min-width: 10px"
+              size="1"
+              [(ngModel)]="value"
+              placeholder="Value"
+            />
+          }
+          @if (isImage) {
+            <div class="table-2">
+              <div class="table-cell-2 sub-image-box">
+                @if (imageFileUrl) {
+                  <img class="sub-image" [src]="imageFileUrl | safe: 'resourceUrl'" [alt]="gameDataElement.value" />
+                }
+              </div>
+              <div class="table-cell-2 sub-table">
+                <span>立ち絵番号{{ indexNum }}: </span
+                ><input
+                  class="is-caret"
+                  style="width: 100%; min-width: 10px"
+                  size="1"
+                  [(ngModel)]="currentValue"
+                  placeholder="立ち絵名"
+                />
+                <button class="tachie-button" (click)="openModal('imageIdentifier', true)" style="font-size: 1em">
+                  画像変更
+                </button>
+              </div>
+            </div>
+          }
+        }
+      }
+    </div>
+  }
+  @if (0 < gameDataElement.children.length) {
+    @if (isEdit) {
+      <div class="table-cell table-cell_solid" style="vertical-align: top">
+        @if (isImage) {
+          <ng-container *ngTemplateOutlet="editButtonsImageTitle"></ng-container>
+        }
+        @if (!isImage) {
+          <ng-container *ngTemplateOutlet="editButtons"></ng-container>
+        }
+      </div>
+    }
+    <div class="table-cell table-cell_inner-table" style="padding: 0; width: 0"></div>
+    <div class="table-cell_inner-table">
+      <div class="table-cell_inner-table-title">
+        @if (isTagLocked) {
+          <div style="padding: 2px; font-family: Cambria, Georgia; font-size: 1rem; font-weight: bold">
+            {{ name }}
+          </div>
+        }
+        @if (!isTagLocked) {
+          <input
+            class="is-caret"
+            style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 1rem; font-weight: bold"
+            size="1"
+            [(ngModel)]="name"
+            placeholder="Value"
+          />
+        }
+      </div>
+      @if (0 < gameDataElement.children.length) {
+        <div class="table">
+          @for (childElement of gameDataElement.children; track childElement; let i = $index) {
+            <div
+              game-data-element
+              class="table-row"
+              [gameDataElement]="$any(childElement)"
+              [isEdit]="isEdit"
+              [isTagLocked]="isTagLocked"
+              [isImage]="isImage"
+              [indexNum]="i"
+            ></div>
+          }
+        </div>
+      }
+    </div>
+  }
+}
+<ng-template #editButtons>
+  <button (click)="addElement()">
+    <i class="material-icons">add_circle</i>
+  </button>
+  <button (click)="upElement()">
+    <i class="material-icons">arrow_upward</i>
+  </button>
+  <br />
+  <button (click)="deleteElement()">
+    <i class="material-icons">remove_circle_outline</i>
+  </button>
+  <button (click)="downElement()">
+    <i class="material-icons">arrow_downward</i>
+  </button>
+</ng-template>
+
+<ng-template #editButtonsImageTop>
+  <button class="dummy" style="visibility: hidden">
+    <i class="material-icons">remove_circle_outline</i>
+  </button>
+  <button (click)="upElement()">
+    <i class="material-icons">arrow_upward</i>
+  </button>
+  <br />
+  <button (click)="deleteImageElement()">
+    <i class="material-icons">remove_circle_outline</i>
+  </button>
+  <button (click)="downElement()">
+    <i class="material-icons">arrow_downward</i>
+  </button>
+</ng-template>
+<ng-template #editButtonsImageMiddle>
+  <button class="dummy" style="visibility: hidden">
+    <i class="material-icons">remove_circle_outline</i>
+  </button>
+  <button (click)="upElement()">
+    <i class="material-icons">arrow_upward</i>
+  </button>
+  <br />
+  <button class="dummy" style="visibility: hidden">
+    <i class="material-icons">remove_circle_outline</i>
+  </button>
+  <button (click)="downElement()">
+    <i class="material-icons">arrow_downward</i>
+  </button>
+</ng-template>
+<ng-template #editButtonsImageTitle>
+  <button (click)="addImageElement()">
+    <i class="material-icons">add_circle</i>
+  </button>
+</ng-template>

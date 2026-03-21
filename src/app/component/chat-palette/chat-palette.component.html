@@ -1,0 +1,109 @@
+<div class="flex-container" #root>
+  <div style="flex-grow: 0">
+    <form>
+      <div class="chat-tab">
+        @for (chatTab of chatMessageService.chatTabs; track chatTab) {
+          <label>
+            <input
+              name="chat-tab"
+              type="radio"
+              value="{{ chatTab.identifier }}"
+              ng-control="options"
+              [(ngModel)]="chatTabidentifier"
+            />
+            <div>
+              {{ chatTab.name }}
+              @if (chatTab.hasUnread) {
+                <badge class="badge" [count]="chatTab.unreadLength"></badge>
+              }
+            </div>
+          </label>
+        }
+      </div>
+    </form>
+    <!---->
+    <chat-input
+      class="is-caret"
+      [onlyCharacters]="true"
+      [chatTabidentifier]="chatTabidentifier"
+      [(gameType)]="gameType"
+      [(sendFrom)]="sendFrom"
+      [autoCompleteIndex]="completeIndex()"
+      [autoCompleteListLen]="autoCompleteList().length"
+      [(text)]="text"
+      (chat)="sendChat($event)"
+      (autoCompleteSwitch)="autoCompleteSwitchRelative($event)"
+      (autoCompleteDo)="autoCompleteDoRelative($event)"
+      (tabSwitch)="chatTabSwitchRelative($event)"
+      #chatInput
+    ></chat-input>
+    <div style="position: absolute; margin-top: -2em">
+      <button class="tab-setting small-font" (click)="indexBtn()">
+        ＜<i class="material-icons small-font">bookmarks</i>
+      </button>
+    </div>
+    @if (isEdit) {
+      <div class="edit-info">
+        <i class="material-icons" style="vertical-align: bottom; size: 0.8rem">info_outline</i>
+        チャットパレット編集中です
+      </div>
+    }
+    <div class="complete-box">
+      @if ((autoCompleteList().length === 1 && autoCompleteList()[0] !== text) || autoCompleteList().length > 1) {
+        <select
+          class="complete"
+          id="{{ _timeId }}_complete"
+          style="overflow-y: auto"
+          size="5"
+          (input)="selectAutoComplete(text, $any($event.target).value)"
+          (click)="selectAutoComplete(text, $any($event.target).value)"
+        >
+          @for (palette of autoCompleteList(); track palette) {
+            <option value="{{ palette }}">{{ palette }}</option>
+          }
+        </select>
+      }
+    </div>
+  </div>
+  <div [hidden]="isEdit" style="flex-grow: 1; height: 0; min-height: 100px">
+    <select
+      class="palette"
+      id="{{ _timeId }}_select"
+      style="overflow-y: auto"
+      size="5"
+      (input)="selectPalette($any($event.target).value)"
+      (click)="clickPalette($any($event.target).value)"
+      (focusout)="resizeChatInput()"
+      #chatPalette
+    >
+      @if (palette) {
+        @for (palette of palette.getPalette(); track palette) {
+          <option value="{{ palette }}">{{ palette }}</option>
+        }
+      }
+    </select>
+  </div>
+  <div [hidden]="!isEdit" style="flex-grow: 1; height: 0; min-height: 100px">
+    <textarea
+      class="palette is-caret"
+      id="{{ _timeId }}_text"
+      style="resize: none"
+      [(ngModel)]="editPalette"
+      placeholder="チャットパレット"
+    ></textarea>
+  </div>
+  <div style="flex-grow: 0">
+    <button type="submit" (click)="toggleEditMode()">
+      @if (!isEdit) {
+        <span>チャットパレットの編集</span>
+      }
+      @if (isEdit) {
+        <span>チャットパレットを確定</span>
+      }
+    </button>
+    <!--
+    <button type="submit" (click)="moveTest()">
+    </button>
+    -->
+  </div>
+</div>

@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+
+.drop-zone {
+  border: 2px dashed #555;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  padding: 25px;
+  text-align: center;
+  font: 24px bold 'Vollkorn';
+  color: #444;
+  cursor: pointer;
+/*entyu_2 #92*/
+  margin-bottom: 5px;
+/**/
+}
+
+.large-font {
+  font-size: 64px;
+}
+
+.small-font {
+  font-size: 12px;
+}
+
+.image {
+  font-size: 0;
+  /*entyu_2*/
+  display: inline-block;
+  padding: 2px;
+  border: transparent 2px solid;
+  border-top: transparent 6px solid;
+  /**/
+}
+
+/*entyu_2 #92*/
+.image img {
+  vertical-align: bottom;
+}
+
+.img-chk{
+  height:1em;
+  margin-left:0px;
+}
+
+.img-box{
+  border: 2px dotted #666;
+}
+
+.selected {
+  border: 2px dotted #666;
+  border-top: 6px solid #444;
+}
+
+.sticky-top {
+  padding: 5px;
+  position: sticky;
+  top: 0;
+  background-color: rgba(240, 218, 189, 0.8);
+  border-top: 1px dotted #666;
+  border-bottom: 1px dotted #666;
+}
+
+.sticky-top input {
+  width: calc(100% - 75px);
+}
+/**/
+
+
+/*entyu_2*/
+.image-chg {
+  padding : 5px;
+  user-select: none;
+}
+
+.image-chg label {
+  display: inline-block;
+  position: relative;
+}
+
+.image-chg input[type="radio"] {
+  display: none;
+}
+
+.image-chg input[type="radio"] + div {
+  display: inline-block;
+  vertical-align: middle;
+  outline: 0;
+  font-size: 12px;
+  background-color: transparent;
+  color: #444; 
+  border: solid 1px #555;
+  padding: 2px 8px;
+  margin: 2px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+.image-chg input[type="radio"] + div:hover {
+  background-color: #888;
+  color: #eee;
+  border: solid 1px #555;
+}
+
+.image-chg input[type="radio"]:checked + div {
+  background: #555;
+  color: #CCC;
+}
+
+/*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
+キャレットの点滅で負荷がかかることへの対策不透明度指定*/
+.is-caret {
+  caret-color: rgba(0,0,0,0.95);
+}

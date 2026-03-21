@@ -1,0 +1,177 @@
+<div class="flex-container">
+  <div class="flex-item no-grow">
+    <div>
+      <button (click)="createGameTable()">新しいテーブルを作る</button>
+    </div>
+    <select
+      style="width: 10em"
+      size="10"
+      (change)="selectGameTable($any($event.target).value)"
+      [ngModel]="selectedTable.identifier"
+    >
+      @for (gameTable of getGameTables(); track gameTable) {
+        <option value="{{ gameTable.identifier }}">{{ gameTable.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="flex-item">
+    @if (!isEmpty || selectedTable) {
+      <div class="images-select">
+        <div>
+          画像
+          <div (click)="openBgImageModal()">
+            <img height="120" [src]="tableBackgroundImage.url | safe: 'resourceUrl'" />
+          </div>
+        </div>
+        <div>
+          背景
+          @if (!tableDistanceviewImage.url) {
+            <div>
+              <button (click)="openDistanceViewImageModal()" style="height: 120px">背景画像を追加</button>
+            </div>
+          }
+          @if (tableDistanceviewImage.url) {
+            <div (click)="openDistanceViewImageModal()">
+              <img height="120" [src]="tableDistanceviewImage.url | safe: 'resourceUrl'" />
+            </div>
+          }
+        </div>
+      </div>
+      <div>
+        Name :
+        <input class="is-caret" [(ngModel)]="tableName" placeholder="Name" [attr.disabled]="!isEditable ? '' : null" />
+      </div>
+      <div>
+        <input
+          [(ngModel)]="tableWidth"
+          type="range"
+          min="{{ minSize }}"
+          max="{{ maxSize }}"
+          name="tableWidth"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+        Width :
+        <input
+          class="is-caret"
+          [(ngModel)]="tableWidth"
+          type="number"
+          min="{{ minSize }}"
+          max="{{ maxSize }}"
+          style="width: 5em"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+      </div>
+      <div>
+        <input
+          [(ngModel)]="tableHeight"
+          type="range"
+          min="{{ minSize }}"
+          max="{{ maxSize }}"
+          name="tableHeight"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+        Height :
+        <input
+          class="is-caret"
+          [(ngModel)]="tableHeight"
+          type="number"
+          min="{{ minSize }}"
+          max="{{ maxSize }}"
+          style="width: 5em"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+      </div>
+      <div>
+        グリッド:
+        <select [(ngModel)]="tableGridType" name="tableGridType" [attr.disabled]="!isEditable ? '' : null">
+          <option value="-1">なし</option>
+          <option value="0">スクエア</option>
+          <option value="1">ヘクス（縦揃え）</option>
+          <option value="2">ヘクス（横揃え）</option>
+        </select>
+        グリッド色:
+        <input
+          type="color"
+          [(ngModel)]="tableGridColor"
+          name="tableGridColor"
+          list="table-grid-color-list"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+        <!-- クローム側の更新都合による現象でリスト設定の値が正常に入らなくなったため一時的にリスト設定を辞める
+            <datalist id="table-grid-color-list">
+              <option value="#000000">
+                <option value="#dddddd">
+                </datalist>
+                -->
+      </div>
+      <div>
+        背景フィルタ
+        <select
+          [(ngModel)]="tableDistanceviewFilter"
+          name="tableDistanceviewFilter"
+          [attr.disabled]="!isEditable ? '' : null"
+        >
+          <option value="">なし</option>
+          <option value="white">ホワイト</option>
+          <option value="black">ブラック</option>
+        </select>
+      </div>
+      <hr />
+      <div>
+        <label
+          >グリッドを常に表示:
+          <input type="checkbox" [(ngModel)]="tableGridShow" name="tableGridShow" />
+        </label>
+        <label
+          >スナップ:
+          <input type="checkbox" [(ngModel)]="tableGridSnap" name="tableGridSnap" />
+        </label>
+        <hr />
+        <label
+          >全員のグリッドを常時強制ON:
+          <input type="checkbox" [(ngModel)]="roomGridDispAlways" name="roomGridDispAlways" /><br />
+          ※テーブル毎の設定ではなく部屋全体の設定です。
+        </label>
+        <hr />
+        @if (!isDeleted) {
+          <button [disabled]="isSaveing" (click)="save()">
+            <div style="position: relative">
+              <div [ngClass]="{ 'is-hidden': isSaveing }">保存</div>
+              @if (isSaveing) {
+                <div class="progress">{{ progresPercent }}%</div>
+              }
+            </div>
+          </button>
+          <button class="danger" (click)="delete()" [attr.disabled]="getGameTables().length <= 1 ? '' : null">
+            削除
+          </button>
+        }
+        @if (isDeleted) {
+          <button (click)="restore()">元に戻す</button>
+        }
+      </div>
+    }
+  </div>
+</div>
+@if (isEmpty) {
+  <div style="font-size: 12px">
+    ※テーブルが１つも作成されていません。「新しいテーブルを作る」から新しいテーブルを作成することができます。
+  </div>
+}
+<div>
+  <hr />
+  標準のダイスボット(部屋接続時に選択されるダイスボットになります)。<br />
+  ※テーブル毎の設定ではなく部屋全体の設定です。
+  <ng-select
+    class="ud-select is-caret"
+    style="width: 15em; margin-left: 0.1em"
+    (change)="loadDiceBot($event)"
+    [(ngModel)]="gameType"
+    [ngModelOptions]="{ standalone: true }"
+    [clearable]="false"
+  >
+    @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
+      <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
+    }
+  </ng-select>
+</div>

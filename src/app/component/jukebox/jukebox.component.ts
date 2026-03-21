@@ -1,0 +1,132 @@
+import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+
+import { AudioFile } from '@axe/core/file-storage/audio-file';
+import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
+import { AudioStorage } from '@axe/core/file-storage/audio-storage';
+import { FileArchiver } from '@axe/core/file-storage/file-archiver';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/core/system';
+import { Jukebox } from '@axe/Jukebox';
+import { Config } from '@axe/config';
+import { ModalService } from 'service/modal.service';
+
+import { CutInListComponent } from 'component/cut-in-list/cut-in-list.component';
+import { PointerDeviceService } from 'service/pointer-device.service';
+import { PanelOption, PanelService } from 'service/panel.service';
+
+import { CutInLauncher } from '@axe/cut-in-launcher';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-jukebox',
+  templateUrl: './jukebox.component.html',
+  styleUrls: ['./jukebox.component.css'],
+  imports: [FormsModule],
+})
+export class JukeboxComponent implements OnInit, OnDestroy {
+  private modalService = inject(ModalService);
+  private panelService = inject(PanelService);
+  private pointerDeviceService = inject(PointerDeviceService);
+  private ngZone = inject(NgZone);
+
+  roomVolumeChange = false;
+
+  get roomVolume(): number {
+    const conf = ObjectStore.instance.get<Config>('Config');
+    //    console.log("roomVolume()" + conf +" "+ conf.roomVolume);
+    return conf ? conf.roomVolume : 1;
+  }
+
+  set roomVolume(volume: number) {
+    const conf = ObjectStore.instance.get<Config>('Config');
+    if (conf) conf.roomVolume = volume;
+    this.jukebox.setNewVolume();
+  }
+
+  get volume(): number {
+    return this.jukebox.volume;
+  }
+  set volume(volume: number) {
+    this.jukebox.volume = volume;
+    AudioPlayer.volume = volume * this.roomVolume;
+    EventSystem.trigger('CHANGE_JUKEBOX_VOLUME', null!);
+  }
+
+  get auditionVolume(): number {
+    return this.jukebox.auditionVolume;
+  }
+  set auditionVolume(auditionVolume: number) {
+    this.jukebox.auditionVolume = auditionVolume;
+    AudioPlayer.auditionVolume = auditionVolume * this.roomVolume;
+    EventSystem.trigger('CHANGE_JUKEBOX_VOLUME', null!);
+  }
+
+  get audios(): AudioFile[] {
+    return AudioStorage.instance.audios.filter((audio) => !audio.isHidden);
+  }
+  get jukebox(): Jukebox {
+    return ObjectStore.instance.get<Jukebox>('Jukebox');
+  }
+
+  get cutInLauncher(): CutInLauncher {
+    return ObjectStore.instance.get<CutInLauncher>('CutInLauncher');
+  }
+
+  readonly auditionPlayer: AudioPlayer = new AudioPlayer();
+  private lazyUpdateTimer: NodeJS.Timeout = null!;
+  ngOnInit() {
+    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
+    this.auditionPlayer.volumeType = VolumeType.AUDITION;
+    EventSystem.register(this).on('*', (event) => {
+      if (event.eventName.startsWith('FILE_')) this.lazyNgZoneUpdate();
+    });
+  }
+
+  ngOnDestroy() {
+    EventSystem.unregister(this);
+    this.stop();
+  }
+
+  play(audio: AudioFile) {
+    this.auditionPlayer.play(audio);
+  }
+
+  stop() {
+    this.auditionPlayer.stop();
+  }
+
+  playBGM(audio: AudioFile) {
+    //memoこっちが全体
+
+    //タグなしのBGM付きカットインはジュークボックスと同時に鳴らさないようにする
+    //BGM駆動のためのインスタンスを別にしているため現状この処理で止める
+    this.cutInLauncher.stopBlankTagCutIn();
+
+    this.jukebox.play(audio.identifier, true);
+  }
+
+  stopBGM(audio: AudioFile) {
+    if (this.jukebox.audio === audio) this.jukebox.stop();
+  }
+
+  handleFileSelect(event: Event) {
+    const input = <HTMLInputElement>event.target;
+    const files = input.files;
+    if (files && files.length) FileArchiver.instance.load(files);
+    input.value = '';
+  }
+
+  private lazyNgZoneUpdate() {
+    if (this.lazyUpdateTimer !== null) return;
+    this.lazyUpdateTimer = setTimeout(() => {
+      this.lazyUpdateTimer = null!;
+      this.ngZone.run(() => {});
+    }, 100);
+  }
+
+  openCutInList() {
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const option: PanelOption = { left: coordinate.x + 25, top: coordinate.y + 25, width: 650, height: 740 };
+    this.panelService.open<CutInListComponent>(CutInListComponent, option);
+  }
+}

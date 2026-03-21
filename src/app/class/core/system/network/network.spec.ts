@@ -1,0 +1,57 @@
+import { Network } from './network';
+
+describe('Network', () => {
+  beforeEach(() => {
+    // シングルトンをリセットして他テストからの状態リークを防ぐ
+    (Network as unknown as Record<string, unknown>)['_instance'] = undefined;
+  });
+  describe('instance (singleton)', () => {
+    it('シングルトンインスタンスを返す', () => {
+      expect(Network.instance).toBe(Network.instance);
+    });
+  });
+
+  describe('デフォルト状態', () => {
+    it('isOpenのデフォルトはfalse', () => {
+      expect(Network.instance.isOpen).toBe(false);
+    });
+
+    it('peerIdが設定済み', () => {
+      expect(typeof Network.instance.peerId).toBe('string');
+    });
+
+    it('peerIdsが空配列', () => {
+      expect(Network.instance.peerIds).toEqual([]);
+    });
+
+    it('peerがIPeerContext', () => {
+      const peer = Network.instance.peer;
+      expect(peer).toBeTruthy();
+      expect(typeof peer.peerId).toBe('string');
+    });
+
+    it('peersが空配列', () => {
+      expect(Network.instance.peers).toEqual([]);
+    });
+
+    it('bandwidthUsageが0', () => {
+      expect(Network.instance.bandwidthUsage).toBe(0);
+    });
+  });
+
+  describe('peerContext (後方互換)', () => {
+    it('peerContextはpeerと同じ', () => {
+      expect(Network.instance.peerContext).toBe(Network.instance.peer);
+    });
+
+    it('peerContextsはpeersと同値', () => {
+      expect(Network.instance.peerContexts).toEqual(Network.instance.peers);
+    });
+  });
+
+  describe('callback', () => {
+    it('ConnectionCallbackインスタンスを持つ', () => {
+      expect(Network.instance.callback).toBeTruthy();
+    });
+  });
+});

@@ -1,0 +1,159 @@
+:host {
+  display: block;
+}
+
+.is-grabbing {
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+.is-perspective {
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+}
+
+.is-fill {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+}
+
+.is-3d {
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  position: absolute;
+}
+
+.is-3d-2 {
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  position: absolute;
+}
+
+.will-change-transform {
+  /* 
+   * デスクトップChromeにおけるレンダリング速度改善のための定義.
+   * will-changeの使用は可能な限り避けるべきであり、将来的なアップデートでレンダリング速度が改善された場合は削除を検討.
+   */
+  will-change: transform;
+  backface-visibility: visible;
+}
+
+.is-pointer-events-none {
+  pointer-events: none;
+}
+
+.dummy {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  content: '';
+  will-change: opacity;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: translate3d(0,0,0)
+}
+
+.layer {
+  transform-style: preserve-3d;
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+}
+
+.component {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -moz-user-drag: none;
+  -webkit-user-drag: none;
+
+  touch-action: manipulation;
+
+  height: 100%;
+  width: 100%;
+
+  overflow: hidden;
+}
+
+.component-content {
+  height: 2000px;
+  width: 2000px;
+}
+
+.grid-canvas {
+  opacity: 0.0;
+  transform: translateZ(0.15px);
+  -webkit-transition: 0.3s ease-out;
+  -moz-transition: 0.3s ease-out;
+  -o-transition: 0.3s ease-out;
+  transition: 0.3s ease-out;
+  backface-visibility: hidden;
+}
+
+.game-table {
+  height: 100%;
+  width: 100%;
+}
+
+.table-image {
+  backface-visibility: hidden;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: -5px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.background-image.is-filter {
+  will-change: filter;
+}
+
+.background-image.is-filter.white {
+  filter: blur(5px);
+}
+
+.background-image.is-filter.black {
+  filter: blur(5px);
+}
+
+.background-image.is-filter::after {
+  display: block;
+  content: '';
+  width: 100%;
+  height: 100%;
+}
+
+.background-image.is-filter.white::after {
+  background-color: hsl(0, 0%, 97%);
+  filter: opacity(0.2);
+}
+
+.background-image.is-filter.black::after {
+  background-color: hsl(0, 0%, 10%);
+  filter: opacity(0.3);
+}

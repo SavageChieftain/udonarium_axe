@@ -1,0 +1,31 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "module": "es2020",
+    "paths": {
+      "@axe/*": ["./src/app/class/*"],
+      "directive/*": ["./src/app/directive/*"],
+      "component/*": ["./src/app/component/*"],
+      "pipe/*": ["./src/app/pipe/*"],
+      "service/*": ["./src/app/service/*"]
+    },
+    "useDefineForClassFields": false,
+    "types": ["node", "vitest/globals"]
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  }
+}
