@@ -23,7 +23,7 @@
   -moz-user-select: none;
   -webkit-user-select: none;
   user-select: none;
-  
+
   -moz-user-drag: none;
   -webkit-user-drag: none;
 }
@@ -40,7 +40,7 @@
 }
 
 .lock-icon {
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   width: 25px;
@@ -58,14 +58,13 @@
 
 .border {
   box-sizing: border-box;
-  border: solid 2px #CCCCCC;
+  border: solid 2px #cccccc;
 }
 
 .is-fit-full {
   height: 100%;
   width: 100%;
 }
-
 
 .pedestal-grab-corn {
   z-index: -1;
@@ -77,10 +76,10 @@
   cursor: default;
 
   box-sizing: border-box;
-  border-top: solid 7px #CCC;
-  border-left: solid 7px #CCC;
-  border-right: solid 7px #CCC;
-  border-bottom: solid 7px #CCC;
+  border-top: solid 7px #ccc;
+  border-left: solid 7px #ccc;
+  border-right: solid 7px #ccc;
+  border-bottom: solid 7px #ccc;
   border-radius: 14px;
 }
 
@@ -94,14 +93,15 @@
   cursor: default;
 
   box-sizing: border-box;
-  border-top: solid 7px #CCC;
-  border-left: solid 7px #CCC;
-  border-right: solid 7px #CCC;
-  border-bottom: solid 7px #CCC;
+  border-top: solid 7px #ccc;
+  border-left: solid 7px #ccc;
+  border-right: solid 7px #ccc;
+  border-bottom: solid 7px #ccc;
   border-radius: 14px;
 }
 
-.component:hover .rotate-grab, .component:active .rotate-grab {
+.component:hover .rotate-grab,
+.component:active .rotate-grab {
   opacity: 1;
 }
 
@@ -115,13 +115,13 @@
   width: 30px;
   height: 30px;
   box-sizing: border-box;
-  border: solid 2px #CCCCCC;
+  border: solid 2px #cccccc;
   cursor: -moz-default;
   cursor: -webkit-default;
   cursor: default;
   z-index: 1;
   padding: 0;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   font-size: 24px;
@@ -198,7 +198,8 @@
 .altitude-indicator {
   font-size: 10px;
 }
-.elevation-indicator, .altitude-indicator {
+.elevation-indicator,
+.altitude-indicator {
   padding-left: 2px;
   color: black;
   text-shadow: whitesmoke 0px 0px 3px;

@@ -1,5 +1,5 @@
 .box {
-  border-bottom:1px dotted #888;
+  border-bottom: 1px dotted #888;
 }
 
 .image-box {
@@ -20,7 +20,7 @@
   background-size: contain;
 }
 
-.card-image{
+.card-image {
   position: absolute;
   padding: 0;
   vertical-align: bottom;

@@ -5,12 +5,12 @@
 
 .material-icons {
   vertical-align: middle;
-  font-size: 1.0rem;
+  font-size: 1rem;
 }
 
 .table {
   box-sizing: border-box;
-  padding : 5px;
+  padding: 5px;
   display: table;
   width: 100%;
 }
@@ -48,5 +48,5 @@
 /*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
 キャレットの点滅で負荷がかかることへの対策不透明度指定*/
 .is-caret {
-  caret-color: rgba(0,0,0,0.95);
+  caret-color: rgba(0, 0, 0, 0.95);
 }

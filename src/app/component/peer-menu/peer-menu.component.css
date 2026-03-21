@@ -13,7 +13,6 @@
   vertical-align: bottom;
 }
 
-
 .image {
   padding: 0px;
   width: 128px;
@@ -22,11 +21,11 @@
   vertical-align: top;
 }
 
-.image img{
+.image img {
   width: auto;
   height: auto;
-  max-width:100%;
-  max-height:100%;
+  max-width: 100%;
+  max-height: 100%;
   vertical-align: bottom;
 }
 
@@ -39,5 +38,5 @@
 /*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
 キャレットの点滅で負荷がかかることへの対策不透明度指定*/
 .is-caret {
-  caret-color: rgba(0,0,0,0.95);
+  caret-color: rgba(0, 0, 0, 0.95);
 }

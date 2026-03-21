@@ -1,6 +1,6 @@
 .message-setting {
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 4px;
   border-radius: 5px;
@@ -18,12 +18,11 @@
   vertical-align: middle;
 }
 
-
 .tachie-image-box {
-/*
+  /*
   height:250px;
 */
-/*  width: 100px;
+  /*  width: 100px;
   max-height: 120px;
   overflow: hidden;
   vertical-align: bottom;
@@ -33,17 +32,16 @@
 */
 }
 
-
-img{
+img {
 }
 
 .tachie-image {
   position: absolute;
-  height:250px;
+  height: 250px;
   padding: 0;
   vertical-align: bottom;
   z-index: 1;
-/*  vertical-align: bottom;*/
+  /*  vertical-align: bottom;*/
 }
 
 /*
@@ -59,30 +57,23 @@ img{
 }
 */
 
-.tachie{
-
-/* 
+.tachie {
+  /* 
  position: absolute;
 */
 }
 
-.pos00{
+.pos00 {
 }
 
-.pos01{
-
+.pos01 {
 }
 
-.pos02{
-
+.pos02 {
 }
 
-.pos03{
-
+.pos03 {
 }
-
-
-
 
 .character-image-box {
 }
@@ -90,9 +81,8 @@ img{
 .character-image {
 }
 
-
 .component {
-/*
+  /*
   position: absolute;
   max-height: 100%;
   max-width: 100%;
@@ -108,5 +98,5 @@ img{
 /*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
 キャレットの点滅で負荷がかかることへの対策不透明度指定*/
 .is-caret {
-  caret-color: rgba(0,0,0,0.95);
+  caret-color: rgba(0, 0, 0, 0.95);
 }

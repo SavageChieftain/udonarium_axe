@@ -21,7 +21,7 @@
   word-wrap: break-word;
   overflow-wrap: anywhere;
   word-break: break-word;
-  border-bottom:1px dotted #999;
+  border-bottom: 1px dotted #999;
 }
 
 .message-small {
@@ -33,12 +33,12 @@
   word-wrap: break-word;
   overflow-wrap: anywhere;
   word-break: break-word;
-  border-bottom:1px dotted #999;
+  border-bottom: 1px dotted #999;
 }
 
 .direct-message {
   background-color: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
 .message .image {
@@ -97,7 +97,6 @@
   padding-left: 12px;
 }
 
-
 .msg-name {
   font-weight: bold;
 }
@@ -119,12 +118,11 @@
 }
 
 .fix {
-  display:none;
+  display: none;
   opacity: 0;
 }
 
 .container:hover .fix {
-  display:inline-block;
+  display: inline-block;
   opacity: 1;
 }
-

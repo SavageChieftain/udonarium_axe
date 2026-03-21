@@ -88,8 +88,8 @@
   box-sizing: border-box;
   border-top: solid 28px #999;
   border-left: solid 12px #999;
-  border-right: solid 12px #CCC;
-  border-bottom: solid 28px #CCC;
+  border-right: solid 12px #ccc;
+  border-bottom: solid 28px #ccc;
   border-radius: 37px;
 }
 
@@ -99,7 +99,7 @@
   height: 100%;
   width: 100%;
   box-sizing: border-box;
-  border: solid 6px #FFCC80;
+  border: solid 6px #ffcc80;
   border-radius: 25px;
 }
 
@@ -139,7 +139,7 @@
   right: 0;
   margin: auto;
 
-/*  width: 100%;*/
+  /*  width: 100%;*/
   height: auto;
   vertical-align: bottom;
 }
@@ -147,8 +147,8 @@
 .buff-tag {
   box-sizing: border-box;
   padding: 3px 9px;
-/*  border:10px #666;*/
-  border: 1px #222 solid; 
+  /*  border:10px #666;*/
+  border: 1px #222 solid;
   border-radius: 12px;
   position: absolute;
   margin: auto;
@@ -157,10 +157,9 @@
 
 .is-buff-background {
   color: #222;
-/*  background-color: rgba(100, 100, 0, 0.5);*/
-/*  background-color: rgba(240,218,189, 0.8);*/
-  background-color: rgba(240,229,215, 0.8);
-
+  /*  background-color: rgba(100, 100, 0, 0.5);*/
+  /*  background-color: rgba(240,218,189, 0.8);*/
+  background-color: rgba(240, 229, 215, 0.8);
 }
 
 /**/
@@ -194,13 +193,13 @@
 }
 
 .is-black-background {
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.8);
   backface-visibility: hidden;
 }
 
 .backface-off {
- backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .has-length-limit {
@@ -220,7 +219,7 @@
   cursor: default;
   z-index: 1;
   padding: 2px;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   font-size: 8px;
@@ -266,7 +265,8 @@
   opacity: 0;
 }
 
-.component .rotate-grab:hover, .component .rotate-grab:active {
+.component .rotate-grab:hover,
+.component .rotate-grab:active {
   opacity: 1;
 }
 
@@ -278,7 +278,8 @@
   font-size: 10px;
 }
 
-.elevation-indicator, .altitude-indicator {
+.elevation-indicator,
+.altitude-indicator {
   padding-left: 2px;
   color: black;
   text-shadow: #f5f5f5 0px 0px 3px;
@@ -290,7 +291,8 @@
   font-size: 12px;
 }
 
-.component:hover .material-icons, .component:active .material-icons {
+.component:hover .material-icons,
+.component:active .material-icons {
   display: inline;
 }
 
@@ -306,32 +308,37 @@
 }
 
 @keyframes focused {
-  0% { box-shadow: none; }
-  50% { box-shadow:
-          0px 0px 10px 5px #ff0,
-          inset 0px 0px 10px 5px #ff0; }
-  100% { box-shadow: none; }
+  0% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow:
+      0px 0px 10px 5px #ff0,
+      inset 0px 0px 10px 5px #ff0;
+  }
+  100% {
+    box-shadow: none;
+  }
 }
 
 .buff-folding-dummy {
   width: 1px;
   height: 1px;
-  
 }
 
 .buff-folding-icon {
   font-size: 12px;
   vertical-align: middle;
   text-align: center;
-  margin-left:100%;
-  position:absolute;
-  width:20px;
-  height:20px;
-  left:-20px;
-  top:-20px;
-  background-color: rgba(240,229,215, 0.8);
+  margin-left: 100%;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: -20px;
+  top: -20px;
+  background-color: rgba(240, 229, 215, 0.8);
   box-sizing: border-box;
-  border: 1px #222 solid; 
+  border: 1px #222 solid;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -344,16 +351,19 @@
   position: absolute;
 }
 
-.scrolldown4{
-	position:absolute;
-	animation: arrowmove 1s ease-in-out infinite;
+.scrolldown4 {
+  position: absolute;
+  animation: arrowmove 1s ease-in-out infinite;
 }
 
-@keyframes arrowmove{
-      0%{top: -80px;}
-     100%{top: -60px;}
- }
-
+@keyframes arrowmove {
+  0% {
+    top: -80px;
+  }
+  100% {
+    top: -60px;
+  }
+}
 
 /* 矢印の描写 */
 .scrolldown4:before {
@@ -361,10 +371,10 @@
 }
 
 /*描画位置*/
-.scrolldown4:after{
-	content:"";
-	position: absolute;
-	top: -80px;
+.scrolldown4:after {
+  content: '';
+  position: absolute;
+  top: -80px;
 }
 
 .target-icon-buff {
@@ -374,7 +384,7 @@
   left: -10px;
   box-sizing: border-box;
   position: absolute;
-  margin-top:
+  margin-top:;
 }
 
 .target-icon-buff2 {
@@ -384,19 +394,22 @@
   left: -20px;
   box-sizing: border-box;
   position: absolute;
-  margin-top:
+  margin-top:;
 }
 
-.scrolldown5{
-	position:absolute;
-	animation: arrowmove2 1s ease-in-out infinite;
+.scrolldown5 {
+  position: absolute;
+  animation: arrowmove2 1s ease-in-out infinite;
 }
 
-@keyframes arrowmove2{
-      0%{top: -50px;}
-     100%{top: -30px;}
- }
-
+@keyframes arrowmove2 {
+  0% {
+    top: -50px;
+  }
+  100% {
+    top: -30px;
+  }
+}
 
 /* 矢印の描写 */
 .scrolldown5:before {
@@ -404,10 +417,8 @@
 }
 
 /*描画位置*/
-.scrolldown5:after{
-	content:"";
-	position: absolute;
-	top: -50px;
+.scrolldown5:after {
+  content: '';
+  position: absolute;
+  top: -50px;
 }
-
-

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';;
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DiceTableSettingComponent } from './dice-table-setting.component';
 

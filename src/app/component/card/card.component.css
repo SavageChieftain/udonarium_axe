@@ -84,7 +84,7 @@
   padding: 2px;
   background-color: #444;
   border-radius: 100%;
-  color: #CCC;
+  color: #ccc;
   font-size: 8px;
   top: 5px;
 }
@@ -108,7 +108,7 @@
   cursor: default;
   z-index: 1;
   padding: 2px;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   font-size: 8px;
@@ -128,7 +128,8 @@
   display: none;
 }
 
-.component .rotate-grab:hover, .component .rotate-grab:active {
+.component .rotate-grab:hover,
+.component .rotate-grab:active {
   display: block;
   opacity: 1;
 }
@@ -205,13 +206,14 @@
 }
 
 .is-black-background {
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.8);
 }
 
 .material-icons {
   display: none;
 }
-.component:hover .material-icons, .component:active .material-icons {
+.component:hover .material-icons,
+.component:active .material-icons {
   display: inline;
 }

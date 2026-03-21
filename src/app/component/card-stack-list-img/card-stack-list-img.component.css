@@ -1,6 +1,6 @@
 .message-setting {
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 4px;
   border-radius: 5px;
@@ -18,22 +18,19 @@
   vertical-align: middle;
 }
 
-
 .tachie-image-box {
 }
 
-
-img{
+img {
 }
 
 .card-image {
   position: absolute;
-  height:250px;
+  height: 250px;
   padding: 0;
   vertical-align: bottom;
   z-index: 1;
 }
-
 
 .card-image-box {
 }
@@ -41,9 +38,8 @@ img{
 .card-image {
 }
 
-
 .component {
-/*
+  /*
   position: absolute;
   max-height: 100%;
   max-width: 100%;
@@ -55,6 +51,3 @@ img{
   -webkit-overflow-scrolling: touch;
 */
 }
-
-
-

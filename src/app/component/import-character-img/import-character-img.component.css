@@ -8,10 +8,9 @@
   max-width: 100%;
 }
 
-
 .table {
   box-sizing: border-box;
-  padding : 5px;
+  padding: 5px;
   /*position : fixed;*/
   /*bottom : 0;*/
   display: table;
@@ -27,19 +26,19 @@
   display: inline-block;
   width: 100px;
   height: 100px;
-/*  min-width: 50px;*/
+  /*  min-width: 50px;*/
   max-width: 50px;
   max-height: 50px;
   vertical-align: top;
   text-align: center;
 }
 
-.image{
+.image {
   height: 100%;
   vertical-align: bottom;
   object-fit: cover;
 }
 
-input{
-  width:5em;
+input {
+  width: 5em;
 }

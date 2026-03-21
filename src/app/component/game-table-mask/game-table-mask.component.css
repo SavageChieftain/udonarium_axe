@@ -35,7 +35,7 @@
   -moz-user-select: none;
   -webkit-user-select: none;
   user-select: none;
-  
+
   -moz-user-drag: none;
   -webkit-user-drag: none;
 }
@@ -45,8 +45,9 @@
   box-sizing: border-box;
 }
 
-.lock-icon, .draw-icon {
-  background-color: #CCCCCC;
+.lock-icon,
+.draw-icon {
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   width: 25px;
@@ -66,11 +67,14 @@
   visibility: visible;
 }
 
-.scratching, .draw-icon {
+.scratching,
+.draw-icon {
   visibility: visible;
 }
-.component:hover .scratching.is-mine, .component:active .scratching.is-mine,
-.component:hover .draw-icon.is-mine, .component:active .draw-icon.is-mine {
+.component:hover .scratching.is-mine,
+.component:active .scratching.is-mine,
+.component:hover .draw-icon.is-mine,
+.component:active .draw-icon.is-mine {
   visibility: hidden;
 }
 
@@ -85,12 +89,12 @@
 
 .image.border {
   border-width: 0px;
-} 
+}
 
-.component:hover .border, 
+.component:hover .border,
 .component:active .border,
 .is-border .border {
-  outline: 2px solid #CCC !important;
+  outline: 2px solid #ccc !important;
   outline-offset: -2px;
 }
 
@@ -135,15 +139,15 @@
   z-index: 5;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 
-  #fff 0px 0px 2px, 
-  #fff 0px 0px 2px, 
-  #fff 0px 0px 2px, 
-  #fff 0px 0px 2px, 
-  #fff 0px 0px 2px, 
-  #fff 0px 0px 2px,
-  #fff 0px 0px 2px,
-  #fff 0px 0px 2px;
+  text-shadow:
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px,
+    #fff 0px 0px 2px;
 }
 
 .is-inverse {
@@ -249,7 +253,7 @@
   display: inline-block;
 }
 
-.component:hover .is-mine, 
+.component:hover .is-mine,
 .component:active .is-mine {
   visibility: hidden;
 }
@@ -266,7 +270,7 @@
 }
 
 .is-black-background {
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.8);
 }
 

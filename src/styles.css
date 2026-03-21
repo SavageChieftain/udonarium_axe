@@ -1,6 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "@ng-select/ng-select/themes/default.theme.css";
+@import '@ng-select/ng-select/themes/default.theme.css';
 
 .ng-select.ud-select {
   display: inline-block;
@@ -9,7 +9,7 @@
   min-height: 20px;
 }
 
-.ng-select.ud-select .ng-select-container{
+.ng-select.ud-select .ng-select-container {
   min-height: 20px;
   height: 20px;
 }
@@ -23,7 +23,7 @@
   padding: 4px 10px;
 }
 
-.ng-dropdown-panel.ud-select  {
+.ng-dropdown-panel.ud-select {
   width: auto !important;
   max-width: 550px;
   z-index: 2000000;
@@ -32,7 +32,7 @@
 button {
   background-color: #eee;
   color: #444;
-  border: solid 1px #CCC;
+  border: solid 1px #ccc;
   padding: 0.35em 0.7em;
   margin: 0 2px;
   border-radius: 4px;
@@ -79,8 +79,7 @@ body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Verdana,
-    Meiryo, "M+ 1p", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
   position: relative;
 }
 
@@ -156,7 +155,6 @@ body {
 }
 
 @-webkit-keyframes sk-cubeGridScaleDelay {
-
   0%,
   70%,
   100% {
@@ -195,7 +193,6 @@ body {
 }
 
 @keyframes sk-cubeGridScaleDelay {
-
   0%,
   70%,
   100% {

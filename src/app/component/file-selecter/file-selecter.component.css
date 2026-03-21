@@ -6,7 +6,7 @@
   font-size: 0;
 }
 
-.image  img {
+.image img {
   vertical-align: bottom;
 }
 
@@ -36,7 +36,7 @@
 
 /*entyu_2*/
 .image-chg {
-  padding : 5px;
+  padding: 5px;
   user-select: none;
 }
 
@@ -45,17 +45,17 @@
   position: relative;
 }
 
-.image-chg input[type="radio"] {
+.image-chg input[type='radio'] {
   display: none;
 }
 
-.image-chg input[type="radio"] + div {
+.image-chg input[type='radio'] + div {
   display: inline-block;
   vertical-align: middle;
   outline: 0;
   font-size: 12px;
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   margin: 2px;
@@ -63,15 +63,14 @@
   cursor: pointer;
 }
 
-.image-chg input[type="radio"] + div:hover {
+.image-chg input[type='radio'] + div:hover {
   background-color: #888;
   color: #eee;
   border: solid 1px #555;
 }
 
-.image-chg input[type="radio"]:checked + div {
+.image-chg input[type='radio']:checked + div {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 /**/
-

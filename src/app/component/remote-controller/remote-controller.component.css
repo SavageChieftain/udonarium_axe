@@ -1,13 +1,13 @@
 .edit-info {
   width: 100%;
   text-align: center;
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.8);
 }
 .palette {
-/*.input {*/
+  /*.input {*/
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Verdana, Meiryo, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, sans-serif;
   width: 100%;
   height: 100%;
 }
@@ -24,7 +24,7 @@
 }
 
 .chat-tab {
-  padding : 0 5px 5px 5px;
+  padding: 0 5px 5px 5px;
   user-select: none;
 }
 
@@ -33,17 +33,17 @@
   position: relative;
 }
 
-.chat-tab input[type="radio"] {
+.chat-tab input[type='radio'] {
   display: none;
 }
 
-.chat-tab input[type="radio"] + div {
+.chat-tab input[type='radio'] + div {
   display: inline-block;
   vertical-align: middle;
   outline: 0;
   font-size: 8px;
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   margin: 2px;
@@ -51,21 +51,21 @@
   cursor: pointer;
 }
 
-.chat-tab input[type="radio"] + div:hover {
+.chat-tab input[type='radio'] + div:hover {
   background-color: #888;
   color: #eee;
   border: solid 1px #555;
 }
 
-.chat-tab input[type="radio"]:checked + div {
+.chat-tab input[type='radio']:checked + div {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
 /*---------------*/
 
 .controller {
-  padding : 0 5px 5px 5px;
+  padding: 0 5px 5px 5px;
   user-select: none;
 }
 
@@ -74,17 +74,17 @@
   position: relative;
 }
 
-.controller input[type="radio"] {
+.controller input[type='radio'] {
   display: none;
 }
 
-.controller input[type="radio"] + div {
+.controller input[type='radio'] + div {
   display: inline-block;
   vertical-align: middle;
   outline: 0;
   font-size: 12px;
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   margin: 2px;
@@ -92,18 +92,17 @@
   cursor: pointer;
 }
 
-.controller input[type="radio"] + div:hover {
+.controller input[type='radio'] + div:hover {
   background-color: #888;
   color: #eee;
   border: solid 1px #555;
 }
 
-.controller input[type="radio"]:checked + div {
+.controller input[type='radio']:checked + div {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 /*---------------*/
-
 
 .badge {
   position: absolute;
@@ -135,9 +134,9 @@
 .hidden-spacer {
   visibility: hidden;
   height: 0;
-  font-size: 1.0em;
-  min-width:1em; 
-  max-width : 12em;
+  font-size: 1em;
+  min-width: 1em;
+  max-width: 12em;
   overflow: hidden;
   padding: 0 2px;
   box-sizing: border-box;
@@ -155,18 +154,19 @@
 }
 
 .input:hover {
-  background: #EEE;
+  background: #eee;
 }
 
 .input:focus {
-  background: #FFF;
+  background: #fff;
 }
 
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
-input[type=number]:hover, input[type=number]:focus {
+input[type='number']:hover,
+input[type='number']:focus {
   -moz-appearance: number-input;
 }
 
@@ -175,19 +175,22 @@ input[type='range'] {
   --slider-fill-color: #555; /*#777 */
   --slider-border-color: #777;
   --slider-height: 0.8em;
-  --slider-thumb-size: 1.0em;
+  --slider-thumb-size: 1em;
   --range: calc(var(--max) - var(--min));
-  --ratio: calc((var(--val) - var(--min))/var(--range));
-  --sx: calc(.5*var(--slider-thumb-size) + var(--ratio)*(100% - var(--slider-thumb-size)));
+  --ratio: calc((var(--val) - var(--min)) / var(--range));
+  --sx: calc(0.5 * var(--slider-thumb-size) + var(--ratio) * (100% - var(--slider-thumb-size)));
   margin: 0;
   padding: 0;
   background: transparent;
-  font: 1em/1 arial, sans-serif;
+  font:
+    1em/1 arial,
+    sans-serif;
   outline: 0;
   appearance: none;
 }
 
-input[type='range'], input[type='range']::-webkit-slider-thumb {
+input[type='range'],
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
 }
 
@@ -201,7 +204,8 @@ input[type='range']::-webkit-slider-runnable-track {
 }
 
 input[type='range']::-webkit-slider-runnable-track {
-  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0/var(--sx) 100% no-repeat var(--slider-track-color);
+  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0 / var(--sx) 100% no-repeat
+    var(--slider-track-color);
   cursor: pointer;
 }
 
@@ -259,7 +263,7 @@ input[type='range']::-ms-thumb {
   width: var(--slider-thumb-size);
   height: var(--slider-thumb-size);
   box-sizing: border-box;
-  border: solid 1px  var(--slider-border-color);
+  border: solid 1px var(--slider-border-color);
   border-radius: 2em;
   background: #ddd;
   cursor: pointer;
@@ -270,27 +274,27 @@ input[type='range']::-ms-tooltip {
 }
 
 .tab {
-  padding : 5px;
+  padding: 5px;
   user-select: none;
 }
 
 .tab {
-  padding : 0px;
+  padding: 0px;
   border: solid 1px #555;
   border-radius: 0.3em;
   overflow: hidden;
 
   display: flex;
-  flex-flow:  row nowrap;
+  flex-flow: row nowrap;
   justify-content: space-around;
   align-items: stretch;
 
   text-align: center;
 
-  margin: 0px; 
+  margin: 0px;
   max-width: 500px;
 
-  background-color: rgba(240,218,189, 0.9);
+  background-color: rgba(240, 218, 189, 0.9);
 }
 
 .tab label {
@@ -307,42 +311,42 @@ input[type='range']::-ms-tooltip {
 
 .tab label:checked {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
-.tab input[type="radio"] {
+.tab input[type='radio'] {
   display: none;
 }
 
-.tab input[type="radio"] + div {
+.tab input[type='radio'] + div {
   vertical-align: middle;
   outline: 0;
   font-size: 0.6em;
   background-color: transparent;
-  color: #444; 
-  
+  color: #444;
+
   box-sizing: border-box;
 
-  margin: 0px; 
+  margin: 0px;
   padding: 2px 8px;
 
   cursor: pointer;
 }
 
-.tab input[type="radio"] + div:hover {
+.tab input[type='radio'] + div:hover {
   background-color: #888;
   color: #eee;
   border-color: #555;
 }
 
-.tab input[type="radio"]:checked + div {
+.tab input[type='radio']:checked + div {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
 .tab-setting {
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   border-radius: 5px;
@@ -362,7 +366,7 @@ input[type='range']::-ms-tooltip {
 
 .material-icons {
   vertical-align: middle;
-  font-size: 1.0rem;
+  font-size: 1rem;
 }
 
 .table {
@@ -370,12 +374,11 @@ input[type='range']::-ms-tooltip {
   width: 100%;
 }
 
-
 .table-cell {
   display: table-cell;
 }
 
-.click-area{
+.click-area {
   border: 1px dotted #666;
 }
 
@@ -388,7 +391,7 @@ input[type='range']::-ms-tooltip {
   vertical-align: top;
 }
 
-.image-box img{
+.image-box img {
   width: 100%;
   height: 100%;
   vertical-align: bottom;
@@ -437,28 +440,27 @@ input[type='range']::-ms-tooltip {
   font-size: 0.8em;
   text-align: left;
   vertical-align: bottom;
-  min-width:1em;
+  min-width: 1em;
   max-width: 12em;
   overflow: hidden;
   white-space: nowrap;
 }
 
-.tag-value-box{
+.tag-value-box {
   display: table-cell;
   width: 10px;
 }
 
 .tag-slash {
-  font-size: 1.0em;
+  font-size: 1em;
   min-width: 0.1em;
   max-width: 0.1em;
   text-align: center;
   font-family: inherit;
 }
 
-
 .tag-value {
-  font-size: 1.0em;
+  font-size: 1em;
   font-weight: bold;
   width: 100%;
   min-width: 1em;
@@ -476,24 +478,24 @@ input[type='range']::-ms-tooltip {
   box-sizing: border-box;
   min-width: 25px;
 
-  background-color: rgba(234,201,157, 0.8);
-  background-color: rgba(240,218,189, 0.8);
+  background-color: rgba(234, 201, 157, 0.8);
+  background-color: rgba(240, 218, 189, 0.8);
   color: #444;
 }
 
 .table {
-  display:table;
-  width :100%;
+  display: table;
+  width: 100%;
   box-sizing: border-box;
   /*border:1px solid #FFFF00;*/
 }
 .table-row {
-  display:table-row;
+  display: table-row;
   box-sizing: border-box;
 }
 .table-row > div {
-  display:table-cell;
-  border:1px solid #FFF;
+  display: table-cell;
+  border: 1px solid #fff;
   vertical-align: top;
   box-sizing: border-box;
 }
@@ -503,9 +505,9 @@ input[type='range']::-ms-tooltip {
   max-width: 21em;
   height: calc(100% - 11px);
   overflow-y: scroll;
-  background-color: rgba(240,218,189, 0.8);
-  border-top:1px dotted #666;
-  padding:5px 5px;
+  background-color: rgba(240, 218, 189, 0.8);
+  border-top: 1px dotted #666;
+  padding: 5px 5px;
   margin-top: 0;
 }
 
@@ -517,7 +519,7 @@ input[type='range']::-ms-tooltip {
 
 .tab-setting {
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   border-radius: 5px;
@@ -533,5 +535,5 @@ input[type='range']::-ms-tooltip {
 /*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
 キャレットの点滅で負荷がかかることへの対策不透明度指定*/
 .is-caret {
-  caret-color: rgba(0,0,0,0.95);
+  caret-color: rgba(0, 0, 0, 0.95);
 }

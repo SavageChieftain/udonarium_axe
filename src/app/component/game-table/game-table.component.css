@@ -59,7 +59,7 @@
   pointer-events: none;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  transform: translate3d(0,0,0)
+  transform: translate3d(0, 0, 0);
 }
 
 .layer {
@@ -94,7 +94,7 @@
 }
 
 .grid-canvas {
-  opacity: 0.0;
+  opacity: 0;
   transform: translateZ(0.15px);
   -webkit-transition: 0.3s ease-out;
   -moz-transition: 0.3s ease-out;

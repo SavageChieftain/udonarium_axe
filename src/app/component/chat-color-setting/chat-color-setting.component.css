@@ -1,6 +1,6 @@
 .table {
   box-sizing: border-box;
-  padding : 5px;
+  padding: 5px;
   /*position : fixed;*/
   /*bottom : 0;*/
   display: table;
@@ -12,6 +12,6 @@
   display: table-cell;
 }
 
-input{
-  width:5em;
+input {
+  width: 5em;
 }

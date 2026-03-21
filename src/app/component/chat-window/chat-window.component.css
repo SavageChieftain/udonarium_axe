@@ -20,15 +20,15 @@
 
 .sticky-bottom {
   position: sticky;
-  bottom : 0;
+  bottom: 0;
   width: 100%;
-  background-color: rgba(240,218,189, 0.8);
-  border-top:1px dotted #666;
+  background-color: rgba(240, 218, 189, 0.8);
+  border-top: 1px dotted #666;
   margin-bottom: 0;
 }
 
 .chat-tab {
-  padding : 5px;
+  padding: 5px;
   user-select: none;
 }
 
@@ -37,17 +37,17 @@
   position: relative;
 }
 
-.chat-tab input[type="radio"] {
+.chat-tab input[type='radio'] {
   display: none;
 }
 
-.chat-tab input[type="radio"] + div {
+.chat-tab input[type='radio'] + div {
   display: inline-block;
   vertical-align: middle;
   outline: 0;
   font-size: 12px;
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   margin: 2px;
@@ -55,15 +55,15 @@
   cursor: pointer;
 }
 
-.chat-tab input[type="radio"] + div:hover {
+.chat-tab input[type='radio'] + div:hover {
   background-color: #888;
   color: #eee;
   border: solid 1px #555;
 }
 
-.chat-tab input[type="radio"]:checked + div {
+.chat-tab input[type='radio']:checked + div {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
 .badge {
@@ -74,7 +74,7 @@
 
 .tab-setting {
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 4px;
   border-radius: 5px;
@@ -94,5 +94,5 @@
 
 .material-icons {
   vertical-align: middle;
-  font-size: 1.0rem;
+  font-size: 1rem;
 }

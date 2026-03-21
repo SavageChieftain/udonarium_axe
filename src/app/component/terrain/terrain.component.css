@@ -44,7 +44,7 @@
   -moz-user-select: none;
   -webkit-user-select: none;
   user-select: none;
-  
+
   -moz-user-drag: none;
   -webkit-user-drag: none;
 }
@@ -75,7 +75,7 @@
   left: 0px;
 
   transform-origin: 50% 100%;
-  transform: translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1.0);
+  transform: translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1);
   filter: brightness(0.3);
 }
 
@@ -93,7 +93,7 @@
   left: 0px;
 
   transform-origin: 0% 0%;
-  transform: rotateZ(90deg) rotateX(-90deg) scaleX(-1.0) translateX(-100%) translateY(-100%);
+  transform: rotateZ(90deg) rotateX(-90deg) scaleX(-1) translateX(-100%) translateY(-100%);
   filter: brightness(0.5);
 }
 
@@ -106,16 +106,24 @@
   filter: brightness(0.8);
 }
 
-.of-wall-top.is-slope, .of-wall-bottom.is-slope , .of-wall-left.is-slope, .of-wall-right.is-slope {
+.of-wall-top.is-slope,
+.of-wall-bottom.is-slope,
+.of-wall-left.is-slope,
+.of-wall-right.is-slope {
   clip-path: polygon(100% 0%, 0% 100%, 100% 100%);
 }
 
-.of-wall-top.is-inverse-slope, .of-wall-bottom.is-inverse-slope , .of-wall-left.is-inverse-slope, .of-wall-right.is-inverse-slope {
+.of-wall-top.is-inverse-slope,
+.of-wall-bottom.is-inverse-slope,
+.of-wall-left.is-inverse-slope,
+.of-wall-right.is-inverse-slope {
   clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
 }
 
-.of-wall-top.no-shadow, .of-wall-left.no-shadow, .of-wall-right.no-shadow {
-  filter: brightness(1.0);
+.of-wall-top.no-shadow,
+.of-wall-left.no-shadow,
+.of-wall-right.no-shadow {
+  filter: brightness(1);
 }
 
 .pedestal-grab {
@@ -128,10 +136,10 @@
   cursor: default;
 
   box-sizing: border-box;
-  border-top: solid 7px #CCC;
-  border-left: solid 7px #CCC;
-  border-right: solid 7px #CCC;
-  border-bottom: solid 7px #CCC;
+  border-top: solid 7px #ccc;
+  border-left: solid 7px #ccc;
+  border-right: solid 7px #ccc;
+  border-bottom: solid 7px #ccc;
   border-radius: 14px;
 }
 
@@ -145,13 +153,13 @@
   width: 28px;
   height: 28px;
   box-sizing: border-box;
-  border: solid 2px #CCCCCC;
+  border: solid 2px #cccccc;
   cursor: -moz-default;
   cursor: -webkit-default;
   cursor: default;
   z-index: 1;
   padding: 0;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   font-size: 8px;
@@ -160,7 +168,8 @@
   transform: translateZ(0.1px);
 }
 
-.component:hover .rotate-grab, .component:active .rotate-grab {
+.component:hover .rotate-grab,
+.component:active .rotate-grab {
   opacity: 1;
 }
 
@@ -189,28 +198,40 @@
 }
 
 .blinking-animation {
-	-webkit-animation: blink 1.0s linear infinite alternate;
-  -moz-animation: blink 1.0s linear infinite alternate;
-   animation: blink 1.0s linear infinite alternate;
+  -webkit-animation: blink 1s linear infinite alternate;
+  -moz-animation: blink 1s linear infinite alternate;
+  animation: blink 1s linear infinite alternate;
 }
 
 @-webkit-keyframes blink {
-  0% { opacity:0.9; }
-  100% { opacity:0.5; }
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 @-moz-keyframes blink {
-  0% { opacity:0.9; }
-  100% { opacity:0.5; }
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes blink {
-  0% { opacity:0.9; }
-  100% { opacity:0.5; }
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .grid-canvas {
-  opacity: 0.0;
+  opacity: 0;
   transform: translateZ(0.15px);
   -webkit-transition: 0.3s ease-out;
   -moz-transition: 0.3s ease-out;
@@ -244,6 +265,6 @@
 }
 
 .fall {
-  -webkit-transition: -webkit-transform 132ms cubic-bezier(.21,.97,.75,1.25);
-  transition: transform 132ms cubic-bezier(.21,.97,.75,1.25);
+  -webkit-transition: -webkit-transform 132ms cubic-bezier(0.21, 0.97, 0.75, 1.25);
+  transition: transform 132ms cubic-bezier(0.21, 0.97, 0.75, 1.25);
 }

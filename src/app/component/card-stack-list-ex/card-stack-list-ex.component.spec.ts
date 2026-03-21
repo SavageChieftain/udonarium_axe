@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';;
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CardStackListComponentEx } from './card-stack-list-ex.component';
 

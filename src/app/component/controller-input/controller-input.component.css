@@ -1,13 +1,13 @@
-div.color{
+div.color {
   display: inline-block;
   border: solid 1px #000;
   box-sizing: border-box;
   position: relative;
-  top:4px;
-  width:18px;
-  height:18px;
-  margin-left:2px;
-  margin-right:2px;
+  top: 4px;
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  margin-right: 2px;
   background-color: #888;
   cursor: pointer;
 }
@@ -16,12 +16,11 @@ button.color:focus {
   outline: none;
 }
 button.color:hover {
-
 }
 
 .table {
   box-sizing: border-box;
-  padding : 5px;
+  padding: 5px;
   /*position : fixed;*/
   /*bottom : 0;*/
   display: table;
@@ -43,7 +42,7 @@ button.color:hover {
   text-align: center;
 }
 
-.image{
+.image {
   width: 100%;
   height: 100%;
   vertical-align: bottom;
@@ -79,7 +78,7 @@ button.color:hover {
 
 .direct-message {
   background-color: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
 .small-font {

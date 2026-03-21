@@ -12,9 +12,9 @@
   font: 24px bold 'Vollkorn';
   color: #444;
   cursor: pointer;
-/*entyu_2 #92*/
+  /*entyu_2 #92*/
   margin-bottom: 5px;
-/**/
+  /**/
 }
 
 .large-font {
@@ -40,12 +40,12 @@
   vertical-align: bottom;
 }
 
-.img-chk{
-  height:1em;
-  margin-left:0px;
+.img-chk {
+  height: 1em;
+  margin-left: 0px;
 }
 
-.img-box{
+.img-box {
   border: 2px dotted #666;
 }
 
@@ -68,10 +68,9 @@
 }
 /**/
 
-
 /*entyu_2*/
 .image-chg {
-  padding : 5px;
+  padding: 5px;
   user-select: none;
 }
 
@@ -80,17 +79,17 @@
   position: relative;
 }
 
-.image-chg input[type="radio"] {
+.image-chg input[type='radio'] {
   display: none;
 }
 
-.image-chg input[type="radio"] + div {
+.image-chg input[type='radio'] + div {
   display: inline-block;
   vertical-align: middle;
   outline: 0;
   font-size: 12px;
   background-color: transparent;
-  color: #444; 
+  color: #444;
   border: solid 1px #555;
   padding: 2px 8px;
   margin: 2px;
@@ -98,19 +97,19 @@
   cursor: pointer;
 }
 
-.image-chg input[type="radio"] + div:hover {
+.image-chg input[type='radio'] + div:hover {
   background-color: #888;
   color: #eee;
   border: solid 1px #555;
 }
 
-.image-chg input[type="radio"]:checked + div {
+.image-chg input[type='radio']:checked + div {
   background: #555;
-  color: #CCC;
+  color: #ccc;
 }
 
 /*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
 キャレットの点滅で負荷がかかることへの対策不透明度指定*/
 .is-caret {
-  caret-color: rgba(0,0,0,0.95);
+  caret-color: rgba(0, 0, 0, 0.95);
 }

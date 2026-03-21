@@ -75,8 +75,8 @@
   box-sizing: border-box;
   border-top: solid 28px #999;
   border-left: solid 12px #999;
-  border-right: solid 12px #CCC;
-  border-bottom: solid 28px #CCC;
+  border-right: solid 12px #ccc;
+  border-bottom: solid 28px #ccc;
   border-radius: 22px;
 }
 
@@ -130,18 +130,18 @@
   right: 0;
   margin: auto;
 
-/*  width: 100%;*/
+  /*  width: 100%;*/
   height: auto;
   vertical-align: bottom;
 }
 
 .is-black-mask {
   filter: brightness(0);
- }
+}
 
- .is-harf-black-mask {
+.is-harf-black-mask {
   filter: brightness(0.5);
- }
+}
 
 .name-tag {
   box-sizing: border-box;
@@ -182,7 +182,7 @@
 }
 
 .is-black-background {
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.8);
 }
 
@@ -198,7 +198,7 @@
 }
 
 .backface-off {
- backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .has-length-limit {
@@ -218,7 +218,7 @@
   cursor: default;
   z-index: 1;
   padding: 2px;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   border-radius: 100%;
   color: #444;
   font-size: 8px;
@@ -264,7 +264,8 @@
   opacity: 0;
 }
 
-.component .rotate-grab:hover, .component .rotate-grab:active {
+.component .rotate-grab:hover,
+.component .rotate-grab:active {
   opacity: 1;
 }
 
@@ -272,7 +273,8 @@
   display: none;
 }
 
-.component:hover .material-icons, .component:active .material-icons {
+.component:hover .material-icons,
+.component:active .material-icons {
   display: inline;
 }
 

@@ -5,10 +5,10 @@
 .component {
   box-sizing: border-box;
   position: absolute;
-  top :0;
-  bottom :0;
-  left :0;
-  right :0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 1899999;
 
   display: flex;
@@ -22,12 +22,12 @@
 .modal-background {
   box-sizing: border-box;
   position: absolute;
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.3);
-  top :0;
-  bottom :0;
-  left :0;
-  right :0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: -1;
 }
 
@@ -36,8 +36,8 @@
   overflow: hidden;
 
   color: #444;
-  background: linear-gradient(-30deg, rgba(240,218,189, 0.9), rgba(255, 244, 232, 0.9));
-  border:solid 1px #999;
+  background: linear-gradient(-30deg, rgba(240, 218, 189, 0.9), rgba(255, 244, 232, 0.9));
+  border: solid 1px #999;
 
   height: auto;
   max-height: calc(100% - 10px);
@@ -45,7 +45,7 @@
   max-width: 100%;
 }
 
-.title{
+.title {
   position: relative;
   overflow: hidden;
   white-space: nowrap;
@@ -54,7 +54,7 @@
   height: 25px;
   padding: 2px 5px;
   width: 100%;
-  background-color: #CCC;
+  background-color: #ccc;
   color: #444;
 }
 
@@ -72,7 +72,9 @@
   color: #444;
 }
 
-.header, .content, footer{
+.header,
+.content,
+footer {
   padding: 10px;
 }
 

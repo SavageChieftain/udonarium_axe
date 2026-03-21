@@ -31,7 +31,7 @@
 }
 
 .is-middle-size .grid-container-root {
-  width: 270px;/**/
+  width: 270px; /**/
 }
 
 .is-small-size .grid-container-root {
@@ -39,7 +39,7 @@
 }
 
 .component-background {
-  background: linear-gradient(-30deg, rgba(240,218,189, 0.9), rgba(255, 244, 232, 0.9));
+  background: linear-gradient(-30deg, rgba(240, 218, 189, 0.9), rgba(255, 244, 232, 0.9));
   border-bottom: solid 1px #999;
 }
 
@@ -47,9 +47,9 @@
   color: #ccc;
   font-size: 1em;
   text-align: right;
-  vertical-align: middle; 
+  vertical-align: middle;
   height: 32px;
-  line-height: 32px; 
+  line-height: 32px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -67,7 +67,7 @@
   font-size: 0.8em;
   padding: 10px;
   color: #ccc;
-  vertical-align: middle; 
+  vertical-align: middle;
   overflow: hidden;
   text-align: right;
   padding: 2px 1em;
@@ -79,9 +79,9 @@
   width: min-content;
   max-width: 100%;
   margin-left: auto;
-  margin-right: 0; 
+  margin-right: 0;
   overflow: hidden;
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.8);
   box-sizing: border-box;
   padding: 3px 9px;
@@ -102,11 +102,11 @@
 
 .zoom-button {
   position: absolute;
-  left : 8px;
+  left: 8px;
   bottom: -21px;
   width: 42px;
-  height: 42px; 
-  border-radius: 100px; 
+  height: 42px;
+  border-radius: 100px;
   padding: 4px;
 }
 
@@ -122,7 +122,7 @@
 }
 
 .image-view-background {
-  color: #CCC;
+  color: #ccc;
   background-color: rgba(30, 30, 30, 0.3);
   z-index: 9900;
 }
@@ -148,7 +148,7 @@
 
 .text-note-container {
   width: 100%;
-  max-height: 400px; 
+  max-height: 400px;
   padding: 0.6em 1.2em;
   box-sizing: border-box;
   overflow: hidden auto;
@@ -176,11 +176,11 @@
 
 .is-black-mask {
   filter: brightness(0);
- }
+}
 
- .is-harf-black-mask {
+.is-harf-black-mask {
   filter: brightness(0.5);
- }
+}
 
 .character-grid-container {
   display: grid;
@@ -214,7 +214,7 @@
 
 .grid-container-root {
   padding: 0.5em 1.2em;
-  max-height: 250px;/**/
+  max-height: 250px; /**/
   overflow: hidden auto;
   box-sizing: border-box;
   border-left: solid 1px #999;
@@ -276,11 +276,11 @@
 }
 
 .textarea:hover {
-  background: #EEE;
+  background: #eee;
 }
 
 .textarea:focus {
-  background: #FFF;
+  background: #fff;
 }
 
 .textarea-url {
@@ -322,14 +322,14 @@
 .hidden-spacer {
   visibility: hidden;
   height: 0px;
-  min-width: 3em; 
+  min-width: 3em;
   overflow: hidden;
   white-space: pre-wrap;
 }
 
 .textarea-spacer {
   visibility: hidden;
-  min-width: 3em; 
+  min-width: 3em;
   height: auto;
   min-height: 24px;
   overflow: hidden;
@@ -341,7 +341,7 @@
 
 .input {
   width: 100%;
-  min-width: 3em; 
+  min-width: 3em;
   text-align: right;
   font: inherit;
   font-size: inherit;
@@ -356,18 +356,19 @@
 }
 
 .input:hover {
-  background: #EEE;
+  background: #eee;
 }
 
 .input:focus {
-  background: #FFF;
+  background: #fff;
 }
 
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
-input[type=number]:hover, input[type=number]:focus {
+input[type='number']:hover,
+input[type='number']:focus {
   -moz-appearance: number-input;
 }
 
@@ -381,13 +382,13 @@ input[type=number]:hover, input[type=number]:focus {
 }
 
 .with-button-marign {
-  padding-left : 60px;
+  padding-left: 60px;
 }
 
 .is-fill {
   position: absolute;
-  top: 0; 
-  left: 0; 
+  top: 0;
+  left: 0;
   right: 0;
   bottom: 0;
 }
@@ -411,19 +412,22 @@ input[type='range'] {
   --slider-fill-color: #555; /*#777 */
   --slider-border-color: #777;
   --slider-height: 0.8em;
-  --slider-thumb-size: 1.0em;
+  --slider-thumb-size: 1em;
   --range: calc(var(--max) - var(--min));
-  --ratio: calc((var(--val) - var(--min))/var(--range));
-  --sx: calc(.5*var(--slider-thumb-size) + var(--ratio)*(100% - var(--slider-thumb-size)));
+  --ratio: calc((var(--val) - var(--min)) / var(--range));
+  --sx: calc(0.5 * var(--slider-thumb-size) + var(--ratio) * (100% - var(--slider-thumb-size)));
   margin: 0;
   padding: 0;
   background: transparent;
-  font: 1em/1 arial, sans-serif;
+  font:
+    1em/1 arial,
+    sans-serif;
   outline: 0;
   appearance: none;
 }
 
-input[type='range'], input[type='range']::-webkit-slider-thumb {
+input[type='range'],
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
 }
 
@@ -437,7 +441,8 @@ input[type='range']::-webkit-slider-runnable-track {
 }
 
 input[type='range']::-webkit-slider-runnable-track {
-  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0/var(--sx) 100% no-repeat var(--slider-track-color);
+  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0 / var(--sx) 100% no-repeat
+    var(--slider-track-color);
   cursor: pointer;
 }
 
@@ -474,7 +479,7 @@ input[type='range']::-webkit-slider-thumb {
   width: var(--slider-thumb-size);
   height: var(--slider-thumb-size);
   box-sizing: border-box;
-  border: solid 1px  var(--slider-border-color);
+  border: solid 1px var(--slider-border-color);
   border-radius: 2em;
   background: #ddd;
   cursor: pointer;
@@ -508,5 +513,5 @@ input[type='range']::-ms-tooltip {
 /*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
 キャレットの点滅で負荷がかかることへの対策不透明度指定*/
 .is-caret {
-  caret-color: rgba(0,0,0,0.95);
+  caret-color: rgba(0, 0, 0, 0.95);
 }
