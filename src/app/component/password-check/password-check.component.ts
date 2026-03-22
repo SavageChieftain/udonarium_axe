@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EventSystem, Network } from '@axe/core/system';
 import { PeerContext } from '@axe/core/system/network/peer-context';
@@ -10,15 +20,16 @@ import { PanelService } from 'service/panel.service';
   templateUrl: './password-check.component.html',
   styleUrls: ['./password-check.component.css'],
   imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
-  @ViewChild('passwordInput', { static: true }) passwordInputElementRef: ElementRef<HTMLInputElement>;
+  readonly passwordInputElementRef = viewChild.required<ElementRef<HTMLInputElement>>('passwordInput');
 
   password: string = '';
-  help: string = '';
+  readonly help = signal('');
 
   private targetPeerContext: PeerContext = null!;
   title: string = '';
@@ -44,7 +55,7 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngAfterViewInit() {
-    this.passwordInputElementRef.nativeElement.focus();
+    this.passwordInputElementRef().nativeElement.focus();
   }
 
   ngOnDestroy() {
@@ -52,11 +63,11 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   onInputChange(_value: string) {
-    this.help = '';
+    this.help.set('');
   }
 
   async submit() {
     if (await this.targetPeerContext.verifyPassword(this.password)) this.modalService.resolve(this.password);
-    this.help = 'パスワードが違います';
+    this.help.set('パスワードが違います');
   }
 }
