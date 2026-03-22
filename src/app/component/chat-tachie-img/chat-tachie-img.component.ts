@@ -352,7 +352,6 @@ export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, After
   }
 
   tachieClick(pos: number) {
-    console.log('tachieClick' + pos);
     this.chatTab.tachiePosHide(pos);
   }
 

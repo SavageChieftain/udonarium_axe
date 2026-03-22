@@ -159,8 +159,6 @@ export class Vote extends GameObject {
 
   // override
   apply(context: ObjectContext) {
-    console.log('Vote apply() CALL');
-
     const initTimeStamp = this.initTimeStamp;
     super.apply(context);
 

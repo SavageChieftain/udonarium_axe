@@ -202,7 +202,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       })
       .on<{ cutIn: CutIn }>('STOP_CUT_IN', (event) => {
         if (!event.data.cutIn) return;
-        console.log('カットインイベント_ストップ' + event.data.cutIn.name);
       })
       .on('UPDATE_GAME_OBJECT', (event) => {
         this.lazyNgZoneUpdate(event.isSendFromSelf);
@@ -227,12 +226,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         this.lazyNgZoneUpdate(false);
       })
       .on('OPEN_NETWORK', (event) => {
-        console.log('OPEN_NETWORK', event.data.peerId);
         PeerCursor.myCursor.peerId = Network.peerContext.peerId;
         PeerCursor.myCursor.userId = Network.peerContext.userId;
       })
       .on('NETWORK_ERROR', (event) => {
-        console.log('NETWORK_ERROR', event.data.peerId);
         const errorType: string = event.data.errorType;
         const errorMessage: string = event.data.errorMessage;
 
@@ -303,7 +300,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   startVote() {
-    console.log('点呼/投票イベント_スタート');
     const vote = ObjectStore.instance.get<Vote>('Vote');
     if (!vote.chkToMe()) return;
 
@@ -320,12 +316,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   finishVote(text: string) {
-    console.log('投票集計完了');
     this.chatMessageService.sendSystemMessageLastSendCharactor(text);
   }
 
   alarmPop(title: string, time: string) {
-    console.log('ポップアップ_スタート' + title);
     const winH = 100;
     const winW = 200;
     const option: PanelOption = {
@@ -335,9 +329,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       top: 100,
     };
     option.title = 'アラーム ' + title;
-
-    console.log('POP画面領域 w:' + window.innerWidth + ' h:' + window.innerHeight);
-    console.log('POPサイズ w:' + winW + ' h:' + winH);
 
     let margin_w = window.innerWidth - winW;
     let margin_h = window.innerHeight - winH - 25;
@@ -360,16 +351,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   startCutIn(cutIn: CutIn) {
     if (!cutIn) return;
-    console.log('カットインイベント_スタート' + cutIn.name);
     const option: PanelOption = { width: 200, height: 100, left: 300, top: 100 };
     option.title = 'カットイン : ' + cutIn.name;
 
-    console.log('画面領域 w:' + window.innerWidth + ' h:' + window.innerHeight);
-
     const cutin_w = cutIn.width;
     const cutin_h = cutIn.height;
-
-    console.log('画像サイズ w:' + cutin_w + ' h:' + cutin_h);
 
     let margin_w = window.innerWidth - cutin_w;
     let margin_h = window.innerHeight - cutin_h - 25;

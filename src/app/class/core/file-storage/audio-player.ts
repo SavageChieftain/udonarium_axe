@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { AudioFile, AudioState } from '@axe/core/file-storage/audio-file';
 import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
 
@@ -150,7 +151,7 @@ export class AudioPlayer {
     this.audioElm.src = url;
     this.audioElm.load();
     this.audioElm.play().catch((reason) => {
-      console.warn(reason);
+      Logger.warn('[AudioPlayer] 再生失敗', reason);
     });
   }
 
@@ -213,7 +214,7 @@ export class AudioPlayer {
       source.buffer = decodedData;
       return source;
     } catch (reason) {
-      console.warn(reason);
+      Logger.warn('[AudioPlayer] バッファソース作成失敗', reason);
       return null;
     }
   }
@@ -243,7 +244,7 @@ export class AudioPlayer {
     try {
       blob = await AudioPlayer.getBlobAsync(audio);
     } catch (e) {
-      console.error(e);
+      Logger.error('[AudioPlayer] キャッシュ作成失敗', e);
       return null;
     }
 
@@ -262,7 +263,6 @@ export class AudioPlayer {
       AudioPlayer.audioContext.resume();
       document.removeEventListener('touchstart', callback, true);
       document.removeEventListener('mousedown', callback, true);
-      console.log('resumeAudioContext');
     };
     document.addEventListener('touchstart', callback, true);
     document.addEventListener('mousedown', callback, true);

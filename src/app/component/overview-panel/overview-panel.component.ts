@@ -255,14 +255,10 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     const cardStack = <CardStack>this.tabletopObject;
     let object: Card | CardStack | null = null;
 
-    console.log('overViewCardWidth');
-
     if (!card && !cardStack) return 250;
     if (card) {
       object = card;
-      console.log('card');
     } else if (cardStack) {
-      console.log('cardStack');
       object = cardStack;
     }
 
@@ -304,9 +300,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
       .replace(/'/g, '&#039;');
   }
 
-  clickMarkDownBox(id: string) {
-    console.log('マークダウンクリック:' + id);
-  }
+  clickMarkDownBox(_id: string) {}
 
   get markdown(): MarkDown {
     return ObjectStore.instance.get<MarkDown>('markdwon');
@@ -322,7 +316,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   @HostListener('click', ['$event'])
   click(event: MouseEvent) {
     if (this.markdown) {
-      console.log('event.timeStamp:' + event.timeStamp);
       this.markdown.changeMarkDownCheckBox((event.target as HTMLElement).id, event.timeStamp);
     }
   }
@@ -330,7 +323,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   isEditUrl(dataElmIdentifier: string) {
     const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
     if (!box) return false;
-    //   console.log( "Edit:" + dataElmIdentifier  + ":" + box.checked   );
     return box.checked;
   }
 
@@ -345,7 +337,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   textFocus(dataElmIdentifier: string) {
-    //console.log( "text forcus:" + dataElmIdentifier );
     const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
     box.checked = true;
   }

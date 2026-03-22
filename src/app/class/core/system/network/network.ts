@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
 import { Connection, ConnectionCallback } from './connection';
 import { IPeerContext, PeerContext } from './peer-context';
@@ -60,9 +61,7 @@ export class Network {
     this.close();
   };
 
-  private constructor() {
-    console.log('Network ready...');
-  }
+  private constructor() {}
 
   configure(config: Record<string, unknown>) {
     this.config = config;
@@ -72,7 +71,7 @@ export class Network {
   open(userId: string, roomId: string, roomName: string, password: string): void;
   open(...args: string[]): void {
     if (this.connectionClassPromise != null) {
-      console.warn('It is already opened.');
+      Logger.warn('[Network] 既に接続済みです');
       this.close();
     }
 
@@ -88,7 +87,7 @@ export class Network {
       return;
     }
 
-    console.log('Network open...', args);
+    Logger.debug('[Network] open', ...args);
     this.connection = this.initializeConnection();
     this.connection.open(...args);
 
@@ -100,7 +99,7 @@ export class Network {
     this.connection = null!;
     this.connectionClassPromise = null!;
     window.removeEventListener('unload', this.callbackUnload, false);
-    console.log('Network close...');
+    Logger.debug('[Network] close');
   }
 
   async connect(peer: IPeerContext): Promise<boolean> {
@@ -111,7 +110,7 @@ export class Network {
   disconnect(peer: IPeerContext) {
     if (!this.connection) return;
     if (this.connection.disconnect(peer)) {
-      console.log('<disconnectPeer()> Peer:' + peer.peerId);
+      Logger.debug('[Network] disconnect', peer.peerId);
       this.disconnect(peer);
     }
   }

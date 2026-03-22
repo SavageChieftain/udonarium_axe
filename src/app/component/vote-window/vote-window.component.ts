@@ -61,7 +61,6 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit() {
     EventSystem.register(this).on('END_OLD_VOTE', (_event) => {
-      console.log('古い投票を終了');
       if (this.timestamp != this.vote.initTimeStamp) {
         this.panelService.close();
       }

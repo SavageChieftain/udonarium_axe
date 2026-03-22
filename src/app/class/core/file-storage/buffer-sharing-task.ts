@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { EventSystem } from '@axe/core/system';
 import * as MessagePack from '@axe/core/system/util/message-pack';
 import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
@@ -55,7 +56,7 @@ export class BufferSharingTask<T> {
 
   start(data?: T) {
     if (!this.onstart) {
-      console.warn('再起動する仕様など無い。');
+      Logger.warn('[BufferTask] タスクは再利用できません');
       return;
     }
     this.data = data!;
@@ -110,8 +111,6 @@ export class BufferSharingTask<T> {
     const total = Math.ceil(this.uint8Array.byteLength / this.chankSize);
     this.chanks = new Array(total);
 
-    console.log('チャンク分割 ' + this.identifier, this.chanks.length);
-
     EventSystem.register(this)
       .on<number>('FILE_MORE_CHANK_' + this.identifier, (event) => {
         if (this.sendTo !== event.sendFrom) return;
@@ -123,11 +122,11 @@ export class BufferSharingTask<T> {
       })
       .on('DISCONNECT_PEER', (event) => {
         if (event.data.peerId !== this.sendTo) return;
-        console.warn('送信キャンセル（Peer切断）', this, event.data.peerId);
+        Logger.warn('[BufferTask] 送信キャンセル（Peer切断）', event.data.peerId);
         this._cancel();
       })
       .on('CANCEL_TASK_' + this.identifier, (event) => {
-        console.warn('送信キャンセル', this, event.sendFrom);
+        Logger.warn('[BufferTask] 送信キャンセル', event.sendFrom);
         this._cancel();
       });
     this.sentChankIndex = this.completedChankIndex = 0;
@@ -142,7 +141,6 @@ export class BufferSharingTask<T> {
     this.sentChankIndex = index;
     this.sendChankTimer = null!;
     if (this.chanks.length <= index + 1) {
-      console.log('バッファ送信完了', this.identifier);
       this.outputTransferRate(this.uint8Array.byteLength);
       setZeroTimeout(() => this.finish());
     } else if (this.completedChankIndex + this.bufferingChankRange <= index) {
@@ -163,7 +161,6 @@ export class BufferSharingTask<T> {
         if (this.chanks.length < 1) this.chanks = new Array(event.data.length);
 
         if (this.chanks[event.data.index] != null) {
-          console.log(`already received. [${event.data.index}] <${this.identifier}>`);
           return;
         }
         this.chankReceiveCount++;
@@ -178,18 +175,16 @@ export class BufferSharingTask<T> {
       })
       .on('DISCONNECT_PEER', (event) => {
         if (event.data.peerId !== this.sendTo) return;
-        console.warn('受信キャンセル（Peer切断）', this, event.data.peerId);
+        Logger.warn('[BufferTask] 受信キャンセル（Peer切断）', event.data.peerId);
         this._cancel();
       })
       .on('CANCEL_TASK_' + this.identifier, (event) => {
-        console.warn('受信キャンセル', this, event.sendFrom);
+        Logger.warn('[BufferTask] 受信キャンセル', event.sendFrom);
         this._cancel();
       });
   }
 
   private finishReceive() {
-    console.log('バッファ受信完了', this.identifier);
-
     let sumLength = 0;
     for (const chank of this.chanks) {
       sumLength += chank.byteLength;
@@ -216,6 +211,8 @@ export class BufferSharingTask<T> {
   private outputTransferRate(byteLength: number) {
     const time = performance.now() - this.startTime;
     const rate = byteLength / 1024 / 1024 / (time / 1000);
-    console.log(`${(byteLength / 1024).toFixed(2)}KB ${(time / 1000).toFixed(2)}秒 転送速度: ${rate.toFixed(2)}MB/s`);
+    Logger.debug(
+      `[BufferTask] ${(byteLength / 1024).toFixed(2)}KB ${(time / 1000).toFixed(2)}秒 転送速度: ${rate.toFixed(2)}MB/s`
+    );
   }
 }

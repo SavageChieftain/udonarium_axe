@@ -2,6 +2,7 @@ import 'hammerjs';
 
 import { enableProdMode, importProvidersFrom } from '@angular/core';
 import { environment } from './environments/environment';
+import { Logger } from '@axe/core/logger';
 import { AppConfigService } from 'service/app-config.service';
 import { ChatMessageService } from 'service/chat-message.service';
 import { ContextMenuService } from 'service/context-menu.service';
@@ -45,4 +46,4 @@ bootstrapApplication(AppComponent, {
     PointerDeviceService,
     TabletopService,
   ],
-}).catch((err) => console.error(err));
+}).catch((err) => Logger.error('[Bootstrap] アプリケーション起動失敗', err));

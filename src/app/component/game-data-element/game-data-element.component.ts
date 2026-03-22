@@ -194,9 +194,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
       .replace(/'/g, '&#039;');
   }
 
-  clickMarkDownBox(id: string) {
-    console.log('マークダウンクリック:' + id);
-  }
+  clickMarkDownBox(id: string) {}
 
   get markdown(): MarkDown {
     return ObjectStore.instance.get<MarkDown>('markdwon');
@@ -213,7 +211,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   @HostListener('click', ['$event'])
   click(event: MouseEvent) {
     if (this.markdown) {
-      console.log('event.timeStamp:' + event.timeStamp);
       this.markdown.changeMarkDownCheckBox((event.target as HTMLElement)?.id, event.timeStamp);
     }
   }

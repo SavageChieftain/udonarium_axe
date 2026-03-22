@@ -87,13 +87,10 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
     const object = ObjectStore.instance.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
-        console.log(this.tabletopObject.name + 'インポート実行');
-        console.log(object.name + 'インポート実行');
         const distImageDataElement = this.tabletopObject.imageDataElement;
         const srcImageDataElement = object.imageDataElement;
 
         while (distImageDataElement.children.length < srcImageDataElement.children.length) {
-          console.log('イメージ追加');
           distImageDataElement.appendChild(DataElement.create('imageIdentifier', '', { type: 'image' }, ''));
         }
 
@@ -101,7 +98,6 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
           distImageDataElement.children.length > srcImageDataElement.children.length &&
           distImageDataElement.children.length >= 2
         ) {
-          console.log('イメージ削除');
           distImageDataElement.children[distImageDataElement.children.length - 1].destroy();
         }
 

@@ -1,3 +1,5 @@
+import { Logger } from '@axe/core/logger';
+
 export enum CandidateType {
   UNKNOWN = 'unknown',
   RELAY = 'relay',
@@ -26,7 +28,7 @@ export class WebRTCStats {
     try {
       stats = await this.peerConnection.getStats();
     } catch (error) {
-      console.warn(error);
+      Logger.warn('[WebRTC] 統計情報の取得に失敗', error);
     }
 
     if (stats == null) {

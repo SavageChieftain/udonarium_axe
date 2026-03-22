@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { Network } from '@axe/core/system/network/network';
 import { Event, EventContext } from './event';
 import { Listener } from './listener';
@@ -17,9 +18,7 @@ export class EventSystem implements Subject {
   }
 
   private listenerMap: Map<EventName, Listener[]> = new Map();
-  private constructor() {
-    console.log('EventSystem ready...');
-  }
+  private constructor() {}
 
   register(key: object): Listener {
     const listener: Listener = new Listener(this, key);
@@ -155,6 +154,6 @@ export class EventSystem implements Subject {
   }
 
   private sendSystemMessage(message: string) {
-    console.log(message);
+    Logger.debug('[EventSystem]', message);
   }
 }

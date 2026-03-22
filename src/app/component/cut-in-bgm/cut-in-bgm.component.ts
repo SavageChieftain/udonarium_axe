@@ -52,10 +52,6 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
 
   selectBgm(file: AudioFile) {
     if (!file) return;
-    console.log('onSelectedFile', file);
-
-    console.log('file.identifier' + file.identifier);
-    console.log('file.name' + file.name);
 
     this.modalService.resolve(file.identifier);
   }

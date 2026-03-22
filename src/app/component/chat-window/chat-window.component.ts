@@ -222,8 +222,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
 
-      console.log(value.text + ':' + this.checkTargetCharactor(value.text));
-
       if (this.checkTargetCharactor(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;

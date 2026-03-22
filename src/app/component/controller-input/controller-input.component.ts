@@ -158,7 +158,6 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get selectChatColor(): string {
-    console.log('selectChatColor :' + this.charactorChatColor(this.colorSelectNo));
     return this.charactorChatColor(this.colorSelectNo);
   }
 
@@ -488,14 +487,10 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   loadDiceBot(gameType: string) {
-    console.log('onChangeGameType ready');
-    DiceBot.getHelpMessage(gameType).then((help) => {
-      console.log('onChangeGameType done\n' + help);
-    });
+    DiceBot.getHelpMessage(gameType).then(() => {});
   }
   // 親コンポーネントにもCHKBOX情報を渡す、作りが悪いがチャット入力部流用のためひとまずこのまま
   buffHideChkChange(chk: boolean) {
-    console.log('buffHideChkChange:' + chk);
     this.hideChkEvent.emit(chk);
     this.buffHideIsChk = chk;
   }

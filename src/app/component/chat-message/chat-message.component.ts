@@ -53,7 +53,6 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   }
 
   clickFix() {
-    console.log('clickFix');
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { width: 700, height: 120, left: coordinate.x, top: coordinate.y };
     option.title = 'チャット編集';

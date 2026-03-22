@@ -37,10 +37,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   loadDiceBot(gameType: string) {
-    console.log('onChangeGameType ready');
-    DiceBot.getHelpMessage(gameType).then((help) => {
-      console.log('onChangeGameType done\n' + help);
-    });
+    DiceBot.getHelpMessage(gameType).then((help) => {});
   }
 
   get diceBotInfos() {
@@ -72,7 +69,6 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     return this.isEditable ? this.selectedTable.text : '';
   }
   set tableText(tableText: string) {
-    if (this.isEditable) console.log(tableText);
     if (this.isEditable) this.selectedTable.text = tableText + '';
   }
 

@@ -160,9 +160,7 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   checkConnect() {
-    console.log('自身のUserid:' + this.networkService.peerContext.userId);
     for (const context of this.networkService.peerContexts) {
-      console.log('接続対象ID:' + context.peerId);
     }
   }
 

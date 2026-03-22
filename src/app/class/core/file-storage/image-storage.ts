@@ -26,9 +26,7 @@ export class ImageStorage {
 
   private lazyTimer!: ResettableTimeout;
 
-  private constructor() {
-    console.log('ImageStorage ready...');
-  }
+  private constructor() {}
 
   private destroy() {
     for (const identifier in this.imageHash) {
@@ -64,7 +62,6 @@ export class ImageStorage {
     if (ImageState.COMPLETE <= image.state) this.lazySynchronize(100);
     if (this.update(image)) return this.imageHash[image.identifier];
     this.imageHash[image.identifier] = image;
-    console.log('add Image: ' + image.identifier);
     return image;
   }
 

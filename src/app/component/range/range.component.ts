@@ -114,8 +114,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     clipCorn += this.clipAreaCorn.clip07x + 'px ' + this.clipAreaCorn.clip07y + 'px, ';
     clipCorn += this.clipAreaCorn.clip08x + 'px ' + this.clipAreaCorn.clip08y + 'px, ';
     clipCorn += this.clipAreaCorn.clip09x + 'px ' + this.clipAreaCorn.clip09y + 'px)';
-    // return this.sanitizer.bypassSecurityTrustStyle(this._polygon);
-    // console.log( 'clipCorn:' + clipCorn);
     return clipCorn;
   }
 
@@ -302,7 +300,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
           this.changeDetector.markForCheck();
         }
         if (object.identifier == this.range.followingCharctorIdentifier) {
-          console.log('追従動作');
           this.range.following();
           this.setRange();
         }
@@ -449,7 +446,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
       name: 'コピーを作る',
       action: () => {
         const cloneObject = this.range.clone();
-        console.log('コピー', cloneObject);
         cloneObject.location.x += this.gridSize;
         cloneObject.location.y += this.gridSize;
         cloneObject.isLock = false;

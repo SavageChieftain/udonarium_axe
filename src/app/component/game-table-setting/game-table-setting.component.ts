@@ -40,10 +40,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     this.config.defaultDiceBot = gameType;
   }
   loadDiceBot(gameType: string) {
-    console.log('changeDiceBot ready');
-    DiceBot.getHelpMessage(gameType).then((help) => {
-      console.log('onChangeGameType done\n' + help);
-    });
+    DiceBot.getHelpMessage(gameType).then(() => {});
   }
 
   get roomGridDispAlways(): boolean {

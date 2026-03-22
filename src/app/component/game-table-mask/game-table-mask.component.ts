@@ -165,7 +165,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   }
 
   get scratchingGridInfos(): { x: number; y: number; state: string }[] {
-    console.log('scratchingGridInfos');
     const ret: { x: number; y: number; state: string }[] = [];
     if (!this.gameTableMask || (this.isNonScratching && this.isNonScratched)) return ret;
     const scratchingGridSet: Set<string> = this._currentScratchingSet
@@ -341,7 +340,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     } else if (!window.PointerEvent && (e as MouseEvent).button < 2 && (e as MouseEvent).buttons < 2) {
       this.scratching(true);
     }
-    //console.log(e)
     // TODO:もっと良い方法考える
     if ((this.isLock && !this.isScratching) || (this.isScratching && !this.gameTableMask!.isMine)) {
       EventSystem.trigger('DRAG_LOCKED_OBJECT', { srcEvent: e });
@@ -370,9 +368,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     if (this.isScratching && this.gameTableMask!.isMine && this.input.isDragging && e.buttons < 2) {
       this.scratching(false, { offsetX: e.offsetX, offsetY: e.offsetY });
     }
-    if (this.isScratching && this.gameTableMask!.isMine) {
-      console.log('onInputMovePointer');
-    }
     e.stopPropagation();
     e.preventDefault();
   }
@@ -384,7 +379,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     // とりあえず、本当は周辺を表示したい。
     const tableSelecter = TableSelecter.instance;
 
-    console.log('tableSelecter.gridShow');
     if (!tableSelecter.gridShow)
       tableSelecter.viewTable.gridClipRect = {
         top: 0,
@@ -582,7 +576,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       name: 'コピーを作る',
       action: () => {
         const cloneObject = this.gameTableMask!.clone();
-        console.log('コピー', cloneObject);
         cloneObject.location.x += this.gridSize;
         cloneObject.location.y += this.gridSize;
         cloneObject.isLock = false;

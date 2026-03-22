@@ -1,3 +1,5 @@
+import { Logger } from '@axe/core/logger';
+
 const encodePattern = /&|<|>|"|'/g;
 const encodeMap: Record<string, string> = {
   '&': '&amp;',
@@ -24,11 +26,11 @@ export function xml2element(xml: string): HTMLElement {
     xmlDocument = domParser.parseFromString(xml, 'application/xml');
     const parsererror = xmlDocument.getElementsByTagName('parsererror');
     if (parsererror.length) {
-      console.error('XMLのパースに失敗しました', xmlDocument.documentElement);
+      Logger.error('[XML] パース失敗', xmlDocument.documentElement);
       xmlDocument = null!;
     }
   } catch (error) {
-    console.error(error);
+    Logger.error('[XML] パースエラー', error);
   }
   return xmlDocument ? xmlDocument.documentElement : null!;
 }

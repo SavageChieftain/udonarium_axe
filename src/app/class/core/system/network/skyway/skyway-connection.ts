@@ -1,4 +1,5 @@
 import { diff } from '@axe/core/system/util/array-util';
+import { Logger } from '@axe/core/logger';
 import { compressAsync, decompressAsync } from '@axe/core/system/util/compress';
 import * as MessagePack from '@axe/core/system/util/message-pack';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
@@ -62,7 +63,6 @@ export class SkyWayConnection implements Connection {
   open(userId?: string): void;
   open(userId: string, roomId: string, roomName: string, password: string): void;
   async open(...args: string[]): Promise<void> {
-    console.log('open', args);
     let peer: PeerContext;
     if (args.length === 0) {
       peer = await PeerContext.create(PeerContext.generateId());
@@ -82,7 +82,7 @@ export class SkyWayConnection implements Connection {
 
   async connect(peer: IPeerContext): Promise<boolean> {
     if (!this.peer.isRoom) {
-      console.warn('connect() is Fail. ルーム接続のみ可能');
+      Logger.warn('[SkyWay] ルーム接続のみ可能');
       const errorType = 'udonarium-unsupported';
       const errorMessage =
         '現在のユドナリウムでSkyWay(2023)を使用する場合、プライベート接続は利用できません。ルーム接続機能を利用してください。';
@@ -92,34 +92,28 @@ export class SkyWayConnection implements Connection {
 
     if (!(await this.shouldConnect(peer.peerId))) return false;
 
-    console.log(`connect() ${peer.peerId}`);
     this.connectStream(SkyWayDataStream.createSubscription(this.skyWay, peer));
     return true;
   }
 
   private async shouldConnect(peerId: string): Promise<boolean> {
     if (!this.skyWay.isOpen) {
-      console.log('connect() is Fail. IDが割り振られるまで待てや');
       return false;
     }
 
     if (this.peerId === peerId) {
-      console.log('connect() is Fail. ' + peerId + ' is me.');
       return false;
     }
 
     if (this.peerIds.includes(peerId)) {
-      console.log('connect() is Fail. <' + peerId + '> is already connecting.');
       return false;
     }
 
     if (!(await this.peer.verifyPeer(peerId))) {
-      console.log('connect() is Fail. <' + peerId + '> is invalid.');
       return false;
     }
 
     if (!this.skyWay?.room?.members.find((member) => member.name === peerId)) {
-      console.log('connect() is Fail.  <' + peerId + '> is not found.');
       return false;
     }
 
@@ -187,7 +181,6 @@ export class SkyWayConnection implements Connection {
   async listAllPeers(): Promise<string[]> {
     const now = performance.now();
     if (now < this.httpRequestInterval) {
-      console.warn('httpRequestInterval... ' + (this.httpRequestInterval - now));
     } else {
       this.httpRequestInterval = now + 10000;
       this.listAllPeersCache = await this.skyWay.listAllPeers();
@@ -203,24 +196,21 @@ export class SkyWayConnection implements Connection {
 
   private async openSkyWay(peer: IPeerContext) {
     if (this.skyWay.context) {
-      console.warn('It is already opened.');
+      Logger.warn('[SkyWay] 既に接続済みです');
       await this.skyWay.close();
     }
 
     this.skyWay.onOpen = (peer) => {
-      console.log('skyWay onOpen', peer);
-      console.log('My peer Context', this.peer);
       if (this.callback.onOpen) this.callback.onOpen(this.peer);
     };
 
     this.skyWay.onClose = (peer) => {
-      console.log('skyWay onClose', peer);
       if (this.peer.isOpen) this.close();
       if (this.callback.onClose) this.callback.onClose(this.peer);
     };
 
     this.skyWay.onFatalError = (peer, errorType, errorMessage, errorObject) => {
-      console.error('skyWay onFatalError', errorObject);
+      Logger.error('[SkyWay] 致命的エラー', errorObject);
       if (this.peer.isOpen) {
         this.close();
         if (this.callback.onClose) this.callback.onClose(this.peer);
@@ -229,11 +219,10 @@ export class SkyWayConnection implements Connection {
     };
 
     this.skyWay.onSubscribed = async (peer, _subscription) => {
-      console.log(`skyWay onSubscribed ${peer.peerId}`);
       const stream = SkyWayDataStream.createPublication(this.skyWay, peer);
 
       if (!(await this.peer.verifyPeer(stream.peer.peerId))) {
-        console.warn('stream is closing. <' + stream.peer.peerId + '> is invalid.');
+        Logger.warn('[SkyWay] 不正なピアからの接続を拒否: ' + stream.peer.peerId);
         stream.reject();
         return;
       }
@@ -241,7 +230,6 @@ export class SkyWayConnection implements Connection {
     };
 
     this.skyWay.onRoomRestore = (peer) => {
-      console.log(`skyWay onRoomRestore ${peer.peerId}`);
       for (const peerId of this.trustedPeerIds) {
         const peer = PeerContext.parse(peerId);
         this.disconnect(peer);
@@ -255,7 +243,6 @@ export class SkyWayConnection implements Connection {
 
   private connectStream(stream: SkyWayDataStream) {
     if (this.streams.add(stream) == null) return;
-    console.log(`openStream ${stream.peer.peerId}`);
 
     this.trustedPeerIds.delete(stream.peer.peerId);
     this.maybeUnavailablePeerIds.add(stream.peer.peerId);
@@ -328,7 +315,6 @@ export class SkyWayConnection implements Connection {
     for (const peerId of relayingPeerIds) {
       const conn = this.streams.find(peerId);
       if (conn && conn.open) {
-        console.log('<' + peerId + '> 転送しなきゃ・・・');
         conn.send(container);
       }
     }
@@ -355,7 +341,6 @@ export class SkyWayConnection implements Connection {
       for (const userId of unknownUserIds) {
         const peer = await this.makeFriendPeer(userId);
         if (!this.maybeUnavailablePeerIds.has(peer.peerId) && (await this.connect(peer))) {
-          console.log('auto connect to unknown Peer <' + peer.peerId + '>');
         }
       }
     }

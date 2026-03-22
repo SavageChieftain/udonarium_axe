@@ -4,6 +4,7 @@ import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { PeerContext } from '@axe/core/system/network/peer-context';
 import { EventSystem, Network } from '@axe/core/system';
 import { PeerCursor } from '@axe/peer-cursor';
+import { Logger } from '@axe/core/logger';
 
 import { PasswordCheckComponent } from 'component/password-check/password-check.component';
 import { RoomSettingComponent } from 'component/room-setting/room-setting.component';
@@ -105,7 +106,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       });
       this.help = '接続可能なルームが見つかりませんでした。「新しいルームを作成する」で新規ルームを作成できます。';
     } catch (e) {
-      console.error('ルーム一覧の取得に失敗しました。', e);
+      Logger.error('[Lobby] ルーム一覧の取得に失敗しました', e);
       this.help = 'ルーム一覧の取得に失敗しました。「一覧を更新」で再検索できます。';
     } finally {
       this.isReloading = false;
@@ -134,7 +135,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
     const triedPeer: string[] = [];
     EventSystem.register(triedPeer).on('OPEN_NETWORK', (event) => {
-      console.log('LobbyComponent OPEN_PEER', event.data.peerId);
       EventSystem.unregister(triedPeer);
       ObjectStore.instance.clearDeleteHistory();
       for (const context of peerContexts) {
@@ -142,9 +142,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       }
       EventSystem.register(triedPeer)
         .on('CONNECT_PEER', (event) => {
-          console.log('接続成功！', event.data.peerId);
           triedPeer.push(event.data.peerId);
-          console.log('接続成功 ' + triedPeer.length + '/' + peerContexts.length);
           if (peerContexts.length <= triedPeer.length) {
             this.resetNetwork();
             EventSystem.unregister(triedPeer);
@@ -152,9 +150,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
           }
         })
         .on('DISCONNECT_PEER', (event) => {
-          console.warn('接続失敗', event.data.peerId);
           triedPeer.push(event.data.peerId);
-          console.warn('接続失敗 ' + triedPeer.length + '/' + peerContexts.length);
           if (peerContexts.length <= triedPeer.length) {
             this.resetNetwork();
             EventSystem.unregister(triedPeer);

@@ -369,9 +369,8 @@ describe('AudioSharingSystem', () => {
       expect(EventSystemMock.call).toHaveBeenCalledWith(mockEvent, 'peer-b');
     });
 
-    it('candidatePeers が空のとき「あぶれた」ログが出る', () => {
+    it('candidatePeers が空のとき中継も行わない', () => {
       AudioStorageMock.get.mockReturnValue(null);
-      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       const handler = getHandler('REQUEST_AUDIO_RESOURE')!;
       handler({
         isSendFromSelf: false,
@@ -379,10 +378,10 @@ describe('AudioSharingSystem', () => {
         data: {
           identifiers: [{ identifier: 'none', state: AudioState.NULL }],
           receiver: 'peer-r',
-          candidatePeers: [], // 自分しかいないか空
+          candidatePeers: [],
         },
       });
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('あぶれた'), expect.anything());
+      expect(EventSystemMock.call).not.toHaveBeenCalled();
     });
 
     it('sendTask 上限に達していれば中継する', () => {

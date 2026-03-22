@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
 import { generateUuid } from '@axe/core/system/util/uuid';
 import { BufferSharingTask } from './buffer-sharing-task';
@@ -18,15 +19,12 @@ export class ImageSharingSystem {
   private maxSendTask: number = 2;
   private maxReceiveTask: number = 4;
 
-  private constructor() {
-    console.log('FileSharingSystem ready...');
-  }
+  private constructor() {}
 
   initialize() {
     EventSystem.register(this)
       .on('CONNECT_PEER', 1, (event) => {
         if (!event.isSendFromSelf) return;
-        console.log('CONNECT_PEER ImageStorageService !!!', event.data.peerId);
         ImageStorage.instance.synchronize();
       })
       .on('XML_LOADED', (event) => {
@@ -34,7 +32,6 @@ export class ImageSharingSystem {
       })
       .on<CatalogItem[]>('SYNCHRONIZE_FILE_LIST', (event) => {
         if (event.isSendFromSelf) return;
-        console.log('SYNCHRONIZE_FILE_LIST ImageStorageService ' + event.sendFrom);
 
         const otherCatalog: CatalogItem[] = event.data;
         const request: CatalogItem[] = [];
@@ -86,11 +83,7 @@ export class ImageSharingSystem {
             0 < randomRequest.length &&
             !this.existsSendTask(event.data.receiver)
           ) {
-            // 送信
             const updateImages: ImageContext[] = this.makeSendUpdateImages(randomRequest);
-            console.log(
-              'REQUEST_FILE_RESOURE ImageStorageService Send!!! ' + event.data.receiver + ' -> ' + updateImages.length
-            );
             this.startSendTask(updateImages, event.data.receiver);
           } else {
             // 中継
@@ -99,22 +92,14 @@ export class ImageSharingSystem {
             if (-1 < index) candidatePeers.splice(index, 1);
 
             for (const peerId of candidatePeers) {
-              console.log(
-                'REQUEST_FILE_RESOURE ImageStorageService Relay!!! ' + peerId + ' -> ' + event.data.identifiers
-              );
               EventSystem.call(event, peerId);
               return;
             }
-            console.log(
-              'REQUEST_FILE_RESOURE ImageStorageService あぶれた...' + event.data.receiver,
-              randomRequest.length
-            );
           }
         }
       )
       .on<{ updateImages: ImageContext[] }>('UPDATE_FILE_RESOURE', 1000, (event) => {
         const updateImages: ImageContext[] = event.data.updateImages;
-        console.log('UPDATE_FILE_RESOURE ImageStorageService ' + event.sendFrom + ' -> ', updateImages);
         for (const context of updateImages) {
           if (context.blob) context.blob = new Blob([context.blob], { type: context.type });
           if (context.thumbnail.blob)
@@ -125,11 +110,10 @@ export class ImageSharingSystem {
         }
       })
       .on('START_FILE_TRANSMISSION', (event) => {
-        console.log('START_FILE_TRANSMISSION ' + event.data.taskIdentifier);
         const identifier = event.data.taskIdentifier;
         const image: ImageFile = ImageStorage.instance.get(identifier);
         if (this.receiveTaskMap.has(identifier) || (image && ImageState.COMPLETE <= image.state)) {
-          console.warn('CANCEL_TASK_ ' + identifier);
+          Logger.warn('[ImageSync] タスクキャンセル', identifier);
           EventSystem.call('CANCEL_TASK_' + identifier, null, event.sendFrom);
         } else {
           this.startReceiveTask(identifier);
@@ -180,7 +164,6 @@ export class ImageSharingSystem {
     };
 
     task.start();
-    console.log('startReceiveTask => ', this.receiveTaskMap.size);
   }
 
   private stopSendTask(identifier: string) {
@@ -189,8 +172,6 @@ export class ImageSharingSystem {
       task.cancel();
     }
     this.sendTaskMap.delete(identifier);
-
-    console.log('stopSendTask => ', this.sendTaskMap.size);
   }
 
   private stopReceiveTask(identifier: string) {
@@ -199,12 +180,9 @@ export class ImageSharingSystem {
       task.cancel();
     }
     this.receiveTaskMap.delete(identifier);
-
-    console.log('stopReceiveTask => ', this.receiveTaskMap.size);
   }
 
   private request(request: CatalogItem[], peerId: string) {
-    console.log('requestFile() ' + peerId);
     const peerIds = Network.peerIds;
     peerIds.splice(peerIds.indexOf(Network.peerId), 1);
     EventSystem.call(

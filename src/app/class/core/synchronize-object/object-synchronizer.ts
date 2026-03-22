@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
 import { GameObject, ObjectContext } from './game-object';
 import { markForChanged } from './object-event-extension';
@@ -23,11 +24,9 @@ export class ObjectSynchronizer {
 
   initialize() {
     this.destroy();
-    console.log('ObjectSynchronizer ready...');
     EventSystem.register(this)
       .on('CONNECT_PEER', 2, (event) => {
         if (!event.isSendFromSelf) return;
-        console.log('CONNECT_PEER GameRoomService !!!', event.data.peerId);
         this.sendCatalog(event.data.peerId);
       })
       .on('DISCONNECT_PEER', (event) => {
@@ -35,7 +34,6 @@ export class ObjectSynchronizer {
       })
       .on<CatalogItem[]>('SYNCHRONIZE_GAME_OBJECT', (event) => {
         if (event.isSendFromSelf) return;
-        console.log('SYNCHRONIZE_GAME_OBJECT ' + event.sendFrom);
         const catalog: CatalogItem[] = event.data;
         for (const item of catalog) {
           if (ObjectStore.instance.isDeleted(item.identifier)) {
@@ -92,7 +90,7 @@ export class ObjectSynchronizer {
   private createObject(context: ObjectContext): GameObject {
     const newObject = ObjectFactory.instance.create(context.aliasName, context.identifier);
     if (!newObject) {
-      console.warn(context.aliasName + ' is Unknown...?', context);
+      Logger.warn(`[ObjectSync] 未知のオブジェクト: ${context.aliasName}`, context);
       return null!;
     }
     ObjectStore.instance.add(newObject, false);
@@ -159,7 +157,7 @@ export class ObjectSynchronizer {
     };
 
     task.ontimeout = (task, remainedRequests) => {
-      console.log('GameObject synchronize タイムアウト');
+      Logger.warn('[ObjectSync] 同期タイムアウト');
       remainedRequests.forEach((request) => this.requestMap.set(request.identifier, request));
     };
   }

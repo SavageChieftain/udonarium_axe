@@ -10,6 +10,7 @@ import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
 
+import { Logger } from '@axe/core/logger';
 import { DataElement } from '@axe/data-element';
 
 import { DiceBot } from '@axe/dice-bot';
@@ -34,7 +35,6 @@ export class ChatMessageService {
 
   calibrateTimeOffset() {
     if (this.intervalTimer != null) {
-      console.log('calibrateTimeOffset was canceled.');
       return;
     }
     const index = Math.floor(Math.random() * this.ntpApiUrls.length);
@@ -53,14 +53,11 @@ export class ChatMessageService {
         const fixedTime = st + latency;
         this.timeOffset = fixedTime;
         this.performanceOffset = endTime;
-        console.log('latency: ' + latency + 'ms');
-        console.log('st: ' + st + '');
-        console.log('timeOffset: ' + this.timeOffset);
-        console.log('performanceOffset: ' + this.performanceOffset);
+        Logger.info(`[TimeSync] 時刻同期完了 (過延: ${latency.toFixed(0)}ms, offset: ${fixedTime.toFixed(0)})`);
         this.setIntervalTimer();
       })
       .catch((error) => {
-        console.warn('There has been a problem with your fetch operation: ', error.message);
+        Logger.warn('[TimeSync] 時刻同期失敗', error.message);
         this.setIntervalTimer();
       });
     this.setIntervalTimer();
@@ -163,7 +160,6 @@ export class ChatMessageService {
       sendFrom: sendFrom,
     };
 
-    console.log(text + ' ' + sendFrom + ' ' + sendTo + ' ' + tachieNum);
     this.setLastControlInfoToPeer(sendFrom, this.findImageIdentifier(sendFrom, imgIndex), imgIndex, sendTo);
 
     // 立ち絵置き換え
@@ -171,7 +167,6 @@ export class ChatMessageService {
 
     const matchesArray = chkMessage.match(/\s[@＠](\S+)\s*$/i);
     if (matchesArray) {
-      console.log(matchesArray);
       const matchHide = matchesArray[1].match(/^[hHｈＨ][iIｉＩ][dDｄＤ][eEｅＥ]$/);
       const matchNum = matchesArray[1].match(/(\d+)$/);
 
@@ -241,7 +236,6 @@ export class ChatMessageService {
     if (!peerCursor) {
       return;
     }
-    console.log('peerCursor:' + peerCursor);
     if (sendTo == null || sendTo.length < 1) {
       if (peerCursor.lastControlImageIdentifier != imageIdentifier) {
         peerCursor.lastControlImageIdentifier = imageIdentifier;
@@ -266,7 +260,6 @@ export class ChatMessageService {
       for (const child of data.children) {
         if (child instanceof DataElement) {
           if (child.getAttribute('currentValue') == name) {
-            console.log('HIT!!' + child.getAttribute('currentValue') + '=' + name);
             const img = ImageStorage.instance.get(<string>child.value);
             if (img) {
               return img.identifier;
@@ -279,9 +272,7 @@ export class ChatMessageService {
       this._ImageIndex = 0;
       for (const child of data.children) {
         if (child instanceof DataElement) {
-          console.log('child' + child.getAttribute('currentValue'));
           if (child.getAttribute('currentValue').indexOf(name) == 0) {
-            console.log('HIT!!' + child.getAttribute('currentValue') + '=' + name);
             const img = ImageStorage.instance.get(<string>child.value);
             if (img) {
               return img.identifier;

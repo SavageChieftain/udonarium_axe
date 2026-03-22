@@ -233,7 +233,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     const distance =
       (this.doubleClickPoint.x - this.input.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input.pointer.y) ** 2;
     if (distance < 10 ** 2) {
-      console.log('onDoubleClick !!!!');
       if (this.ownerIsOnline && !this.isHand) return;
       this.state = this.isVisible && !this.isHand ? CardState.BACK : CardState.FRONT;
       this.owner = '';
@@ -410,7 +409,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private dispatchCardDropEvent() {
-    console.log('dispatchCardDropEvent');
     const element: HTMLElement = this.elementRef.nativeElement;
     const parent = element.parentElement!;
     const children = parent.children;

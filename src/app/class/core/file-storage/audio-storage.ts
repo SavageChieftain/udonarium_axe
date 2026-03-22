@@ -25,9 +25,7 @@ export class AudioStorage {
     return audios;
   }
 
-  private constructor() {
-    console.log('AudioStorage ready...');
-  }
+  private constructor() {}
 
   private destroy() {
     for (const identifier in this.hash) {
@@ -63,7 +61,6 @@ export class AudioStorage {
     if (AudioState.COMPLETE <= audio.state) this.lazySynchronize(100);
     if (this.update(audio)) return this.hash[audio.identifier];
     this.hash[audio.identifier] = audio;
-    console.log('add Audio: ' + audio.identifier);
     return audio;
   }
 

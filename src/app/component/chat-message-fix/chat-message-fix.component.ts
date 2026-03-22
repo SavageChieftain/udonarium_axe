@@ -105,7 +105,6 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
 
   calcFitHeight() {
     const textArea: HTMLTextAreaElement = this.textAreaElementRef.nativeElement;
-    console.log('calcFitHeight');
     textArea.style.height = '';
     if (textArea.scrollHeight >= textArea.offsetHeight) {
       textArea.style.height = textArea.scrollHeight + 'px';

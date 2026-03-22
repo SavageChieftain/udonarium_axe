@@ -49,17 +49,14 @@ export class RangeArea extends TabletopObject {
   followingCounterDummyCount() {
     this.followingCounterDummy++;
     if (this.followingCounterDummy >= 50) this.followingCounterDummy = 0;
-    console.log(this.followingCounterDummy);
   }
 
   following() {
     const object = <GameCharacter>ObjectStore.instance.get(this.followingCharctorIdentifier);
     if (!object) {
-      console.log('追従対象見失い');
       this.followingCharctorIdentifier = null!;
       return;
     }
-    console.log('following x:' + object.location.x + ' y:' + object.location.y);
 
     this.location.x = object.location.x + (this.gridSize * object.size) / 2;
     this.location.y = object.location.y + (this.gridSize * object.size) / 2;

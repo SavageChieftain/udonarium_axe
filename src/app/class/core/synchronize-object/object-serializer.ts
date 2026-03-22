@@ -1,6 +1,7 @@
 import { xml2element, encodeEntityReference, decodeEntityReference } from '@axe/core/system/util/xml-util';
 import { Attributes } from './attributes';
 import { GameObject, ObjectContext } from './game-object';
+import { Logger } from '@axe/core/logger';
 import { ObjectFactory } from './object-factory';
 
 export interface XmlAttributes extends GameObject {
@@ -22,9 +23,7 @@ export class ObjectSerializer {
     return ObjectSerializer._instance;
   }
 
-  private constructor() {
-    console.log('ObjectSerializer ready...');
-  }
+  private constructor() {}
 
   toXml(gameObject: GameObject): string {
     let xml = '';
@@ -112,7 +111,7 @@ export class ObjectSerializer {
       xmlElement = xml;
     }
     if (!xmlElement) {
-      console.error('xmlElementが空です');
+      Logger.error('[ObjectSerializer] xmlElementが空です');
       return null as unknown as GameObject;
     }
 
@@ -146,7 +145,7 @@ export class ObjectSerializer {
 
       const pollutionKey = split.find((splitKey) => objectPropertyKeys.includes(splitKey));
       if (pollutionKey != null) {
-        console.log(`skip invalid key (${pollutionKey})`);
+        Logger.debug(`[ObjectSerializer] 無効なキーをスキップ (${pollutionKey})`);
         continue;
       }
 
@@ -179,7 +178,7 @@ export class ObjectSerializer {
       key = Number.isNaN(index) ? split[i] : index;
 
       if (Array.isArray(obj) && typeof key !== 'number') {
-        console.warn('Arrayにはindexの挿入しか許可しない');
+        Logger.warn('[ObjectSerializer] Arrayにはindexの挿入しか許可しない');
         return { obj, key: null };
       }
       if (i + 1 < length) {

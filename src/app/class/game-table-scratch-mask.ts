@@ -32,7 +32,6 @@ export class GameTableScratchMask extends TabletopObject {
   getMapXY(x: number, y: number, myScratch: boolean): boolean {
     if (myScratch) {
       if (this.fillMapBack.length < this.M.length) {
-        console.log('スクラッチマスク作業領域未確保 getMapXY:' + this.fillMapBack.length);
         return false;
       }
       return this.fillMapBack[this.maxSize * y + x];
@@ -43,7 +42,6 @@ export class GameTableScratchMask extends TabletopObject {
 
   setMapXY(x: number, y: number, bool: boolean) {
     if (this.fillMapBack.length < this.M.length) {
-      console.log('スクラッチマスク作業領域未確保 setMapXY:' + this.fillMapBack.length);
       return;
     }
     this.fillMapBack[this.maxSize * y + x] = bool;
@@ -51,19 +49,16 @@ export class GameTableScratchMask extends TabletopObject {
 
   copyBack2MainMap() {
     this.M = this.fillMapBack.concat();
-    console.log('スクラッチマスク：データを編集領域から反映:' + this.fillMapBack.length);
     this.dummy++;
     if (this.dummy >= 100) this.dummy = 0;
   }
 
   copyMain2BackMap() {
     this.fillMapBack = this.M.concat();
-    console.log('スクラッチマスク：データを編集領域に複製:' + this.fillMapBack.length);
   }
 
   reverseMapXY(x: number, y: number) {
     if (this.fillMapBack.length < this.M.length) {
-      console.log('スクラッチマスク作業領域未確保 reverseMapXY:' + this.fillMapBack.length);
       return;
     }
 
@@ -72,7 +67,6 @@ export class GameTableScratchMask extends TabletopObject {
 
   isMapXYChange(x: number, y: number) {
     if (this.fillMapBack.length < this.M.length) {
-      console.log('スクラッチマスク作業領域未確保 isMapXYChange:' + this.fillMapBack.length);
       return false;
     }
     if (this.M[this.maxSize * y + x] != this.fillMapBack[this.maxSize * y + x]) {

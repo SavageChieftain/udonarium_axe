@@ -1,4 +1,5 @@
 import { ImageFile } from './core/file-storage/image-file';
+import { Logger } from './core/logger';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject, ObjectContext } from './core/synchronize-object/game-object';
@@ -229,7 +230,7 @@ export class PeerCursor extends GameObject {
 
   static createMyCursor(): PeerCursor {
     if (PeerCursor.myCursor) {
-      console.warn('It is already created.');
+      Logger.warn('[PeerCursor] 既に作成済みです');
       return PeerCursor.myCursor;
     }
     PeerCursor.myCursor = new PeerCursor();

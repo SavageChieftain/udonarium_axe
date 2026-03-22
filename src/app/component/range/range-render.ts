@@ -104,8 +104,6 @@ export class RangeRender {
     const bx = pchkx - p1x;
     const by = pchky - p1y;
     const calc = ax * by - ay * bx;
-    // console.log('p1:' + p1x + ',' + p1y +' p2:' + p2x + ',' + p2y + ' pchk:' + pchkx + ',' + pchky);
-    // console.log('a:' + ax + ',' + ay +' b:' + bx + ',' + by + ' calc:' + calc);
 
     return calc >= -0.01 ? true : false; // 丸め誤差対策で少し許容範囲を広くする
   }
@@ -171,13 +169,9 @@ export class RangeRender {
 
           gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
           gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-          // console.log('hw' + h + ',' + w);
 
-          // trueで内側にある
           if (this.chkInCircle(setting.range * gridSize, gcx, gcy)) {
             this.fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-          } else {
-            // this.strokeSquare(context, gx + gridOffX, gy + gridOffY, gridSize); // デバッグ用
           }
         }
       }
@@ -305,9 +299,7 @@ export class RangeRender {
 
           gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
           gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-          // console.log('hw' + h + ',' + w);
 
-          // 全部trueで内側にある
           if (
             this.chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
             this.chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
@@ -315,8 +307,6 @@ export class RangeRender {
             this.chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
           ) {
             this.fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-          } else {
-            // this.strokeSquare(context, gx + gridOffX, gy + gridOffY, gridSize); // デバッグ用
           }
         }
       }
@@ -435,7 +425,6 @@ export class RangeRender {
 
           gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
           gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-          // console.log('hw' + h + ',' + w);
 
           // 全部trueで内側にある
           if (
@@ -445,8 +434,6 @@ export class RangeRender {
             this.chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
           ) {
             this.fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-          } else {
-            // this.strokeSquare(context, gx + gridOffX, gy + gridOffY, gridSize); // デバッグ用
           }
         }
       }
@@ -570,7 +557,6 @@ export class RangeRender {
 
           gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
           gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-          // console.log('hw' + h + ',' + w);
 
           // 全部trueで内側にある
           if (
@@ -580,8 +566,6 @@ export class RangeRender {
             this.chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
           ) {
             this.fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-          } else {
-            // this.strokeSquare(context, gx + gridOffX, gy + gridOffY, gridSize); // デバッグ用
           }
         }
       }
@@ -733,8 +717,6 @@ export class RangeRender {
 
           gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
           gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-          // console.log('hw' + h + ',' + w);
-
           // 全部trueで内側にある
           if (
             this.chkOuterProduct(cx, cy, p1x, p1y, gcx, gcy) &&
@@ -742,10 +724,7 @@ export class RangeRender {
             this.chkOuterProduct(p2x, p2y, cx, cy, gcx, gcy)
           ) {
             this.fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-          } else {
-            // this.strokeSquare(context, gx + gridOffX, gy + gridOffY, gridSize); // デバッグ用
           }
-          //        context.fillText((w + 1).toString() + '-' + (h + 1).toString(), gx + gridOffX + (gridSize / 2), gy + gridOffY + (gridSize / 2));
         }
       }
     }
@@ -779,7 +758,6 @@ export class RangeRender {
     areaWidth: number,
     areaHeight: number
   ): StrokeGridFunc {
-    //  console.log('areaWidth:'+areaWidth + ' areaHeight:'+areaHeight);
     switch (gridType) {
       case GridType.HEX_VERTICAL: // ヘクス縦揃え
         return (w, h, gridSize) => {

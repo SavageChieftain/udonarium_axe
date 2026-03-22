@@ -173,7 +173,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
           return;
         }
 
-        console.log(`recv focus event to ${this.gameCharacter!.name}`);
         // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
         if (this.highlightTimer != null) {
           return;
@@ -221,7 +220,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 
   @HostListener('dragstart', ['$event'])
   onDragstart(e: DragEvent) {
-    console.log('Dragstart Cancel !!!!');
     e.stopPropagation();
     e.preventDefault();
   }
@@ -397,16 +395,11 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     const key_meta = key_event.metaKey;
     //キーに対応した処理
 
-    if (key_shift) console.log('shiftキー');
-    if (key_ctrl) console.log('ctrlキー');
     if (key_alt) {
-      console.log('altキー');
       this.gameCharacter!.targeted = this.gameCharacter!.targeted ? false : true;
     }
-    if (key_meta) console.log('metaキー');
 
     if (key_shift && key_alt) {
-      console.log('shift+ALTキー');
       const objects = ObjectStore.instance.getObjects(GameCharacter);
       for (const object of objects) {
         object.targeted = false;
@@ -477,7 +470,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   protected foldingBuffFlag(flag: boolean) {
-    console.log('private foldingBuffFlag');
     this.foldingBuff = flag;
   }
 

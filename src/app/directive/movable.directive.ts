@@ -405,13 +405,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   private updateTransformCss() {
-    //    let css = this.transformCssOffset + ' translateX(' + this.posX + 'px) translateY(' + this.posY + 'px) translateZ(' + this.posZ + 'px)';
-    //    let css = 'translateX(' + this.posX + 'px) translateY(' + this.posY + 'px) translateZ(' + this.posZ + 'px)';
     const css = 'translate3d(' + this.posX + 'px,' + this.posY + 'px,' + this.posZ + 'px) ' + this.transformCssOffset;
-    //    let css = 'translate3d(' + this.posX + 'px,' + this.posY + 'px,' + this.posZ + 'px) ' + ' translate3d(0px,0px,1px) translate3d(0px,0px,1px)  translate3d(0px,0px,1px) translate3d(0px,0px,1px) translate3d(0px,0px,1px)';
-
-    //    let css = 'translate3d(' + this.posX + 'px,' + this.posY + 'px,' + (this.posZ +100 )+ 'px) ';
-    //    console.log(css);
     this.nativeElement.style.transform = css;
   }
 

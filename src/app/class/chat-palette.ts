@@ -142,7 +142,6 @@ export class ChatPalette extends ObjectNode {
     if (text.match(/\s[tTｔＴ][&＆]([^&＆]+)/g)) {
       istarget = true;
     }
-    console.log('複数対象用コマンド：' + istarget);
     return istarget;
   }
 
@@ -156,7 +155,6 @@ export class ChatPalette extends ObjectNode {
       evaluate = line.palette;
     }
 
-    console.log(evaluate);
     const limit = 128;
     let loop = 0;
     let isContinue = true;

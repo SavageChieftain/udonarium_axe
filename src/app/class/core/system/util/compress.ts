@@ -1,5 +1,6 @@
 import * as Pako from 'pako';
 
+import { Logger } from '@axe/core/logger';
 import { setZeroTimeout } from './zero-timeout';
 
 export async function compressAsync(data: Uint8Array, chunkSize?: number): Promise<Uint8Array> {
@@ -9,7 +10,7 @@ export async function compressAsync(data: Uint8Array, chunkSize?: number): Promi
     await processAsync(deflate, data, chunkSize);
     return deflate.result as Uint8Array;
   } catch (e) {
-    console.error(e);
+    Logger.error('[Compress] 圧縮エラー', e);
   }
   return null!;
 }
@@ -21,7 +22,7 @@ export async function decompressAsync(data: Uint8Array, chunkSize?: number): Pro
     await processAsync(inflate, data, chunkSize);
     return inflate.result as Uint8Array;
   } catch (e) {
-    console.error(e);
+    Logger.error('[Compress] 解凍エラー', e);
   }
   return null!;
 }

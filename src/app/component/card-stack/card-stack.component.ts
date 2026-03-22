@@ -230,7 +230,6 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     const distance =
       (this.doubleClickPoint.x - this.input.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input.pointer.y) ** 2;
     if (distance < 10 ** 2) {
-      console.log('onDoubleClick !!!!');
       if (this.drawCard() != null) {
         SoundEffect.play(PresetSound.cardDraw);
       }

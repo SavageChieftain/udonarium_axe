@@ -39,7 +39,6 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
       } else {
         this.tabletopObject.syncDummyCounter = 0;
       }
-      console.log('changeColor:count:' + this.tabletopObject.syncDummyCounter);
     } else {
       this.myPeer.chatColorCode[num] = event;
     }

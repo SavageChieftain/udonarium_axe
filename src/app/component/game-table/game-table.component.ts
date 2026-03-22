@@ -178,7 +178,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
           event.data.identifier !== this.tableSelecter.identifier
         )
           return;
-        console.log('UPDATE_GAME_OBJECT GameTableComponent ' + this.currentTable.identifier);
         this.setGameTableGrid(
           this.currentTable.width,
           this.currentTable.height,
@@ -188,7 +187,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
         );
       })
       .on('RE_DRAW_TABLE', (_event) => {
-        console.log('テーブル再描画');
         this.changeDetector.detectChanges();
         this.changeDetector.markForCheck();
       })
@@ -203,7 +201,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       })
       .on('FOCUS_TO_TABLETOP_COORDINATE', (event) => {
         setTimeout(() => {
-          console.log(`move table to focus (${event.data.x}, ${event.data.y})`);
           this.gameTable.nativeElement.style.transition = '0.2s ease-out';
           setTimeout(() => {
             this.gameTable.nativeElement.style.transition = null!;
@@ -464,8 +461,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
         opacity = 1.0;
       }
       this.gridCanvas.nativeElement.style.opacity = opacity + '';
-      console.log('グリッド描画');
-    }, 0);
+    });
   }
 
   private removeSelectionRanges() {

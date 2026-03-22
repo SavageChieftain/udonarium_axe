@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 import { AudioStorage, CatalogItem } from './audio-storage';
@@ -19,22 +20,17 @@ export class AudioSharingSystem {
   private constructor() {}
 
   initialize() {
-    console.log('AudioSharingSystem ready...');
     this.destroy();
     EventSystem.register(this)
       .on('CONNECT_PEER', -1, (event) => {
         if (!event.isSendFromSelf) return;
-        console.log('CONNECT_PEER AudioStorageService !!!', event.data.peerId);
         AudioStorage.instance.synchronize();
       })
       .on<CatalogItem[]>('SYNCHRONIZE_AUDIO_LIST', (event) => {
         if (event.isSendFromSelf) return;
-        console.log('SYNCHRONIZE_AUDIO_LIST ' + event.sendFrom);
 
         const otherCatalog: CatalogItem[] = event.data;
         const request: CatalogItem[] = [];
-
-        console.log('SYNCHRONIZE_AUDIO_LIST active tasks ', this.sendTaskMap.size + this.receiveTaskMap.size);
         for (const item of otherCatalog) {
           let audio: AudioFile = AudioStorage.instance.get(item.identifier);
           if (audio === null) {
@@ -73,8 +69,6 @@ export class AudioSharingSystem {
           });
 
           if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(event.data.receiver)) {
-            // 送信
-            console.log('REQUEST_AUDIO_RESOURE Send!!! ' + event.data.receiver + ' -> ' + randomRequest);
             const index = Math.floor(Math.random() * randomRequest.length);
             const item: { identifier: string; state: number } = randomRequest[index];
             const audio: AudioFile = AudioStorage.instance.get(item.identifier);
@@ -86,33 +80,24 @@ export class AudioSharingSystem {
             if (-1 < index) candidatePeers.splice(index, 1);
 
             for (const peerId of candidatePeers) {
-              console.log(
-                'REQUEST_AUDIO_RESOURE AudioStorageService Relay!!! ' + peerId + ' -> ' + event.data.identifiers
-              );
               EventSystem.call(event, peerId);
               return;
             }
-            console.log(
-              'REQUEST_FILE_RESOURE AudioStorageService あぶれた...' + event.data.receiver,
-              randomRequest.length
-            );
           }
         }
       )
       .on<AudioFileContext[]>('UPDATE_AUDIO_RESOURE', 1000, (event) => {
         const updateAudios: AudioFileContext[] = event.data;
-        console.log('UPDATE_AUDIO_RESOURE AudioStorageService ' + event.sendFrom + ' -> ', updateAudios);
         for (const context of updateAudios) {
           if (context.blob) context.blob = new Blob([context.blob], { type: context.type });
           AudioStorage.instance.add(context);
         }
       })
       .on('START_AUDIO_TRANSMISSION', (event) => {
-        console.log('START_AUDIO_TRANSMISSION ' + event.data.fileIdentifier);
         const identifier: string = event.data.fileIdentifier;
         const audio: AudioFile = AudioStorage.instance.get(identifier);
         if (this.receiveTaskMap.has(identifier) || audio?.isReady) {
-          console.warn('CANCEL_TASK_ ' + identifier);
+          Logger.warn('[AudioSync] タスクキャンセル', identifier);
           EventSystem.call('CANCEL_TASK_' + identifier, null, event.sendFrom);
         } else {
           this.startReceiveTask(identifier);
@@ -170,25 +155,19 @@ export class AudioSharingSystem {
     };
 
     task.start();
-    console.log('startReceiveTask => ', this.receiveTaskMap.size);
   }
 
   private stopSendTask(identifier: string) {
     this.sendTaskMap.get(identifier)?.cancel();
     this.sendTaskMap.delete(identifier);
-
-    console.log('stopSendTask => ', this.sendTaskMap.size);
   }
 
   private stopReceiveTask(identifier: string) {
     this.receiveTaskMap.get(identifier)?.cancel();
     this.receiveTaskMap.delete(identifier);
-
-    console.log('stopReceiveTask => ', this.receiveTaskMap.size);
   }
 
   private request(request: CatalogItem[], peerId: string) {
-    console.log('requestFile() ' + peerId);
     const peerIds = Network.peerIds;
     peerIds.splice(peerIds.indexOf(Network.peerId), 1);
     EventSystem.call(

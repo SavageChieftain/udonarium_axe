@@ -155,8 +155,6 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   private adjustPosition() {
     const current = this.calcElementPosition(this.elementRef.nativeElement);
     const correction = this.calcCorrectionPosition();
-    console.log('current x ' + current.x + '  y' + current.y);
-    console.log('correction x ' + correction.x + '  y' + correction.y);
     this.elementRef.nativeElement.style.left = correction.x + current.x + 'px';
     this.elementRef.nativeElement.style.top = correction.y + current.y + 'px';
   }

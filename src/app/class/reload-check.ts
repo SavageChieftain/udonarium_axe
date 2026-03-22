@@ -27,7 +27,6 @@ export class ReloadCheck extends TabletopObject {
   }
 
   isLoadOk(): boolean {
-    console.log('isLoadOk :' + this.reloadOK);
     return this.reloadOK;
   }
 }

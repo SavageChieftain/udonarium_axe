@@ -84,7 +84,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   startCutIn() {
     if (!this.cutIn) return;
-    console.log('CutInWin ' + this.cutIn.name);
 
     const audio = this.cutIn.audio;
     if (audio) {
@@ -95,8 +94,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     }
 
     if (this.cutIn.outTime > 0) {
-      console.log('outTime ' + this.cutIn.outTime);
-
       this.cutInTimeOut = setTimeout(() => {
         this.cutInTimeOut = null;
         this.panelService.close();
@@ -111,7 +108,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   ngOnInit() {
     EventSystem.register(this)
       .on<{ cutIn: CutIn }>('START_CUT_IN', (event) => {
-        console.log('カットインウィンドウ>Event:START_CUT_IN ' + this.cutIn.name);
         if (this.cutIn) {
           if (this.cutIn.identifier == event.data.cutIn.identifier || this.cutIn.tagName == event.data.cutIn.tagName) {
             this.panelService.close();
@@ -120,7 +116,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       })
       .on('STOP_CUT_IN_BY_BGM', (_event) => {
         if (this.cutIn) {
-          console.log(" 'STOP_CUT_IN_BY_BGM :" + this.cutIn);
           const audio = AudioStorage.instance.get(this.cutIn.audioIdentifier);
           if (this.cutIn.tagName == '' && audio) {
             this.panelService.close();
@@ -128,7 +123,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
         }
       })
       .on<{ cutIn: CutIn }>('STOP_CUT_IN', (event) => {
-        console.log('カットインウィンドウ>Event: ' + this.cutIn.name);
         if (this.cutIn) {
           if (this.cutIn.identifier == event.data.cutIn.identifier) {
             this.panelService.close();
@@ -160,8 +154,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       this.height = cutin_h + 25;
       this.left = margin_x;
       this.top = margin_y;
-    } else {
-      console.log('カットインが未定義で再生された');
     }
     this.panelService.width = this.width;
     this.panelService.height = this.height;
@@ -171,14 +163,12 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   chkeWindowMinSize() {
     if (this.videoId) {
-      console.log('chkeWindowMinSize 1:' + this.panelService.width);
       if (this.panelService.width < this.cutIn.minSizeWidth(true)) {
         this.panelService.width = this.cutIn.minSizeWidth(true);
       }
       if (this.panelService.height < this.cutIn.minSizeHeight(true)) {
         this.panelService.height = this.cutIn.minSizeHeight(true);
       }
-      console.log('chkeWindowMinSize 2:' + this.panelService.width);
     }
   }
 
@@ -214,13 +204,11 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   onPlayerReady($event: { target: { setVolume: (v: number) => void; playVideo: () => void } }) {
     $event.target.setVolume(this.videoVolume);
-    console.log('ready');
     $event.target.playVideo();
   }
 
   onPlayerStateChange($event: { data: number }) {
     const state = $event.data;
-    console.log($event.data);
     if (state == 1) {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
@@ -255,7 +243,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   onErrorFallback() {
-    console.log('fallback');
     if (!this.videoId) return;
     // 後で修正
     // this.cutInImageElement.nativeElement.src = 'https://img.youtube.com/vi/' + this.videoId + '/default.jpg'

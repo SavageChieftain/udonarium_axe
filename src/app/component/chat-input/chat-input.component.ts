@@ -448,7 +448,6 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     if (event && (event as KeyboardEvent).keyCode !== 13) return;
 
     if (this.autoCompleteIndex >= 0) {
-      console.log('オートコンプリート処理実行 INDEX:' + this.autoCompleteIndex);
       this.autoCompleteDo.emit(this.autoCompleteIndex);
       return;
     }
@@ -501,10 +500,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   loadDiceBot(gameType: string) {
-    console.log('onChangeGameType ready');
-    DiceBot.getHelpMessage(gameType).then((help) => {
-      console.log('onChangeGameType done\n' + help);
-    });
+    DiceBot.getHelpMessage(gameType).then(() => {});
   }
 
   isGameTypeInList(): boolean {

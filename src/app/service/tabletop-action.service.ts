@@ -136,7 +136,6 @@ export class TabletopActionService {
     range.posZ = position.z;
     range.type = typeName;
     const data = range.commonDataElement.getFirstElementByName('opacity');
-    console.log('射程範囲TEST' + data);
     data.currentValue = 60;
     return range;
   }

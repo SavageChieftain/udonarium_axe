@@ -136,8 +136,6 @@ export class CutInLauncher extends GameObject {
 
   // override
   apply(context: ObjectContext) {
-    console.log('CutInLauncher apply() CALL');
-
     const launchCutInIdentifier = this.launchCutInIdentifier;
     const launchIsStart = this.launchIsStart;
     const launchTimeStamp = this.launchTimeStamp;
@@ -148,10 +146,7 @@ export class CutInLauncher extends GameObject {
       return;
     } // ソロ再生用の場合他の人は発火しない
 
-    console.log('this.sendTo :' + this.sendTo);
-
     if (stopBlankTagCutInTimeStamp !== this.stopBlankTagCutInTimeStamp) {
-      console.log('データ伝搬で検知 無タグカットイン停止のトリガー');
       EventSystem.trigger('STOP_CUT_IN_BY_BGM', {});
     }
 

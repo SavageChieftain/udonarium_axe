@@ -24,8 +24,6 @@ export class TableSelecter extends GameObject {
   onStoreAdded() {
     super.onStoreAdded();
     EventSystem.register(this).on('SELECT_GAME_TABLE', (event) => {
-      console.log('SELECT_GAME_TABLE ' + this.identifier);
-
       if (this.viewTable) this.viewTable.selected = false;
       this.viewTableIdentifier = event.data.identifier;
       if (this.viewTable) this.viewTable.selected = true;

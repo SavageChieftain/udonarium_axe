@@ -60,8 +60,6 @@ export class GameCharacter extends TabletopObject {
   }
 
   set selectedTachieNum(num: number) {
-    console.log('set selectedTachieNum NUM=' + num + ' len' + this.imageDataElement.children.length);
-
     if (num > this.imageDataElement.children.length - 1) {
       num = this.imageDataElement.children.length - 1;
     }
@@ -69,7 +67,6 @@ export class GameCharacter extends TabletopObject {
       num = 0;
     }
     this._selectedTachieNum = num;
-    console.log('set selectedTachieNum' + this._selectedTachieNum);
   }
 
   private getIconNumElement(): DataElement {
@@ -112,9 +109,7 @@ export class GameCharacter extends TabletopObject {
     this.setCommonValue('name', value);
   }
 
-  TestExec() {
-    console.log('TestExec');
-  }
+  TestExec() {}
   get remoteController(): BuffPalette {
     for (const child of this.children) {
       if (child instanceof BuffPalette) {
@@ -156,10 +151,8 @@ export class GameCharacter extends TabletopObject {
       if (tachies.length != 0) {
         const parentElement = tachies[0].parent;
         const index: number = parentElement.children.indexOf(tachies[0]);
-        console.log('立ち絵の次に差し込み INdex' + index);
         if (index < parentElement.children.length - 1) {
           const nextElement = parentElement.children[index + 1];
-          console.log('立ち絵の次に差し込み nextElement' + nextElement);
 
           parentElement.insertBefore(elementKoma, nextElement);
         }
@@ -649,7 +642,6 @@ export class GameCharacter extends TabletopObject {
     if (type == null) return null!;
 
     let oldNumS: string | undefined;
-    console.log('getStatusValue type' + type);
 
     if (type == 'value') {
       oldNumS = data.value as string;

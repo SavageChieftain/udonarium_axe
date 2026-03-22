@@ -65,7 +65,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
       } else {
         this.selectedCutIn.height = Math.floor((cutInWidth * this.originalImgHeight()) / this.originalImgWidth());
       }
-      console.log(' this.keepImageAspect H' + this.selectedCutIn.height);
     }
   }
 
@@ -79,7 +78,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
       } else {
         this.selectedCutIn.width = Math.floor((cutInHeight * this.originalImgWidth()) / this.originalImgHeight());
       }
-      console.log(' this.keepImageAspect W' + this.selectedCutIn.width);
     }
   }
 
@@ -92,13 +90,11 @@ export class CutInListComponent implements OnInit, OnDestroy {
         const width = this.selectedCutIn.defVideoSizeWidth;
         if (this.selectedCutIn.width != width) {
           this.selectedCutIn.width = width;
-          console.log(' setCutInYouTubeSize w:' + width);
         }
       } else {
         const width = this.originalImgWidth();
         if (this.selectedCutIn.width != width) {
           this.selectedCutIn.width = width;
-          console.log(' setCutInOriginalSize w' + width);
         }
       }
     }
@@ -113,13 +109,11 @@ export class CutInListComponent implements OnInit, OnDestroy {
         const height = this.selectedCutIn.defVideoSizeHeight;
         if (this.selectedCutIn.height != height) {
           this.selectedCutIn.height = height;
-          console.log(' setCutInYouTubeSize h:' + height);
         }
       } else {
         const height = this.originalImgHeight();
         if (this.selectedCutIn.height != height) {
           this.selectedCutIn.height = height;
-          console.log(' setCutInOriginalSize h' + height);
         }
       }
     }
@@ -147,7 +141,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
         if (imageurl.length > 0) {
           const img = new Image();
           img.src = imageurl;
-          console.log('img.height /  img.width ' + img.height + ' ' + img.width);
           if (this.isYouTubeCutIn) {
             this.selectedCutIn.height = Math.floor(
               (this.selectedCutIn.width * this.selectedCutIn.defVideoSizeHeight) / this.selectedCutIn.defVideoSizeWidth
@@ -337,7 +330,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
   openCutInBgmModal() {
     if (!this.isSelected) return;
     this.modalService.open<string>(CutInBgmComponent).then((value) => {
-      console.log('CUTIN ' + value);
       if (!this.selectedCutIn || !value) return;
 
       this.cutInAudioIdentifier = value;
@@ -345,7 +337,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
       const audio = AudioStorage.instance.get(value);
       if (audio) {
         this.cutInAudioName = audio.name;
-        console.log('cutInAudioName' + this.cutInAudioName);
       }
     });
   }
@@ -398,7 +389,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   changeYouTubeInfo() {
-    console.log('changeYouTubeInfo');
     if (!this.selectedCutIn) return;
     const isVideo = this.selectedCutIn.videoId ? true : false;
     if ((!this.isYouTubeCutIn && isVideo) || (this.isYouTubeCutIn && !isVideo)) {
@@ -438,7 +428,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
   setDefaultControl(isVideo: boolean) {
     if (!this.isEditable) return 0;
     if (!this.selectedCutIn) return 0;
-    console.log('setDefaultControl');
     /*
     this.minSizeWidth = this.selectedCutIn.minSizeWidth(isVideo);
     this.maxSizeWidth = this.selectedCutIn.maxSizeWidth(isVideo);
@@ -446,11 +435,9 @@ export class CutInListComponent implements OnInit, OnDestroy {
     this.maxSizeHeight = this.selectedCutIn.maxSizeHeight(isVideo);
 */
     if (isVideo) {
-      console.log('setDefaultControl isVideo');
       this.selectedCutIn.width = this.selectedCutIn.defVideoSizeWidth;
       this.selectedCutIn.height = this.selectedCutIn.defVideoSizeHeight;
     } else {
-      console.log('setDefaultControl ! isVideo');
       this.selectedCutIn.width = this.originalImgWidth();
       this.selectedCutIn.height = this.originalImgHeight();
     }

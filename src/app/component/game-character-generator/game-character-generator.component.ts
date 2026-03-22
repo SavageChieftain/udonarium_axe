@@ -37,8 +37,6 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
     EventSystem.register(this).on('SELECT_FILE', (event) => {
-      console.log('SELECT_FILE GameCharacterGeneratorComponent ' + event.data.fileIdentifier);
-
       const fileIdentifier: string = event.data.fileIdentifier;
 
       const file: ImageFile = ImageStorage.instance.get(fileIdentifier);

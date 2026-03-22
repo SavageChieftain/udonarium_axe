@@ -1,3 +1,4 @@
+import { Logger } from '@axe/core/logger';
 import { encodeEntityReference, decodeEntityReference } from '@axe/core/system/util/xml-util';
 import { Attributes } from './attributes';
 import { defineSyncObject as SyncObject, defineSyncVariable as SyncVar } from './decorator-core';
@@ -195,7 +196,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     let parent = child.parent;
     while (parent) {
       if (parent === child) {
-        console.error('あ やっべ、循環参照', child);
+        Logger.error('[ObjectNode] 循環参照を検出', child);
         return false;
       }
       if (parent === this) return true;

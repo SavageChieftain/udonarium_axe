@@ -123,10 +123,8 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.newTagName == 'システム予約') return; //システム予約名称
 
     const changeableImages = this.images;
-    console.log('this.newTagName' + this.newTagName);
 
     for (const img of changeableImages) {
-      //    console.log("img.context.identifier:"+img.context.identifier);
       const box = <HTMLInputElement>document.getElementById(img.context.identifier + '_' + this.initTimestamp);
       if (box) {
         if (box.checked) {
@@ -178,14 +176,12 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onSelectedFile(file: ImageFile) {
-    console.log('onSelectedFile', file);
     EventSystem.call('SELECT_FILE', { fileIdentifier: file.identifier }, Network.peerId);
 
     this.selectedFile = file; //本家PR #92より
   }
 
   imgBlockClick(identifier: string) {
-    console.log('identifier:' + identifier);
     const box = <HTMLInputElement>document.getElementById(identifier + '_' + this.initTimestamp);
     box.checked = !box.checked;
   }

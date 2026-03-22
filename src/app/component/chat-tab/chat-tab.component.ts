@@ -165,7 +165,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   get minScrollHeight(): number {
     //    let length = this.chatTab ? this.chatTab.chatMessages.length : this.sampleMessages.length;
     const length = this.chatTab ? this.chatTab.displayableMessagesLength() : this.sampleMessages.length;
-    console.log('minScrollHeight' + length);
     return (length < 10000 ? length : 10000) * this.minMessageHeight;
   }
 
@@ -234,7 +233,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
         }
       })
       .on('RE_DRAW_CHAT', (_event) => {
-        console.log('チャット再描画');
         setTimeout(() => this.redraw(), 0);
         // フラグの更新前にイベントが走るためタイマーを使う。ひとまずやむなし
       });
@@ -296,7 +294,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     this.scrollSpeed = 0;
     this.topElm = this.bottomElm = null!;
     this.adjustIndex();
-    console.log('resetMessages top:' + this.topIndex + ' bottom:' + this.bottomIndex);
     this.changeDetector.markForCheck();
   }
 

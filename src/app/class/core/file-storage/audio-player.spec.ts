@@ -399,14 +399,14 @@ describe('AudioPlayer', () => {
       expect(audioElmMock.loop).toBe(true);
     });
 
-    it('audioElm.play() が reject した場合は console.warn を呼ぶ', async () => {
+    it('audioElm.play() が reject した場合は Logger.warn を呼ぶ', async () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'playerr' });
       audioElmMock.play = vi.fn().mockRejectedValue(new Error('NotAllowedError'));
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       player.play(af);
       await vi.waitFor(() => expect(warnSpy).toHaveBeenCalled());
-      expect(warnSpy).toHaveBeenCalledWith(expect.any(Error));
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('[AudioPlayer]'), expect.any(Error));
     });
   });
 
@@ -570,7 +570,6 @@ describe('AudioPlayer', () => {
         listeners[type] = listener as EventListenerOrEventListenerObject;
       });
       const removeSpy = vi.spyOn(document, 'removeEventListener').mockImplementation(() => {});
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       AudioPlayer.resumeAudioContext();
 
@@ -580,7 +579,6 @@ describe('AudioPlayer', () => {
       expect(audioCtxMock.resume).toHaveBeenCalled();
       expect(removeSpy).toHaveBeenCalledWith('touchstart', callback, true);
       expect(removeSpy).toHaveBeenCalledWith('mousedown', callback, true);
-      expect(consoleSpy).toHaveBeenCalledWith('resumeAudioContext');
     });
 
     it('mousedown でも同様に動作する', () => {

@@ -1,4 +1,5 @@
 import { AuthToken, ChannelScope, nowInSec, SkyWayAuthToken, uuidV4 } from '@skyway-sdk/core';
+import { Logger } from '@axe/core/logger';
 
 export class SkyWayBackend {
   constructor(readonly url: string) {}
@@ -20,7 +21,7 @@ async function fetchStatus(url: string): Promise<boolean> {
 
     return response.status === 200;
   } catch (err) {
-    console.error(err);
+    Logger.error('[SkyWay] ステータス取得エラー', err);
     return false;
   }
 }
@@ -46,7 +47,7 @@ async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: st
     const jsonObj = await response.json();
     return jsonObj.token ?? '';
   } catch (err) {
-    console.error(err);
+    Logger.error('[SkyWay] トークン取得エラー', err);
     return '';
   }
 }

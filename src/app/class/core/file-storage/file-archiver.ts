@@ -1,6 +1,7 @@
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 
+import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
 import { xml2element } from '@axe/core/system/util/xml-util';
 import { AudioStorage } from './audio-storage';
@@ -35,9 +36,7 @@ export class FileArchiver {
   private callbackOnDragOver: ((this: HTMLElement, e: DragEvent) => void) | null = null;
   private callbackOnDrop: ((this: HTMLElement, e: DragEvent) => void) | null = null;
 
-  private constructor() {
-    console.log('FileArchiver ready...');
-  }
+  private constructor() {}
 
   initialize() {
     this.destroy();
@@ -80,7 +79,6 @@ export class FileArchiver {
 
     this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName != '');
 
-    console.log('onDrop', event.dataTransfer);
     const files = event.dataTransfer!.files;
     this.load(files);
   }
@@ -104,20 +102,18 @@ export class FileArchiver {
     if (file.type.indexOf('image/') < 0) return;
     if (!this.reloadCheck.isLoadOk()) return;
     if (this.maxImageSize < file.size) {
-      console.warn(`File size limit exceeded. -> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       return;
     }
-    console.log(file.name + ' type:' + file.type);
     await ImageStorage.instance.addAsync(file);
   }
 
   private async handleAudio(file: File) {
     if (file.type.indexOf('audio/') < 0) return;
     if (this.maxAudioeSize < file.size) {
-      console.warn(`File size limit exceeded. -> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       return;
     }
-    console.log(file.name + ' type:' + file.type);
     await AudioStorage.instance.addAsync(file);
   }
 
@@ -131,12 +127,11 @@ export class FileArchiver {
     }
 
     if (isLoadOk) {
-      console.log(file.name + ' type:' + file.type);
       try {
         const xmlElement: Element = xml2element(await FileReaderUtil.readAsTextAsync(file));
         if (xmlElement) EventSystem.trigger('XML_LOADED', { xmlElement: xmlElement });
       } catch (reason) {
-        console.warn(reason);
+        Logger.warn('[FileArchiver] XML読み込みエラー', reason);
       }
     }
   }
@@ -147,7 +142,7 @@ export class FileArchiver {
     try {
       zip = await zip.loadAsync(file);
     } catch (reason) {
-      console.warn(reason);
+      Logger.warn('[FileArchiver] ZIP読み込みエラー', reason);
       return;
     }
     const zipEntries: JSZip.JSZipObject[] = [];
@@ -155,14 +150,13 @@ export class FileArchiver {
     for (const zipEntry of zipEntries) {
       try {
         const arraybuffer = await zipEntry.async('arraybuffer');
-        console.log(zipEntry.name + ' 解凍...');
         await this.load([
           new File([arraybuffer], zipEntry.name, {
             type: MimeType.type(zipEntry.name),
           }),
         ]);
       } catch (reason) {
-        console.warn(reason);
+        Logger.warn('[FileArchiver] ZIP展開エラー', reason);
       }
     }
   }

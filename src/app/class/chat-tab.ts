@@ -60,7 +60,6 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
   tachiePosHide(pos: number) {
     this.imageDispFlag[pos] = false;
-    console.log(this.imageDispFlag);
   }
 
   tachiePosIsDisp(pos: number): boolean {
@@ -133,7 +132,6 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
     const chat = new ChatMessage();
     for (const key in message) {
-      //      console.log('addMessage:' + key);
       if (key === 'identifier') continue;
       if (key === 'tabIdentifier') continue;
 
@@ -350,7 +348,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
       const to = mess.to;
       const from = mess.from;
       const myId = Network.peerContext.userId; // 1.13.xとのmargeで修正
-      console.log('from:' + mess.from + ' To:' + mess.to + 'myId:' + myId);
+
       if (to) {
         if (to != myId && from != myId) {
           continue;
@@ -395,7 +393,6 @@ export class ChatTab extends ObjectNode implements InnerXml {
       const to = mess.to;
       const from = mess.from;
       const myId = Network.peerContext.userId; // 1.13.xとのmargeで修正
-      console.log('from:' + mess.from + ' To:' + mess.to + 'myId:' + myId);
       if (to) {
         if (to != myId && from != myId) {
           continue;

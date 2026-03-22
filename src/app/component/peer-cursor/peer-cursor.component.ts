@@ -85,7 +85,6 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
         .on('CURSOR_MOVE', (event) => {
           if (event.sendFrom !== this.cursor.peerId) return;
           this.batchService.add(() => {
-            //            console.log( '★★CURSOR_MOVE★★ ' + event.sendFrom + ' > ' + this.cursor.peerId );
             this.stopTransition();
             this.setAnimatedTransition();
             this.setPosition(event.data[0], event.data[1], event.data[2]);
@@ -96,7 +95,6 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
           if (event.sendFrom !== this.cursor.peerId) return;
 
           this.batchService.add(() => {
-            //            console.log( '★★HEART_BEAT★★ ' + event.sendFrom + ' > ' + this.cursor.peerId );
             this.cursor.timestampSend = event.data[0];
             this.cursor.timestampReceive = Date.now();
             this.cursor.timeDiffDown =
@@ -192,7 +190,6 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
             const diffDown = peerCursor ? peerCursor.timeDiffDown : null!;
 
             EventSystem.call('HEART_BEAT', [timestanmp, id, diffDown, this.secdCounter]);
-            //            console.log( 'peerlength:' + peerlength + 'this.indexCounter' + this.indexCounter + ' id:' + id);
             this.indexCounter++;
             this.secdCounter++;
           }

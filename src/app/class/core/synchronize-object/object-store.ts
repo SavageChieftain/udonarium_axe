@@ -27,9 +27,7 @@ export class ObjectStore {
     this.updateQueue();
   };
 
-  private constructor() {
-    console.log('ObjectStore ready...');
-  }
+  private constructor() {}
 
   add(object: GameObject, shouldBroadcast: boolean = true): GameObject {
     if (this.get(object.identifier) != null || this.isDeleted(object.identifier)) return null!;
@@ -70,7 +68,6 @@ export class ObjectStore {
   }
 
   private _delete(object: GameObject, shouldBroadcast: boolean): GameObject {
-    console.log('円柱　_delete:' + object.aliasName);
     if (this.remove(object) === null) return null!;
     if (shouldBroadcast)
       EventSystem.call('DELETE_GAME_OBJECT', {
@@ -82,7 +79,6 @@ export class ObjectStore {
   }
 
   private markForDelete(identifier: string) {
-    console.log('円柱　markForDelete' + identifier);
     this.garbageMap.set(identifier, performance.now());
     this.garbageCollection(10 * 60 * 1000);
   }
@@ -158,7 +154,6 @@ export class ObjectStore {
 
   dispGarbageMap() {
     for (const map of this.garbageMap) {
-      console.log('garbageMap 履歴:' + map);
     }
   }
 

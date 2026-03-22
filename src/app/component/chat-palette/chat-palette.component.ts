@@ -151,7 +151,6 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   autoCompleteSwitchRelative(direction: number) {
-    console.log('selectAutoComplete :' + direction);
     const selectObj = <HTMLSelectElement>document.getElementById(this._timeId + '_complete');
     if (!selectObj) {
       return;
@@ -189,7 +188,6 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   selectAutoComplete(text: string, selectText: string) {
     const selectObj = <HTMLSelectElement>document.getElementById(this._timeId + '_complete');
     const lineNo = this.palette.paletteMatchLine(text, selectObj.selectedIndex);
-    console.log(text + ' ' + selectText + ' index:' + selectObj.selectedIndex + ' lineNo' + lineNo);
     this.japmIndex(lineNo);
     this.selectPalette(selectText);
   }
@@ -308,24 +306,16 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     if (this.isEdit) {
       const selectObj = document.getElementById(this._timeId + '_select')!;
       const textObj = document.getElementById(this._timeId + '_text')!;
-      console.log('selectObj.clientHeight:' + selectObj.clientHeight);
-      console.log('selectObj.scrollHeight:' + selectObj.scrollHeight);
-      console.log('selectObj.scrollTop:' + selectObj.scrollTop);
       /*
       const lineNum = this.palette.getPalette().length;
-      console.log('lineNum:' + lineNum);
 */
       this.editPalette = this.palette.value + '';
       const selectTop = selectObj.scrollTop;
       const selectHeight = selectObj.scrollHeight;
       /*
       const centerLine = lineNum > 0 ? (selectObj.clientHeight/2 + selectObj.scrollHeight) / lineNum : lineNum;
-      console.log('centerLine:' + centerLine);
 */
       setTimeout(() => {
-        console.log('textObj.clientHeight:' + textObj.clientHeight);
-        console.log('textObj.scrollHeight:' + textObj.scrollHeight);
-        console.log('textObj.scrollTop:' + textObj.scrollTop);
         textObj.scrollTop = (selectTop * textObj.scrollHeight) / selectHeight;
       }, 10);
     } else {
@@ -342,7 +332,6 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   japmIndex(lineNo: number) {
-    console.log('JUMP_INDEX:' + lineNo);
     const select = <HTMLSelectElement>document.getElementById(this._timeId + '_select');
     if (select) {
       select.scrollTop = select.scrollHeight;
@@ -356,7 +345,6 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     const panelBox = panel.getBoundingClientRect();
 
     const position = this.pointerDeviceService.pointers[0];
-    console.log(this.panelService.left + ' ' + this.panelService.top);
     position.x = panelBox.left - 8;
     position.y = panelBox.top - 8;
 

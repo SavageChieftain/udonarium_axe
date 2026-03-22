@@ -50,7 +50,6 @@ export class ContextMenuService {
     this.close();
     if (!parentViewContainerRef) {
       parentViewContainerRef = ContextMenuService.defaultParentViewContainerRef;
-      console.log('Context Open');
     }
     const injector = parentViewContainerRef.injector;
 

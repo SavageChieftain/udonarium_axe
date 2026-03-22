@@ -96,7 +96,6 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     const panel: HTMLElement = this.rootElementRef.nativeElement;
     const panelBox = panel.getBoundingClientRect();
 
-    console.log('位置修正 lr:' + panelBox.left + ' ' + panelBox.right);
     const w = panelBox.right - panelBox.left;
     const newLeft = panelBox.left - w;
 

@@ -8,6 +8,7 @@ import {
   TransportConnectionState,
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'events';
+import { Logger } from '@axe/core/logger';
 import * as MessagePack from '@axe/core/system/util/message-pack';
 import { generateUuid } from '@axe/core/system/util/uuid';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
@@ -93,7 +94,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   private onConnectionStateChanged!: { removeListener: () => void };
 
   private onopen = () => {
-    console.log(`peer ${this.peer.peerId} dataChannel is open`);
     this.refresh();
   };
 
@@ -127,7 +127,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   connect() {
-    console.log(`connect ${this.peer.peerId}, isPublication: ${this.isPublication}`);
     if (this.isPublication) {
       return this.initializePublication();
     } else {
@@ -136,7 +135,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   disconnect() {
-    console.log(`disconnect ${this.peer.peerId}, isPublication: ${this.isPublication}`);
     this.isCanceled = true;
     if (this.isOpend) {
       this.dispose();
@@ -146,13 +144,11 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   reject() {
-    console.log(`reject ${this.peer.peerId}, isPublication: ${this.isPublication}`);
     this.isRejected = true;
     this.connect();
   }
 
   private dispose() {
-    console.log(`dispose ${this.peer.peerId}, isPublication: ${this.isPublication}`);
     this.peer.isOpen = false;
     this.stopMonitoring();
     this.removeAllListeners();
@@ -184,7 +180,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     //
     if (!subscription) {
-      console.error(`subscription is not found ${this.peer.peerId}`);
+      Logger.error('[SkyWay] サブスクリプションが見つかりません: ' + this.peer.peerId);
     }
 
     //
@@ -195,7 +191,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     });
 
     //
-    console.log(`initializePublication ${member!.name} ${subscription.id}`);
     this.subscription = subscription;
     this.refresh();
   }
@@ -217,7 +212,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
           event.publication.publisher.name === this.peer.peerId;
         if (!isMatch) return;
 
-        console.log(`onStreamPublished: ${event.publication.publisher.name} <${event.publication.metadata}>`);
         this.onStreamPublished?.removeListener();
         this.initializeSubscription();
       });
@@ -226,7 +220,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     //
     this.refresh();
-    console.log(`initializeSubscription ready ${member!.name}`);
     try {
       const { subscription } = await this.skyWay.roomPerson.subscribe<RemoteDataStream>(publication.id);
 
@@ -237,15 +230,14 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       });
 
       //
-      console.log(`initializeSubscription done ${member!.name} ${publication.id}`);
       this.subscription = subscription;
 
       this.refresh();
     } catch (e) {
       if (e instanceof Error) {
-        console.log(`${e.name}: ${e.message}`);
+        Logger.warn('[SkyWay] サブスクリプションエラー', e);
       } else {
-        console.error(e);
+        Logger.error('[SkyWay] サブスクリプションエラー', e);
       }
 
       this.subscription = null!;
@@ -255,7 +247,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   private onStateChanged(state: TransportConnectionState) {
-    console.log(`onStateChanged isPublication: ${this.isPublication}, ${this.peer.peerId} ${this.state} -> ${state}`);
     switch (state) {
       case 'new':
         break;
@@ -290,9 +281,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     // 接続状況確認
     const isOpen = dataChannel?.readyState === 'open';
-    console.log(
-      `refresh ${member?.name}, isPublication: ${this.isPublication}, isOpen: ${isOpen}, dataChannel: ${dataChannel?.readyState}`
-    );
 
     // cancelまたはrejectされているときは接続解除
     if (dataChannel && ((this.isCanceled && isOpen) || this.isRejected)) {
@@ -305,7 +293,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     // RTCDataChannelを更新
     if (dataChannel && this.dataChannel && dataChannel !== this.dataChannel) {
-      console.warn(`dataChannel is change: ${this.dataChannel?.id} -> ${dataChannel.id}`);
+      Logger.warn(`[SkyWay] dataChannel変更: ${this.dataChannel?.id} -> ${dataChannel.id}`);
       this.peer.isOpen = false;
     }
 
@@ -319,13 +307,9 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.dataChannel = dataChannel;
 
     // P2PConnectionを更新
-    console.log(`p2pconnection: ${p2pconnection?.id}`);
     this.onStreamAdded?.removeListener();
     if (p2pconnection && !dataChannel) {
       this.onStreamAdded = p2pconnection?.receiver.onStreamAdded.add((event) => {
-        console.log(
-          `receiver.onStreamAdded: ${event.stream.id} ${(event.stream as RemoteDataStream)?._datachannel?.readyState}`
-        );
         this.refresh();
       });
     }
@@ -383,8 +367,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
   private execQueue = () => {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
-      if (this.sendQueue.size)
-        console.warn(`peer Connection not open; queueing; ${this.dataChannel?.readyState} -> ${this.member?.name} `);
       this.isQueuing = false;
       return;
     }
@@ -393,7 +375,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
         this.dataChannel.send(data as unknown as ArrayBufferView<ArrayBuffer>);
         this.sendQueue.delete(data);
       } catch (err) {
-        console.error(err);
+        Logger.error('[SkyWay] データ送信エラー', err);
       }
       break;
     }

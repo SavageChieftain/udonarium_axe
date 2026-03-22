@@ -88,7 +88,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
   constructor() {
     this.initTimestamp = Date.now();
-    console.log('this.initTimestamp ' + this.initTimestamp);
   }
 
   get sortTag(): string {
@@ -225,7 +224,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       .on('CHK_TARGET_CHANGE', -1000, (event) => {
         if (ObjectStore.instance.get(event.data.identifier) instanceof GameCharacter) {
           this.targetSetChkBox(ObjectStore.instance.get(event.data.identifier));
-          console.log('REC CHK_TARGET_CHANGE');
         }
       })
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
@@ -609,7 +607,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   targetBlockClick(object: GameCharacter) {
-    console.log('targetBlockClick');
     object.targeted = object.targeted ? false : true;
     this.targetSetChkBox(object);
     EventSystem.trigger('CHK_TARGET_CHANGE', {
@@ -619,7 +616,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   onChange(object: GameCharacter) {
-    console.log('onChange');
     this.targetBlockClick(object);
   }
 }

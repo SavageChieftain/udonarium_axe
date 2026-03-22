@@ -133,12 +133,10 @@ export class TabletopService {
       .on('XML_LOADED', (event) => {
         const xmlElement: Element = event.data.xmlElement;
         // todo:立体地形の上にドロップした時の挙動
-        console.log('parseXml todo:立体地形の上にドロップした時の挙動');
 
         const gameObject = ObjectSerializer.instance.parseXml(xmlElement);
 
         if (gameObject instanceof TabletopObject) {
-          console.log('TabletopObject 追加');
           const pointer = this.coordinateService.calcTabletopLocalCoordinate();
           gameObject.location.x = pointer.x - 25;
           gameObject.location.y = pointer.y - 25;
@@ -153,7 +151,6 @@ export class TabletopService {
         const objects: TabletopObject[] = ObjectStore.instance.getObjects(GameCharacter);
         for (const gameObject of objects) {
           if (gameObject instanceof GameCharacter) {
-            console.log('GameCharacter Load 追加データ確認');
             const gameCharacter: GameCharacter = gameObject;
             gameCharacter.addExtendData();
           }

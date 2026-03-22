@@ -23,14 +23,13 @@ export class ObjectFactory {
   register<T extends GameObject>(constructor: Type<T>, alias?: string) {
     if (!alias) alias = constructor.name ?? constructor.toString().match(/function\s*([^(]*)\(/)?.[1] ?? '';
     if (this.constructorMap.has(alias)) {
-      Logger.error('その alias<' + alias + '> はすでに割り当て済みじゃねー？');
+      Logger.error('[ObjectFactory] alias が重複しています: ' + alias);
       return;
     }
     if (this.aliasMap.has(constructor)) {
-      Logger.error('その constructor はすでに登録済みじゃねー？', constructor);
+      Logger.error('[ObjectFactory] constructor が重複しています', constructor);
       return;
     }
-    Logger.debug('addGameObjectFactory -> ' + alias);
     this.constructorMap.set(alias, constructor);
     this.aliasMap.set(constructor, alias);
   }
