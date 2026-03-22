@@ -392,9 +392,9 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     //イベント処理
     const key_event = (event || window.event) as KeyboardEvent | MouseEvent;
     const key_shift = key_event.shiftKey;
-    const key_ctrl = key_event.ctrlKey;
+    const _key_ctrl = key_event.ctrlKey;
     const key_alt = key_event.altKey;
-    const key_meta = key_event.metaKey;
+    const _key_meta = key_event.metaKey;
     //キーに対応した処理
 
     if (key_alt) {

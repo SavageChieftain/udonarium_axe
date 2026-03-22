@@ -51,11 +51,6 @@ export class Config extends ObjectNode implements InnerXml {
   }
 
   parseInnerXml(element: Element) {
-    // XMLからの新規作成を許可せず、既存のオブジェクトを更新する
-    //    for (let child of Config.instance.children) {
-    //      child.destroy();
-    //    }
-
     const context = Config.instance.toContext();
     context.syncData = this.toContext().syncData;
     Config.instance.apply(context);
@@ -70,9 +65,6 @@ export class Config extends ObjectNode implements InnerXml {
     const _roomVolume = this._roomVolume;
     const _defaultDiceBot = this._defaultDiceBot;
     super.apply(context);
-    if (_defaultDiceBot !== this._defaultDiceBot) {
-    }
-
     if (_roomVolume !== this._roomVolume) {
       this.jukebox.setNewVolume();
     }

@@ -155,11 +155,6 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return degree;
   }
 
-  checkConnect() {
-    for (const context of this.networkService.peerContexts) {
-    }
-  }
-
   myTime = 0;
   dispInfo() {
     this.myTime = Date.now();

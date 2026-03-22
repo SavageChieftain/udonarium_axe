@@ -181,10 +181,9 @@ export class SkyWayConnection implements Connection {
 
   async listAllPeers(): Promise<string[]> {
     const now = performance.now();
-    if (now < this.httpRequestInterval) {
-    } else {
-      this.httpRequestInterval = now + 10000;
+    if (now >= this.httpRequestInterval) {
       this.listAllPeersCache = await this.skyWay.listAllPeers();
+      this.httpRequestInterval = now + 10000;
     }
 
     return this.listAllPeersCache;
@@ -201,11 +200,11 @@ export class SkyWayConnection implements Connection {
       await this.skyWay.close();
     }
 
-    this.skyWay.onOpen = (peer) => {
+    this.skyWay.onOpen = (_peer) => {
       if (this.callback.onOpen) this.callback.onOpen(this.peer);
     };
 
-    this.skyWay.onClose = (peer) => {
+    this.skyWay.onClose = (_peer) => {
       if (this.peer.isOpen) this.close();
       if (this.callback.onClose) this.callback.onClose(this.peer);
     };
@@ -230,7 +229,7 @@ export class SkyWayConnection implements Connection {
       this.connectStream(stream);
     };
 
-    this.skyWay.onRoomRestore = (peer) => {
+    this.skyWay.onRoomRestore = (_peer) => {
       for (const peerId of this.trustedPeerIds) {
         const peer = PeerContext.parse(peerId);
         this.disconnect(peer);
@@ -341,7 +340,8 @@ export class SkyWayConnection implements Connection {
     if (unknownUserIds.length) {
       for (const userId of unknownUserIds) {
         const peer = await this.makeFriendPeer(userId);
-        if (!this.maybeUnavailablePeerIds.has(peer.peerId) && (await this.connect(peer))) {
+        if (!this.maybeUnavailablePeerIds.has(peer.peerId)) {
+          await this.connect(peer);
         }
       }
     }

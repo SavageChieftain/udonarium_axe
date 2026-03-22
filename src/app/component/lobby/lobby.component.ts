@@ -132,7 +132,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     PeerCursor.myCursor.peerId = Network.peerId;
 
     const triedPeer: string[] = [];
-    EventSystem.register(triedPeer).on('OPEN_NETWORK', (event) => {
+    EventSystem.register(triedPeer).on('OPEN_NETWORK', (_event) => {
       EventSystem.unregister(triedPeer);
       ObjectStore.instance.clearDeleteHistory();
       for (const context of peerContexts) {

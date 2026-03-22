@@ -228,12 +228,4 @@ export class ReConnectComponent implements OnInit, OnDestroy {
     gameObject.destroy();
     this.changeDetector.markForCheck();
   }
-
-  logCrear() {
-    ObjectStore.instance.clearDeleteHistory();
-  }
-
-  deleteList() {
-    ObjectStore.instance.dispGarbageMap();
-  }
 }

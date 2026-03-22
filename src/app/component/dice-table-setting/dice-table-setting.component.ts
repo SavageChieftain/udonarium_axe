@@ -34,7 +34,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   loadDiceBot(gameType: string) {
-    DiceBot.getHelpMessage(gameType).then((help) => {});
+    DiceBot.getHelpMessage(gameType).then((_help) => {});
   }
 
   get diceBotInfos() {

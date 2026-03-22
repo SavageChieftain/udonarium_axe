@@ -297,8 +297,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
       .replace(/'/g, '&#039;');
   }
 
-  clickMarkDownBox(_id: string) {}
-
   get markdown(): MarkDown {
     return ObjectStore.instance.get<MarkDown>('markdwon');
   }

@@ -104,7 +104,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
 
   openModal(_name: string = '', isAllowedEmpty: boolean = false) {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: isAllowedEmpty }).then((value) => {
-      //      if (!this.tabletopObject || !this.tabletopObject.imageDataElement || !value) return;
       if (!value) return;
       const element = this.gameDataElement;
       if (!element) return;
@@ -191,8 +190,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
-
-  clickMarkDownBox(id: string) {}
 
   get markdown(): MarkDown {
     return ObjectStore.instance.get<MarkDown>('markdwon');

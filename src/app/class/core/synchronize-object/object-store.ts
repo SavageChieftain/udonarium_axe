@@ -153,11 +153,6 @@ export class ObjectStore {
     this.garbageMap.clear();
   }
 
-  dispGarbageMap() {
-    for (const map of this.garbageMap) {
-    }
-  }
-
   private garbageCollection(garbage: ObjectContext): void;
   private garbageCollection(ms: number): void;
   private garbageCollection(arg: ObjectContext | number) {

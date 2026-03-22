@@ -221,7 +221,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       .on<File>('FILE_LOADED', (_event) => {
         this.lazyNgZoneUpdate(false);
       })
-      .on('OPEN_NETWORK', (event) => {
+      .on('OPEN_NETWORK', (_event) => {
         PeerCursor.myCursor.peerId = Network.peerContext.peerId;
         PeerCursor.myCursor.userId = Network.peerContext.userId;
       })

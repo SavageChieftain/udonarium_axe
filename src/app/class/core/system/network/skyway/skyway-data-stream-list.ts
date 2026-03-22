@@ -1,4 +1,3 @@
-import { Logger } from '@axe/core/logger';
 import { PeerContext } from '@axe/core/system/network/peer-context';
 
 import { SkyWayDataStream } from './skyway-data-stream';

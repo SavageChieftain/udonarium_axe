@@ -315,7 +315,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     // P2PConnectionを更新
     this.onStreamAdded?.removeListener();
     if (p2pconnection && !dataChannel) {
-      this.onStreamAdded = p2pconnection?.receiver.onStreamAdded.add((event) => {
+      this.onStreamAdded = p2pconnection?.receiver.onStreamAdded.add((_event) => {
         this.refresh();
       });
     }
