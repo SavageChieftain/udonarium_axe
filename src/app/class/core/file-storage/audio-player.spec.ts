@@ -2,13 +2,6 @@ import { AudioFile } from '@axe/core/file-storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
 import { LogLevel, Logger } from '@axe/core/logger';
 
-const mockReadAsArrayBufferAsync = vi.hoisted(() => vi.fn<(blob: Blob) => Promise<ArrayBuffer>>());
-
-vi.mock('@axe/core/file-storage/file-reader-util', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@axe/core/file-storage/file-reader-util')>();
-  return { ...actual, readAsArrayBufferAsync: mockReadAsArrayBufferAsync };
-});
-
 // ─── AudioContext mock ────────────────────────────────────────────────────────
 
 type GainNodeMock = {
@@ -474,7 +467,6 @@ describe('AudioPlayer', () => {
     it('blob があれば AudioBufferSourceNode を開始する', async () => {
       const blob = new Blob(['audio-data']);
       const af = makeAudioFile({ blob, identifier: 'sp1' });
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       AudioPlayer.play(af, 0.8);
       // playBufferAsync は fire-and-forget なので Promise 解決まで待つ
@@ -494,7 +486,6 @@ describe('AudioPlayer', () => {
     it('source.onended コールバックで stop/disconnect/buffer=null が呼ばれる', async () => {
       const blob = new Blob(['audio-data']);
       const af = makeAudioFile({ blob, identifier: 'sp3' });
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       AudioPlayer.play(af);
       await vi.waitFor(() => {
@@ -514,7 +505,6 @@ describe('AudioPlayer', () => {
       const af = makeAudioFile({ url: 'http://example.com/c.mp3', identifier: 'sp4' });
       // @ts-expect-error accessing private
       AudioPlayer.cacheMap.set('sp4', { url: 'blob:cached', blob });
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       AudioPlayer.play(af);
       await vi.waitFor(() => {
@@ -527,7 +517,6 @@ describe('AudioPlayer', () => {
       const af = makeAudioFile({ url: 'http://example.com/d.mp3', identifier: 'sp5' });
       const mockFetch = vi.fn().mockResolvedValue({ ok: true, blob: () => Promise.resolve(new Blob(['x'])) });
       vi.stubGlobal('fetch', mockFetch);
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       AudioPlayer.play(af);
       await vi.waitFor(() => {
@@ -549,7 +538,6 @@ describe('AudioPlayer', () => {
     it('decodeAudioData が失敗した場合は null を返して source を開始しない', async () => {
       const blob = new Blob(['bad-data']);
       const af = makeAudioFile({ blob, identifier: 'sp6' });
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
       audioCtxMock.decodeAudioData.mockImplementation(
         (_buf: ArrayBuffer, _resolve: (b: AudioBuffer) => void, reject: (e: DOMException) => void) => {
           reject(new DOMException('decode error'));

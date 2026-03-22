@@ -4,13 +4,6 @@ import { AudioStorage } from '@axe/core/file-storage/audio-storage';
 import { BufferSharingTask } from '@axe/core/file-storage/buffer-sharing-task';
 import { EventSystem, Network } from '@axe/core/system';
 
-const mockReadAsArrayBufferAsync = vi.hoisted(() => vi.fn<(blob: Blob) => Promise<ArrayBuffer>>());
-
-vi.mock('@axe/core/file-storage/file-reader-util', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@axe/core/file-storage/file-reader-util')>();
-  return { ...actual, readAsArrayBufferAsync: mockReadAsArrayBufferAsync };
-});
-
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 // vi.spyOn でモック化するため型キャストのみ行う
@@ -289,7 +282,6 @@ describe('AudioSharingSystem', () => {
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'send-audio', sendTo: 'peer-a' });
       BufferSharingTaskMock.createSendTask.mockReturnValue(task);
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       const handler = getHandler('REQUEST_AUDIO_RESOURE')!;
       handler({
@@ -502,7 +494,6 @@ describe('AudioSharingSystem', () => {
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'finish-audio', sendTo: 'peer-r' });
       BufferSharingTaskMock.createSendTask.mockReturnValue(task);
-      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       const handler = getHandler('REQUEST_AUDIO_RESOURE')!;
       handler({
