@@ -16,7 +16,7 @@ import {
   Subscription,
   TransportConnectionState,
 } from '@skyway-sdk/core';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'eventemitter3';
 
 import { SkyWayFacade } from './skyway-facade';
 

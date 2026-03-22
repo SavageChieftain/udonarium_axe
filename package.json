@@ -30,6 +30,7 @@
     "base-x": "^5.0.1",
     "bcdice": "^4.6.0",
     "entities": "^8.0.0",
+    "eventemitter3": "^5.0.4",
     "file-saver": "^2.0.5",
     "jszip": "~3.8.0",
     "linkify-html": "^4.3.2",
