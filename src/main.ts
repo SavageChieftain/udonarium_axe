@@ -16,7 +16,6 @@ import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LinkyModule } from 'ngx-linky';
 import { YouTubePlayerModule } from '@angular/youtube-player';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { AppComponent } from './app/app.component';
@@ -32,7 +31,6 @@ bootstrapApplication(AppComponent, {
       BrowserAnimationsModule,
       CommonModule,
       FormsModule,
-      LinkyModule,
       YouTubePlayerModule,
       NgSelectModule
     ),

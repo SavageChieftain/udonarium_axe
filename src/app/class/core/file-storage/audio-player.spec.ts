@@ -1,5 +1,6 @@
 import { AudioFile } from '@axe/core/file-storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
+import { LogLevel, Logger } from '@axe/core/logger';
 
 const mockReadAsArrayBufferAsync = vi.hoisted(() => vi.fn<(blob: Blob) => Promise<ArrayBuffer>>());
 
@@ -124,6 +125,8 @@ describe('AudioPlayer', () => {
   let audioElmMock: AudioElmMock;
 
   beforeEach(() => {
+    Logger.setLevel(LogLevel.DEBUG);
+
     audioCtxMock = makeAudioContextMock();
     audioElmMock = makeAudioElm();
 

@@ -99,7 +99,7 @@
             <span
               class="textarea-url"
               style="width: 100%; min-width: 50px; font-size: 0.8em"
-              [innerHTML]="escapeHtml(value) | linky: { stripPrefix: false }"
+              [innerHTML]="escapeHtml(value) | linkify"
             ></span>
           </div>
         }

@@ -1,3 +1,8 @@
+import { LogLevel, Logger } from '@axe/core/logger';
+
+// npm test (Angular unit-test runner) ではロガー出力を既定で無効化する。
+Logger.setLevel(LogLevel.NONE);
+
 // ─── RTCPeerConnection スタブ ──────────────────────────────────────────────────
 // @skyway-sdk/core がモジュール読み込み時に RTCPeerConnection を参照するため、
 // happy-dom テスト環境向けにスタブを提供する。

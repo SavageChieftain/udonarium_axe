@@ -16,9 +16,7 @@ export class ObjectFactory {
   private constructorMap: Map<string, Type<GameObject>> = new Map();
   private aliasMap: Map<Type<GameObject>, string> = new Map();
 
-  private constructor() {
-    Logger.debug('ObjectFactory ready...');
-  }
+  private constructor() {}
 
   register<T extends GameObject>(constructor: Type<T>, alias?: string) {
     if (!alias) alias = constructor.name ?? constructor.toString().match(/function\s*([^(]*)\(/)?.[1] ?? '';

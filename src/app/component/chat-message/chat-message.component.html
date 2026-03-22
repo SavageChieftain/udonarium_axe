@@ -22,7 +22,7 @@
           </div>
           <div class="text msg-text">
             @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
-              <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linky: { stripPrefix: false } | safe"></span>
+              <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
               @if (chatMessage.isSecret) {
                 <button (click)="discloseMessage()">内容を公開</button>
               }
@@ -60,7 +60,7 @@
             }
             <font class="text msg-text">
               @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
-                <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linky: { stripPrefix: false } | safe"></span>
+                <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
                 @if (chatMessage.isSecret) {
                   <button (click)="discloseMessage()">内容を公開</button>
                 }

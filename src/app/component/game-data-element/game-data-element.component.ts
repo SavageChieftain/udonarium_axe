@@ -23,15 +23,15 @@ import { PanelService } from 'service/panel.service';
 import { SafeHtml, DomSanitizer } from '@angular/platform-browser';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LinkyModule } from 'ngx-linky';
 import { SafePipe } from 'pipe/safe.pipe';
+import { LinkifyPipe } from 'pipe/linkify.pipe';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',
   templateUrl: './game-data-element.component.html',
   styleUrls: ['./game-data-element.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, LinkyModule, SafePipe],
+  imports: [NgTemplateOutlet, FormsModule, LinkifyPipe, SafePipe],
 })
 export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);

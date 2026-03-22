@@ -277,7 +277,7 @@
               ></textarea>
               <span
                 class="textarea-url"
-                [innerHTML]="escapeHtml(dataElm.value) | linky: { stripPrefix: false }"
+                [innerHTML]="escapeHtml(dataElm.value) | linkify"
                 [hidden]="isEditUrl(dataElm.myIdentifer) || !isUrlText(dataElm.value)"
               ></span>
             </div>

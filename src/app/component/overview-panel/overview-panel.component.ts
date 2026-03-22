@@ -29,15 +29,15 @@ import { SafeHtml, DomSanitizer } from '@angular/platform-browser';
 import { DraggableDirective } from 'directive/draggable.directive';
 import { NgTemplateOutlet, NgClass, NgStyle } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LinkyModule } from 'ngx-linky';
 import { SafePipe } from 'pipe/safe.pipe';
+import { LinkifyPipe } from 'pipe/linkify.pipe';
 
 @Component({
   selector: 'overview-panel',
   templateUrl: './overview-panel.component.html',
   styleUrls: ['./overview-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkyModule, SafePipe],
+  imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkifyPipe, SafePipe],
 })
 export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private inventoryService = inject(GameObjectInventoryService);

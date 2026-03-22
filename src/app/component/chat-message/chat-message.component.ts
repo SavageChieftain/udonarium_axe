@@ -11,15 +11,15 @@ import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
 import { ChatMessageFixComponent } from 'component/chat-message-fix/chat-message-fix.component';
 import { NgClass, NgStyle, DatePipe } from '@angular/common';
-import { LinkyModule } from 'ngx-linky';
 import { SafePipe } from 'pipe/safe.pipe';
+import { LinkifyPipe } from 'pipe/linkify.pipe';
 
 @Component({
   selector: 'chat-message',
   templateUrl: './chat-message.component.html',
   styleUrls: ['./chat-message.component.css'],
   changeDetection: ChangeDetectionStrategy.Default,
-  imports: [NgClass, NgStyle, DatePipe, LinkyModule, SafePipe],
+  imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, SafePipe],
 })
 export class ChatMessageComponent implements OnInit, AfterViewInit {
   private chatMessageService = inject(ChatMessageService);
