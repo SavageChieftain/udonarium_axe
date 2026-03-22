@@ -2,8 +2,14 @@ import { AudioFile, AudioFileContext, AudioState } from '@axe/core/file-storage/
 import { AudioSharingSystem } from '@axe/core/file-storage/audio-sharing-system';
 import { AudioStorage } from '@axe/core/file-storage/audio-storage';
 import { BufferSharingTask } from '@axe/core/file-storage/buffer-sharing-task';
-import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
 import { EventSystem, Network } from '@axe/core/system';
+
+const mockReadAsArrayBufferAsync = vi.hoisted(() => vi.fn<(blob: Blob) => Promise<ArrayBuffer>>());
+
+vi.mock('@axe/core/file-storage/file-reader-util', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@axe/core/file-storage/file-reader-util')>();
+  return { ...actual, readAsArrayBufferAsync: mockReadAsArrayBufferAsync };
+});
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -283,7 +289,7 @@ describe('AudioSharingSystem', () => {
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'send-audio', sendTo: 'peer-a' });
       BufferSharingTaskMock.createSendTask.mockReturnValue(task);
-      vi.spyOn(FileReaderUtil, 'readAsArrayBufferAsync').mockResolvedValue(new ArrayBuffer(8));
+      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       const handler = getHandler('REQUEST_AUDIO_RESOURE')!;
       handler({
@@ -497,7 +503,7 @@ describe('AudioSharingSystem', () => {
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'finish-audio', sendTo: 'peer-r' });
       BufferSharingTaskMock.createSendTask.mockReturnValue(task);
-      vi.spyOn(FileReaderUtil, 'readAsArrayBufferAsync').mockResolvedValue(new ArrayBuffer(8));
+      mockReadAsArrayBufferAsync.mockResolvedValue(new ArrayBuffer(8));
 
       const handler = getHandler('REQUEST_AUDIO_RESOURE')!;
       handler({

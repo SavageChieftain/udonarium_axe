@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import { EventSystem } from '@axe/core/system';
+import { LoggerService } from 'service/logger.service';
 
 export interface AppConfig {
   backend: {
@@ -10,6 +11,8 @@ export interface AppConfig {
 
 @Injectable()
 export class AppConfigService {
+  private logger = inject(LoggerService);
+
   constructor() {}
 
   peerHistory: string[] = [];
@@ -34,10 +37,10 @@ export class AppConfigService {
           AppConfigService.appConfig.backend.url = config.backend.url;
         }
       } else {
-        console.info('config.json が見つかりません。config.json.example を参考に作成してください。');
+        this.logger.info('config.json が見つかりません。config.json.example を参考に作成してください。');
       }
     } catch (e) {
-      console.warn('config.json の読み込みに失敗しました', e);
+      this.logger.warn('config.json の読み込みに失敗しました', e);
     }
     EventSystem.trigger('LOAD_CONFIG', AppConfigService.appConfig);
   }

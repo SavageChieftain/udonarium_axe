@@ -5,6 +5,7 @@ import { environment } from './environments/environment';
 import { AppConfigService } from 'service/app-config.service';
 import { ChatMessageService } from 'service/chat-message.service';
 import { ContextMenuService } from 'service/context-menu.service';
+import { LoggerService } from 'service/logger.service';
 import { ModalService } from 'service/modal.service';
 import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { PanelService } from 'service/panel.service';
@@ -37,6 +38,7 @@ bootstrapApplication(AppComponent, {
     AppConfigService,
     ChatMessageService,
     ContextMenuService,
+    LoggerService,
     ModalService,
     GameObjectInventoryService,
     PanelService,

@@ -6,11 +6,13 @@ import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, resolve, basename } from 'path';
 
 import { TestBed, TestModuleMetadata } from '@angular/core/testing';
+import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
 
 // 非 providedIn:'root' なサービス — 全テストで自動提供する
 import { AppConfigService } from './app/service/app-config.service';
 import { ChatMessageService } from './app/service/chat-message.service';
 import { ContextMenuService } from './app/service/context-menu.service';
+import { LoggerService } from './app/service/logger.service';
 import { ModalService } from './app/service/modal.service';
 import { PanelService } from './app/service/panel.service';
 import { TabletopService } from './app/service/tabletop.service';
@@ -37,6 +39,56 @@ const resourceResolver = (url: string): Promise<{ text(): Promise<string> }> => 
   const content = absPath ? readFileSync(absPath, 'utf-8') : '';
   return Promise.resolve({ text: () => Promise.resolve(content) });
 };
+
+// ─── WebRTC / Media stub ──────────────────────────────────────────────────
+// happy-dom には WebRTC API が存在しないため、@skyway-sdk/core のインポート時に
+// RTCPeerConnection や navigator.mediaDevices を参照するコードがエラーになる。
+// 最小限のスタブを提供する。
+if (typeof globalThis.RTCPeerConnection === 'undefined') {
+  const emptyTrack = {
+    stop() {},
+    getConstraints() {
+      return {};
+    },
+  };
+  (globalThis as unknown as Record<string, unknown>)['RTCPeerConnection'] = class RTCPeerConnection {
+    addTransceiver() {
+      return { sender: { track: emptyTrack }, receiver: { track: emptyTrack } };
+    }
+    close() {}
+    createDataChannel() {
+      return {};
+    }
+  };
+  (globalThis as unknown as Record<string, unknown>)['RTCSessionDescription'] = class RTCSessionDescription {};
+  (globalThis as unknown as Record<string, unknown>)['RTCIceCandidate'] = class RTCIceCandidate {};
+}
+if (!navigator.mediaDevices) {
+  Object.defineProperty(navigator, 'mediaDevices', {
+    value: {
+      addEventListener() {},
+      removeEventListener() {},
+      enumerateDevices() {
+        return Promise.resolve([]);
+      },
+      getUserMedia() {
+        return Promise.resolve({
+          getTracks() {
+            return [];
+          },
+        });
+      },
+      getDisplayMedia() {
+        return Promise.resolve({
+          getTracks() {
+            return [];
+          },
+        });
+      },
+    },
+    configurable: true,
+  });
+}
 
 // ─── FileReader polyfill ───────────────────────────────────────────────────
 // happy-dom の FileReader は zone.js にパッチされると readAs* メソッドが欠落する
@@ -90,6 +142,7 @@ const GLOBAL_TEST_PROVIDERS = [
   AppConfigService,
   ChatMessageService,
   ContextMenuService,
+  LoggerService,
   ModalService,
   PanelService,
   TabletopService,
@@ -114,6 +167,15 @@ function applyConfigureTestingModuleWrapper(): void {
     });
   (wrapped as unknown as Record<string, unknown>)[WRAPPER_SENTINEL] = true;
   TestBed.configureTestingModule = wrapped as typeof TestBed.configureTestingModule;
+}
+
+// TestBed テスト環境を初期化
+// Vitest は各テストファイルごとにセットアップを実行するため、
+// 未初期化の場合のみ initTestEnvironment を呼ぶ
+try {
+  TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
+} catch {
+  // すでに初期化済みの場合は無視
 }
 
 // 各テストファイルのモジュール import 後、TestBed.configureTestingModule の前に

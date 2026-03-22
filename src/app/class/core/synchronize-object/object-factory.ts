@@ -1,4 +1,5 @@
 import { GameObject } from './game-object';
+import { Logger } from '@axe/core/logger';
 
 export interface Type<T> {
   new (...args: never[]): T;
@@ -16,20 +17,20 @@ export class ObjectFactory {
   private aliasMap: Map<Type<GameObject>, string> = new Map();
 
   private constructor() {
-    console.log('ObjectFactory ready...');
+    Logger.debug('ObjectFactory ready...');
   }
 
   register<T extends GameObject>(constructor: Type<T>, alias?: string) {
     if (!alias) alias = constructor.name ?? constructor.toString().match(/function\s*([^(]*)\(/)?.[1] ?? '';
     if (this.constructorMap.has(alias)) {
-      console.error('その alias<' + alias + '> はすでに割り当て済みじゃねー？');
+      Logger.error('その alias<' + alias + '> はすでに割り当て済みじゃねー？');
       return;
     }
     if (this.aliasMap.has(constructor)) {
-      console.error('その constructor はすでに登録済みじゃねー？', constructor);
+      Logger.error('その constructor はすでに登録済みじゃねー？', constructor);
       return;
     }
-    console.log('addGameObjectFactory -> ' + alias);
+    Logger.debug('addGameObjectFactory -> ' + alias);
     this.constructorMap.set(alias, constructor);
     this.aliasMap.set(constructor, alias);
   }
@@ -37,7 +38,7 @@ export class ObjectFactory {
   create<T extends GameObject>(alias: string, identifer?: string): T | null {
     const classConstructor = this.constructorMap.get(alias);
     if (!classConstructor) {
-      console.error(alias + 'という名のGameObjectクラスは定義されていません');
+      Logger.error(alias + 'という名のGameObjectクラスは定義されていません');
       return null;
     }
     const gameObject: GameObject = new (classConstructor as unknown as new (identifier?: string) => GameObject)(
