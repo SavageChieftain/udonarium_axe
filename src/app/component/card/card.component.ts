@@ -179,6 +179,8 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
+    clearTimeout(this.doubleClickTimer);
+    clearTimeout(this.iconHiddenTimer);
     if (this.input) this.input.destroy();
     EventSystem.unregister(this);
   }

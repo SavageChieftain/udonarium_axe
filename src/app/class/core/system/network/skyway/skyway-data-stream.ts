@@ -36,6 +36,7 @@ interface ReceivedChank {
   chanks: Uint8Array[];
   length: number;
   byteLength: number;
+  createdAt: number;
 }
 
 export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
@@ -155,6 +156,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.peer.isOpen = false;
     this.stopMonitoring();
     this.removeAllListeners();
+    this.receivedMap.clear();
 
     this.onStreamAdded?.removeListener();
     this.onStreamPublished?.removeListener();
@@ -458,6 +460,17 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     }
   }
 
+  private static readonly CHUNK_TTL_MS = 30000;
+
+  private evictStaleChunks() {
+    const now = performance.now();
+    for (const [id, received] of this.receivedMap) {
+      if (now - received.createdAt > SkyWayDataStream.CHUNK_TTL_MS) {
+        this.receivedMap.delete(id);
+      }
+    }
+  }
+
   private onData(data: ArrayBuffer) {
     this.timestamp = performance.now();
     const decoded: unknown = MessagePack.decode(new Uint8Array(data));
@@ -476,11 +489,13 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     let received = this.receivedMap.get(chank.id);
     if (received == null) {
+      this.evictStaleChunks();
       received = {
         id: chank.id,
         chanks: new Array(chank.total),
         length: 0,
         byteLength: 0,
+        createdAt: performance.now(),
       };
       this.receivedMap.set(chank.id, received);
     }

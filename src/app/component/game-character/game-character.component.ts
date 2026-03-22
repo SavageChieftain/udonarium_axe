@@ -214,6 +214,8 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnDestroy() {
+    clearTimeout(this.highlightTimer);
+    clearTimeout(this.unhighlightTimer);
     if (this.input) this.input.destroy();
     EventSystem.unregister(this);
   }

@@ -374,6 +374,18 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   ngOnDestroy() {
     EventSystem.unregister(this);
     this.batchService.remove(this);
+    if (this.writingEventInterval) {
+      clearTimeout(this.writingEventInterval);
+      this.writingEventInterval = null!;
+    }
+    if (this.calcFitHeightInterval) {
+      clearTimeout(this.calcFitHeightInterval);
+      this.calcFitHeightInterval = null!;
+    }
+    for (const [, timeout] of this.writingPeers) {
+      timeout.stop();
+    }
+    this.writingPeers.clear();
   }
 
   private updateWritingPeerNames() {

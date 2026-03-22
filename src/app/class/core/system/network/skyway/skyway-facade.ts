@@ -263,6 +263,7 @@ export class SkyWayFacade {
     this.lobby = null!;
 
     if (!lobby) return;
+    lobby.onClosed.removeAllListeners();
     lobby.dispose();
   }
 
@@ -310,6 +311,7 @@ export class SkyWayFacade {
     this.publication = null!;
 
     if (!publication) return;
+    publication.onSubscribed.removeAllListeners();
     await this.roomPerson?.unpublish(publication);
   }
 

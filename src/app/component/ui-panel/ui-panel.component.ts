@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
 
@@ -24,7 +24,7 @@ import { CardStackListImageComponent as CardStackListImageComponent_1 } from 'co
     NgStyle,
   ],
 })
-export class UIPanelComponent implements OnInit {
+export class UIPanelComponent implements OnInit, OnDestroy {
   panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
 
@@ -206,12 +206,18 @@ export class UIPanelComponent implements OnInit {
     return this.panelService.isCutIn;
   }
 
-  close() {
+  ngOnDestroy() {
     if (this.timerCheckWindowSize) {
-      clearTimeout(this.timerCheckWindowSize);
+      clearInterval(this.timerCheckWindowSize);
       this.timerCheckWindowSize = null!;
     }
-    this.timerCheckWindowSize = null!;
+  }
+
+  close() {
+    if (this.timerCheckWindowSize) {
+      clearInterval(this.timerCheckWindowSize);
+      this.timerCheckWindowSize = null!;
+    }
     if (this.panelService) this.panelService.close();
   }
 

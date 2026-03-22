@@ -20,7 +20,15 @@ describe('ObjectStore', () => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    vi.clearAllMocks(); // Clear mocks after each test
+    // Cancel any pending garbageCollectionInterval to prevent leaking timers
+    // @ts-expect-error accessing private
+    if (store.garbageCollectionInterval != null) {
+      // @ts-expect-error accessing private
+      clearTimeout(store.garbageCollectionInterval);
+      // @ts-expect-error accessing private
+      store.garbageCollectionInterval = null;
+    }
+    vi.clearAllMocks();
   });
 
   it('should create singleton instance', () => {
@@ -365,6 +373,46 @@ describe('ObjectStore', () => {
 
       expect(result).toBe(obj2);
       expect(store.get('test-id-31')).toBe(obj2);
+    });
+  });
+
+  describe('_garbageCollection()', () => {
+    it('should evict old entries from garbageMap when size exceeds 100000', () => {
+      vi.useFakeTimers();
+      try {
+        // Directly populate the garbageMap beyond 100000 entries
+        // @ts-expect-error accessing private
+        const garbageMap: Map<string, number> = store.garbageMap;
+        const oldTimestamp = performance.now() - 11 * 60 * 1000; // 11 minutes ago
+        for (let i = 0; i < 100002; i++) {
+          garbageMap.set(`gc-test-${i}`, oldTimestamp);
+        }
+
+        expect(garbageMap.size).toBe(100002);
+
+        // Trigger GC by adding and deleting one more object
+        const triggerObj = new GameObject('gc-trigger');
+        store.add(triggerObj, false);
+        store.delete(triggerObj, false);
+
+        // Advance timer to fire the garbageCollection setTimeout(1000)
+        vi.advanceTimersByTime(1100);
+
+        // Old entries should be evicted (size should be back to 100000 or fewer)
+        expect(garbageMap.size).toBeLessThanOrEqual(100001);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('should not evict entries when garbageMap size is below 100000', () => {
+      // Add and delete a small number of objects
+      const obj = new GameObject('gc-small-test');
+      store.add(obj, false);
+      store.delete(obj, false);
+
+      // Entry should remain in garbage map
+      expect(store.isDeleted('gc-small-test')).toBe(true);
     });
   });
 });

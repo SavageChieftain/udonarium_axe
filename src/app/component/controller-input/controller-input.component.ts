@@ -397,6 +397,14 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     EventSystem.unregister(this);
     this.batchService.remove(this);
+    if (this.writingEventInterval) {
+      clearTimeout(this.writingEventInterval);
+      this.writingEventInterval = null!;
+    }
+    for (const [, timeout] of this.writingPeers) {
+      timeout.stop();
+    }
+    this.writingPeers.clear();
   }
 
   private updateWritingPeerNames() {

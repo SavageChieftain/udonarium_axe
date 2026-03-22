@@ -39,6 +39,10 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     EventSystem.unregister(this);
+    if (this.lazyUpdateTimer) {
+      clearTimeout(this.lazyUpdateTimer);
+      this.lazyUpdateTimer = null!;
+    }
     this.stop();
   }
 

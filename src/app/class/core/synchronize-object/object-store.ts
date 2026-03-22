@@ -179,7 +179,7 @@ export class ObjectStore {
     if (checkLength < 1) return;
 
     const entries = this.garbageMap.entries();
-    while (checkLength < 1) {
+    while (checkLength > 0) {
       checkLength--;
       const item = entries.next();
       if (item.done) break;
@@ -187,7 +187,7 @@ export class ObjectStore {
       const identifier = item.value[0];
       const timeStamp = item.value[1];
 
-      if (timeStamp + ms < nowDate) continue;
+      if (timeStamp + ms > nowDate) continue;
       this.garbageMap.delete(identifier);
     }
   }

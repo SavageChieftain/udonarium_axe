@@ -37,5 +37,9 @@ export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     EventSystem.unregister(this);
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null!;
+    }
   }
 }

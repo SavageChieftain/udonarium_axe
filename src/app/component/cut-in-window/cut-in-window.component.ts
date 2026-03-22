@@ -253,6 +253,18 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       clearTimeout(this.cutInTimeOut);
       this.cutInTimeOut = null!;
     }
+    if (this.lazyUpdateTimer) {
+      clearTimeout(this.lazyUpdateTimer);
+      this.lazyUpdateTimer = null;
+    }
+    if (this.timerCheckWindowSize) {
+      clearTimeout(this.timerCheckWindowSize);
+      this.timerCheckWindowSize = null;
+    }
+    if (this._timeoutIdVideo) {
+      clearTimeout(this._timeoutIdVideo);
+      this._timeoutIdVideo = null;
+    }
     this.stopCutIn();
     EventSystem.unregister(this);
   }

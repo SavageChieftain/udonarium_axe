@@ -182,6 +182,8 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    clearTimeout(this.doubleClickTimer);
+    clearTimeout(this.iconHiddenTimer);
     if (this.input) this.input.destroy();
     EventSystem.unregister(this);
   }

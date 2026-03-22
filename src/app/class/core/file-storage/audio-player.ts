@@ -123,9 +123,32 @@ export class AudioPlayer {
   }
 
   private static cacheMap: Map<string, AudioCache> = new Map();
+  private static readonly MAX_CACHE_SIZE = 100;
 
   constructor(audio?: AudioFile) {
     this.audio = audio;
+  }
+
+  static removeCache(identifier: string) {
+    const cache = AudioPlayer.cacheMap.get(identifier);
+    if (cache) {
+      URL.revokeObjectURL(cache.url);
+      AudioPlayer.cacheMap.delete(identifier);
+    }
+  }
+
+  static clearAllCache() {
+    for (const [, cache] of AudioPlayer.cacheMap) {
+      URL.revokeObjectURL(cache.url);
+    }
+    AudioPlayer.cacheMap.clear();
+  }
+
+  private static evictCacheIfNeeded() {
+    while (AudioPlayer.cacheMap.size > AudioPlayer.MAX_CACHE_SIZE) {
+      const oldestKey = AudioPlayer.cacheMap.keys().next().value!;
+      AudioPlayer.removeCache(oldestKey);
+    }
   }
 
   static play(audio: AudioFile, volume: number = 1.0) {
@@ -255,6 +278,7 @@ export class AudioPlayer {
     const url = URL.createObjectURL(blob);
     const finalCache: AudioCache = { url, blob };
     AudioPlayer.cacheMap.set(audio.identifier, finalCache);
+    AudioPlayer.evictCacheIfNeeded();
     return finalCache;
   }
 

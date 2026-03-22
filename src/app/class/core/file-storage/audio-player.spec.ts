@@ -140,10 +140,8 @@ describe('AudioPlayer', () => {
     vi.stubGlobal('Audio', AudioCtor);
 
     vi.stubGlobal('fetch', vi.fn());
-    vi.stubGlobal('URL', {
-      createObjectURL: vi.fn(() => 'blob:mock-url'),
-      revokeObjectURL: vi.fn(),
-    });
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+    vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
 
     resetStaticState();
   });
@@ -644,6 +642,68 @@ describe('AudioPlayer', () => {
       await AudioPlayer.createCacheAsync(af);
       // @ts-expect-error accessing private
       expect(AudioPlayer.cacheMap.has('gb5')).toBe(true);
+    });
+  });
+
+  describe('removeCache()', () => {
+    it('指定identifierのキャッシュを削除しURLを解放する', () => {
+      const cache = { url: 'blob:test-url', blob: new Blob(['data']) };
+      // @ts-expect-error accessing private
+      AudioPlayer.cacheMap.set('remove-test', cache);
+
+      AudioPlayer.removeCache('remove-test');
+
+      // @ts-expect-error accessing private
+      expect(AudioPlayer.cacheMap.has('remove-test')).toBe(false);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+    });
+
+    it('存在しないidentifierを指定しても安全に動作する', () => {
+      expect(() => AudioPlayer.removeCache('nonexistent')).not.toThrow();
+    });
+  });
+
+  describe('clearAllCache()', () => {
+    it('全てのキャッシュを削除しURLを解放する', () => {
+      const cache1 = { url: 'blob:url-1', blob: new Blob(['data1']) };
+      const cache2 = { url: 'blob:url-2', blob: new Blob(['data2']) };
+      // @ts-expect-error accessing private
+      AudioPlayer.cacheMap.set('clear-1', cache1);
+      // @ts-expect-error accessing private
+      AudioPlayer.cacheMap.set('clear-2', cache2);
+
+      AudioPlayer.clearAllCache();
+
+      // @ts-expect-error accessing private
+      expect(AudioPlayer.cacheMap.size).toBe(0);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:url-1');
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:url-2');
+    });
+  });
+
+  describe('cache eviction', () => {
+    it('キャッシュがMAX_CACHE_SIZEを超えた時に古いエントリを削除する', async () => {
+      // @ts-expect-error accessing private static
+      const maxSize = AudioPlayer.MAX_CACHE_SIZE;
+
+      // Fill cache to max
+      for (let i = 0; i < maxSize + 5; i++) {
+        const cache = { url: `blob:url-${i}`, blob: new Blob([`data-${i}`]) };
+        // @ts-expect-error accessing private
+        AudioPlayer.cacheMap.set(`evict-${i}`, cache);
+      }
+
+      // @ts-expect-error accessing private
+      AudioPlayer.evictCacheIfNeeded();
+
+      // @ts-expect-error accessing private
+      expect(AudioPlayer.cacheMap.size).toBe(maxSize);
+      // Oldest entries should be removed
+      // @ts-expect-error accessing private
+      expect(AudioPlayer.cacheMap.has('evict-0')).toBe(false);
+      // Newest entries should remain
+      // @ts-expect-error accessing private
+      expect(AudioPlayer.cacheMap.has(`evict-${maxSize + 4}`)).toBe(true);
     });
   });
 });

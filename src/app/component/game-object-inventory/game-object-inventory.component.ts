@@ -133,6 +133,9 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnDestroy() {
     EventSystem.unregister(this);
+    if (this.disptimer) {
+      clearInterval(this.disptimer);
+    }
     this.disptimer = null!;
   }
 

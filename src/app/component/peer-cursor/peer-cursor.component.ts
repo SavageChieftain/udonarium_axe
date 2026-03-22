@@ -229,6 +229,14 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.batchService.remove(this);
     if (this.fadeOutTimer) this.fadeOutTimer.clear();
 
+    if (this.updateInterval) {
+      clearTimeout(this.updateInterval);
+      this.updateInterval = null!;
+    }
+    if (this.timestampInterval) {
+      clearTimeout(this.timestampInterval);
+      this.timestampInterval = null!;
+    }
     this.timestampIntervalEnable = false;
   }
 
