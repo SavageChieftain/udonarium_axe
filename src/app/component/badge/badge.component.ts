@@ -1,22 +1,24 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 
 @Component({
   selector: 'badge',
   templateUrl: './badge.component.html',
   styleUrls: ['./badge.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BadgeComponent implements OnChanges {
-  @Input() count: number = 0;
-  animeState: 'active' | 'inactive' = 'active';
+export class BadgeComponent {
+  readonly count = input(0);
+  readonly animeState = signal<'active' | 'inactive'>('active');
 
-  ngOnChanges() {
-    this.animeState = 'inactive';
-    setTimeout(() => {
-      this.animeState = 'active';
+  constructor() {
+    effect(() => {
+      this.count();
+      this.animeState.set('inactive');
+      queueMicrotask(() => this.animeState.set('active'));
     });
   }
 
   onBounceEnd() {
-    this.animeState = 'inactive';
+    this.animeState.set('inactive');
   }
 }

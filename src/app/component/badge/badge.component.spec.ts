@@ -20,4 +20,13 @@ describe('BadgeComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('countのデフォルト値は0', () => {
+    expect(component.count()).toBe(0);
+  });
+
+  it('input signalでcountを受け取る', () => {
+    fixture.componentRef.setInput('count', 5);
+    expect(component.count()).toBe(5);
+  });
 });
