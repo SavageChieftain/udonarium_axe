@@ -1,4 +1,5 @@
 import {
+  isRemoteMember,
   LocalDataStream,
   P2PConnection,
   Publication,
@@ -49,7 +50,9 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     return this.peer.isOpen;
   }
   get member(): RemoteMember | undefined {
-    return this.skyWay.room?.members.find((member) => member.name === this.peer.peerId);
+    return this.skyWay.room?.members.find(
+      (member): member is RemoteMember => isRemoteMember(member) && member.name === this.peer.peerId
+    );
   }
 
   private isQueuing = false;

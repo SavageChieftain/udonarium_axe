@@ -233,7 +233,9 @@ export class SkyWayFacade {
     publication.onSubscribed.add((event) => {
       const peerId = event.subscription.subscriber.name;
       if (peerId == null) {
-        event.subscription.cancel();
+        this.roomPerson?.unsubscribe(event.subscription).catch((error) => {
+          AppLogger.warn('[SkyWay] サブスクリプション解除失敗', error);
+        });
         return;
       }
 
@@ -308,7 +310,7 @@ export class SkyWayFacade {
     this.publication = null!;
 
     if (!publication) return;
-    await publication.cancel();
+    await this.roomPerson?.unpublish(publication);
   }
 
   async listAllPeers(): Promise<string[]> {
