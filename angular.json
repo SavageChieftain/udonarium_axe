@@ -32,7 +32,7 @@
             ],
             "styles": ["src/styles.css"],
             "scripts": [],
-            "allowedCommonJsDependencies": ["bcdice", "file-saver", "lzbase62", "pako"],
+            "allowedCommonJsDependencies": ["bcdice", "file-saver", "jszip", "lodash", "lzbase62", "pako"],
             "browser": "src/main.ts"
           },
           "configurations": {
