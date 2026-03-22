@@ -20,7 +20,8 @@
       "directive/*": ["./src/app/directive/*"],
       "component/*": ["./src/app/component/*"],
       "pipe/*": ["./src/app/pipe/*"],
-      "service/*": ["./src/app/service/*"]
+      "service/*": ["./src/app/service/*"],
+      "testing/*": ["./src/app/testing/*"]
     },
     "useDefineForClassFields": false,
     "types": ["node", "vitest/globals"]
