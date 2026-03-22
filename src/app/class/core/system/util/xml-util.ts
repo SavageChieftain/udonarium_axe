@@ -1,22 +1,5 @@
 import { Logger } from '@axe/core/logger';
-
-const encodePattern = /&|<|>|"|'/g;
-const encodeMap: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&apos;',
-};
-
-const decodePattern = /&amp;|&lt;|&gt;|&quot;|&apos;/g;
-const decodeMap: Record<string, string> = {
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-  '&quot;': '"',
-  '&apos;': "'",
-};
+import { decodeXML, escapeUTF8 } from 'entities';
 
 export function xml2element(xml: string): HTMLElement {
   const domParser: DOMParser = new DOMParser();
@@ -36,11 +19,11 @@ export function xml2element(xml: string): HTMLElement {
 }
 
 export function encodeEntityReference(string: string): string {
-  return string.replace(encodePattern, (char) => encodeMap[char]);
+  return escapeUTF8(string);
 }
 
 export function decodeEntityReference(string: string): string {
-  return string.replace(decodePattern, (entity) => decodeMap[entity]);
+  return decodeXML(string);
 }
 
 function sanitizeXml(xml: string): string {

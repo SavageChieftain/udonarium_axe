@@ -29,6 +29,7 @@
     "@skyway-sdk/core": "^2.4.1",
     "base-x": "^5.0.1",
     "bcdice": "^4.6.0",
+    "entities": "^8.0.0",
     "file-saver": "^2.0.5",
     "jszip": "~3.8.0",
     "linkify-html": "^4.3.2",
@@ -37,7 +38,7 @@
     "pako": "^2.0.4",
     "rxjs": "^7.5.5",
     "tslib": "^2.3.1",
-    "vkbeautify": "^0.99.3",
+    "xml-formatter": "^3.7.0",
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
@@ -59,7 +60,6 @@
     "@types/lodash": "^4.17.24",
     "@types/node": "^25.5.0",
     "@types/pako": "^1.0.3",
-    "@types/vkbeautify": "^0.99.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^4.0.0",

@@ -13,7 +13,7 @@ import { DataSummarySetting } from '@axe/data-summary-setting';
 import { ImageTagList } from '@axe/image-tag-list';
 import { Room } from '@axe/room';
 import { saveAs } from 'file-saver';
-import Beautify from 'vkbeautify';
+import xmlFormat from 'xml-formatter';
 type UpdateCallback = (percent: number) => void;
 
 @Injectable({
@@ -105,7 +105,11 @@ export class SaveDataService {
 
   private convertToXml(gameObject: GameObject): string {
     const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
-    return xmlDeclaration + '\n' + Beautify.xml(gameObject.toXml(), 2);
+    return xmlFormat(xmlDeclaration + gameObject.toXml(), {
+      indentation: '  ',
+      collapseContent: true,
+      lineSeparator: '\n',
+    });
   }
   private searchImageFiles(xml: string): ImageFile[] {
     const xmlElement: Element = xml2element(xml);
