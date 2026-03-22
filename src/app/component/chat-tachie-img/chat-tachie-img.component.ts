@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Input,
   OnDestroy,
-  OnInit,
   AfterViewInit,
   AfterViewChecked,
   ViewChild,
@@ -31,7 +30,7 @@ import { SafePipe } from 'pipe/safe.pipe';
   styleUrls: ['./chat-tachie-img.component.css'],
   imports: [NgStyle, SafePipe],
 })
-export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked {
+export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
@@ -356,8 +355,6 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
     console.log('tachieClick' + pos);
     this.chatTab.tachiePosHide(pos);
   }
-
-  ngOnInit() {}
 
   ngOnDestroy() {
     EventSystem.unregister(this);

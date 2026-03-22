@@ -14,9 +14,9 @@ export class InputHandler {
   onEnd: (ev: MouseEvent | TouchEvent) => void;
   onContextMenu: (ev: MouseEvent | TouchEvent) => void;
 
-  private callbackOnMouse = this.onMouse.bind(this);
-  private callbackOnTouch = this.onTouch.bind(this);
-  private callbackOnMenu = this.onMenu.bind(this);
+  private callbackOnMouse = (e: MouseEvent) => this.onMouse(e);
+  private callbackOnTouch = (e: TouchEvent) => this.onTouch(e);
+  private callbackOnMenu = (e: MouseEvent | TouchEvent) => this.onMenu(e);
 
   private lastPointers: PointerData[] = [];
   private primaryPointer: PointerData = { x: 0, y: 0, z: 0, identifier: MOUSE_IDENTIFIER };

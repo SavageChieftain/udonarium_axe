@@ -319,8 +319,8 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     this.ngZone.runOutsideAngular(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);
     });
-    this.input.onStart = this.onInputStart.bind(this);
-    this.input.onMove = this.onInputMove.bind(this);
+    this.input.onStart = (e) => this.onInputStart(e);
+    this.input.onMove = (e) => this.onInputMove(e);
   }
 
   ngOnDestroy() {

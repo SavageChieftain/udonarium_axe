@@ -211,7 +211,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     this.ngZone.runOutsideAngular(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);
     });
-    this.input.onStart = this.onInputStart.bind(this);
+    this.input.onStart = (e) => this.onInputStart(e);
   }
 
   ngOnDestroy() {
@@ -343,16 +343,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
             SoundEffect.play(PresetSound.sweep);
           },
         },
-        /*
-      {
-        name: '削除', action: () => {
-          console.log("円柱_削除実行_キャラコマ");
-          this.gameCharacter!.setLocation('graveyard');
-          this.deleteGameObject(this.gameCharacter!);
-          ObjectStore.instance.clearDeleteHistory();
-        }
-      },
-*/
         ContextMenuSeparator,
         this.isLock
           ? {

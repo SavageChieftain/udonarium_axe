@@ -1,4 +1,4 @@
-import { ComponentFactoryResolver, ComponentRef, Injectable, ViewContainerRef, inject } from '@angular/core';
+import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
 import { TabletopObject } from '@axe/tabletop-object';
 
 interface ContextMenuPoint {
@@ -28,8 +28,6 @@ export interface ContextMenuAction {
 
 @Injectable()
 export class ContextMenuService {
-  private componentFactoryResolver = inject(ComponentFactoryResolver);
-
   /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static ContextMenuComponentClass: { new (...args: unknown[]): unknown } = null!;
@@ -55,15 +53,11 @@ export class ContextMenuService {
       console.log('Context Open');
     }
     const injector = parentViewContainerRef.injector;
-    const panelComponentFactory = this.componentFactoryResolver.resolveComponentFactory(
-      ContextMenuService.ContextMenuComponentClass
-    );
 
-    const panelComponentRef = parentViewContainerRef.createComponent(
-      panelComponentFactory,
-      parentViewContainerRef.length,
-      injector
-    );
+    const panelComponentRef = parentViewContainerRef.createComponent(ContextMenuService.ContextMenuComponentClass, {
+      index: parentViewContainerRef.length,
+      injector,
+    });
 
     const childPanelService: ContextMenuService = panelComponentRef.injector.get(ContextMenuService);
 

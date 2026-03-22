@@ -216,7 +216,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     if ((e as TouchEvent).touches) {
-      this.input.onEnd = this.onDoubleClick.bind(this);
+      this.input.onEnd = () => this.onDoubleClick();
     } else {
       this.onDoubleClick();
     }

@@ -203,7 +203,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => this.updatePanelTitle());
+    queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
     this.gameType = this.character.remoteController ? this.character.remoteController.dicebot : '';
     EventSystem.register(this).on('DELETE_GAME_OBJECT', -1000, (event) => {

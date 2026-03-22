@@ -112,7 +112,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   progresPercent: number = 0;
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'ダイス表設定'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ダイス表設定'));
   }
 
   ngAfterViewInit() {}

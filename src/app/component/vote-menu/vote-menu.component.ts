@@ -48,7 +48,7 @@ export class VoteMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = '点呼/投票設定'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = '点呼/投票設定'));
     this.setDefaultCheck();
   }
 

@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Input,
   OnDestroy,
-  OnInit,
   AfterViewInit,
   AfterViewChecked,
   ViewChild,
@@ -30,7 +29,7 @@ import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from 'componen
   styleUrls: ['./chat-tachie.component.css'],
   imports: [FormsModule, NgStyle, ChatTachieImageComponent_1],
 })
-export class ChatTachieComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked {
+export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
@@ -86,8 +85,6 @@ export class ChatTachieComponent implements OnInit, OnDestroy, AfterViewInit, Af
     };
     this.panelService.open<ChatMessageSettingComponent>(ChatMessageSettingComponent, option);
   }
-
-  ngOnInit() {}
 
   ngOnDestroy() {
     EventSystem.unregister(this);

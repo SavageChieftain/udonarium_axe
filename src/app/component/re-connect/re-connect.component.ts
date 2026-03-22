@@ -51,7 +51,7 @@ export class ReConnectComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => this.changeTitle());
+    queueMicrotask(() => this.changeTitle());
     if (this.networkService.peerContext.isRoom) {
       this.roomName = this.networkService.peerContext.roomName;
       this.roomId = this.networkService.peerContext.roomId;

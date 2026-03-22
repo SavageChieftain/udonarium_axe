@@ -1,12 +1,10 @@
 import {
   AfterViewInit,
-  ComponentFactoryResolver,
   ComponentRef,
   Directive,
   Input,
   NgZone,
   OnDestroy,
-  OnInit,
   ViewContainerRef,
   inject,
 } from '@angular/core';
@@ -17,10 +15,9 @@ import { ContextMenuService } from 'service/context-menu.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
 
 @Directive({ selector: '[appTooltip]' })
-export class TooltipDirective implements OnInit, AfterViewInit, OnDestroy {
+export class TooltipDirective implements AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   private viewContainerRef = inject(ViewContainerRef);
-  private componentFactoryResolver = inject(ComponentFactoryResolver);
   private pointerDeviceService = inject(PointerDeviceService);
 
   private static activeTooltips: ComponentRef<OverviewPanelComponent>[] = [];
@@ -35,8 +32,6 @@ export class TooltipDirective implements OnInit, AfterViewInit, OnDestroy {
   private closeTooltipTimer!: NodeJS.Timeout;
 
   private tooltipComponentRef!: ComponentRef<OverviewPanelComponent>;
-
-  ngOnInit() {}
 
   ngAfterViewInit() {
     this.addEventListeners(this.viewContainerRef.element.nativeElement);
@@ -111,13 +106,11 @@ export class TooltipDirective implements OnInit, AfterViewInit, OnDestroy {
     const parentViewContainerRef = ContextMenuService.defaultParentViewContainerRef;
 
     const injector = parentViewContainerRef.injector;
-    const panelComponentFactory = this.componentFactoryResolver.resolveComponentFactory(OverviewPanelComponent);
 
-    this.tooltipComponentRef = parentViewContainerRef.createComponent(
-      panelComponentFactory,
-      parentViewContainerRef.length,
-      injector
-    );
+    this.tooltipComponentRef = parentViewContainerRef.createComponent(OverviewPanelComponent, {
+      index: parentViewContainerRef.length,
+      injector,
+    });
 
     this.tooltipComponentRef.instance.tabletopObject = this.tabletopObject;
     this.tooltipComponentRef.instance.left = this.pointerDeviceService.pointerX;

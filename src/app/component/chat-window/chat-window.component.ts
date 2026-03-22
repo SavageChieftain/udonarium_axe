@@ -102,7 +102,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
     });
-    Promise.resolve().then(() => this.updatePanelTitle());
+    queueMicrotask(() => this.updatePanelTitle());
   }
 
   ngAfterViewInit() {

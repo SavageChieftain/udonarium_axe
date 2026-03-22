@@ -94,10 +94,10 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
 
   initialize() {
     this.input = new InputHandler(this.nativeElement);
-    this.input.onStart = this.onInputStart.bind(this);
-    this.input.onMove = this.onInputMove.bind(this);
-    this.input.onEnd = this.onInputEnd.bind(this);
-    this.input.onContextMenu = this.onContextMenu.bind(this);
+    this.input.onStart = (e) => this.onInputStart(e);
+    this.input.onMove = (e) => this.onInputMove(e);
+    this.input.onEnd = (e) => this.onInputEnd(e);
+    this.input.onContextMenu = (e) => this.onContextMenu(e);
 
     if (this.tabletopObject) {
       EventSystem.register(this).on('UPDATE_GAME_OBJECT', (event) => {

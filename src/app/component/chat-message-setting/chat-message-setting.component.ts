@@ -5,7 +5,6 @@ import {
   Component,
   Input,
   OnDestroy,
-  OnInit,
   inject,
 } from '@angular/core';
 import { EventSystem } from '@axe/core/system';
@@ -24,7 +23,7 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
-export class ChatMessageSettingComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
@@ -57,8 +56,6 @@ export class ChatMessageSettingComponent implements OnInit, OnDestroy, AfterView
   changeKeepTachieOutWindow() {
     //中身なし
   }
-
-  ngOnInit() {}
 
   ngAfterViewInit() {}
 

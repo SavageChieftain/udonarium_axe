@@ -34,7 +34,6 @@ export interface EventMap {
     messageTrget: { text: string; object: { name: string } | null } | null;
   };
   DICE_TABLE_MESSAGE: { tabIdentifier: string; messageIdentifier: string };
-  APRIL_MESSAGE: { tabIdentifier: string; messageIdentifier: string };
   WRITING_A_MESSAGE: string;
   RE_DRAW_CHAT: Record<string, never>;
   RE_DRAW_TABLE: Record<string, never>;

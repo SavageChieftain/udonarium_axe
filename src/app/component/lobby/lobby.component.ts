@@ -41,7 +41,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => this.changeTitle());
+    queueMicrotask(() => this.changeTitle());
     EventSystem.register(this)
       .on('OPEN_NETWORK', (_event) => {
         this.changeTitle();

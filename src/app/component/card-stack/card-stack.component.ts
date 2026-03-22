@@ -213,7 +213,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if ((e as TouchEvent).touches) {
-      this.input.onEnd = this.onDoubleClick.bind(this);
+      this.input.onEnd = () => this.onDoubleClick();
     } else {
       this.onDoubleClick();
     }

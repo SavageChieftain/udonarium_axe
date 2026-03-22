@@ -5,7 +5,6 @@ import {
   Component,
   Input,
   OnDestroy,
-  OnInit,
   inject,
 } from '@angular/core';
 import { ModalService } from 'service/modal.service';
@@ -19,7 +18,7 @@ import { PeerCursor } from '@axe/peer-cursor';
   styleUrls: ['./chat-color-setting.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatColorSettingComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
@@ -50,8 +49,6 @@ export class ChatColorSettingComponent implements OnInit, OnDestroy, AfterViewIn
     const option = this.modalService.option as Record<string, unknown>;
     this.isAllowedEmpty = option && option.isAllowedEmpty ? true : false;
   }
-
-  ngOnInit() {}
 
   chatColorCode(num: number) {
     if (this.tabletopObject) {

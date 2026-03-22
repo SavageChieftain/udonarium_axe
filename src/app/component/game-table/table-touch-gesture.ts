@@ -71,15 +71,15 @@ export class TableTouchGesture {
 
     this.hammer.add([tap, pan1p, pan2p, pinch, rotate]);
 
-    this.hammer.on('hammer.input', this.onHammer.bind(this));
-    this.hammer.on('tap', this.onTap.bind(this));
-    this.hammer.on('pan1pstart', this.onTappedPanStart.bind(this));
-    this.hammer.on('pan1pmove', this.onTappedPanMove.bind(this));
-    this.hammer.on('pan1pend', this.onTappedPanEnd.bind(this));
-    this.hammer.on('pan1pcancel', this.onTappedPanEnd.bind(this));
-    this.hammer.on('pan2pmove', this.onPanMove.bind(this));
-    this.hammer.on('pinchmove', this.onPinchMove.bind(this));
-    this.hammer.on('rotatemove', this.onRotateMove.bind(this));
+    this.hammer.on('hammer.input', (e) => this.onHammer(e));
+    this.hammer.on('tap', (e) => this.onTap(e));
+    this.hammer.on('pan1pstart', (e) => this.onTappedPanStart(e));
+    this.hammer.on('pan1pmove', (e) => this.onTappedPanMove(e));
+    this.hammer.on('pan1pend', (e) => this.onTappedPanEnd(e));
+    this.hammer.on('pan1pcancel', (e) => this.onTappedPanEnd(e));
+    this.hammer.on('pan2pmove', (e) => this.onPanMove(e));
+    this.hammer.on('pinchmove', (e) => this.onPinchMove(e));
+    this.hammer.on('rotatemove', (e) => this.onRotateMove(e));
 
     // iOS で contextmenu が発火しない問題へのworkaround.
     const ua = window.navigator.userAgent.toLowerCase();

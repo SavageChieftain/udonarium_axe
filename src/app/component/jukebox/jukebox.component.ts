@@ -75,7 +75,7 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
   private lazyUpdateTimer: NodeJS.Timeout = null!;
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
     EventSystem.register(this).on('*', (event) => {
       if (event.eventName.startsWith('FILE_')) this.lazyNgZoneUpdate();

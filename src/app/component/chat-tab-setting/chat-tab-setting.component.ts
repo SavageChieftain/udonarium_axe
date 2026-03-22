@@ -73,7 +73,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   modeCocLog = false;
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
     EventSystem.register(this).on('DELETE_GAME_OBJECT', 2000, (event) => {
       if (!this.selectedTab || event.data.identifier !== this.selectedTab.identifier) return;
       const object = ObjectStore.instance.get(event.data.identifier);

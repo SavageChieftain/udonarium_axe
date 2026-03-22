@@ -101,7 +101,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.panelService.title = 'インベントリ'));
+    queueMicrotask(() => (this.panelService.title = 'インベントリ'));
     EventSystem.register(this)
       .on('SELECT_TABLETOP_OBJECT', (event) => {
         if (ObjectStore.instance.get(event.data.identifier) instanceof TabletopObject) {

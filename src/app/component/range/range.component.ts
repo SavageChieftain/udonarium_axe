@@ -334,7 +334,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ngZone.runOutsideAngular(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);
     });
-    this.input.onStart = this.onInputStart.bind(this);
+    this.input.onStart = (e) => this.onInputStart(e);
     this.setRange();
   }
 

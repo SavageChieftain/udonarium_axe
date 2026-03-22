@@ -29,7 +29,7 @@ export class CardStackListComponent implements OnInit, OnDestroy {
   owner: string = Network.peerContext.userId;
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.panelService.title = this.cardStack.name + ' のカード一覧'));
+    queueMicrotask(() => (this.panelService.title = this.cardStack.name + ' のカード一覧'));
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', (event) => {
         const object = ObjectStore.instance.get(event.data.identifier);

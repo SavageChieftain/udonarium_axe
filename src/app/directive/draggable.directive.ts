@@ -31,7 +31,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   @Output('draggable.move') onmove: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
   @Output('draggable.end') onend: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
 
-  private callbackOnResize = this.adjustPosition.bind(this);
+  private callbackOnResize = () => this.adjustPosition();
 
   private input: InputHandler = null!;
   private startPosition: PointerCoordinate = { x: 0, y: 0, z: 0 };
@@ -54,10 +54,10 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
       this.input = new InputHandler(this.elementRef.nativeElement);
       window.addEventListener('resize', this.callbackOnResize, false);
     });
-    this.input.onStart = this.onInputStart.bind(this);
-    this.input.onMove = this.onInputMove.bind(this);
-    this.input.onEnd = this.onInputEnd.bind(this);
-    this.input.onContextMenu = this.onContextMenu.bind(this);
+    this.input.onStart = (e) => this.onInputStart(e);
+    this.input.onMove = (e) => this.onInputMove(e);
+    this.input.onEnd = (e) => this.onInputEnd(e);
+    this.input.onContextMenu = (e) => this.onContextMenu(e);
   }
 
   cancel() {

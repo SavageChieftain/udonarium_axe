@@ -28,7 +28,7 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
   owner: string = Network.peerContext.userId;
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.panelService.title = this.cardStack.name + ' のカード一覧'));
+    queueMicrotask(() => (this.panelService.title = this.cardStack.name + ' のカード一覧'));
     this.panelService.cardStack = this.cardStack;
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', -1000, (event) => {

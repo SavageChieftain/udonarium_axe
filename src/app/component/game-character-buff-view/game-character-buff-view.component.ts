@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
@@ -12,7 +12,7 @@ import { GameDataElementBuffComponent } from 'component/game-data-element-buff/g
   styleUrls: ['./game-character-buff-view.component.css'],
   imports: [GameDataElementBuffComponent],
 })
-export class GameCharacterBuffViewComponent implements OnInit {
+export class GameCharacterBuffViewComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
@@ -20,16 +20,4 @@ export class GameCharacterBuffViewComponent implements OnInit {
 
   @Input() character: TabletopObject = null!;
   @Input() isEdit: boolean = false;
-
-  ngOnInit() {
-    /*
-    Promise.resolve().then(() => {
-      this.panelService.title = this.title;
-      if (this.modalService.option && this.modalService.option.title != null) {
-        this.modalService.title = this.modalService.option.title ? this.modalService.option.title : '';
-        this.text = this.modalService.option.text ? this.modalService.option.text : '';
-      }
-    });
-*/
-  }
 }

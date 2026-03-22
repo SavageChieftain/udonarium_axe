@@ -263,17 +263,19 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initializeTableTouchGesture() {
     this.touchGesture = new TableTouchGesture(this.rootElementRef.nativeElement, this.ngZone);
-    this.touchGesture.onstart = this.onTableTouchStart.bind(this);
-    this.touchGesture.onend = this.onTableTouchEnd.bind(this);
-    this.touchGesture.ongesture = this.onTableTouchGesture.bind(this);
-    this.touchGesture.ontransform = this.onTableTouchTransform.bind(this);
+    this.touchGesture.onstart = () => this.onTableTouchStart();
+    this.touchGesture.onend = () => this.onTableTouchEnd();
+    this.touchGesture.ongesture = () => this.onTableTouchGesture();
+    this.touchGesture.ontransform = (tX, tY, tZ, rX, rY, rZ, ev, src) =>
+      this.onTableTouchTransform(tX, tY, tZ, rX, rY, rZ, ev, src);
   }
 
   initializeTableMouseGesture() {
     this.mouseGesture = new TableMouseGesture(this.rootElementRef.nativeElement);
-    this.mouseGesture.onstart = this.onTableMouseStart.bind(this);
-    this.mouseGesture.onend = this.onTableMouseEnd.bind(this);
-    this.mouseGesture.ontransform = this.onTableMouseTransform.bind(this);
+    this.mouseGesture.onstart = (e) => this.onTableMouseStart(e);
+    this.mouseGesture.onend = (e) => this.onTableMouseEnd(e);
+    this.mouseGesture.ontransform = (tX, tY, tZ, rX, rY, rZ, ev, src) =>
+      this.onTableMouseTransform(tX, tY, tZ, rX, rY, rZ, ev, src);
   }
 
   onTableTouchStart() {

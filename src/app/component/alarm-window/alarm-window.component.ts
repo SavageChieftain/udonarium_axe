@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, inject } from '@angular/core';
 
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 
@@ -18,7 +18,7 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./alarm-window.component.css'],
   imports: [NgTemplateOutlet, FormsModule],
 })
-export class AlarmWindowComponent implements AfterViewInit, OnInit, OnDestroy {
+export class AlarmWindowComponent implements AfterViewInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private changeDetectionRef = inject(ChangeDetectorRef);
@@ -36,8 +36,6 @@ export class AlarmWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   time!: string;
   title!: string;
-
-  ngOnInit() {}
 
   ngAfterViewInit() {}
 

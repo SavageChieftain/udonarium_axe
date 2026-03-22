@@ -32,7 +32,7 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
   private lazyUpdateTimer: NodeJS.Timeout = null!;
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'カットインBGM選択'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインBGM選択'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
     EventSystem.register(this).on('*', (_event) => {});
   }

@@ -1,4 +1,4 @@
-import { ComponentFactoryResolver, ComponentRef, Injectable, ViewContainerRef, inject } from '@angular/core';
+import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
 import { ChatTab } from '@axe/chat-tab';
 import { CardStack } from '@axe/card-stack';
 
@@ -24,8 +24,6 @@ interface UIPanelInstance {
 
 @Injectable()
 export class PanelService {
-  private componentFactoryResolver = inject(ComponentFactoryResolver);
-
   /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static UIPanelComponentClass: { new (...args: unknown[]): UIPanelInstance } = null!;
@@ -50,17 +48,11 @@ export class PanelService {
     }
     const injector = parentViewContainerRef.injector;
 
-    const panelComponentFactory = this.componentFactoryResolver.resolveComponentFactory(
-      PanelService.UIPanelComponentClass
-    );
-    const bodyComponentFactory = this.componentFactoryResolver.resolveComponentFactory(childComponent);
-
-    const panelComponentRef = parentViewContainerRef.createComponent(
-      panelComponentFactory,
-      parentViewContainerRef.length,
-      injector
-    );
-    const bodyComponentRef: ComponentRef<T> = panelComponentRef.instance.content.createComponent(bodyComponentFactory);
+    const panelComponentRef = parentViewContainerRef.createComponent(PanelService.UIPanelComponentClass, {
+      index: parentViewContainerRef.length,
+      injector,
+    });
+    const bodyComponentRef: ComponentRef<T> = panelComponentRef.instance.content.createComponent(childComponent);
 
     const childPanelService: PanelService = panelComponentRef.injector.get(PanelService);
 

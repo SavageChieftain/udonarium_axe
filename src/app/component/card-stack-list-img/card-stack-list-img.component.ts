@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Input,
   OnDestroy,
-  OnInit,
   AfterViewInit,
   AfterViewChecked,
   ViewChild,
@@ -21,7 +20,7 @@ import { PointerDeviceService } from 'service/pointer-device.service';
   templateUrl: './card-stack-list-img.component.html',
   styleUrls: ['./card-stack-list-img.component.css'],
 })
-export class CardStackListImageComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked {
+export class CardStackListImageComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
@@ -97,8 +96,6 @@ export class CardStackListImageComponent implements OnInit, OnDestroy, AfterView
 
   //z-index取得
   private _zindexOffset = 10;
-
-  ngOnInit() {}
 
   ngOnDestroy() {
     EventSystem.unregister(this);

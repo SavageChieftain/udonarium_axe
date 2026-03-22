@@ -41,7 +41,7 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
     EventSystem.register(this);
   }
 

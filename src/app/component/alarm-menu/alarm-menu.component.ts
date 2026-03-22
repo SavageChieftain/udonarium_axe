@@ -51,7 +51,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'アラームタイマ'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'アラームタイマ'));
     this.setDefaultCheck();
   }
 

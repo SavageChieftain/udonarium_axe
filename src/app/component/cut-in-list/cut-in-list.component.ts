@@ -277,7 +277,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   progresPercent = 0;
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
   }
 
   ngOnDestroy() {

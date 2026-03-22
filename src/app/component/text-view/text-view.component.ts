@@ -16,7 +16,7 @@ export class TextViewComponent implements OnInit {
   @Input() title: string = '';
 
   ngOnInit() {
-    Promise.resolve().then(() => {
+    queueMicrotask(() => {
       this.panelService.title = this.title;
       const option = this.modalService.option as Record<string, unknown>;
       if (option && option.title != null) {

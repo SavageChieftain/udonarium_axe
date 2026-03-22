@@ -52,9 +52,9 @@ export class TableMouseGesture {
   private initialize() {
     this.input = new InputHandler(this.targetElement, { capture: true });
     this.addEventListeners();
-    this.input.onStart = this.onInputStart.bind(this);
-    this.input.onMove = this.onInputMove.bind(this);
-    this.input.onEnd = this.onInputEnd.bind(this);
+    this.input.onStart = (e) => this.onInputStart(e);
+    this.input.onMove = (e) => this.onInputMove(e);
+    this.input.onEnd = (e) => this.onInputEnd(e);
   }
 
   cancel() {

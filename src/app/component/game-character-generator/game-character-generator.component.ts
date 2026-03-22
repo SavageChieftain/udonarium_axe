@@ -35,7 +35,7 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
   tableBackgroundImage: ImageFile = ImageFile.createEmpty('null');
 
   ngOnInit() {
-    Promise.resolve().then(() => (this.panelService.title = 'キャラクタージェネレーター'));
+    queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
     EventSystem.register(this).on('SELECT_FILE', (event) => {
       console.log('SELECT_FILE GameCharacterGeneratorComponent ' + event.data.fileIdentifier);
 
