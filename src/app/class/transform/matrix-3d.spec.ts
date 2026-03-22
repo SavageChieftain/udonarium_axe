@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { Matrix3D } from './matrix-3d';
 
 describe('Matrix3D', () => {

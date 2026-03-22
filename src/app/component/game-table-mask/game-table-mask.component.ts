@@ -25,8 +25,7 @@ import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.s
 import { CoordinateService } from 'service/coordinate.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { UUID } from '@axe/core/system/util/uuid';
-import { animate, keyframes, style, transition, trigger } from '@angular/animations';
+import { generateUuid } from '@axe/core/system/util/uuid';
 import { TableSelecter } from '@axe/table-selecter';
 import { TabletopActionService } from 'service/tabletop-action.service';
 import { xor } from 'lodash';
@@ -38,27 +37,6 @@ import { SafePipe } from 'pipe/safe.pipe';
   selector: 'game-table-mask',
   templateUrl: './game-table-mask.component.html',
   styleUrls: ['./game-table-mask.component.css'],
-  animations: [
-    trigger('fadeInOut', [
-      transition('void => *', [
-        animate('132ms ease-out', keyframes([style({ opacity: 0, offset: 0 }), style({ opacity: 1, offset: 1.0 })])),
-      ]),
-      transition('* => void', [
-        animate('132ms ease-in', keyframes([style({ opacity: 1, offset: 0 }), style({ opacity: 0, offset: 1.0 })])),
-      ]),
-    ]),
-    trigger('rotateInOut', [
-      transition('scrached<=>restore', [
-        animate(
-          '132ms ease-in-out',
-          keyframes([
-            style({ transform: 'rotateY(0deg)', offset: 0.0 }),
-            style({ transform: 'rotateY(-90deg)', offset: 1.0 }),
-          ])
-        ),
-      ]),
-    ]),
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, NgStyle, SafePipe],
 })
@@ -295,7 +273,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       transformCssOffset: 'translateZ(0.10px)',
       colideLayers: ['terrain']
     };
-    this.panelId = UUID.generateUuid();
+    this.panelId = generateUuid();
   }
 
   ngOnChanges(): void {
@@ -334,7 +312,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       transformCssOffset: 'translateZ(0.10px)',
       colideLayers: ['terrain'],
     };
-    this.panelId = UUID.generateUuid();
+    this.panelId = generateUuid();
   }
 
   ngAfterViewInit() {

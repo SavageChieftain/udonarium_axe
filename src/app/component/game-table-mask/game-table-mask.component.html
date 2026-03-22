@@ -47,7 +47,7 @@
         <div class="is-fit-full is-3d scratching-area border" style="pointer-events: none; backface-visibility: hidden">
           @if (isScratching) {
             <svg
-              @fadeInOut
+              class="fade-in"
               [attr.width]="width * gridSize"
               [attr.height]="height * gridSize"
               [attr.viewBox]="'0, 0, ' + width * gridSize + ', ' + height * gridSize"
@@ -55,7 +55,7 @@
             >
               @for (gridInfo of scratchingGridInfos; track gridInfo.x + '_' + gridInfo.y) {
                 <g
-                  [@rotateInOut]="gridInfo.state"
+                  class="rotate-state"
                   [style.transform-origin]="
                     (gridInfo.x + 0.5) * gridSize + 'px ' + (gridInfo.y + 0.5) * gridSize + 'px'
                   "

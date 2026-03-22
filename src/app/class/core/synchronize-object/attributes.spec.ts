@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import type { Attributes } from './attributes';
 
 describe('Attributes', () => {

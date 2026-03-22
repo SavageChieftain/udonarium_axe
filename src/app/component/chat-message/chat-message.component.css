@@ -126,3 +126,33 @@
   display: inline-block;
   opacity: 1;
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes chatSlideIn {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes chatFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-slide-in {
+  animation: chatSlideIn 200ms ease-out;
+}
+
+.chat-fade-in {
+  animation: chatFadeIn 200ms ease-out;
+}

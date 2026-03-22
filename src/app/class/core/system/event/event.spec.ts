@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Event } from './event';
 import { Network } from '@axe/core/system/network/network';
 

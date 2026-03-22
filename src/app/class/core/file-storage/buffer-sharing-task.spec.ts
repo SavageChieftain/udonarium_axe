@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BufferSharingTask } from './buffer-sharing-task';
 import { EventSystem } from '@axe/core/system';
 

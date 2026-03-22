@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ChatPalette, PaletteVariable, BuffPalette, DiceTablePalette } from './chat-palette';
+import { ChatPalette, BuffPalette, DiceTablePalette } from './chat-palette';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
 describe('ChatPalette', () => {

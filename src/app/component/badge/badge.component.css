@@ -8,3 +8,27 @@
   color: #eee;
   background-color: rgb(207, 82, 82);
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes bounce {
+  0% {
+    transform: scale3d(0.5, 0.5, 0.5);
+  }
+  50% {
+    transform: scale3d(2, 2, 2);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.bouncing {
+  animation: bounce 600ms ease;
+}

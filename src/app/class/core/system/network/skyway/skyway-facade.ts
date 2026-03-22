@@ -10,7 +10,7 @@ import {
   SkyWayStreamFactory,
   Subscription,
 } from '@skyway-sdk/core';
-import { CryptoUtil } from '@axe/core/system/util/crypto-util';
+import { sha256Base64Url } from '@axe/core/system/util/crypto-util';
 import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
 import { SkyWayBackend } from './skyway-backend';
 
@@ -32,7 +32,7 @@ export class SkyWayFacade {
 
   onOpen!: (peer: IPeerContext) => void;
   onClose!: (peer: IPeerContext) => void;
-  onFatalError!: (peer: IPeerContext, errorType: string, errorMessage: string, errorObject: any) => void;
+  onFatalError!: (peer: IPeerContext, errorType: string, errorMessage: string, errorObject: unknown) => void;
   onSubscribed!: (peer: IPeerContext, subscription: Subscription) => void;
   onRoomRestore!: (peer: IPeerContext) => void;
 
@@ -80,7 +80,7 @@ export class SkyWayFacade {
 
     const backend = new SkyWayBackend(this.url);
     const channelName = this.peer.isRoom
-      ? CryptoUtil.sha256Base64Url(this.peer.roomId + this.peer.roomName + this.peer.password)
+      ? await sha256Base64Url(this.peer.roomId + this.peer.roomName + this.peer.password)
       : this.peer.peerId;
 
     const authToken = await backend.createSkyWayAuthToken(channelName, this.peer.peerId);
@@ -193,7 +193,7 @@ export class SkyWayFacade {
     await this.leaveRoomChannel();
     if (this.isDestroyed || !this.peer.isRoom || !this.context || this.context?.disposed) return;
 
-    const roomName = CryptoUtil.sha256Base64Url(this.peer.roomId + this.peer.roomName + this.peer.password);
+    const roomName = await sha256Base64Url(this.peer.roomId + this.peer.roomName + this.peer.password);
     console.log(`roomName: ${roomName}`);
 
     const room = await SkyWayChannel.FindOrCreate(this.context, {
@@ -362,7 +362,9 @@ export class SkyWayFacade {
     const wildcards: Set<string> = new Set();
     let maxLobbySize = 0;
 
-    for (const channel of ((this.context?.authToken as any)?.scope?.app?.channels ?? []) as any[]) {
+    for (const channel of ((
+      this.context?.authToken as unknown as { scope?: { app?: { channels?: { name?: string }[] } } }
+    )?.scope?.app?.channels ?? []) as { name?: string }[]) {
       const name = channel.name ?? '';
       if (name.startsWith('udonarium-lobby-')) {
         if (name.includes('*')) {

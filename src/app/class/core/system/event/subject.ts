@@ -2,11 +2,11 @@ import { Event, EventContext } from './event';
 import { Callback, EventMap, Observer } from './observer';
 
 export interface Subject {
-  register(key: any): Observer;
-  unregister(key: any): void;
-  unregister(key: any, eventName: string): void;
-  unregister(key: any, callback: Callback<any>): void;
-  unregister(key: any, eventName: string, callback: Callback<any>): void;
+  register(key: object): Observer;
+  unregister(key: object): void;
+  unregister(key: object, eventName: string): void;
+  unregister(key: object, callback: Callback<unknown>): void;
+  unregister(key: object, eventName: string, callback: Callback<unknown>): void;
   registerListener(listener: Observer): Observer;
   unregisterListener(listener: Observer): Observer;
   call<K extends keyof EventMap>(eventName: K, data: EventMap[K], sendTo?: string): void;

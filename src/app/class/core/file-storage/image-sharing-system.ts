@@ -1,10 +1,10 @@
 import { EventSystem, Network } from '@axe/core/system';
-import { UUID } from '@axe/core/system/util/uuid';
+import { generateUuid } from '@axe/core/system/util/uuid';
 import { BufferSharingTask } from './buffer-sharing-task';
-import { FileReaderUtil } from './file-reader-util';
+import * as FileReaderUtil from './file-reader-util';
 import { ImageContext, ImageFile, ImageState } from './image-file';
 import { CatalogItem, ImageStorage } from './image-storage';
-import { MimeType } from './mime-type';
+import * as MimeType from './mime-type';
 
 export class ImageSharingSystem {
   private static _instance: ImageSharingSystem;
@@ -32,7 +32,7 @@ export class ImageSharingSystem {
       .on('XML_LOADED', (event) => {
         convertUrlImage(event.data.xmlElement);
       })
-      .on('SYNCHRONIZE_FILE_LIST', (event) => {
+      .on<CatalogItem[]>('SYNCHRONIZE_FILE_LIST', (event) => {
         if (event.isSendFromSelf) return;
         console.log('SYNCHRONIZE_FILE_LIST ImageStorageService ' + event.sendFrom);
 
@@ -64,48 +64,55 @@ export class ImageSharingSystem {
         }
         this.request(request, event.sendFrom);
       })
-      .on('REQUEST_FILE_RESOURE', async (event) => {
-        if (event.isSendFromSelf) return;
+      .on<{ identifiers: CatalogItem[]; receiver: string; candidatePeers: string[] }>(
+        'REQUEST_FILE_RESOURE',
+        async (event) => {
+          if (event.isSendFromSelf) return;
 
-        const request: CatalogItem[] = event.data.identifiers;
-        const randomRequest: CatalogItem[] = [];
+          const request: CatalogItem[] = event.data.identifiers;
+          const randomRequest: CatalogItem[] = [];
 
-        for (const item of request) {
-          const image: ImageFile = ImageStorage.instance.get(item.identifier);
-          if (image && item.state < image.state)
-            randomRequest.push({
-              identifier: item.identifier,
-              state: item.state,
-            });
-        }
-
-        if (this.isLimitSendTask() === false && 0 < randomRequest.length && !this.existsSendTask(event.data.receiver)) {
-          // 送信
-          const updateImages: ImageContext[] = this.makeSendUpdateImages(randomRequest);
-          console.log(
-            'REQUEST_FILE_RESOURE ImageStorageService Send!!! ' + event.data.receiver + ' -> ' + updateImages.length
-          );
-          this.startSendTask(updateImages, event.data.receiver);
-        } else {
-          // 中継
-          const candidatePeers: string[] = event.data.candidatePeers;
-          const index = candidatePeers.indexOf(Network.peerId);
-          if (-1 < index) candidatePeers.splice(index, 1);
-
-          for (const peerId of candidatePeers) {
-            console.log(
-              'REQUEST_FILE_RESOURE ImageStorageService Relay!!! ' + peerId + ' -> ' + event.data.identifiers
-            );
-            EventSystem.call(event, peerId);
-            return;
+          for (const item of request) {
+            const image: ImageFile = ImageStorage.instance.get(item.identifier);
+            if (image && item.state < image.state)
+              randomRequest.push({
+                identifier: item.identifier,
+                state: item.state,
+              });
           }
-          console.log(
-            'REQUEST_FILE_RESOURE ImageStorageService あぶれた...' + event.data.receiver,
-            randomRequest.length
-          );
+
+          if (
+            this.isLimitSendTask() === false &&
+            0 < randomRequest.length &&
+            !this.existsSendTask(event.data.receiver)
+          ) {
+            // 送信
+            const updateImages: ImageContext[] = this.makeSendUpdateImages(randomRequest);
+            console.log(
+              'REQUEST_FILE_RESOURE ImageStorageService Send!!! ' + event.data.receiver + ' -> ' + updateImages.length
+            );
+            this.startSendTask(updateImages, event.data.receiver);
+          } else {
+            // 中継
+            const candidatePeers: string[] = event.data.candidatePeers;
+            const index = candidatePeers.indexOf(Network.peerId);
+            if (-1 < index) candidatePeers.splice(index, 1);
+
+            for (const peerId of candidatePeers) {
+              console.log(
+                'REQUEST_FILE_RESOURE ImageStorageService Relay!!! ' + peerId + ' -> ' + event.data.identifiers
+              );
+              EventSystem.call(event, peerId);
+              return;
+            }
+            console.log(
+              'REQUEST_FILE_RESOURE ImageStorageService あぶれた...' + event.data.receiver,
+              randomRequest.length
+            );
+          }
         }
-      })
-      .on('UPDATE_FILE_RESOURE', 1000, (event) => {
+      )
+      .on<{ updateImages: ImageContext[] }>('UPDATE_FILE_RESOURE', 1000, (event) => {
         const updateImages: ImageContext[] = event.data.updateImages;
         console.log('UPDATE_FILE_RESOURE ImageStorageService ' + event.sendFrom + ' -> ', updateImages);
         for (const context of updateImages) {
@@ -135,16 +142,18 @@ export class ImageSharingSystem {
   }
 
   private async startSendTask(updateImages: ImageContext[], sendTo: string) {
-    const identifier = updateImages.length === 1 ? updateImages[0].identifier : UUID.generateUuid();
+    const identifier = updateImages.length === 1 ? updateImages[0].identifier : generateUuid();
     const task = BufferSharingTask.createSendTask<ImageContext[]>(identifier, sendTo);
     this.sendTaskMap.set(task.identifier, task);
     EventSystem.call('START_FILE_TRANSMISSION', { taskIdentifier: identifier }, sendTo);
 
     for (const context of updateImages) {
       if (context.thumbnail.blob) {
-        context.thumbnail.blob = <any>await FileReaderUtil.readAsArrayBufferAsync(context.thumbnail.blob);
+        context.thumbnail.blob = (await FileReaderUtil.readAsArrayBufferAsync(
+          context.thumbnail.blob
+        )) as unknown as Blob;
       } else if (context.blob) {
-        context.blob = <any>await FileReaderUtil.readAsArrayBufferAsync(context.blob);
+        context.blob = (await FileReaderUtil.readAsArrayBufferAsync(context.blob)) as unknown as Blob;
       }
     }
     /* */

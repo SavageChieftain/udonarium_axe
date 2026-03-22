@@ -1,4 +1,4 @@
-<div class="component is-pointer-events-none" [@fadeInOut]="'in'" appDraggable #draggablePanel>
+<div class="component is-pointer-events-none fade-in" appDraggable #draggablePanel>
   @switch (tabletopObject.aliasName) {
     @case ('numberResource') {}
     @case ('card') {
@@ -354,7 +354,7 @@
 </ng-template>
 
 <ng-template #imageView>
-  <div class="image-view-background is-fill" (click)="chanageImageView(false)" [@fadeInOut]="'in'">
+  <div class="image-view-background is-fill fade-in" (click)="chanageImageView(false)">
     <div class="close-button is-pointer-events-none"><i class="material-icons">close</i></div>
     <img class="contain-image" [src]="imageUrl | safe: 'resourceUrl'" />
   </div>

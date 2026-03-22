@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import { MessagePack } from './message-pack';
+import * as MessagePack from './message-pack';
 
 describe('MessagePack', () => {
   describe('encode()', () => {

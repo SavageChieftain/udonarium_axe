@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
 import { ObjectNode } from './object-node';
 import { ObjectStore } from './object-store';
 
@@ -112,7 +111,7 @@ describe('ObjectNode', () => {
       const child = new ObjectNode('child');
       store.add(child, false);
       // Manually set a non-existent parent
-      (child as any).parentIdentifier = 'non-existent-parent';
+      (child as unknown as { parentIdentifier: string }).parentIdentifier = 'non-existent-parent';
 
       expect(child.parentIsUnknown).toBe(true);
     });
@@ -124,7 +123,7 @@ describe('ObjectNode', () => {
       store.add(child, false);
 
       parent.appendChild(child);
-      const parentId = parent.identifier;
+      const _parentId = parent.identifier;
 
       store.delete(parent, false);
 

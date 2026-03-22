@@ -1,6 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { GameObject } from './game-object';
 import { ObjectStore } from './object-store';
 import { DataElement } from '@axe/data-element';
 

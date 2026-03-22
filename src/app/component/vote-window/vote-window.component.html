@@ -23,6 +23,7 @@
         @for (choice of vote.choices; track choice) {
           <ng-container style="font-size: 15px">
             <button
+              type="button"
               (click)="voteSend(choice)"
               name="{{ choice }}"
               id="{{ choice }}"

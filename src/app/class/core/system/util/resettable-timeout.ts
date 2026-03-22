@@ -1,4 +1,4 @@
-type TimerCallback = (...args: any[]) => void;
+type TimerCallback = () => void;
 
 export class ResettableTimeout {
   private callback!: TimerCallback;
@@ -33,12 +33,12 @@ export class ResettableTimeout {
   reset(): void;
   reset(ms: number): void;
   reset(callback: TimerCallback, ms: number): void;
-  reset(...args: any[]): void {
-    if (args.length === 1) {
-      this.timerMilliSecond = args[0];
-    } else if (1 < args.length) {
-      this.callback = args[0];
-      this.timerMilliSecond = args[1];
+  reset(callbackOrMs?: TimerCallback | number, ms?: number): void {
+    if (typeof callbackOrMs === 'function') {
+      this.callback = callbackOrMs;
+      this.timerMilliSecond = ms!;
+    } else if (typeof callbackOrMs === 'number') {
+      this.timerMilliSecond = callbackOrMs;
     }
     this.isStopped = false;
 

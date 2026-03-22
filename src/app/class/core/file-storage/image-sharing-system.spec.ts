@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, afterEach } from 'vitest';
 import { ImageSharingSystem } from './image-sharing-system';
 
 describe('ImageSharingSystem', () => {

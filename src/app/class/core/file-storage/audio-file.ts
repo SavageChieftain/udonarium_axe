@@ -1,4 +1,4 @@
-import { FileReaderUtil } from '@axe/core/file-storage/file-reader-util';
+import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
 
 export enum AudioState {
   NULL = 0,

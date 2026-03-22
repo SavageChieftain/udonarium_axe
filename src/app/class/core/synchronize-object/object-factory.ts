@@ -1,8 +1,8 @@
 import { GameObject } from './game-object';
 
-export declare let Type: FunctionConstructor;
-export interface Type<T> extends Function {
-  new (...args: any[]): T;
+export interface Type<T> {
+  new (...args: never[]): T;
+  aliasName?: string;
 }
 
 export class ObjectFactory {
@@ -37,10 +37,12 @@ export class ObjectFactory {
   create<T extends GameObject>(alias: string, identifer?: string): T | null {
     const classConstructor = this.constructorMap.get(alias);
     if (!classConstructor) {
-      console.error(alias + 'という名のＧameObjectクラスは定義されていません');
+      console.error(alias + 'という名のGameObjectクラスは定義されていません');
       return null;
     }
-    const gameObject: GameObject = new classConstructor(identifer);
+    const gameObject: GameObject = new (classConstructor as unknown as new (identifier?: string) => GameObject)(
+      identifer
+    );
     return <T>gameObject;
   }
 

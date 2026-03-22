@@ -1,4 +1,3 @@
-import { animate, keyframes, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, Input, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
@@ -16,20 +15,6 @@ import { CardStackListImageComponent as CardStackListImageComponent_1 } from 'co
   templateUrl: './ui-panel.component.html',
   styleUrls: ['./ui-panel.component.css'],
   providers: [PanelService],
-  animations: [
-    trigger('flyInOut', [
-      transition('void => *', [
-        animate(
-          '100ms ease-out',
-          keyframes([
-            style({ transform: 'scale(0.8, 0.8)', opacity: '0', offset: 0 }),
-            style({ transform: 'scale(1.0, 1.0)', opacity: '1', offset: 1.0 }),
-          ])
-        ),
-      ]),
-      transition('* => void', [animate(100, style({ transform: 'scale(0, 0)' }))]),
-    ]),
-  ],
   imports: [
     DraggableDirective,
     ResizableDirective,

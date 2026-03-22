@@ -3,8 +3,8 @@ import { Connection, ConnectionCallback } from './connection';
 import { IPeerContext, PeerContext } from './peer-context';
 import { IRoomInfo } from './room-info';
 
-type QueueItem = { data: any; sendTo: string | undefined };
-type ConnectionClass = new (...args: any[]) => Connection;
+type QueueItem = { data: unknown; sendTo: string | undefined };
+type ConnectionClass = new (...args: never[]) => Connection;
 
 const unknownPeer = PeerContext.parse('???');
 
@@ -45,7 +45,7 @@ export class Network {
     return this.connection ? this.connection.bandwidthUsage : 0;
   }
 
-  private config: any = {};
+  private config: Record<string, unknown> = {};
   private connectionClassPromise!: Promise<ConnectionClass>;
   private connectionClass!: ConnectionClass;
   private connection!: Connection;
@@ -56,7 +56,7 @@ export class Network {
     this.sendQueue();
   };
 
-  private callbackUnload: any = () => {
+  private callbackUnload: () => void = () => {
     this.close();
   };
 
@@ -64,13 +64,13 @@ export class Network {
     console.log('Network ready...');
   }
 
-  configure(config: any) {
+  configure(config: Record<string, unknown>) {
     this.config = config;
   }
 
   open(userId?: string): void;
   open(userId: string, roomId: string, roomName: string, password: string): void;
-  open(...args: any[]): void {
+  open(...args: string[]): void {
     if (this.connectionClassPromise != null) {
       console.warn('It is already opened.');
       this.close();
@@ -79,8 +79,8 @@ export class Network {
     this.openAsync(...args);
   }
 
-  private async openAsync(...args: any[]) {
-    const promise = this.dynamicImport(this.config?.backend?.mode);
+  private async openAsync(...args: string[]) {
+    const promise = this.dynamicImport();
     this.connectionClassPromise = promise;
     this.connectionClass = await promise;
     if (this.connectionClassPromise != promise) {
@@ -103,7 +103,7 @@ export class Network {
     console.log('Network close...');
   }
 
-  connect(peer: IPeerContext): boolean {
+  async connect(peer: IPeerContext): Promise<boolean> {
     if (this.connection) return this.connection.connect(peer);
     return false;
   }
@@ -116,7 +116,7 @@ export class Network {
     }
   }
 
-  send(data: any, sendTo?: string) {
+  send(data: unknown, sendTo?: string) {
     this.queue.add({ data: data, sendTo: sendTo });
     if (this.sendInterval === null) {
       this.sendInterval = setZeroTimeout(this.sendCallback);
@@ -124,9 +124,9 @@ export class Network {
   }
 
   private sendQueue() {
-    const broadcast: any[] = [];
-    const unicast: { [sendTo: string]: any[] } = {};
-    const echocast: any[] = [];
+    const broadcast: unknown[] = [];
+    const unicast: { [sendTo: string]: unknown[] } = {};
+    const echocast: unknown[] = [];
 
     let loopCount = this.queue.size < 128 ? this.queue.size : 128;
     for (const item of this.queue) {
@@ -186,7 +186,7 @@ export class Network {
     connection.callback.onDisconnect = (peer) => {
       if (this.callback.onDisconnect) this.callback.onDisconnect(peer);
     };
-    connection.callback.onData = (peer, data: any[]) => {
+    connection.callback.onData = (peer, data) => {
       if (this.callback.onData) this.callback.onData(peer, data);
     };
     connection.callback.onError = (peer, errorType, errorMessage, errorObject) => {
@@ -199,6 +199,6 @@ export class Network {
   }
 
   private async dynamicImport(_mode: string = ''): Promise<ConnectionClass> {
-    return (await import('./skyway2023/skyway-connection')).SkyWayConnection;
+    return (await import('./skyway/skyway-connection')).SkyWayConnection;
   }
 }

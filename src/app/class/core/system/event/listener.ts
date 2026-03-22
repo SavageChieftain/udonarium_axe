@@ -4,10 +4,10 @@ import { Subject } from './subject';
 
 export class Listener implements Observer {
   private _subject!: Subject;
-  private _key!: any;
+  private _key!: object;
   private _eventName!: string;
   private _priority: number = 0;
-  private _callback!: Callback<any>;
+  private _callback!: Callback<unknown>;
   private _isOnlyOnce!: boolean;
   private _isRegistered: boolean = false;
 
@@ -33,39 +33,35 @@ export class Listener implements Observer {
     return this._isRegistered;
   }
 
-  constructor(subject: Subject, key: any) {
+  constructor(subject: Subject, key: object) {
     this._subject = subject;
     this._key = key;
   }
 
   on<K extends keyof EventMap>(eventName: K, callback: Callback<EventMap[K]>): Listener;
   on<K extends keyof EventMap>(eventName: K, priority: number, callback: Callback<EventMap[K]>): Listener;
-  on(eventName: string, callback: Callback<any>): Listener;
-  on(eventName: string, priority: number, callback: Callback<any>): Listener;
   on<T>(eventName: string, callback: Callback<T>): Listener;
   on<T>(eventName: string, priority: number, callback: Callback<T>): Listener;
-  on(...args: any[]): Listener {
+  on(...args: unknown[]): Listener {
     this._isOnlyOnce = false;
     if (args.length === 2) {
-      return this.register(args[0], 0, args[1]);
+      return this.register(args[0] as string, 0, args[1] as Callback<unknown>);
     } else {
-      return this.register(args[0], args[1], args[2]);
+      return this.register(args[0] as string, args[1] as number, args[2] as Callback<unknown>);
     }
   }
 
   once<K extends keyof EventMap>(eventName: K, callback: Callback<EventMap[K]>): Listener;
   once<K extends keyof EventMap>(eventName: K, priority: number, callback: Callback<EventMap[K]>): Listener;
-  once(eventName: string, callback: Callback<any>): Listener;
-  once(eventName: string, priority: number, callback: Callback<any>): Listener;
   once<T>(eventName: string, callback: Callback<T>): Listener;
   once<T>(eventName: string, priority: number, callback: Callback<T>): Listener;
-  once(...args: any[]): Listener {
+  once(...args: unknown[]): Listener {
     const listener = (this.on as (...a: unknown[]) => Listener)(...args);
     this._isOnlyOnce = true;
     return listener;
   }
 
-  private register(eventName: string, priority: number, callback: Callback<any>): Listener {
+  private register(eventName: string, priority: number, callback: Callback<unknown>): Listener {
     if (this.isRegistered) this.unregister();
     this._eventName = eventName ? eventName : '*';
     this._priority = priority;
@@ -83,14 +79,14 @@ export class Listener implements Observer {
     return this;
   }
 
-  trigger(event: Event<any>) {
+  trigger(event: Event<unknown>) {
     if (this.callback && this.isRegistered) {
       this.callback.apply(this.key, [event, this]);
       if (this.isOnlyOnce) this.unregister();
     }
   }
 
-  isEqual(key: any, eventName: string, callback: Callback<any>) {
+  isEqual(key: unknown, eventName: string, callback: unknown) {
     const matchTarget = key == null || key === this.key;
     const matchEventName = eventName == null || eventName === this.eventName;
     const matchCallback = callback == null || callback === this.callback;

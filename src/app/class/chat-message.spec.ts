@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ChatMessage, ChatMessageContext } from './chat-message';
+import { ChatMessage } from './chat-message';
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { Network } from './core/system';
+import { IPeerContext } from './core/system/network/peer-context';
 
 describe('ChatMessage', () => {
   let store: ObjectStore;
@@ -18,7 +18,7 @@ describe('ChatMessage', () => {
       peerId: 'test-peer',
       userId: 'test-user',
       isOpen: true,
-    } as any);
+    } as IPeerContext);
   });
 
   afterEach(() => {

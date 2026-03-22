@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { defineSyncObject, defineSyncVariable, defineSyncAttribute } from './decorator-core';
 import { ObjectFactory } from './object-factory';
 import { GameObject } from './game-object';
@@ -46,9 +45,11 @@ describe('decorator-core', () => {
       descriptor(obj, 'testProp');
 
       // getter/setterがcontext.syncDataを使う
-      (obj as any).testProp = 'hello';
-      expect((obj as any).context.syncData['testProp']).toBe('hello');
-      expect((obj as any).testProp).toBe('hello');
+      (obj as unknown as Record<string, unknown>).testProp = 'hello';
+      expect((obj as unknown as { context: { syncData: Record<string, unknown> } }).context.syncData['testProp']).toBe(
+        'hello'
+      );
+      expect((obj as unknown as Record<string, unknown>).testProp).toBe('hello');
     });
   });
 
@@ -60,7 +61,7 @@ describe('decorator-core', () => {
       const descriptor = defineSyncAttribute();
       descriptor(obj, 'testAttr');
 
-      (obj as any).testAttr = 'world';
+      (obj as unknown as Record<string, unknown>).testAttr = 'world';
       expect(obj.getAttribute('testAttr')).toBe('world');
     });
   });

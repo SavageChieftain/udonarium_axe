@@ -1,9 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ObjectSerializer } from './object-serializer';
 import { GameObject } from './game-object';
 import { ObjectStore } from './object-store';
-import { ObjectFactory } from './object-factory';
 import { DataElement } from '@axe/data-element';
 
 describe('ObjectSerializer', () => {

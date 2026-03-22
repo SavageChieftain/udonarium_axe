@@ -1,6 +1,6 @@
-import { ArrayUtil } from '@axe/core/system/util/array-util';
+import { diff } from '@axe/core/system/util/array-util';
 import { compressAsync, decompressAsync } from '@axe/core/system/util/compress';
-import { MessagePack } from '@axe/core/system/util/message-pack';
+import * as MessagePack from '@axe/core/system/util/message-pack';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
 import { Connection, ConnectionCallback } from '@axe/core/system/network/connection';
 import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
@@ -48,28 +48,28 @@ export class SkyWayConnection implements Connection {
 
   private listAllPeersCache: PeerId[] = [];
   private httpRequestInterval: number = performance.now() + 500;
-  private outboundQueue: Promise<any> = Promise.resolve();
-  private inboundQueue: Promise<any> = Promise.resolve();
+  private outboundQueue: Promise<void> = Promise.resolve();
+  private inboundQueue: Promise<void> = Promise.resolve();
 
   private readonly trustedPeerIds: Set<PeerId> = new Set();
   private readonly relayingPeerIds: Map<string, string[]> = new Map();
   private readonly maybeUnavailablePeerIds: Set<string> = new Set();
 
-  configure(config: any) {
-    this.skyWay.url = config?.backend?.url ?? '';
+  configure(config: Record<string, unknown>) {
+    this.skyWay.url = ((config?.backend as Record<string, unknown>)?.url as string) ?? '';
   }
 
   open(userId?: string): void;
   open(userId: string, roomId: string, roomName: string, password: string): void;
-  open(...args: any[]): void {
+  async open(...args: string[]): Promise<void> {
     console.log('open', args);
     let peer: PeerContext;
     if (args.length === 0) {
-      peer = PeerContext.create(PeerContext.generateId());
+      peer = await PeerContext.create(PeerContext.generateId());
     } else if (args.length === 1) {
-      peer = PeerContext.create(args[0]);
+      peer = await PeerContext.create(args[0]);
     } else {
-      peer = PeerContext.create(args[0], args[1], args[2], args[3]);
+      peer = await PeerContext.create(args[0], args[1], args[2], args[3]);
     }
     this.trustedPeerIds.clear();
     this.openSkyWay(peer);
@@ -80,7 +80,7 @@ export class SkyWayConnection implements Connection {
     this.skyWay.close();
   }
 
-  connect(peer: IPeerContext): boolean {
+  async connect(peer: IPeerContext): Promise<boolean> {
     if (!this.peer.isRoom) {
       console.warn('connect() is Fail. ルーム接続のみ可能');
       const errorType = 'udonarium-unsupported';
@@ -90,14 +90,14 @@ export class SkyWayConnection implements Connection {
       return false;
     }
 
-    if (!this.shouldConnect(peer.peerId)) return false;
+    if (!(await this.shouldConnect(peer.peerId))) return false;
 
     console.log(`connect() ${peer.peerId}`);
     this.connectStream(SkyWayDataStream.createSubscription(this.skyWay, peer));
     return true;
   }
 
-  private shouldConnect(peerId: string): boolean {
+  private async shouldConnect(peerId: string): Promise<boolean> {
     if (!this.skyWay.isOpen) {
       console.log('connect() is Fail. IDが割り振られるまで待てや');
       return false;
@@ -113,7 +113,7 @@ export class SkyWayConnection implements Connection {
       return false;
     }
 
-    if (!this.peer.verifyPeer(peerId)) {
+    if (!(await this.peer.verifyPeer(peerId))) {
       console.log('connect() is Fail. <' + peerId + '> is invalid.');
       return false;
     }
@@ -140,7 +140,7 @@ export class SkyWayConnection implements Connection {
     }
   }
 
-  send(data: any, sendTo?: string) {
+  send(data: unknown, sendTo?: string) {
     if (this.peers.length < 1) return;
     const container: DataContainer = {
       data: MessagePack.encode(data),
@@ -228,11 +228,11 @@ export class SkyWayConnection implements Connection {
       if (this.callback.onError) this.callback.onError(this.peer, errorType, errorMessage, errorObject);
     };
 
-    this.skyWay.onSubscribed = (peer, _subscription) => {
+    this.skyWay.onSubscribed = async (peer, _subscription) => {
       console.log(`skyWay onSubscribed ${peer.peerId}`);
       const stream = SkyWayDataStream.createPublication(this.skyWay, peer);
 
-      if (!this.peer.verifyPeer(stream.peer.peerId)) {
+      if (!(await this.peer.verifyPeer(stream.peer.peerId))) {
         console.warn('stream is closing. <' + stream.peer.peerId + '> is invalid.');
         stream.reject();
         return;
@@ -307,7 +307,7 @@ export class SkyWayConnection implements Connection {
           setZeroTimeout(async () => {
             if (!this.callback.onData) return;
             const data = container.isCompressed ? await decompressAsync(container.data) : container.data;
-            this.callback.onData(stream.peer, MessagePack.decode(data));
+            this.callback.onData(stream.peer, MessagePack.decode(data) as unknown[]);
             this.bandwidthUsage -= byteLength;
             return resolve();
           });
@@ -334,29 +334,27 @@ export class SkyWayConnection implements Connection {
     }
   }
 
-  private onUpdateUserIds(stream: SkyWayDataStream, userIds: string[]) {
+  private async onUpdateUserIds(stream: SkyWayDataStream, userIds: string[]) {
     let needsNotifyUserList = false;
-    userIds.forEach((userId) => {
-      const peer = this.makeFriendPeer(userId);
+    for (const userId of userIds) {
+      const peer = await this.makeFriendPeer(userId);
       const stream = this.streams.find(peer.peerId);
       if (stream && stream.peer.userId !== userId) {
         stream.peer.userId = userId;
         needsNotifyUserList = true;
       }
-    });
+    }
 
-    const diff = ArrayUtil.diff(this.userIds, userIds);
-    const relayingUserIds = diff.diff1;
-    const unknownUserIds = diff.diff2;
+    const { diff1: relayingUserIds, diff2: unknownUserIds } = diff(this.userIds, userIds);
     this.relayingPeerIds.set(
       stream.peer.peerId,
-      relayingUserIds.map((userId) => this.makeFriendPeer(userId).peerId)
+      await Promise.all(relayingUserIds.map(async (userId) => (await this.makeFriendPeer(userId)).peerId))
     );
 
     if (unknownUserIds.length) {
       for (const userId of unknownUserIds) {
-        const peer = this.makeFriendPeer(userId);
-        if (!this.maybeUnavailablePeerIds.has(peer.peerId) && this.connect(peer)) {
+        const peer = await this.makeFriendPeer(userId);
+        if (!this.maybeUnavailablePeerIds.has(peer.peerId) && (await this.connect(peer))) {
           console.log('auto connect to unknown Peer <' + peer.peerId + '>');
         }
       }
@@ -375,7 +373,7 @@ export class SkyWayConnection implements Connection {
     this.sendBroadcast(container);
   }
 
-  private makeFriendPeer(userId: string): PeerContext {
+  private async makeFriendPeer(userId: string): Promise<PeerContext> {
     return this.peer.isRoom
       ? PeerContext.create(userId, this.peer.roomId, this.peer.roomName, this.peer.password)
       : PeerContext.create(userId);

@@ -2,11 +2,11 @@ import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 
 import { EventSystem, Network } from '@axe/core/system';
-import { XmlUtil } from '@axe/core/system/util/xml-util';
+import { xml2element } from '@axe/core/system/util/xml-util';
 import { AudioStorage } from './audio-storage';
-import { FileReaderUtil } from './file-reader-util';
+import * as FileReaderUtil from './file-reader-util';
 import { ImageStorage } from './image-storage';
-import { MimeType } from './mime-type';
+import * as MimeType from './mime-type';
 
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { ReloadCheck } from '@axe/reload-check';
@@ -87,7 +87,7 @@ export class FileArchiver {
 
   async load(files: File[]): Promise<void>;
   async load(files: FileList): Promise<void>;
-  async load(files: any): Promise<void> {
+  async load(files: File[] | FileList): Promise<void> {
     if (!files) return;
     const loadFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 
@@ -133,7 +133,7 @@ export class FileArchiver {
     if (isLoadOk) {
       console.log(file.name + ' type:' + file.type);
       try {
-        const xmlElement: Element = XmlUtil.xml2element(await FileReaderUtil.readAsTextAsync(file));
+        const xmlElement: Element = xml2element(await FileReaderUtil.readAsTextAsync(file));
         if (xmlElement) EventSystem.trigger('XML_LOADED', { xmlElement: xmlElement });
       } catch (reason) {
         console.warn(reason);
@@ -169,7 +169,7 @@ export class FileArchiver {
 
   async saveAsync(files: File[], zipName: string, updateCallback?: UpdateCallback): Promise<void>;
   async saveAsync(files: FileList, zipName: string, updateCallback?: UpdateCallback): Promise<void>;
-  async saveAsync(files: any, zipName: string, updateCallback?: UpdateCallback): Promise<void> {
+  async saveAsync(files: File[] | FileList, zipName: string, updateCallback?: UpdateCallback): Promise<void> {
     if (!files) return;
     const saveFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 

@@ -1,5 +1,5 @@
 import { AudioFile } from '@axe/core/file-storage/audio-file';
-import { FileReaderUtil } from '@axe/core/file-storage/file-reader-util';
+import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
 import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
 
 // ─── AudioContext mock ────────────────────────────────────────────────────────

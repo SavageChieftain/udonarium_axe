@@ -1,4 +1,3 @@
-import { vi, describe, it, expect } from 'vitest';
 import BCDiceLoader from './bcdice-loader';
 
 describe('BCDiceLoader', () => {

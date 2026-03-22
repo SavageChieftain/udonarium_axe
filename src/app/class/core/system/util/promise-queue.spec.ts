@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { PromiseQueue } from './promise-queue';
 
 describe('PromiseQueue', () => {
@@ -47,12 +46,10 @@ describe('PromiseQueue', () => {
     });
   });
 
-  describe('add() - executor', () => {
-    it('executorを追加して実行する', async () => {
+  describe('add() - async task', () => {
+    it('Promiseを返すタスクを追加して実行する', async () => {
       const queue = new PromiseQueue('test');
-      const result = await queue.add<string>((resolve: (value: string) => void) => {
-        resolve('resolved');
-      });
+      const result = await queue.add(() => Promise.resolve('resolved'));
       expect(result).toBe('resolved');
     });
   });
@@ -80,12 +77,15 @@ describe('PromiseQueue', () => {
       const queue = new PromiseQueue('test');
       const order: number[] = [];
 
-      const p1 = queue.add<void>((resolve: () => void) => {
-        setTimeout(() => {
-          order.push(1);
-          resolve();
-        }, 10);
-      });
+      const p1 = queue.add(
+        () =>
+          new Promise<void>((resolve) => {
+            setTimeout(() => {
+              order.push(1);
+              resolve();
+            }, 10);
+          })
+      );
       const p2 = queue.add(() => {
         order.push(2);
       });

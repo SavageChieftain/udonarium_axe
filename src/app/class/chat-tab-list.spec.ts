@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ChatTabList } from './chat-tab-list';
 import { ChatTab } from './chat-tab';
 import { ObjectStore } from './core/synchronize-object/object-store';
@@ -14,14 +13,14 @@ describe('ChatTabList', () => {
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     // Reset singleton
-    (ChatTabList as any)._instance = undefined;
+    (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 
   afterEach(() => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    (ChatTabList as any)._instance = undefined;
+    (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 
   describe('instance (singleton)', () => {

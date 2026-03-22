@@ -85,3 +85,20 @@
 .no-caret {
   caret-color: transparent;
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes flyIn {
+  from {
+    transform: scale(0.8, 0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
+}
+
+.fly-in {
+  animation: flyIn 100ms ease-out;
+}

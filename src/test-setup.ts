@@ -5,7 +5,6 @@ import { ɵresolveComponentResources as resolveComponentResources } from '@angul
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, resolve, basename } from 'path';
 
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 
 // 非 providedIn:'root' なサービス — 全テストで自動提供する
@@ -48,14 +47,18 @@ class FileReaderPolyfill {
   onerror: ((event: Partial<ProgressEvent>) => void) | null = null;
   onabort: ((event: Partial<ProgressEvent>) => void) | null = null;
 
+  private progressEvent(): Partial<ProgressEvent> {
+    return { target: this } as unknown as Partial<ProgressEvent>;
+  }
+
   readAsArrayBuffer(blob: Blob): void {
     blob
       .arrayBuffer()
       .then((buffer) => {
         this.result = buffer;
-        this.onload?.({ target: this } as Partial<ProgressEvent>);
+        this.onload?.(this.progressEvent());
       })
-      .catch(() => this.onerror?.({ target: this } as Partial<ProgressEvent>));
+      .catch(() => this.onerror?.(this.progressEvent()));
   }
 
   readAsText(blob: Blob): void {
@@ -63,9 +66,9 @@ class FileReaderPolyfill {
       .text()
       .then((text) => {
         this.result = text;
-        this.onload?.({ target: this } as Partial<ProgressEvent>);
+        this.onload?.(this.progressEvent());
       })
-      .catch(() => this.onerror?.({ target: this } as Partial<ProgressEvent>));
+      .catch(() => this.onerror?.(this.progressEvent()));
   }
 
   readAsDataURL(blob: Blob): void {
@@ -75,9 +78,9 @@ class FileReaderPolyfill {
         const bytes = Array.from(new Uint8Array(buffer));
         const base64 = btoa(bytes.map((b) => String.fromCharCode(b)).join(''));
         this.result = `data:${(blob as Blob & { type: string }).type};base64,${base64}`;
-        this.onload?.({ target: this } as Partial<ProgressEvent>);
+        this.onload?.(this.progressEvent());
       })
-      .catch(() => this.onerror?.({ target: this } as Partial<ProgressEvent>));
+      .catch(() => this.onerror?.(this.progressEvent()));
   }
 }
 (globalThis as unknown as Record<string, unknown>)['FileReader'] = FileReaderPolyfill;
@@ -93,7 +96,6 @@ const GLOBAL_TEST_PROVIDERS = [
 ] as const;
 
 // TestBed.configureTestingModule を wrap して以下を自動付与:
-//  - provideNoopAnimations() (@bounce 等のアニメーション対応)
 //  - GLOBAL_TEST_PROVIDERS (非 root サービスを全テストで利用可能にする)
 //  - NO_ERRORS_SCHEMA (<font> 等レガシー要素や未解決子コンポーネントを許容)
 //
@@ -107,7 +109,7 @@ function applyConfigureTestingModuleWrapper(): void {
   const wrapped = (config: TestModuleMetadata) =>
     orig({
       ...config,
-      providers: [...(config.providers ?? []), provideNoopAnimations(), ...GLOBAL_TEST_PROVIDERS],
+      providers: [...(config.providers ?? []), ...GLOBAL_TEST_PROVIDERS],
       schemas: [...(config.schemas ?? []), NO_ERRORS_SCHEMA],
     });
   (wrapped as unknown as Record<string, unknown>)[WRAPPER_SENTINEL] = true;

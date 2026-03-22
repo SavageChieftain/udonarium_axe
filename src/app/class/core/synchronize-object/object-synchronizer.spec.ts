@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ObjectSynchronizer } from './object-synchronizer';
 
 describe('ObjectSynchronizer', () => {

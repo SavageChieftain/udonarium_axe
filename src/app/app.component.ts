@@ -189,7 +189,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         this.alarmTimeUpOrigin(event.data.text);
       })
       .on('ALARM_POP', (event) => {
-        this.alarmPop(event.data.title, event.data.time);
+        this.alarmPop(event.data.title, String(event.data.time));
       })
       .on('START_VOTE', (_event) => {
         this.startVote();
@@ -197,10 +197,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       .on('FINISH_VOTE', (event) => {
         this.finishVote(event.data.text);
       })
-      .on('START_CUT_IN', (event) => {
+      .on<{ cutIn: CutIn }>('START_CUT_IN', (event) => {
         this.startCutIn(event.data.cutIn);
       })
-      .on('STOP_CUT_IN', (event) => {
+      .on<{ cutIn: CutIn }>('STOP_CUT_IN', (event) => {
         if (!event.data.cutIn) return;
         console.log('カットインイベント_ストップ' + event.data.cutIn.name);
       })
@@ -220,7 +220,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         if (event.isSendFromSelf) this.lazyNgZoneUpdate(false);
       })
       .on<AppConfig>('LOAD_CONFIG', (event) => {
-        Network.configure(event.data);
+        Network.configure(event.data as unknown as Record<string, unknown>);
         Network.open();
       })
       .on<File>('FILE_LOADED', (_event) => {
@@ -393,7 +393,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   open(componentName: string) {
-    let component: { new (...args: any[]): any } | null = null;
+    let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
     switch (componentName) {
       case 'PeerMenuComponent':

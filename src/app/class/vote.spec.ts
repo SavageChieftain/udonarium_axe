@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Vote } from './vote';
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { PeerCursor } from './peer-cursor';

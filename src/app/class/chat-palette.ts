@@ -1,7 +1,7 @@
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectContext } from './core/synchronize-object/game-object';
 import { ObjectNode } from './core/synchronize-object/object-node';
-import { StringUtil } from './core/system/util/string-util';
+import { toHalfWidth } from './core/system/util/string-util';
 import { DataElement } from './data-element';
 import { GameCharacter } from './game-character';
 
@@ -148,7 +148,7 @@ export class ChatPalette extends ObjectNode {
 
   evaluate(line: PaletteLine, extendVariables?: DataElement): string;
   evaluate(line: string, extendVariables?: DataElement, target?: GameCharacter): string;
-  evaluate(line: any, extendVariables?: DataElement, target?: GameCharacter): string {
+  evaluate(line: PaletteLine | string, extendVariables?: DataElement, target?: GameCharacter): string {
     let evaluate: string;
     if (typeof line === 'string') {
       evaluate = line;
@@ -164,7 +164,7 @@ export class ChatPalette extends ObjectNode {
       loop++;
       isContinue = false;
       evaluate = evaluate.replace(/[tTｔＴ]?[{｛]\s*([^{}｛｝]+)\s*[}｝]/g, (match, name) => {
-        name = StringUtil.toHalfWidth(name);
+        name = toHalfWidth(name);
         let useMax = false;
         const namematch = name.match(/(.+)([\^＾]$)/);
         if (namematch) {
@@ -234,7 +234,7 @@ export class ChatPalette extends ObjectNode {
     const array = /^\s*[/／]{2}([^=＝{}｛｝\s]+)\s*[=＝]\s*(.+)\s*/gi.exec(palette);
     if (!array) return null!;
     const variable: PaletteVariable = {
-      name: StringUtil.toHalfWidth(array[1]),
+      name: toHalfWidth(array[1]),
       value: array[2],
     };
     return variable;

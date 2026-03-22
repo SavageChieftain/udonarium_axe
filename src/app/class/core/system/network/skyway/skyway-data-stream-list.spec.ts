@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest';
+import { SkyWayDataStream } from './skyway-data-stream';
 import { SkyWayDataStreamList } from './skyway-data-stream-list';
 
 describe('SkyWayDataStreamList', () => {
@@ -9,7 +9,7 @@ describe('SkyWayDataStreamList', () => {
       sortKey,
       removeAllListeners: vi.fn(),
       disconnect: vi.fn(),
-    } as any;
+    } as unknown as SkyWayDataStream;
   }
 
   it('初期状態でlength=0', () => {

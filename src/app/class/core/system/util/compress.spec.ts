@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { compressAsync, decompressAsync } from './compress';
 
 describe('compress', () => {

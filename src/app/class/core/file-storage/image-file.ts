@@ -1,5 +1,4 @@
-import { CanvasUtil } from './canvas-util';
-import { FileReaderUtil } from './file-reader-util';
+import * as FileReaderUtil from './file-reader-util';
 
 export enum ImageState {
   NULL = 0,
@@ -75,7 +74,7 @@ export class ImageFile {
 
   static create(url: string): ImageFile;
   static create(context: ImageContext): ImageFile;
-  static create(arg: any): ImageFile {
+  static create(arg: string | ImageContext): ImageFile {
     if (typeof arg === 'string') {
       const imageFile = new ImageFile();
       imageFile.context.identifier = arg;
@@ -91,7 +90,7 @@ export class ImageFile {
 
   static async createAsync(file: File): Promise<ImageFile>;
   static async createAsync(blob: Blob): Promise<ImageFile>;
-  static async createAsync(arg: any): Promise<ImageFile> {
+  static async createAsync(arg: File | Blob): Promise<ImageFile> {
     if (arg instanceof File) {
       return await ImageFile._createAsync(arg, arg.name);
     } else if (arg instanceof Blob) {
@@ -175,12 +174,10 @@ export class ImageFile {
         const dstHeight = image.height * scale;
 
         const canvas: HTMLCanvasElement = document.createElement('canvas');
+        canvas.width = dstWidth;
+        canvas.height = dstHeight;
         const render: CanvasRenderingContext2D = canvas.getContext('2d')!;
-        canvas.width = image.width;
-        canvas.height = image.height;
-
-        render.drawImage(image, 0, 0);
-        CanvasUtil.resize(canvas, dstWidth, dstHeight, true);
+        render.drawImage(image, 0, 0, dstWidth, dstHeight);
 
         canvas.toBlob((blob) => {
           const thumbnail: ThumbnailContext = {

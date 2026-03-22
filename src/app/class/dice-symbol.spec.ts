@@ -1,8 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DiceSymbol, DiceType } from './dice-symbol';
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { DataElement } from './data-element';
 import { Network } from './core/system';
 import { IPeerContext } from './core/system/network/peer-context';
 import { PeerCursor } from './peer-cursor';

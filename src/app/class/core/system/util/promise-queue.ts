@@ -1,5 +1,5 @@
 export class PromiseQueue {
-  private queue: Promise<any> = Promise.resolve();
+  private queue: Promise<unknown> = Promise.resolve();
 
   private _length: number = 0;
   get length(): number {
@@ -8,21 +8,12 @@ export class PromiseQueue {
 
   constructor(readonly name: string = 'Queue') {}
 
-  add<T>(task: () => T): Promise<T>;
-  add<T>(promise: PromiseLike<T>): Promise<T>;
-  add<T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
-  add<T>(arg: any): Promise<T> {
+  add<T>(task: () => T | PromiseLike<T>): Promise<T> {
     this._length++;
     console.log(`${this.name} add: ${this._length}`);
-    if (typeof arg.then == 'function') {
-      this.queue = this.queue.then(() => arg); // promise
-    } else if (0 < arg.length) {
-      this.queue = this.queue.then(() => new Promise<T>(arg)); // executor
-    } else {
-      this.queue = this.queue.then(arg); // task
-    }
+    this.queue = this.queue.then(task);
 
-    const ret = this.queue;
+    const ret = this.queue as Promise<T>;
     this.queue = this.queue.catch((reason) => {
       console.error(reason);
     });

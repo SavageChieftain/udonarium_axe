@@ -308,3 +308,31 @@
 .selected-highlight.is-magnetic {
   background-color: hsla(60, 100%, 75%, 0.6);
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rotateOut {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(-90deg);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 132ms ease-out;
+}
+
+.rotate-state {
+  animation: rotateOut 132ms ease-in-out;
+}

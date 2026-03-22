@@ -1,7 +1,7 @@
 import base from 'base-x';
 import lzbase62 from 'lzbase62';
 
-import { CryptoUtil } from '@axe/core/system/util/crypto-util';
+import { sha256 } from '@axe/core/system/util/crypto-util';
 import { MutablePeerSessionState, PeerSessionGrade, PeerSessionState } from './peer-session-state';
 
 const Base62 = base('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
@@ -68,19 +68,19 @@ export class PeerContext implements IPeerContext {
     return;
   }
 
-  verifyPassword(password: string): boolean {
-    const digest = calcDigestPassword(this.digestUserId, this.roomId, this.roomName, password);
+  async verifyPassword(password: string): Promise<boolean> {
+    const digest = await calcDigestPassword(this.digestUserId, this.roomId, this.roomName, password);
     const isCorrect = digest === this.digestPassword;
-    return isCorrect && this.verifyRoomId(password);
+    return isCorrect && (await this.verifyRoomId(password));
   }
 
-  private verifyRoomId(password: string): boolean {
-    const checksumedRoomId = calcChecksumedRoomId(this.roomId, this.roomName, password);
+  private async verifyRoomId(password: string): Promise<boolean> {
+    const checksumedRoomId = await calcChecksumedRoomId(this.roomId, this.roomName, password);
     const isCorrect = checksumedRoomId === this.roomId;
     return isCorrect;
   }
 
-  verifyPeer(peerId: string): boolean {
+  async verifyPeer(peerId: string): Promise<boolean> {
     const peer = PeerContext.parse(peerId);
     if (this.roomId != peer.roomId || this.roomName != peer.roomName || this.hasPassword != peer.hasPassword) {
       return false;
@@ -95,7 +95,7 @@ export class PeerContext implements IPeerContext {
       return false;
     }
 
-    const isValid = peer.verifyPassword(this.password);
+    const isValid = await peer.verifyPassword(this.password);
     return isValid;
   }
 
@@ -103,33 +103,33 @@ export class PeerContext implements IPeerContext {
     return new PeerContext(peerId);
   }
 
-  static create(userId: string): PeerContext;
-  static create(userId: string, roomId: string, roomName: string, password: string): PeerContext;
-  static create(...args: any[]): PeerContext {
+  static create(userId: string): Promise<PeerContext>;
+  static create(userId: string, roomId: string, roomName: string, password: string): Promise<PeerContext>;
+  static create(...args: string[]): Promise<PeerContext> {
     if (args.length <= 1) {
-      return PeerContext._create.apply(this, args as [string?]);
+      return PeerContext._create(args[0]);
     } else {
-      return PeerContext._createRoom.apply(this, args as [string?, string?, string?, string?]);
+      return PeerContext._createRoom(args[0], args[1], args[2], args[3]);
     }
   }
 
-  private static _create(userId: string = ''): PeerContext {
-    const digestUserId = calcDigestUserId(userId);
+  private static async _create(userId: string = ''): Promise<PeerContext> {
+    const digestUserId = await calcDigestUserId(userId);
     const peer = new PeerContext(digestUserId);
 
     peer.userId = userId;
     return peer;
   }
 
-  private static _createRoom(
+  private static async _createRoom(
     userId: string = '',
     roomId: string = '',
     roomName: string = '',
     password: string = ''
-  ): PeerContext {
-    const digestUserId = calcDigest(userId, 6);
-    const checksumedRoomId = calcChecksumedRoomId(roomId, roomName, password);
-    const digestPassword = calcDigestPassword(digestUserId, checksumedRoomId, roomName, password);
+  ): Promise<PeerContext> {
+    const digestUserId = await calcDigest(userId, 6);
+    const checksumedRoomId = await calcChecksumedRoomId(roomId, roomName, password);
+    const digestPassword = await calcDigestPassword(digestUserId, checksumedRoomId, roomName, password);
     const peerId = `${digestUserId}${checksumedRoomId}${lzbase62.compress(roomName)}-${digestPassword}`;
 
     const peer = new PeerContext(peerId);
@@ -145,25 +145,30 @@ export class PeerContext implements IPeerContext {
   }
 }
 
-function calcDigestUserId(userId: string): string {
+async function calcDigestUserId(userId: string): Promise<string> {
   if (userId == null) return '';
   return calcDigest(userId);
 }
 
-function calcDigestPassword(digestUserId: string, roomId: string, roomName: string, password: string): string {
+async function calcDigestPassword(
+  digestUserId: string,
+  roomId: string,
+  roomName: string,
+  password: string
+): Promise<string> {
   if (roomId == null || password == null) return '';
   return 0 < password.length ? calcDigest(digestUserId + roomId + roomName + password, 7) : '';
 }
 
-function calcChecksumedRoomId(roomId: string, roomName: string, password: string): string {
+async function calcChecksumedRoomId(roomId: string, roomName: string, password: string): Promise<string> {
   if (password.length < 1) return roomId;
   const salt = roomId.slice(0, 2);
-  return salt + calcDigest(salt + roomName + password, 1);
+  return salt + (await calcDigest(salt + roomName + password, 1));
 }
 
-function calcDigest(str: string, truncateLength: number = -1): string {
+async function calcDigest(str: string, truncateLength: number = -1): Promise<string> {
   if (str == null) return '';
-  const array = CryptoUtil.sha256(str);
+  const array = await sha256(str);
   let base62 = Base62.encode(array);
 
   if (truncateLength < 0) truncateLength = base62.length;

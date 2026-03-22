@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { EventSystem } from './event-system';
 import { Event } from './event';
 

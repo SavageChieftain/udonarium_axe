@@ -1,4 +1,4 @@
-import { XmlUtil } from '@axe/core/system/util/xml-util';
+import { encodeEntityReference, decodeEntityReference } from '@axe/core/system/util/xml-util';
 import { Attributes } from './attributes';
 import { defineSyncObject as SyncObject, defineSyncVariable as SyncVar } from './decorator-core';
 import { GameObject, ObjectContext } from './game-object';
@@ -79,20 +79,16 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
   onChildRemoved(_child: ObjectNode) {}
 
   private _onChildAdded(child: ObjectNode) {
-    let node: ObjectNode = this;
-    while (node) {
-      node.onChildAdded(child);
-      node = node.parent;
-      if (node === this) break;
+    this.onChildAdded(child);
+    for (let current = this.parent; current && current !== this; current = current.parent) {
+      current.onChildAdded(child);
     }
   }
 
   private _onChildRemoved(child: ObjectNode) {
-    let node: ObjectNode = this;
-    while (node) {
-      node.onChildRemoved(child);
-      node = node.parent;
-      if (node === this) break;
+    this.onChildRemoved(child);
+    for (let current = this.parent; current && current !== this; current = current.parent) {
+      current.onChildRemoved(child);
     }
   }
 
@@ -235,7 +231,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
 
   innerXml(): string {
     let xml = '';
-    xml += XmlUtil.encodeEntityReference(this.value + '');
+    xml += encodeEntityReference(this.value + '');
     for (const child of this.children) {
       xml += ObjectSerializer.instance.toXml(child);
     }
@@ -251,7 +247,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
         if (child instanceof ObjectNode) this.appendChild(child);
       }
     } else {
-      this.value = XmlUtil.decodeEntityReference(element.innerHTML);
+      this.value = decodeEntityReference(element.innerHTML);
     }
   }
 

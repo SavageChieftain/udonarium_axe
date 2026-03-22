@@ -6,8 +6,8 @@ export class ConnectionCallback {
   onClose!: (peer: IPeerContext) => void;
   onConnect!: (peer: IPeerContext) => void;
   onDisconnect!: (peer: IPeerContext) => void;
-  onData!: (peer: IPeerContext, data: any) => void;
-  onError!: (peer: IPeerContext, errorType: string, errorMessage: string, errorObject: any) => void;
+  onData!: (peer: IPeerContext, data: unknown[]) => void;
+  onError!: (peer: IPeerContext, errorType: string, errorMessage: string, errorObject: unknown) => void;
 }
 
 export interface Connection {
@@ -18,14 +18,14 @@ export interface Connection {
   readonly callback: ConnectionCallback;
   readonly bandwidthUsage: number;
 
-  configure(config: any): void;
+  configure(config: Record<string, unknown>): void;
   open(userId?: string): void;
   open(userId: string, roomId: string, roomName: string, password: string): void;
   close(): void;
-  connect(peer: IPeerContext): boolean;
+  connect(peer: IPeerContext): boolean | Promise<boolean>;
   disconnect(peer: IPeerContext): boolean;
   disconnectAll(): void;
-  send(data: any, sendTo?: string): void;
+  send(data: unknown, sendTo?: string): void;
   listAllPeers(): Promise<string[]>;
   listAllRooms(): Promise<IRoomInfo[]>;
 }

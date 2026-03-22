@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WebRTCStatsMonitor, WebRTCConnection } from './webrtc-stats-monitor';
 
 describe('WebRTCStatsMonitor', () => {

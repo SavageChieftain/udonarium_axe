@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SyncObject, SyncVar } from './decorator';
 import { GameObject } from './game-object';
 import { ObjectNode } from './object-node';
@@ -38,8 +37,10 @@ describe('decorator', () => {
 
       // SyncVarをGameObjectインスタンスに適用
       SyncVar()(obj, 'testField');
-      (obj as any).testField = 42;
-      expect((obj as any).context.syncData['testField']).toBe(42);
+      (obj as unknown as Record<string, unknown>).testField = 42;
+      expect((obj as unknown as { context: { syncData: Record<string, unknown> } }).context.syncData['testField']).toBe(
+        42
+      );
     });
   });
 
@@ -49,7 +50,7 @@ describe('decorator', () => {
       node.initialize();
 
       SyncVar()(node, 'testNodeField');
-      (node as any).testNodeField = 'value';
+      (node as unknown as Record<string, unknown>).testNodeField = 'value';
       expect(node.getAttribute('testNodeField')).toBe('value');
     });
   });

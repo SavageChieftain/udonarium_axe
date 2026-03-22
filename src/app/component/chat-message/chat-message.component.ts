@@ -1,4 +1,3 @@
-import { animate, keyframes, style, transition, trigger } from '@angular/animations';
 import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angular/core';
 
 import { ChatMessage } from '@axe/chat-message';
@@ -19,25 +18,6 @@ import { SafePipe } from 'pipe/safe.pipe';
   selector: 'chat-message',
   templateUrl: './chat-message.component.html',
   styleUrls: ['./chat-message.component.css'],
-  animations: [
-    trigger('flyInOut', [
-      transition('* => active', [
-        animate(
-          '200ms ease-out',
-          keyframes([
-            style({ transform: 'translateX(100px)', opacity: '0', offset: 0 }),
-            style({ transform: 'translateX(0)', opacity: '1', offset: 1.0 }),
-          ])
-        ),
-      ]),
-      transition('void => *', [
-        animate(
-          '200ms ease-out',
-          keyframes([style({ opacity: '0', offset: 0 }), style({ opacity: '1', offset: 1.0 })])
-        ),
-      ]),
-    ]),
-  ],
   changeDetection: ChangeDetectionStrategy.Default,
   imports: [NgClass, NgStyle, DatePipe, LinkyModule, SafePipe],
 })

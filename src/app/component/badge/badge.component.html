@@ -1,1 +1,1 @@
-<div class="badge" [@bounce]="animeState">{{ count }}</div>
+<div class="badge" [class.bouncing]="animeState === 'active'" (animationend)="onBounceEnd()">{{ count }}</div>

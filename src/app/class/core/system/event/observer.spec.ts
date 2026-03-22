@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import type { Callback, EventMap, Observer } from './observer';
+import type { Callback, EventMap } from './observer';
 
 describe('Observer interfaces', () => {
   it('Callback型が関数型として使用可能', () => {

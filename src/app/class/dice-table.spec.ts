@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DiceTable } from './dice-table';
 import { DiceTablePalette } from './chat-palette';
 import { ObjectStore } from './core/synchronize-object/object-store';

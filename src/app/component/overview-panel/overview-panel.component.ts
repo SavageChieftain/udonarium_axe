@@ -1,4 +1,3 @@
-import { animate, keyframes, style, transition, trigger } from '@angular/animations';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -38,16 +37,6 @@ import { SafePipe } from 'pipe/safe.pipe';
   templateUrl: './overview-panel.component.html',
   styleUrls: ['./overview-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('fadeInOut', [
-      transition('void => *', [
-        animate('100ms ease-out', keyframes([style({ opacity: 0, offset: 0 }), style({ opacity: 1, offset: 1.0 })])),
-      ]),
-      transition('* => void', [
-        animate('100ms ease-in', keyframes([style({ opacity: 1, offset: 0 }), style({ opacity: 0, offset: 1.0 })])),
-      ]),
-    ]),
-  ],
   imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkyModule, SafePipe],
 })
 export class OverviewPanelComponent implements AfterViewInit, OnDestroy {

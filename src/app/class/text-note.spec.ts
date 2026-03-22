@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TextNote } from './text-note';
 import { ObjectStore } from './core/synchronize-object/object-store';
 

@@ -57,8 +57,8 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
     this.help = '';
   }
 
-  submit() {
-    if (this.targetPeerContext.verifyPassword(this.password)) this.modalService.resolve(this.password);
+  async submit() {
+    if (await this.targetPeerContext.verifyPassword(this.password)) this.modalService.resolve(this.password);
     this.help = 'パスワードが違います';
   }
 }

@@ -1,11 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ObjectFactory } from './object-factory';
 import { GameObject } from './game-object';
 import { ObjectStore } from './object-store';
-
-// テスト用クラスの定義
-class TestGameObject extends GameObject {}
 
 describe('ObjectFactory', () => {
   let factory: ObjectFactory;

@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ReloadCheck } from './reload-check';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
@@ -15,7 +14,7 @@ describe('ReloadCheck', () => {
     store.clearDeleteHistory();
 
     reloadCheck = new ReloadCheck('ReloadCheck');
-    (reloadCheck as any).createDataElements();
+    (reloadCheck as unknown as Record<string, () => void>).createDataElements();
     reloadCheck.initialize();
   });
 

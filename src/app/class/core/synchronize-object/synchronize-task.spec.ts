@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SynchronizeRequest, SynchronizeTask } from './synchronize-task';
 
 describe('SynchronizeTask', () => {

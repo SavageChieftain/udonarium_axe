@@ -1,10 +1,8 @@
-import { vi, describe, it, expect } from 'vitest';
+import { SkyWayFacade } from './skyway-facade';
 
 vi.mock('@skyway-sdk/core', () => ({
   Logger: { level: '' },
 }));
-
-import { SkyWayFacade } from './skyway-facade';
 
 describe('SkyWayFacade', () => {
   it('クラスがエクスポートされている', () => {

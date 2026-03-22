@@ -21,30 +21,30 @@ export class EventSystem implements Subject {
     console.log('EventSystem ready...');
   }
 
-  register(key: any): Listener {
+  register(key: object): Listener {
     const listener: Listener = new Listener(this, key);
     return listener;
   }
 
-  unregister(key: any): void;
-  unregister(key: any, eventName: string): void;
-  unregister(key: any, callback: Callback<any>): void;
-  unregister(key: any, eventName: string, callback: Callback<any>): void;
-  unregister(...args: any[]): void {
+  unregister(key: object): void;
+  unregister(key: object, eventName: string): void;
+  unregister(key: object, callback: Callback<unknown>): void;
+  unregister(key: object, eventName: string, callback: Callback<unknown>): void;
+  unregister(...args: unknown[]): void {
     if (args.length === 1) {
-      this._unregister(args[0], null, null!);
+      this._unregister(args[0] as object, null, null!);
     } else if (args.length === 2) {
       if (typeof args[1] === 'string') {
-        this._unregister(args[0], args[1], null!);
+        this._unregister(args[0] as object, args[1], null!);
       } else {
-        this._unregister(args[0], null, args[1]);
+        this._unregister(args[0] as object, null, args[1] as Callback<unknown>);
       }
     } else {
-      this._unregister(args[0], args[1], args[2]);
+      this._unregister(args[0] as object, args[1] as string, args[2] as Callback<unknown>);
     }
   }
 
-  private _unregister(key: any = this, eventName: string | null, callback: Callback<any>) {
+  private _unregister(key: object = this, eventName: string | null, callback: Callback<unknown>) {
     const listenersIterator = this.listenerMap.values();
     for (const listeners of listenersIterator) {
       for (const listener of listeners.concat()) {
@@ -77,15 +77,15 @@ export class EventSystem implements Subject {
   call<K extends keyof EventMap>(eventName: K, data: EventMap[K], sendTo?: string): void;
   call<T, S extends string>(eventName: Exclude<S, keyof EventMap>, data: T, sendTo?: string): void;
   call<T>(event: Event<T>, sendTo?: string): void;
-  call<_T>(...args: any[]): void {
+  call<_T>(...args: unknown[]): void {
     if (typeof args[0] === 'string') {
-      this._call(new Event(args[0], args[1]), args[2]);
+      this._call(new Event(args[0], args[1]), args[2] as string | undefined);
     } else {
-      this._call(args[0], args[1]);
+      this._call(args[0] as Event<unknown>, args[1] as string | undefined);
     }
   }
 
-  private _call(event: Event<any>, sendTo?: string) {
+  private _call(event: Event<unknown>, sendTo?: string) {
     const context = event.toContext();
     Network.instance.send(context, sendTo);
   }
@@ -94,13 +94,14 @@ export class EventSystem implements Subject {
   trigger<T, S extends string>(eventName: Exclude<S, keyof EventMap>, data: T): Event<T>;
   trigger<T>(event: Event<T>): Event<T>;
   trigger<T>(event: EventContext<T>): Event<T>;
-  trigger<T>(...args: any[]): Event<T> {
+  trigger<T>(...args: unknown[]): Event<T> {
     if (args.length === 2) {
-      return this._trigger(new Event(args[0], args[1]));
+      return this._trigger(new Event(args[0] as string, args[1] as T));
     } else if (args[0] instanceof Event) {
-      return this._trigger(args[0]);
+      return this._trigger(args[0] as Event<T>);
     } else {
-      return this._trigger(new Event(args[0].eventName, args[0].data, args[0].sendFrom));
+      const ctx = args[0] as EventContext<T>;
+      return this._trigger(new Event(ctx.eventName, ctx.data, ctx.sendFrom));
     }
   }
 
@@ -136,8 +137,8 @@ export class EventSystem implements Subject {
       this.trigger('DISCONNECT_PEER', { peerId: peer.peerId });
     };
 
-    callback.onData = (peer, data: EventContext<never>[]) => {
-      for (const event of data) {
+    callback.onData = (peer, data) => {
+      for (const event of data as EventContext<never>[]) {
         this.trigger(event);
       }
     };

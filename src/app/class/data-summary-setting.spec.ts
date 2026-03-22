@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DataSummarySetting, SortOrder } from './data-summary-setting';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
@@ -19,7 +18,7 @@ describe('DataSummarySetting', () => {
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     // Reset singleton
-    (DataSummarySetting as any)._instance = undefined;
+    (DataSummarySetting as unknown as Record<string, unknown>)['_instance'] = undefined;
   });
 
   describe('SortOrder enum', () => {

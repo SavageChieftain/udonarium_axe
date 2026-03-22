@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Config } from './config';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
@@ -12,14 +11,14 @@ describe('Config', () => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    (Config as any)._instance = undefined;
+    (Config as unknown as { _instance: Config | undefined })._instance = undefined;
   });
 
   afterEach(() => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    (Config as any)._instance = undefined;
+    (Config as unknown as { _instance: Config | undefined })._instance = undefined;
   });
 
   describe('instance (singleton)', () => {

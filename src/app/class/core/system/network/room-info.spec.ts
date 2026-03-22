@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RoomInfo } from './room-info';
 import { PeerContext } from './peer-context';
 
@@ -19,14 +18,14 @@ describe('RoomInfo', () => {
   });
 
   describe('hasPassword', () => {
-    it('パスワード付きpeerがない場合false', () => {
-      const peer = PeerContext.create('user1', 'rm', 'Room', '');
+    it('パスワード付きpeerがない場合false', async () => {
+      const peer = await PeerContext.create('user1', 'rm', 'Room', '');
       const room = new RoomInfo('rm', 'Room', [peer]);
       expect(room.hasPassword).toBe(false);
     });
 
-    it('パスワード付きpeerがある場合true', () => {
-      const peer = PeerContext.create('user1', 'rm', 'Room', 'pass');
+    it('パスワード付きpeerがある場合true', async () => {
+      const peer = await PeerContext.create('user1', 'rm', 'Room', 'pass');
       const room = new RoomInfo('rm', 'Room', [peer]);
       expect(room.hasPassword).toBe(true);
     });
@@ -38,23 +37,23 @@ describe('RoomInfo', () => {
       expect(rooms).toEqual([]);
     });
 
-    it('ルームpeerからRoomInfoリストを作成する', () => {
-      const peer1 = PeerContext.create('user1', 'rm', 'Room1', '');
-      const peer2 = PeerContext.create('user2', 'rm', 'Room1', '');
+    it('ルームpeerからRoomInfoリストを作成する', async () => {
+      const peer1 = await PeerContext.create('user1', 'rm', 'Room1', '');
+      const peer2 = await PeerContext.create('user2', 'rm', 'Room1', '');
       const rooms = RoomInfo.listFrom([peer1.peerId, peer2.peerId]);
       expect(rooms.length).toBe(1);
       expect(rooms[0].peers.length).toBe(2);
     });
 
-    it('異なるルームは別々のRoomInfoになる', () => {
-      const peer1 = PeerContext.create('user1', 'r1', 'RoomA', '');
-      const peer2 = PeerContext.create('user2', 'r2', 'RoomB', '');
+    it('異なるルームは別々のRoomInfoになる', async () => {
+      const peer1 = await PeerContext.create('user1', 'r1', 'RoomA', '');
+      const peer2 = await PeerContext.create('user2', 'r2', 'RoomB', '');
       const rooms = RoomInfo.listFrom([peer1.peerId, peer2.peerId]);
       expect(rooms.length).toBe(2);
     });
 
-    it('非ルームpeerは無視される', () => {
-      const peer = PeerContext.create('user1');
+    it('非room peerは無視される', async () => {
+      const peer = await PeerContext.create('user1');
       const rooms = RoomInfo.listFrom([peer.peerId]);
       expect(rooms).toEqual([]);
     });

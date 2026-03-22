@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GameTableMask } from './game-table-mask';
 import { DataElement } from './data-element';
 import { ObjectStore } from './core/synchronize-object/object-store';

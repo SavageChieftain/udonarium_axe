@@ -1,8 +1,6 @@
-import { vi, describe, it, expect } from 'vitest';
-
 import { SkyWayConnection } from './skyway-connection';
 
-describe('SkyWayConnection (skyway2023/)', () => {
+describe('SkyWayConnection', () => {
   it('クラスがエクスポートされている', () => {
     expect(SkyWayConnection).toBeDefined();
   });

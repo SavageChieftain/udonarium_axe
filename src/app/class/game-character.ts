@@ -5,7 +5,7 @@ import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { DataElement } from './data-element';
 import { TabletopObject } from './tabletop-object';
-import { UUID } from '@axe/core/system/util/uuid';
+import { generateUuid } from '@axe/core/system/util/uuid';
 
 //import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { ObjectStore } from './core/synchronize-object/object-store';
@@ -15,7 +15,7 @@ export class GameCharacter extends TabletopObject {
   override get aliasName(): 'character' {
     return 'character';
   }
-  constructor(identifier: string = UUID.generateUuid()) {
+  constructor(identifier: string = generateUuid()) {
     super(identifier);
     this.isAltitudeIndicate = true;
   }

@@ -1,4 +1,3 @@
-import { vi, describe, it, expect } from 'vitest';
 import { CandidateType } from './webrtc-stats';
 
 describe('webrtc/WebRTCStats', () => {

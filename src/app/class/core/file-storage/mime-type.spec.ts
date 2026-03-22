@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import { MimeType } from './mime-type';
+import * as MimeType from './mime-type';
 
 describe('MimeType', () => {
   describe('type()', () => {

@@ -8,10 +8,10 @@ import { Config } from '@axe/config';
 import { FileArchiver } from '@axe/core/file-storage/file-archiver';
 import { ImageFile, ImageState } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { MimeType } from '@axe/core/file-storage/mime-type';
+import * as MimeType from '@axe/core/file-storage/mime-type';
 import { GameObject } from '@axe/core/synchronize-object/game-object';
 import { PromiseQueue } from '@axe/core/system/util/promise-queue';
-import { XmlUtil } from '@axe/core/system/util/xml-util';
+import { xml2element } from '@axe/core/system/util/xml-util';
 import { DataSummarySetting } from '@axe/data-summary-setting';
 import { Room } from '@axe/room';
 
@@ -32,9 +32,7 @@ export class SaveDataService {
   private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
 
   saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
-    return SaveDataService.queue.add((resolve: (value: Promise<void>) => void, _reject: (reason?: unknown) => void) =>
-      resolve(this._saveRoomAsync(fileName, updateCallback))
-    );
+    return SaveDataService.queue.add(() => this._saveRoomAsync(fileName, updateCallback));
   }
 
   private _saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
@@ -77,9 +75,7 @@ export class SaveDataService {
     fileName: string = 'xml_data',
     updateCallback?: UpdateCallback
   ): Promise<void> {
-    return SaveDataService.queue.add((resolve: (value: Promise<void>) => void, _reject: (reason?: unknown) => void) =>
-      resolve(this._saveGameObjectAsync(gameObject, fileName, updateCallback))
-    );
+    return SaveDataService.queue.add(() => this._saveGameObjectAsync(gameObject, fileName, updateCallback));
   }
 
   private _saveGameObjectAsync(
@@ -131,7 +127,7 @@ export class SaveDataService {
   //  private searchImageFiles(xml: string): File[] {
   private searchImageFiles(xml: string): ImageFile[] {
     //
-    const xmlElement: Element = XmlUtil.xml2element(xml);
+    const xmlElement: Element = xml2element(xml);
 
     //本家PR #92より
     //    let files: File[] = [];

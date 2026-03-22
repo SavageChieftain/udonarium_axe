@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import type { Subject } from './subject';
 
 describe('Subject interface', () => {

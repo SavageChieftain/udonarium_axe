@@ -1,5 +1,5 @@
 <div class="container">
-  <div [@flyInOut]="animeState">
+  <div [class.chat-slide-in]="animeState === 'active'" [class.chat-fade-in]="animeState !== 'active'">
     @if (!chatSimpleDispFlag) {
       <div
         class="message"

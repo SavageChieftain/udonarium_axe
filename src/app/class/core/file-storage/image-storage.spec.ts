@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ImageStorage } from './image-storage';
 import { ImageFile } from './image-file';
 

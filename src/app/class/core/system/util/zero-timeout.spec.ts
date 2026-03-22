@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { setZeroTimeout, clearZeroTimeout } from './zero-timeout';
 
 describe('zero-timeout', () => {

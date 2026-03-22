@@ -1,7 +1,6 @@
 import GameSystemClass from 'bcdice/lib/game_system';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
-
-import BCDiceLoader from './bcdice/bcdice-loader';
+import StaticLoader from 'bcdice/lib/loader/static_loader';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from './chat-message';
 import { ChatTab } from './chat-tab';
 import { SyncObject } from './core/synchronize-object/decorator';
@@ -11,7 +10,7 @@ import { GameCharacter } from './game-character';
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { EventSystem } from './core/system';
 import { PromiseQueue } from './core/system/util/promise-queue';
-import { StringUtil } from './core/system/util/string-util';
+import { toHalfWidth } from './core/system/util/string-util';
 import { DiceTable } from './dice-table';
 
 import { PeerCursor } from './peer-cursor';
@@ -65,7 +64,7 @@ interface BuffByCharacter {
 
 @SyncObject('dice-bot')
 export class DiceBot extends GameObject {
-  private static loader: BCDiceLoader;
+  private static loader: StaticLoader;
   private static queue: PromiseQueue = DiceBot.initializeDiceBotQueue();
 
   static diceBotInfos: GameSystemInfo[] = [];
@@ -152,12 +151,7 @@ export class DiceBot extends GameObject {
   private static initializeDiceBotQueue(): PromiseQueue {
     const queue = new PromiseQueue('DiceBotQueue');
     queue.add(async () => {
-      DiceBot.loader = new (
-        await import(
-          /* webpackChunkName: "lib/bcdice/bcdice-loader" */
-          './bcdice/bcdice-loader'
-        )
-      ).default();
+      DiceBot.loader = new StaticLoader();
       DiceBot.diceBotInfos = DiceBot.listAvailableGameSystems().sort((a, b) => {
         if (a.sortKey < b.sortKey) return -1;
         if (a.sortKey > b.sortKey) return 1;
@@ -231,7 +225,7 @@ export class DiceBot extends GameObject {
 
   // リソース操作コマンドでs付きがあるか判定
   checkSecretEditCommand(chatText: string): boolean {
-    const text: string = ' ' + StringUtil.toHalfWidth(chatText).toLowerCase();
+    const text: string = ' ' + toHalfWidth(chatText).toLowerCase();
     const replaceText = text.replace('：', ':');
     const m = replaceText.match(/\sST?:/i);
     console.log(m);
@@ -241,7 +235,7 @@ export class DiceBot extends GameObject {
 
   // 繰り返しコマンドを除去し、sより後ろがCOMMAND_PATTERNにマッチするか確認
   checkSecretDiceCommand(gameSystem: GameSystemClass, chatText: string): boolean {
-    const text: string = StringUtil.toHalfWidth(chatText).toLowerCase();
+    const text: string = toHalfWidth(chatText).toLowerCase();
     const nonRepeatText = text
       .replace(/^(\d+)?\s+/, 'repeat1 ')
       .replace(/^x(\d+)?\s+/, 'repeat1 ')
@@ -268,9 +262,9 @@ export class DiceBot extends GameObject {
 
         let text: string;
         if (event.data.messageTrget) {
-          text = StringUtil.toHalfWidth(event.data.messageTrget.text);
+          text = toHalfWidth(event.data.messageTrget.text);
         } else {
-          text = StringUtil.toHalfWidth(chatMessage.text);
+          text = toHalfWidth(chatMessage.text);
         }
 
         const gameType: string = chatMessage.tags ? chatMessage.tags[0] : '';
@@ -322,7 +316,7 @@ export class DiceBot extends GameObject {
           return;
         }
 
-        const text: string = StringUtil.toHalfWidth(chatMessage.text).trim();
+        const text: string = toHalfWidth(chatMessage.text).trim();
         const splitText = text.split(/\s/);
 
         const diceTable = this.getDiceTables();
@@ -387,19 +381,22 @@ export class DiceBot extends GameObject {
         }
         return;
       })
-      .on('RESOURCE_EDIT_MESSAGE', async (event) => {
-        const chatMessage = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
-        if (!chatMessage || !chatMessage.isSendFromSelf || chatMessage.isSystem) {
+      .on<{ messageIdentifier: string; messageTargetContext: ChatMessageTargetContext[] | null }>(
+        'RESOURCE_EDIT_MESSAGE',
+        async (event) => {
+          const chatMessage = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+          if (!chatMessage || !chatMessage.isSendFromSelf || chatMessage.isSystem) {
+            return;
+          }
+
+          console.log('リソース操作判定');
+          this.checkResourceEditCommand(
+            chatMessage,
+            event.data.messageTargetContext ? event.data.messageTargetContext : []
+          );
           return;
         }
-
-        console.log('リソース操作判定');
-        this.checkResourceEditCommand(
-          chatMessage,
-          event.data.messageTargetContext ? event.data.messageTargetContext : []
-        );
-        return;
-      })
+      )
 
       // ダイスからぶりによる擬似的なダイス交換を行う
       //
@@ -427,7 +424,7 @@ export class DiceBot extends GameObject {
           return;
         }
 
-        const text: string = StringUtil.toHalfWidth(chatMessage.text);
+        const text: string = toHalfWidth(chatMessage.text);
         const splitText = text.split(/\s/);
         const gameSystem = await DiceBot.loadGameSystemAsync(chatMessage.tags ? chatMessage.tags[0] : '');
 
@@ -757,7 +754,7 @@ export class DiceBot extends GameObject {
       zeroLimit: false,
       isErr: false,
     };
-    const mat = StringUtil.toHalfWidth(text).match(/([A-CE-Z]+)$/i);
+    const mat = toHalfWidth(text).match(/([A-CE-Z]+)$/i);
     if (!mat) return ans;
     let option = mat[1];
 
@@ -806,11 +803,11 @@ export class DiceBot extends GameObject {
     const namematch = chkNowOrMaxString.match(/(.+)([\^＾]$)/);
     if (namematch) {
       reg1 = namematch[1];
-      reg1HalfWidth = StringUtil.toHalfWidth(reg1);
+      reg1HalfWidth = toHalfWidth(reg1);
       oneResourceEdit.nowOrMax = 'max';
     } else {
       reg1 = resourceEditResult![1];
-      reg1HalfWidth = StringUtil.toHalfWidth(reg1);
+      reg1HalfWidth = toHalfWidth(reg1);
       oneResourceEdit.nowOrMax = 'now';
     }
 
@@ -830,7 +827,7 @@ export class DiceBot extends GameObject {
     } else {
       let reg3: string = resourceEditResult![3].replace(/[A-CE-ZＡ-ＣＥ-Ｚ]+$/i, '');
       const commandPrefix = oneResourceEdit.operator == '-' ? '-' : '';
-      oneResourceEdit.command = commandPrefix + StringUtil.toHalfWidth(reg3) + '+(1d1-1)';
+      oneResourceEdit.command = commandPrefix + toHalfWidth(reg3) + '+(1d1-1)';
       // 操作量C()とダイスロールが必要な場合分けをしないために+(1d1-1)を付加してダイスロール命令にしている
 
       console.log(reg1 + '/' + reg2 + '/' + reg3);
@@ -842,7 +839,7 @@ export class DiceBot extends GameObject {
       }
       oneResourceEdit.option = optionCommand;
 
-      if (StringUtil.toHalfWidth(reg3).match(/\d[dD]/)) {
+      if (toHalfWidth(reg3).match(/\d[dD]/)) {
         oneResourceEdit.isDiceRoll = true;
       } else {
         oneResourceEdit.isDiceRoll = false;

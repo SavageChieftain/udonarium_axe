@@ -1,4 +1,3 @@
-import { vi, describe, it, expect } from 'vitest';
 import { ConnectionCallback } from './connection';
 
 describe('ConnectionCallback', () => {

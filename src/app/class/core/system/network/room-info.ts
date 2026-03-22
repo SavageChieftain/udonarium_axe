@@ -6,7 +6,7 @@ export interface IRoomInfo {
   readonly hasPassword: boolean;
   readonly peers: IPeerContext[];
 
-  filterByPassword(password: string): IPeerContext[];
+  filterByPassword(password: string): IPeerContext[] | Promise<IPeerContext[]>;
 }
 
 export class RoomInfo implements IRoomInfo {
@@ -23,8 +23,14 @@ export class RoomInfo implements IRoomInfo {
     this.peers = peers;
   }
 
-  filterByPassword(password: string): PeerContext[] {
-    return this.peers.filter((peer) => peer.verifyPassword(password));
+  async filterByPassword(password: string): Promise<PeerContext[]> {
+    const results: PeerContext[] = [];
+    for (const peer of this.peers) {
+      if (await peer.verifyPassword(password)) {
+        results.push(peer);
+      }
+    }
+    return results;
   }
 
   static listFrom(peerIds: string[]) {

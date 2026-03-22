@@ -1,8 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TabletopObject } from './tabletop-object';
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { DataElement } from './data-element';
 
 describe('TabletopObject', () => {
   let store: ObjectStore;

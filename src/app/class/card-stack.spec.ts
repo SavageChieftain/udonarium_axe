@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CardStack } from './card-stack';
 import { Card, CardState } from './card';
 import { ObjectStore } from './core/synchronize-object/object-store';

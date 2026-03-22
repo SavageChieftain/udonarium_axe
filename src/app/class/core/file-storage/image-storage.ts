@@ -38,7 +38,7 @@ export class ImageStorage {
 
   async addAsync(file: File): Promise<ImageFile>;
   async addAsync(blob: Blob): Promise<ImageFile>;
-  async addAsync(arg: any): Promise<ImageFile> {
+  async addAsync(arg: File | Blob): Promise<ImageFile> {
     const image: ImageFile = await ImageFile.createAsync(arg);
 
     return this._add(image);
@@ -47,7 +47,7 @@ export class ImageStorage {
   add(url: string): ImageFile;
   add(image: ImageFile): ImageFile;
   add(context: ImageContext): ImageFile;
-  add(arg: any): ImageFile {
+  add(arg: string | ImageFile | ImageContext): ImageFile {
     let image: ImageFile;
     if (typeof arg === 'string') {
       image = ImageFile.create(arg);
@@ -70,10 +70,10 @@ export class ImageStorage {
 
   private update(image: ImageFile): boolean;
   private update(image: ImageContext): boolean;
-  private update(image: any): boolean {
+  private update(image: ImageFile | ImageContext): boolean {
     const updatingImage: ImageFile = this.imageHash[image.identifier];
     if (updatingImage) {
-      updatingImage.apply(image);
+      updatingImage.apply(image instanceof ImageFile ? image.toContext() : image);
       return true;
     }
     return false;

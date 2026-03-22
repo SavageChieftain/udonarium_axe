@@ -183,3 +183,27 @@
 .component:active .material-icons {
   display: inline;
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes shuffle {
+  0% {
+    transform: scale3d(0, 0, 0) rotateZ(0deg);
+  }
+  50% {
+    transform: scale3d(1.2, 1.2, 1.2) rotateZ(360deg);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75) rotateZ(520deg);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125) rotateZ(630deg);
+  }
+  100% {
+    transform: scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+.shuffling {
+  animation: shuffle 800ms ease;
+}

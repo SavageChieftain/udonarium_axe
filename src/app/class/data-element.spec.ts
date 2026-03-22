@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
 import { DataElement } from './data-element';
 import { ObjectStore } from './core/synchronize-object/object-store';
 

@@ -2,7 +2,7 @@ import { AudioFile, AudioFileContext, AudioState } from '@axe/core/file-storage/
 import { AudioSharingSystem } from '@axe/core/file-storage/audio-sharing-system';
 import { AudioStorage } from '@axe/core/file-storage/audio-storage';
 import { BufferSharingTask } from '@axe/core/file-storage/buffer-sharing-task';
-import { FileReaderUtil } from '@axe/core/file-storage/file-reader-util';
+import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
 import { EventSystem, Network } from '@axe/core/system';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -87,7 +87,9 @@ describe('AudioSharingSystem', () => {
     );
     vi.spyOn(EventSystem, 'unregister').mockImplementation(() => {});
     vi.spyOn(EventSystem, 'call').mockImplementation(() => {});
-    (vi.spyOn(EventSystem, 'trigger') as any).mockImplementation(() => {});
+    (
+      vi.spyOn(EventSystem, 'trigger') as unknown as { mockImplementation: (fn: () => void) => void }
+    ).mockImplementation(() => {});
 
     // Network.peerIds は毎回コピーが必要なためゲッターで設定
     Object.defineProperty(Network, 'peerIds', { get: () => ['self-peer', 'peer-a', 'peer-b'], configurable: true });

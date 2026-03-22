@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TableSelecter } from './table-selecter';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
@@ -12,14 +11,14 @@ describe('TableSelecter', () => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    (TableSelecter as any)._instance = undefined;
+    (TableSelecter as unknown as Record<string, unknown>)._instance = undefined;
   });
 
   afterEach(() => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    (TableSelecter as any)._instance = undefined;
+    (TableSelecter as unknown as Record<string, unknown>)._instance = undefined;
     vi.restoreAllMocks();
   });
 

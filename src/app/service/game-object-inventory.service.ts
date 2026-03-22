@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
-import { StringUtil } from '@axe/core/system/util/string-util';
+import { toHalfWidth } from '@axe/core/system/util/string-util';
 import { DataElement } from '@axe/data-element';
 import { DataSummarySetting, SortOrder } from '@axe/data-summary-setting';
 import { GameCharacter } from '@axe/game-character';
@@ -337,7 +337,7 @@ class ObjectInventory {
 
   private convertToSortableValue(dataElement: DataElement): number | string {
     const value = dataElement.isNumberResource ? dataElement.currentValue : dataElement.value;
-    const resultStr = StringUtil.toHalfWidth((value + '').trim());
+    const resultStr = toHalfWidth((value + '').trim());
     const resultNum = +resultStr;
     return Number.isNaN(resultNum) ? resultStr : resultNum;
   }

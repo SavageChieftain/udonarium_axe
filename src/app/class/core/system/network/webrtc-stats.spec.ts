@@ -1,5 +1,4 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { CandidateType, WebRTCStats } from './webrtc-stats';
+import { CandidateType } from './webrtc-stats';
 
 describe('WebRTCStats', () => {
   describe('CandidateType enum', () => {

@@ -1,10 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
 import { Card, CardState } from './card';
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { DataElement } from './data-element';
 import { Network } from './core/system';
-import { PeerCursor } from './peer-cursor';
+import { IPeerContext } from './core/system/network/peer-context';
 
 describe('Card', () => {
   let store: ObjectStore;
@@ -186,7 +184,7 @@ describe('Card', () => {
       const card = new Card();
       card.owner = 'user123';
 
-      vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([{ userId: 'user123', isOpen: true } as any]);
+      vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([{ userId: 'user123', isOpen: true } as IPeerContext]);
 
       expect(card.ownerIsOnline).toBe(true);
     });
@@ -195,7 +193,7 @@ describe('Card', () => {
       const card = new Card();
       card.owner = 'user123';
 
-      vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([{ userId: 'user123', isOpen: false } as any]);
+      vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([{ userId: 'user123', isOpen: false } as IPeerContext]);
 
       expect(card.ownerIsOnline).toBe(false);
     });

@@ -37,7 +37,7 @@ export class AudioStorage {
 
   async addAsync(file: File): Promise<AudioFile>;
   async addAsync(blob: Blob): Promise<AudioFile>;
-  async addAsync(arg: any): Promise<AudioFile> {
+  async addAsync(arg: File | Blob): Promise<AudioFile> {
     const audio: AudioFile = await AudioFile.createAsync(arg);
 
     return this._add(audio);
@@ -46,7 +46,7 @@ export class AudioStorage {
   add(url: string): AudioFile;
   add(audio: AudioFile): AudioFile;
   add(context: AudioFileContext): AudioFile;
-  add(arg: any): AudioFile {
+  add(arg: string | AudioFile | AudioFileContext): AudioFile {
     let audio: AudioFile;
     if (typeof arg === 'string') {
       audio = AudioFile.create(arg);
@@ -69,10 +69,10 @@ export class AudioStorage {
 
   private update(audio: AudioFile): boolean;
   private update(audio: AudioFileContext): boolean;
-  private update(audio: any): boolean {
+  private update(audio: AudioFile | AudioFileContext): boolean {
     const updateAudio: AudioFile = this.hash[audio.identifier];
     if (updateAudio) {
-      updateAudio.apply(audio);
+      updateAudio.apply(audio instanceof AudioFile ? audio.toContext() : audio);
       return true;
     }
     return false;

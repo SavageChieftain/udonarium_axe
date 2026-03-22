@@ -17,11 +17,7 @@
     (rotable.ondragend)="onMoved()"
   >
     @if (topCard && imageFile) {
-      <div
-        (@shuffle.start)="animationShuffleStarted($event)"
-        (@shuffle.done)="animationShuffleDone($event)"
-        [@shuffle]="animeState"
-      >
+      <div [class.shuffling]="animeState === 'active'" (animationend)="onShuffleDone()">
         <img
           class="card-image chrome-smooth-image-trick"
           [ngStyle]="{ transform: 'rotateZ(' + topCard.rotate + 'deg)' }"

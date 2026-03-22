@@ -3,14 +3,14 @@ import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { GameCharacter } from '@axe/game-character';
 import { DataElement } from './data-element';
 import { TabletopObject } from './tabletop-object';
-import { UUID } from './core/system/util/uuid';
+import { generateUuid } from './core/system/util/uuid';
 
 @SyncObject('range')
 export class RangeArea extends TabletopObject {
   override get aliasName(): 'range' {
     return 'range';
   }
-  constructor(identifier: string = UUID.generateUuid()) {
+  constructor(identifier: string = generateUuid()) {
     super(identifier);
     this.isAltitudeIndicate = true;
     this.followingCharctorIdentifier = null!;

@@ -1,4 +1,3 @@
-import { animate, keyframes, state, style, transition, trigger } from '@angular/animations';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -39,23 +38,6 @@ import { SafePipe } from 'pipe/safe.pipe';
   templateUrl: './card-stack.component.html',
   styleUrls: ['./card-stack.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('shuffle', [
-      state('active', style({ transform: '' })),
-      transition('* => active', [
-        animate(
-          '800ms ease',
-          keyframes([
-            style({ transform: 'scale3d(0, 0, 0) rotateZ(0deg)', offset: 0 }),
-            style({ transform: 'scale3d(1.2, 1.2, 1.2) rotateZ(360deg)', offset: 0.5 }),
-            style({ transform: 'scale3d(0.75, 0.75, 0.75) rotateZ(520deg)', offset: 0.75 }),
-            style({ transform: 'scale3d(1.125, 1.125, 1.125) rotateZ(630deg)', offset: 0.875 }),
-            style({ transform: 'scale3d(1.0, 1.0, 1.0) rotateZ(720deg)', offset: 1.0 }),
-          ])
-        ),
-      ]),
-    ]),
-  ],
   imports: [MovableDirective, NgClass, RotableDirective, NgStyle, SafePipe],
 })
 export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -117,7 +99,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.imageService.getSkeletonOr(this.cardStack.imageFile);
   }
 
-  animeState: string = 'inactive';
+  animeState: 'active' | 'inactive' = 'inactive';
 
   private iconHiddenTimer: NodeJS.Timeout = null!;
   get isIconHidden(): boolean {
@@ -188,9 +170,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     EventSystem.unregister(this);
   }
 
-  animationShuffleStarted(_event: unknown) {}
-
-  animationShuffleDone(_event: unknown) {
+  onShuffleDone() {
     this.animeState = 'inactive';
     this.changeDetector.markForCheck();
   }

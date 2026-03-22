@@ -1,5 +1,5 @@
 import { AudioFile, AudioState } from '@axe/core/file-storage/audio-file';
-import { FileReaderUtil } from '@axe/core/file-storage/file-reader-util';
+import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
 
 export enum VolumeType {
   MASTER,

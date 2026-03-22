@@ -282,3 +282,49 @@
   font-size: 15px;
   vertical-align: middle;
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes diceRoll {
+  0% {
+    transform: scale3d(0.8, 0.8, 0.8) rotateZ(0deg);
+  }
+  50% {
+    transform: scale3d(1.2, 1.2, 1.2) rotateZ(360deg);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75) rotateZ(520deg);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125) rotateZ(630deg);
+  }
+  100% {
+    transform: scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale3d(0, 0, 0);
+  }
+  50% {
+    transform: scale3d(1.5, 1.5, 1.5);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.dice-rolling {
+  animation: diceRoll 800ms ease;
+}
+
+.bounce-in {
+  animation: bounceIn 600ms ease;
+}

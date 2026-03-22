@@ -8,8 +8,8 @@ import {
   TransportConnectionState,
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'events';
-import { MessagePack } from '@axe/core/system/util/message-pack';
-import { UUID } from '@axe/core/system/util/uuid';
+import * as MessagePack from '@axe/core/system/util/message-pack';
+import { generateUuid } from '@axe/core/system/util/uuid';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
 import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
 import { PeerSessionGrade } from '@axe/core/system/network/peer-session-state';
@@ -97,7 +97,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.refresh();
   };
 
-  private onmessage = (event: MessageEvent<any>) => {
+  private onmessage = (event: MessageEvent<ArrayBuffer>) => {
     this.onData(event.data as ArrayBuffer);
   };
 
@@ -279,9 +279,9 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     // 現在のオブジェクトを取得
     const member = this.member;
 
-    const p2pconnection = (member as any)?._getOrCreateConnection(
-      (this.skyWay.roomPerson as any)?._impl
-    ) as P2PConnection;
+    const p2pconnection = (
+      member as unknown as { _getOrCreateConnection?: (...args: unknown[]) => P2PConnection }
+    )?._getOrCreateConnection?.((this.skyWay.roomPerson as unknown as { _impl?: unknown })?._impl) as P2PConnection;
     const publication = member?.publications.find((publication) => publication.metadata === 'udonarium-data-stream');
 
     const dataChannel = this.isPublication
@@ -356,7 +356,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     }
   }
 
-  send(data: any) {
+  send(data: unknown) {
     const encodedData: Uint8Array = MessagePack.encode(data);
 
     const total = Math.ceil(encodedData.byteLength / this.chunkSize);
@@ -365,7 +365,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       return;
     }
 
-    const id = UUID.generateUuid();
+    const id = generateUuid();
 
     let sliceData: Uint8Array;
     let chank: DataChank;

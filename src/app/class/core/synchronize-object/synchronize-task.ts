@@ -12,7 +12,7 @@ export interface SynchronizeRequest {
 }
 
 export class SynchronizeTask {
-  private static key: any = {};
+  private static key: object = {};
   private static tasksMap: Map<ObjectIdentifier, SynchronizeTask[]> = new Map();
 
   onsynchronize: (task: SynchronizeTask, identifier: string) => void;

@@ -1,4 +1,4 @@
-import { UUID } from '@axe/core/system/util/uuid';
+import { generateUuid } from '@axe/core/system/util/uuid';
 import { ObjectFactory } from './object-factory';
 import { ObjectSerializer } from './object-serializer';
 import { ObjectStore } from './object-store';
@@ -20,7 +20,7 @@ export class GameObject {
     syncData: {},
   };
 
-  static get aliasName() {
+  static get aliasName(): string {
     return ObjectFactory.instance.getAlias(this);
   }
   get aliasName() {
@@ -33,7 +33,7 @@ export class GameObject {
     return this.context.majorVersion + this.context.minorVersion;
   }
 
-  constructor(identifier: string = UUID.generateUuid()) {
+  constructor(identifier: string = generateUuid()) {
     this.context.identifier = identifier;
   }
 

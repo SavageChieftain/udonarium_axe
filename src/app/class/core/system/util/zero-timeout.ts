@@ -1,8 +1,8 @@
 let i: number = 0;
-const timeouts = new Map<number, Function>();
+const timeouts = new Map<number, () => void>();
 const channel = new MessageChannel();
 
-export function setZeroTimeout(fn: Function): number {
+export function setZeroTimeout(fn: () => void): number {
   if (i === 0x100000000)
     // max queue size
     i = 0;

@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PeerCursor } from './peer-cursor';
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { Network } from './core/system';
@@ -14,8 +13,8 @@ describe('PeerCursor', () => {
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
-    (PeerCursor as any).userIdMap = new Map();
-    (PeerCursor as any).peerIdMap = new Map();
+    (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
+    (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();
   });
 
   afterEach(() => {
@@ -23,8 +22,8 @@ describe('PeerCursor', () => {
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
-    (PeerCursor as any).userIdMap = new Map();
-    (PeerCursor as any).peerIdMap = new Map();
+    (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
+    (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();
     vi.restoreAllMocks();
   });
 

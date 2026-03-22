@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { FileArchiver } from './file-archiver';
 import { EventSystem, Network } from '@axe/core/system';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';

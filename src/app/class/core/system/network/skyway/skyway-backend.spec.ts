@@ -1,12 +1,10 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { SkyWayBackend } from './skyway-backend';
 
 vi.mock('@skyway-sdk/core', () => ({
   nowInSec: () => Math.floor(Date.now() / 1000),
   uuidV4: () => 'mock-uuid',
   SkyWayAuthToken: { Encode: vi.fn().mockReturnValue('mock-token') },
 }));
-
-import { SkyWayBackend } from './skyway-backend';
 
 describe('SkyWayBackend', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;

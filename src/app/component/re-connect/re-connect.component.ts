@@ -128,7 +128,7 @@ export class ReConnectComponent implements OnInit, OnDestroy {
       if (password == null) password = '';
     }
 
-    if (!context.verifyPassword(password)) return;
+    if (!(await context.verifyPassword(password))) return;
 
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
     Network.open(userId, context.roomId, context.roomName, password);

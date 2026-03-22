@@ -2,7 +2,7 @@ import { EventSystem, Network } from '@axe/core/system';
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 import { AudioStorage, CatalogItem } from './audio-storage';
 import { BufferSharingTask } from './buffer-sharing-task';
-import { FileReaderUtil } from './file-reader-util';
+import * as FileReaderUtil from './file-reader-util';
 
 export class AudioSharingSystem {
   private static _instance: AudioSharingSystem;
@@ -27,7 +27,7 @@ export class AudioSharingSystem {
         console.log('CONNECT_PEER AudioStorageService !!!', event.data.peerId);
         AudioStorage.instance.synchronize();
       })
-      .on('SYNCHRONIZE_AUDIO_LIST', (event) => {
+      .on<CatalogItem[]>('SYNCHRONIZE_AUDIO_LIST', (event) => {
         if (event.isSendFromSelf) return;
         console.log('SYNCHRONIZE_AUDIO_LIST ' + event.sendFrom);
 
@@ -61,42 +61,45 @@ export class AudioSharingSystem {
         const index = Math.floor(Math.random() * request.length);
         this.request([request[index]], event.sendFrom);
       })
-      .on('REQUEST_AUDIO_RESOURE', (event) => {
-        if (event.isSendFromSelf) return;
+      .on<{ identifiers: CatalogItem[]; receiver: string; candidatePeers: string[] }>(
+        'REQUEST_AUDIO_RESOURE',
+        (event) => {
+          if (event.isSendFromSelf) return;
 
-        const request: CatalogItem[] = event.data.identifiers;
-        const randomRequest: CatalogItem[] = request.filter((item) => {
-          const audio: AudioFile = AudioStorage.instance.get(item.identifier);
-          return audio && item.state < audio.state;
-        });
+          const request: CatalogItem[] = event.data.identifiers;
+          const randomRequest: CatalogItem[] = request.filter((item) => {
+            const audio: AudioFile = AudioStorage.instance.get(item.identifier);
+            return audio && item.state < audio.state;
+          });
 
-        if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(event.data.receiver)) {
-          // 送信
-          console.log('REQUEST_AUDIO_RESOURE Send!!! ' + event.data.receiver + ' -> ' + randomRequest);
-          const index = Math.floor(Math.random() * randomRequest.length);
-          const item: { identifier: string; state: number } = randomRequest[index];
-          const audio: AudioFile = AudioStorage.instance.get(item.identifier);
-          this.startSendTask(audio, event.data.receiver);
-        } else {
-          // 中継
-          const candidatePeers: string[] = event.data.candidatePeers;
-          const index = candidatePeers.indexOf(Network.peerId);
-          if (-1 < index) candidatePeers.splice(index, 1);
+          if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(event.data.receiver)) {
+            // 送信
+            console.log('REQUEST_AUDIO_RESOURE Send!!! ' + event.data.receiver + ' -> ' + randomRequest);
+            const index = Math.floor(Math.random() * randomRequest.length);
+            const item: { identifier: string; state: number } = randomRequest[index];
+            const audio: AudioFile = AudioStorage.instance.get(item.identifier);
+            this.startSendTask(audio, event.data.receiver);
+          } else {
+            // 中継
+            const candidatePeers: string[] = event.data.candidatePeers;
+            const index = candidatePeers.indexOf(Network.peerId);
+            if (-1 < index) candidatePeers.splice(index, 1);
 
-          for (const peerId of candidatePeers) {
+            for (const peerId of candidatePeers) {
+              console.log(
+                'REQUEST_AUDIO_RESOURE AudioStorageService Relay!!! ' + peerId + ' -> ' + event.data.identifiers
+              );
+              EventSystem.call(event, peerId);
+              return;
+            }
             console.log(
-              'REQUEST_AUDIO_RESOURE AudioStorageService Relay!!! ' + peerId + ' -> ' + event.data.identifiers
+              'REQUEST_FILE_RESOURE AudioStorageService あぶれた...' + event.data.receiver,
+              randomRequest.length
             );
-            EventSystem.call(event, peerId);
-            return;
           }
-          console.log(
-            'REQUEST_FILE_RESOURE AudioStorageService あぶれた...' + event.data.receiver,
-            randomRequest.length
-          );
         }
-      })
-      .on('UPDATE_AUDIO_RESOURE', 1000, (event) => {
+      )
+      .on<AudioFileContext[]>('UPDATE_AUDIO_RESOURE', 1000, (event) => {
         const updateAudios: AudioFileContext[] = event.data;
         console.log('UPDATE_AUDIO_RESOURE AudioStorageService ' + event.sendFrom + ' -> ', updateAudios);
         for (const context of updateAudios) {
@@ -138,7 +141,7 @@ export class AudioSharingSystem {
     if (audio.state === AudioState.URL) {
       context.url = audio.url;
     } else {
-      context.blob = <any>await FileReaderUtil.readAsArrayBufferAsync(audio.blob!);
+      context.blob = (await FileReaderUtil.readAsArrayBufferAsync(audio.blob!)) as unknown as Blob;
       context.type = audio.blob!.type;
     }
 

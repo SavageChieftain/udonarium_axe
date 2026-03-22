@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ImageFile, ImageState } from './image-file';
 
 describe('ImageFile', () => {

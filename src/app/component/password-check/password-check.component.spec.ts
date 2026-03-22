@@ -17,7 +17,9 @@ describe('PasswordCheckComponent', () => {
     // Provide ModalService.option for constructor
     const modalService = TestBed.inject(ModalService);
     // Use reflection to set private modalContext
-    (modalService as any).modalContext = { option: { peerId: 'test-peer-id', title: 'Test Title' } };
+    (modalService as unknown as Record<string, unknown>).modalContext = {
+      option: { peerId: 'test-peer-id', title: 'Test Title' },
+    };
 
     fixture = TestBed.createComponent(PasswordCheckComponent);
     component = fixture.componentInstance;

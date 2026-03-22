@@ -1,4 +1,4 @@
-import { XmlUtil } from '@axe/core/system/util/xml-util';
+import { xml2element, encodeEntityReference, decodeEntityReference } from '@axe/core/system/util/xml-util';
 import { Attributes } from './attributes';
 import { GameObject, ObjectContext } from './game-object';
 import { ObjectFactory } from './object-factory';
@@ -36,7 +36,7 @@ export class ObjectSerializer {
 
     let attrStr = '';
     for (const name in attributes) {
-      const attribute = XmlUtil.encodeEntityReference(attributes[name] + '');
+      const attribute = encodeEntityReference(attributes[name] + '');
       if (attribute == null) continue;
       attrStr += ' ' + name + '="' + attribute + '"';
     }
@@ -59,25 +59,25 @@ export class ObjectSerializer {
     return attributes;
   }
 
-  private static make2Attributes(item: any, key: string): Attributes {
+  private static make2Attributes(item: unknown, key: string): Attributes {
     const attributes: Attributes = {};
     if (Array.isArray(item)) {
       const arrayAttributes = ObjectSerializer.array2attributes(item, key);
       for (const name in arrayAttributes) {
         attributes[name] = arrayAttributes[name];
       }
-    } else if (typeof item === 'object') {
-      const objAttributes = ObjectSerializer.object2attributes(item, key);
+    } else if (item != null && typeof item === 'object') {
+      const objAttributes = ObjectSerializer.object2attributes(item as Record<string, unknown>, key);
       for (const name in objAttributes) {
         attributes[name] = objAttributes[name];
       }
     } else {
-      attributes[key] = item;
+      attributes[key] = item as string | number;
     }
     return attributes;
   }
 
-  private static object2attributes(obj: any, rootKey: string): Attributes {
+  private static object2attributes(obj: Record<string, unknown>, rootKey: string): Attributes {
     const attributes: Attributes = {};
     for (const objKey in obj) {
       const item = obj[objKey];
@@ -90,7 +90,7 @@ export class ObjectSerializer {
     return attributes;
   }
 
-  private static array2attributes(array: Array<any>, rootKey: string): Attributes {
+  private static array2attributes(array: Array<unknown>, rootKey: string): Attributes {
     const attributes: Attributes = {};
     const length = array.length;
     for (let i = 0; i < length; i++) {
@@ -107,7 +107,7 @@ export class ObjectSerializer {
   parseXml(xml: string | Element): GameObject {
     let xmlElement: Element;
     if (typeof xml === 'string') {
-      xmlElement = XmlUtil.xml2element(xml);
+      xmlElement = xml2element(xml);
     } else {
       xmlElement = xml;
     }
@@ -138,11 +138,11 @@ export class ObjectSerializer {
     const length = attributes.length;
     for (let i = 0; i < length; i++) {
       let value = attributes[i].value;
-      value = XmlUtil.decodeEntityReference(value);
+      value = decodeEntityReference(value);
 
       const split: string[] = attributes[i].name.split('.');
       let key: string | number | null = split[0];
-      let obj: Record<string, unknown> | Array<any> = syncData as Record<string, unknown>;
+      let obj: Record<string, unknown> | Array<unknown> = syncData as Record<string, unknown>;
 
       const pollutionKey = split.find((splitKey) => objectPropertyKeys.includes(splitKey));
       if (pollutionKey != null) {
@@ -164,10 +164,10 @@ export class ObjectSerializer {
     return syncData;
   }
 
-  private static attributes2object(split: string[], obj: Record<string, unknown> | any[], key: string | number) {
+  private static attributes2object(split: string[], obj: Record<string, unknown> | unknown[], key: string | number) {
     // 階層構造の解析 foo.bar.0="abc" 等
     // 処理として実装こそしているが、xmlの仕様としては良くないので使用するべきではない.
-    let parentObj: Record<string, unknown> | Array<any> | null = null;
+    let parentObj: Record<string, unknown> | Array<unknown> | null = null;
 
     const length = split.length;
     for (let i = 0; i < length; i++) {

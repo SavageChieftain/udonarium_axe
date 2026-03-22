@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { EventSystem, Network, Event, Listener } from './index';
 
 describe('system/index re-exports', () => {

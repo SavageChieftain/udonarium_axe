@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { markForChanged, markForChildrenChanged } from './object-event-extension';
 import { ObjectStore } from './object-store';
 import { ObjectNode } from './object-node';

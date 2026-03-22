@@ -110,7 +110,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit() {
     EventSystem.register(this)
-      .on('START_CUT_IN', (event) => {
+      .on<{ cutIn: CutIn }>('START_CUT_IN', (event) => {
         console.log('カットインウィンドウ>Event:START_CUT_IN ' + this.cutIn.name);
         if (this.cutIn) {
           if (this.cutIn.identifier == event.data.cutIn.identifier || this.cutIn.tagName == event.data.cutIn.tagName) {
@@ -127,7 +127,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
           }
         }
       })
-      .on('STOP_CUT_IN', (event) => {
+      .on<{ cutIn: CutIn }>('STOP_CUT_IN', (event) => {
         console.log('カットインウィンドウ>Event: ' + this.cutIn.name);
         if (this.cutIn) {
           if (this.cutIn.identifier == event.data.cutIn.identifier) {

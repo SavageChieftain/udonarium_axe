@@ -31,7 +31,7 @@ export class RoomSettingComponent implements OnInit, OnDestroy {
   get isConnected(): boolean {
     return Network.peerIds.length <= 1 ? false : true;
   }
-  validateLength: boolean = false;
+  validateLength: boolean = true;
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -47,9 +47,9 @@ export class RoomSettingComponent implements OnInit, OnDestroy {
     EventSystem.unregister(this);
   }
 
-  calcPeerId(roomName: string, password: string) {
+  async calcPeerId(roomName: string, password: string) {
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
-    const context = PeerContext.create(userId, PeerContext.generateId('***'), roomName, password);
+    const context = await PeerContext.create(userId, PeerContext.generateId('***'), roomName, password);
     this.validateLength = context.peerId.length < 64 ? true : false;
     this.myPeer.reConnectPass = password;
   }

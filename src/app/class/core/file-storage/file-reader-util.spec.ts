@@ -1,5 +1,4 @@
-import { vi, describe, it, expect } from 'vitest';
-import { FileReaderUtil } from './file-reader-util';
+import * as FileReaderUtil from './file-reader-util';
 
 describe('FileReaderUtil', () => {
   describe('readAsArrayBufferAsync', () => {

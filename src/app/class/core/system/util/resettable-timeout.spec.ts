@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ResettableTimeout } from './resettable-timeout';
 
 describe('ResettableTimeout', () => {

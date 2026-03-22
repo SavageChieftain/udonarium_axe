@@ -1,5 +1,5 @@
 import { EventSystem } from '@axe/core/system';
-import { MessagePack } from '@axe/core/system/util/message-pack';
+import * as MessagePack from '@axe/core/system/util/message-pack';
 import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
 import { clearZeroTimeout, setZeroTimeout } from '@axe/core/system/util/zero-timeout';
 

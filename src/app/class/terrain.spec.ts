@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Terrain, TerrainViewState, SlopeDirection } from './terrain';
 import { ObjectStore } from './core/synchronize-object/object-store';
 

@@ -55,7 +55,7 @@ export class ObjectStore {
 
   delete(object: GameObject, shouldBroadcast?: boolean): GameObject;
   delete(identifier: string, shouldBroadcast?: boolean): GameObject;
-  delete(arg: any, shouldBroadcast: boolean = true) {
+  delete(arg: GameObject | string, shouldBroadcast: boolean = true) {
     let object: GameObject;
     let identifier: string;
     if (typeof arg === 'string') {
@@ -94,7 +94,7 @@ export class ObjectStore {
   getObjects<T extends GameObject>(constructor: Type<T>): T[];
   getObjects<T extends GameObject>(aliasName: string): T[];
   getObjects<T extends GameObject>(): T[];
-  getObjects<T extends GameObject>(arg?: any): T[] {
+  getObjects<T extends GameObject>(arg?: string | Type<T>): T[] {
     if (arg == null) {
       return <T[]>Array.from(this.identifierMap.values());
     }
@@ -102,7 +102,7 @@ export class ObjectStore {
     if (typeof arg === 'string') {
       aliasName = arg;
     } else {
-      aliasName = arg.aliasName;
+      aliasName = arg.aliasName ?? '';
     }
 
     return this.aliasNameMap.has(aliasName) ? <T[]>Array.from(this.aliasNameMap.get(aliasName)!.values()) : [];
@@ -110,7 +110,7 @@ export class ObjectStore {
 
   update(identifier: string): void;
   update(context: ObjectContext): void;
-  update(arg: any) {
+  update(arg: string | ObjectContext) {
     let context: ObjectContext = null!;
     if (typeof arg === 'string') {
       const object: GameObject = this.get(arg);
@@ -164,7 +164,7 @@ export class ObjectStore {
 
   private garbageCollection(garbage: ObjectContext): void;
   private garbageCollection(ms: number): void;
-  private garbageCollection(arg: any) {
+  private garbageCollection(arg: ObjectContext | number) {
     if (typeof arg === 'number') {
       if (this.garbageCollectionInterval === null) {
         this.garbageCollectionInterval = setTimeout(() => {

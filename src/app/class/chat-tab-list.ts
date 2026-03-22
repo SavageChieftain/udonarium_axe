@@ -65,13 +65,13 @@ export class ChatTabList extends ObjectNode implements InnerXml {
 
   addChatTab(chatTab: ChatTab): ChatTab;
   addChatTab(tabName: string, identifier?: string): ChatTab;
-  addChatTab(...args: any[]): ChatTab {
+  addChatTab(...args: [ChatTab] | [string, string?]): ChatTab {
     let chatTab: ChatTab;
     if (args[0] instanceof ChatTab) {
       chatTab = args[0];
     } else {
       const tabName: string = args[0];
-      const identifier: string = args[1];
+      const identifier = args[1];
       chatTab = new ChatTab(identifier);
       chatTab.name = tabName;
       chatTab.initialize();

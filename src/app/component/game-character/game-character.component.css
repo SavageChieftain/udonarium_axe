@@ -422,3 +422,27 @@
   position: absolute;
   top: -50px;
 }
+
+/* ── CSS Animations ─────────────────────────────────────────── */
+
+@keyframes bounceIn {
+  0% {
+    transform: scale3d(0, 0, 0);
+  }
+  50% {
+    transform: scale3d(1.5, 1.5, 1.5);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.bounce-in {
+  animation: bounceIn 600ms ease;
+}

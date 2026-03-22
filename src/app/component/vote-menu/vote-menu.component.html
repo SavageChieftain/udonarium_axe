@@ -60,7 +60,7 @@
           />
         </div>
         <div style="display: table-cell">
-          <button (click)="send()" [attr.disabled]="selectedNum() === 0 ? '' : null">送信</button><br />
+          <button type="button" (click)="send()" [attr.disabled]="selectedNum() === 0 ? '' : null">送信</button><br />
           <span style="display: inline-block; margin-left: 0.5em">人数:{{ selectedNum() }}</span>
         </div>
       </div>

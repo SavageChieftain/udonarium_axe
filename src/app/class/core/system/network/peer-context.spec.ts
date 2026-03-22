@@ -1,4 +1,3 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PeerContext } from './peer-context';
 import { PeerSessionGrade } from './peer-session-state';
 
@@ -19,64 +18,64 @@ describe('PeerContext', () => {
   });
 
   describe('create (user only)', () => {
-    it('ユーザーIDからコンテキストを作成できる', () => {
-      const ctx = PeerContext.create('testUser');
+    it('ユーザーIDからコンテキストを作成できる', async () => {
+      const ctx = await PeerContext.create('testUser');
       expect(ctx.userId).toBe('testUser');
       expect(ctx.peerId).toBeTruthy();
       expect(ctx.isRoom).toBe(false);
     });
 
-    it('空文字のユーザーIDでも作成できる', () => {
-      const ctx = PeerContext.create('');
+    it('空文字のユーザーIDでも作成できる', async () => {
+      const ctx = await PeerContext.create('');
       expect(ctx.userId).toBe('');
     });
   });
 
   describe('create (room)', () => {
-    it('ルーム情報を含むコンテキストを作成できる', () => {
-      const ctx = PeerContext.create('testUser', 'rm', 'TestRoom', '');
+    it('ルーム情報を含むコンテキストを作成できる', async () => {
+      const ctx = await PeerContext.create('testUser', 'rm', 'TestRoom', '');
       expect(ctx.userId).toBe('testUser');
       expect(ctx.isRoom).toBe(true);
     });
 
-    it('パスワード付きルームを作成できる', () => {
-      const ctx = PeerContext.create('testUser', 'rm', 'TestRoom', 'secret');
+    it('パスワード付きルームを作成できる', async () => {
+      const ctx = await PeerContext.create('testUser', 'rm', 'TestRoom', 'secret');
       expect(ctx.userId).toBe('testUser');
       expect(ctx.password).toBe('secret');
       expect(ctx.hasPassword).toBe(true);
     });
 
-    it('パスワードなしルームはhasPasswordがfalse', () => {
-      const ctx = PeerContext.create('testUser', 'rm', 'TestRoom', '');
+    it('パスワードなしルームはhasPasswordがfalse', async () => {
+      const ctx = await PeerContext.create('testUser', 'rm', 'TestRoom', '');
       expect(ctx.hasPassword).toBe(false);
     });
   });
 
   describe('verifyPassword', () => {
-    it('正しいパスワードで検証成功', () => {
-      const ctx = PeerContext.create('testUser', 'rm', 'TestRoom', 'secret');
+    it('正しいパスワードで検証成功', async () => {
+      const ctx = await PeerContext.create('testUser', 'rm', 'TestRoom', 'secret');
       const parsed = PeerContext.parse(ctx.peerId);
-      expect(parsed.verifyPassword('secret')).toBe(true);
+      expect(await parsed.verifyPassword('secret')).toBe(true);
     });
 
-    it('間違ったパスワードで検証失敗', () => {
-      const ctx = PeerContext.create('testUser', 'rm', 'TestRoom', 'secret');
+    it('間違ったパスワードで検証失敗', async () => {
+      const ctx = await PeerContext.create('testUser', 'rm', 'TestRoom', 'secret');
       const parsed = PeerContext.parse(ctx.peerId);
-      expect(parsed.verifyPassword('wrong')).toBe(false);
+      expect(await parsed.verifyPassword('wrong')).toBe(false);
     });
   });
 
   describe('verifyPeer', () => {
-    it('同じルームのpeerを検証できる', () => {
-      const ctx1 = PeerContext.create('user1', 'rm', 'TestRoom', '');
-      const ctx2 = PeerContext.create('user2', 'rm', 'TestRoom', '');
-      expect(ctx1.verifyPeer(ctx2.peerId)).toBe(true);
+    it('同じルームのpeerを検証できる', async () => {
+      const ctx1 = await PeerContext.create('user1', 'rm', 'TestRoom', '');
+      const ctx2 = await PeerContext.create('user2', 'rm', 'TestRoom', '');
+      expect(await ctx1.verifyPeer(ctx2.peerId)).toBe(true);
     });
   });
 
   describe('session', () => {
-    it('デフォルトのsession状態', () => {
-      const ctx = PeerContext.create('testUser');
+    it('デフォルトのsession状態', async () => {
+      const ctx = await PeerContext.create('testUser');
       expect(ctx.session.grade).toBe(PeerSessionGrade.UNSPECIFIED);
       expect(ctx.session.ping).toBe(0);
       expect(ctx.session.health).toBe(0);
