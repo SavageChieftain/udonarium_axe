@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, inject } from '@angular/core';
-
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy } from '@angular/core';
 import { EventSystem, Network } from '@axe/core/system';
 
 @Component({

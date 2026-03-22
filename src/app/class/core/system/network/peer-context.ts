@@ -1,8 +1,8 @@
+import { Logger } from '@axe/core/logger';
+import { sha256 } from '@axe/core/system/util/crypto-util';
 import base from 'base-x';
 import lzbase62 from 'lzbase62';
 
-import { Logger } from '@axe/core/logger';
-import { sha256 } from '@axe/core/system/util/crypto-util';
 import { MutablePeerSessionState, PeerSessionGrade, PeerSessionState } from './peer-session-state';
 
 const Base62 = base('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');

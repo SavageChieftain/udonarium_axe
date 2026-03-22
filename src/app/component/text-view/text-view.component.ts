@@ -1,5 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
-
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
 

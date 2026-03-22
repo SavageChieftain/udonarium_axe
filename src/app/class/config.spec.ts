@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+
 import { Config } from './config';
 import { ObjectStore } from './core/synchronize-object/object-store';
 

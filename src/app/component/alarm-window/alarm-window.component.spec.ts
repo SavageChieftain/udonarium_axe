@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { AlarmWindowComponent } from './alarm-window.component';
 import { Alarm } from '@axe/alarm';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+
+import { AlarmWindowComponent } from './alarm-window.component';
 
 describe('AlarmWindowComponent', () => {
   let component: AlarmWindowComponent;

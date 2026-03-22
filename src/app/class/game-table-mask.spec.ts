@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { GameTableMask } from './game-table-mask';
-import { DataElement } from './data-element';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { DataElement } from './data-element';
+import { GameTableMask } from './game-table-mask';
 
 describe('GameTableMask', () => {
   let store: ObjectStore;

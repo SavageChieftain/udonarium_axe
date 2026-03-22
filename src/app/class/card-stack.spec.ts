@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { CardStack } from './card-stack';
+
 import { Card, CardState } from './card';
+import { CardStack } from './card-stack';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
 describe('CardStack', () => {

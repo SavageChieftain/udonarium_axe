@@ -1,3 +1,4 @@
+import { NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -5,11 +6,11 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
 import { Card, CardState } from '@axe/card';
 import { CardStack } from '@axe/card-stack';
@@ -22,16 +23,15 @@ import { PresetSound, SoundEffect } from '@axe/sound-effect';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
 import { InputHandler } from 'directive/input-handler';
 import { MovableOption } from 'directive/movable.directive';
+import { MovableDirective } from 'directive/movable.directive';
 import { RotableOption } from 'directive/rotable.directive';
+import { RotableDirective } from 'directive/rotable.directive';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { ImageService } from 'service/image.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
 import { TabletopService } from 'service/tabletop.service';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { NgStyle } from '@angular/common';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'card',

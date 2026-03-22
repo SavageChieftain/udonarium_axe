@@ -1,20 +1,22 @@
+import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
+  inject,
   NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
-
 import { Card } from '@axe/card';
 import { CardStack } from '@axe/card-stack';
+import { Config } from '@axe/config';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { GameObject } from '@axe/core/synchronize-object/game-object';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { DiceSymbol } from '@axe/dice-symbol';
 import { GameCharacter } from '@axe/game-character';
@@ -22,39 +24,34 @@ import { FilterType, GameTable, GridType } from '@axe/game-table';
 import { GameTableMask } from '@axe/game-table-mask';
 import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
 import { PeerCursor } from '@axe/peer-cursor';
-import { TableSelecter } from '@axe/table-selecter';
 import { RangeArea } from '@axe/range';
+import { TableSelecter } from '@axe/table-selecter';
 import { Terrain } from '@axe/terrain';
 import { TextNote } from '@axe/text-note';
-
+import { CardComponent } from 'component/card/card.component';
+import { CardStackComponent } from 'component/card-stack/card-stack.component';
+import { DiceSymbolComponent } from 'component/dice-symbol/dice-symbol.component';
+import { GameCharacterComponent } from 'component/game-character/game-character.component';
+import { GameTableMaskComponent } from 'component/game-table-mask/game-table-mask.component';
+import { GameTableScratchMaskComponent } from 'component/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from 'component/game-table-setting/game-table-setting.component';
+import { PeerCursorComponent } from 'component/peer-cursor/peer-cursor.component';
+import { RangeComponent } from 'component/range/range.component';
+import { TerrainComponent } from 'component/terrain/terrain.component';
+import { TextNoteComponent } from 'component/text-note/text-note.component';
+import { TooltipDirective } from 'directive/tooltip.directive';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { CoordinateService } from 'service/coordinate.service';
 import { ImageService } from 'service/image.service';
 import { ModalService } from 'service/modal.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { TabletopActionService } from 'service/tabletop-action.service';
 import { TabletopService } from 'service/tabletop.service';
+import { TabletopActionService } from 'service/tabletop-action.service';
 
 import { GridLineRender } from './grid-line-render';
 import { TableMouseGesture, TableMouseGestureEvent } from './table-mouse-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from './table-touch-gesture';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Config } from '@axe/config';
-import { NgClass, NgStyle } from '@angular/common';
-import { TerrainComponent } from 'component/terrain/terrain.component';
-import { GameTableMaskComponent } from 'component/game-table-mask/game-table-mask.component';
-import { GameTableScratchMaskComponent } from 'component/game-table-scratch-mask/game-table-scratch-mask.component';
-import { TextNoteComponent } from 'component/text-note/text-note.component';
-import { TooltipDirective } from 'directive/tooltip.directive';
-import { CardStackComponent } from 'component/card-stack/card-stack.component';
-import { CardComponent } from 'component/card/card.component';
-import { PeerCursorComponent } from 'component/peer-cursor/peer-cursor.component';
-import { RangeComponent } from 'component/range/range.component';
-import { DiceSymbolComponent } from 'component/dice-symbol/dice-symbol.component';
-import { GameCharacterComponent } from 'component/game-character/game-character.component';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'game-table',

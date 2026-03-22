@@ -1,18 +1,14 @@
-import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
-
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-
 import { EventSystem } from '@axe/core/system';
 import { PeerCursor } from '@axe/peer-cursor';
-
+import { Vote } from '@axe/vote';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ChatMessageService } from 'service/chat-message.service';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
-
-import { Vote } from '@axe/vote';
-import { NgTemplateOutlet, NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'app-vote-window',

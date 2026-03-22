@@ -1,10 +1,7 @@
-import { Injectable, NgZone, inject } from '@angular/core';
-
+import { inject, Injectable, NgZone } from '@angular/core';
 import { ChatTab } from '@axe/chat-tab';
 import { ChatTabList } from '@axe/chat-tab-list';
-
 import { Config } from '@axe/config';
-
 import { FileArchiver } from '@axe/core/file-storage/file-archiver';
 import { ImageFile, ImageState } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
@@ -13,12 +10,10 @@ import { GameObject } from '@axe/core/synchronize-object/game-object';
 import { PromiseQueue } from '@axe/core/system/util/promise-queue';
 import { xml2element } from '@axe/core/system/util/xml-util';
 import { DataSummarySetting } from '@axe/data-summary-setting';
-import { Room } from '@axe/room';
-
-import { saveAs } from 'file-saver';
-
-import Beautify from 'vkbeautify';
 import { ImageTagList } from '@axe/image-tag-list';
+import { Room } from '@axe/room';
+import { saveAs } from 'file-saver';
+import Beautify from 'vkbeautify';
 type UpdateCallback = (percent: number) => void;
 
 @Injectable({

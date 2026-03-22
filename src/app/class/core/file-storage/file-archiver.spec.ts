@@ -1,6 +1,7 @@
-import { FileArchiver } from './file-archiver';
-import { EventSystem, Network } from '@axe/core/system';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/core/system';
+
+import { FileArchiver } from './file-archiver';
 
 describe('FileArchiver', () => {
   beforeEach(() => {

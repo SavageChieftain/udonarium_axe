@@ -1,19 +1,16 @@
-import { Component, ChangeDetectorRef, OnDestroy, OnInit, inject } from '@angular/core';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { EventSystem, Network } from '@axe/core/system';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Logger } from '@axe/core/logger';
-import { PeerCursor } from '@axe/peer-cursor';
-
 import { GameObject } from '@axe/core/synchronize-object/game-object';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/core/system';
+import { PeerContext } from '@axe/core/system/network/peer-context';
 import { DiceSymbol } from '@axe/dice-symbol';
 import { GameCharacter } from '@axe/game-character';
 import { GameTableMask } from '@axe/game-table-mask';
+import { PeerCursor } from '@axe/peer-cursor';
 import { RangeArea } from '@axe/range';
 import { Terrain } from '@axe/terrain';
 import { TextNote } from '@axe/text-note';
-
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
 

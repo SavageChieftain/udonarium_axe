@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectFactory } from './object-factory';
+
 import { GameObject } from './game-object';
+import { ObjectFactory } from './object-factory';
 import { ObjectStore } from './object-store';
 
 describe('ObjectFactory', () => {

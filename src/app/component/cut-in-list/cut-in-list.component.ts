@@ -1,30 +1,23 @@
-import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
-import { AudioFile } from '@axe/core/file-storage/audio-file';
-import { AudioStorage } from '@axe/core/file-storage/audio-storage';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Jukebox } from '@axe/Jukebox';
-import { CutInLauncher } from '@axe/cut-in-launcher';
-
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-
-import { EventSystem } from '@axe/core/system';
-import { CutIn } from '@axe/cut-in';
-
-import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
-import { CutInBgmComponent } from 'component/cut-in-bgm/cut-in-bgm.component';
-import { SaveDataService } from 'service/save-data.service';
-
-import { OpenUrlComponent } from 'component/open-url/open-url.component';
-
-import { PointerDeviceService } from 'service/pointer-device.service';
-
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 //
 import { FormsModule } from '@angular/forms';
+import { AudioFile } from '@axe/core/file-storage/audio-file';
+import { AudioStorage } from '@axe/core/file-storage/audio-storage';
+import { ImageFile } from '@axe/core/file-storage/image-file';
+import { ImageStorage } from '@axe/core/file-storage/image-storage';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/core/system';
+import { CutIn } from '@axe/cut-in';
+import { CutInLauncher } from '@axe/cut-in-launcher';
+import { Jukebox } from '@axe/Jukebox';
+import { CutInBgmComponent } from 'component/cut-in-bgm/cut-in-bgm.component';
+import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
+import { OpenUrlComponent } from 'component/open-url/open-url.component';
 import { SafePipe } from 'pipe/safe.pipe';
+import { ModalService } from 'service/modal.service';
+import { PanelService } from 'service/panel.service';
+import { PointerDeviceService } from 'service/pointer-device.service';
+import { SaveDataService } from 'service/save-data.service';
 
 @Component({
   selector: 'app-cut-in-list',

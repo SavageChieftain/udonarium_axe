@@ -1,19 +1,16 @@
 import { Injectable } from '@angular/core';
-import GameSystemClass from 'bcdice/lib/game_system';
-
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/chat-message';
 import { ChatTab } from '@axe/chat-tab';
 import { ChatTabList } from '@axe/chat-tab-list';
+import { ImageStorage } from '@axe/core/file-storage/image-storage';
+import { Logger } from '@axe/core/logger';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { Network } from '@axe/core/system';
+import { DataElement } from '@axe/data-element';
+import { DiceBot } from '@axe/dice-bot';
 import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-
-import { Logger } from '@axe/core/logger';
-import { DataElement } from '@axe/data-element';
-
-import { DiceBot } from '@axe/dice-bot';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 const HOURS = 60 * 60 * 1000;
 

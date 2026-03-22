@@ -1,9 +1,7 @@
-import { AfterViewInit, Component, NgZone, OnDestroy, ViewChild, ViewContainerRef, inject } from '@angular/core';
-import { NgSelectConfig } from '@ng-select/ng-select';
-
+import { AfterViewInit, Component, inject, NgZone, OnDestroy, ViewChild, ViewContainerRef } from '@angular/core';
+import { Alarm } from '@axe/alarm';
 import { ChatTabList } from '@axe/chat-tab-list';
 import { Config } from '@axe/config';
-
 import { AudioPlayer } from '@axe/core/file-storage/audio-player';
 import { AudioSharingSystem } from '@axe/core/file-storage/audio-sharing-system';
 import { AudioStorage } from '@axe/core/file-storage/audio-storage';
@@ -16,22 +14,22 @@ import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { ObjectSynchronizer } from '@axe/core/synchronize-object/object-synchronizer';
 import { EventSystem, Network } from '@axe/core/system';
+import { CutIn } from '@axe/cut-in';
+import { CutInLauncher } from '@axe/cut-in-launcher';
 import { DataSummarySetting } from '@axe/data-summary-setting';
 import { DiceBot } from '@axe/dice-bot';
 import { Jukebox } from '@axe/Jukebox';
-import { PeerCursor } from '@axe/peer-cursor';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { ReloadCheck } from '@axe/reload-check';
-import { TableSelecter } from '@axe/table-selecter';
 import { MarkDown } from '@axe/mark-down';
-
-import { CutIn } from '@axe/cut-in';
-import { CutInLauncher } from '@axe/cut-in-launcher';
+import { PeerCursor } from '@axe/peer-cursor';
+import { ReloadCheck } from '@axe/reload-check';
+import { PresetSound, SoundEffect } from '@axe/sound-effect';
+import { TableSelecter } from '@axe/table-selecter';
 import { Vote } from '@axe/vote';
-import { Alarm } from '@axe/alarm';
-
+import { NgSelectConfig } from '@ng-select/ng-select';
+import { AlarmWindowComponent } from 'component/alarm-window/alarm-window.component';
 import { ChatWindowComponent } from 'component/chat-window/chat-window.component';
 import { ContextMenuComponent } from 'component/context-menu/context-menu.component';
+import { CutInWindowComponent } from 'component/cut-in-window/cut-in-window.component';
 import { FileStorageComponent } from 'component/file-storage/file-storage.component';
 import { GameCharacterGeneratorComponent } from 'component/game-character-generator/game-character-generator.component';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
@@ -42,6 +40,7 @@ import { ModalComponent } from 'component/modal/modal.component';
 import { PeerMenuComponent } from 'component/peer-menu/peer-menu.component';
 import { TextViewComponent } from 'component/text-view/text-view.component';
 import { UIPanelComponent } from 'component/ui-panel/ui-panel.component';
+import { VoteWindowComponent } from 'component/vote-window/vote-window.component';
 import { AppConfig, AppConfigService } from 'service/app-config.service';
 import { ChatMessageService } from 'service/chat-message.service';
 import { ContextMenuService } from 'service/context-menu.service';
@@ -50,12 +49,9 @@ import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
 import { SaveDataService } from 'service/save-data.service';
 
-import { CutInWindowComponent } from 'component/cut-in-window/cut-in-window.component';
-import { VoteWindowComponent } from 'component/vote-window/vote-window.component';
-import { AlarmWindowComponent } from 'component/alarm-window/alarm-window.component';
 import { GameTableComponent } from './component/game-table/game-table.component';
-import { UIPanelComponent as UIPanelComponent_1 } from './component/ui-panel/ui-panel.component';
 import { NetworkIndicatorComponent } from './component/network-indicator/network-indicator.component';
+import { UIPanelComponent as UIPanelComponent_1 } from './component/ui-panel/ui-panel.component';
 
 @Component({
   selector: 'app-root',

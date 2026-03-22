@@ -1,23 +1,21 @@
-import { AfterViewInit, Component, EventEmitter, Input, Output, OnDestroy, OnInit, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { AfterViewInit, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Config } from '@axe/config';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
+import { DiceBot } from '@axe/dice-bot';
 import { FilterType, GameTable, GridType } from '@axe/game-table';
 import { TableSelecter } from '@axe/table-selecter';
-
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ImageService } from 'service/image.service';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
 import { SaveDataService } from 'service/save-data.service';
-
-import { DiceBot } from '@axe/dice-bot';
-import { Config } from '@axe/config';
-import { FormsModule } from '@angular/forms';
-import { NgClass } from '@angular/common';
-import { NgSelectComponent, NgOptionComponent } from '@ng-select/ng-select';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'game-table-setting',

@@ -1,5 +1,6 @@
 import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
+
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 import { AudioStorage, CatalogItem } from './audio-storage';
 import { BufferSharingTask } from './buffer-sharing-task';

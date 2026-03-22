@@ -1,5 +1,5 @@
-import { AuthToken, ChannelScope, nowInSec, SkyWayAuthToken, uuidV4 } from '@skyway-sdk/core';
 import { Logger } from '@axe/core/logger';
+import { AuthToken, ChannelScope, nowInSec, SkyWayAuthToken, uuidV4 } from '@skyway-sdk/core';
 
 export class SkyWayBackend {
   constructor(readonly url: string) {}

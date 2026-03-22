@@ -1,21 +1,20 @@
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { EventSystem } from '@axe/core/system';
+import { TabletopObject } from '@axe/tabletop-object';
 import { ContextMenuAction, ContextMenuService } from 'service/context-menu.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { TabletopObject } from '@axe/tabletop-object';
-
-import { EventSystem } from '@axe/core/system';
-import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'context-menu',
   templateUrl: './context-menu.component.html',

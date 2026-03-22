@@ -1,9 +1,10 @@
-import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { ObjectNode } from './core/synchronize-object/object-node';
-import { ObjectContext } from './core/synchronize-object/game-object';
-import { InnerXml } from './core/synchronize-object/object-serializer';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { Jukebox } from '@axe/Jukebox';
+
+import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
+import { ObjectContext } from './core/synchronize-object/game-object';
+import { ObjectNode } from './core/synchronize-object/object-node';
+import { InnerXml } from './core/synchronize-object/object-serializer';
 
 @SyncObject('config')
 export class Config extends ObjectNode implements InnerXml {

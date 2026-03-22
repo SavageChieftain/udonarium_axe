@@ -1,11 +1,9 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { EventSystem, Network } from '@axe/core/system';
 import { PeerContext } from '@axe/core/system/network/peer-context';
-
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'password-check',

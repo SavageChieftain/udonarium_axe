@@ -1,6 +1,6 @@
-import { Listener } from './listener';
-import { EventSystem } from './event-system';
 import { Event } from './event';
+import { EventSystem } from './event-system';
+import { Listener } from './listener';
 
 describe('Listener', () => {
   let key: object;

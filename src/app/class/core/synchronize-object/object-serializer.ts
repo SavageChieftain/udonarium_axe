@@ -1,7 +1,8 @@
-import { xml2element, encodeEntityReference, decodeEntityReference } from '@axe/core/system/util/xml-util';
+import { Logger } from '@axe/core/logger';
+import { decodeEntityReference, encodeEntityReference, xml2element } from '@axe/core/system/util/xml-util';
+
 import { Attributes } from './attributes';
 import { GameObject, ObjectContext } from './game-object';
-import { Logger } from '@axe/core/logger';
 import { ObjectFactory } from './object-factory';
 
 export interface XmlAttributes extends GameObject {

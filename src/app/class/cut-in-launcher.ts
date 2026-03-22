@@ -1,15 +1,12 @@
-import { AudioStorage } from './core/file-storage/audio-storage';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { Network } from '@axe/core/system';
+import { Jukebox } from '@axe/Jukebox';
 
+import { AudioStorage } from './core/file-storage/audio-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject, ObjectContext } from './core/synchronize-object/game-object';
 import { EventSystem } from './core/system';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-
-import { Jukebox } from '@axe/Jukebox';
 import { CutIn } from './cut-in';
-
-import { Network } from '@axe/core/system';
 
 @SyncObject('cut-in-launcher')
 export class CutInLauncher extends GameObject {

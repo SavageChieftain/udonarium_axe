@@ -1,29 +1,25 @@
+import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
   Component,
   ElementRef,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
-
+import { ChatTabList } from '@axe/chat-tab-list';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
 import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
 import { PeerCursor } from '@axe/peer-cursor';
-
+import { SafePipe } from 'pipe/safe.pipe';
 import { BatchService } from 'service/batch.service';
+import { ChatMessageService } from 'service/chat-message.service';
 import { CoordinateService } from 'service/coordinate.service';
 import { PointerCoordinate } from 'service/pointer-device.service';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { ChatTabList } from '@axe/chat-tab-list';
-
-import { ChatMessageService } from 'service/chat-message.service';
-import { NgClass } from '@angular/common';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'peer-cursor, [peer-cursor]',

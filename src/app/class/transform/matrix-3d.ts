@@ -1,5 +1,5 @@
-import { CSSNumber } from './css-number';
 import { Logger } from '../core/logger';
+import { CSSNumber } from './css-number';
 import { IPoint2D, IPoint3D } from './transform';
 
 export interface IMatrix3D {

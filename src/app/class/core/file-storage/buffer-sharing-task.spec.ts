@@ -1,5 +1,6 @@
-import { BufferSharingTask } from './buffer-sharing-task';
 import { EventSystem } from '@axe/core/system';
+
+import { BufferSharingTask } from './buffer-sharing-task';
 
 describe('BufferSharingTask', () => {
   beforeEach(() => {

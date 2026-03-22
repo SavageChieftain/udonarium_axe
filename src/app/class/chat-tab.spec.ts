@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+
 import { ChatTab } from './chat-tab';
 import { ObjectStore } from './core/synchronize-object/object-store';
 

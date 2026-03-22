@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { ReloadCheck } from './reload-check';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { ReloadCheck } from './reload-check';
 
 describe('ReloadCheck', () => {
   let store: ObjectStore;

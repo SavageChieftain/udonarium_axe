@@ -1,5 +1,5 @@
-import { RoomInfo } from './room-info';
 import { PeerContext } from './peer-context';
+import { RoomInfo } from './room-info';
 
 describe('RoomInfo', () => {
   describe('constructor', () => {

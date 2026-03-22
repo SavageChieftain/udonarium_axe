@@ -1,11 +1,9 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerCursor } from '@axe/peer-cursor';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Logger } from '@axe/core/logger';
-
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/core/system';
+import { PeerContext } from '@axe/core/system/network/peer-context';
+import { PeerCursor } from '@axe/peer-cursor';
 import { PasswordCheckComponent } from 'component/password-check/password-check.component';
 import { RoomSettingComponent } from 'component/room-setting/room-setting.component';
 import { ModalService } from 'service/modal.service';

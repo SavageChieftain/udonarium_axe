@@ -1,22 +1,18 @@
-import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
-
+import { DatePipe } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { PeerContext } from '@axe/core/system/network/peer-context';
 import { EventSystem, Network } from '@axe/core/system';
+import { PeerContext } from '@axe/core/system/network/peer-context';
 import { PeerCursor } from '@axe/peer-cursor';
-
+import { TableSelecter } from '@axe/table-selecter';
 import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
 import { LobbyComponent } from 'component/lobby/lobby.component';
 import { ReConnectComponent } from 'component/re-connect/re-connect.component';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
-
 import { TabletopActionService } from 'service/tabletop-action.service';
-import { TableSelecter } from '@axe/table-selecter';
-
-import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'peer-menu',

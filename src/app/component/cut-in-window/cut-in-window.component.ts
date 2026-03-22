@@ -2,29 +2,25 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  inject,
   NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
-import { AudioFile } from '@axe/core/file-storage/audio-file';
 import { YouTubePlayer } from '@angular/youtube-player';
+import { Config } from '@axe/config';
+import { AudioFile } from '@axe/core/file-storage/audio-file';
 import { AudioPlayer } from '@axe/core/file-storage/audio-player';
 import { AudioStorage } from '@axe/core/file-storage/audio-storage';
-
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { CutIn } from '@axe/cut-in';
 import { CutInLauncher } from '@axe/cut-in-launcher';
-
 import { Jukebox } from '@axe/Jukebox';
-import { Config } from '@axe/config';
-
 import { SafePipe } from 'pipe/safe.pipe';
+import { ModalService } from 'service/modal.service';
+import { PanelService } from 'service/panel.service';
 
 @Component({
   selector: 'app-cut-in-window',

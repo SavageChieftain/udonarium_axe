@@ -1,9 +1,9 @@
 //本家 PR#92より
+import { ImageFile } from './core/file-storage/image-file';
+import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { ImageFile } from './core/file-storage/image-file';
-import { ImageStorage } from './core/file-storage/image-storage';
 
 @SyncObject('image-tag')
 export class ImageTag extends ObjectNode {

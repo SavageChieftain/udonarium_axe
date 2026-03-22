@@ -1,5 +1,6 @@
 import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
+
 import { GameObject, ObjectContext } from './game-object';
 import { markForChanged } from './object-event-extension';
 import { ObjectFactory } from './object-factory';

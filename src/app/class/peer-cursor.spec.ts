@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { PeerCursor } from './peer-cursor';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { Network } from './core/system';
+import { PeerCursor } from './peer-cursor';
 
 describe('PeerCursor', () => {
   let store: ObjectStore;

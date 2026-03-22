@@ -2,25 +2,24 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Input,
   NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
-
 import { EventSystem } from '@axe/core/system';
 import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
+import { PresetSound, SoundEffect } from '@axe/sound-effect';
+import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
+import { MovableOption } from 'directive/movable.directive';
+import { MovableDirective } from 'directive/movable.directive';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
+import { CoordinateService } from 'service/coordinate.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { MovableOption } from 'directive/movable.directive';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
 import { TabletopActionService } from 'service/tabletop-action.service';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { MovableDirective } from 'directive/movable.directive';
 
 @Component({
   selector: 'game-table-scratch-mask',

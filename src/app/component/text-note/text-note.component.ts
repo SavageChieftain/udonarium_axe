@@ -1,3 +1,4 @@
+import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -5,13 +6,14 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ObjectNode } from '@axe/core/synchronize-object/object-node';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
@@ -21,15 +23,13 @@ import { TextNote } from '@axe/text-note';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
 import { InputHandler } from 'directive/input-handler';
 import { MovableOption } from 'directive/movable.directive';
+import { MovableDirective } from 'directive/movable.directive';
 import { RotableOption } from 'directive/rotable.directive';
+import { RotableDirective } from 'directive/rotable.directive';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { NgClass, NgStyle } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'text-note',

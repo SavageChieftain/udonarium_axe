@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { ImageTagList } from './image-tag-list';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { ImageTagList } from './image-tag-list';
 
 describe('ImageTagList', () => {
   let store: ObjectStore;

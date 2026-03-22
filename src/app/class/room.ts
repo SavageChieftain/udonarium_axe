@@ -1,23 +1,21 @@
+import { ReloadCheck } from '@axe/reload-check';
+
 import { Card } from './card';
 import { CardStack } from './card-stack';
 import { SyncObject } from './core/synchronize-object/decorator';
 import { GameObject } from './core/synchronize-object/game-object';
 import { InnerXml, ObjectSerializer } from './core/synchronize-object/object-serializer';
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { CutIn } from './cut-in';
 import { DiceSymbol } from './dice-symbol';
+import { DiceTable } from './dice-table';
 import { GameCharacter } from './game-character';
 import { GameTable } from './game-table';
 import { GameTableMask } from './game-table-mask';
 import { GameTableScratchMask } from './game-table-scratch-mask';
-
 import { RangeArea } from './range';
 import { Terrain } from './terrain';
 import { TextNote } from './text-note';
-
-import { CutIn } from './cut-in';
-import { DiceTable } from './dice-table';
-
-import { ReloadCheck } from '@axe/reload-check';
 
 @SyncObject('room')
 export class Room extends GameObject implements InnerXml {

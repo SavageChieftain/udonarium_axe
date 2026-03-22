@@ -1,4 +1,4 @@
-import { Injectable, NgZone, inject } from '@angular/core';
+import { inject, Injectable, NgZone } from '@angular/core';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
 
 type BatchTask = () => void;

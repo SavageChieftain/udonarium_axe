@@ -1,6 +1,7 @@
 import { Logger } from '@axe/core/logger';
 import { EventSystem, Network } from '@axe/core/system';
 import { generateUuid } from '@axe/core/system/util/uuid';
+
 import { BufferSharingTask } from './buffer-sharing-task';
 import * as FileReaderUtil from './file-reader-util';
 import { ImageContext, ImageFile, ImageState } from './image-file';

@@ -1,3 +1,4 @@
+import { NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -5,35 +6,34 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
-import { GameObject } from '@axe/core/synchronize-object/game-object';
 import { ImageFile } from '@axe/core/file-storage/image-file';
+import { GameObject } from '@axe/core/synchronize-object/game-object';
 import { ObjectNode } from '@axe/core/synchronize-object/object-node';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
 import { GameCharacter } from '@axe/game-character';
 import { PresetSound, SoundEffect } from '@axe/sound-effect';
 import { ChatPaletteComponent } from 'component/chat-palette/chat-palette.component';
+import { GameCharacterBuffViewComponent } from 'component/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
+import { GameDataElementBuffComponent } from 'component/game-data-element-buff/game-data-element-buff.component';
+import { RemoteControllerComponent } from 'component/remote-controller/remote-controller.component';
 import { InputHandler } from 'directive/input-handler';
 import { MovableOption } from 'directive/movable.directive';
+import { MovableDirective } from 'directive/movable.directive';
 import { RotableOption } from 'directive/rotable.directive';
+import { RotableDirective } from 'directive/rotable.directive';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { RemoteControllerComponent } from 'component/remote-controller/remote-controller.component';
-import { GameCharacterBuffViewComponent } from 'component/game-character-buff-view/game-character-buff-view.component';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { NgStyle } from '@angular/common';
-import { GameDataElementBuffComponent } from 'component/game-data-element-buff/game-data-element-buff.component';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'game-character',

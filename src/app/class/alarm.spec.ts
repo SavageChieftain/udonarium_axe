@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+
 import { Alarm } from './alarm';
-import { ObjectStore } from './core/synchronize-object/object-store';
-import { PeerCursor } from './peer-cursor';
-import { EventSystem } from './core/system';
 import { AudioPlayer } from './core/file-storage/audio-player';
 import { AudioStorage } from './core/file-storage/audio-storage';
+import { ObjectStore } from './core/synchronize-object/object-store';
+import { EventSystem } from './core/system';
+import { PeerCursor } from './peer-cursor';
 
 describe('Alarm', () => {
   let store: ObjectStore;

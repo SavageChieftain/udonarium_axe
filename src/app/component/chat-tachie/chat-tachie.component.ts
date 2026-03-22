@@ -1,27 +1,25 @@
+import { NgStyle } from '@angular/common';
 import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
-  ChangeDetectorRef,
+  inject,
   Input,
   OnDestroy,
-  AfterViewInit,
-  AfterViewChecked,
   ViewChild,
-  inject,
 } from '@angular/core';
-
+import { FormsModule } from '@angular/forms';
 import { ChatTab } from '@axe/chat-tab';
+import { ChatTabList } from '@axe/chat-tab-list';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { ChatMessageSettingComponent } from 'component/chat-message-setting/chat-message-setting.component';
+import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from 'component/chat-tachie-img/chat-tachie-img.component';
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { ChatTabList } from '@axe/chat-tab-list';
-import { FormsModule } from '@angular/forms';
-import { NgStyle } from '@angular/common';
-import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from 'component/chat-tachie-img/chat-tachie-img.component';
 
 @Component({
   selector: 'chat-tachie',

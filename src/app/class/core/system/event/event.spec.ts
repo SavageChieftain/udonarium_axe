@@ -1,5 +1,6 @@
-import { Event } from './event';
 import { Network } from '@axe/core/system/network/network';
+
+import { Event } from './event';
 
 describe('Event', () => {
   describe('constructor', () => {

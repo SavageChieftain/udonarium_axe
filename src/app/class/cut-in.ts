@@ -1,12 +1,11 @@
+import { ImageFile } from '@axe/core/file-storage/image-file';
+import { ImageStorage } from '@axe/core/file-storage/image-storage';
+
 import { AudioFile } from './core/file-storage/audio-file';
 import { AudioPlayer } from './core/file-storage/audio-player';
 import { AudioStorage } from './core/file-storage/audio-storage';
-
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject } from './core/synchronize-object/game-object';
-
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
 
 @SyncObject('cut-in')
 export class CutIn extends GameObject {

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { MarkDown } from './mark-down';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { MarkDown } from './mark-down';
 
 describe('MarkDown', () => {
   let store: ObjectStore;

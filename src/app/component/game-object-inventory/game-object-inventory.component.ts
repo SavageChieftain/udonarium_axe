@@ -1,13 +1,14 @@
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
-
+import { FormsModule } from '@angular/forms';
 import { GameObject } from '@axe/core/synchronize-object/game-object';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
@@ -16,18 +17,14 @@ import { SortOrder } from '@axe/data-summary-setting';
 import { GameCharacter } from '@axe/game-character';
 import { PresetSound, SoundEffect } from '@axe/sound-effect';
 import { TabletopObject } from '@axe/tabletop-object';
-
 import { ChatPaletteComponent } from 'component/chat-palette/chat-palette.component';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { ContextMenuAction, ContextMenuService, ContextMenuSeparator } from 'service/context-menu.service';
+import { RemoteControllerComponent } from 'component/remote-controller/remote-controller.component';
+import { SafePipe } from 'pipe/safe.pipe';
+import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { RemoteControllerComponent } from 'component/remote-controller/remote-controller.component';
-import { NgTemplateOutlet, NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'game-object-inventory',

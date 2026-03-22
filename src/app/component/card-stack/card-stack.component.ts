@@ -1,3 +1,4 @@
+import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -5,11 +6,11 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
 import { Card } from '@axe/card';
 import { CardStack } from '@axe/card-stack';
@@ -23,15 +24,14 @@ import { CardStackListComponent } from 'component/card-stack-list/card-stack-lis
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
 import { InputHandler } from 'directive/input-handler';
 import { MovableOption } from 'directive/movable.directive';
+import { MovableDirective } from 'directive/movable.directive';
 import { RotableOption } from 'directive/rotable.directive';
+import { RotableDirective } from 'directive/rotable.directive';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { ImageService } from 'service/image.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { MovableDirective } from 'directive/movable.directive';
-import { NgClass, NgStyle } from '@angular/common';
-import { RotableDirective } from 'directive/rotable.directive';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'card-stack',

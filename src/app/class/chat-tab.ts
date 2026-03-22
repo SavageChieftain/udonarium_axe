@@ -1,12 +1,11 @@
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { Network } from '@axe/core/system';
+
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from './chat-message';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
 import { InnerXml, ObjectSerializer } from './core/synchronize-object/object-serializer';
 import { EventSystem } from './core/system';
-
-import { Network } from '@axe/core/system';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { CutInLauncher } from './cut-in-launcher';
 
 @SyncObject('chat-tab')

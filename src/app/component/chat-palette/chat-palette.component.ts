@@ -1,5 +1,6 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import GameSystemClass from 'bcdice/lib/game_system';
+import { Component, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ChatMessageTargetContext } from '@axe/chat-message';
 import { ChatPalette, PaletteIndex } from '@axe/chat-palette';
 import { ChatTab } from '@axe/chat-tab';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
@@ -7,17 +8,14 @@ import { EventSystem } from '@axe/core/system';
 import { DiceBot } from '@axe/dice-bot';
 import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
-import { ChatInputComponent } from 'component/chat-input/chat-input.component';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelService } from 'service/panel.service';
-
-import { ContextMenuService } from 'service/context-menu.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { ChatMessageTargetContext } from '@axe/chat-message';
-import { FormsModule } from '@angular/forms';
+import GameSystemClass from 'bcdice/lib/game_system';
 import { BadgeComponent } from 'component/badge/badge.component';
+import { ChatInputComponent } from 'component/chat-input/chat-input.component';
 import { ChatInputComponent as ChatInputComponent_1 } from 'component/chat-input/chat-input.component';
+import { ChatMessageService } from 'service/chat-message.service';
+import { ContextMenuService } from 'service/context-menu.service';
+import { PanelService } from 'service/panel.service';
+import { PointerDeviceService } from 'service/pointer-device.service';
 
 @Component({
   selector: 'chat-palette',

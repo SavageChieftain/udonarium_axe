@@ -3,14 +3,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Input,
   OnDestroy,
-  inject,
 } from '@angular/core';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
 import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
+import { ModalService } from 'service/modal.service';
+import { PanelService } from 'service/panel.service';
 
 @Component({
   selector: 'chat-color-setting',

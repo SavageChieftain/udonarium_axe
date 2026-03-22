@@ -6,12 +6,11 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-
+import { GameObject } from '@axe/core/synchronize-object/game-object';
 // ──────────────────────────────────────────────────────────────────────────────
 // 1. ObjectStore._garbageCollection — GCロジックのバグ修正テスト
 // ──────────────────────────────────────────────────────────────────────────────
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { GameObject } from '@axe/core/synchronize-object/game-object';
 
 describe('ObjectStore GC修正', () => {
   let store: ObjectStore;

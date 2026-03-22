@@ -1,5 +1,5 @@
-import { ImageStorage } from './image-storage';
 import { ImageFile } from './image-file';
+import { ImageStorage } from './image-storage';
 
 describe('ImageStorage', () => {
   let storage: ImageStorage;

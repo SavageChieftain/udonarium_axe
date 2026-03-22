@@ -1,5 +1,4 @@
-import { Injectable, inject } from '@angular/core';
-
+import { inject, Injectable } from '@angular/core';
 import { EventSystem } from '@axe/core/system';
 import { LoggerService } from 'service/logger.service';
 

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Card } from '@axe/card';
 import { CardStack } from '@axe/card-stack';
 import { ChatTab } from '@axe/chat-tab';
@@ -12,10 +12,10 @@ import { GameTable } from '@axe/game-table';
 import { GameTableMask } from '@axe/game-table-mask';
 import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
 import { PeerCursor } from '@axe/peer-cursor';
+import { RangeArea } from '@axe/range';
 import { PresetSound, SoundEffect } from '@axe/sound-effect';
 import { TableSelecter } from '@axe/table-selecter';
 import { TabletopObject } from '@axe/tabletop-object';
-import { RangeArea } from '@axe/range';
 import { Terrain } from '@axe/terrain';
 import { TextNote } from '@axe/text-note';
 

@@ -1,5 +1,5 @@
-import { EventSystem } from './event-system';
 import { Event } from './event';
+import { EventSystem } from './event-system';
 
 describe('EventSystem', () => {
   let key: object;

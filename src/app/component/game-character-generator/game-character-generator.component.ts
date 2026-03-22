@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewContainerRef, inject } from '@angular/core';
-
+import { AfterViewInit, Component, inject, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
 import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
@@ -7,12 +7,10 @@ import { EventSystem } from '@axe/core/system';
 import { GameCharacter } from '@axe/game-character';
 import { GameTableMask } from '@axe/game-table-mask';
 import { TableSelecter } from '@axe/table-selecter';
-
 import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'game-character-generator',

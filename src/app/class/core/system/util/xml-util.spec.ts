@@ -1,4 +1,4 @@
-import { xml2element, encodeEntityReference, decodeEntityReference } from './xml-util';
+import { decodeEntityReference, encodeEntityReference, xml2element } from './xml-util';
 
 describe('XmlUtil', () => {
   describe('encodeEntityReference()', () => {

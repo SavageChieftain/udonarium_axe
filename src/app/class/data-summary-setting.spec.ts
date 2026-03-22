@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { DataSummarySetting, SortOrder } from './data-summary-setting';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { DataSummarySetting, SortOrder } from './data-summary-setting';
 
 describe('DataSummarySetting', () => {
   let store: ObjectStore;

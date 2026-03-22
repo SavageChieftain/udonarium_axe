@@ -1,11 +1,11 @@
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { Network } from '@axe/core/system';
+import { ReloadCheck } from '@axe/reload-check';
+
 import { ChatTab } from './chat-tab';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
 import { InnerXml } from './core/synchronize-object/object-serializer';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Network } from '@axe/core/system';
-import { ReloadCheck } from '@axe/reload-check';
 
 @SyncObject('chat-tab-list')
 export class ChatTabList extends ObjectNode implements InnerXml {

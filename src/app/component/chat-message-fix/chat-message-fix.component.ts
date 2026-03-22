@@ -2,26 +2,24 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
   Output,
   ViewChild,
-  inject,
 } from '@angular/core';
-import GameSystemClass from 'bcdice/lib/game_system';
+import { FormsModule } from '@angular/forms';
 import { ChatMessage } from '@axe/chat-message';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { DiceBot } from '@axe/dice-bot';
 import { PeerCursor } from '@axe/peer-cursor';
+import GameSystemClass from 'bcdice/lib/game_system';
 import { BatchService } from 'service/batch.service';
-
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'chat-message-fix',

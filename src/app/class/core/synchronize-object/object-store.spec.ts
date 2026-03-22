@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { EventSystem } from '@axe/core/system';
+
 import { GameObject } from './game-object';
 import { ObjectStore } from './object-store';
 

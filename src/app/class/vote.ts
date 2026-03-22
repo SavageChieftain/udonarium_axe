@@ -1,8 +1,8 @@
+import { PeerCursor } from '@axe/peer-cursor';
+
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject, ObjectContext } from './core/synchronize-object/game-object';
 import { EventSystem } from './core/system';
-
-import { PeerCursor } from '@axe/peer-cursor';
 
 export interface VoteContext {
   peerId: string;

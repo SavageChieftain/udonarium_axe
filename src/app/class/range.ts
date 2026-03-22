@@ -1,9 +1,10 @@
-import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { GameCharacter } from '@axe/game-character';
+
+import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
+import { generateUuid } from './core/system/util/uuid';
 import { DataElement } from './data-element';
 import { TabletopObject } from './tabletop-object';
-import { generateUuid } from './core/system/util/uuid';
 
 @SyncObject('range')
 export class RangeArea extends TabletopObject {

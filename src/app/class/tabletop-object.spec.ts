@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { TabletopObject } from './tabletop-object';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { TabletopObject } from './tabletop-object';
 
 describe('TabletopObject', () => {
   let store: ObjectStore;

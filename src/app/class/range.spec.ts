@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { RangeArea } from './range';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { RangeArea } from './range';
 
 describe('RangeArea', () => {
   let store: ObjectStore;

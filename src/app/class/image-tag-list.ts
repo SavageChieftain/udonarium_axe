@@ -1,10 +1,10 @@
 //entyu_2 #92
-import { ImageTag } from './image-tag';
+import { ImageFile } from './core/file-storage/image-file';
 import { SyncObject } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
 import { InnerXml } from './core/synchronize-object/object-serializer';
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { ImageFile } from './core/file-storage/image-file';
+import { ImageTag } from './image-tag';
 
 @SyncObject('image-tag-list')
 export class ImageTagList extends ObjectNode implements InnerXml {

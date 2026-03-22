@@ -1,7 +1,7 @@
 import { Attributes } from './core/synchronize-object/attributes';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { ObjectNode } from './core/synchronize-object/object-node';
 import { GameObject } from './core/synchronize-object/game-object';
+import { ObjectNode } from './core/synchronize-object/object-node';
 
 @SyncObject('data')
 export class DataElement extends ObjectNode {

@@ -1,4 +1,5 @@
 import { generateUuid } from '@axe/core/system/util/uuid';
+
 import { ObjectFactory } from './object-factory';
 import { ObjectSerializer } from './object-serializer';
 import { ObjectStore } from './object-store';

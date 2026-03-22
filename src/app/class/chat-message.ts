@@ -1,12 +1,12 @@
+import { ChatTabList } from '@axe/chat-tab-list';
+import { GameCharacter } from '@axe/game-character';
+
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
-import { Network } from './core/system';
-import { ChatTabList } from '@axe/chat-tab-list';
 import { ObjectStore } from './core/synchronize-object/object-store';
-
-import { GameCharacter } from '@axe/game-character';
+import { Network } from './core/system';
 
 export interface ChatMessageTargetContext {
   text: string;

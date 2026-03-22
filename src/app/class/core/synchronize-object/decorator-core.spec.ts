@@ -1,8 +1,8 @@
-import { defineSyncObject, defineSyncVariable, defineSyncAttribute } from './decorator-core';
-import { ObjectFactory } from './object-factory';
+import { defineSyncAttribute, defineSyncObject, defineSyncVariable } from './decorator-core';
 import { GameObject } from './game-object';
-import { ObjectStore } from './object-store';
+import { ObjectFactory } from './object-factory';
 import { ObjectNode } from './object-node';
+import { ObjectStore } from './object-store';
 
 describe('decorator-core', () => {
   let store: ObjectStore;

@@ -1,3 +1,6 @@
+import { Logger as AppLogger } from '@axe/core/logger';
+import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
+import { sha256Base64Url } from '@axe/core/system/util/crypto-util';
 import {
   Channel,
   LocalDataStream,
@@ -10,9 +13,7 @@ import {
   SkyWayStreamFactory,
   Subscription,
 } from '@skyway-sdk/core';
-import { sha256Base64Url } from '@axe/core/system/util/crypto-util';
-import { Logger as AppLogger } from '@axe/core/logger';
-import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
+
 import { SkyWayBackend } from './skyway-backend';
 
 export class SkyWayFacade {

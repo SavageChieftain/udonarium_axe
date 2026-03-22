@@ -1,14 +1,13 @@
-import { ChatPalette, BuffPalette } from './chat-palette';
+import { generateUuid } from '@axe/core/system/util/uuid';
 
+import { BuffPalette, ChatPalette } from './chat-palette';
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { DataElement } from './data-element';
-import { TabletopObject } from './tabletop-object';
-import { generateUuid } from '@axe/core/system/util/uuid';
-
 //import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { DataElement } from './data-element';
+import { TabletopObject } from './tabletop-object';
 
 @SyncObject('character')
 export class GameCharacter extends TabletopObject {

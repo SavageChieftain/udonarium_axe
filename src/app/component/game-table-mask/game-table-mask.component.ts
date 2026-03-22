@@ -1,3 +1,4 @@
+import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -5,33 +6,30 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   NgZone,
   OnChanges,
   OnDestroy,
-  inject,
 } from '@angular/core';
-
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { EventSystem, Network } from '@axe/core/system';
-
+import { generateUuid } from '@axe/core/system/util/uuid';
 import { GameTableMask } from '@axe/game-table-mask';
 import { PresetSound, SoundEffect } from '@axe/sound-effect';
+import { TableSelecter } from '@axe/table-selecter';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
 import { InputHandler } from 'directive/input-handler';
 import { MovableOption } from 'directive/movable.directive';
-import { ModalService } from 'service/modal.service';
+import { MovableDirective } from 'directive/movable.directive';
+import { xor } from 'lodash';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { CoordinateService } from 'service/coordinate.service';
+import { ModalService } from 'service/modal.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-import { generateUuid } from '@axe/core/system/util/uuid';
-import { TableSelecter } from '@axe/table-selecter';
 import { TabletopActionService } from 'service/tabletop-action.service';
-import { xor } from 'lodash';
-import { MovableDirective } from 'directive/movable.directive';
-import { NgClass, NgStyle } from '@angular/common';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'game-table-mask',

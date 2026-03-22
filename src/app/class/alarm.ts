@@ -1,12 +1,11 @@
-import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { GameObject, ObjectContext } from './core/synchronize-object/game-object';
-import { EventSystem } from './core/system';
-
 import { PeerCursor } from '@axe/peer-cursor';
 import { PresetSound } from '@axe/sound-effect';
 
 import { AudioPlayer } from './core/file-storage/audio-player';
 import { AudioStorage } from './core/file-storage/audio-storage';
+import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
+import { GameObject, ObjectContext } from './core/synchronize-object/game-object';
+import { EventSystem } from './core/system';
 
 export interface AlarmContext {
   peerId: string;

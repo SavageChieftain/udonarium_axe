@@ -1,11 +1,12 @@
+import { Config } from '@axe/config';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+
 import { AudioFile } from './core/file-storage/audio-file';
 import { AudioPlayer } from './core/file-storage/audio-player';
 import { AudioStorage } from './core/file-storage/audio-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject, ObjectContext } from './core/synchronize-object/game-object';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from './core/system';
-import { Config } from '@axe/config';
 
 @SyncObject('jukebox')
 export class Jukebox extends GameObject {

@@ -1,5 +1,6 @@
 import { EventSystem } from '@axe/core/system';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
+
 import { GameObject, ObjectContext } from './game-object';
 import { Type } from './object-factory';
 

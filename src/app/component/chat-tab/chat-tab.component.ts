@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   NgZone,
   OnChanges,
@@ -13,9 +14,7 @@ import {
   OnInit,
   Output,
   ViewChild,
-  inject,
 } from '@angular/core';
-
 import { ChatMessage, ChatMessageContext } from '@axe/chat-message';
 import { ChatTab } from '@axe/chat-tab';
 import { ChatTabList } from '@axe/chat-tab-list';
@@ -23,9 +22,8 @@ import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
 import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
-
-import { PanelService } from 'service/panel.service';
 import { ChatMessageComponent } from 'component/chat-message/chat-message.component';
+import { PanelService } from 'service/panel.service';
 
 type ScrollPosition = { top: number; bottom: number; clientHeight: number; scrollHeight: number };
 

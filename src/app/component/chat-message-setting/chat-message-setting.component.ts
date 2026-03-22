@@ -3,18 +3,18 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Input,
   OnDestroy,
-  inject,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
+import { FormsModule } from '@angular/forms';
 import { ChatTabList } from '@axe/chat-tab-list';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { FormsModule } from '@angular/forms';
+import { EventSystem } from '@axe/core/system';
+import { GameCharacter } from '@axe/game-character';
+import { PeerCursor } from '@axe/peer-cursor';
+import { ModalService } from 'service/modal.service';
+import { PanelService } from 'service/panel.service';
 
 @Component({
   selector: 'chat-message-setting',

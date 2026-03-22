@@ -3,23 +3,21 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Input,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-import { GameCharacter } from '@axe/game-character';
-import { DataElement } from '@axe/data-element';
-
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-
+import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { NgSelectComponent, NgOptionComponent } from '@ng-select/ng-select';
-import { FormsModule } from '@angular/forms';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { DataElement } from '@axe/data-element';
+import { GameCharacter } from '@axe/game-character';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import { SafePipe } from 'pipe/safe.pipe';
+import { ModalService } from 'service/modal.service';
+import { PanelService } from 'service/panel.service';
 
 @Component({
   selector: 'import-character-img',

@@ -1,31 +1,28 @@
-import { ElementRef, Input, ViewChild, inject } from '@angular/core';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import GameSystemClass from 'bcdice/lib/game_system';
-
+import { FormsModule } from '@angular/forms';
 import { ChatPalette } from '@axe/chat-palette';
 import { ChatTab } from '@axe/chat-tab';
+import { GameObject } from '@axe/core/synchronize-object/game-object';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
+import { DataElement } from '@axe/data-element';
+import { SortOrder } from '@axe/data-summary-setting';
 import { DiceBot } from '@axe/dice-bot';
 import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
-import { ControllerInputComponent } from 'component/controller-input/controller-input.component';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-
-import { GameObject } from '@axe/core/synchronize-object/game-object';
-import { DataElement } from '@axe/data-element';
 import { TabletopObject } from '@axe/tabletop-object';
-import { ContextMenuService } from 'service/context-menu.service';
-import { SortOrder } from '@axe/data-summary-setting';
-import { GameObjectInventoryService } from 'service/game-object-inventory.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { GameCharacterBuffViewComponent } from 'component/game-character-buff-view/game-character-buff-view.component';
-import { FormsModule } from '@angular/forms';
+import GameSystemClass from 'bcdice/lib/game_system';
+import { ControllerInputComponent } from 'component/controller-input/controller-input.component';
 import { ControllerInputComponent as ControllerInputComponent_1 } from 'component/controller-input/controller-input.component';
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { GameCharacterBuffViewComponent } from 'component/game-character-buff-view/game-character-buff-view.component';
 import { SafePipe } from 'pipe/safe.pipe';
+import { ChatMessageService } from 'service/chat-message.service';
+import { ContextMenuService } from 'service/context-menu.service';
+import { GameObjectInventoryService } from 'service/game-object-inventory.service';
+import { PanelOption, PanelService } from 'service/panel.service';
+import { PointerDeviceService } from 'service/pointer-device.service';
 
 class RemoteControllerSelect {
   name!: string;

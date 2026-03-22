@@ -1,7 +1,8 @@
-import { markForChanged, markForChildrenChanged } from './object-event-extension';
-import { ObjectStore } from './object-store';
-import { ObjectNode } from './object-node';
 import { EventSystem } from '@axe/core/system/event/event-system';
+
+import { markForChanged, markForChildrenChanged } from './object-event-extension';
+import { ObjectNode } from './object-node';
+import { ObjectStore } from './object-store';
 
 describe('object-event-extension', () => {
   let store: ObjectStore;

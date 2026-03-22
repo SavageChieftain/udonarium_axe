@@ -2,11 +2,11 @@ import {
   AfterViewInit,
   ComponentRef,
   Directive,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   ViewContainerRef,
-  inject,
 } from '@angular/core';
 import { EventSystem } from '@axe/core/system';
 import { TabletopObject } from '@axe/tabletop-object';

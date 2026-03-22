@@ -1,4 +1,4 @@
-import { EventSystem, Network, Event, Listener } from './index';
+import { Event, EventSystem, Listener, Network } from './index';
 
 describe('system/index re-exports', () => {
   it('EventSystemシングルトンがエクスポートされている', () => {

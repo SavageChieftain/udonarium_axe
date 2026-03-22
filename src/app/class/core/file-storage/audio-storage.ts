@@ -1,5 +1,6 @@
 import { EventSystem } from '@axe/core/system';
 import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
+
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 
 export type CatalogItem = {

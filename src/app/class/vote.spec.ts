@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { Vote } from './vote';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { PeerCursor } from './peer-cursor';
 import { EventSystem } from './core/system';
+import { PeerCursor } from './peer-cursor';
+import { Vote } from './vote';
 
 describe('Vote', () => {
   let store: ObjectStore;

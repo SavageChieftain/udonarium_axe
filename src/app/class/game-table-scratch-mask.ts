@@ -1,6 +1,6 @@
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { DataElement } from './data-element';
 import { Network } from './core/system';
+import { DataElement } from './data-element';
 import { PeerCursor } from './peer-cursor';
 import { TabletopObject } from './tabletop-object';
 

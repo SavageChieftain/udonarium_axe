@@ -1,6 +1,6 @@
 import { AudioFile } from '@axe/core/file-storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
-import { LogLevel, Logger } from '@axe/core/logger';
+import { Logger, LogLevel } from '@axe/core/logger';
 
 // ─── AudioContext mock ────────────────────────────────────────────────────────
 

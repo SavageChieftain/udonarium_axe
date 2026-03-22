@@ -3,11 +3,11 @@ import {
   Directive,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   Output,
-  inject,
 } from '@angular/core';
 import { CSSNumber } from '@axe/transform/css-number';
 import { PointerCoordinate } from 'service/pointer-device.service';

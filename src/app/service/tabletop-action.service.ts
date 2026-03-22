@@ -4,19 +4,18 @@ import { CardStack } from '@axe/card-stack';
 import { ImageContext, ImageFile } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
 import { EventSystem } from '@axe/core/system';
+import { DataElement } from '@axe/data-element';
 import { DiceSymbol, DiceType } from '@axe/dice-symbol';
 import { GameCharacter } from '@axe/game-character';
 import { GameTable } from '@axe/game-table';
 import { GameTableMask } from '@axe/game-table-mask';
 import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
+import { ImageTag } from '@axe/image-tag';
+import { RangeArea } from '@axe/range';
 import { PresetSound, SoundEffect } from '@axe/sound-effect';
 import { TableSelecter } from '@axe/table-selecter';
-import { RangeArea } from '@axe/range';
 import { Terrain } from '@axe/terrain';
 import { TextNote } from '@axe/text-note';
-
-import { ImageTag } from '@axe/image-tag';
-import { DataElement } from '@axe/data-element';
 
 import { ContextMenuAction } from './context-menu.service';
 import { PointerCoordinate } from './pointer-device.service';

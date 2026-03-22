@@ -1,28 +1,25 @@
+import { NgStyle } from '@angular/common';
 import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
-  ChangeDetectorRef,
+  inject,
   Input,
   OnDestroy,
-  AfterViewInit,
-  AfterViewChecked,
   ViewChild,
-  inject,
 } from '@angular/core';
-
 import { ChatTab } from '@axe/chat-tab';
+import { ChatTabList } from '@axe/chat-tab-list';
+import { ImageFile } from '@axe/core/file-storage/image-file';
+import { ImageStorage } from '@axe/core/file-storage/image-storage';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-
-import { ChatTabList } from '@axe/chat-tab-list';
-import { NgStyle } from '@angular/common';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'chat-tachie-img',

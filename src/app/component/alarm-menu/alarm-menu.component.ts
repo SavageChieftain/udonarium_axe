@@ -1,18 +1,15 @@
-import { Component, OnDestroy, OnInit, AfterViewInit, inject } from '@angular/core';
-
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { AfterViewInit, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Alarm } from '@axe/alarm';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
-
+import { PeerCursor } from '@axe/peer-cursor';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ChatMessageService } from 'service/chat-message.service';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
 import { SaveDataService } from 'service/save-data.service';
-import { PeerCursor } from '@axe/peer-cursor';
-
-import { Alarm } from '@axe/alarm';
-import { NgTemplateOutlet, NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'app-alarm-menu',

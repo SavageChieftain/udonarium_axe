@@ -1,6 +1,6 @@
 import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
-import { ChatTab } from '@axe/chat-tab';
 import { CardStack } from '@axe/card-stack';
+import { ChatTab } from '@axe/chat-tab';
 
 declare const Type: FunctionConstructor;
 interface Type<T> {

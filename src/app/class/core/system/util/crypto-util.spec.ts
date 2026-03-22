@@ -1,4 +1,4 @@
-import { sha256, sha256Hex, sha256Base64Url } from './crypto-util';
+import { sha256, sha256Base64Url, sha256Hex } from './crypto-util';
 
 describe('CryptoUtil', () => {
   describe('sha256()', () => {

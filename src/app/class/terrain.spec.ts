@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { Terrain, TerrainViewState, SlopeDirection } from './terrain';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { SlopeDirection, Terrain, TerrainViewState } from './terrain';
 
 describe('Terrain', () => {
   let store: ObjectStore;

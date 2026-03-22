@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { Vote } from '@axe/vote';
 
 import { VoteWindowComponent } from './vote-window.component';
-import { Vote } from '@axe/vote';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 
 describe('VoteWindowComponent', () => {
   let component: VoteWindowComponent;

@@ -1,6 +1,6 @@
-import { Logger } from '@axe/core/logger';
 import { AudioFile, AudioState } from '@axe/core/file-storage/audio-file';
 import * as FileReaderUtil from '@axe/core/file-storage/file-reader-util';
+import { Logger } from '@axe/core/logger';
 
 export enum VolumeType {
   MASTER,

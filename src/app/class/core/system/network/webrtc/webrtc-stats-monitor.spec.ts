@@ -1,4 +1,4 @@
-import { WebRTCStatsMonitor, WebRTCConnection } from './webrtc-stats-monitor';
+import { WebRTCConnection, WebRTCStatsMonitor } from './webrtc-stats-monitor';
 
 describe('WebRTCStatsMonitor', () => {
   let mockConnection: WebRTCConnection;

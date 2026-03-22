@@ -1,6 +1,7 @@
-import { DataElement } from '@axe/data-element';
-import { SyncObject } from './core/synchronize-object/decorator';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { DataElement } from '@axe/data-element';
+
+import { SyncObject } from './core/synchronize-object/decorator';
 import { GameObject } from './core/synchronize-object/game-object';
 
 @SyncObject('markdown')

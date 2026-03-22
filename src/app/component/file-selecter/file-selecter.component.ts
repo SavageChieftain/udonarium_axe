@@ -3,20 +3,19 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Input,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
 import { EventSystem, Network } from '@axe/core/system';
+import { ImageTag } from '@axe/image-tag';
+import { SafePipe } from 'pipe/safe.pipe'; //本家PR #92より
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
-
-import { ImageTag } from '@axe/image-tag';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe'; //本家PR #92より
 
 @Component({
   selector: 'file-selector',

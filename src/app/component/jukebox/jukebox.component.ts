@@ -1,21 +1,18 @@
-import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
-
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Config } from '@axe/config';
 import { AudioFile } from '@axe/core/file-storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
 import { AudioStorage } from '@axe/core/file-storage/audio-storage';
 import { FileArchiver } from '@axe/core/file-storage/file-archiver';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
-import { Jukebox } from '@axe/Jukebox';
-import { Config } from '@axe/config';
-import { ModalService } from 'service/modal.service';
-
-import { CutInListComponent } from 'component/cut-in-list/cut-in-list.component';
-import { PointerDeviceService } from 'service/pointer-device.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-
 import { CutInLauncher } from '@axe/cut-in-launcher';
-import { FormsModule } from '@angular/forms';
+import { Jukebox } from '@axe/Jukebox';
+import { CutInListComponent } from 'component/cut-in-list/cut-in-list.component';
+import { ModalService } from 'service/modal.service';
+import { PanelOption, PanelService } from 'service/panel.service';
+import { PointerDeviceService } from 'service/pointer-device.service';
 
 @Component({
   selector: 'app-jukebox',

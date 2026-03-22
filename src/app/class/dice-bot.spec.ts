@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { DiceBot } from './dice-bot';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { DiceBot } from './dice-bot';
 
 describe('DiceBot', () => {
   let store: ObjectStore;

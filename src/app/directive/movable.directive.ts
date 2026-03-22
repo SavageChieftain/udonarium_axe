@@ -3,11 +3,11 @@ import {
   Directive,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   Output,
-  inject,
 } from '@angular/core';
 import { EventSystem } from '@axe/core/system';
 import { TableSelecter } from '@axe/table-selecter';

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+
 import { Card, CardState } from './card';
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { Network } from './core/system';

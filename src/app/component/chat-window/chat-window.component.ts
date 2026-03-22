@@ -1,26 +1,24 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, inject } from '@angular/core';
-import GameSystemClass from 'bcdice/lib/game_system';
+import { AfterViewInit, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/chat-message';
 import { ChatTab } from '@axe/chat-tab';
-import { DiceBot } from '@axe/dice-bot';
-import { GameCharacter } from '@axe/game-character';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
+import { DiceBot } from '@axe/dice-bot';
+import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
+import GameSystemClass from 'bcdice/lib/game_system';
+import { AlarmMenuComponent } from 'component/alarm-menu/alarm-menu.component';
+import { BadgeComponent } from 'component/badge/badge.component';
+import { ChatInputComponent } from 'component/chat-input/chat-input.component';
+import { ChatTabComponent } from 'component/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from 'component/chat-tab-setting/chat-tab-setting.component';
+import { ChatTachieComponent } from 'component/chat-tachie/chat-tachie.component';
+import { DiceTableSettingComponent } from 'component/dice-table-setting/dice-table-setting.component';
+import { VoteMenuComponent } from 'component/vote-menu/vote-menu.component';
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { DiceTableSettingComponent } from 'component/dice-table-setting/dice-table-setting.component';
-
-import { VoteMenuComponent } from 'component/vote-menu/vote-menu.component';
-import { AlarmMenuComponent } from 'component/alarm-menu/alarm-menu.component';
-import { ChatTabComponent } from 'component/chat-tab/chat-tab.component';
-import { FormsModule } from '@angular/forms';
-import { ChatTachieComponent } from 'component/chat-tachie/chat-tachie.component';
-import { BadgeComponent } from 'component/badge/badge.component';
-import { ChatInputComponent } from 'component/chat-input/chat-input.component';
 
 @Component({
   selector: 'chat-window',

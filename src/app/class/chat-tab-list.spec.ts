@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { ChatTabList } from './chat-tab-list';
+
 import { ChatTab } from './chat-tab';
+import { ChatTabList } from './chat-tab-list';
 import { ObjectStore } from './core/synchronize-object/object-store';
 
 describe('ChatTabList', () => {

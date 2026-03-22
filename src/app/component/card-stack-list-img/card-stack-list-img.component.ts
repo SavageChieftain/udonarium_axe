@@ -1,15 +1,14 @@
 import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
-  ChangeDetectorRef,
+  inject,
   Input,
   OnDestroy,
-  AfterViewInit,
-  AfterViewChecked,
   ViewChild,
-  inject,
 } from '@angular/core';
-
 import { EventSystem } from '@axe/core/system';
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelService } from 'service/panel.service';

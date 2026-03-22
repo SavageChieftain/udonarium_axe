@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { CutInLauncher } from './cut-in-launcher';
-import { CutIn } from './cut-in';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { CutIn } from './cut-in';
+import { CutInLauncher } from './cut-in-launcher';
 
 describe('CutInLauncher', () => {
   let store: ObjectStore;

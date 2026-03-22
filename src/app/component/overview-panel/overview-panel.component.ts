@@ -1,36 +1,33 @@
+import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
+  HostListener,
+  inject,
   Input,
   OnDestroy,
   ViewChild,
-  HostListener,
-  inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Card } from '@axe/card'; //
+import { CardStack } from '@axe/card-stack'; //
 import { ObjectNode } from '@axe/core/synchronize-object/object-node';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { DataElement } from '@axe/data-element';
+import { GameCharacter } from '@axe/game-character'; //
 import { MarkDown } from '@axe/mark-down';
-
 import { TabletopObject } from '@axe/tabletop-object';
+import { TextNote } from '@axe/text-note'; //
+import { DraggableDirective } from 'directive/draggable.directive';
+import { LinkifyPipe } from 'pipe/linkify.pipe';
+import { SafePipe } from 'pipe/safe.pipe';
 import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { GameCharacter } from '@axe/game-character'; //
-import { TextNote } from '@axe/text-note'; //
-import { Card } from '@axe/card'; //
-import { CardStack } from '@axe/card-stack'; //
-
-import { SafeHtml, DomSanitizer } from '@angular/platform-browser';
-import { DraggableDirective } from 'directive/draggable.directive';
-import { NgTemplateOutlet, NgClass, NgStyle } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
-import { LinkifyPipe } from 'pipe/linkify.pipe';
 
 @Component({
   selector: 'overview-panel',

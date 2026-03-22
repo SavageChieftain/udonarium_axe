@@ -1,5 +1,5 @@
-import { AudioStorage } from './audio-storage';
 import { AudioFile } from './audio-file';
+import { AudioStorage } from './audio-storage';
 
 describe('AudioStorage', () => {
   let storage: AudioStorage;

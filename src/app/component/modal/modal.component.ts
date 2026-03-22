@@ -3,9 +3,9 @@ import {
   ChangeDetectorRef,
   Component,
   DoCheck,
+  inject,
   ViewChild,
   ViewContainerRef,
-  inject,
 } from '@angular/core';
 import { ModalService } from 'service/modal.service';
 

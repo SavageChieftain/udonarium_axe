@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { moveToTopmost, Stackable } from './tabletop-object-util';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { GameTableMask } from './game-table-mask';
+import { moveToTopmost, Stackable } from './tabletop-object-util';
 
 describe('tabletop-object-util', () => {
   let store: ObjectStore;

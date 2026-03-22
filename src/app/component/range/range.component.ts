@@ -1,3 +1,4 @@
+import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -5,47 +6,45 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
-  inject,
 } from '@angular/core';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ObjectNode } from '@axe/core/synchronize-object/object-node';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { GameCharacter } from '@axe/game-character';
+import { GameTable } from '@axe/game-table';
 import { RangeArea } from '@axe/range';
 import { PresetSound, SoundEffect } from '@axe/sound-effect';
+import { TableSelecter } from '@axe/table-selecter';
 import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
 import { RangeDockingCharacterComponent } from 'component/range-docking-character/range-docking-character.component';
-
 import { InputHandler } from 'directive/input-handler';
 import { MovableOption } from 'directive/movable.directive';
+import { MovableDirective } from 'directive/movable.directive';
 import { RotableOption } from 'directive/rotable.directive';
+import { RotableDirective } from 'directive/rotable.directive';
+import { TooltipDirective } from 'directive/tooltip.directive';
 import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
 import { CoordinateService } from 'service/coordinate.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
+import { TabletopService } from 'service/tabletop.service';
 import { TabletopActionService } from 'service/tabletop-action.service';
 
-import { TabletopService } from 'service/tabletop.service';
 import {
-  RangeRender,
-  RangeRenderSetting,
   ClipAreaCorn,
+  ClipAreaDiamond,
   ClipAreaLine,
   ClipAreaSquare,
-  ClipAreaDiamond,
+  RangeRender,
+  RangeRenderSetting,
 } from './range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { TableSelecter } from '@axe/table-selecter';
-import { GameTable } from '@axe/game-table';
-import { MovableDirective } from 'directive/movable.directive';
-import { NgClass, NgStyle } from '@angular/common';
-import { TooltipDirective } from 'directive/tooltip.directive';
-import { RotableDirective } from 'directive/rotable.directive';
 
 @Component({
   selector: 'range',

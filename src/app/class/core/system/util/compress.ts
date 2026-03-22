@@ -1,6 +1,6 @@
+import { Logger } from '@axe/core/logger';
 import * as Pako from 'pako';
 
-import { Logger } from '@axe/core/logger';
 import { setZeroTimeout } from './zero-timeout';
 
 export async function compressAsync(data: Uint8Array, chunkSize?: number): Promise<Uint8Array> {

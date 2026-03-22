@@ -3,14 +3,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Input,
   OnDestroy,
   OnInit,
-  inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { EventSystem } from '@axe/core/system';
 import { DataElement } from '@axe/data-element';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',

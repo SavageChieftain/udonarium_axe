@@ -1,5 +1,5 @@
 import { Logger } from '@axe/core/logger';
-import { encode as msgpackEncode, decode as msgpackDecode } from '@msgpack/msgpack';
+import { decode as msgpackDecode, encode as msgpackEncode } from '@msgpack/msgpack';
 
 export function encode(object: unknown): Uint8Array {
   try {

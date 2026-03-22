@@ -1,19 +1,18 @@
-import GameSystemClass from 'bcdice/lib/game_system';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
+import GameSystemClass from 'bcdice/lib/game_system';
 import StaticLoader from 'bcdice/lib/loader/static_loader';
+
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from './chat-message';
 import { ChatTab } from './chat-tab';
+import { Logger } from './core/logger';
 import { SyncObject } from './core/synchronize-object/decorator';
 import { GameObject } from './core/synchronize-object/game-object';
-import { GameCharacter } from './game-character';
-
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { EventSystem } from './core/system';
 import { PromiseQueue } from './core/system/util/promise-queue';
 import { toHalfWidth } from './core/system/util/string-util';
 import { DiceTable } from './dice-table';
-
-import { Logger } from './core/logger';
+import { GameCharacter } from './game-character';
 import { PeerCursor } from './peer-cursor';
 
 interface ResourceEditOption {

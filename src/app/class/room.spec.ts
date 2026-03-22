@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { Room } from './room';
+
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { Room } from './room';
 
 describe('Room', () => {
   let store: ObjectStore;

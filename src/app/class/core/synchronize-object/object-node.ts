@@ -1,5 +1,6 @@
 import { Logger } from '@axe/core/logger';
-import { encodeEntityReference, decodeEntityReference } from '@axe/core/system/util/xml-util';
+import { decodeEntityReference, encodeEntityReference } from '@axe/core/system/util/xml-util';
+
 import { Attributes } from './attributes';
 import { defineSyncObject as SyncObject, defineSyncVariable as SyncVar } from './decorator-core';
 import { GameObject, ObjectContext } from './game-object';

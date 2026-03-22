@@ -1,7 +1,7 @@
 import { SyncObject, SyncVar } from './decorator';
 import { GameObject } from './game-object';
-import { ObjectNode } from './object-node';
 import { ObjectFactory } from './object-factory';
+import { ObjectNode } from './object-node';
 import { ObjectStore } from './object-store';
 
 describe('decorator', () => {

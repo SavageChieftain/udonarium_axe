@@ -1,4 +1,4 @@
-import { Injectable, NgZone, inject } from '@angular/core';
+import { inject, Injectable, NgZone } from '@angular/core';
 
 export interface PointerCoordinate {
   x: number;

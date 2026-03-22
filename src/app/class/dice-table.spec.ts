@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { DiceTable } from './dice-table';
+
 import { DiceTablePalette } from './chat-palette';
 import { ObjectStore } from './core/synchronize-object/object-store';
+import { DiceTable } from './dice-table';
 
 describe('DiceTable', () => {
   let store: ObjectStore;

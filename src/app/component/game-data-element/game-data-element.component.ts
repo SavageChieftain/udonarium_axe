@@ -1,30 +1,28 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  HostListener,
+  inject,
   Input,
   OnDestroy,
   OnInit,
-  HostListener,
-  inject,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { MarkDown } from '@axe/mark-down';
-
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/core/system';
+import { DataElement } from '@axe/data-element';
+import { MarkDown } from '@axe/mark-down';
 import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
+import { LinkifyPipe } from 'pipe/linkify.pipe';
+import { SafePipe } from 'pipe/safe.pipe';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
-
-import { SafeHtml, DomSanitizer } from '@angular/platform-browser';
-import { NgTemplateOutlet } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
-import { LinkifyPipe } from 'pipe/linkify.pipe';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',

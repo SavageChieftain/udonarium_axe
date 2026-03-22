@@ -1,7 +1,7 @@
-import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { ObjectNode } from './core/synchronize-object/object-node';
-import { ObjectContext } from './core/synchronize-object/game-object';
 import { DiceTablePalette } from './chat-palette';
+import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
+import { ObjectContext } from './core/synchronize-object/game-object';
+import { ObjectNode } from './core/synchronize-object/object-node';
 
 export interface TableLine {
   table: string;

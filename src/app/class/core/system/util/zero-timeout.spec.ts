@@ -1,4 +1,4 @@
-import { setZeroTimeout, clearZeroTimeout } from './zero-timeout';
+import { clearZeroTimeout, setZeroTimeout } from './zero-timeout';
 
 describe('zero-timeout', () => {
   describe('setZeroTimeout()', () => {

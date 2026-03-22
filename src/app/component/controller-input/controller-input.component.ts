@@ -1,41 +1,35 @@
+import { NgClass, NgStyle } from '@angular/common';
 import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   OnInit,
   Output,
   ViewChild,
-  inject,
 } from '@angular/core';
-import GameSystemClass from 'bcdice/lib/game_system';
+import { FormsModule } from '@angular/forms';
 import { ChatMessage } from '@axe/chat-message';
 import { ImageFile } from '@axe/core/file-storage/image-file';
+import { ImageStorage } from '@axe/core/file-storage/image-storage';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
 import { PeerContext } from '@axe/core/system/network/peer-context';
-
 import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
-
 import { DiceBot } from '@axe/dice-bot';
 import { GameCharacter } from '@axe/game-character';
 import { PeerCursor } from '@axe/peer-cursor';
-
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
+import GameSystemClass from 'bcdice/lib/game_system';
+import { ChatColorSettingComponent } from 'component/chat-color-setting/chat-color-setting.component';
+import { SafePipe } from 'pipe/safe.pipe';
 import { BatchService } from 'service/batch.service';
-
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelOption, PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
-
-import { ChatColorSettingComponent } from 'component/chat-color-setting/chat-color-setting.component';
-
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { NgClass, NgStyle } from '@angular/common';
-import { NgSelectComponent, NgOptionComponent } from '@ng-select/ng-select';
-import { FormsModule } from '@angular/forms';
-import { SafePipe } from 'pipe/safe.pipe';
 
 @Component({
   selector: 'controller-input',
