@@ -49,13 +49,15 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   get cutInName(): string {
+    if (!this.selectedCutIn) return '';
     return this.isEditable ? this.selectedCutIn.name : '';
   }
   set cutInName(cutInName: string) {
-    if (this.isEditable) this.selectedCutIn.name = cutInName;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.name = cutInName;
   }
 
   set cutInWidth(cutInWidth: number) {
+    if (!this.selectedCutIn) return;
     if (this.isEditable) this.selectedCutIn.width = cutInWidth;
     if (this.keepImageAspect) {
       if (this.isYouTubeCutIn) {
@@ -69,6 +71,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   set cutInHeight(cutInHeight: number) {
+    if (!this.selectedCutIn) return;
     if (this.isEditable) this.selectedCutIn.height = cutInHeight;
     if (this.keepImageAspect) {
       if (this.isYouTubeCutIn) {
@@ -135,18 +138,17 @@ export class CutInListComponent implements OnInit, OnDestroy {
   chkImageAspect() {
     if (!this.isEditable) return 0;
     if (!this.selectedCutIn) return 0;
+    const cutIn = this.selectedCutIn;
     setTimeout(() => {
       if (this.keepImageAspect) {
-        const imageurl = this.selectedCutIn.cutInImage.url;
+        const imageurl = cutIn.cutInImage.url;
         if (imageurl.length > 0) {
           const img = new Image();
           img.src = imageurl;
           if (this.isYouTubeCutIn) {
-            this.selectedCutIn.height = Math.floor(
-              (this.selectedCutIn.width * this.selectedCutIn.defVideoSizeHeight) / this.selectedCutIn.defVideoSizeWidth
-            );
+            cutIn.height = Math.floor((cutIn.width * cutIn.defVideoSizeHeight) / cutIn.defVideoSizeWidth);
           } else {
-            this.selectedCutIn.height = Math.floor((this.selectedCutIn.width * img.height) / img.width);
+            cutIn.height = Math.floor((cutIn.width * img.height) / img.width);
           }
         }
       }
@@ -154,80 +156,91 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   get cutInX_Pos(): number {
+    if (!this.selectedCutIn) return 0;
     return this.isEditable ? this.selectedCutIn.x_pos : 0;
   }
   set cutInX_Pos(cutInX_Pos: number) {
-    if (this.isEditable) this.selectedCutIn.x_pos = cutInX_Pos;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.x_pos = cutInX_Pos;
   }
 
   get cutInY_Pos(): number {
+    if (!this.selectedCutIn) return 0;
     return this.isEditable ? this.selectedCutIn.y_pos : 0;
   }
   set cutInY_Pos(cutInY_Pos: number) {
-    if (this.isEditable) this.selectedCutIn.y_pos = cutInY_Pos;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.y_pos = cutInY_Pos;
   }
 
   get cutInOriginalSize(): boolean {
+    if (!this.selectedCutIn) return false;
     return this.isEditable ? this.selectedCutIn.originalSize : false;
   }
   set cutInOriginalSize(cutInOriginalSize: boolean) {
-    if (this.isEditable) this.selectedCutIn.originalSize = cutInOriginalSize;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.originalSize = cutInOriginalSize;
   }
 
   get cutInIsLoop(): boolean {
+    if (!this.selectedCutIn) return false;
     return this.isEditable ? this.selectedCutIn.isLoop : false;
   }
   set cutInIsLoop(cutInIsLoop: boolean) {
-    if (this.isEditable) this.selectedCutIn.isLoop = cutInIsLoop;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.isLoop = cutInIsLoop;
   }
 
   get chatActivate(): boolean {
+    if (!this.selectedCutIn) return false;
     return this.isEditable ? this.selectedCutIn.chatActivate : false;
   }
   set chatActivate(chatActivate: boolean) {
-    if (this.isEditable) this.selectedCutIn.chatActivate = chatActivate;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.chatActivate = chatActivate;
   }
 
   get cutInOutTime(): number {
+    if (!this.selectedCutIn) return 0;
     return this.isEditable ? this.selectedCutIn.outTime : 0;
   }
   set cutInOutTime(cutInOutTime: number) {
-    if (this.isEditable) this.selectedCutIn.outTime = cutInOutTime;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.outTime = cutInOutTime;
   }
 
   get cutInIsVideo(): boolean {
+    if (!this.selectedCutIn) return false;
     return this.isEditable ? this.selectedCutIn.isVideoCutIn : false;
   }
   set cutInIsVideo(isVideo: boolean) {
-    if (this.isEditable) this.selectedCutIn.isVideoCutIn = isVideo;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.isVideoCutIn = isVideo;
   }
 
   get cutInVideoURL(): string {
+    if (!this.selectedCutIn) return '';
     return this.isEditable ? this.selectedCutIn.videoUrl : '';
   }
   set cutInVideoURL(videoUrl: string) {
-    if (this.isEditable) this.selectedCutIn.videoUrl = videoUrl;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.videoUrl = videoUrl;
   }
 
   get cutInTagName(): string {
+    if (!this.selectedCutIn) return '';
     return this.isEditable ? this.selectedCutIn.tagName : '';
   }
   set cutInTagName(cutInTagName: string) {
-    if (this.isEditable) this.selectedCutIn.tagName = cutInTagName;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.tagName = cutInTagName;
   }
 
   get cutInAudioName(): string {
+    if (!this.selectedCutIn) return '';
     return this.isEditable ? this.selectedCutIn.audioName : '';
   }
   set cutInAudioName(cutInAudioName: string) {
-    if (this.isEditable) this.selectedCutIn.audioName = cutInAudioName;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.audioName = cutInAudioName;
   }
 
   get cutInAudioIdentifier(): string {
+    if (!this.selectedCutIn) return '';
     return this.isEditable ? this.selectedCutIn.audioIdentifier : '';
   }
   set cutInAudioIdentifier(cutInAudioIdentifier: string) {
-    if (this.isEditable) this.selectedCutIn.audioIdentifier = cutInAudioIdentifier;
+    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.audioIdentifier = cutInAudioIdentifier;
   }
 
   get audios(): AudioFile[] {
@@ -245,7 +258,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   private lazyUpdateTimer: NodeJS.Timeout = null!;
-  selectedCutIn: CutIn = null!;
+  selectedCutIn: CutIn | null = null;
   isYouTubeCutIn = false;
 
   get isSelected(): boolean {
@@ -279,7 +292,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
 
   selectCutIn(identifier: string) {
     this.selectedCutIn = ObjectStore.instance.get<CutIn>(identifier);
-    this.isYouTubeCutIn = this.selectedCutIn.videoId ? true : false;
+    this.isYouTubeCutIn = this.selectedCutIn?.videoId ? true : false;
   }
 
   getCutIns(): CutIn[] {
@@ -315,7 +328,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   delete() {
     if (!this.isEmpty && this.selectedCutIn) {
       this.selectedCutIn.destroy();
-      this.selectedCutIn = null!;
+      this.selectedCutIn = null;
     }
   }
 
@@ -444,6 +457,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   previewCutIn() {
+    if (!this.selectedCutIn) return;
     if (this.selectedCutIn.originalSize) {
       const imageurl = this.selectedCutIn.cutInImage.url;
       if (imageurl.length > 0) {
@@ -458,6 +472,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   playCutIn() {
+    if (!this.selectedCutIn) return;
     if (this.selectedCutIn.originalSize) {
       const imageurl = this.selectedCutIn.cutInImage.url;
       if (imageurl.length > 0) {
@@ -479,7 +494,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   stopCutIn() {
-    if (!this.isSelected) return;
+    if (!this.selectedCutIn) return;
     this.cutInLauncher.stopCutIn(this.selectedCutIn);
   }
 }

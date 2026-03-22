@@ -7,7 +7,7 @@
       style="width: 15em"
       size="20"
       (change)="selectCutIn($any($event.target).value)"
-      [ngModel]="selectedCutIn.identifier"
+      [ngModel]="selectedCutIn?.identifier"
     >
       @for (cutIn of getCutIns(); track cutIn) {
         <option value="{{ cutIn.identifier }}">{{ cutIn.name }}</option>
@@ -71,10 +71,10 @@
       </div>
       <div>
         @if (isEditable) {
-          @if (selectedCutIn.videoId) {
+          @if (selectedCutIn?.videoId) {
             <span>標準サイズで表示：</span>
           }
-          @if (!selectedCutIn.videoId) {
+          @if (!selectedCutIn?.videoId) {
             <span>元サイズで表示：</span>
           }
         }
