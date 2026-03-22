@@ -1,12 +1,16 @@
 // Angular JIT compiler — TestBed を使う spec でテンプレートをコンパイルするために必要
 import '@angular/compiler';
+
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, resolve, basename } from 'path';
-
 import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
+import { Logger, LogLevel } from '@axe/core/logger';
+import { readdirSync, readFileSync, statSync } from 'fs';
+import { basename, join, resolve } from 'path';
+
+// テスト実行時はロガー出力を無効化する
+Logger.setLevel(LogLevel.NONE);
 
 // 非 providedIn:'root' なサービス — 全テストで自動提供する
 import { AppConfigService } from './app/service/app-config.service';
@@ -99,10 +103,6 @@ class FileReaderPolyfill {
   onerror: ((event: Partial<ProgressEvent>) => void) | null = null;
   onabort: ((event: Partial<ProgressEvent>) => void) | null = null;
 
-  private progressEvent(): Partial<ProgressEvent> {
-    return { target: this } as unknown as Partial<ProgressEvent>;
-  }
-
   readAsArrayBuffer(blob: Blob): void {
     blob
       .arrayBuffer()
@@ -133,6 +133,10 @@ class FileReaderPolyfill {
         this.onload?.(this.progressEvent());
       })
       .catch(() => this.onerror?.(this.progressEvent()));
+  }
+
+  private progressEvent(): Partial<ProgressEvent> {
+    return { target: this } as unknown as Partial<ProgressEvent>;
   }
 }
 (globalThis as unknown as Record<string, unknown>)['FileReader'] = FileReaderPolyfill;

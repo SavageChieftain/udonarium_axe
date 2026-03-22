@@ -13,12 +13,23 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/",
+            "outputPath": {
+              "base": "dist",
+              "browser": ""
+            },
             "index": "src/index.html",
             "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
-            "assets": ["src/favicon.svg", "src/assets"],
+            "assets": [
+              "src/favicon.svg",
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets",
+                "ignore": ["config.json.example"]
+              }
+            ],
             "styles": ["src/styles.css"],
             "scripts": [],
             "allowedCommonJsDependencies": ["bcdice", "file-saver", "lzbase62", "pako"],
@@ -84,8 +95,7 @@
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
             "watch": false,
-            "providersFile": "src/testing/providers.ts",
-            "setupFiles": ["src/testing/setup.ts"]
+            "setupFiles": ["src/test-setup.ts"]
           }
         },
         "lint": {
