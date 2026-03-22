@@ -17,10 +17,8 @@ import { Room } from '@axe/room';
 
 import { saveAs } from 'file-saver';
 
-import * as Beautify from 'vkbeautify';
-//本家PR #92より
+import Beautify from 'vkbeautify';
 import { ImageTagList } from '@axe/image-tag-list';
-//
 type UpdateCallback = (percent: number) => void;
 
 @Injectable({
@@ -43,13 +41,8 @@ export class SaveDataService {
     const summarySetting = this.convertToXml(DataSummarySetting.instance);
     files.push(new File([roomXml], 'data.xml', { type: 'text/plain' }));
     files.push(new File([chatXml], 'chat.xml', { type: 'text/plain' }));
-
     files.push(new File([configXml], 'config.xml', { type: 'text/plain' }));
-
     files.push(new File([summarySetting], 'summary.xml', { type: 'text/plain' }));
-    //本家PR #92より
-    //    files = files.concat(this.searchImageFiles(roomXml));
-    //    files = files.concat(this.searchImageFiles(chatXml));
 
     let images: ImageFile[] = [];
     images = images.concat(this.searchImageFiles(roomXml));
@@ -87,8 +80,6 @@ export class SaveDataService {
     const xml: string = this.convertToXml(gameObject);
 
     files.push(new File([xml], 'data.xml', { type: 'text/plain' }));
-    //本家PR #92より
-    //    files = files.concat(this.searchImageFiles(xml));
     let images: ImageFile[] = [];
     images = images.concat(this.searchImageFiles(xml));
     for (const image of images) {
@@ -119,20 +110,12 @@ export class SaveDataService {
 
   private convertToXml(gameObject: GameObject): string {
     const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
-    //    return xmlDeclaration + '\n' + gameObject.toXml();
     return xmlDeclaration + '\n' + Beautify.xml(gameObject.toXml(), 2);
   }
-
-  //本家PR #92より
-  //  private searchImageFiles(xml: string): File[] {
   private searchImageFiles(xml: string): ImageFile[] {
-    //
     const xmlElement: Element = xml2element(xml);
 
-    //本家PR #92より
-    //    let files: File[] = [];
     const files: ImageFile[] = [];
-    //
     if (!xmlElement) return files;
 
     const images: { [identifier: string]: ImageFile } = {};
@@ -154,10 +137,6 @@ export class SaveDataService {
     }
     for (const identifier in images) {
       const image = images[identifier];
-      //本家PR #92より
-      //      if (image && image.state === ImageState.COMPLETE) {
-      //        files.push(new File([image.blob], image.identifier + '.' + MimeType.extension(image.blob.type), { type: image.blob.type }));
-      //      }
       if (image) {
         files.push(image);
       }
