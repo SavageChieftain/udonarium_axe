@@ -8,6 +8,9 @@ import { GameObject, ObjectContext } from './core/synchronize-object/game-object
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { EventSystem, Network } from './core/system';
 
+const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000', '#0099FF'];
+const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
+
 type UserId = string;
 type PeerId = string;
 type ObjectIdentifier = string;
@@ -145,7 +148,7 @@ export class PeerCursor extends GameObject {
   static myCursor: PeerCursor = null!;
   private static userIdMap: Map<UserId, ObjectIdentifier> = new Map();
   private static peerIdMap: Map<PeerId, ObjectIdentifier> = new Map();
-  chatColorCode: string[] = ['#000000', '#FF0000', '#0099FF'];
+  chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
 
   private _diceImageType = '';
   private _diceImageIndex = -1;
@@ -166,7 +169,7 @@ export class PeerCursor extends GameObject {
 
   get diceImageIdentifier(): string {
     if (this.diceImageType != '') {
-      return this.diceImageType + '_dice' + '[' + this.diceImageIndex.toString().padStart(2, '0') + ']';
+      return `${this.diceImageType}_dice[${this.diceImageIndex.toString().padStart(2, '0')}]`;
     } else {
       return '';
     }
@@ -193,7 +196,7 @@ export class PeerCursor extends GameObject {
           PeerCursor.userIdMap.delete(this.userId);
           PeerCursor.peerIdMap.delete(this.peerId);
           ObjectStore.instance.remove(this);
-        }, 30000);
+        }, PEER_DISCONNECT_TIMEOUT_MS);
       });
     }
   }

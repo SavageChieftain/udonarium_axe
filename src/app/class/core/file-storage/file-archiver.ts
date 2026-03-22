@@ -181,7 +181,7 @@ export class FileArchiver {
       },
       updateCallback
     );
-    saveAs(blob, zipName + '.zip');
+    saveAs(blob, `${zipName}.zip`);
   }
 }
 

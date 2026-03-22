@@ -9,12 +9,12 @@ export function SyncObject(alias: string) {
   };
 }
 
-export function SyncVar() {
+export function SyncVar(alias?: string) {
   return <T extends GameObject>(target: T, key: string | symbol) => {
     if (target instanceof ObjectNode) {
-      defineSyncAttribute()(target, key);
+      defineSyncAttribute(alias)(target, key);
     } else {
-      defineSyncVariable()(target, key);
+      defineSyncVariable(alias)(target, key);
     }
   };
 }

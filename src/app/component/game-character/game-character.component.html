@@ -41,7 +41,7 @@
           <img
             class="image is-pointer-events-none chrome-smooth-image-trick"
             [ngStyle]="{
-              height: +this.gameCharacter.komaImageHeignt + 'px',
+              height: +this.gameCharacter.komaImageHeight + 'px',
               transform:
                 'translateX(-50%) translateX(' +
                 (size * gridSize) / 2 +
@@ -289,7 +289,7 @@
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
-                    height: +this.gameCharacter.komaImageHeignt + 'px',
+                    height: +this.gameCharacter.komaImageHeight + 'px',
                     transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)',
                   }"
                   [src]="imageFile.url | safe: 'resourceUrl'"

@@ -85,7 +85,7 @@ export class ObjectStore {
   }
 
   get<T extends GameObject>(identifier: string): T {
-    return this.identifierMap.has(identifier) ? <T>this.identifierMap.get(identifier) : null!;
+    return this.identifierMap.has(identifier) ? (this.identifierMap.get(identifier) as T) : null!;
   }
 
   getObjects<T extends GameObject>(constructor: Type<T>): T[];

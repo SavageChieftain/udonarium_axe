@@ -28,7 +28,7 @@ export class DiceSymbol extends TabletopObject {
   @SyncVar() rotate: number = 0;
 
   @SyncVar() specifyKomaImageFlag: boolean = false;
-  @SyncVar() komaImageHeignt: number = 100;
+  @SyncVar('komaImageHeignt') komaImageHeight: number = 100;
 
   get name(): string {
     return this.getCommonValue('name', '');
@@ -80,7 +80,7 @@ export class DiceSymbol extends TabletopObject {
   private makeDiceFace(type: DiceType, identifierSuffix?: string): DataElement[] {
     let sided: number;
     const faces: DataElement[] = [];
-    let faceGeneratorFunc: (index: number) => string = (index) => index + 1 + '';
+    let faceGeneratorFunc: (index: number) => string = (index) => `${index + 1}`;
 
     switch (type) {
       case DiceType.D2:
@@ -96,7 +96,7 @@ export class DiceSymbol extends TabletopObject {
         sided = 8;
         break;
       case DiceType.D10_10TIMES:
-        faceGeneratorFunc = (index) => index + 1 + '0';
+        faceGeneratorFunc = (index) => `${index + 1}0`;
       // falls through
       case DiceType.D10:
         sided = 10;
@@ -114,7 +114,7 @@ export class DiceSymbol extends TabletopObject {
 
     for (let i = 0; i < sided; i++) {
       const faceName = faceGeneratorFunc(i);
-      const identifier = identifierSuffix != null ? faceName + '_' + identifierSuffix : null!;
+      const identifier = identifierSuffix != null ? `${faceName}_${identifierSuffix}` : null!;
       faces.push(DataElement.create(faceName, '', { type: 'image' }, identifier));
     }
 
@@ -129,8 +129,8 @@ export class DiceSymbol extends TabletopObject {
     const object: DiceSymbol = identifier ? new DiceSymbol(identifier) : new DiceSymbol();
 
     object.createDataElements();
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, 'name_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('size', size, {}, 'size_' + object.identifier));
+    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
 
     object.makeDiceFace(type, object.identifier);
     object.initialize();

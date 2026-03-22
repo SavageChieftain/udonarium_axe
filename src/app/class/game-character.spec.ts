@@ -36,7 +36,7 @@ describe('GameCharacter', () => {
   });
 
   // ----------------------------------------------------------------
-  // specifyKomaImageFlag / komaImageHeignt
+  // specifyKomaImageFlag / komaImageHeight
   // ----------------------------------------------------------------
   describe('specifyKomaImageFlag', () => {
     it('初期値は false', () => {
@@ -44,9 +44,9 @@ describe('GameCharacter', () => {
     });
   });
 
-  describe('komaImageHeignt', () => {
+  describe('komaImageHeight', () => {
     it('初期値は 100', () => {
-      expect(character.komaImageHeignt).toBe(100);
+      expect(character.komaImageHeight).toBe(100);
     });
   });
 });

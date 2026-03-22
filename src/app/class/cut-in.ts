@@ -154,7 +154,7 @@ export class CutIn extends GameObject {
       if (tmp[1]) sec += +tmp[1] * 60 * 60;
       if (tmp[2]) sec += +tmp[2] * 60;
       if (tmp[3]) sec += +tmp[3];
-      return '' + sec;
+      return `${sec}`;
     }
     return null!;
   }
@@ -177,24 +177,5 @@ export class CutIn extends GameObject {
       this.audioIdentifier.length == 0 ||
       !!AudioStorage.instance.get(this.audioIdentifier)
     );
-  }
-
-  /* 保留
-  get postfixes(): string[] {
-    if (this.value == null || (this.value + '').trim() == '') return [];
-    return Array.from(new Set((<string>this.value).split(/[\r\n]+/g).map(row => {
-      return row != null ? row.trimRight() : '';
-    }))).filter(row => row != '');
-  }
-*/
-
-  // GameObject Lifecycle
-  onStoreAdded() {
-    super.onStoreAdded();
-  }
-
-  // GameObject Lifecycle
-  onStoreRemoved() {
-    super.onStoreRemoved();
   }
 }

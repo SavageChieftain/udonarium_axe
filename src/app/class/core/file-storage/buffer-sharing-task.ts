@@ -85,7 +85,7 @@ export class BufferSharingTask<T> {
 
   cancel() {
     if (this.isCanceled) return;
-    if (this.sendTo != null) EventSystem.call('CANCEL_TASK_' + this.identifier, null, this.sendTo);
+    if (this.sendTo != null) EventSystem.call(`CANCEL_TASK_${this.identifier}`, null, this.sendTo);
     this._cancel();
   }
 
@@ -112,7 +112,7 @@ export class BufferSharingTask<T> {
     this.chanks = new Array(total);
 
     EventSystem.register(this)
-      .on<number>('FILE_MORE_CHANK_' + this.identifier, (event) => {
+      .on<number>(`FILE_MORE_CHANK_${this.identifier}`, (event) => {
         if (this.sendTo !== event.sendFrom) return;
         this.completedChankIndex = event.data;
         if (this.sendChankTimer == null && this.sentChankIndex + 1 < this.chanks.length) {
@@ -125,7 +125,7 @@ export class BufferSharingTask<T> {
         Logger.warn('[BufferTask] 送信キャンセル（Peer切断）', event.data.peerId);
         this._cancel();
       })
-      .on('CANCEL_TASK_' + this.identifier, (event) => {
+      .on(`CANCEL_TASK_${this.identifier}`, (event) => {
         Logger.warn('[BufferTask] 送信キャンセル', event.sendFrom);
         this._cancel();
       });
@@ -137,7 +137,7 @@ export class BufferSharingTask<T> {
   private sendChank(index: number) {
     const chank = this.uint8Array.slice(index * this.chankSize, (index + 1) * this.chankSize);
     const data = { index: index, length: this.chanks.length, chank: chank };
-    EventSystem.call('FILE_SEND_CHANK_' + this.identifier, data, this.sendTo);
+    EventSystem.call(`FILE_SEND_CHANK_${this.identifier}`, data, this.sendTo);
     this.sentChankIndex = index;
     this.sendChankTimer = null!;
     if (this.chanks.length <= index + 1) {
@@ -157,7 +157,7 @@ export class BufferSharingTask<T> {
     this.startTime = performance.now();
     this.chankReceiveCount = 0;
     EventSystem.register(this)
-      .on<ChankData>('FILE_SEND_CHANK_' + this.identifier, (event) => {
+      .on<ChankData>(`FILE_SEND_CHANK_${this.identifier}`, (event) => {
         if (this.chanks.length < 1) this.chanks = new Array(event.data.length);
 
         if (this.chanks[event.data.index] != null) {
@@ -170,7 +170,7 @@ export class BufferSharingTask<T> {
           this.finishReceive();
         } else {
           this.resetTimeout();
-          EventSystem.call('FILE_MORE_CHANK_' + this.identifier, event.data.index, event.sendFrom);
+          EventSystem.call(`FILE_MORE_CHANK_${this.identifier}`, event.data.index, event.sendFrom);
         }
       })
       .on('DISCONNECT_PEER', (event) => {
@@ -178,7 +178,7 @@ export class BufferSharingTask<T> {
         Logger.warn('[BufferTask] 受信キャンセル（Peer切断）', event.data.peerId);
         this._cancel();
       })
-      .on('CANCEL_TASK_' + this.identifier, (event) => {
+      .on(`CANCEL_TASK_${this.identifier}`, (event) => {
         Logger.warn('[BufferTask] 受信キャンセル', event.sendFrom);
         this._cancel();
       });

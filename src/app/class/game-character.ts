@@ -4,10 +4,11 @@ import { BuffPalette, ChatPalette } from './chat-palette';
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-//import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { DataElement } from './data-element';
 import { TabletopObject } from './tabletop-object';
+
+const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000', '#0099FF'];
 
 @SyncObject('character')
 export class GameCharacter extends TabletopObject {
@@ -31,9 +32,9 @@ export class GameCharacter extends TabletopObject {
   @SyncVar() overViewMaxHeight: number = 250;
 
   @SyncVar() specifyKomaImageFlag: boolean = false;
-  @SyncVar() komaImageHeignt: number = 100;
+  @SyncVar('komaImageHeignt') komaImageHeight: number = 100;
 
-  @SyncVar() chatColorCode: string[] = ['#000000', '#FF0000', '#0099FF'];
+  @SyncVar() chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
   @SyncVar() syncDummyCounter: number = 0;
 
   chatBubbleAltitude: number = 0;
@@ -80,13 +81,13 @@ export class GameCharacter extends TabletopObject {
     const iconNum = this.getIconNumElement();
     if (!iconNum) {
       const image: DataElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
-      const file = ImageStorage.instance.get(<string>image.value);
+      const file = ImageStorage.instance.get(image.value as string);
       return file ? file : ImageFile.Empty;
     } else {
-      let n = <number>iconNum.currentValue;
+      let n = iconNum.currentValue as number;
       if (n > this.imageDataElement.children.length - 1) n = this.imageDataElement.children.length - 1;
       const image = this.imageDataElement.children[n];
-      const file = ImageStorage.instance.get(<string>image.value);
+      const file = ImageStorage.instance.get(image.value as string);
       return file ? file : ImageFile.Empty;
     }
   }
@@ -108,7 +109,6 @@ export class GameCharacter extends TabletopObject {
     this.setCommonValue('name', value);
   }
 
-  TestExec() {}
   get remoteController(): BuffPalette {
     for (const child of this.children) {
       if (child instanceof BuffPalette) {
@@ -133,16 +133,16 @@ export class GameCharacter extends TabletopObject {
 
     const istachie = this.detailDataElement.getElementsByName('立ち絵位置');
     if (istachie.length == 0) {
-      const testElement: DataElement = DataElement.create('立ち絵位置', '', {}, '立ち絵位置' + this.identifier);
+      const testElement: DataElement = DataElement.create('立ち絵位置', '', {}, `立ち絵位置${this.identifier}`);
       this.detailDataElement.appendChild(testElement);
       testElement.appendChild(
-        DataElement.create('POS', 11, { type: 'numberResource', currentValue: '0' }, 'POS_' + this.identifier)
+        DataElement.create('POS', 11, { type: 'numberResource', currentValue: '0' }, `POS_${this.identifier}`)
       );
     }
 
     const iconNum = this.detailDataElement.getElementsByName('コマ画像');
     if (iconNum.length == 0) {
-      const elementKoma: DataElement = DataElement.create('コマ画像', '', {}, 'コマ画像' + this.identifier);
+      const elementKoma: DataElement = DataElement.create('コマ画像', '', {}, `コマ画像${this.identifier}`);
       this.detailDataElement.appendChild(elementKoma);
 
       //コマ画像作成時は立ち絵の次に差し込み
@@ -161,18 +161,18 @@ export class GameCharacter extends TabletopObject {
           'ICON',
           this.imageDataElement.children.length - 1,
           { type: 'numberResource', currentValue: 0 },
-          'ICON_' + this.identifier
+          `ICON_${this.identifier}`
         )
       );
     }
 
     const isbuff = this.buffDataElement.getElementsByName('バフ/デバフ');
     if (isbuff.length == 0) {
-      const buffElement: DataElement = DataElement.create('バフ/デバフ', '', {}, 'バフ/デバフ' + this.identifier);
+      const buffElement: DataElement = DataElement.create('バフ/デバフ', '', {}, `バフ/デバフ${this.identifier}`);
       this.buffDataElement.appendChild(buffElement);
     }
     if (this.remoteController == null) {
-      const controller: BuffPalette = new BuffPalette('RemotController_' + this.identifier);
+      const controller: BuffPalette = new BuffPalette(`RemotController_${this.identifier}`);
       controller.setPalette(`コントローラ入力例：
 マッスルベアー DB+2 3
 クリティカルレイ A 18
@@ -211,7 +211,7 @@ export class GameCharacter extends TabletopObject {
       }
     }
 
-    cloneObject.name = objectname + '_' + cloneNumber;
+    cloneObject.name = `${objectname}_${cloneNumber}`;
     cloneObject.update();
 
     return cloneObject;
@@ -220,29 +220,27 @@ export class GameCharacter extends TabletopObject {
   createTestGameDataElement(name: string, size: number, imageIdentifier: string) {
     this.createDataElements();
 
-    const nameElement: DataElement = DataElement.create('name', name, {}, 'name_' + this.identifier);
-    const sizeElement: DataElement = DataElement.create('size', size, {}, 'size_' + this.identifier);
-    const altitudeElement: DataElement = DataElement.create('altitude', 0, {}, 'altitude_' + this.identifier);
+    const nameElement: DataElement = DataElement.create('name', name, {}, `name_${this.identifier}`);
+    const sizeElement: DataElement = DataElement.create('size', size, {}, `size_${this.identifier}`);
+    const altitudeElement: DataElement = DataElement.create('altitude', 0, {}, `altitude_${this.identifier}`);
 
     if (this.imageDataElement.getFirstElementByName('imageIdentifier')) {
       this.imageDataElement.getFirstElementByName('imageIdentifier').value = imageIdentifier;
     }
 
-    const resourceElement: DataElement = DataElement.create('リソース', '', {}, 'リソース' + this.identifier);
+    const resourceElement: DataElement = DataElement.create('リソース', '', {}, `リソース${this.identifier}`);
     const hpElement: DataElement = DataElement.create(
       'HP',
       200,
       { type: 'numberResource', currentValue: '200' },
-      'HP_' + this.identifier
+      `HP_${this.identifier}`
     );
     const mpElement: DataElement = DataElement.create(
       'MP',
       100,
       { type: 'numberResource', currentValue: '100' },
-      'MP_' + this.identifier
+      `MP_${this.identifier}`
     );
-    //    let sanElement: DataElement = DataElement.create('SAN', 60, { 'type': 'numberResource', 'currentValue': '48' }, 'SAN_' + this.identifier);
-
     this.commonDataElement.appendChild(nameElement);
     this.commonDataElement.appendChild(sizeElement);
     this.commonDataElement.appendChild(altitudeElement);
@@ -250,39 +248,38 @@ export class GameCharacter extends TabletopObject {
     this.detailDataElement.appendChild(resourceElement);
     resourceElement.appendChild(hpElement);
     resourceElement.appendChild(mpElement);
-    //    resourceElement.appendChild(sanElement);
 
     //TEST
-    let testElement: DataElement = DataElement.create('情報', '', {}, '情報' + this.identifier);
+    let testElement: DataElement = DataElement.create('情報', '', {}, `情報${this.identifier}`);
     this.detailDataElement.appendChild(testElement);
     testElement.appendChild(
-      DataElement.create('説明', 'ここに説明を書く\nあいうえお', { type: 'note' }, '説明' + this.identifier)
+      DataElement.create('説明', 'ここに説明を書く\nあいうえお', { type: 'note' }, `説明${this.identifier}`)
     );
     testElement.appendChild(
-      DataElement.create('メモ', '任意の文字列\n１\n２\n３\n４\n５', { type: 'note' }, 'メモ' + this.identifier)
+      DataElement.create('メモ', '任意の文字列\n１\n２\n３\n４\n５', { type: 'note' }, `メモ${this.identifier}`)
     );
 
     //TEST
-    testElement = DataElement.create('能力', '', {}, '能力' + this.identifier);
+    testElement = DataElement.create('能力', '', {}, `能力${this.identifier}`);
     this.detailDataElement.appendChild(testElement);
-    testElement.appendChild(DataElement.create('器用度', 24, {}, '器用度' + this.identifier));
-    testElement.appendChild(DataElement.create('敏捷度', 24, {}, '敏捷度' + this.identifier));
-    testElement.appendChild(DataElement.create('筋力', 24, {}, '筋力' + this.identifier));
-    testElement.appendChild(DataElement.create('生命力', 24, {}, '生命力' + this.identifier));
-    testElement.appendChild(DataElement.create('知力', 24, {}, '知力' + this.identifier));
-    testElement.appendChild(DataElement.create('精神力', 24, {}, '精神力' + this.identifier));
+    testElement.appendChild(DataElement.create('器用度', 24, {}, `器用度${this.identifier}`));
+    testElement.appendChild(DataElement.create('敏捷度', 24, {}, `敏捷度${this.identifier}`));
+    testElement.appendChild(DataElement.create('筋力', 24, {}, `筋力${this.identifier}`));
+    testElement.appendChild(DataElement.create('生命力', 24, {}, `生命力${this.identifier}`));
+    testElement.appendChild(DataElement.create('知力', 24, {}, `知力${this.identifier}`));
+    testElement.appendChild(DataElement.create('精神力', 24, {}, `精神力${this.identifier}`));
 
     //TEST
-    testElement = DataElement.create('戦闘特技', '', {}, '戦闘特技' + this.identifier);
+    testElement = DataElement.create('戦闘特技', '', {}, `戦闘特技${this.identifier}`);
     this.detailDataElement.appendChild(testElement);
-    testElement.appendChild(DataElement.create('Lv1', '全力攻撃', {}, 'Lv1' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv3', '武器習熟/ソード', {}, 'Lv3' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv5', '武器習熟/ソードⅡ', {}, 'Lv5' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv7', '頑強', {}, 'Lv7' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv9', '薙ぎ払い', {}, 'Lv9' + this.identifier));
-    testElement.appendChild(DataElement.create('自動', '治癒適正', {}, '自動' + this.identifier));
+    testElement.appendChild(DataElement.create('Lv1', '全力攻撃', {}, `Lv1${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv3', '武器習熟/ソード', {}, `Lv3${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv5', '武器習熟/ソードⅡ', {}, `Lv5${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv7', '頑強', {}, `Lv7${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv9', '薙ぎ払い', {}, `Lv9${this.identifier}`));
+    testElement.appendChild(DataElement.create('自動', '治癒適正', {}, `自動${this.identifier}`));
 
-    const palette: ChatPalette = new ChatPalette('ChatPalette_' + this.identifier);
+    const palette: ChatPalette = new ChatPalette(`ChatPalette_${this.identifier}`);
     palette.setPalette(`チャットパレット入力例：
 2d6+1 ダイスロール
 １ｄ２０＋{敏捷}＋｛格闘｝　{name}の格闘！
@@ -304,26 +301,26 @@ export class GameCharacter extends TabletopObject {
   createTestGameDataElementCheckTable(name: string, size: number, imageIdentifier: string) {
     this.createDataElements();
 
-    const nameElement: DataElement = DataElement.create('name', name, {}, 'name_' + this.identifier);
-    const sizeElement: DataElement = DataElement.create('size', size, {}, 'size_' + this.identifier);
-    const altitudeElement: DataElement = DataElement.create('altitude', 0, {}, 'altitude_' + this.identifier);
+    const nameElement: DataElement = DataElement.create('name', name, {}, `name_${this.identifier}`);
+    const sizeElement: DataElement = DataElement.create('size', size, {}, `size_${this.identifier}`);
+    const altitudeElement: DataElement = DataElement.create('altitude', 0, {}, `altitude_${this.identifier}`);
 
     if (this.imageDataElement.getFirstElementByName('imageIdentifier')) {
       this.imageDataElement.getFirstElementByName('imageIdentifier').value = imageIdentifier;
     }
 
-    const resourceElement: DataElement = DataElement.create('リソース', '', {}, 'リソース' + this.identifier);
+    const resourceElement: DataElement = DataElement.create('リソース', '', {}, `リソース${this.identifier}`);
     const hpElement: DataElement = DataElement.create(
       'HP',
       200,
       { type: 'numberResource', currentValue: '200' },
-      'HP_' + this.identifier
+      `HP_${this.identifier}`
     );
     const mpElement: DataElement = DataElement.create(
       'MP',
       100,
       { type: 'numberResource', currentValue: '100' },
-      'MP_' + this.identifier
+      `MP_${this.identifier}`
     );
 
     this.commonDataElement.appendChild(nameElement);
@@ -335,7 +332,7 @@ export class GameCharacter extends TabletopObject {
     resourceElement.appendChild(mpElement);
 
     //TEST
-    let testElement: DataElement = DataElement.create('情報', '', {}, '情報' + this.identifier);
+    let testElement: DataElement = DataElement.create('情報', '', {}, `情報${this.identifier}`);
     this.detailDataElement.appendChild(testElement);
 
     const textMarkDown = `テーブル表
@@ -352,7 +349,7 @@ export class GameCharacter extends TabletopObject {
 |　|[]壊器術|　|[]刀術|　|[]隠蔽術|　|[]流言の術|　|[]伝達術|　|[]憑依術|11|
 |　|[]掘削術|　|[]怪力|　|[]第六感|　|[]経済力|　|[]人脈|　|[]呪術|12|
 `;
-    testElement.appendChild(DataElement.create('忍術', textMarkDown, { type: 'markdown' }, '忍術' + this.identifier));
+    testElement.appendChild(DataElement.create('忍術', textMarkDown, { type: 'markdown' }, `忍術${this.identifier}`));
 
     const textMarkDownNecro = `|損傷|使用|タイミング|コスト|射程|効果|
 |[]こぶし|[]|アクション|2|0|肉弾攻撃1|
@@ -363,7 +360,7 @@ export class GameCharacter extends TabletopObject {
         'ネクロニカ的パーツ',
         textMarkDownNecro,
         { type: 'markdown' },
-        'ネクロニカ的パーツ' + this.identifier
+        `ネクロニカ的パーツ${this.identifier}`
       )
     );
 
@@ -372,7 +369,7 @@ export class GameCharacter extends TabletopObject {
         '宝物への依存',
         '[][][][] 幼児退行',
         { type: 'markdown' },
-        'ネクロニカ的未練' + this.identifier
+        `ネクロニカ的未練${this.identifier}`
       )
     );
 
@@ -380,26 +377,26 @@ export class GameCharacter extends TabletopObject {
     this.overViewMaxHeight = 620;
 
     //TEST
-    testElement = DataElement.create('能力', '', {}, '能力' + this.identifier);
+    testElement = DataElement.create('能力', '', {}, `能力${this.identifier}`);
     this.detailDataElement.appendChild(testElement);
-    testElement.appendChild(DataElement.create('器用度', 24, {}, '器用度' + this.identifier));
-    testElement.appendChild(DataElement.create('敏捷度', 24, {}, '敏捷度' + this.identifier));
-    testElement.appendChild(DataElement.create('筋力', 24, {}, '筋力' + this.identifier));
-    testElement.appendChild(DataElement.create('生命力', 24, {}, '生命力' + this.identifier));
-    testElement.appendChild(DataElement.create('知力', 24, {}, '知力' + this.identifier));
-    testElement.appendChild(DataElement.create('精神力', 24, {}, '精神力' + this.identifier));
+    testElement.appendChild(DataElement.create('器用度', 24, {}, `器用度${this.identifier}`));
+    testElement.appendChild(DataElement.create('敏捷度', 24, {}, `敏捷度${this.identifier}`));
+    testElement.appendChild(DataElement.create('筋力', 24, {}, `筋力${this.identifier}`));
+    testElement.appendChild(DataElement.create('生命力', 24, {}, `生命力${this.identifier}`));
+    testElement.appendChild(DataElement.create('知力', 24, {}, `知力${this.identifier}`));
+    testElement.appendChild(DataElement.create('精神力', 24, {}, `精神力${this.identifier}`));
 
     //TEST
-    testElement = DataElement.create('戦闘特技', '', {}, '戦闘特技' + this.identifier);
+    testElement = DataElement.create('戦闘特技', '', {}, `戦闘特技${this.identifier}`);
     this.detailDataElement.appendChild(testElement);
-    testElement.appendChild(DataElement.create('Lv1', '全力攻撃', {}, 'Lv1' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv3', '武器習熟/ソード', {}, 'Lv3' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv5', '武器習熟/ソードⅡ', {}, 'Lv5' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv7', '頑強', {}, 'Lv7' + this.identifier));
-    testElement.appendChild(DataElement.create('Lv9', '薙ぎ払い', {}, 'Lv9' + this.identifier));
-    testElement.appendChild(DataElement.create('自動', '治癒適正', {}, '自動' + this.identifier));
+    testElement.appendChild(DataElement.create('Lv1', '全力攻撃', {}, `Lv1${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv3', '武器習熟/ソード', {}, `Lv3${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv5', '武器習熟/ソードⅡ', {}, `Lv5${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv7', '頑強', {}, `Lv7${this.identifier}`));
+    testElement.appendChild(DataElement.create('Lv9', '薙ぎ払い', {}, `Lv9${this.identifier}`));
+    testElement.appendChild(DataElement.create('自動', '治癒適正', {}, `自動${this.identifier}`));
 
-    const palette: ChatPalette = new ChatPalette('ChatPalette_' + this.identifier);
+    const palette: ChatPalette = new ChatPalette(`ChatPalette_${this.identifier}`);
     palette.setPalette(`チャットパレット入力例：
 2d6+1 ダイスロール
 １ｄ２０＋{敏捷}＋｛格闘｝　{name}の格闘！
@@ -415,78 +412,6 @@ export class GameCharacter extends TabletopObject {
     palette.initialize();
     this.appendChild(palette);
 
-    this.addExtendData();
-  }
-
-  createTestGameDataElementExtendSample(name: string, size: number, imageIdentifier: string) {
-    this.createDataElements();
-
-    const nameElement: DataElement = DataElement.create('name', name, {}, 'name_' + this.identifier);
-    const sizeElement: DataElement = DataElement.create('size', size, {}, 'size_' + this.identifier);
-    const altitudeElement: DataElement = DataElement.create('altitude', 0, {}, 'altitude_' + this.identifier);
-
-    if (this.imageDataElement.getFirstElementByName('imageIdentifier')) {
-      this.imageDataElement.getFirstElementByName('imageIdentifier').value = imageIdentifier;
-    }
-
-    //    let resourceElement: DataElement = DataElement.create('リソース', '', {}, 'リソース' + this.identifier);
-    //    let hpElement: DataElement = DataElement.create('HP', 200, { 'type': 'numberResource', 'currentValue': '200' }, 'HP_' + this.identifier);
-    //    let mpElement: DataElement = DataElement.create('MP', 100, { 'type': 'numberResource', 'currentValue': '100' }, 'MP_' + this.identifier);
-
-    this.commonDataElement.appendChild(nameElement);
-    this.commonDataElement.appendChild(sizeElement);
-    this.commonDataElement.appendChild(altitudeElement);
-
-    //    this.detailDataElement.appendChild(resourceElement);
-    //    resourceElement.appendChild(hpElement);
-    //    resourceElement.appendChild(mpElement);
-
-    //TEST
-    const testElement: DataElement = DataElement.create('情報', '', {}, '情報' + this.identifier);
-    this.detailDataElement.appendChild(testElement);
-    testElement.appendChild(
-      DataElement.create(
-        '説明',
-        `このキャラクターはキャラクターBの補助用のコマを作るときのサンプルです。
-まず、このキャラクターはキャラクターシートの設定で「テーブルインベントリ非表示」「発言をしない」のチェックが入っています。
-このように設定したキャラクターは「非表示」で足元のサークルの色が青に変わり、テーブルインベントリやリリィ追加機能のカウンターリモコンに表示されなくなります。
-戦闘非参加キャラを立ち絵やコマのためにテーブルに出したい場合に使用できます。
-また、プロフ等の追加情報を表示するためのコマ等、発言が不要な場合、「発言をしない」のチェックを入れることでチャットタブ等のリストに表示されなくなります。
-部位数が10あるモンスターの駒を出したけど頭だけ喋ればいい、等の場合に使います。このチェックをONにするとコマの上のキャラ名が白地に黒文字に変わります。
-次に、ポップアップのサイズ設定です。リリィではキャラクターシートからポップアップの横幅、最大縦幅を変更可能な様に拡張しています。
-これで遊ぶ仲間が許してくれれば、数千文字のプロフィールを書いても大丈夫です。\n
-なお、ポップアップする項目の設定は インベントリ＞設定＞表示項目 で行います。
-リリィでは説明のため初期の項目に情報をに追加しているので、情報の子項目のこの文章である「説明」と「持ち物」が表示されています。
-定義されていても持っていない項目は表示されないのでこのコマからはHPや能力値を削っています。
-ゲームごとに使いやすいように使ってください。
-`,
-        { type: 'note' },
-        '説明' + this.identifier
-      )
-    );
-    testElement.appendChild(
-      DataElement.create(
-        '持ち物',
-        `こういった文章も見やすくなります。
-アイテム1：3個　効果〇〇
-アイテム2：3個　効果パーティ内一人のHPをXXする
-アイテム3：3個　効果敵一人の魔法を△する
-アイテム4：3個　効果A
-アイテム5：3個　効果B`,
-        { type: 'note' },
-        '持ち物' + this.identifier
-      )
-    );
-
-    const palette: ChatPalette = new ChatPalette('ChatPalette_' + this.identifier);
-    palette.setPalette(`チャットパレット入力例：
-2d6+1 ダイスロール
-１ｄ２０＋{敏捷}＋｛格闘｝　{name}の格闘！
-//敏捷=10+{敏捷A}
-//敏捷A=10
-//格闘＝１`);
-    palette.initialize();
-    this.appendChild(palette);
     this.addExtendData();
   }
 
@@ -709,7 +634,7 @@ export class GameCharacter extends TabletopObject {
       }
       this.setStatusValue(name, nowOrMax, sum);
     }
-    text = text + '[' + this.name + ' ' + oldNum + '>' + sum + maxRecoveryMess + '] ';
+    text += `[${this.name} ${oldNum}>${sum}${maxRecoveryMess}] `;
     return text;
   }
 }

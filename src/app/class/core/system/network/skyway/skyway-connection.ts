@@ -222,7 +222,7 @@ export class SkyWayConnection implements Connection {
       const stream = SkyWayDataStream.createPublication(this.skyWay, peer);
 
       if (!(await this.peer.verifyPeer(stream.peer.peerId))) {
-        Logger.warn('[SkyWay] 不正なピアからの接続を拒否: ' + stream.peer.peerId);
+        Logger.warn(`[SkyWay] 不正なピアからの接続を拒否: ${stream.peer.peerId}`);
         stream.reject();
         return;
       }

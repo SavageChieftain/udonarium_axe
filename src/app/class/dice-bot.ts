@@ -111,9 +111,6 @@ export class DiceBot extends GameObject {
   }
 
   static loadCustomGameSystem(_gameType: string): GameSystemClass | null {
-    // 追加カスタムダイスは下記追記
-    // if( gameType == '***') return ***;
-
     return null!;
   }
 
@@ -206,7 +203,7 @@ export class DiceBot extends GameObject {
 
   // リソース操作コマンドでs付きがあるか判定
   checkSecretEditCommand(chatText: string): boolean {
-    const text: string = ' ' + toHalfWidth(chatText).toLowerCase();
+    const text: string = ` ${toHalfWidth(chatText).toLowerCase()}`;
     const replaceText = text.replace('：', ':');
     const m = replaceText.match(/\sST?:/i);
     if (m) return true;
@@ -272,7 +269,7 @@ export class DiceBot extends GameObject {
 
           if (event.data.messageTrget) {
             if (event.data.messageTrget.object) {
-              this.sendResultMessage(rollResult, chatMessage, ' [' + event.data.messageTrget.object.name + ']');
+              this.sendResultMessage(rollResult, chatMessage, ` [${event.data.messageTrget.object.name}]`);
             } else {
               this.sendResultMessage(rollResult, chatMessage);
             }
@@ -341,7 +338,7 @@ export class DiceBot extends GameObject {
               }
             }
           }
-          finalResult.result += '\n' + tableAns;
+          finalResult.result += `\n${tableAns}`;
           this.sendResultMessage(finalResult, chatMessage);
         } catch (e) {
           Logger.error('[DiceBot] ダイス表処理エラー', e);
@@ -394,7 +391,7 @@ export class DiceBot extends GameObject {
     let isSecret = false;
 
     for (const oneMessageTargetContext of messageTargetContext) {
-      const text = ' ' + oneMessageTargetContext.text;
+      const text = ` ${oneMessageTargetContext.text}`;
       const isMatch = text.match(/(\s[sSｓＳ][tTｔＴ]?[:：&＆])/i) ? true : false;
       if (isMatch) {
         isSecret = true;
@@ -482,8 +479,7 @@ export class DiceBot extends GameObject {
   ): boolean {
     oneResourceEdit.object = object;
     oneResourceEdit.targeted = targeted;
-    const replaceText =
-      ' ' + text.replace('：', ':').replace('＋', '+').replace('－', '-').replace('＝', '=').replace('＞', '>');
+    const replaceText = ` ${text.replace('：', ':').replace('＋', '+').replace('－', '-').replace('＝', '=').replace('＞', '>')}`;
 
     const resourceEditRegExp = /[:]([^-+=>]+)([-+=>])(.*)/;
     const resourceEditResult = replaceText.match(resourceEditRegExp);
@@ -522,7 +518,7 @@ export class DiceBot extends GameObject {
     } else {
       let reg3: string = resourceEditResult![3].replace(/[A-CE-ZＡ-ＣＥ-Ｚ]+$/i, '');
       const commandPrefix = oneResourceEdit.operator == '-' ? '-' : '';
-      oneResourceEdit.command = commandPrefix + toHalfWidth(reg3) + '+(1d1-1)';
+      oneResourceEdit.command = `${commandPrefix}${toHalfWidth(reg3)}+(1d1-1)`;
       // 操作量C()とダイスロールが必要な場合分けをしないために+(1d1-1)を付加してダイスロール命令にしている
 
       reg3 = reg3.replace(/[A-CE-ZＡ-ＣＥ-Ｚ]+$/i, '');
@@ -656,7 +652,7 @@ export class DiceBot extends GameObject {
 
   private resourceTextEdit(edit: ResourceEdit, character: GameCharacter): string {
     character.setStatusText(edit.target, edit.replace);
-    const ansText = edit.target + '＞' + edit.replace + '    ';
+    const ansText = `${edit.target}＞${edit.replace}    `;
     return ansText;
   }
 
@@ -710,8 +706,7 @@ export class DiceBot extends GameObject {
 
     const operatorText = edit.operator == '-' ? '' : edit.operator;
     const changeMax = nowOrMax == 'max' ? '(最大値)' : '';
-    const ansText =
-      edit.target + changeMax + ':' + oldNum + operatorText + edit.diceResult + '＞' + newNum + optionText + '    ';
+    const ansText = `${edit.target}${changeMax}:${oldNum}${operatorText}${edit.diceResult}＞${newNum}${optionText}    `;
     return ansText;
   }
 
@@ -719,7 +714,7 @@ export class DiceBot extends GameObject {
     const command = buff.command;
     let text = '';
     if (buff.targeted) {
-      text += '[' + character.name + '] ';
+      text += `[${character.name}] `;
     }
     if (command.match(/^[tTｔＴ]?&[RＲrｒ]-$/i)) {
       character.decreaseBuffRound();
@@ -737,7 +732,7 @@ export class DiceBot extends GameObject {
       const match = command.match(/^[tTｔＴ]?&(.+)-$/i);
       const reg1 = match![1];
       if (character.deleteBuff(reg1)) {
-        text += reg1 + 'を消去';
+        text += `${reg1}を消去`;
         text += '    ';
       }
     } else {
@@ -749,7 +744,7 @@ export class DiceBot extends GameObject {
       bufftext = splittext[0];
       if (splittext.length > 1) {
         sub = splittext[1];
-        bufftext = bufftext + '/' + splittext[1];
+        bufftext = `${bufftext}/${splittext[1]}`;
       }
       if (splittext.length > 2) {
         if (splittext[2]) {
@@ -760,11 +755,11 @@ export class DiceBot extends GameObject {
         } else {
           round = 3;
         }
-        bufftext = bufftext + '/' + round + 'R';
+        bufftext = `${bufftext}/${round}R`;
       }
 
       character.addBuffRound(buffname, sub, round);
-      text += 'バフを付与 ' + bufftext;
+      text += `バフを付与 ${bufftext}`;
       text += '    ';
     }
     return text;
@@ -783,7 +778,7 @@ export class DiceBot extends GameObject {
     for (const edit of allEditList) {
       character = edit.object;
       if (edit.targeted) {
-        text += '[' + character.name + '] ';
+        text += `[${character.name}] `;
       }
       if (edit.operator == '>') {
         text += this.resourceTextEdit(edit, character);
@@ -806,7 +801,7 @@ export class DiceBot extends GameObject {
     let nameText;
     if (isDiceRoll) {
       fromText = 'System-BCDice';
-      nameText = '<BCDice：' + originalMessage.name + '>';
+      nameText = `<BCDice：${originalMessage.name}>`;
     } else {
       fromText = 'System';
       nameText = originalMessage.name;
@@ -846,15 +841,15 @@ export class DiceBot extends GameObject {
       timestamp: originalMessage.timestamp + 1,
       imageIdentifier: PeerCursor.myCursor.diceImageIdentifier,
       tag: isSecret ? 'system secret' : 'system',
-      name: isSecret ? '<Secret-BCDice：' + originalMessage.name + '>' : '<BCDice：' + originalMessage.name + '>',
-      text: multiTargetOption ? result + multiTargetOption : result,
+      name: isSecret ? `<Secret-BCDice：${originalMessage.name}>` : `<BCDice：${originalMessage.name}>`,
+      text: multiTargetOption ? `${result}${multiTargetOption}` : result,
       messColor: originalMessage.messColor,
     };
 
     if (originalMessage.to != null && 0 < originalMessage.to.length) {
       diceBotMessage.to = originalMessage.to;
       if (originalMessage.to.indexOf(originalMessage.from) < 0) {
-        diceBotMessage.to += ' ' + originalMessage.from;
+        diceBotMessage.to += ` ${originalMessage.from}`;
       }
     }
     const chatTab = ObjectStore.instance.get<ChatTab>(originalMessage.tabIdentifier);

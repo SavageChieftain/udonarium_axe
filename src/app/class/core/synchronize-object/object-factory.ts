@@ -22,7 +22,7 @@ export class ObjectFactory {
   register<T extends GameObject>(constructor: Type<T>, alias?: string) {
     if (!alias) alias = constructor.name ?? constructor.toString().match(/function\s*([^(]*)\(/)?.[1] ?? '';
     if (this.constructorMap.has(alias)) {
-      Logger.error('[ObjectFactory] alias が重複しています: ' + alias);
+      Logger.error(`[ObjectFactory] alias が重複しています: ${alias}`);
       return;
     }
     if (this.aliasMap.has(constructor)) {
@@ -36,13 +36,13 @@ export class ObjectFactory {
   create<T extends GameObject>(alias: string, identifer?: string): T | null {
     const classConstructor = this.constructorMap.get(alias);
     if (!classConstructor) {
-      Logger.error(alias + 'という名のGameObjectクラスは定義されていません');
+      Logger.error(`${alias}という名のGameObjectクラスは定義されていません`);
       return null;
     }
     const gameObject: GameObject = new (classConstructor as unknown as new (identifier?: string) => GameObject)(
       identifer
     );
-    return <T>gameObject;
+    return gameObject as T;
   }
 
   getAlias<T extends GameObject>(constructor: Type<T>): string {

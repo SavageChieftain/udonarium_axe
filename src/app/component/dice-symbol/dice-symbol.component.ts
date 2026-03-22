@@ -80,7 +80,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get imageHeignt(): number {
-    return this.diceSymbol.komaImageHeignt;
+    return this.diceSymbol.komaImageHeight;
   }
   get specifyImageFlag(): boolean {
     return this.diceSymbol.specifyKomaImageFlag;

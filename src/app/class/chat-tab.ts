@@ -8,14 +8,20 @@ import { InnerXml, ObjectSerializer } from './core/synchronize-object/object-ser
 import { EventSystem } from './core/system';
 import { CutInLauncher } from './cut-in-launcher';
 
+const TACHIE_SLOT_COUNT = 12;
+const DEFAULT_IMAGE_IDENTIFIERS: readonly string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
+
 @SyncObject('chat-tab')
 export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() name = 'タブ';
 
   @SyncVar() pos_num = -1;
-  @SyncVar() imageIdentifier: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
-  @SyncVar() imageCharactorName: string[] = ['#0', '#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#10', '#11'];
-  @SyncVar() imageIdentifierZpos: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  @SyncVar() imageIdentifier: string[] = [...DEFAULT_IMAGE_IDENTIFIERS];
+  @SyncVar('imageCharactorName') imageCharacterName: string[] = Array.from(
+    { length: TACHIE_SLOT_COUNT },
+    (_, i) => `#${i}`
+  );
+  @SyncVar() imageIdentifierZpos: number[] = Array.from({ length: TACHIE_SLOT_COUNT }, (_, i) => i);
 
   @SyncVar() count = 0;
   @SyncVar() imageIdentifierDummy = 'test'; // 通信開始ために使わなくても書かなきゃだめっぽい後日見直し
@@ -30,14 +36,13 @@ export class ChatTab extends ObjectNode implements InnerXml {
   }
 
   tachieReset() {
-    this.imageIdentifier = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
-    this.imageCharactorName = ['#0', '#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#10', '#11'];
-    this.imageIdentifierZpos = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    this.imageIdentifier = [...DEFAULT_IMAGE_IDENTIFIERS];
+    this.imageCharacterName = Array.from({ length: TACHIE_SLOT_COUNT }, (_, i) => `#${i}`);
+    this.imageIdentifierZpos = Array.from({ length: TACHIE_SLOT_COUNT }, (_, i) => i);
     this.imageIdentifierDummy = 'test';
   }
 
-  //  imageDispFlag: boolean[] = [false,false,false,false,false,false,false,false,false,false,false,false];
-  imageDispFlag: boolean[] = [true, true, true, true, true, true, true, true, true, true, true, true];
+  imageDispFlag: boolean[] = Array(TACHIE_SLOT_COUNT).fill(true) as boolean[];
 
   get chatMessages(): ChatMessage[] {
     return <ChatMessage[]>this.children;
@@ -49,8 +54,8 @@ export class ChatTab extends ObjectNode implements InnerXml {
   }
 
   getImageCharactorPos(name: string) {
-    for (let i = 0; i < this.imageCharactorName.length; i++) {
-      if (name == this.imageCharactorName[i]) {
+    for (let i = 0; i < this.imageCharacterName.length; i++) {
+      if (name == this.imageCharacterName[i]) {
         return i;
       }
     }
@@ -151,7 +156,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
           if (oldpos >= 0) {
             // 同名キャラの古い位置を消去
             this.imageIdentifier[oldpos] = '';
-            this.imageCharactorName[oldpos] = '';
+            this.imageCharacterName[oldpos] = '';
             this.imageDispFlag[oldpos] = false;
           }
           // 非表示コマンド\s
@@ -160,7 +165,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
             // 事前に古い立ち絵は消す処理をしているため処理なし
           } else {
             this.imageIdentifier[this.pos_num] = message.imageIdentifier ?? '';
-            this.imageCharactorName[this.pos_num] = message.name ?? '';
+            this.imageCharacterName[this.pos_num] = message.name ?? '';
             this.replaceTachieZindex(this.pos_num);
             this.imageDispFlag[this.pos_num] = true;
 
@@ -230,11 +235,11 @@ export class ChatTab extends ObjectNode implements InnerXml {
   messageHtml(isTime: boolean, tabName: string, message: ChatMessage): string {
     let str = '';
     if (message) {
-      if (tabName) str += '[' + this.escapeHtml(tabName) + ']';
+      if (tabName) str += `[${this.escapeHtml(tabName)}]`;
 
       if (isTime) {
         const date = new Date(message.timestamp);
-        str += ('00' + date.getHours()).slice(-2) + ':' + ('00' + date.getMinutes()).slice(-2) + '：';
+        str += `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}：`;
       }
 
       str += "<font color='";
@@ -265,16 +270,12 @@ export class ChatTab extends ObjectNode implements InnerXml {
   messageHtmlCoc(tabName: string, message: ChatMessage): string {
     let str = '';
     if (message) {
-      str += '    <p style="color:' + message.messColor.toLowerCase() + ';">' + '\n';
-      str += '      <span> [' + tabName + ']</span>' + '\n';
-      str +=
-        '      <span>' +
-        this.escapeHtml(message.name ?? '')
-          .replace('<', '')
-          .replace('>', '') +
-        '</span>' +
-        '\n';
-      str += '      <span>' + '\n';
+      str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
+      str += `      <span> [${tabName}]</span>\n`;
+      str += `      <span>${this.escapeHtml(message.name ?? '')
+        .replace('<', '')
+        .replace('>', '')}</span>\n`;
+      str += '      <span>\n';
       str += '        ';
 
       if (!message.isSecret || message.isSendFromSelf) {
@@ -289,9 +290,9 @@ export class ChatTab extends ObjectNode implements InnerXml {
       str += fixd;
       str += '\n';
 
-      str += '      </span>' + '\n';
-      str += '    </p>' + '\n';
-      str += '    ' + '\n';
+      str += '      </span>\n';
+      str += '    </p>\n';
+      str += '    \n';
     }
     return str;
   }
@@ -319,27 +320,17 @@ export class ChatTab extends ObjectNode implements InnerXml {
   }
 
   logHtml(): string {
-    const head: string =
-      "<?xml version='1.0' encoding='UTF-8'?>" +
-      '\n' +
-      "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>" +
-      '\n' +
-      "<html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>" +
-      '\n' +
-      '  <head>' +
-      '\n' +
-      "    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />" +
-      '\n' +
-      '    <title>チャットログ：' +
-      this.escapeHtml(this.name) +
-      '</title>' +
-      '\n' +
-      '  </head>' +
-      '\n' +
-      '  <body>' +
-      '\n';
+    const head = `<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <title>チャットログ：${this.escapeHtml(this.name)}</title>
+  </head>
+  <body>
+`;
 
-    const last: string = '' + '\n' + '  </body>' + '\n' + '</html>';
+    const last = '\n  </body>\n</html>';
 
     let main: string = '';
 
@@ -362,29 +353,19 @@ export class ChatTab extends ObjectNode implements InnerXml {
   }
 
   logHtmlCoc(): string {
-    const head: string =
-      '<!DOCTYPE html>' +
-      '\n' +
-      '<html lang="ja">' +
-      '\n' +
-      '  <head>' +
-      '\n' +
-      '    <meta charset="UTF-8" />' +
-      '\n' +
-      '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />' +
-      '\n' +
-      '    <meta http-equiv="X-UA-Compatible" content="ie=edge" />' +
-      '\n' +
-      '    <title>Udonalium Axe - logs</title>' +
-      '\n' +
-      '  </head>' +
-      '\n' +
-      '  <body>' +
-      '\n' +
-      '   ' +
-      '\n';
+    const head = `<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Udonalium Axe - logs</title>
+  </head>
+  <body>
 
-    const last: string = '  </body>' + '\n' + '</html>';
+`;
+
+    const last = '  </body>\n</html>';
 
     let main: string = '';
 

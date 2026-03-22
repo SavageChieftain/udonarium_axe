@@ -12,7 +12,6 @@ export class ImageTag extends ObjectNode {
 
   containsWords(words: string[]): boolean {
     return words.every((word) => this.tag.indexOf(word) >= 0);
-    //    return words.every(word => this.tag.indexOf(word) >= 0);
   }
 
   static searchImages(searchWords: string[]): ImageFile[] {

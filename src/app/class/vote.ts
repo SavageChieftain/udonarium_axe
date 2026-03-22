@@ -83,17 +83,17 @@ export class Vote extends GameObject {
     if (this.chairId == PeerCursor.myCursor.peerId && this.votedTotalNum() == this.targetPeerId.length) {
       let text_: string;
       if (this.isRollCall) {
-        text_ = '点呼終了' + '(' + this.votedTotalNum() + '/' + this.targetPeerId.length + ')';
+        text_ = `点呼終了(${this.votedTotalNum()}/${this.targetPeerId.length})`;
         if (this.votedNumByIndex(-2) != 0) {
-          text_ += ' 棄権：' + this.votedNumByIndex(-2);
+          text_ += ` 棄権：${this.votedNumByIndex(-2)}`;
         }
       } else {
-        text_ = '投票終了(' + this.voteTitle + ') ';
+        text_ = `投票終了(${this.voteTitle}) `;
         for (const cho of this.choices) {
-          text_ += ' ' + cho + '：' + this.votedNumByChoice(cho);
+          text_ += ` ${cho}：${this.votedNumByChoice(cho)}`;
         }
         if (this.votedNumByIndex(-2) != 0) {
-          text_ += ' 棄権：' + this.votedNumByIndex(-2);
+          text_ += ` 棄権：${this.votedNumByIndex(-2)}`;
         }
       }
       setTimeout(() => {

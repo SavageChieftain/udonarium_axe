@@ -30,12 +30,12 @@ export class ChatPalette extends ObjectNode {
   //TODO: キャラシ項目のコピー
 
   get paletteLines(): PaletteLine[] {
-    if (!this.isAnalized) this.parse(<string>this.value);
+    if (!this.isAnalized) this.parse(this.value as string);
     return this._paletteLines;
   }
 
   get paletteVariables(): PaletteVariable[] {
-    if (!this.isAnalized) this.parse(<string>this.value);
+    if (!this.isAnalized) this.parse(this.value as string);
     return this._paletteVariables;
   }
 
@@ -67,7 +67,7 @@ export class ChatPalette extends ObjectNode {
     let count = 0;
     let ret;
     const indexList: PaletteIndex[] = [];
-    const palettString = <string>this.value;
+    const palettString = this.value as string;
     const palettes = palettString.split('\n');
 
     for (const line of palettes) {
@@ -83,7 +83,7 @@ export class ChatPalette extends ObjectNode {
   paletteMatch(text: string): string[] {
     const matchList: string[] = [];
 
-    const palettString = <string>this.value;
+    const palettString = this.value as string;
     const palettes = palettString.split('\n');
 
     for (const line of palettes) {
@@ -97,7 +97,7 @@ export class ChatPalette extends ObjectNode {
   paletteMatchLine(text: string, nth: number): number {
     let matchCount = 0;
     let lineNo = 0;
-    const palettString = <string>this.value;
+    const palettString = this.value as string;
     const palettes = palettString.split('\n');
 
     for (const line of palettes) {
@@ -118,7 +118,7 @@ export class ChatPalette extends ObjectNode {
   private isAnalized: boolean = false;
 
   getPalette(): string[] {
-    if (!this.isAnalized) this.parse(<string>this.value);
+    if (!this.isAnalized) this.parse(this.value as string);
     return this._palettes;
   }
 
@@ -180,9 +180,9 @@ export class ChatPalette extends ObjectNode {
             if (element) {
               let targetElementText: string;
               if (useMax && element.isNumberResource) {
-                targetElementText = element.value + '';
+                targetElementText = `${element.value}`;
               } else {
-                targetElementText = element.isNumberResource ? element.currentValue + '' : element.value + '';
+                targetElementText = element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
               }
               if (targetElementText.match(/[{｛]\s*([^{}｛｝]+)\s*[}｝]/g)) {
                 targetElementText = targetElementText.replace(/[{｛]/g, 't{');
@@ -198,8 +198,8 @@ export class ChatPalette extends ObjectNode {
           if (extendVariables) {
             const element = extendVariables.getFirstElementByName(name);
             if (element) {
-              if (useMax && element.isNumberResource) return element.value + '';
-              return element.isNumberResource ? element.currentValue + '' : element.value + '';
+              if (useMax && element.isNumberResource) return `${element.value}`;
+              return element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
             }
           }
         }

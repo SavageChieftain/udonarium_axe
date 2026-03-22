@@ -188,8 +188,8 @@ export class CardStack extends TabletopObject {
       object = new CardStack();
     }
     object.createDataElements();
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, 'name_' + object.identifier));
-    const cardRoot = new ObjectNode('cardRoot_' + object.identifier);
+    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    const cardRoot = new ObjectNode(`cardRoot_${object.identifier}`);
     cardRoot.setAttribute('name', 'cardRoot');
     cardRoot.initialize();
     object.appendChild(cardRoot);

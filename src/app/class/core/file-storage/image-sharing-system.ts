@@ -115,7 +115,7 @@ export class ImageSharingSystem {
         const image: ImageFile = ImageStorage.instance.get(identifier);
         if (this.receiveTaskMap.has(identifier) || (image && ImageState.COMPLETE <= image.state)) {
           Logger.warn('[ImageSync] タスクキャンセル', identifier);
-          EventSystem.call('CANCEL_TASK_' + identifier, null, event.sendFrom);
+          EventSystem.call(`CANCEL_TASK_${identifier}`, null, event.sendFrom);
         } else {
           this.startReceiveTask(identifier);
         }

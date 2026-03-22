@@ -41,7 +41,7 @@ export class RangeArea extends TabletopObject {
   }
   get opacity(): number {
     const element = this.getElement('opacity', this.commonDataElement);
-    const num = element ? <number>element.currentValue / <number>element.value : 1;
+    const num = element ? (element.currentValue as number) / (element.value as number) : 1;
     return Number.isNaN(num) ? 1 : num;
   }
 
@@ -74,15 +74,15 @@ export class RangeArea extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, 'name_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('length', length, {}, 'length_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, 'width_' + object.identifier));
+    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('length', length, {}, `length_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
     object.commonDataElement.appendChild(
       DataElement.create(
         'opacity',
         opacity,
         { type: 'numberResource', currentValue: opacity },
-        'opacity_' + object.identifier
+        `opacity_${object.identifier}`
       )
     );
     object.initialize();

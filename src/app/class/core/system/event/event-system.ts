@@ -128,12 +128,12 @@ export class EventSystem implements Subject {
     };
 
     callback.onConnect = (peer) => {
-      this.sendSystemMessage('<' + peer.peerId + '> connect <DataConnection>');
+      this.sendSystemMessage(`<${peer.peerId}> connect <DataConnection>`);
       this.trigger('CONNECT_PEER', { peerId: peer.peerId });
     };
 
     callback.onDisconnect = (peer) => {
-      this.sendSystemMessage('<' + peer.peerId + '> disconnect <DataConnection>');
+      this.sendSystemMessage(`<${peer.peerId}> disconnect <DataConnection>`);
       this.trigger('DISCONNECT_PEER', { peerId: peer.peerId });
     };
 
@@ -144,7 +144,7 @@ export class EventSystem implements Subject {
     };
 
     callback.onError = (peer, errorType, errorMessage, errorObject) => {
-      this.sendSystemMessage('<' + peer.peerId + '> ' + errorMessage);
+      this.sendSystemMessage(`<${peer.peerId}> ${errorMessage}`);
       this.trigger('NETWORK_ERROR', {
         peerId: peer.peerId,
         errorType: errorType,

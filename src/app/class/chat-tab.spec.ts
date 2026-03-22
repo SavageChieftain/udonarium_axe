@@ -45,10 +45,10 @@ describe('ChatTab', () => {
       expect(tab.imageIdentifier).toHaveLength(12);
     });
 
-    it('imageCharactorName が12要素の配列', () => {
+    it('imageCharacterName が12要素の配列', () => {
       const tab = new ChatTab();
       tab.initialize();
-      expect(tab.imageCharactorName).toHaveLength(12);
+      expect(tab.imageCharacterName).toHaveLength(12);
     });
   });
 

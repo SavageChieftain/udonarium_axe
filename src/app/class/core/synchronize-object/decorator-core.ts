@@ -8,14 +8,16 @@ export function defineSyncObject(alias: string) {
   };
 }
 
-export function defineSyncVariable() {
+export function defineSyncVariable(syncKey?: string | symbol) {
   return <T extends GameObject>(target: T, key: string | symbol) => {
+    const dataKey = syncKey ?? key;
+
     function getter(this: { context: { syncData: Record<string | symbol, unknown> } }) {
-      return this.context.syncData[key];
+      return this.context.syncData[dataKey];
     }
 
     function setter(this: { context: { syncData: Record<string | symbol, unknown> }; update(): void }, value: unknown) {
-      this.context.syncData[key] = value;
+      this.context.syncData[dataKey] = value;
       this.update();
     }
 
@@ -28,14 +30,16 @@ export function defineSyncVariable() {
   };
 }
 
-export function defineSyncAttribute() {
+export function defineSyncAttribute(syncKey?: string | symbol) {
   return <T extends ObjectNode>(target: T, key: string | symbol) => {
+    const attrName = (syncKey ?? key) as string;
+
     function getter(this: { getAttribute(name: string): string }) {
-      return this.getAttribute(key as string);
+      return this.getAttribute(attrName);
     }
 
     function setter(this: { setAttribute(name: string, value: number | string): void }, value: number | string) {
-      this.setAttribute(key as string, value);
+      this.setAttribute(attrName, value);
     }
 
     Object.defineProperty(target, key, {

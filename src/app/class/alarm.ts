@@ -59,7 +59,7 @@ export class Alarm extends GameObject {
     if (this.chkToMe()) {
       setTimeout(() => {
         if (this.isSound) {
-          const text_ = 'アラーム(' + this.alarmTime + '秒)経過' + this.targetText + this.alarmTitle;
+          const text_ = `アラーム(${this.alarmTime}秒)経過${this.targetText}${this.alarmTitle}`;
           EventSystem.trigger('ALARM_TIMEUP_ORIGIN', { text: text_ });
           AudioPlayer.play(AudioStorage.instance.get(PresetSound.alarm), 0.5);
         }

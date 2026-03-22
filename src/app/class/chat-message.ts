@@ -51,7 +51,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.parent.identifier;
   }
   get text(): string {
-    return <string>this.value;
+    return this.value as string;
   }
   set text(text: string) {
     this.value = text;

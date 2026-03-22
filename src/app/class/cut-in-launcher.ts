@@ -30,7 +30,7 @@ export class CutInLauncher extends GameObject {
   }
 
   chatActivateCutIn(text: string, sendTo: string) {
-    const text2 = ' ' + text;
+    const text2 = ` ${text}`;
     const matches_array = text2.match(/\s(\S+)$/i);
     let activateName: string;
 

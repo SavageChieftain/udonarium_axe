@@ -34,7 +34,7 @@ export class DiceTable extends ObjectNode {
     diceTable.name = '白紙のダイス表';
     diceTable.initialize();
 
-    const palette: DiceTablePalette = new DiceTablePalette('table_' + diceTable.identifier);
+    const palette: DiceTablePalette = new DiceTablePalette(`table_${diceTable.identifier}`);
 
     palette.setPalette(
       `ダイス表入力例：

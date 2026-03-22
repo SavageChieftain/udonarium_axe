@@ -78,7 +78,7 @@ export class SkyWayFacade {
 
     const backend = new SkyWayBackend(this.url);
     const channelName = this.peer.isRoom
-      ? await sha256Base64Url(this.peer.roomId + this.peer.roomName + this.peer.password)
+      ? await sha256Base64Url(`${this.peer.roomId}${this.peer.roomName}${this.peer.password}`)
       : this.peer.peerId;
 
     const authToken = await backend.createSkyWayAuthToken(channelName, this.peer.peerId);
@@ -187,7 +187,7 @@ export class SkyWayFacade {
     await this.leaveRoomChannel();
     if (this.isDestroyed || !this.peer.isRoom || !this.context || this.context?.disposed) return;
 
-    const roomName = await sha256Base64Url(this.peer.roomId + this.peer.roomName + this.peer.password);
+    const roomName = await sha256Base64Url(`${this.peer.roomId}${this.peer.roomName}${this.peer.password}`);
 
     const room = await SkyWayChannel.FindOrCreate(this.context, {
       name: roomName,

@@ -99,27 +99,17 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   }
 
   logHtml(): string {
-    const head: string =
-      "<?xml version='1.0' encoding='UTF-8'?>" +
-      '\n' +
-      "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>" +
-      '\n' +
-      "<html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>" +
-      '\n' +
-      '  <head>' +
-      '\n' +
-      "    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />" +
-      '\n' +
-      '    <title>チャットログ：' +
-      '全タブ' +
-      '</title>' +
-      '\n' +
-      '  </head>' +
-      '\n' +
-      '  <body>' +
-      '\n';
+    const head = `<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <title>チャットログ：全タブ</title>
+  </head>
+  <body>
+`;
 
-    const last: string = '' + '\n' + '  </body>' + '\n' + '</html>';
+    const last = '\n  </body>\n</html>';
 
     let main: string = '';
 
@@ -177,29 +167,19 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   }
 
   logHtmlCoc(): string {
-    const head: string =
-      '<!DOCTYPE html>' +
-      '\n' +
-      '<html lang="ja">' +
-      '\n' +
-      '  <head>' +
-      '\n' +
-      '    <meta charset="UTF-8" />' +
-      '\n' +
-      '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />' +
-      '\n' +
-      '    <meta http-equiv="X-UA-Compatible" content="ie=edge" />' +
-      '\n' +
-      '    <title>Udonalium Axe - logs</title>' +
-      '\n' +
-      '  </head>' +
-      '\n' +
-      '  <body>' +
-      '\n' +
-      '   ' +
-      '\n';
+    const head = `<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Udonalium Axe - logs</title>
+  </head>
+  <body>
 
-    const last: string = '' + '\n' + '  </body>' + '\n' + '</html>';
+`;
+
+    const last = '  </body>\n</html>';
 
     let main: string = '';
 

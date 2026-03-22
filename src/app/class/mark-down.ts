@@ -26,7 +26,7 @@ export class MarkDown extends GameObject {
       this.clickTimeStamp = timeStamp;
     }
 
-    const objectValue: string = <string>object.value;
+    const objectValue: string = object.value as string;
 
     const clickIndex = parseInt(boxNum);
 
@@ -74,7 +74,7 @@ export class MarkDown extends GameObject {
       textOut += splitText[i];
       if (i < splitText.length - 1) {
         const num = ('00000000' + i).slice(-8);
-        textOut += '<input ' + 'id="' + baseId + '_mark_' + num + '" ';
+        textOut += `<input id="${baseId}_mark_${num}" `;
       }
       if (i >= 99999999) {
         break;
@@ -93,10 +93,10 @@ export class MarkDown extends GameObject {
       const splitVar = splitLine[i].split(/[|｜]/);
       if (splitVar.length == 1) {
         if (tableMaking == false) {
-          textOut += splitLine[i] + '\n';
+          textOut += `${splitLine[i]}\n`;
         } else {
           textOut += '</div>';
-          textOut += splitLine[i] + '\n';
+          textOut += `${splitLine[i]}\n`;
           tableMaking = false;
         }
       } else {
@@ -106,20 +106,14 @@ export class MarkDown extends GameObject {
             '<div class="markdown_table" style="display: table; table-layout: fixed; border: 1px solid #000000;">';
           textOut += '  <div class="markdown_table_row" style="display: table-row; border: 1px solid #000000;">';
           for (let j = 1; j < splitVar.length - 1; j++) {
-            textOut +=
-              '    <div class="markdown_table_cell" style="display: table-cell; border: 1px solid #000000;">' +
-              splitVar[j] +
-              '</div>';
+            textOut += `    <div class="markdown_table_cell" style="display: table-cell; border: 1px solid #000000;">${splitVar[j]}</div>`;
           }
           textOut += '  </div>';
           tableMaking = true;
         } else {
           textOut += '  <div class="markdown_table_row" style="display: table-row; border: 1px solid #000000;">';
           for (let j = 1; j < splitVar.length - 1; j++) {
-            textOut +=
-              '    <div class="markdown_table_cell" style="display: table-cell; border: 1px solid #000000;">' +
-              splitVar[j] +
-              '</div>';
+            textOut += `    <div class="markdown_table_cell" style="display: table-cell; border: 1px solid #000000;">${splitVar[j]}</div>`;
           }
           textOut += '  </div>';
         }

@@ -29,13 +29,13 @@ export class GameTableMask extends TabletopObject {
   }
   get opacity(): number {
     const element = this.getElement('opacity', this.commonDataElement);
-    const num = element ? <number>element.currentValue / <number>element.value : 1;
+    const num = element ? (element.currentValue as number) / (element.value as number) : 1;
     return Number.isNaN(num) ? 1 : num;
   }
 
   get color(): string {
     const element = this.getElement('color', this.commonDataElement);
-    return element ? element.value + '' : '#555555';
+    return element ? `${element.value}` : '#555555';
   }
   set color(color: string) {
     this.setCommonValue('color', color);
@@ -43,7 +43,7 @@ export class GameTableMask extends TabletopObject {
 
   get bgcolor(): string {
     const element = this.getElement('color', this.commonDataElement);
-    return element ? element.currentValue + '' : '#0a0a0a';
+    return element ? `${element.currentValue}` : '#0a0a0a';
   }
   set bgcolor(bgcolor: string) {
     const element = this.getElement('color', this.commonDataElement);
@@ -77,23 +77,7 @@ export class GameTableMask extends TabletopObject {
     return Network.peerContext.userId === this.owner;
   }
 
-  complement(): void {
-    /*
-
-    element = this.getElement('text', this.commonDataElement);
-    if (!element && this.commonDataElement) {
-      this.commonDataElement.appendChild(DataElement.create('text', '', { type: 'note', currentValue: '' }, 'text_' + this.identifier));
-    }
-    element = this.getElement('color', this.commonDataElement);
-    if (!element && this.commonDataElement) {
-      this.commonDataElement.appendChild(DataElement.create('color', "#555555", { type: 'colors', currentValue: '#0a0a0a' }, 'color_' + this.identifier));
-    }
-    element = this.getElement('altitude', this.commonDataElement);
-    if (!element && this.commonDataElement) {
-      this.commonDataElement.appendChild(DataElement.create('altitude', 0, {}, 'altitude_' + this.identifier));
-    }
-*/
-  }
+  complement(): void {}
 
   static create(name: string, width: number, height: number, opacity: number, identifier?: string): GameTableMask {
     let object: GameTableMask;
@@ -105,15 +89,15 @@ export class GameTableMask extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, 'name_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, 'width_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('height', height, {}, 'height_' + object.identifier));
+    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
     object.commonDataElement.appendChild(
       DataElement.create(
         'opacity',
         opacity,
         { type: 'numberResource', currentValue: opacity },
-        'opacity_' + object.identifier
+        `opacity_${object.identifier}`
       )
     );
     object.initialize();

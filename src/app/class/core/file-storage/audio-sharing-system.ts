@@ -99,7 +99,7 @@ export class AudioSharingSystem {
         const audio: AudioFile = AudioStorage.instance.get(identifier);
         if (this.receiveTaskMap.has(identifier) || audio?.isReady) {
           Logger.warn('[AudioSync] タスクキャンセル', identifier);
-          EventSystem.call('CANCEL_TASK_' + identifier, null, event.sendFrom);
+          EventSystem.call(`CANCEL_TASK_${identifier}`, null, event.sendFrom);
         } else {
           this.startReceiveTask(identifier);
         }
@@ -146,7 +146,7 @@ export class AudioSharingSystem {
 
     task.onprogress = (task, loded, total) => {
       const context = audio.toContext();
-      context.name = ((loded * 100) / total).toFixed(1) + '%';
+      context.name = `${((loded * 100) / total).toFixed(1)}%`;
       audio.apply(context);
     };
     task.onfinish = (task, data) => {

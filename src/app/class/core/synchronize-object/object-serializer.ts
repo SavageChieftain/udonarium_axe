@@ -36,9 +36,9 @@ export class ObjectSerializer {
 
     let attrStr = '';
     for (const name in attributes) {
-      const attribute = encodeEntityReference(attributes[name] + '');
+      const attribute = encodeEntityReference(`${attributes[name]}`);
       if (attribute == null) continue;
-      attrStr += ' ' + name + '="' + attribute + '"';
+      attrStr += ` ${name}="${attribute}"`;
     }
     xml += `<${tagName + attrStr}>`;
     xml += 'innerXml' in gameObject ? (<InnerXml>gameObject).innerXml() : '';
@@ -81,7 +81,7 @@ export class ObjectSerializer {
     const attributes: Attributes = {};
     for (const objKey in obj) {
       const item = obj[objKey];
-      const key = rootKey + '.' + objKey;
+      const key = `${rootKey}.${objKey}`;
       const childAttr = ObjectSerializer.make2Attributes(item, key);
       for (const name in childAttr) {
         attributes[name] = childAttr[name];
@@ -95,7 +95,7 @@ export class ObjectSerializer {
     const length = array.length;
     for (let i = 0; i < length; i++) {
       const item = array[i];
-      const key = rootKey + '.' + i;
+      const key = `${rootKey}.${i}`;
       const childAttr = ObjectSerializer.make2Attributes(item, key);
       for (const name in childAttr) {
         attributes[name] = childAttr[name];

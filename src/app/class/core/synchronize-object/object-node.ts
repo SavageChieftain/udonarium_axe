@@ -215,7 +215,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     if (this.attributes[name] == null) {
       return '';
     }
-    return <string>this.attributes[name];
+    return this.attributes[name] as string;
   }
 
   removeAttribute(name: string) {
@@ -233,7 +233,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
 
   innerXml(): string {
     let xml = '';
-    xml += encodeEntityReference(this.value + '');
+    xml += encodeEntityReference(`${this.value}`);
     for (const child of this.children) {
       xml += ObjectSerializer.instance.toXml(child);
     }

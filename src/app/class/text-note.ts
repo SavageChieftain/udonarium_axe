@@ -53,12 +53,12 @@ export class TextNote extends TabletopObject {
     const object: TextNote = identifier ? new TextNote(identifier) : new TextNote();
 
     object.createDataElements();
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, 'width_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('height', height, {}, 'height_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('fontsize', fontSize, {}, 'fontsize_' + object.identifier));
-    object.commonDataElement.appendChild(DataElement.create('title', title, {}, 'title_' + object.identifier));
+    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('fontsize', fontSize, {}, `fontsize_${object.identifier}`));
+    object.commonDataElement.appendChild(DataElement.create('title', title, {}, `title_${object.identifier}`));
     object.commonDataElement.appendChild(
-      DataElement.create('text', text, { type: 'note', currentValue: text }, 'text_' + object.identifier)
+      DataElement.create('text', text, { type: 'note', currentValue: text }, `text_${object.identifier}`)
     );
     object.initialize();
 

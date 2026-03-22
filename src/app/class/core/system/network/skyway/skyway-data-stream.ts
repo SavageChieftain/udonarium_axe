@@ -186,7 +186,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     //
     if (!subscription) {
-      Logger.error('[SkyWay] サブスクリプションが見つかりません: ' + this.peer.peerId);
+      Logger.error(`[SkyWay] サブスクリプションが見つかりません: ${this.peer.peerId}`);
     }
 
     //

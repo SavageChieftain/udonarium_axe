@@ -3,6 +3,12 @@ import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject } from './core/synchronize-object/game-object';
 import { ObjectNode } from './core/synchronize-object/object-node';
 
+const SAN_PATTERN = /^[SsＳｓ][AaＡａ][NnＮn]$/i;
+const SANITY_PATTERN = /^正気度$/i;
+const SAN_WARNING_THRESHOLD = 0.8;
+const SAN_WARNING_COLOR = '#D22';
+const DEFAULT_VALUE_COLOR = '#444';
+
 @SyncObject('data')
 export class DataElement extends ObjectNode {
   @SyncVar() name: string;
@@ -75,15 +81,15 @@ export class DataElement extends ObjectNode {
   }
 
   get nowValueColor(): string {
-    if (this.name.match(/^[SsＳｓ][AaＡａ][NnＮn]$/i) || this.name.match(/^正気度$/i)) {
+    if (SAN_PATTERN.test(this.name) || SANITY_PATTERN.test(this.name)) {
       if (this.isNumberResource) {
         const current: number = this.currentValue as number;
         const value: number = this.value as number;
-        if (current <= (value * 4) / 5 && current == this.currentValue && value == this.value) {
-          return '#D22';
+        if (current <= value * SAN_WARNING_THRESHOLD && current == this.currentValue && value == this.value) {
+          return SAN_WARNING_COLOR;
         }
       }
     }
-    return '#444';
+    return DEFAULT_VALUE_COLOR;
   }
 }
