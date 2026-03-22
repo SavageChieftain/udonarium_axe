@@ -21,7 +21,7 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.css"],
             "scripts": [],
-            "allowedCommonJsDependencies": ["bcdice", "hammerjs", "file-saver", "lzbase62", "pako"],
+            "allowedCommonJsDependencies": ["bcdice", "file-saver", "lzbase62", "pako"],
             "browser": "src/main.ts"
           },
           "configurations": {
