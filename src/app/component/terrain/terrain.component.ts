@@ -56,6 +56,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tabletopService = inject(TabletopService);
+  private objectStore = inject(ObjectStore);
 
   @Input() terrain: Terrain = null!;
   @Input() is3D: boolean = false;
@@ -164,12 +165,12 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get roomGridDispAlways(): boolean {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     return conf ? conf.roomGridDispAlways : false;
   }
 
   set roomGridDispAlways(disp: boolean) {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     if (conf) conf.roomGridDispAlways = disp;
   }
 
@@ -197,7 +198,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.terrain || !object) return;
         if (this.terrain === object || (object instanceof ObjectNode && this.terrain.contains(object))) {
           this.changeDetector.markForCheck();

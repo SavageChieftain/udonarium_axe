@@ -33,6 +33,8 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  private objectStore = inject(ObjectStore);
+  private audioStorage = inject(AudioStorage);
 
   // @ViewChild('cutInImageElement', { static: false }) cutInImageElement: ElementRef;
   @ViewChild('videoPlayerComponent', { static: false })
@@ -62,20 +64,20 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private _naturalHeight = 0;
 
   get audios(): AudioFile[] {
-    return AudioStorage.instance.audios.filter((audio) => !audio.isHidden);
+    return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get cutInLauncher(): CutInLauncher {
-    return ObjectStore.instance.get<CutInLauncher>('CutInLauncher');
+    return this.objectStore.get<CutInLauncher>('CutInLauncher');
   }
   get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox');
   }
   get config(): Config {
-    return ObjectStore.instance.get<Config>('Config');
+    return this.objectStore.get<Config>('Config');
   }
 
   getCutIns(): CutIn[] {
-    return ObjectStore.instance.getObjects(CutIn);
+    return this.objectStore.getObjects(CutIn);
   }
 
   startCutIn() {
@@ -112,7 +114,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       })
       .on('STOP_CUT_IN_BY_BGM', (_event) => {
         if (this.cutIn) {
-          const audio = AudioStorage.instance.get(this.cutIn.audioIdentifier);
+          const audio = this.audioStorage.get(this.cutIn.audioIdentifier);
           if (this.cutIn.tagName == '' && audio) {
             this.panelService.close();
           }

@@ -36,6 +36,8 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   private modalService = inject(ModalService);
   private changeDetector = inject(ChangeDetectorRef);
   private domSanitizer = inject(DomSanitizer);
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
 
   @Input() gameDataElement: DataElement = null!;
   @Input() isEdit: boolean = false;
@@ -97,7 +99,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   ngAfterViewInit() {}
 
   get imageFileUrl(): string {
-    const image: ImageFile = ImageStorage.instance.get(<string>this.gameDataElement.value);
+    const image: ImageFile = this.imageStorage.get(<string>this.gameDataElement.value);
     if (image) return image.url;
     return '';
   }
@@ -192,7 +194,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   get markdown(): MarkDown {
-    return ObjectStore.instance.get<MarkDown>('markdwon');
+    return this.objectStore.get<MarkDown>('markdwon');
   }
 
   escapeHtmlMarkDown(text: string | number, baseId: string): SafeHtml {

@@ -49,6 +49,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private panelService = inject(PanelService);
   private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @Input() gameCharacter: GameCharacter | null = null!;
   @Input() is3D: boolean = false;
@@ -139,7 +140,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   ngOnInit() {
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.gameCharacter || !object) return;
         if (this.gameCharacter === object || (object instanceof ObjectNode && this.gameCharacter!.contains(object))) {
           this.changeDetector.markForCheck();
@@ -159,7 +160,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
         });
       })
       .on('CHK_TARGET_CHANGE', -1000, (event) => {
-        const objct = ObjectStore.instance.get(event.data.identifier);
+        const objct = this.objectStore.get(event.data.identifier);
         if (objct == this.gameCharacter!) {
           this.changeDetector.detectChanges();
         }
@@ -402,7 +403,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     if (key_shift && key_alt) {
-      const objects = ObjectStore.instance.getObjects(GameCharacter);
+      const objects = this.objectStore.getObjects(GameCharacter);
       for (const object of objects) {
         object.targeted = false;
         EventSystem.trigger('CHK_TARGET_CHANGE', {

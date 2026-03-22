@@ -22,6 +22,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
   private saveDataService = inject(SaveDataService);
+  private objectStore = inject(ObjectStore);
 
   protected initTimestamp = 0;
   networkService = Network;
@@ -40,7 +41,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return PeerCursor.myCursor;
   }
   get alarm(): Alarm {
-    return ObjectStore.instance.get<Alarm>('Alarm');
+    return this.objectStore.get<Alarm>('Alarm');
   }
 
   constructor() {

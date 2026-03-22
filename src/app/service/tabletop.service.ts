@@ -26,11 +26,12 @@ type LocationName = string;
 @Injectable()
 export class TabletopService {
   private coordinateService = inject(CoordinateService);
+  private objectStore = inject(ObjectStore);
+  private objectSerializer = inject(ObjectSerializer);
+  private chatTabList = inject(ChatTabList);
+  readonly tableSelecter = inject(TableSelecter);
 
   private _emptyTable: GameTable = new GameTable('');
-  get tableSelecter(): TableSelecter {
-    return TableSelecter.instance;
-  }
   get currentTable(): GameTable {
     const table = this.tableSelecter.viewTable;
     return table ? table : this._emptyTable;
@@ -39,13 +40,13 @@ export class TabletopService {
   private locationMap: Map<ObjectIdentifier, LocationName> = new Map();
   private parentMap: Map<ObjectIdentifier, ObjectIdentifier> = new Map();
   private characterCache = new TabletopCache<GameCharacter>(() =>
-    ObjectStore.instance.getObjects(GameCharacter).filter((obj) => obj.isVisibleOnTable)
+    this.objectStore.getObjects(GameCharacter).filter((obj) => obj.isVisibleOnTable)
   );
   private cardCache = new TabletopCache<Card>(() =>
-    ObjectStore.instance.getObjects(Card).filter((obj) => obj.isVisibleOnTable)
+    this.objectStore.getObjects(Card).filter((obj) => obj.isVisibleOnTable)
   );
   private cardStackCache = new TabletopCache<CardStack>(() =>
-    ObjectStore.instance.getObjects(CardStack).filter((obj) => obj.isVisibleOnTable)
+    this.objectStore.getObjects(CardStack).filter((obj) => obj.isVisibleOnTable)
   );
   private tableMaskCache = new TabletopCache<GameTableMask>(() => {
     const viewTable = this.tableSelecter.viewTable;
@@ -56,14 +57,14 @@ export class TabletopService {
     return viewTable ? viewTable.scratchMasks : [];
   });
   private rangeCache = new TabletopCache<RangeArea>(() =>
-    ObjectStore.instance.getObjects(RangeArea).filter((obj) => obj.isVisibleOnTable)
+    this.objectStore.getObjects(RangeArea).filter((obj) => obj.isVisibleOnTable)
   );
   private terrainCache = new TabletopCache<Terrain>(() => {
     const viewTable = this.tableSelecter.viewTable;
     return viewTable ? viewTable.terrains : [];
   });
-  private textNoteCache = new TabletopCache<TextNote>(() => ObjectStore.instance.getObjects(TextNote));
-  private diceSymbolCache = new TabletopCache<DiceSymbol>(() => ObjectStore.instance.getObjects(DiceSymbol));
+  private textNoteCache = new TabletopCache<TextNote>(() => this.objectStore.getObjects(TextNote));
+  private diceSymbolCache = new TabletopCache<DiceSymbol>(() => this.objectStore.getObjects(DiceSymbol));
 
   get characters(): GameCharacter[] {
     return this.characterCache.objects;
@@ -93,7 +94,7 @@ export class TabletopService {
     return this.diceSymbolCache.objects;
   }
   get peerCursors(): PeerCursor[] {
-    return ObjectStore.instance.getObjects<PeerCursor>(PeerCursor);
+    return this.objectStore.getObjects<PeerCursor>(PeerCursor);
   }
 
   constructor() {
@@ -114,7 +115,7 @@ export class TabletopService {
           return;
         }
 
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!object || !(object instanceof TabletopObject)) {
           this.refreshCache(event.data.aliasName);
         } else if (this.shouldRefreshCache(object)) {
@@ -134,7 +135,7 @@ export class TabletopService {
         const xmlElement: Element = event.data.xmlElement;
         // todo:立体地形の上にドロップした時の挙動
 
-        const gameObject = ObjectSerializer.instance.parseXml(xmlElement);
+        const gameObject = this.objectSerializer.parseXml(xmlElement);
 
         if (gameObject instanceof TabletopObject) {
           const pointer = this.coordinateService.calcTabletopLocalCoordinate();
@@ -144,11 +145,11 @@ export class TabletopService {
           this.placeToTabletop(gameObject);
           SoundEffect.play(PresetSound.piecePut);
         } else if (gameObject instanceof ChatTab) {
-          ChatTabList.instance.addChatTab(gameObject);
+          this.chatTabList.addChatTab(gameObject);
         }
 
         //通常版データが投下されたときに、追加が必要な要素を追加
-        const objects: TabletopObject[] = ObjectStore.instance.getObjects(GameCharacter);
+        const objects: TabletopObject[] = this.objectStore.getObjects(GameCharacter);
         for (const gameObject of objects) {
           if (gameObject instanceof GameCharacter) {
             const gameCharacter: GameCharacter = gameObject;

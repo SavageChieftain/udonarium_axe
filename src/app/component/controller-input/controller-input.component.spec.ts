@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { ControllerInputComponent } from './controller-input.component';
 
@@ -9,6 +10,7 @@ describe('ControllerInputComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [ControllerInputComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

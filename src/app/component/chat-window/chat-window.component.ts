@@ -30,6 +30,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   sendFrom: string = 'Guest';
 
@@ -74,7 +75,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   private testcount: number = 0;
 
   get chatTab(): ChatTab {
-    return ObjectStore.instance.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
   isAutoScroll: boolean = true;
   scrollToBottomTimer: NodeJS.Timeout = null!;
@@ -92,7 +93,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
     EventSystem.register(this).on('MESSAGE_ADDED', (event) => {
       if (event.data.tabIdentifier !== this.chatTabidentifier) return;
-      const message = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+      const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
       if (message && message.isSendFromSelf) {
         this.isAutoScroll = true;
       } else {
@@ -201,7 +202,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private targetedGameCharacterList(): GameCharacter[] {
-    const objects = ObjectStore.instance
+    const objects = this.objectStore
       .getObjects<GameCharacter>(GameCharacter)
       .filter((character) => this.targeted(character));
     return objects;

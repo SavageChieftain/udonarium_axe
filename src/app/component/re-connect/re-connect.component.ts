@@ -23,6 +23,7 @@ export class ReConnectComponent implements OnInit, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
+  private objectStore = inject(ObjectStore);
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
@@ -134,7 +135,7 @@ export class ReConnectComponent implements OnInit, OnDestroy {
     EventSystem.register(triedPeer).on('OPEN_NETWORK', (event) => {
       Logger.info('[Network] ピア接続開始', event.data.peerId);
       EventSystem.unregister(triedPeer);
-      ObjectStore.instance.clearDeleteHistory();
+      this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }
@@ -185,43 +186,43 @@ export class ReConnectComponent implements OnInit, OnDestroy {
     Logger.info('[Network] 切断元と不一致の可能性があるオブジェクトを削除');
 
     //要素変更後updateをかけ、clearDeleteHistoryでログを飛ばせば再接続先の後方を取得、表示される
-    const gameCharacters = ObjectStore.instance.getObjects<GameCharacter>(GameCharacter);
+    const gameCharacters = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const obj of gameCharacters) {
       obj.setLocation('graveyard');
       this.deleteGameObject(obj);
     }
 
-    const rangeAreas = ObjectStore.instance.getObjects<RangeArea>(RangeArea);
+    const rangeAreas = this.objectStore.getObjects<RangeArea>(RangeArea);
     for (const obj of rangeAreas) {
       obj.setLocation('graveyard');
       this.deleteGameObject(obj);
     }
 
-    const textNote = ObjectStore.instance.getObjects<TextNote>(TextNote);
+    const textNote = this.objectStore.getObjects<TextNote>(TextNote);
     for (const obj of textNote) {
       obj.setLocation('graveyard');
       this.deleteGameObject(obj);
     }
 
-    const diceSymbol = ObjectStore.instance.getObjects<DiceSymbol>(DiceSymbol);
+    const diceSymbol = this.objectStore.getObjects<DiceSymbol>(DiceSymbol);
     for (const obj of diceSymbol) {
       obj.setLocation('graveyard');
       this.deleteGameObject(obj);
     }
 
-    const gameTableMask = ObjectStore.instance.getObjects<GameTableMask>(GameTableMask);
+    const gameTableMask = this.objectStore.getObjects<GameTableMask>(GameTableMask);
     for (const obj of gameTableMask) {
       obj.setLocation('graveyard');
       this.deleteGameObject(obj);
     }
 
-    const terrain = ObjectStore.instance.getObjects<Terrain>(Terrain);
+    const terrain = this.objectStore.getObjects<Terrain>(Terrain);
     for (const obj of terrain) {
       obj.setLocation('graveyard');
       this.deleteGameObject(obj);
     }
 
-    ObjectStore.instance.clearDeleteHistory();
+    this.objectStore.clearDeleteHistory();
   }
 
   private deleteGameObject(gameObject: GameObject) {

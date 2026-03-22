@@ -32,6 +32,8 @@ export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, After
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
 
   @Input() chatTabidentifier: string = '';
   @Input() isTilteTop = false;
@@ -41,7 +43,7 @@ export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, After
   private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
-    return ObjectStore.instance.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
 
   get tachieY_Pos(): number {
@@ -57,7 +59,7 @@ export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, After
   }
 
   get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   get dispFlag(): boolean {
@@ -266,84 +268,84 @@ export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, After
   //この実装は後でどうにかしたい
   get imageFileUrl_00(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[0]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[0]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_01(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[1]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[1]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_02(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[2]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[2]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_03(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[3]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[3]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_04(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[4]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[4]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_05(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[5]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[5]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_06(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[6]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[6]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_07(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[7]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[7]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_08(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[8]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[8]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_09(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[9]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[9]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_10(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[10]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[10]);
     if (image) return image.url;
     return '';
   }
 
   get imageFileUrl_11(): string {
     if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = ImageStorage.instance.get(this.chatTab.imageIdentifier[11]);
+    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[11]);
     if (image) return image.url;
     return '';
   }

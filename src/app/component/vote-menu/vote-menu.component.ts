@@ -22,6 +22,7 @@ export class VoteMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
   private saveDataService = inject(SaveDataService);
+  private objectStore = inject(ObjectStore);
 
   protected initTimestamp = 0;
   networkService = Network;
@@ -37,7 +38,7 @@ export class VoteMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return PeerCursor.myCursor;
   }
   get vote(): Vote {
-    return ObjectStore.instance.get<Vote>('Vote');
+    return this.objectStore.get<Vote>('Vote');
   }
 
   constructor() {

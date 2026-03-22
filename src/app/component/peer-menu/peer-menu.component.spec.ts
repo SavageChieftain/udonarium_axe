@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { PeerMenuComponent } from './peer-menu.component';
 
@@ -9,6 +10,7 @@ describe('PeerMenuComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [PeerMenuComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

@@ -49,6 +49,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private tabletopService = inject(TabletopService);
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @Input() card: Card = null!;
   @Input() is3D: boolean = false;
@@ -141,7 +142,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.card || !object) return;
         if (
           this.card === object ||

@@ -25,16 +25,19 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private ngZone = inject(NgZone);
+  private objectStore = inject(ObjectStore);
+  private audioStorage = inject(AudioStorage);
+  private fileArchiver = inject(FileArchiver);
 
   roomVolumeChange = false;
 
   get roomVolume(): number {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     return conf ? conf.roomVolume : 1;
   }
 
   set roomVolume(volume: number) {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     if (conf) conf.roomVolume = volume;
     this.jukebox.setNewVolume();
   }
@@ -58,14 +61,14 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   }
 
   get audios(): AudioFile[] {
-    return AudioStorage.instance.audios.filter((audio) => !audio.isHidden);
+    return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox');
   }
 
   get cutInLauncher(): CutInLauncher {
-    return ObjectStore.instance.get<CutInLauncher>('CutInLauncher');
+    return this.objectStore.get<CutInLauncher>('CutInLauncher');
   }
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
@@ -108,7 +111,7 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   handleFileSelect(event: Event) {
     const input = <HTMLInputElement>event.target;
     const files = input.files;
-    if (files && files.length) FileArchiver.instance.load(files);
+    if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
   }
 

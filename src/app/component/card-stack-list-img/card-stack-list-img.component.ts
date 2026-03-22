@@ -9,6 +9,7 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/core/system';
 import { ChatMessageService } from 'service/chat-message.service';
 import { PanelService } from 'service/panel.service';
@@ -24,6 +25,7 @@ export class CardStackListImageComponent implements OnDestroy, AfterViewInit, Af
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @Input() isTilteTop = true;
   @Input() dispByMouse = false;
@@ -31,7 +33,7 @@ export class CardStackListImageComponent implements OnDestroy, AfterViewInit, Af
 
   @ViewChild('cardArea', { read: ElementRef }) private cardArea: ElementRef;
   private _cardAreaWidth = 0;
-  //  get chatTab(): ChatTab { return ObjectStore.instance.get<ChatTab>(this.chatTabidentifier); }
+  //  get chatTab(): ChatTab { return this.objectStore.get<ChatTab>(this.chatTabidentifier); }
 
   get tachieY_Pos(): number {
     return 0 - 26;
@@ -41,7 +43,7 @@ export class CardStackListImageComponent implements OnDestroy, AfterViewInit, Af
     return this._cardAreaWidth;
   }
 
-  //  get chatTabList(): ChatTabList { return ObjectStore.instance.get<ChatTabList>('ChatTabList'); }
+  //  get chatTabList(): ChatTabList { return this.objectStore.get<ChatTabList>('ChatTabList'); }
   /*
   get dispFlag():boolean{
     return true;

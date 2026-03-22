@@ -39,6 +39,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   private inventoryService = inject(GameObjectInventoryService);
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   inventoryTypes: string[] = ['table', 'common', 'graveyard'];
 
@@ -101,7 +102,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
     EventSystem.register(this)
       .on('SELECT_TABLETOP_OBJECT', (event) => {
-        if (ObjectStore.instance.get(event.data.identifier) instanceof TabletopObject) {
+        if (this.objectStore.get(event.data.identifier) instanceof TabletopObject) {
           this.selectedIdentifier = event.data.identifier;
           this.changeDetector.markForCheck();
         }
@@ -338,7 +339,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   multiMove(location: string) {
     for (const gameObjectIdentifier of this.multiMoveTargets) {
-      const gameObject = ObjectStore.instance.get(gameObjectIdentifier);
+      const gameObject = this.objectStore.get(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter) {
         gameObject.setLocation(location);
       }
@@ -348,7 +349,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   multiDelete() {
     const inGraveyard: Set<GameCharacter> = new Set();
     for (const gameObjectIdentifier of this.multiMoveTargets) {
-      const gameObject: GameCharacter = ObjectStore.instance.get(gameObjectIdentifier);
+      const gameObject: GameCharacter = this.objectStore.get(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter && gameObject.location.name == 'graveyard') {
         inGraveyard.add(gameObject);
       }

@@ -19,6 +19,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   private modalService = inject(ModalService);
   private saveDataService = inject(SaveDataService);
   private panelService = inject(PanelService);
+  private objectStore = inject(ObjectStore);
 
   @Input('gameType') _gameType: string = '';
   @Output() gameTypeChange = new EventEmitter<string>();
@@ -93,7 +94,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   get isDeleted(): boolean {
     if (!this.selectedTable) return true;
-    return ObjectStore.instance.get<DiceTable>(this.selectedTable.identifier) == null;
+    return this.objectStore.get<DiceTable>(this.selectedTable.identifier) == null;
   }
 
   get isEditable(): boolean {
@@ -113,11 +114,11 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   ngOnDestroy() {}
 
   selectDiceTable(identifier: string) {
-    this.selectedTable = ObjectStore.instance.get<DiceTable>(identifier);
+    this.selectedTable = this.objectStore.get<DiceTable>(identifier);
   }
 
   getDiceTables(): DiceTable[] {
-    return ObjectStore.instance.getObjects(DiceTable);
+    return this.objectStore.getObjects(DiceTable);
   }
 
   createDiceTable() {

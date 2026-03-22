@@ -18,6 +18,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private cdr = inject(ChangeDetectorRef);
+  private objectStore = inject(ObjectStore);
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
@@ -134,7 +135,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     const triedPeer: string[] = [];
     EventSystem.register(triedPeer).on('OPEN_NETWORK', (_event) => {
       EventSystem.unregister(triedPeer);
-      ObjectStore.instance.clearDeleteHistory();
+      this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }

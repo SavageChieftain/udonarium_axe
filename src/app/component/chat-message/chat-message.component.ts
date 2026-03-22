@@ -22,6 +22,7 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   private chatMessageService = inject(ChatMessageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private panelService = inject(PanelService);
+  private objectStore = inject(ObjectStore);
 
   @Input() chatMessage: ChatMessage;
 
@@ -33,7 +34,7 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   animeState: string = 'inactive';
 
   get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   ngOnInit() {

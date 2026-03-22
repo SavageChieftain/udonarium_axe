@@ -1,11 +1,12 @@
 import { inject, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { SaveDataService } from './save-data.service';
 
 describe('SaveDataService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [SaveDataService],
+      providers: [...TEST_PROVIDERS, SaveDataService],
     });
   });
 

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { FileSelecterComponent } from './file-selecter.component';
 
@@ -9,6 +10,7 @@ describe('FileSelecterComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [FileSelecterComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

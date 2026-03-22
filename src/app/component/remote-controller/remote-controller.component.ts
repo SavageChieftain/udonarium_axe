@@ -43,6 +43,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   private inventoryService = inject(GameObjectInventoryService);
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   get palette(): ChatPalette {
     return this.character.remoteController;
@@ -74,13 +75,13 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get chatTab(): ChatTab {
-    return ObjectStore.instance.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
   }
   get otherPeers(): PeerCursor[] {
-    return ObjectStore.instance.getObjects(PeerCursor);
+    return this.objectStore.getObjects(PeerCursor);
   }
 
   constructor() {
@@ -213,14 +214,14 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
     EventSystem.register(this)
       .on('SELECT_TABLETOP_OBJECT', -1000, (event) => {
-        if (ObjectStore.instance.get(event.data.identifier) instanceof TabletopObject) {
+        if (this.objectStore.get(event.data.identifier) instanceof TabletopObject) {
           this.selectedIdentifier = event.data.identifier;
           this.changeDetector.markForCheck();
         }
       })
       .on('CHK_TARGET_CHANGE', -1000, (event) => {
-        if (ObjectStore.instance.get(event.data.identifier) instanceof GameCharacter) {
-          this.targetSetChkBox(ObjectStore.instance.get(event.data.identifier));
+        if (this.objectStore.get(event.data.identifier) instanceof GameCharacter) {
+          this.targetSetChkBox(this.objectStore.get(event.data.identifier));
         }
       })
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
@@ -268,7 +269,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     if (this.isEdit) {
       this.toggleEditMode();
     }
-    const object = ObjectStore.instance.get(identifier);
+    const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       this.character = object;
       const gameType = this.character.remoteController ? this.character.remoteController.dicebot : '';

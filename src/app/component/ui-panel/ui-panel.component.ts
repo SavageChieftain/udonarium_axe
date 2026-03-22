@@ -26,6 +26,7 @@ import { PointerDeviceService } from 'service/pointer-device.service';
 export class UIPanelComponent implements OnInit, OnDestroy {
   panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('draggablePanel', { static: true })
   draggablePanel!: ElementRef<HTMLElement>;
@@ -99,7 +100,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
   chkeWindowMinSize() {
     const id = this.panelService.cutInIdentifier;
     if (!id) return;
-    const cutIn = ObjectStore.instance.get<CutIn>(id);
+    const cutIn = this.objectStore.get<CutIn>(id);
     if (!cutIn) return;
     if (!cutIn.videoId) return;
 
@@ -137,7 +138,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
     if (this.isFullScreen) return;
     const id = this.panelService.cutInIdentifier;
     if (id) {
-      const cutIn = ObjectStore.instance.get<CutIn>(id);
+      const cutIn = this.objectStore.get<CutIn>(id);
       if (cutIn.videoId) {
         return;
       }

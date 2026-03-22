@@ -42,6 +42,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   private ngZone = inject(NgZone);
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
+  private objectStore = inject(ObjectStore);
 
   sampleMessages: ChatMessageContext[] = [
     {
@@ -183,7 +184,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
 
   @Input() chatTab: ChatTab;
   get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   @Output() addMessage: EventEmitter<null> = new EventEmitter();
@@ -209,7 +210,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
 
     EventSystem.register(this)
       .on('MESSAGE_ADDED', (event) => {
-        const message = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+        const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
         if (!message || !this.chatTab.contains(message)) return;
 
         if (this.topTimestamp <= message.timestamp) {
@@ -219,7 +220,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
         }
       })
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const message = ObjectStore.instance.get(event.data.identifier);
+        const message = this.objectStore.get(event.data.identifier);
         if (
           message &&
           message instanceof ChatMessage &&

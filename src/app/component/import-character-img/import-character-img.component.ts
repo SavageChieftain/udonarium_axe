@@ -30,6 +30,8 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
 
   @Input() tabletopObject: GameCharacter = null!;
 
@@ -46,7 +48,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   get gameCharacters(): GameCharacter[] {
     if (this.shouldUpdateCharacterList) {
       this.shouldUpdateCharacterList = false;
-      this._gameCharacters = ObjectStore.instance
+      this._gameCharacters = this.objectStore
         .getObjects<GameCharacter>(GameCharacter)
         .filter((character) => this.allowsChat(character));
     }
@@ -65,16 +67,16 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   }
 
   get imageFile(): ImageFile {
-    const object = ObjectStore.instance.get(this._sendFrom);
+    const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      const image: ImageFile = ImageStorage.instance.get(<string>object.imageDataElement.children[0].value);
+      const image: ImageFile = this.imageStorage.get(<string>object.imageDataElement.children[0].value);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;
   }
 
   get selectCharacterTachieNum() {
-    const object = ObjectStore.instance.get(this._sendFrom);
+    const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       return object.imageDataElement.children.length;
     }
@@ -82,7 +84,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   }
 
   importImages() {
-    const object = ObjectStore.instance.get(this._sendFrom);
+    const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
         const distImageDataElement = this.tabletopObject.imageDataElement;

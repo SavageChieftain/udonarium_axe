@@ -1,11 +1,12 @@
 import { inject, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { TabletopService } from './tabletop.service';
 
 describe('TabletopService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [TabletopService],
+      providers: [...TEST_PROVIDERS, TabletopService],
     });
   });
 

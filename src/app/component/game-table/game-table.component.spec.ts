@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { GameTableComponent } from './game-table.component';
 
@@ -9,6 +10,7 @@ describe('GameTableComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [GameTableComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

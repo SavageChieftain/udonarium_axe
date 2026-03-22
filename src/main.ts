@@ -8,12 +8,14 @@ import { Logger } from '@axe/core/logger';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { AppConfigService } from 'service/app-config.service';
 import { ChatMessageService } from 'service/chat-message.service';
+import { CLASS_SINGLETON_PROVIDERS } from 'service/class-provider';
 import { ContextMenuService } from 'service/context-menu.service';
 import { GameObjectInventoryService } from 'service/game-object-inventory.service';
 import { LoggerService } from 'service/logger.service';
 import { ModalService } from 'service/modal.service';
 import { PanelService } from 'service/panel.service';
 import { PointerDeviceService } from 'service/pointer-device.service';
+import { ServiceLocator } from 'service/service-locator';
 import { TabletopService } from 'service/tabletop.service';
 
 import { AppComponent } from './app/app.component';
@@ -33,6 +35,7 @@ bootstrapApplication(AppComponent, {
       YouTubePlayerModule,
       NgSelectModule
     ),
+    ...CLASS_SINGLETON_PROVIDERS,
     AppConfigService,
     ChatMessageService,
     ContextMenuService,
@@ -43,4 +46,6 @@ bootstrapApplication(AppComponent, {
     PointerDeviceService,
     TabletopService,
   ],
-}).catch((err) => Logger.error('[Bootstrap] アプリケーション起動失敗', err));
+})
+  .then((appRef) => ServiceLocator.init(appRef.injector))
+  .catch((err) => Logger.error('[Bootstrap] アプリケーション起動失敗', err));

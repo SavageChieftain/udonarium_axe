@@ -32,17 +32,18 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @Input() chatTabidentifier: string = '';
   @ViewChild('tachieArea', { read: ElementRef }) private tachieArea: ElementRef;
   private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
-    return ObjectStore.instance.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
 
   get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   get tachieAreaWidth(): number {

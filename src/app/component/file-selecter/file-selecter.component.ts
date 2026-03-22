@@ -28,6 +28,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
+  private imageStorage = inject(ImageStorage);
 
   //本家PR #92より
   searchWord: string = '';
@@ -117,7 +118,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   selectTag: string = '';
-  fileStorageService = ImageStorage.instance;
+  fileStorageService = this.imageStorage;
 
   identifierList: string[] = [];
   newTagName: string = '';

@@ -63,6 +63,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tabletopService = inject(TabletopService);
+  private objectStore = inject(ObjectStore);
 
   @Input() range: RangeArea = null!;
   @Input() is3D: boolean = false;
@@ -258,10 +259,10 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get isFollowed(): boolean {
-    return ObjectStore.instance.get(this.range.followingCharctorIdentifier) != null;
+    return this.objectStore.get(this.range.followingCharctorIdentifier) != null;
   }
   get followingCharactor(): GameCharacter | null {
-    const obj = ObjectStore.instance.get(this.range.followingCharctorIdentifier);
+    const obj = this.objectStore.get(this.range.followingCharctorIdentifier);
     return obj instanceof GameCharacter ? obj : null;
   }
   get elevation(): number {
@@ -291,7 +292,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', -1000, (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         this.setRange();
 
         if (!this.range || !object) return;
@@ -418,7 +419,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     );
     if (this.range.type == 'CIRCLE' || this.range.type == 'SQUARE' || this.range.type == 'DIAMOND') {
       menuArray.push(
-        ObjectStore.instance.get(this.range.followingCharctorIdentifier) != null
+        this.objectStore.get(this.range.followingCharctorIdentifier) != null
           ? {
               name: '追従を解除',
               action: () => {
@@ -529,7 +530,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
       offSetY: this.range.offSetY,
       fillOutLine: this.range.fillOutLine,
       gridType: this.currentTable.gridType,
-      isDocking: ObjectStore.instance.get(this.range.followingCharctorIdentifier) ? true : false,
+      isDocking: this.objectStore.get(this.range.followingCharctorIdentifier) ? true : false,
     };
 
     switch (this.range.type) {

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { UIPanelComponent } from './ui-panel.component';
 
@@ -9,6 +10,7 @@ describe('UIPanelComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [UIPanelComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

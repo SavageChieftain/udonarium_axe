@@ -20,10 +20,11 @@ export class AlarmWindowComponent implements AfterViewInit, OnDestroy {
   private changeDetectionRef = inject(ChangeDetectorRef);
   private chatMessageService = inject(ChatMessageService);
   private ngZone = inject(NgZone);
+  private objectStore = inject(ObjectStore);
 
   private timestamp = 0;
   get alarm(): Alarm {
-    return ObjectStore.instance.get<Alarm>('Alarm');
+    return this.objectStore.get<Alarm>('Alarm');
   }
 
   constructor() {

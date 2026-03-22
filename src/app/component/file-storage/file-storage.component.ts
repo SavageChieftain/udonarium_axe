@@ -26,6 +26,8 @@ import { PanelService } from 'service/panel.service';
 export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
+  private imageStorage = inject(ImageStorage);
+  private fileArchiver = inject(FileArchiver);
 
   protected initTimestamp: number = 0;
 
@@ -109,7 +111,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
     return tags2;
   }
 
-  fileStorageService = ImageStorage.instance;
+  fileStorageService = this.imageStorage;
 
   inputNewTag(newTag: string) {
     this.newTagName = newTag;
@@ -168,7 +170,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   handleFileSelect(event: Event) {
     const input = <HTMLInputElement>event.target;
     const files = input.files;
-    if (files && files.length) FileArchiver.instance.load(files);
+    if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
   }
 

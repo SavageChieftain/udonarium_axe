@@ -84,6 +84,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private tabletopService = inject(TabletopService);
   private tabletopActionService = inject(TabletopActionService);
   private modalService = inject(ModalService);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('gameTable', { static: true }) gameTable: ElementRef<HTMLElement>;
@@ -110,12 +111,12 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get roomGridDispAlways(): boolean {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     return conf ? conf.roomGridDispAlways : false;
   }
 
   set roomGridDispAlways(disp: boolean) {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     if (conf) conf.roomGridDispAlways = disp;
   }
 

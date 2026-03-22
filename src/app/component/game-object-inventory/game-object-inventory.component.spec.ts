@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { GameObjectInventoryComponent } from './game-object-inventory.component';
 
@@ -9,6 +10,7 @@ describe('GameObjectInventoryComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [GameObjectInventoryComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

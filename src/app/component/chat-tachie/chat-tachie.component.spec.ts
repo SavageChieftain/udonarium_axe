@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { ChatTachieComponent } from './chat-tachie.component';
 
@@ -9,6 +10,7 @@ describe('ChatTachieComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [ChatTachieComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

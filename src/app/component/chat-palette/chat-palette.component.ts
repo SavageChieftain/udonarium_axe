@@ -28,6 +28,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('chatInput', { static: true }) chatInputComponent: ChatInputComponent;
@@ -73,13 +74,13 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   get chatTab(): ChatTab {
-    return ObjectStore.instance.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
   }
   get otherPeers(): PeerCursor[] {
-    return ObjectStore.instance.getObjects(PeerCursor);
+    return this.objectStore.getObjects(PeerCursor);
   }
 
   ngOnInit() {
@@ -117,7 +118,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
 
   onSelectedCharacter(identifier: string) {
     if (this.isEdit) this.toggleEditMode();
-    const object = ObjectStore.instance.get(identifier);
+    const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       this.character = object;
       const gameType = this.character.chatPalette ? this.character.chatPalette.dicebot : '';
@@ -222,7 +223,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   private targetedGameCharacterList(): GameCharacter[] {
-    const objects = ObjectStore.instance
+    const objects = this.objectStore
       .getObjects<GameCharacter>(GameCharacter)
       .filter((character) => this.targeted(character));
     return objects;

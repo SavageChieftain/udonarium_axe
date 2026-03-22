@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { ChatMessageComponent } from './chat-message.component';
 
@@ -9,6 +10,7 @@ describe('ChatMessageComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [ChatMessageComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

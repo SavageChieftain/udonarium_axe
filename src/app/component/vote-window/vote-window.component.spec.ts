@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { Vote } from '@axe/vote';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { VoteWindowComponent } from './vote-window.component';
 
@@ -11,6 +12,7 @@ describe('VoteWindowComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [VoteWindowComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

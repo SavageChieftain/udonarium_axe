@@ -48,6 +48,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @Input() cardStack: CardStack = null!;
   @Input() is3D: boolean = false;
@@ -124,7 +125,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       })
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.cardStack || !object) return;
         if (
           this.cardStack === object ||

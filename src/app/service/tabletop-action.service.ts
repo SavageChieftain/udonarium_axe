@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Card } from '@axe/card';
 import { CardStack } from '@axe/card-stack';
 import { ImageContext, ImageFile } from '@axe/core/file-storage/image-file';
@@ -24,6 +24,9 @@ import { PointerCoordinate } from './pointer-device.service';
   providedIn: 'root',
 })
 export class TabletopActionService {
+  private imageStorage = inject(ImageStorage);
+  private tableSelecter = inject(TableSelecter);
+
   constructor() {}
 
   createGameCharacter(position: PointerCoordinate): GameCharacter {
@@ -62,11 +65,11 @@ export class TabletopActionService {
 
   createTerrain(position: PointerCoordinate): Terrain | undefined {
     const url: string = './assets/images/tex.jpg';
-    let image: ImageFile = ImageStorage.instance.get(url);
+    let image: ImageFile = this.imageStorage.get(url);
     //本家PR #92より
-    //    if (!image) image = ImageStorage.instance.add(url);
+    //    if (!image) image = this.imageStorage.add(url);
     if (!image) {
-      image = ImageStorage.instance.add(url);
+      image = this.imageStorage.add(url);
       ImageTag.create(image.identifier).tag = '地形';
     }
     //
@@ -96,9 +99,9 @@ export class TabletopActionService {
 
     diceSymbol.faces.forEach((face) => {
       const url: string = `./assets/images/dice/${imagePathPrefix}/${imagePathPrefix}[${face}].png`;
-      image = ImageStorage.instance.get(url);
+      image = this.imageStorage.get(url);
       if (!image) {
-        image = ImageStorage.instance.add(url);
+        image = this.imageStorage.add(url);
       }
       diceSymbol.imageDataElement.getFirstElementByName(face).value = image.identifier;
     });
@@ -147,11 +150,11 @@ export class TabletopActionService {
 
     const back: string = './assets/images/trump/z02.gif';
     //本家PR #92より
-    //    if (!ImageStorage.instance.get(back)) {
-    //      ImageStorage.instance.add(back);
+    //    if (!this.imageStorage.get(back)) {
+    //      this.imageStorage.add(back);
     //    }
-    if (!ImageStorage.instance.get(back)) {
-      const image = ImageStorage.instance.add(back);
+    if (!this.imageStorage.get(back)) {
+      const image = this.imageStorage.add(back);
       ImageTag.create(image.identifier).tag = 'トランプ';
     }
     //
@@ -169,10 +172,10 @@ export class TabletopActionService {
 
     for (const trump of trumps) {
       const url: string = './assets/images/trump/' + trump + '.gif';
-      if (!ImageStorage.instance.get(url)) {
+      if (!this.imageStorage.get(url)) {
         //本家PR #92より
-        //          ImageStorage.instance.add(url);
-        const image = ImageStorage.instance.add(url);
+        //          this.imageStorage.add(url);
+        const image = this.imageStorage.add(url);
         ImageTag.create(image.identifier).tag = 'トランプ';
         //
       }
@@ -189,7 +192,7 @@ export class TabletopActionService {
     const gameTable = new GameTable('gameTable');
     const bgFileContext = ImageFile.createEmpty('testTableBackgroundImage_image').toContext();
     bgFileContext.url = './assets/images/BG10a_80.jpg';
-    const testBgFile = ImageStorage.instance.add(bgFileContext);
+    const testBgFile = this.imageStorage.add(bgFileContext);
     ImageTag.create(testBgFile.identifier).tag = '背景';
     gameTable.name = '最初のテーブル';
     gameTable.imageIdentifier = testBgFile.identifier;
@@ -223,172 +226,172 @@ export class TabletopActionService {
 
     fileContext = ImageFile.createEmpty('1d4_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d4_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d4_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d4_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d4_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d4_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d4_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d4_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d6_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d6_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d6_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d6_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d6_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d6_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d6_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d6_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('2d6_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/2d6_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('2d6_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/2d6_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('2d6_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/2d6_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('2d6_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/2d6_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d8_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d8_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d8_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d8_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d8_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d8_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d8_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d8_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d10_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d10_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d10_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d10_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d10_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d10_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d10_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d10_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d12_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d12_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d12_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d12_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d12_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d12_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d12_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d12_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d20_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d20_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d20_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d20_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d20_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d20_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d20_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d20_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d100_dice[00]').toContext();
     fileContext.url = './assets/images/april_dice/1d100_dice[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d100_dice[01]').toContext();
     fileContext.url = './assets/images/april_dice/1d100_dice[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d100_dice[02]').toContext();
     fileContext.url = './assets/images/april_dice/1d100_dice[02].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('1d100_dice[03]').toContext();
     fileContext.url = './assets/images/april_dice/1d100_dice[03].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('april[00]').toContext();
     fileContext.url = './assets/images/april/april[00].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
 
     fileContext = ImageFile.createEmpty('april[01]').toContext();
     fileContext.url = './assets/images/april/april[01].png';
-    file = ImageStorage.instance.add(fileContext);
+    file = this.imageStorage.add(fileContext);
     ImageTag.create(file.identifier).tag = 'システム予約';
   }
 
@@ -401,7 +404,7 @@ export class TabletopActionService {
     testCharacter = new GameCharacter('testCharacter_1');
     fileContext = ImageFile.createEmpty('testCharacter_1_image').toContext();
     fileContext.url = './assets/images/mon_052.gif';
-    testFile = ImageStorage.instance.add(fileContext);
+    testFile = this.imageStorage.add(fileContext);
     testCharacter.location.x = 5 * 50;
     testCharacter.location.y = 9 * 50;
     testCharacter.initialize();
@@ -424,7 +427,7 @@ export class TabletopActionService {
     testCharacter.location.y = 2 * 50;
     testCharacter.initialize();
 
-    testFile = ImageStorage.instance.add(fileContext);
+    testFile = this.imageStorage.add(fileContext);
     ImageTag.create(testFile.identifier).tag = 'モンスター'; //本家PR #92より
     testCharacter.createTestGameDataElement('モンスターC', 3, testFile.identifier);
     //-------------------------
@@ -435,7 +438,7 @@ export class TabletopActionService {
     //本家PR #92より
     //    fileContext.tag = 'テスト01';
 
-    testFile = ImageStorage.instance.add(fileContext);
+    testFile = this.imageStorage.add(fileContext);
 
     ImageTag.create(testFile.identifier).tag = ''; //本家PR #92より
     testCharacter.location.x = 6 * 50;
@@ -447,7 +450,7 @@ export class TabletopActionService {
     testCharacter = new GameCharacter('testCharacter_5');
     fileContext = ImageFile.createEmpty('testCharacter_5_image').toContext();
     fileContext.url = './assets/images/mon_211.gif';
-    testFile = ImageStorage.instance.add(fileContext);
+    testFile = this.imageStorage.add(fileContext);
     testCharacter.location.x = 12 * 50;
     testCharacter.location.y = 12 * 50;
     testCharacter.initialize();
@@ -459,7 +462,7 @@ export class TabletopActionService {
     testCharacter = new GameCharacter('testCharacter_6');
     fileContext = ImageFile.createEmpty('testCharacter_6_image').toContext();
     fileContext.url = './assets/images/mon_135.gif';
-    testFile = ImageStorage.instance.add(fileContext);
+    testFile = this.imageStorage.add(fileContext);
 
     ImageTag.create(testFile.identifier).tag = ''; //本家PR #92より
 
@@ -475,7 +478,7 @@ export class TabletopActionService {
     testCharacter = new GameCharacter('testCharacter_7');
     fileContext = ImageFile.createEmpty('testCharacter_7_image').toContext();
     fileContext.url = './assets/images/ninja.png';
-    testFile = ImageStorage.instance.add(fileContext);
+    testFile = this.imageStorage.add(fileContext);
 
     ImageTag.create(testFile.identifier).tag = ''; //本家PR #92より
 
@@ -598,6 +601,6 @@ export class TabletopActionService {
   }
 
   private getViewTable(): GameTable {
-    return TableSelecter.instance.viewTable;
+    return this.tableSelecter.viewTable;
   }
 }

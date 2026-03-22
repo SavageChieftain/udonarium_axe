@@ -23,13 +23,12 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
   private saveDataService = inject(SaveDataService);
+  private objectStore = inject(ObjectStore);
+  private objectSerializer = inject(ObjectSerializer);
+  private chatTabList = inject(ChatTabList);
 
   selectedTab: ChatTab = null!;
   selectedTabXml = '';
-
-  get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
-  }
 
   get systemTabIndex(): number {
     return this.chatTabList.systemMessageTabIndex;
@@ -57,7 +56,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
     return this.chatMessageService.chatTabs.length < 1;
   }
   get isDeleted(): boolean {
-    return this.selectedTab ? ObjectStore.instance.get(this.selectedTab.identifier) == null : false;
+    return this.selectedTab ? this.objectStore.get(this.selectedTab.identifier) == null : false;
   }
   get isEditable(): boolean {
     return !this.isEmpty && !this.isDeleted;
@@ -74,7 +73,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
     EventSystem.register(this).on('DELETE_GAME_OBJECT', 2000, (event) => {
       if (!this.selectedTab || event.data.identifier !== this.selectedTab.identifier) return;
-      const object = ObjectStore.instance.get(event.data.identifier);
+      const object = this.objectStore.get(event.data.identifier);
       if (object !== null) {
         this.selectedTabXml = object.toXml();
       }
@@ -86,7 +85,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   }
 
   onChangeSelectTab(identifier: string) {
-    this.selectedTab = ObjectStore.instance.get<ChatTab>(identifier);
+    this.selectedTab = this.objectStore.get<ChatTab>(identifier);
     this.selectedTabXml = '';
   }
 
@@ -101,7 +100,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   }
 
   create() {
-    ChatTabList.instance.addChatTab('タブ');
+    this.chatTabList.addChatTab('タブ');
   }
 
   async save() {
@@ -209,7 +208,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
     const gameSystem = null!;
     const sendTo = '';
 
-    for (const child of ChatTabList.instance.chatTabs) {
+    for (const child of this.chatTabList.chatTabs) {
       while (child.children.length > 0) {
         child.children[0].destroy();
       }
@@ -220,8 +219,8 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   restore() {
     if (this.selectedTab && this.selectedTabXml) {
-      const restoreTable = <ChatTab>ObjectSerializer.instance.parseXml(this.selectedTabXml);
-      ChatTabList.instance.addChatTab(restoreTable);
+      const restoreTable = <ChatTab>this.objectSerializer.parseXml(this.selectedTabXml);
+      this.chatTabList.addChatTab(restoreTable);
       this.selectedTabXml = '';
     }
   }

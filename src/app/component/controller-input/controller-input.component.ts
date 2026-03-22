@@ -43,6 +43,8 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
 
   get gameType(): string {
     return this._gameType;
@@ -77,7 +79,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get tachieNum(): number {
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       return object.selectedTachieNum;
     }
@@ -85,7 +87,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   set tachieNum(num: number) {
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       object.selectedTachieNum = num;
     }
@@ -168,7 +170,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get selectCharacterTachie() {
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       if (object.imageDataElement.children.length > this.tachieNum) {
         return object.imageDataElement.children[this.tachieNum];
@@ -178,7 +180,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get selectCharacterTachieNum(): number {
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       return object.imageDataElement.children.length;
     } else if (object instanceof PeerCursor) {
@@ -189,10 +191,10 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
 
   get imageFile(): ImageFile {
     if (this.selectCharacterTachie) {
-      const imageFile: ImageFile = ImageStorage.instance.get(this.selectCharacterTachie.value as string);
+      const imageFile: ImageFile = this.imageStorage.get(this.selectCharacterTachie.value as string);
       return imageFile ? imageFile : ImageFile.Empty;
     }
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     let image: ImageFile = null!;
     if (object instanceof GameCharacter) {
       image = object.imageFile;
@@ -204,7 +206,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   get gameCharacters(): GameCharacter[] {
     if (this.shouldUpdateCharacterList) {
       this.shouldUpdateCharacterList = false;
-      this._gameCharacters = ObjectStore.instance
+      this._gameCharacters = this.objectStore
         .getObjects<GameCharacter>(GameCharacter)
         .filter((character) => this.allowsChat(character));
     }
@@ -218,7 +220,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     return PeerCursor.myCursor;
   }
   get otherPeers(): PeerCursor[] {
-    return ObjectStore.instance.getObjects(PeerCursor);
+    return this.objectStore.getObjects(PeerCursor);
   }
   @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
 
@@ -274,7 +276,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   charactorChatColor(num: number) {
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       return object.chatColorCode[num];
     } else {
@@ -283,7 +285,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   shoeColorSetting() {
-    const object = ObjectStore.instance.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];
       let title = '色設定';
@@ -307,7 +309,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       .on('MESSAGE_ADDED', (event) => {
         /*
         if (event.data.tabIdentifier !== this.chatTabidentifier) return;
-        let message = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+        let message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
         let sendFrom = message ? message.from : '?';
         if (this.writingPeers.has(sendFrom)) {
           clearTimeout(this.writingPeers.get(sendFrom));
@@ -319,8 +321,8 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
         if (event.data.tabIdentifier !== this.chatTabidentifier) {
           return;
         }
-        const message = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
-        const peerCursor = ObjectStore.instance
+        const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
+        const peerCursor = this.objectStore
           .getObjects<PeerCursor>(PeerCursor)
           .find((obj) => obj.userId === message.from);
         const sendFrom = peerCursor ? peerCursor.peerId : '?';
@@ -338,7 +340,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
         if (event.data.identifier !== this.sendFrom) {
           return;
         }
-        const gameCharacter = ObjectStore.instance.get<GameCharacter>(event.data.identifier);
+        const gameCharacter = this.objectStore.get<GameCharacter>(event.data.identifier);
         if (gameCharacter && !this.allowsChat(gameCharacter)) {
           if (0 < this.gameCharacters.length && this.onlyCharacters) {
             this.sendFrom = this.gameCharacters[0].identifier;
@@ -348,7 +350,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
         }
       })
       .on('DISCONNECT_PEER', (event) => {
-        const object = ObjectStore.instance.get(this.sendTo);
+        const object = this.objectStore.get(this.sendTo);
         //        if (object instanceof PeerCursor && object.peerId === event.data.peer) {
         if (object instanceof PeerCursor && object.peerId === event.data.peerId) {
           // #marge
@@ -413,7 +415,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     if (this.writingEventInterval === null && this.previousWritingLength <= this.text.length) {
       let sendTo: string = null!;
       if (this.isDirect) {
-        const object = ObjectStore.instance.get(this.sendTo);
+        const object = this.objectStore.get(this.sendTo);
         if (object instanceof PeerCursor) {
           //          let peer = PeerContext.create(object.peerId);
           //          if (peer) sendTo = peer.id;

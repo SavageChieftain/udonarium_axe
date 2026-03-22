@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/chat-message';
 import { ChatTab } from '@axe/chat-tab';
 import { ChatTabList } from '@axe/chat-tab-list';
@@ -16,6 +16,10 @@ const HOURS = 60 * 60 * 1000;
 
 @Injectable()
 export class ChatMessageService {
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
+  private chatTabList = inject(ChatTabList);
+
   private intervalTimer: NodeJS.Timeout = null!;
   private timeOffset: number = Date.now();
   private performanceOffset: number = performance.now();
@@ -27,7 +31,7 @@ export class ChatMessageService {
   constructor() {}
 
   get chatTabs(): ChatTab[] {
-    return ChatTabList.instance.chatTabs;
+    return this.chatTabList.chatTabs;
   }
 
   calibrateTimeOffset() {
@@ -97,7 +101,7 @@ export class ChatMessageService {
 
   // 最終発言キャラでシステム発言
   sendSystemMessageLastSendCharactor(text: string) {
-    const chatTabList = ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = chatTabList.systemMessageTab;
     const sendFrom = PeerCursor.myCursor.lastControlSendFrom
       ? PeerCursor.myCursor.lastControlSendFrom
@@ -132,7 +136,7 @@ export class ChatMessageService {
       _color = color;
     }
 
-    const dicebot = ObjectStore.instance.get<DiceBot>('DiceBot');
+    const dicebot = this.objectStore.get<DiceBot>('DiceBot');
     let chatMessageTag: string;
     if (gameSystem == null) {
       chatMessageTag = '';
@@ -178,7 +182,7 @@ export class ChatMessageService {
         if (newIdentifier) {
           chatMessage.imageIdentifier = newIdentifier;
           chatMessage.text = text.replace(/([@＠]\S+\s*)$/i, '');
-          const obj = ObjectStore.instance.get(sendFrom);
+          const obj = this.objectStore.get(sendFrom);
           if (obj instanceof GameCharacter) {
             obj.selectedTachieNum = parseInt(matchNum[1]);
           }
@@ -189,7 +193,7 @@ export class ChatMessageService {
         if (newIdentifier) {
           chatMessage.imageIdentifier = newIdentifier;
           chatMessage.text = text.replace(/([@＠]\S+\s*)$/i, '');
-          const obj = ObjectStore.instance.get(sendFrom);
+          const obj = this.objectStore.get(sendFrom);
           if (obj instanceof GameCharacter) {
             obj.selectedTachieNum = this._ImageIndex;
           }
@@ -200,7 +204,7 @@ export class ChatMessageService {
   }
 
   private findId(identifier: string): string {
-    const object = ObjectStore.instance.get(identifier);
+    const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       return object.identifier;
     } else if (object instanceof PeerCursor) {
@@ -210,7 +214,7 @@ export class ChatMessageService {
   }
 
   private findObjectName(identifier: string): string {
-    const object = ObjectStore.instance.get(identifier);
+    const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       return object.name;
     } else if (object instanceof PeerCursor) {
@@ -250,14 +254,14 @@ export class ChatMessageService {
   private _ImageIndex = 0;
   private findImageIdentifierName(sendFrom: string, name: string): string {
     // 完全一致
-    const object = ObjectStore.instance.get(sendFrom);
+    const object = this.objectStore.get(sendFrom);
     this._ImageIndex = 0;
     if (object instanceof GameCharacter) {
       const data: DataElement = object.imageDataElement;
       for (const child of data.children) {
         if (child instanceof DataElement) {
           if (child.getAttribute('currentValue') == name) {
-            const img = ImageStorage.instance.get(<string>child.value);
+            const img = this.imageStorage.get(<string>child.value);
             if (img) {
               return img.identifier;
             }
@@ -270,7 +274,7 @@ export class ChatMessageService {
       for (const child of data.children) {
         if (child instanceof DataElement) {
           if (child.getAttribute('currentValue').indexOf(name) == 0) {
-            const img = ImageStorage.instance.get(<string>child.value);
+            const img = this.imageStorage.get(<string>child.value);
             if (img) {
               return img.identifier;
             }
@@ -283,10 +287,10 @@ export class ChatMessageService {
   }
 
   private findImageIdentifier(sendFrom: string, index: number): string {
-    const object = ObjectStore.instance.get(sendFrom);
+    const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) {
       if (object.imageDataElement.children.length > index) {
-        const img = ImageStorage.instance.get(<string>object.imageDataElement.children[index].value);
+        const img = this.imageStorage.get(<string>object.imageDataElement.children[index].value);
         if (img) {
           return img.identifier;
         }
@@ -300,7 +304,7 @@ export class ChatMessageService {
 
   // entyu
   private findImagePos(identifier: string): number {
-    const object = ObjectStore.instance.get(identifier);
+    const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       const element = object.detailDataElement.getFirstElementByName('POS');
       if (element)

@@ -21,6 +21,11 @@ type UpdateCallback = (percent: number) => void;
 })
 export class SaveDataService {
   private ngZone = inject(NgZone);
+  private imageStorage = inject(ImageStorage);
+  private fileArchiver = inject(FileArchiver);
+  private chatTabList = inject(ChatTabList);
+  private appConfig = inject(Config);
+  private dataSummarySetting = inject(DataSummarySetting);
 
   private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
 
@@ -31,9 +36,9 @@ export class SaveDataService {
   private _saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
     const files: File[] = [];
     const roomXml = this.convertToXml(new Room());
-    const chatXml = this.convertToXml(ChatTabList.instance);
-    const configXml = this.convertToXml(Config.instance);
-    const summarySetting = this.convertToXml(DataSummarySetting.instance);
+    const chatXml = this.convertToXml(this.chatTabList);
+    const configXml = this.convertToXml(this.appConfig);
+    const summarySetting = this.convertToXml(this.dataSummarySetting);
     files.push(new File([roomXml], 'data.xml', { type: 'text/plain' }));
     files.push(new File([chatXml], 'chat.xml', { type: 'text/plain' }));
     files.push(new File([configXml], 'config.xml', { type: 'text/plain' }));
@@ -95,7 +100,7 @@ export class SaveDataService {
 
   private saveAsync(files: File[], zipName: string, updateCallback?: UpdateCallback): Promise<void> {
     let progresPercent = -1;
-    return FileArchiver.instance.saveAsync(files, zipName, (meta) => {
+    return this.fileArchiver.saveAsync(files, zipName, (meta) => {
       const percent = meta.percent | 0;
       if (percent <= progresPercent) return;
       progresPercent = percent;
@@ -122,17 +127,17 @@ export class SaveDataService {
 
     for (let i = 0; i < imageElements.length; i++) {
       const identifier = imageElements[i].innerHTML;
-      images[identifier] = ImageStorage.instance.get(identifier);
+      images[identifier] = this.imageStorage.get(identifier);
     }
 
     imageElements = xmlElement.ownerDocument.querySelectorAll('*[imageIdentifier], *[backgroundImageIdentifier]');
 
     for (let i = 0; i < imageElements.length; i++) {
       const identifier = imageElements[i].getAttribute('imageIdentifier');
-      if (identifier) images[identifier] = ImageStorage.instance.get(identifier);
+      if (identifier) images[identifier] = this.imageStorage.get(identifier);
       const backgroundImageIdentifier = imageElements[i].getAttribute('backgroundImageIdentifier');
       if (backgroundImageIdentifier)
-        images[backgroundImageIdentifier] = ImageStorage.instance.get(backgroundImageIdentifier);
+        images[backgroundImageIdentifier] = this.imageStorage.get(backgroundImageIdentifier);
     }
     for (const identifier in images) {
       const image = images[identifier];
@@ -150,7 +155,7 @@ export class SaveDataService {
   }
 
   saveHtmlChatLogAll(fileName: string) {
-    const text: string = ChatTabList.instance.logHtml();
+    const text: string = this.chatTabList.logHtml();
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, fileName + '.html');
   }
@@ -162,7 +167,7 @@ export class SaveDataService {
   }
 
   saveHtmlChatLogAllCoc(fileName: string) {
-    const text: string = ChatTabList.instance.logHtmlCoc();
+    const text: string = this.chatTabList.logHtmlCoc();
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, fileName + '.html');
   }

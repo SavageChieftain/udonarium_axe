@@ -45,6 +45,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
 
@@ -180,14 +181,14 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     EventSystem.register(this)
       .on('RESIZE_NOTE_OBJECT', -1000, (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.textNote || !object) return;
         if (this.textNote === object) {
           this.calcFitHeight();
         }
       })
       .on('UPDATE_GAME_OBJECT', -1000, (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.textNote || !object) return;
         if (this.textNote === object || (object instanceof ObjectNode && this.textNote.contains(object))) {
           this.changeDetector.markForCheck();

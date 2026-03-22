@@ -28,6 +28,9 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   private saveDataService = inject(SaveDataService);
   private imageService = inject(ImageService);
   private panelService = inject(PanelService);
+  private objectStore = inject(ObjectStore);
+  private objectSerializer = inject(ObjectSerializer);
+  private tableSelecter = inject(TableSelecter);
 
   @Input('gameType') _gameType: string = '';
   @Output() gameTypeChange = new EventEmitter<string>();
@@ -42,18 +45,18 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get roomGridDispAlways(): boolean {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     return conf ? conf.roomGridDispAlways : false;
   }
 
   set roomGridDispAlways(disp: boolean) {
-    const conf = ObjectStore.instance.get<Config>('Config');
+    const conf = this.objectStore.get<Config>('Config');
     this.tableGridDummy = !this.tableGridDummy;
     if (conf) conf.roomGridDispAlways = disp;
   }
 
   get config(): Config {
-    return ObjectStore.instance.get<Config>('Config');
+    return this.objectStore.get<Config>('Config');
   }
 
   minSize: number = 1;
@@ -137,10 +140,6 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     if (this.isEditable) this.selectedTable.backgroundFilterType = filterType;
   }
 
-  get tableSelecter(): TableSelecter {
-    return TableSelecter.instance;
-  }
-
   selectedTable: GameTable = null!;
   selectedTableXml: string = '';
 
@@ -149,7 +148,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
   get isDeleted(): boolean {
     if (!this.selectedTable) return true;
-    return ObjectStore.instance.get<GameTable>(this.selectedTable.identifier) == null;
+    return this.objectStore.get<GameTable>(this.selectedTable.identifier) == null;
   }
   get isEditable(): boolean {
     return !this.isEmpty && !this.isDeleted;
@@ -163,7 +162,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     this.selectedTable = this.tableSelecter.viewTable;
     EventSystem.register(this).on('DELETE_GAME_OBJECT', 2000, (event) => {
       if (!this.selectedTable || event.data.identifier !== this.selectedTable.identifier) return;
-      const object = ObjectStore.instance.get(event.data.identifier);
+      const object = this.objectStore.get(event.data.identifier);
       if (object !== null) {
         this.selectedTableXml = object.toXml();
       }
@@ -178,12 +177,12 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   selectGameTable(identifier: string) {
     EventSystem.call('SELECT_GAME_TABLE', { identifier: identifier }, Network.peerId);
-    this.selectedTable = ObjectStore.instance.get<GameTable>(identifier);
+    this.selectedTable = this.objectStore.get<GameTable>(identifier);
     this.selectedTableXml = '';
   }
 
   getGameTables(): GameTable[] {
-    return ObjectStore.instance.getObjects(GameTable);
+    return this.objectStore.getObjects(GameTable);
   }
 
   createGameTable() {
@@ -219,7 +218,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   restore() {
     if (this.selectedTable && this.selectedTableXml) {
-      const restoreTable = ObjectSerializer.instance.parseXml(this.selectedTableXml);
+      const restoreTable = this.objectSerializer.parseXml(this.selectedTableXml);
       this.selectGameTable(restoreTable.identifier);
       this.selectedTableXml = '';
     }

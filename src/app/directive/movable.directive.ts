@@ -32,6 +32,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   private batchService = inject(BatchService);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
+  private tableSelecter = inject(TableSelecter);
 
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 
@@ -116,7 +117,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   private collidableElements: HTMLElement[] = [];
   private input: InputHandler = null!;
   private get isGridSnap(): boolean {
-    return TableSelecter.instance.gridSnap;
+    return this.tableSelecter.gridSnap;
   }
 
   ngAfterViewInit() {

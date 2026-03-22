@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { LobbyComponent } from './lobby.component';
 
@@ -9,6 +10,7 @@ describe('CardStackListComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [LobbyComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

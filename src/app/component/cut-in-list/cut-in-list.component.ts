@@ -31,6 +31,9 @@ export class CutInListComponent implements OnInit, OnDestroy {
   private saveDataService = inject(SaveDataService);
   private panelService = inject(PanelService);
   private ngZone = inject(NgZone);
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
+  private audioStorage = inject(AudioStorage);
 
   _minSizeWidth = 10;
   _maxSizeWidth = 10;
@@ -38,7 +41,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   _maxSizeHeight = 1200;
 
   get cutInLauncher(): CutInLauncher {
-    return ObjectStore.instance.get<CutInLauncher>('CutInLauncher');
+    return this.objectStore.get<CutInLauncher>('CutInLauncher');
   }
 
   get cutInName(): string {
@@ -237,16 +240,16 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   get audios(): AudioFile[] {
-    return AudioStorage.instance.audios.filter((audio) => !audio.isHidden);
+    return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
 
   get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox');
   }
 
   get cutInImage(): ImageFile {
     if (!this.selectedCutIn) return ImageFile.Empty;
-    const file = ImageStorage.instance.get(this.selectedCutIn.imageIdentifier);
+    const file = this.imageStorage.get(this.selectedCutIn.imageIdentifier);
     return file ? file : ImageFile.Empty;
   }
 
@@ -284,12 +287,12 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   selectCutIn(identifier: string) {
-    this.selectedCutIn = ObjectStore.instance.get<CutIn>(identifier);
+    this.selectedCutIn = this.objectStore.get<CutIn>(identifier);
     this.isYouTubeCutIn = this.selectedCutIn?.videoId ? true : false;
   }
 
   getCutIns(): CutIn[] {
-    return ObjectStore.instance.getObjects(CutIn);
+    return this.objectStore.getObjects(CutIn);
   }
 
   createCutIn() {
@@ -340,7 +343,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
 
       this.cutInAudioIdentifier = value;
 
-      const audio = AudioStorage.instance.get(value);
+      const audio = this.audioStorage.get(value);
       if (audio) {
         this.cutInAudioName = audio.name;
       }
@@ -350,7 +353,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   isCutInBgmUploaded() {
     if (!this.isSelected) return false;
 
-    const audio = AudioStorage.instance.get(this.cutInAudioIdentifier);
+    const audio = this.audioStorage.get(this.cutInAudioIdentifier);
     return audio ? true : false;
   }
 

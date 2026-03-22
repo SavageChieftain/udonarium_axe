@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { GameCharacterComponent } from './game-character.component';
 
@@ -9,6 +10,7 @@ describe('GameCharacterComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [GameCharacterComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

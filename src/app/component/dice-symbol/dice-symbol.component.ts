@@ -46,6 +46,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @Input() diceSymbol: DiceSymbol = null!;
   @Input() is3D: boolean = false;
@@ -144,7 +145,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       })
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.diceSymbol || !object) return;
         if (
           this.diceSymbol === object ||

@@ -9,8 +9,6 @@ import { FileArchiver } from '@axe/core/file-storage/file-archiver';
 import { ImageFile } from '@axe/core/file-storage/image-file';
 import { ImageSharingSystem } from '@axe/core/file-storage/image-sharing-system';
 import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectFactory } from '@axe/core/synchronize-object/object-factory';
-import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { ObjectSynchronizer } from '@axe/core/synchronize-object/object-synchronizer';
 import { EventSystem, Network } from '@axe/core/system';
@@ -69,11 +67,20 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private ngSelectConfig = inject(NgSelectConfig);
   private ngZone = inject(NgZone);
 
+  private objectStore = inject(ObjectStore);
+  private fileArchiver = inject(FileArchiver);
+  private imageStorage = inject(ImageStorage);
+  private audioStorage = inject(AudioStorage);
+  private chatTabList = inject(ChatTabList);
+  private tableSelecter = inject(TableSelecter);
+  private config = inject(Config);
+  private dataSummarySetting = inject(DataSummarySetting);
+
   @ViewChild('modalLayer', { read: ViewContainerRef, static: true })
   modalLayerViewContainerRef!: ViewContainerRef;
 
   get reloadCheck(): ReloadCheck {
-    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck');
+    return this.objectStore.get<ReloadCheck>('ReloadCheck');
   }
   networkService = Network;
 
@@ -88,26 +95,21 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.ngZone.runOutsideAngular(() => {
       void EventSystem;
       void Network;
-      FileArchiver.instance.initialize();
+      this.fileArchiver.initialize();
       ImageSharingSystem.instance.initialize();
-      void ImageStorage.instance;
       AudioSharingSystem.instance.initialize();
-      void AudioStorage.instance;
-      void ObjectFactory.instance;
-      void ObjectSerializer.instance;
-      void ObjectStore.instance;
       ObjectSynchronizer.instance.initialize();
     });
     this.appConfigService.initialize();
     this.pointerDeviceService.initialize();
     this.ngSelectConfig.appendTo = 'body';
 
-    TableSelecter.instance.initialize();
-    ChatTabList.instance.initialize();
+    this.tableSelecter.initialize();
+    this.chatTabList.initialize();
 
-    Config.instance.initialize();
+    this.config.initialize();
 
-    DataSummarySetting.instance.initialize();
+    this.dataSummarySetting.initialize();
 
     const diceBot: DiceBot = new DiceBot('DiceBot');
     diceBot.initialize();
@@ -134,47 +136,47 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     const soundEffect: SoundEffect = new SoundEffect('SoundEffect');
     soundEffect.initialize();
 
-    ChatTabList.instance.addChatTab('メインタブ', 'MainTab');
-    ChatTabList.instance.addChatTab('サブタブ', 'SubTab');
+    this.chatTabList.addChatTab('メインタブ', 'MainTab');
+    this.chatTabList.addChatTab('サブタブ', 'SubTab');
 
     const fileContext = ImageFile.createEmpty('none_icon').toContext();
     fileContext.url = './assets/images/ic_account_circle_black_24dp_2x.png';
-    const noneIconImage = ImageStorage.instance.add(fileContext);
+    const noneIconImage = this.imageStorage.add(fileContext);
 
     AudioPlayer.resumeAudioContext();
-    PresetSound.dicePick = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.dicePut = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.diceRoll1 = AudioStorage.instance.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3').identifier;
-    PresetSound.diceRoll2 = AudioStorage.instance.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3').identifier;
-    PresetSound.cardDraw = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/card-turn-over1.mp3').identifier;
-    PresetSound.cardPick = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.cardPut = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.cardShuffle = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/card-open1.mp3').identifier;
-    PresetSound.piecePick = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.piecePut = AudioStorage.instance.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.blockPick = AudioStorage.instance.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
-    PresetSound.blockPut = AudioStorage.instance.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
-    PresetSound.lock = AudioStorage.instance.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
-    PresetSound.unlock = AudioStorage.instance.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
-    PresetSound.sweep = AudioStorage.instance.add('./assets/sounds/tm2/tm2_swing003.wav').identifier;
-    PresetSound.alarm = AudioStorage.instance.add('./assets/sounds/alarm/alarm.mp3').identifier;
+    PresetSound.dicePick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
+    PresetSound.dicePut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
+    PresetSound.diceRoll1 = this.audioStorage.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3').identifier;
+    PresetSound.diceRoll2 = this.audioStorage.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3').identifier;
+    PresetSound.cardDraw = this.audioStorage.add('./assets/sounds/soundeffect-lab/card-turn-over1.mp3').identifier;
+    PresetSound.cardPick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
+    PresetSound.cardPut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
+    PresetSound.cardShuffle = this.audioStorage.add('./assets/sounds/soundeffect-lab/card-open1.mp3').identifier;
+    PresetSound.piecePick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
+    PresetSound.piecePut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
+    PresetSound.blockPick = this.audioStorage.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
+    PresetSound.blockPut = this.audioStorage.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
+    PresetSound.lock = this.audioStorage.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
+    PresetSound.unlock = this.audioStorage.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
+    PresetSound.sweep = this.audioStorage.add('./assets/sounds/tm2/tm2_swing003.wav').identifier;
+    PresetSound.alarm = this.audioStorage.add('./assets/sounds/alarm/alarm.mp3').identifier;
 
-    AudioStorage.instance.get(PresetSound.dicePick).isHidden = true;
-    AudioStorage.instance.get(PresetSound.dicePut).isHidden = true;
-    AudioStorage.instance.get(PresetSound.diceRoll1).isHidden = true;
-    AudioStorage.instance.get(PresetSound.diceRoll2).isHidden = true;
-    AudioStorage.instance.get(PresetSound.cardDraw).isHidden = true;
-    AudioStorage.instance.get(PresetSound.cardPick).isHidden = true;
-    AudioStorage.instance.get(PresetSound.cardPut).isHidden = true;
-    AudioStorage.instance.get(PresetSound.cardShuffle).isHidden = true;
-    AudioStorage.instance.get(PresetSound.piecePick).isHidden = true;
-    AudioStorage.instance.get(PresetSound.piecePut).isHidden = true;
-    AudioStorage.instance.get(PresetSound.blockPick).isHidden = true;
-    AudioStorage.instance.get(PresetSound.blockPut).isHidden = true;
-    AudioStorage.instance.get(PresetSound.lock).isHidden = true;
-    AudioStorage.instance.get(PresetSound.unlock).isHidden = true;
-    AudioStorage.instance.get(PresetSound.sweep).isHidden = true;
-    AudioStorage.instance.get(PresetSound.alarm).isHidden = true;
+    this.audioStorage.get(PresetSound.dicePick).isHidden = true;
+    this.audioStorage.get(PresetSound.dicePut).isHidden = true;
+    this.audioStorage.get(PresetSound.diceRoll1).isHidden = true;
+    this.audioStorage.get(PresetSound.diceRoll2).isHidden = true;
+    this.audioStorage.get(PresetSound.cardDraw).isHidden = true;
+    this.audioStorage.get(PresetSound.cardPick).isHidden = true;
+    this.audioStorage.get(PresetSound.cardPut).isHidden = true;
+    this.audioStorage.get(PresetSound.cardShuffle).isHidden = true;
+    this.audioStorage.get(PresetSound.piecePick).isHidden = true;
+    this.audioStorage.get(PresetSound.piecePut).isHidden = true;
+    this.audioStorage.get(PresetSound.blockPick).isHidden = true;
+    this.audioStorage.get(PresetSound.blockPut).isHidden = true;
+    this.audioStorage.get(PresetSound.lock).isHidden = true;
+    this.audioStorage.get(PresetSound.unlock).isHidden = true;
+    this.audioStorage.get(PresetSound.sweep).isHidden = true;
+    this.audioStorage.get(PresetSound.alarm).isHidden = true;
 
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.name = 'プレイヤー';
@@ -296,7 +298,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   startVote() {
-    const vote = ObjectStore.instance.get<Vote>('Vote');
+    const vote = this.objectStore.get<Vote>('Vote');
     if (!vote.chkToMe()) return;
 
     const option: PanelOption = { left: 0, top: 0, width: 450, height: 400 };
@@ -437,7 +439,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName != '');
 
-    if (files && files.length) FileArchiver.instance.load(files);
+    if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
   }
 

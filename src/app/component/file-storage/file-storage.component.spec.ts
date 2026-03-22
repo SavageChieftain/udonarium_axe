@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { FileStorageComponent } from './file-storage.component';
 
@@ -9,6 +10,7 @@ describe('FileStorageComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [FileStorageComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

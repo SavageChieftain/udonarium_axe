@@ -41,6 +41,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private domSanitizer = inject(DomSanitizer);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('draggablePanel', { static: true }) draggablePanel: ElementRef<HTMLElement>;
   @Input() tabletopObject: TabletopObject = null!;
@@ -96,7 +97,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     }, 16);
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.tabletopObject || !object || !(object instanceof ObjectNode)) return;
         if (this.tabletopObject === object || this.tabletopObject.contains(object)) {
           this.changeDetector.markForCheck();
@@ -298,7 +299,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get markdown(): MarkDown {
-    return ObjectStore.instance.get<MarkDown>('markdwon');
+    return this.objectStore.get<MarkDown>('markdwon');
   }
 
   escapeHtmlMarkDown(text: string, baseId: string): SafeHtml {

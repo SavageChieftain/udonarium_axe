@@ -27,6 +27,7 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
+  private objectStore = inject(ObjectStore);
 
   @Input() isAllowedEmpty: boolean = false;
   @Input() tabletopObject: GameCharacter = null!;
@@ -36,7 +37,7 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   }
 
   get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   changeDispFlagTime() {

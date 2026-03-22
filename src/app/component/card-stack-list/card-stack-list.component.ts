@@ -20,6 +20,7 @@ import { PanelOption, PanelService } from 'service/panel.service';
 export class CardStackListComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private changeDetector = inject(ChangeDetectorRef);
+  private objectStore = inject(ObjectStore);
 
   @Input() cardStack: CardStack = null!;
 
@@ -29,7 +30,7 @@ export class CardStackListComponent implements OnInit, OnDestroy {
     queueMicrotask(() => (this.panelService.title = this.cardStack.name + ' のカード一覧'));
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!this.cardStack || !object) return;
         if (this.cardStack === object || (object instanceof ObjectNode && this.cardStack.contains(object))) {
           this.changeDetector.markForCheck();

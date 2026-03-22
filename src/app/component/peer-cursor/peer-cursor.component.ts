@@ -32,6 +32,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   private coordinateService = inject(CoordinateService);
   private chatMessageService = inject(ChatMessageService);
   private ngZone = inject(NgZone);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('cursor') cursorElementRef: ElementRef;
   @ViewChild('opacity') opacityElementRef: ElementRef;
@@ -47,7 +48,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.cursor.isMine;
   }
   get chatTabList(): ChatTabList {
-    return ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   private cursorElement: HTMLElement = null!;
@@ -119,7 +120,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     const timeout = PeerCursor.myCursor.timeout * 1000;
     const elapsedTime = Date.now() - this.cursor.timestampReceive;
 
-    const chatTabList = ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = chatTabList.systemMessageTab;
 
     if (timeout <= elapsedTime) {
@@ -151,7 +152,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private logoutMessage() {
-    const chatTabList = ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     if (!chatTabList) return;
     const sysTab = chatTabList.systemMessageTab;
     if (sysTab) {

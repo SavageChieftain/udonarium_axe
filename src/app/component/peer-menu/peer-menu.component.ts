@@ -26,9 +26,11 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private ngZone = inject(NgZone);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
+  private objectStore = inject(ObjectStore);
+  private tableSelecter = inject(TableSelecter);
   targetUserId = '';
   networkService = Network;
-  gameRoomService = ObjectStore.instance;
+  gameRoomService = this.objectStore;
   help: string = '';
   isPasswordVisible = false;
   disptimer: ReturnType<typeof setInterval> | null = null;
@@ -36,10 +38,6 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
-  }
-
-  get tableSelecter(): TableSelecter {
-    return TableSelecter.instance;
   }
 
   ngOnInit() {
@@ -83,7 +81,7 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     this.help = '';
     const context = await PeerContext.create(targetUserId);
     if (context.isRoom) return;
-    ObjectStore.instance.clearDeleteHistory();
+    this.objectStore.clearDeleteHistory();
     Network.connect(context);
   }
 

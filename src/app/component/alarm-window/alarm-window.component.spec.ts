@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Alarm } from '@axe/alarm';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { AlarmWindowComponent } from './alarm-window.component';
 
@@ -11,6 +12,7 @@ describe('AlarmWindowComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [AlarmWindowComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

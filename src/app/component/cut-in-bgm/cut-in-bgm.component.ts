@@ -18,12 +18,15 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private ngZone = inject(NgZone);
+  private objectStore = inject(ObjectStore);
+  private audioStorage = inject(AudioStorage);
+  private fileArchiver = inject(FileArchiver);
 
   get audios(): AudioFile[] {
-    return AudioStorage.instance.audios.filter((audio) => !audio.isHidden);
+    return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox');
   }
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
@@ -59,7 +62,7 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
 
   handleFileSelect(event: Event) {
     const files = (<HTMLInputElement>event.target).files;
-    if (files && files.length) FileArchiver.instance.load(files);
+    if (files && files.length) this.fileArchiver.load(files);
   }
 
   private lazyNgZoneUpdate() {

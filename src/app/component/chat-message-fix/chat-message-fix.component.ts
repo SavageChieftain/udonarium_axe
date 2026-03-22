@@ -33,6 +33,7 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectStore = inject(ObjectStore);
 
   @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
 
@@ -67,7 +68,7 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
     return PeerCursor.myCursor;
   }
   get otherPeers(): PeerCursor[] {
-    return ObjectStore.instance.getObjects(PeerCursor);
+    return this.objectStore.getObjects(PeerCursor);
   }
 
   private calcFitHeightInterval: NodeJS.Timeout = null!;

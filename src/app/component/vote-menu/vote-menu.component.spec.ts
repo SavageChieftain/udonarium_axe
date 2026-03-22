@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_PROVIDERS } from 'testing/test-providers';
 
 import { VoteMenuComponent } from './vote-menu.component';
 
@@ -9,6 +10,7 @@ describe('VoteMenuComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [VoteMenuComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 

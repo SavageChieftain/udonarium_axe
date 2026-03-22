@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
 import { toHalfWidth } from '@axe/core/system/util/string-util';
@@ -15,8 +15,11 @@ type ElementName = string;
   providedIn: 'root',
 })
 export class GameObjectInventoryService {
+  private objectStore = inject(ObjectStore);
+  private dataSummarySetting = inject(DataSummarySetting);
+
   private get summarySetting(): DataSummarySetting {
-    return DataSummarySetting.instance;
+    return this.dataSummarySetting;
   }
 
   get sortTag(): string {
@@ -90,7 +93,7 @@ export class GameObjectInventoryService {
         this.refresh();
       })
       .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = ObjectStore.instance.get(event.data.identifier);
+        const object = this.objectStore.get(event.data.identifier);
         if (!object) return;
 
         if (object instanceof GameCharacter) {

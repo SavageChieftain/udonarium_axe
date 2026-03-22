@@ -22,6 +22,9 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
   private viewContainerRef = inject(ViewContainerRef);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
+  private imageStorage = inject(ImageStorage);
+  private objectSerializer = inject(ObjectSerializer);
+  private tableSelecter = inject(TableSelecter);
 
   name: string = 'ゲームキャラクター';
   size: number = 1;
@@ -37,7 +40,7 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
     EventSystem.register(this).on('SELECT_FILE', (event) => {
       const fileIdentifier: string = event.data.fileIdentifier;
 
-      const file: ImageFile = ImageStorage.instance.get(fileIdentifier);
+      const file: ImageFile = this.imageStorage.get(fileIdentifier);
       if (file) this.tableBackgroundImage = file;
     });
   }
@@ -52,14 +55,14 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
     GameCharacter.create(this.name, this.size, this.tableBackgroundImage.identifier);
   }
   createGameTableMask() {
-    const viewTable = TableSelecter.instance.viewTable;
+    const viewTable = this.tableSelecter.viewTable;
     if (!viewTable) return;
     const tableMask = GameTableMask.create('マップマスク', 5, 5, 100);
     viewTable.appendChild(tableMask);
   }
 
   createGameCharacterForXML(xml: string) {
-    ObjectSerializer.instance.parseXml(xml);
+    this.objectSerializer.parseXml(xml);
   }
 
   openModal() {

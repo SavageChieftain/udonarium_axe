@@ -13,6 +13,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { ImageFile } from '@axe/core/file-storage/image-file';
+import { ObjectStore } from '@axe/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/core/system';
 import { generateUuid } from '@axe/core/system/util/uuid';
 import { GameTableMask } from '@axe/game-table-mask';
@@ -48,6 +49,8 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private pointerDeviceService = inject(PointerDeviceService);
   private modalService = inject(ModalService);
   private coordinateService = inject(CoordinateService);
+  private objectStore = inject(ObjectStore);
+  private tableSelecter = inject(TableSelecter);
 
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
@@ -241,7 +244,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   ngOnInit() {
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', event => {
-        let object = ObjectStore.instance.get(event.data.identifier);
+        let object = this.objectStore.get(event.data.identifier);
         if (!this.gameTableMask || !object) return;
         if (this.gameTableMask === object || (object instanceof ObjectNode && this.gameTableMask!.contains(object))) {
           this.changeDetector.markForCheck();
@@ -375,7 +378,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   scratching(isStart: boolean, position: { offsetX: number; offsetY: number } | null = null) {
     if (!this.gameTableMask!.isMine) return;
     // とりあえず、本当は周辺を表示したい。
-    const tableSelecter = TableSelecter.instance;
+    const tableSelecter = this.tableSelecter;
 
     if (!tableSelecter.gridShow)
       tableSelecter.viewTable.gridClipRect = {

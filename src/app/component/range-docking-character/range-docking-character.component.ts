@@ -31,6 +31,8 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
+  private objectStore = inject(ObjectStore);
+  private imageStorage = inject(ImageStorage);
 
   @Input() tabletopObject: RangeArea = null!;
 
@@ -48,7 +50,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   get gameCharacters(): GameCharacter[] {
     if (this.shouldUpdateCharacterList) {
       this.shouldUpdateCharacterList = false;
-      this._gameCharacters = ObjectStore.instance
+      this._gameCharacters = this.objectStore
         .getObjects<GameCharacter>(GameCharacter)
         .filter((character) => this.allowsChat(character));
     }
@@ -67,16 +69,16 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   }
 
   get imageFile(): ImageFile {
-    const object = ObjectStore.instance.get(this._sendFrom);
+    const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      const image: ImageFile = ImageStorage.instance.get(<string>object.imageDataElement.children[0].value);
+      const image: ImageFile = this.imageStorage.get(<string>object.imageDataElement.children[0].value);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;
   }
 
   get selectCharacterTachieNum() {
-    const object = ObjectStore.instance.get(this._sendFrom);
+    const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       return object.imageDataElement.children.length;
     }
@@ -84,7 +86,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   }
 
   followring() {
-    const object = ObjectStore.instance.get(this._sendFrom);
+    const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
         SoundEffect.play(PresetSound.lock);
