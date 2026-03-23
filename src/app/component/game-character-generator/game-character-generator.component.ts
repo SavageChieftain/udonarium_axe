@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, inject, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  ViewContainerRef,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/class/core/file-storage/image-file';
 import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
@@ -13,6 +21,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-generator',
   templateUrl: './game-character-generator.component.html',
   styleUrls: ['./game-character-generator.component.css'],

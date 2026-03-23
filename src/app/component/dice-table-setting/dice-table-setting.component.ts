@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DiceTablePalette } from '@axe/class/chat-palette';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
@@ -10,6 +20,7 @@ import { SaveDataService } from '@axe/service/save-data.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'dice-table-setting',
   templateUrl: './dice-table-setting.component.html',
   styleUrls: ['./dice-table-setting.component.css'],

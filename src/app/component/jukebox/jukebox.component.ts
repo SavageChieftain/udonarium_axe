@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Config } from '@axe/class/config';
 import { AudioFile } from '@axe/class/core/file-storage/audio-file';
@@ -15,6 +15,7 @@ import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-jukebox',
   templateUrl: './jukebox.component.html',
   styleUrls: ['./jukebox.component.css'],
@@ -22,9 +23,9 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
 })
 export class JukeboxComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
+  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
-  private ngZone = inject(NgZone);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
   private fileArchiver = inject(FileArchiver);
@@ -75,7 +76,7 @@ export class JukeboxComponent implements OnInit, OnDestroy {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
     EventSystem.register(this).on('*', (event) => {
-      if (event.eventName.startsWith('FILE_')) this.lazyNgZoneUpdate();
+      if (event.eventName.startsWith('FILE_')) this.lazyMarkForCheck();
     });
   }
 
@@ -113,11 +114,11 @@ export class JukeboxComponent implements OnInit, OnDestroy {
     input.value = '';
   }
 
-  private lazyNgZoneUpdate() {
+  private lazyMarkForCheck() {
     if (this.lazyUpdateTimer !== null) return;
     this.lazyUpdateTimer = setTimeout(() => {
       this.lazyUpdateTimer = null!;
-      this.ngZone.run(() => {});
+      this.changeDetector.markForCheck();
     }, 100);
   }
 

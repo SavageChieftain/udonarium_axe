@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  Directive,
-  ElementRef,
-  EventEmitter,
-  inject,
-  Input,
-  NgZone,
-  OnDestroy,
-  Output,
-} from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
 import { CSSNumber } from '@axe/class/transform/css-number';
 import { PointerCoordinate } from '@axe/service/pointer-device.service';
 
@@ -16,7 +6,6 @@ import { InputHandler } from './input-handler';
 
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective implements AfterViewInit, OnDestroy {
-  private ngZone = inject(NgZone);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   @Input('draggable.disable') isDisable: boolean = false;
@@ -50,10 +39,8 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private initialize() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      window.addEventListener('resize', this.callbackOnResize, false);
-    });
+    this.input = new InputHandler(this.elementRef.nativeElement);
+    window.addEventListener('resize', this.callbackOnResize, false);
     this.input.onStart = (e) => this.onInputStart(e);
     this.input.onMove = (e) => this.onInputMove(e);
     this.input.onEnd = (e) => this.onInputEnd(e);

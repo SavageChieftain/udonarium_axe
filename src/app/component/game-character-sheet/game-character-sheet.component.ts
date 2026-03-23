@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Card } from '@axe/class/card';
 import { CardStack } from '@axe/class/card-stack';
@@ -23,6 +23,7 @@ import { SaveDataService } from '@axe/service/save-data.service';
 import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   styleUrls: ['./game-character-sheet.component.css'],

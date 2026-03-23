@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy } from '@angular/core';
 import { EventSystem, Network } from '@axe/class/core/system';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'network-indicator',
   templateUrl: './network-indicator.component.html',
   styleUrls: ['./network-indicator.component.css'],

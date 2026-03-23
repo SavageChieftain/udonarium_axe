@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/class/core/system';
@@ -15,6 +23,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { TabletopActionService } from '@axe/service/tabletop-action.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'peer-menu',
   templateUrl: './peer-menu.component.html',
   styleUrls: ['./peer-menu.component.css'],
@@ -23,7 +32,6 @@ import { TabletopActionService } from '@axe/service/tabletop-action.service';
 export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private tabletopActionService = inject(TabletopActionService);
   private changeDetector = inject(ChangeDetectorRef);
-  private ngZone = inject(NgZone);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
@@ -48,15 +56,13 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     this.changeDetector.detach();
 
     EventSystem.register(this).on('OPEN_NETWORK', (_event) => {
-      this.ngZone.run(() => {});
+      this.changeDetector.markForCheck();
     });
 
-    this.ngZone.runOutsideAngular(() => {
-      this.disptimer = setInterval(() => {
-        this.dispInfo();
-        this.changeDetector.detectChanges();
-      }, 1000);
-    });
+    this.disptimer = setInterval(() => {
+      this.dispInfo();
+      this.changeDetector.detectChanges();
+    }, 1000);
   }
 
   ngOnDestroy() {

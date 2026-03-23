@@ -8,7 +8,6 @@ import {
   HostListener,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -42,7 +41,6 @@ import { SelectionSignalService } from '@axe/service/selection-signal.service';
   imports: [MovableDirective, NgClass, RotableDirective, NgStyle, SafePipe],
 })
 export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
-  private ngZone = inject(NgZone);
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -162,10 +160,8 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-    });
-    this.input.onStart = (e) => this.ngZone.run(() => this.onInputStart(e));
+    this.input = new InputHandler(this.elementRef.nativeElement);
+    this.input.onStart = (e) => this.onInputStart(e);
   }
 
   ngOnDestroy() {
@@ -417,7 +413,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onMoved() {
     SoundEffect.play(PresetSound.cardPut);
-    this.ngZone.run(() => this.dispatchCardDropEvent());
+    this.dispatchCardDropEvent();
   }
 
   private drawCard(): Card {

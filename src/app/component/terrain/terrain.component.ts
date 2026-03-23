@@ -9,7 +9,6 @@ import {
   HostListener,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -50,7 +49,6 @@ import { UiSignalService } from '@axe/service/ui-signal.service';
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
 })
 export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
-  private ngZone = inject(NgZone);
   private imageService = inject(ImageService);
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
@@ -267,9 +265,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-    });
+    this.input = new InputHandler(this.elementRef.nativeElement);
     this.input.onStart = (e) => this.onInputStart(e);
     this.setGameTableGrid(
       this.width,

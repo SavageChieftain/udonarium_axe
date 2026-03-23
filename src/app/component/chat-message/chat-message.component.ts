@@ -15,7 +15,7 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
   selector: 'chat-message',
   templateUrl: './chat-message.component.html',
   styleUrls: ['./chat-message.component.css'],
-  changeDetection: ChangeDetectionStrategy.Default,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, SafePipe],
 })
 export class ChatMessageComponent implements OnInit, AfterViewInit {

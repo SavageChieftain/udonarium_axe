@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatTab } from '@axe/class/chat-tab';
 import { ChatTabList } from '@axe/class/chat-tab-list';
@@ -13,6 +13,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-chat-tab-setting',
   templateUrl: './chat-tab-setting.component.html',
   styleUrls: ['./chat-tab-setting.component.css'],

@@ -1,12 +1,13 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DoCheck,
   ElementRef,
   EventEmitter,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   Output,
@@ -35,13 +36,14 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-input',
   templateUrl: './chat-input.component.html',
   styleUrls: ['./chat-input.component.css'],
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
-  private ngZone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);
@@ -363,7 +365,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
             new ResettableTimeout(() => {
               this.writingPeers.delete(event.sendFrom);
               this.updateWritingPeerNames();
-              this.ngZone.run(() => {});
+              this.changeDetector.markForCheck();
             }, 2000)
           );
         }

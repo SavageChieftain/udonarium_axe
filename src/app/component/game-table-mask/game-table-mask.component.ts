@@ -9,7 +9,6 @@ import {
   HostListener,
   inject,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
 } from '@angular/core';
@@ -44,7 +43,6 @@ import { xor } from 'lodash';
   imports: [MovableDirective, NgClass, NgStyle, SafePipe],
 })
 export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewInit {
-  private ngZone = inject(NgZone);
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -267,10 +265,8 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
         this.changeDetector.markForCheck();
       })
       .on<object>('TABLE_VIEW_ROTATE', -1000, event => {
-        this.ngZone.run(() => {
-          this.viewRotateZ = event.data['z'];
-          this.changeDetector.markForCheck();
-        });
+        this.viewRotateZ = event.data['z'];
+        this.changeDetector.markForCheck();
       })
       .on(`UPDATE_SELECTION/identifier/${this.gameTableMask?.identifier}`, event => {
         this.changeDetector.markForCheck();
@@ -320,9 +316,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-    });
+    this.input = new InputHandler(this.elementRef.nativeElement);
     this.input.onStart = (e) => this.onInputStart(e);
     this.input.onMove = (e) => this.onInputMove(e);
   }
@@ -618,12 +612,10 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       e.stopPropagation();
     }
     if (!this.gameTableMask!.isMine) return false;
-    this.ngZone.run(() => {
-      this.scratched();
-      this.gameTableMask!.owner = '';
-      this.scratchingGrids = '';
-      this.isPreview = false;
-    });
+    this.scratched();
+    this.gameTableMask!.owner = '';
+    this.scratchingGrids = '';
+    this.isPreview = false;
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.cardPut);
@@ -637,11 +629,9 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       e.stopPropagation();
     }
     if (!this.gameTableMask!.isMine && this.ownerIsOnline) return false;
-    this.ngZone.run(() => {
-      this.gameTableMask!.owner = '';
-      this.scratchingGrids = '';
-      this.isPreview = false;
-    });
+    this.gameTableMask!.owner = '';
+    this.scratchingGrids = '';
+    this.isPreview = false;
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.unlock);

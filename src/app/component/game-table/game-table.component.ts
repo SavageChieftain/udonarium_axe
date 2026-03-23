@@ -1,6 +1,7 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   DestroyRef,
@@ -8,7 +9,6 @@ import {
   ElementRef,
   HostListener,
   inject,
-  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -59,6 +59,7 @@ import { TableMouseGesture, TableMouseGestureEvent } from './table-mouse-gesture
 import { TableTouchGesture, TableTouchGestureEvent } from './table-touch-gesture';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table',
   templateUrl: './game-table.component.html',
   styleUrls: ['./game-table.component.css'],
@@ -81,7 +82,6 @@ import { TableTouchGesture, TableTouchGestureEvent } from './table-touch-gesture
 })
 export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
-  private ngZone = inject(NgZone);
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
@@ -238,10 +238,8 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.initializeTableTouchGesture();
-      this.initializeTableMouseGesture();
-    });
+    this.initializeTableTouchGesture();
+    this.initializeTableMouseGesture();
     this.cancelInput();
 
     this.setGameTableGrid(
@@ -261,7 +259,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   initializeTableTouchGesture() {
-    this.touchGesture = new TableTouchGesture(this.rootElementRef.nativeElement, this.ngZone);
+    this.touchGesture = new TableTouchGesture(this.rootElementRef.nativeElement);
     this.touchGesture.onstart = () => this.onTableTouchStart();
     this.touchGesture.onend = () => this.onTableTouchEnd();
     this.touchGesture.ongesture = () => this.onTableTouchGesture();
@@ -302,7 +300,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isTableTransformMode || document.body !== document.activeElement) return;
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
-      this.ngZone.run(() => this.contextMenuService.close());
+      this.contextMenuService.close();
     }
 
     if (srcEvent.cancelable) srcEvent.preventDefault();
@@ -353,7 +351,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isTableTransformMode || document.body !== document.activeElement) return;
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
-      this.ngZone.run(() => this.contextMenuService.close());
+      this.contextMenuService.close();
     }
 
     if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
@@ -431,9 +429,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     this.viewPotisonZ += transformZ;
 
     if (rotateX != 0 || rotateY != 0 || rotateX != 0) {
-      this.ngZone.run(() => {
-        this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
-      });
+      this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
     }
 
     this.gameTable.nativeElement.style.transform = `translateZ(${this.viewPotisonZ.toFixed(4)}px) translateY(${this.viewPotisonY.toFixed(4)}px) translateX(${this.viewPotisonX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;

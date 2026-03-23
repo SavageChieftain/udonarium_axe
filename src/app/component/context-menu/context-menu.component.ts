@@ -1,6 +1,7 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -16,6 +17,7 @@ import { ContextMenuAction, ContextMenuService } from '@axe/service/context-menu
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import { UiSignalService } from '@axe/service/ui-signal.service';
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'context-menu',
   templateUrl: './context-menu.component.html',
   styleUrls: ['./context-menu.component.css'],

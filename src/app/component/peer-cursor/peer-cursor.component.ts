@@ -1,11 +1,11 @@
 import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -22,6 +22,7 @@ import { CoordinateService } from '@axe/service/coordinate.service';
 import { PointerCoordinate } from '@axe/service/pointer-device.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'peer-cursor, [peer-cursor]',
   templateUrl: './peer-cursor.component.html',
   styleUrls: ['./peer-cursor.component.css'],
@@ -31,7 +32,6 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   private batchService = inject(BatchService);
   private coordinateService = inject(CoordinateService);
   private chatMessageService = inject(ChatMessageService);
-  private ngZone = inject(NgZone);
   private objectStore = inject(ObjectStore);
 
   @ViewChild('cursor') cursorElementRef: ElementRef;
@@ -201,10 +201,8 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (this.isMine) {
-      this.ngZone.runOutsideAngular(() => {
-        document.body.addEventListener('mousemove', this.callcack);
-        document.body.addEventListener('touchmove', this.callcack);
-      });
+      document.body.addEventListener('mousemove', this.callcack);
+      document.body.addEventListener('touchmove', this.callcack);
     } else {
       this.cursorElement = this.cursorElementRef.nativeElement;
       this.opacityElement = this.opacityElementRef.nativeElement;

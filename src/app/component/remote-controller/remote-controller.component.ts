@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatPalette } from '@axe/class/chat-palette';
@@ -33,6 +33,7 @@ class RemoteControllerSelect {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'remote-controller',
   templateUrl: './remote-controller.component.html',
   styleUrls: ['./remote-controller.component.css'],

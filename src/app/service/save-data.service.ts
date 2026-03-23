@@ -1,4 +1,4 @@
-import { inject, Injectable, NgZone } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ChatTab } from '@axe/class/chat-tab';
 import { ChatTabList } from '@axe/class/chat-tab-list';
 import { Config } from '@axe/class/config';
@@ -20,7 +20,6 @@ type UpdateCallback = (percent: number) => void;
   providedIn: 'root',
 })
 export class SaveDataService {
-  private ngZone = inject(NgZone);
   private imageStorage = inject(ImageStorage);
   private fileArchiver = inject(FileArchiver);
   private chatTabList = inject(ChatTabList);
@@ -104,7 +103,7 @@ export class SaveDataService {
       const percent = meta.percent | 0;
       if (percent <= progresPercent) return;
       progresPercent = percent;
-      this.ngZone.run(() => updateCallback && updateCallback(progresPercent));
+      updateCallback?.(progresPercent);
     });
   }
 

@@ -9,7 +9,6 @@ import {
   HostListener,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -58,7 +57,6 @@ import {
   imports: [MovableDirective, NgClass, TooltipDirective, RotableDirective, NgStyle],
 })
 export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
-  private ngZone = inject(NgZone);
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -335,9 +333,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-    });
+    this.input = new InputHandler(this.elementRef.nativeElement);
     this.input.onStart = (e) => this.onInputStart(e);
     this.setRange();
   }

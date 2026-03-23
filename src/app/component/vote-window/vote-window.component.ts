@@ -1,5 +1,13 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/class/core/system';
@@ -11,6 +19,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-window',
   templateUrl: './vote-window.component.html',
   styleUrls: ['./vote-window.component.css'],
@@ -21,7 +30,6 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private chatMessageService = inject(ChatMessageService);
-  private ngZone = inject(NgZone);
   private objectStore = inject(ObjectStore);
 
   private timestamp = 0;

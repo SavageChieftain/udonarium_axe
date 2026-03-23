@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Logger } from '@axe/class/core/logger';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/class/core/system';
@@ -10,6 +10,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'lobby',
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.css'],

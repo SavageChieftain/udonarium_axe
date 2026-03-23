@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { AudioFile } from '@axe/class/core/file-storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/class/core/file-storage/audio-player';
 import { AudioStorage } from '@axe/class/core/file-storage/audio-storage';
@@ -10,14 +10,15 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-bgm',
   templateUrl: './cut-in-bgm.component.html',
   styleUrls: ['./cut-in-bgm.component.css'],
 })
 export class CutInBgmComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
+  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
-  private ngZone = inject(NgZone);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
   private fileArchiver = inject(FileArchiver);
@@ -65,11 +66,11 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
     if (files && files.length) this.fileArchiver.load(files);
   }
 
-  private lazyNgZoneUpdate() {
+  private lazyMarkForCheck() {
     if (this.lazyUpdateTimer !== null) return;
     this.lazyUpdateTimer = setTimeout(() => {
       this.lazyUpdateTimer = null!;
-      this.ngZone.run(() => {});
+      this.changeDetector.markForCheck();
     }, 100);
   }
 }

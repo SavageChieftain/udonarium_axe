@@ -9,7 +9,6 @@ import {
   HostListener,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -47,7 +46,6 @@ import { UiSignalService } from '@axe/service/ui-signal.service';
   imports: [MovableDirective, RotableDirective, NgStyle, GameDataElementBuffComponent, SafePipe],
 })
 export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit {
-  private ngZone = inject(NgZone);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
@@ -212,9 +210,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-    });
+    this.input = new InputHandler(this.elementRef.nativeElement);
     this.input.onStart = (e) => this.onInputStart(e);
   }
 

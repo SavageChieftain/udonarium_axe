@@ -1,4 +1,14 @@
-import { Component, effect, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageTargetContext } from '@axe/class/chat-message';
 import { ChatPalette, PaletteIndex } from '@axe/class/chat-palette';
@@ -19,6 +29,7 @@ import { UiSignalService } from '@axe/service/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
   styleUrls: ['./chat-palette.component.css'],

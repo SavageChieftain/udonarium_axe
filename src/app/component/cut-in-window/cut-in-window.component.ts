@@ -1,9 +1,9 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   inject,
-  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -23,6 +23,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-window',
   templateUrl: './cut-in-window.component.html',
   styleUrls: ['./cut-in-window.component.css'],
@@ -32,7 +33,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private changeDetectionRef = inject(ChangeDetectorRef);
-  private ngZone = inject(NgZone);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
 
@@ -210,28 +210,22 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     if (state == 1) {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
-        this.ngZone.run(() => {
-          this.videoStateTransition = false;
-          this._timeoutIdVideo = null!;
-        });
+        this.videoStateTransition = false;
+        this._timeoutIdVideo = null!;
       }, 200);
     }
     if (state == 2) {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
-        this.ngZone.run(() => {
-          this.videoStateTransition = false;
-          this._timeoutIdVideo = null!;
-        });
+        this.videoStateTransition = false;
+        this._timeoutIdVideo = null!;
       }, 200);
     }
     if (state == 5) {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
-        this.ngZone.run(() => {
-          this.videoStateTransition = false;
-          this._timeoutIdVideo = null!;
-        });
+        this.videoStateTransition = false;
+        this._timeoutIdVideo = null!;
       }, 200);
     }
     if (state == 0) {
@@ -267,11 +261,11 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     EventSystem.unregister(this);
   }
 
-  private lazyNgZoneUpdate() {
+  private lazyMarkForCheck() {
     if (this.lazyUpdateTimer !== null) return;
     this.lazyUpdateTimer = setTimeout(() => {
       this.lazyUpdateTimer = null!;
-      this.ngZone.run(() => {});
+      this.changeDetectionRef.markForCheck();
     }, 100);
   }
 }

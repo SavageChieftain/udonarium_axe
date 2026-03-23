@@ -1,5 +1,3 @@
-import { NgZone } from '@angular/core';
-
 type Callback = (srcEvent: TouchEvent | MouseEvent | PointerEvent) => void;
 type OnGestureCallback = (srcEvent: TouchEvent | MouseEvent | PointerEvent) => void;
 type OnTransformCallback = (
@@ -59,10 +57,7 @@ export class TableTouchGesture {
   onend: Callback = null!;
   ongesture: OnGestureCallback | null = null!;
   ontransform: OnTransformCallback | null = null!;
-  constructor(
-    readonly targetElement: Element,
-    private readonly ngZone: NgZone
-  ) {
+  constructor(readonly targetElement: Element) {
     this.originalTouchAction = (this.targetElement as HTMLElement).style.touchAction;
     this.initializeGesture();
   }
@@ -318,7 +313,7 @@ export class TableTouchGesture {
       });
       const target = this.longPressTarget as HTMLElement | null;
       if (!target) return;
-      this.ngZone.run(() => target.dispatchEvent(event));
+      target.dispatchEvent(event);
     }, 251);
   }
 

@@ -8,7 +8,6 @@ import {
   HostListener,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -40,7 +39,6 @@ import { SelectionSignalService } from '@axe/service/selection-signal.service';
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
 })
 export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
-  private ngZone = inject(NgZone);
   private panelService = inject(PanelService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -136,13 +134,11 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     EventSystem.register(this)
       .on('ROLL_DICE_SYMBOL', (event) => {
         if (event.data.identifier === this.diceSymbol.identifier) {
-          this.ngZone.run(() => {
-            this.animeState = 'inactive';
+          this.animeState = 'inactive';
+          this.changeDetector.markForCheck();
+          setTimeout(() => {
+            this.animeState = 'active';
             this.changeDetector.markForCheck();
-            setTimeout(() => {
-              this.animeState = 'active';
-              this.changeDetector.markForCheck();
-            });
           });
         }
       })
@@ -178,10 +174,8 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-    });
-    this.input.onStart = (e) => this.ngZone.run(() => this.onInputStart(e));
+    this.input = new InputHandler(this.elementRef.nativeElement);
+    this.input.onStart = (e) => this.onInputStart(e);
   }
 
   ngOnDestroy() {

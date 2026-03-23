@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/class/chat-message';
 import { ChatTab } from '@axe/class/chat-tab';
@@ -21,6 +21,7 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-window',
   templateUrl: './chat-window.component.html',
   styleUrls: ['./chat-window.component.css'],

@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Alarm } from '@axe/class/alarm';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
@@ -12,6 +12,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-alarm-menu',
   templateUrl: './alarm-menu.component.html',
   styleUrls: ['./alarm-menu.component.css'],

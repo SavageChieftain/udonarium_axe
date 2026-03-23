@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EventSystem, Network } from '@axe/class/core/system';
 import { PeerContext } from '@axe/class/core/system/network/peer-context';
@@ -7,6 +7,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'room-setting',
   templateUrl: './room-setting.component.html',
   styleUrls: ['./room-setting.component.css'],

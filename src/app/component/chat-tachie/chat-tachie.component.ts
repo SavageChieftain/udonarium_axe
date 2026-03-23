@@ -2,6 +2,7 @@ import { NgStyle } from '@angular/common';
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -22,6 +23,7 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-tachie',
   templateUrl: './chat-tachie.component.html',
   styleUrls: ['./chat-tachie.component.css'],

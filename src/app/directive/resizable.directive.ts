@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  Directive,
-  ElementRef,
-  EventEmitter,
-  inject,
-  Input,
-  NgZone,
-  OnDestroy,
-  Output,
-} from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
 import { CSSNumber } from '@axe/class/transform/css-number';
 import { PointerCoordinate } from '@axe/service/pointer-device.service';
 
@@ -23,7 +13,6 @@ interface BoxSize {
 
 @Directive({ selector: '[appResizable]' })
 export class ResizableDirective implements AfterViewInit, OnDestroy {
-  private ngZone = inject(NgZone);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   @Input('resizable.disable') isDisable: boolean = false;
@@ -64,15 +53,13 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
   }
 
   private initialize() {
-    this.ngZone.runOutsideAngular(() => {
-      this.handleTypes.forEach((type) => {
-        const handle = new ResizeHandler(this.elementRef.nativeElement, type);
-        this.handleMap.set(type, handle);
-        handle.input.onStart = (ev) => this.onResizeStart(ev, handle);
-        handle.input.onMove = (ev) => this.onResizeMove(ev, handle);
-        handle.input.onEnd = (ev) => this.onResizeEnd(ev, handle);
-        handle.input.onContextMenu = (ev) => this.onContextMenu(ev, handle);
-      });
+    this.handleTypes.forEach((type) => {
+      const handle = new ResizeHandler(this.elementRef.nativeElement, type);
+      this.handleMap.set(type, handle);
+      handle.input.onStart = (ev) => this.onResizeStart(ev, handle);
+      handle.input.onMove = (ev) => this.onResizeMove(ev, handle);
+      handle.input.onEnd = (ev) => this.onResizeEnd(ev, handle);
+      handle.input.onContextMenu = (ev) => this.onContextMenu(ev, handle);
     });
   }
 

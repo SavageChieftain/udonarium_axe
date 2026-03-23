@@ -16,8 +16,7 @@ import { DataElement, DataElementType } from '@axe/class/data-element';
   selector: 'game-data-element-buff, [game-data-element-buff]',
   templateUrl: './game-data-element-buff.component.html',
   styleUrls: ['./game-data-element-buff.component.css'],
-  //  changeDetection: ChangeDetectionStrategy.OnPush
-  changeDetection: ChangeDetectionStrategy.Default,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
 export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterViewInit {

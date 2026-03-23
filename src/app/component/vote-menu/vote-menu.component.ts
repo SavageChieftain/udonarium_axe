@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/class/core/system';
@@ -12,6 +12,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-menu',
   templateUrl: './vote-menu.component.html',
   styleUrls: ['./vote-menu.component.css'],

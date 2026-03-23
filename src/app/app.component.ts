@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, inject, NgZone, OnDestroy, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnDestroy,
+  ViewChild,
+  ViewContainerRef,
+} from '@angular/core';
 import { Alarm } from '@axe/class/alarm';
 import { ChatTabList } from '@axe/class/chat-tab-list';
 import { Config } from '@axe/class/config';
@@ -52,6 +61,7 @@ import { NetworkIndicatorComponent } from './component/network-indicator/network
 import { UIPanelComponent as UIPanelComponent_1 } from './component/ui-panel/ui-panel.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -59,13 +69,13 @@ import { UIPanelComponent as UIPanelComponent_1 } from './component/ui-panel/ui-
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   private modalService = inject(ModalService);
+  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private chatMessageService = inject(ChatMessageService);
   private appConfigService = inject(AppConfigService);
   private saveDataService = inject(SaveDataService);
   private ngSelectConfig = inject(NgSelectConfig);
-  private ngZone = inject(NgZone);
 
   private objectStore = inject(ObjectStore);
   private fileArchiver = inject(FileArchiver);
@@ -92,14 +102,12 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   dispcounter = 10; // 表示更新用ダミーカットインを閉じるときに無理やり更新させている。
 
   constructor() {
-    this.ngZone.runOutsideAngular(() => {
-      void EventSystem;
-      void Network;
-      this.fileArchiver.initialize();
-      ImageSharingSystem.instance.initialize();
-      AudioSharingSystem.instance.initialize();
-      ObjectSynchronizer.instance.initialize();
-    });
+    void EventSystem;
+    void Network;
+    this.fileArchiver.initialize();
+    ImageSharingSystem.instance.initialize();
+    AudioSharingSystem.instance.initialize();
+    ObjectSynchronizer.instance.initialize();
     this.appConfigService.initialize();
     this.pointerDeviceService.initialize();
     this.ngSelectConfig.appendTo = 'body';
@@ -113,7 +121,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     const diceBot: DiceBot = new DiceBot('DiceBot');
     diceBot.initialize();
-    DiceBot.getHelpMessage('').then(() => this.lazyNgZoneUpdate(true));
+    DiceBot.getHelpMessage('').then(() => this.lazyMarkForCheck(true));
 
     const jukebox: Jukebox = new Jukebox('Jukebox');
     jukebox.initialize();
@@ -202,66 +210,64 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         if (!event.data.cutIn) return;
       })
       .on('UPDATE_GAME_OBJECT', (event) => {
-        this.lazyNgZoneUpdate(event.isSendFromSelf);
+        this.lazyMarkForCheck(event.isSendFromSelf);
       })
       .on('LOCAL_OBJECT_UPDATED', (_event) => {
-        this.lazyNgZoneUpdate(true);
+        this.lazyMarkForCheck(true);
       })
       .on('DELETE_GAME_OBJECT', (event) => {
-        this.lazyNgZoneUpdate(event.isSendFromSelf);
+        this.lazyMarkForCheck(event.isSendFromSelf);
       })
       .on('SYNCHRONIZE_AUDIO_LIST', (event) => {
-        if (event.isSendFromSelf) this.lazyNgZoneUpdate(false);
+        if (event.isSendFromSelf) this.lazyMarkForCheck(false);
       })
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) this.lazyNgZoneUpdate(false);
+        if (event.isSendFromSelf) this.lazyMarkForCheck(false);
       })
       .on<AppConfig>('LOAD_CONFIG', (event) => {
         Network.configure(event.data as unknown as Record<string, unknown>);
         Network.open();
       })
       .on<File>('FILE_LOADED', (_event) => {
-        this.lazyNgZoneUpdate(false);
+        this.lazyMarkForCheck(false);
       })
       .on('OPEN_NETWORK', (_event) => {
         PeerCursor.myCursor.peerId = Network.peerContext.peerId;
         PeerCursor.myCursor.userId = Network.peerContext.userId;
       })
-      .on('NETWORK_ERROR', (event) => {
+      .on('NETWORK_ERROR', async (event) => {
         const errorType: string = event.data.errorType;
         const errorMessage: string = event.data.errorMessage;
 
-        this.ngZone.run(async () => {
-          //SKyWayエラーハンドリング
-          const quietErrorTypes = ['peer-unavailable'];
-          const reconnectErrorTypes = [
-            'disconnected',
-            'socket-error',
-            'unavailable-id',
-            'authentication',
-            'server-error',
-          ];
+        //SKyWayエラーハンドリング
+        const quietErrorTypes = ['peer-unavailable'];
+        const reconnectErrorTypes = [
+          'disconnected',
+          'socket-error',
+          'unavailable-id',
+          'authentication',
+          'server-error',
+        ];
 
-          if (quietErrorTypes.includes(errorType)) return;
-          await this.modalService.open(TextViewComponent, {
-            title: 'ネットワークエラー',
-            text: errorMessage,
-          });
-
-          if (!reconnectErrorTypes.includes(errorType)) return;
-          await this.modalService.open(TextViewComponent, {
-            title: 'ネットワークエラー',
-            text: 'このウィンドウを閉じると再接続を試みます。',
-          });
-          Network.open();
+        if (quietErrorTypes.includes(errorType)) return;
+        await this.modalService.open(TextViewComponent, {
+          title: 'ネットワークエラー',
+          text: errorMessage,
         });
+
+        if (!reconnectErrorTypes.includes(errorType)) return;
+        await this.modalService.open(TextViewComponent, {
+          title: 'ネットワークエラー',
+          text: 'このウィンドウを閉じると再接続を試みます。',
+        });
+        Network.open();
       })
       .on('CONNECT_PEER', (event) => {
         if (event.isSendFromSelf) this.chatMessageService.calibrateTimeOffset();
-        this.lazyNgZoneUpdate(event.isSendFromSelf);
+        this.lazyMarkForCheck(event.isSendFromSelf);
       })
       .on('DISCONNECT_PEER', (event) => {
-        this.lazyNgZoneUpdate(event.isSendFromSelf);
+        this.lazyMarkForCheck(event.isSendFromSelf);
       });
   }
 
@@ -443,7 +449,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     input.value = '';
   }
 
-  private lazyNgZoneUpdate(isImmediate: boolean) {
+  private lazyMarkForCheck(isImmediate: boolean) {
     if (isImmediate) {
       if (this.immediateUpdateTimer !== null) return;
       this.immediateUpdateTimer = requestAnimationFrame(() => {
@@ -452,7 +458,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
           cancelAnimationFrame(this.lazyUpdateTimer);
           this.lazyUpdateTimer = null!;
         }
-        this.ngZone.run(() => {});
+        this.changeDetector.markForCheck();
       });
     } else {
       if (this.lazyUpdateTimer !== null) return;
@@ -462,7 +468,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
           cancelAnimationFrame(this.immediateUpdateTimer);
           this.immediateUpdateTimer = null!;
         }
-        this.ngZone.run(() => {});
+        this.changeDetector.markForCheck();
       });
     }
   }

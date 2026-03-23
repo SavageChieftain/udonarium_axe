@@ -1,5 +1,15 @@
 import { NgClass } from '@angular/common';
-import { AfterViewInit, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Config } from '@axe/class/config';
 import { ImageFile } from '@axe/class/core/file-storage/image-file';
@@ -18,6 +28,7 @@ import { SaveDataService } from '@axe/service/save-data.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
   styleUrls: ['./game-table-setting.component.css'],

@@ -1,10 +1,10 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   Output,
@@ -22,13 +22,13 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-message-fix',
   templateUrl: './chat-message-fix.component.html',
   styleUrls: ['./chat-message-fix.component.css'],
   imports: [FormsModule],
 })
 export class ChatMessageFixComponent implements OnInit, OnDestroy {
-  private ngZone = inject(NgZone);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);

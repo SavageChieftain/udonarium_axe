@@ -1,10 +1,11 @@
 import { NgClass } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { EventSystem } from '@axe/class/core/system';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'open-url',
   templateUrl: './open-url.component.html',
   styleUrls: ['./open-url.component.css'],

@@ -1,4 +1,4 @@
-import { inject, Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 
 export interface PointerCoordinate {
   x: number;
@@ -16,8 +16,6 @@ const MOUSE_IDENTIFIER = -9999;
   providedIn: 'root',
 })
 export class PointerDeviceService {
-  private ngZone = inject(NgZone);
-
   private callbackOnPointerDown = (e: MouseEvent | TouchEvent) => this.onPointerDown(e);
   private callbackOnPointerMove = (e: MouseEvent | TouchEvent) => this.onPointerMove(e);
   private callbackOnPointerUp = (e: MouseEvent | TouchEvent) => this.onPointerUp(e);
@@ -49,7 +47,7 @@ export class PointerDeviceService {
   }
   set isDragging(isDragging: boolean) {
     if (isDragging === this._isDragging) return;
-    this.ngZone.run(() => (this._isDragging = isDragging));
+    this._isDragging = isDragging;
   }
 
   initialize() {
@@ -123,17 +121,15 @@ export class PointerDeviceService {
   }
 
   private addEventListeners() {
-    this.ngZone.runOutsideAngular(() => {
-      document.body.addEventListener('mousedown', this.callbackOnPointerDown, true);
-      document.body.addEventListener('mousemove', this.callbackOnPointerMove, true);
-      document.body.addEventListener('mouseup', this.callbackOnPointerUp, true);
-      document.body.addEventListener('touchstart', this.callbackOnPointerDown, true);
-      document.body.addEventListener('touchmove', this.callbackOnPointerMove, true);
-      document.body.addEventListener('touchend', this.callbackOnPointerUp, true);
-      document.body.addEventListener('touchcancel', this.callbackOnPointerUp, true);
-      document.body.addEventListener('drop', this.callbackOnPointerUp, true);
-      document.body.addEventListener('contextmenu', this.callbackOnContextMenu, true);
-    });
+    document.body.addEventListener('mousedown', this.callbackOnPointerDown, true);
+    document.body.addEventListener('mousemove', this.callbackOnPointerMove, true);
+    document.body.addEventListener('mouseup', this.callbackOnPointerUp, true);
+    document.body.addEventListener('touchstart', this.callbackOnPointerDown, true);
+    document.body.addEventListener('touchmove', this.callbackOnPointerMove, true);
+    document.body.addEventListener('touchend', this.callbackOnPointerUp, true);
+    document.body.addEventListener('touchcancel', this.callbackOnPointerUp, true);
+    document.body.addEventListener('drop', this.callbackOnPointerUp, true);
+    document.body.addEventListener('contextmenu', this.callbackOnContextMenu, true);
   }
 
   private removeEventListeners() {

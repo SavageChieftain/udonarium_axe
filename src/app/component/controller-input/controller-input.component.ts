@@ -1,11 +1,12 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
   inject,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   Output,
@@ -32,13 +33,14 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'controller-input',
   templateUrl: './controller-input.component.html',
   styleUrls: ['./controller-input.component.css'],
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ControllerInputComponent implements OnInit, OnDestroy {
-  private ngZone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);
@@ -361,14 +363,12 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       .on<string>('WRITING_A_MESSAGE', (event) => {
         /*
         if (event.isSendFromSelf || event.data !== this.chatTabidentifier) return;
-        this.ngZone.run(() => {
-          if (this.writingPeers.has(event.sendFrom)) clearTimeout(this.writingPeers.get(event.sendFrom));
-          this.writingPeers.set(event.sendFrom, setTimeout(() => {
-            this.writingPeers.delete(event.sendFrom);
-            this.updateWritingPeerNames();
-          }, 2000));
+        if (this.writingPeers.has(event.sendFrom)) clearTimeout(this.writingPeers.get(event.sendFrom));
+        this.writingPeers.set(event.sendFrom, setTimeout(() => {
+          this.writingPeers.delete(event.sendFrom);
           this.updateWritingPeerNames();
-        });
+        }, 2000));
+        this.updateWritingPeerNames();
 */
         // 1.13.xとのmargeで修正
         if (event.isSendFromSelf || event.data !== this.chatTabidentifier) {
@@ -380,13 +380,13 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
             new ResettableTimeout(() => {
               this.writingPeers.delete(event.sendFrom);
               this.updateWritingPeerNames();
-              this.ngZone.run(() => {});
+              this.changeDetector.markForCheck();
             }, 2000)
           );
         }
         this.writingPeers.get(event.sendFrom)!.reset();
         this.updateWritingPeerNames();
-        this.batchService.add(() => this.ngZone.run(() => {}), this);
+        this.batchService.add(() => this.changeDetector.markForCheck(), this);
       });
   }
 

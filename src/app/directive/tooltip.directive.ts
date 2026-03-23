@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ComponentRef,
-  Directive,
-  inject,
-  Input,
-  NgZone,
-  OnDestroy,
-  ViewContainerRef,
-} from '@angular/core';
+import { AfterViewInit, ComponentRef, Directive, inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
 import { EventSystem } from '@axe/class/core/system';
 import { TabletopObject } from '@axe/class/tabletop-object';
 import { OverviewPanelComponent } from '@axe/component/overview-panel/overview-panel.component';
@@ -16,7 +7,6 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Directive({ selector: '[appTooltip]' })
 export class TooltipDirective implements AfterViewInit, OnDestroy {
-  private ngZone = inject(NgZone);
   private viewContainerRef = inject(ViewContainerRef);
   private pointerDeviceService = inject(PointerDeviceService);
 
@@ -59,7 +49,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
       !this.tooltipComponentRef.location.nativeElement.contains(e.target as Node) &&
       !this.viewContainerRef.element.nativeElement.contains(e.target as Node)
     ) {
-      this.ngZone.run(() => this.closeAll());
+      this.closeAll();
     }
   }
 
@@ -74,7 +64,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
       if (4 < magnitude) {
         this.startOpenTimer();
       } else {
-        this.ngZone.run(() => this.open());
+        this.open();
       }
     }, 100);
   }
@@ -88,7 +78,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
       ) {
         this.startCloseTimer();
       } else {
-        this.ngZone.run(() => this.closeAll());
+        this.closeAll();
       }
     }, 400); // ポップアップのクローズタイミング
   }
@@ -117,10 +107,8 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
     this.tooltipComponentRef.instance.top = this.pointerDeviceService.pointerY;
 
     this.addEventListeners(this.tooltipComponentRef.location.nativeElement);
-    this.ngZone.runOutsideAngular(() => {
-      document.body.addEventListener('touchstart', this.callbackOnMouseDown, true);
-      document.body.addEventListener('mousedown', this.callbackOnMouseDown, true);
-    });
+    document.body.addEventListener('touchstart', this.callbackOnMouseDown, true);
+    document.body.addEventListener('mousedown', this.callbackOnMouseDown, true);
 
     EventSystem.register(this).on('DELETE_GAME_OBJECT', (event) => {
       if (this.tabletopObject && this.tabletopObject.identifier === event.data.identifier) this.closeAll();
@@ -153,10 +141,8 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
   }
 
   private addEventListeners(element: Element) {
-    this.ngZone.runOutsideAngular(() => {
-      element.addEventListener('mouseenter', this.callbackOnMouseEnter, false);
-      element.addEventListener('mouseleave', this.callbackOnMouseLeave, false);
-    });
+    element.addEventListener('mouseenter', this.callbackOnMouseEnter, false);
+    element.addEventListener('mouseleave', this.callbackOnMouseLeave, false);
   }
 
   private removeEventListeners(element: Element) {

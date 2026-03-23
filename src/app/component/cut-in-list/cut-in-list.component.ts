@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 //
 import { FormsModule } from '@angular/forms';
 import { AudioFile } from '@axe/class/core/file-storage/audio-file';
@@ -20,6 +20,7 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-list',
   templateUrl: './cut-in-list.component.html',
   styleUrls: ['./cut-in-list.component.css'],
@@ -30,7 +31,6 @@ export class CutInListComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private saveDataService = inject(SaveDataService);
   private panelService = inject(PanelService);
-  private ngZone = inject(NgZone);
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
   private audioStorage = inject(AudioStorage);

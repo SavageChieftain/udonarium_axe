@@ -1,5 +1,15 @@
 import { NgClass, NgStyle } from '@angular/common';
-import { Component, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewContainerRef,
+} from '@angular/core';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { CutIn } from '@axe/class/cut-in';
 import { CardStackListImageComponent as CardStackListImageComponent_1 } from '@axe/component/card-stack-list-img/card-stack-list-img.component';
@@ -10,6 +20,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'ui-panel',
   templateUrl: './ui-panel.component.html',
   styleUrls: ['./ui-panel.component.css'],

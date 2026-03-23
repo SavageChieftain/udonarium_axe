@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Logger } from '@axe/class/core/logger';
 import { GameObject } from '@axe/class/core/synchronize-object/game-object';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
@@ -15,6 +15,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 're-connect',
   templateUrl: './re-connect.component.html',
   styleUrls: ['./re-connect.component.css'],

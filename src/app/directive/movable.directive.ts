@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  Directive,
-  ElementRef,
-  EventEmitter,
-  inject,
-  Input,
-  NgZone,
-  OnDestroy,
-  Output,
-} from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
 import { EventSystem } from '@axe/class/core/system';
 import { TableSelecter } from '@axe/class/table-selecter';
 import { TabletopObject } from '@axe/class/tabletop-object';
@@ -28,7 +18,6 @@ export interface MovableOption {
 
 @Directive({ selector: '[appMovable]' })
 export class MovableDirective implements AfterViewInit, OnDestroy {
-  private ngZone = inject(NgZone);
   private elementRef = inject(ElementRef);
   private batchService = inject(BatchService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -301,7 +290,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
       // ロングプレスによるタッチ操作でコンテキストメニューを開く場合、イベントを適切なDOMに伝搬させる
       e.stopPropagation();
       const ev = new MouseEvent(e.type, e);
-      this.ngZone.run(() => this.nativeElement.dispatchEvent(ev));
+      this.nativeElement.dispatchEvent(ev);
     }
   }
 

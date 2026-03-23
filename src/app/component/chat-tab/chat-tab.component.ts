@@ -9,7 +9,6 @@ import {
   EventEmitter,
   inject,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -41,7 +40,6 @@ const isiOS =
   imports: [ChatMessageComponent],
 })
 export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, AfterViewChecked {
-  private ngZone = inject(NgZone);
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
@@ -241,13 +239,11 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   }
 
   ngAfterViewInit() {
-    this.ngZone.runOutsideAngular(() => {
-      this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
-      this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);
-      this.onScroll();
-      this.panelService.scrollablePanel.addEventListener('scroll', this.callbackOnScroll, false);
-      this.panelService.scrollablePanel.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
-    });
+    this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
+    this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);
+    this.onScroll();
+    this.panelService.scrollablePanel.addEventListener('scroll', this.callbackOnScroll, false);
+    this.panelService.scrollablePanel.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
   }
 
   ngOnDestroy() {
@@ -268,19 +264,15 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
 
   ngAfterViewChecked() {
     if (!this.topElm || !this.bottomElm) return;
-    this.ngZone.runOutsideAngular(() => {
-      queueMicrotask(() => this.adjustScrollPosition());
-    });
+    queueMicrotask(() => this.adjustScrollPosition());
   }
 
   onMessageInit() {
     if (this.addMessageEventTimer != null) return;
-    this.ngZone.runOutsideAngular(() => {
-      this.addMessageEventTimer = setTimeout(() => {
-        this.addMessageEventTimer = null!;
-        this.ngZone.run(() => this.addMessage.emit());
-      }, 0);
-    });
+    this.addMessageEventTimer = setTimeout(() => {
+      this.addMessageEventTimer = null!;
+      this.addMessage.emit();
+    }, 0);
   }
 
   resetMessages() {
@@ -388,7 +380,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
       setZeroTimeout(() => {
         this.chatTab.markForRead();
         this.changeDetector.markForCheck();
-        this.ngZone.run(() => {});
+        this.changeDetector.markForCheck();
       });
     }
   }
@@ -456,7 +448,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
       this.scrollSpeed = scrollPosition.top - this.preScrollTop;
       this.preScrollTop = scrollPosition.top;
       this.changeDetector.markForCheck();
-      this.ngZone.run(() => {});
+      this.changeDetector.markForCheck();
     });
   }
 

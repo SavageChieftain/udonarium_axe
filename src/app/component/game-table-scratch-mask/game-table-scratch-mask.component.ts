@@ -4,7 +4,6 @@ import {
   Component,
   inject,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -29,7 +28,6 @@ import { TabletopActionService } from '@axe/service/tabletop-action.service';
   imports: [MovableDirective],
 })
 export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestroy {
-  private ngZone = inject(NgZone);
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private changeDetector = inject(ChangeDetectorRef);

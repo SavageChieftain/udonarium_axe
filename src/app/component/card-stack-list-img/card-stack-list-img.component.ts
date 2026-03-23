@@ -1,6 +1,7 @@
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -16,6 +17,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'card-stack-list-img',
   templateUrl: './card-stack-list-img.component.html',
   styleUrls: ['./card-stack-list-img.component.css'],

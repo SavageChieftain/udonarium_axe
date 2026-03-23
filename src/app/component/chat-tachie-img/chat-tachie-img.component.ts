@@ -2,6 +2,7 @@ import { NgStyle } from '@angular/common';
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -22,6 +23,7 @@ import { PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-tachie-img',
   templateUrl: './chat-tachie-img.component.html',
   styleUrls: ['./chat-tachie-img.component.css'],

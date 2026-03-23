@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { enableProdMode, importProvidersFrom } from '@angular/core';
+import { enableProdMode, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -35,6 +35,7 @@ bootstrapApplication(AppComponent, {
       YouTubePlayerModule,
       NgSelectModule
     ),
+    provideZonelessChangeDetection(),
     ...CLASS_SINGLETON_PROVIDERS,
     AppConfigService,
     ChatMessageService,
