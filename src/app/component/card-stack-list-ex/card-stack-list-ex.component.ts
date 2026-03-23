@@ -21,13 +21,13 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private objectStore = inject(ObjectStore);
 
-  @Input() cardStack: CardStack = null!;
+  @Input() cardStack: CardStack | null = null;
 
   owner: string = Network.peerContext.userId;
 
   ngOnInit() {
-    queueMicrotask(() => (this.panelService.title = this.cardStack.name + ' のカード一覧'));
-    this.panelService.cardStack = this.cardStack;
+    queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
+    if (this.cardStack) this.panelService.cardStack = this.cardStack;
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', -1000, (event) => {
         const object = this.objectStore.get(event.data.identifier);
@@ -54,6 +54,7 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
   }
 
   drawCard(card: Card) {
+    if (!this.cardStack) return;
     card.parent.removeChild(card);
     card.location.x = this.cardStack.location.x + 100 + Math.random() * 50;
     card.location.y = this.cardStack.location.y + 25 + Math.random() * 50;
@@ -83,7 +84,7 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
   }
 
   close(needShuffle: boolean = false) {
-    if (needShuffle) {
+    if (needShuffle && this.cardStack) {
       this.cardStack.shuffle();
       EventSystem.call('SHUFFLE_CARD_STACK', { identifier: this.cardStack.identifier });
       SoundEffect.play(PresetSound.cardShuffle);

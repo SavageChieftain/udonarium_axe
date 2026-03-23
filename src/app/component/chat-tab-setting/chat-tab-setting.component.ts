@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatTab } from '@axe/class/chat-tab';
 import { ChatTabList } from '@axe/class/chat-tab-list';
@@ -27,8 +27,9 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   private objectStore = inject(ObjectStore);
   private objectSerializer = inject(ObjectSerializer);
   private chatTabList = inject(ChatTabList);
+  private changeDetector = inject(ChangeDetectorRef);
 
-  selectedTab: ChatTab = null!;
+  selectedTab: ChatTab | null = null;
   selectedTabXml = '';
 
   get systemTabIndex(): number {
@@ -39,15 +40,15 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
     this.chatTabList.systemMessageTabIndex = index;
   }
 
-  systemTab(): ChatTab {
+  systemTab(): ChatTab | null {
     return this.chatTabList.systemMessageTab;
   }
 
   get tabName(): string {
-    return this.selectedTab.name;
+    return this.selectedTab?.name ?? '';
   }
   set tabName(tabName: string) {
-    if (this.isEditable) this.selectedTab.name = tabName;
+    if (this.isEditable && this.selectedTab) this.selectedTab.name = tabName;
   }
 
   get chatTabs(): ChatTab[] {
@@ -72,13 +73,28 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
-    EventSystem.register(this).on('DELETE_GAME_OBJECT', 2000, (event) => {
-      if (!this.selectedTab || event.data.identifier !== this.selectedTab.identifier) return;
-      const object = this.objectStore.get(event.data.identifier);
-      if (object !== null) {
-        this.selectedTabXml = object.toXml();
-      }
-    });
+    EventSystem.register(this)
+      .on('DELETE_GAME_OBJECT', 2000, (event) => {
+        if (!this.selectedTab || event.data.identifier !== this.selectedTab.identifier) return;
+        const object = this.objectStore.get(event.data.identifier);
+        if (object !== null) {
+          this.selectedTabXml = object.toXml();
+        }
+        this.selectedTab = null;
+        this.changeDetector.markForCheck();
+      })
+      .on('UPDATE_GAME_OBJECT', (event) => {
+        const object = this.objectStore.get(event.data.identifier);
+        if (object instanceof ChatTab || object instanceof ChatTabList) {
+          if (this.selectedTab && !this.objectStore.get(this.selectedTab.identifier)) {
+            this.selectedTab = null;
+          }
+          if (!this.selectedTab && this.chatTabs.length > 0) {
+            this.selectedTab = this.chatTabs[0];
+          }
+          this.changeDetector.markForCheck();
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -187,19 +203,19 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
         this.selectedTab.children[0].destroy();
       }
       this.selectedTab.tachieReset();
+      const mess = 'ログをクリアしました';
+      const gameSystem = null!;
+      const sendTo = '';
+      this.chatMessageService.sendMessage(
+        this.selectedTab,
+        mess,
+        gameSystem,
+        this.myPeer.identifier,
+        sendTo,
+        0,
+        '#000000'
+      );
     }
-    const mess = 'ログをクリアしました';
-    const gameSystem = null!;
-    const sendTo = '';
-    this.chatMessageService.sendMessage(
-      this.selectedTab,
-      mess,
-      gameSystem,
-      this.myPeer.identifier,
-      sendTo,
-      0,
-      '#000000'
-    );
   }
 
   deleteLogALL() {
@@ -220,7 +236,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   restore() {
     if (this.selectedTab && this.selectedTabXml) {
-      const restoreTable = <ChatTab>this.objectSerializer.parseXml(this.selectedTabXml);
+      const restoreTable = this.objectSerializer.parseXml(this.selectedTabXml) as ChatTab;
       this.chatTabList.addChatTab(restoreTable);
       this.selectedTabXml = '';
     }

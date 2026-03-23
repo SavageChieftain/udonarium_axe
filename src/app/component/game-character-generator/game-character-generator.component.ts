@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   inject,
   OnDestroy,
@@ -34,6 +35,7 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
   private imageStorage = inject(ImageStorage);
   private objectSerializer = inject(ObjectSerializer);
   private tableSelecter = inject(TableSelecter);
+  private changeDetector = inject(ChangeDetectorRef);
 
   name: string = 'ゲームキャラクター';
   size: number = 1;
@@ -50,7 +52,10 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
       const fileIdentifier: string = event.data.fileIdentifier;
 
       const file: ImageFile = this.imageStorage.get(fileIdentifier);
-      if (file) this.tableBackgroundImage = file;
+      if (file) {
+        this.tableBackgroundImage = file;
+        this.changeDetector.markForCheck();
+      }
     });
   }
 

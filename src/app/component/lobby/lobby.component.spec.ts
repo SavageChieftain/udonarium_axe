@@ -1,9 +1,10 @@
+import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { LobbyComponent } from './lobby.component';
 
-describe('CardStackListComponent', () => {
+describe('LobbyComponent', () => {
   let component: LobbyComponent;
   let fixture: ComponentFixture<LobbyComponent>;
 
@@ -21,5 +22,10 @@ describe('CardStackListComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('OnPushコンポーネントでChangeDetectorRefが注入されていること', () => {
+    const cdr = fixture.debugElement.injector.get(ChangeDetectorRef);
+    expect(cdr).toBeTruthy();
   });
 });

@@ -96,31 +96,31 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get tableName(): string {
-    return this.selectedTable.name;
+    return this.selectedTable?.name ?? '';
   }
   set tableName(tableName: string) {
-    if (this.isEditable) this.selectedTable.name = tableName;
+    if (this.isEditable && this.selectedTable) this.selectedTable.name = tableName;
   }
 
   get tableWidth(): number {
-    return this.selectedTable.width;
+    return this.selectedTable?.width ?? 10;
   }
   set tableWidth(tableWidth: number) {
-    if (this.isEditable) this.selectedTable.width = tableWidth;
+    if (this.isEditable && this.selectedTable) this.selectedTable.width = tableWidth;
   }
 
   get tableHeight(): number {
-    return this.selectedTable.height;
+    return this.selectedTable?.height ?? 10;
   }
   set tableHeight(tableHeight: number) {
-    if (this.isEditable) this.selectedTable.height = tableHeight;
+    if (this.isEditable && this.selectedTable) this.selectedTable.height = tableHeight;
   }
 
   get tableGridColor(): string {
-    return this.selectedTable.gridColor.substring(0, 7);
+    return this.selectedTable?.gridColor.substring(0, 7) ?? '#000000';
   }
   set tableGridColor(tableGridColor: string) {
-    if (this.isEditable) this.selectedTable.gridColor = tableGridColor + 'e6';
+    if (this.isEditable && this.selectedTable) this.selectedTable.gridColor = tableGridColor + 'e6';
   }
 
   get tableGridShow(): boolean {
@@ -140,20 +140,20 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get tableGridType(): GridType {
-    return this.selectedTable.gridType;
+    return this.selectedTable?.gridType ?? 0;
   }
   set tableGridType(gridType: GridType) {
-    if (this.isEditable) this.selectedTable.gridType = Number(gridType);
+    if (this.isEditable && this.selectedTable) this.selectedTable.gridType = Number(gridType);
   }
 
   get tableDistanceviewFilter(): FilterType {
-    return this.selectedTable.backgroundFilterType;
+    return this.selectedTable?.backgroundFilterType ?? FilterType.NONE;
   }
   set tableDistanceviewFilter(filterType: FilterType) {
-    if (this.isEditable) this.selectedTable.backgroundFilterType = filterType;
+    if (this.isEditable && this.selectedTable) this.selectedTable.backgroundFilterType = filterType;
   }
 
-  selectedTable: GameTable = null!;
+  selectedTable: GameTable | null = null;
   selectedTableXml: string = '';
 
   get isEmpty(): boolean {
@@ -179,6 +179,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
       if (object !== null) {
         this.selectedTableXml = object.toXml();
       }
+      this.changeDetector.markForCheck();
     });
   }
 

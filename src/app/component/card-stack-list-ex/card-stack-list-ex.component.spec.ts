@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Card } from '@axe/class/card';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { CardStackListComponentEx } from './card-stack-list-ex.component';
@@ -21,5 +22,18 @@ describe('CardStackListComponentEx', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('cardStackがnullの場合', () => {
+    it('cardStackがnullでもdetectChangesでクラッシュしないこと', () => {
+      component.cardStack = null;
+      expect(() => fixture.detectChanges()).not.toThrow();
+    });
+
+    it('drawCardが何もせずreturnすること', () => {
+      component.cardStack = null;
+      const mockCard = {} as unknown as Card;
+      expect(() => component.drawCard(mockCard)).not.toThrow();
+    });
   });
 });

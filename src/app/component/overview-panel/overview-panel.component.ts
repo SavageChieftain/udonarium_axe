@@ -44,7 +44,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private objectStore = inject(ObjectStore);
 
   @ViewChild('draggablePanel', { static: true }) draggablePanel: ElementRef<HTMLElement>;
-  @Input() tabletopObject: TabletopObject = null!;
+  @Input() tabletopObject: TabletopObject | null = null;
 
   @Input() left: number = 0;
   @Input() top: number = 0;
@@ -148,7 +148,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private adjustPositionRoot() {
     const panel: HTMLElement = this.draggablePanel.nativeElement;
 
-    const alias = this.tabletopObject.aliasName;
+    const alias = this.tabletopObject?.aliasName;
     let width: number = 250;
 
     if (alias == 'card') {

@@ -51,9 +51,11 @@ export class LobbyComponent implements OnInit, OnDestroy {
           return;
         }
         if (!this.isReloading) this.reload();
+        this.cdr.markForCheck();
       })
       .on('CONNECT_PEER', (_event) => {
         this.changeTitle();
+        this.cdr.markForCheck();
       });
     if (Network.isOpen) {
       this.reload();

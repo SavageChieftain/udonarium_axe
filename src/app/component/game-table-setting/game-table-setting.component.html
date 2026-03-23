@@ -7,7 +7,7 @@
       style="width: 10em"
       size="10"
       (change)="selectGameTable($any($event.target).value)"
-      [ngModel]="selectedTable.identifier"
+      [ngModel]="selectedTable?.identifier"
     >
       @for (gameTable of getGameTables(); track gameTable) {
         <option value="{{ gameTable.identifier }}">{{ gameTable.name }}</option>

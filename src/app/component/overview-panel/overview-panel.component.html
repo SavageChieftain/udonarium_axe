@@ -1,26 +1,28 @@
 <div class="component is-pointer-events-none fade-in" appDraggable #draggablePanel>
-  @switch (tabletopObject.aliasName) {
-    @case ('numberResource') {}
-    @case ('card') {
-      <ng-container *ngTemplateOutlet="overviewCard; context: { card: tabletopObject }"></ng-container>
-    }
-    @case ('card-stack') {
-      <ng-container *ngTemplateOutlet="overviewCard; context: { card: tabletopObject }"></ng-container>
-    }
-    @case ('text-note') {
-      <ng-container *ngTemplateOutlet="overviewNote; context: { note: tabletopObject }"></ng-container>
-    }
-    @case ('character') {
-      <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
-    }
-    @case ('dice-symbol') {
-      <ng-container *ngTemplateOutlet="overviewDiceSymbol; context: { dice: tabletopObject }"></ng-container>
-    }
-    @case ('range') {
-      <ng-container *ngTemplateOutlet="overviewRange; context: { range: tabletopObject }"></ng-container>
-    }
-    @default {
-      <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
+  @if (tabletopObject) {
+    @switch (tabletopObject.aliasName) {
+      @case ('numberResource') {}
+      @case ('card') {
+        <ng-container *ngTemplateOutlet="overviewCard; context: { card: tabletopObject }"></ng-container>
+      }
+      @case ('card-stack') {
+        <ng-container *ngTemplateOutlet="overviewCard; context: { card: tabletopObject }"></ng-container>
+      }
+      @case ('text-note') {
+        <ng-container *ngTemplateOutlet="overviewNote; context: { note: tabletopObject }"></ng-container>
+      }
+      @case ('character') {
+        <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
+      }
+      @case ('dice-symbol') {
+        <ng-container *ngTemplateOutlet="overviewDiceSymbol; context: { dice: tabletopObject }"></ng-container>
+      }
+      @case ('range') {
+        <ng-container *ngTemplateOutlet="overviewRange; context: { range: tabletopObject }"></ng-container>
+      }
+      @default {
+        <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
+      }
     }
   }
 </div>

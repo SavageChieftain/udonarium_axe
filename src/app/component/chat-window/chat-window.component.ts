@@ -1,7 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/class/chat-message';
 import { ChatTab } from '@axe/class/chat-tab';
+import { ChatTabList } from '@axe/class/chat-tab-list';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { EventSystem } from '@axe/class/core/system';
 import { DiceBot } from '@axe/class/dice-bot';
@@ -32,6 +41,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private changeDetector = inject(ChangeDetectorRef);
 
   sendFrom: string = 'Guest';
 
@@ -92,16 +102,38 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this._chatTabidentifier =
       0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : '';
 
-    EventSystem.register(this).on('MESSAGE_ADDED', (event) => {
-      if (event.data.tabIdentifier !== this.chatTabidentifier) return;
-      const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
-      if (message && message.isSendFromSelf) {
-        this.isAutoScroll = true;
-      } else {
-        this.checkAutoScroll();
-      }
-      if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
-    });
+    EventSystem.register(this)
+      .on('MESSAGE_ADDED', (event) => {
+        if (event.data.tabIdentifier !== this.chatTabidentifier) return;
+        const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
+        if (message && message.isSendFromSelf) {
+          this.isAutoScroll = true;
+        } else {
+          this.checkAutoScroll();
+        }
+        if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
+        this.changeDetector.markForCheck();
+      })
+      .on('UPDATE_GAME_OBJECT', (event) => {
+        const object = this.objectStore.get(event.data.identifier);
+        if (object instanceof ChatTab || object instanceof ChatTabList) {
+          if (this._chatTabidentifier && !this.objectStore.get<ChatTab>(this._chatTabidentifier)) {
+            const chatTabs = this.chatMessageService.chatTabs;
+            this._chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
+            this.updatePanelTitle();
+          }
+          this.changeDetector.markForCheck();
+        }
+      })
+      .on('DELETE_GAME_OBJECT', (event) => {
+        if (event.data.aliasName !== 'chat-tab') return;
+        if (this._chatTabidentifier === event.data.identifier) {
+          const chatTabs = this.chatMessageService.chatTabs;
+          this._chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
+          this.updatePanelTitle();
+        }
+        this.changeDetector.markForCheck();
+      });
     queueMicrotask(() => this.updatePanelTitle());
   }
 
@@ -117,6 +149,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   scrollToBottom(isForce: boolean = false) {
     if (isForce) this.isAutoScroll = true;
     if (!this.isAutoScroll) return;
+    if (!this.panelService.scrollablePanel) return;
     const event = new CustomEvent('scrolltobottom', {});
     this.panelService.scrollablePanel.dispatchEvent(event);
     if (this.scrollToBottomTimer != null) return;

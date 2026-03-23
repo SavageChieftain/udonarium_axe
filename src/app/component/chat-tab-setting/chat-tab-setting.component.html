@@ -7,7 +7,7 @@
       style="width: 10em"
       size="10"
       (change)="onChangeSelectTab($any($event.target).value)"
-      [ngModel]="selectedTab.identifier"
+      [ngModel]="selectedTab?.identifier"
     >
       @for (chatTab of chatTabs; track chatTab) {
         <option value="{{ chatTab.identifier }}">{{ chatTab.name }}</option>
@@ -16,7 +16,7 @@
     <div style="font-size: 12px">
       <button (click)="onChangeSystemTab()">システム表示先指定</button>
     </div>
-    <div style="width: 10em; overflow: hidden; font-size: 14px">現在システム表示先：<br />{{ systemTab().name }}</div>
+    <div style="width: 10em; overflow: hidden; font-size: 14px">現在システム表示先：<br />{{ systemTab()?.name }}</div>
   </div>
   <div class="flex-item">
     @if (!isEmpty && selectedTab) {

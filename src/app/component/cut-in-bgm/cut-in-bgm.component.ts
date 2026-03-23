@@ -35,7 +35,9 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインBGM選択'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
-    EventSystem.register(this).on('*', (_event) => {});
+    EventSystem.register(this).on('*', (_event) => {
+      this.lazyMarkForCheck();
+    });
   }
 
   ngOnDestroy() {
