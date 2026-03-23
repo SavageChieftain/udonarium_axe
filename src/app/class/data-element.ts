@@ -90,8 +90,7 @@ export class DataElement extends ObjectNode {
   }
 
   get myIdentifer() {
-    const self: GameObject = <GameObject>this;
-    return self.identifier;
+    return (this as unknown as GameObject).identifier;
   }
 
   get nowValueColor(): string {

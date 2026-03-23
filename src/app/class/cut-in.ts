@@ -33,8 +33,6 @@ export class CutIn extends GameObject {
 
   @SyncVar() isVideoCutIn = false;
   @SyncVar() videoUrl = '';
-  // 規約準拠のため常時falseに変更 ToDO 取り除く
-  //  isSoundOnly: boolean = false;
 
   private normalMinSizeWidth = 10;
   private normalMinSizeHeight = 10;

@@ -1,5 +1,6 @@
 import { Vote } from '@axe/class/vote';
 
+import { DEFAULT_CHAT_COLOR_CODES } from './constants';
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { Logger } from './core/logger';
@@ -8,7 +9,6 @@ import { GameObject, ObjectContext } from './core/synchronize-object/game-object
 import { ObjectStore } from './core/synchronize-object/object-store';
 import { EventSystem, Network } from './core/system';
 
-const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000', '#0099FF'];
 const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
 
 type UserId = string;

@@ -86,8 +86,6 @@ export class GameTableMask extends TabletopObject {
     return userId === this.owner;
   }
 
-  complement(): void {}
-
   static create(name: string, width: number, height: number, opacity: number, identifier?: string): GameTableMask {
     let object: GameTableMask;
 

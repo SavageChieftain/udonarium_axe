@@ -18,7 +18,6 @@ export class RangeArea extends TabletopObject {
   }
   @SyncVar() isLock: boolean = false;
   @SyncVar() rotate: number = 0;
-  //  @SyncVar() followingCharctor: GameCharacter = null!;
   @SyncVar() followingCharctorIdentifier: string = null!;
   @SyncVar() followingCounterDummy: number = 0; // 追従時再描画用ダミー
 
@@ -53,7 +52,7 @@ export class RangeArea extends TabletopObject {
   }
 
   following() {
-    const object = <GameCharacter>ObjectStore.instance.get(this.followingCharctorIdentifier);
+    const object = ObjectStore.instance.get(this.followingCharctorIdentifier) as GameCharacter;
     if (!object) {
       this.followingCharctorIdentifier = null!;
       return;

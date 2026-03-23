@@ -3,6 +3,7 @@ import { generateUuid } from '@axe/class/core/system/util/uuid';
 import { BuffManager } from './buff-manager';
 import { CharacterTemplateFactory } from './character-template-factory';
 import { BuffPalette, ChatPalette } from './chat-palette';
+import { DEFAULT_CHAT_COLOR_CODES } from './constants';
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
@@ -10,8 +11,6 @@ import { ObjectStore } from './core/synchronize-object/object-store';
 import { DataElement, DataElementType } from './data-element';
 import { StatusAccessor } from './status-accessor';
 import { TabletopObject } from './tabletop-object';
-
-const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000', '#0099FF'];
 
 @SyncObject('character')
 export class GameCharacter extends TabletopObject {
