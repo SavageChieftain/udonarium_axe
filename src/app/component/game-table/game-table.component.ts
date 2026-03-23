@@ -95,6 +95,52 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private objectChangeService = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
+  constructor() {
+    effect(() => {
+      this.selectionSignalService.dragLockedVersion();
+      if (!this.gridCanvas) return;
+      this.isTableTransformMode = true;
+      this.pointerDeviceService.isDragging = false;
+      let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
+      if (this.roomGridDispAlways) {
+        opacity = 1.0;
+      }
+      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    });
+    effect(() => {
+      const focus = this.selectionSignalService.focusCoordinate();
+      if (!focus || !this.gameTable) return;
+      setTimeout(() => {
+        this.gameTable.nativeElement.style.transition = '0.2s ease-out';
+        setTimeout(() => {
+          this.gameTable.nativeElement.style.transition = null!;
+        }, 100);
+        // 座標変換
+        const centerX = this.gridCanvas.nativeElement.clientWidth / 2;
+        const centerY = this.gridCanvas.nativeElement.clientHeight / 2;
+        const movedX = focus.x - centerX;
+        const movedY = focus.y - centerY;
+        // z軸回転
+        const rotateZRad = (this.viewRotateZ / 180) * Math.PI;
+        const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
+        const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
+        // x軸回転
+        const rotateXRad = (this.viewRotateX / 180) * Math.PI;
+        const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
+        const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
+        // 移動
+        this.setTransform(
+          100 - rotatedMovedX - this.viewPotisonX,
+          -rotatedMovedY - this.viewPotisonY,
+          -rotatedMovedZ - this.viewPotisonZ,
+          0,
+          0,
+          0
+        );
+      }, 50);
+    });
+  }
+
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('gameTable', { static: true }) gameTable: ElementRef<HTMLElement>;
   @ViewChild('gameObjects', { static: true }) gameObjects: ElementRef<HTMLElement>;
@@ -188,49 +234,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
         this.currentTable.gridType,
         this.currentTable.gridColor
       );
-    });
-    effect(() => {
-      this.selectionSignalService.dragLockedVersion();
-      if (!this.gridCanvas) return;
-      this.isTableTransformMode = true;
-      this.pointerDeviceService.isDragging = false;
-      let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
-      if (this.roomGridDispAlways) {
-        opacity = 1.0;
-      }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
-    });
-    effect(() => {
-      const focus = this.selectionSignalService.focusCoordinate();
-      if (!focus || !this.gameTable) return;
-      setTimeout(() => {
-        this.gameTable.nativeElement.style.transition = '0.2s ease-out';
-        setTimeout(() => {
-          this.gameTable.nativeElement.style.transition = null!;
-        }, 100);
-        // 座標変換
-        const centerX = this.gridCanvas.nativeElement.clientWidth / 2;
-        const centerY = this.gridCanvas.nativeElement.clientHeight / 2;
-        const movedX = focus.x - centerX;
-        const movedY = focus.y - centerY;
-        // z軸回転
-        const rotateZRad = (this.viewRotateZ / 180) * Math.PI;
-        const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
-        const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
-        // x軸回転
-        const rotateXRad = (this.viewRotateX / 180) * Math.PI;
-        const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
-        const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
-        // 移動
-        this.setTransform(
-          100 - rotatedMovedX - this.viewPotisonX,
-          -rotatedMovedY - this.viewPotisonY,
-          -rotatedMovedZ - this.viewPotisonZ,
-          0,
-          0,
-          0
-        );
-      }, 50);
+      this.changeDetector.markForCheck();
     });
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();

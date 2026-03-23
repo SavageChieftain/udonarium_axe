@@ -22,4 +22,8 @@ describe('GameCharacterComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
+    expect(() => fixture.detectChanges()).not.toThrow();
+  });
 });

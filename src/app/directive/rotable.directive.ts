@@ -102,6 +102,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
     if (this.tabletopObject) {
       EventSystem.register(this).on('UPDATE_GAME_OBJECT', (event) => {
         if (
+          !this.tabletopObject ||
           (event.isSendFromSelf && this.input?.isGrabbing) ||
           event.data.identifier !== this.tabletopObject.identifier ||
           !this.shouldTransition(this.tabletopObject)

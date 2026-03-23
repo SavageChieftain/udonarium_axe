@@ -57,6 +57,15 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
 
+  constructor() {
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
+  }
+
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
   @Input() gameTableMask: GameTableMask | null = null!;
@@ -301,12 +310,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       .on(`UPDATE_SELECTION/identifier/${this.gameTableMask?.identifier}`, (_event) => {
         this.changeDetector.markForCheck();
       });
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
     this.movableOption = {
       tabletopObject: this.gameTableMask!,
       transformCssOffset: 'translateZ(0.10px)',

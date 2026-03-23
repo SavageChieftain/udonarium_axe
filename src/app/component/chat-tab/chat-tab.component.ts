@@ -45,6 +45,13 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   private objectStore = inject(ObjectStore);
   private uiSignalService = inject(UiSignalService);
 
+  constructor() {
+    effect(() => {
+      this.uiSignalService.chatRedrawVersion();
+      setTimeout(() => this.redraw(), 0);
+    });
+  }
+
   sampleMessages: ChatMessageContext[] = [
     {
       from: 'System',
@@ -232,10 +239,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
           this.changeDetector.markForCheck();
         }
       });
-    effect(() => {
-      this.uiSignalService.chatRedrawVersion();
-      setTimeout(() => this.redraw(), 0);
-    });
   }
 
   ngAfterViewInit() {

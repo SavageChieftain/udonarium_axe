@@ -44,6 +44,20 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
 
+  constructor() {
+    effect(() => {
+      const selection = this.selectionSignalService.selectedObject();
+      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
+        this.selectedIdentifier = selection.identifier;
+        this.changeDetector.markForCheck();
+      }
+    });
+    effect(() => {
+      this.inventoryService.inventoryVersion();
+      this.changeDetector.markForCheck();
+    });
+  }
+
   inventoryTypes: string[] = ['table', 'common', 'graveyard'];
 
   selectTab: string = 'table';
@@ -103,17 +117,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
-    effect(() => {
-      const selection = this.selectionSignalService.selectedObject();
-      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
-        this.selectedIdentifier = selection.identifier;
-        this.changeDetector.markForCheck();
-      }
-    });
-    effect(() => {
-      this.inventoryService.inventoryVersion();
-      this.changeDetector.markForCheck();
-    });
     EventSystem.register(this)
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
         if (event.isSendFromSelf) this.changeDetector.markForCheck();

@@ -67,4 +67,18 @@ describe('SelectionSignalService', () => {
     const result = service.selectedObject();
     expect(result).toEqual({ identifier: 'second-id', className: 'ClassB' });
   });
+
+  it('notifyDragLockedでdragLockedVersionが増加する', () => {
+    const initial = service.dragLockedVersion();
+    service.notifyDragLocked();
+    expect(service.dragLockedVersion()).toBe(initial + 1);
+  });
+
+  it('notifyDragLockedを連続呼出しでカウントが正しく増加する', () => {
+    const initial = service.dragLockedVersion();
+    service.notifyDragLocked();
+    service.notifyDragLocked();
+    service.notifyDragLocked();
+    expect(service.dragLockedVersion()).toBe(initial + 3);
+  });
 });

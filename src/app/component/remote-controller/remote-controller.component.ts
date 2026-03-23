@@ -91,6 +91,24 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
   constructor() {
     this.initTimestamp = Date.now();
+    effect(() => {
+      const selection = this.selectionSignalService.selectedObject();
+      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
+        this.selectedIdentifier = selection.identifier;
+        this.changeDetector.markForCheck();
+      }
+    });
+    effect(() => {
+      this.inventoryService.inventoryVersion();
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      const data = this.uiSignalService.targetChange();
+      if (!data) return;
+      if (this.objectStore.get(data.identifier) instanceof GameCharacter) {
+        this.targetSetChkBox(this.objectStore.get(data.identifier));
+      }
+    });
   }
 
   get sortTag(): string {
@@ -217,24 +235,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       }
     });
 
-    effect(() => {
-      const selection = this.selectionSignalService.selectedObject();
-      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
-        this.selectedIdentifier = selection.identifier;
-        this.changeDetector.markForCheck();
-      }
-    });
-    effect(() => {
-      this.inventoryService.inventoryVersion();
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
-      const data = this.uiSignalService.targetChange();
-      if (!data) return;
-      if (this.objectStore.get(data.identifier) instanceof GameCharacter) {
-        this.targetSetChkBox(this.objectStore.get(data.identifier));
-      }
-    });
     EventSystem.register(this)
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
         if (event.isSendFromSelf) {

@@ -134,6 +134,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
 
     EventSystem.register(this).on('UPDATE_GAME_OBJECT', (event) => {
       if (
+        !this.tabletopObject ||
         (event.isSendFromSelf && this.input.isGrabbing) ||
         event.data.identifier !== this.tabletopObject.identifier ||
         !this.shouldTransition(this.tabletopObject)
@@ -311,6 +312,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   private setPosition(object: TabletopObject) {
+    if (!object?.location) return;
     /*
     this._posX = object.location.x;
     this._posY = object.location.y;
@@ -378,6 +380,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   private shouldTransition(object: TabletopObject): boolean {
+    if (!object?.location) return false;
     return object.location.x !== this.posX || object.location.y !== this.posY || object.posZ !== this.posZ;
   }
 

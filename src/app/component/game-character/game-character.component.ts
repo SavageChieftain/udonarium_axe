@@ -56,6 +56,51 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private inventoryService = inject(GameObjectInventoryService);
   private uiSignalService = inject(UiSignalService);
 
+  constructor() {
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateX = rotation.x;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      const data = this.uiSignalService.targetChange();
+      if (!data || !this.gameCharacter) return;
+      const objct = this.objectStore.get(data.identifier);
+      if (objct == this.gameCharacter!) {
+        this.changeDetector.detectChanges();
+      }
+    });
+    effect(() => {
+      const highlight = this.selectionSignalService.highlightedObject();
+      if (!highlight || !this.gameCharacter) return;
+      if (this.gameCharacter.identifier !== highlight.identifier) return;
+      if (this.gameCharacter.location.name != 'table') return;
+
+      // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
+      if (this.highlightTimer != null) return;
+
+      // アニメーション中であればアニメーションを初期化
+      if (this.rootElementRef.nativeElement.classList.contains('focused')) {
+        clearTimeout(this.unhighlightTimer);
+        this.rootElementRef.nativeElement.classList.remove('focused');
+      }
+
+      // アニメーション開始処理タイマー
+      this.highlightTimer = setTimeout(() => {
+        this.highlightTimer = null!;
+        this.rootElementRef.nativeElement.classList.add('focused');
+      }, 0);
+
+      // アニメーション終了処理タイマー
+      this.unhighlightTimer = setTimeout(() => {
+        this.unhighlightTimer = null!;
+        this.rootElementRef.nativeElement.classList.remove('focused');
+      }, 1010);
+    });
+  }
+
   @Input() gameCharacter: GameCharacter | null = null!;
   @Input() is3D: boolean = false;
   @ViewChild('root') rootElementRef!: ElementRef<HTMLElement>;
@@ -157,48 +202,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
       .on('UPDATE_FILE_RESOURE', (_event) => {
         this.changeDetector.markForCheck();
       });
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateX = rotation.x;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
-      const data = this.uiSignalService.targetChange();
-      if (!data || !this.gameCharacter) return;
-      const objct = this.objectStore.get(data.identifier);
-      if (objct == this.gameCharacter!) {
-        this.changeDetector.detectChanges();
-      }
-    });
-    effect(() => {
-      const highlight = this.selectionSignalService.highlightedObject();
-      if (!highlight || !this.gameCharacter) return;
-      if (this.gameCharacter.identifier !== highlight.identifier) return;
-      if (this.gameCharacter.location.name != 'table') return;
-
-      // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
-      if (this.highlightTimer != null) return;
-
-      // アニメーション中であればアニメーションを初期化
-      if (this.rootElementRef.nativeElement.classList.contains('focused')) {
-        clearTimeout(this.unhighlightTimer);
-        this.rootElementRef.nativeElement.classList.remove('focused');
-      }
-
-      // アニメーション開始処理タイマー
-      this.highlightTimer = setTimeout(() => {
-        this.highlightTimer = null!;
-        this.rootElementRef.nativeElement.classList.add('focused');
-      }, 0);
-
-      // アニメーション終了処理タイマー
-      this.unhighlightTimer = setTimeout(() => {
-        this.unhighlightTimer = null!;
-        this.rootElementRef.nativeElement.classList.remove('focused');
-      }, 1010);
-    });
     this.movableOption = {
       tabletopObject: this.gameCharacter!,
       transformCssOffset: 'translateZ(1.0px)',

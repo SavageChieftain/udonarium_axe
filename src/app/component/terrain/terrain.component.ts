@@ -63,6 +63,36 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   private inventoryService = inject(GameObjectInventoryService);
   private uiSignalService = inject(UiSignalService);
 
+  constructor() {
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      this.uiSignalService.terrainGridShowVersion();
+      let opacity: number = 0.0;
+      if (this.terrain.isGrid) {
+        opacity = 1.0;
+      }
+      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    });
+    effect(() => {
+      this.uiSignalService.terrainGridEndVersion();
+      let opacity: number = 0.0;
+      if (this.terrain.isGrid) {
+        if (this.roomGridDispAlways) {
+          opacity = 1.0;
+        }
+        if (this.tableSelecter.gridShow) {
+          opacity = 1.0;
+        }
+      }
+      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    });
+  }
+
   @Input() terrain: Terrain = null!;
   @Input() is3D: boolean = false;
   @ViewChild('gridCanvas', { static: true }) gridCanvas: ElementRef<HTMLCanvasElement>;
@@ -228,33 +258,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
       .on('UPDATE_FILE_RESOURE', (_event) => {
         this.changeDetector.markForCheck();
       });
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
-      this.uiSignalService.terrainGridShowVersion();
-      let opacity: number = 0.0;
-      if (this.terrain.isGrid) {
-        opacity = 1.0;
-      }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
-    });
-    effect(() => {
-      this.uiSignalService.terrainGridEndVersion();
-      let opacity: number = 0.0;
-      if (this.terrain.isGrid) {
-        if (this.roomGridDispAlways) {
-          opacity = 1.0;
-        }
-        if (this.tableSelecter.gridShow) {
-          opacity = 1.0;
-        }
-      }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
-    });
     this.movableOption = {
       tabletopObject: this.terrain,
       colideLayers: ['terrain'],

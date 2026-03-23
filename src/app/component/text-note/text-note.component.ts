@@ -52,6 +52,22 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   private inventoryService = inject(GameObjectInventoryService);
   private uiSignalService = inject(UiSignalService);
 
+  constructor() {
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z ?? 10;
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      const req = this.uiSignalService.noteResizeRequest();
+      if (!req || !this.textNote) return;
+      if (this.textNote.identifier === req.identifier) {
+        this.calcFitHeight();
+      }
+    });
+  }
+
   @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
 
   @Input() textNote: TextNote = null!;
@@ -198,19 +214,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
       .on('UPDATE_FILE_RESOURE', -1000, (_event) => {
         this.changeDetector.markForCheck();
       });
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z ?? 10;
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
-      const req = this.uiSignalService.noteResizeRequest();
-      if (!req || !this.textNote) return;
-      if (this.textNote.identifier === req.identifier) {
-        this.calcFitHeight();
-      }
-    });
     this.movableOption = {
       tabletopObject: this.textNote,
       transformCssOffset: 'translateZ(0.15px)',

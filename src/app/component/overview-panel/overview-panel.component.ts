@@ -57,11 +57,11 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get inventoryDataElms(): DataElement[] {
-    return this.tabletopObject ? this.getInventoryTags(this.tabletopObject) : [];
+    return this.tabletopObject ? this.getInventoryTags(this.tabletopObject).filter((e) => e != null) : [];
   }
   get dataElms(): DataElement[] {
     return this.tabletopObject && this.tabletopObject.detailDataElement
-      ? (this.tabletopObject.detailDataElement.children as DataElement[])
+      ? (this.tabletopObject.detailDataElement.children as DataElement[]).filter((e) => e != null)
       : [];
   }
   get hasDataElms(): boolean {
@@ -70,7 +70,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
 
   get rangeElms(): DataElement[] {
     return this.tabletopObject && this.tabletopObject.commonDataElement
-      ? (this.tabletopObject.commonDataElement.children as DataElement[])
+      ? (this.tabletopObject.commonDataElement.children as DataElement[]).filter((e) => e != null)
       : [];
   }
   get hasRangeElms(): boolean {

@@ -72,7 +72,7 @@
           [ngStyle]="{ width: overViewCardWidth + 'px', 'max-height': overViewCardMaxHeight + 'px' }"
         >
           <div class="grid-container">
-            @for (dataElm of dataElms; track dataElm) {
+            @for (dataElm of dataElms; track dataElm.myIdentifer) {
               <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
             }
           </div>
@@ -133,7 +133,7 @@
           class="grid-container-root"
           [ngStyle]="{ width: overViewCharacterWidth + 'px', 'max-height': overViewCharacterMaxHeight + 'px' }"
         >
-          @for (dataElm of inventoryDataElms; track dataElm) {
+          @for (dataElm of inventoryDataElms; track dataElm.myIdentifer) {
             @if (dataElm && dataElm.name !== newLineString) {
               <div class="grid-container">
                 <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
@@ -192,7 +192,7 @@
       @if (hasDataElms && dice.isVisible) {
         <div class="grid-container-root">
           <div class="grid-container">
-            @for (dataElm of dataElms; track dataElm) {
+            @for (dataElm of dataElms; track dataElm.myIdentifer) {
               @if (dataElm && dataElm.name !== newLineString) {
                 <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
               }
@@ -226,7 +226,7 @@
           class="grid-container-root"
           [ngStyle]="{ width: overViewCharacterWidth + 'px', 'max-height': overViewCharacterMaxHeight + 'px' }"
         >
-          @for (dataElm of rangeElms; track dataElm) {
+          @for (dataElm of rangeElms; track dataElm.myIdentifer) {
             @if (dataElm && dataElm.name !== 'name') {
               @if (
                 (range.type !== 'CIRCLE' && range.type !== 'SQUARE' && range.type !== 'DIAMOND') ||
@@ -251,7 +251,7 @@
         <div class="section-text">{{ dataElm.name }}</div>
       }
       <div class="grid-container indetnt">
-        @for (childElm of dataElm.children; track childElm) {
+        @for (childElm of dataElm.children; track childElm.myIdentifer) {
           <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: childElm }"></ng-container>
         }
       </div>

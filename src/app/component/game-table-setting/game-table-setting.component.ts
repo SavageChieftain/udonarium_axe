@@ -2,6 +2,7 @@ import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   inject,
@@ -42,6 +43,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   private objectStore = inject(ObjectStore);
   private objectSerializer = inject(ObjectSerializer);
   private tableSelecter = inject(TableSelecter);
+  private changeDetector = inject(ChangeDetectorRef);
 
   @Input('gameType') _gameType: string = '';
   @Output() gameTypeChange = new EventEmitter<string>();
@@ -240,6 +242,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     this.modalService.open<string>(FileSelecterComponent).then((value) => {
       if (!this.selectedTable || !value) return;
       this.selectedTable.imageIdentifier = value;
+      this.changeDetector.markForCheck();
     });
   }
 
@@ -248,6 +251,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
       if (!this.selectedTable || !value) return;
       this.selectedTable.backgroundImageIdentifier = value;
+      this.changeDetector.markForCheck();
     });
   }
 }

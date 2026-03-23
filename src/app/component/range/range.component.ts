@@ -70,6 +70,15 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
 
+  constructor() {
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
+  }
+
   @Input() range: RangeArea = null!;
   @Input() is3D: boolean = false;
   //  @Input() rotateDeg : string = ''
@@ -298,9 +307,9 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     EventSystem.register(this)
       .on('UPDATE_GAME_OBJECT', -1000, (event) => {
         const object = this.objectStore.get(event.data.identifier);
+        if (!this.range || !object) return;
         this.setRange();
 
-        if (!this.range || !object) return;
         if (this.range === object || (object instanceof ObjectNode && this.range.contains(object))) {
           this.changeDetector.markForCheck();
         }
@@ -315,12 +324,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
       .on('UPDATE_FILE_RESOURE', -1000, (_event) => {
         this.changeDetector.markForCheck();
       });
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
     this.movableOption = {
       tabletopObject: this.range,
       transformCssOffset: 'translateZ(0.25px)',
@@ -339,7 +342,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    this.input.destroy();
+    if (this.input) this.input.destroy();
     EventSystem.unregister(this);
   }
 

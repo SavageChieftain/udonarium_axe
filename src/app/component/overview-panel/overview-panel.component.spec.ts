@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TabletopObject } from '@axe/class/tabletop-object';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { OverviewPanelComponent } from './overview-panel.component';
@@ -21,5 +22,42 @@ describe('OverviewPanelComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('null要素のフィルタリング', () => {
+    it('inventoryDataElmsがtabletopObject未設定時に空配列を返すこと', () => {
+      component.tabletopObject = null!;
+      expect(component.inventoryDataElms).toEqual([]);
+    });
+
+    it('dataElmsがtabletopObject未設定時に空配列を返すこと', () => {
+      component.tabletopObject = null!;
+      expect(component.dataElms).toEqual([]);
+    });
+
+    it('rangeElmsがtabletopObject未設定時に空配列を返すこと', () => {
+      component.tabletopObject = null!;
+      expect(component.rangeElms).toEqual([]);
+    });
+
+    it('dataElmsがchildren内のnull要素を除外すること', () => {
+      const mockChildren = [null, { myIdentifer: 'a' }, null, { myIdentifer: 'b' }];
+      component.tabletopObject = {
+        detailDataElement: { children: mockChildren },
+      } as unknown as TabletopObject;
+      const result = component.dataElms;
+      expect(result.length).toBe(2);
+      expect(result.every((e) => e != null)).toBe(true);
+    });
+
+    it('rangeElmsがchildren内のnull要素を除外すること', () => {
+      const mockChildren = [null, { myIdentifer: 'x' }];
+      component.tabletopObject = {
+        commonDataElement: { children: mockChildren },
+      } as unknown as TabletopObject;
+      const result = component.rangeElms;
+      expect(result.length).toBe(1);
+      expect(result[0]).toBeTruthy();
+    });
   });
 });
