@@ -3,7 +3,7 @@ import { GameCharacter } from '@axe/class/game-character';
 
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { generateUuid } from './core/system/util/uuid';
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 import { TabletopObject } from './tabletop-object';
 
 @SyncObject('range')
@@ -81,7 +81,7 @@ export class RangeArea extends TabletopObject {
       DataElement.create(
         'opacity',
         opacity,
-        { type: 'numberResource', currentValue: opacity },
+        { type: DataElementType.NUMBER_RESOURCE, currentValue: opacity },
         `opacity_${object.identifier}`
       )
     );

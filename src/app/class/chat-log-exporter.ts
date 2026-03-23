@@ -1,5 +1,3 @@
-import { Network } from '@axe/class/core/system';
-
 import type { ChatMessage } from './chat-message';
 import type { ChatTab } from './chat-tab';
 
@@ -27,7 +25,7 @@ export class ChatLogExporter {
     return escaped.replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\s/g, ' ');
   }
 
-  static formatMessageStandard(isTime: boolean, tabName: string, message: ChatMessage): string {
+  static formatMessageStandard(isTime: boolean, tabName: string, message: ChatMessage, userId?: string): string {
     if (!message) return '';
     let str = '';
     if (tabName) str += `[${ChatLogExporter.escapeHtml(tabName)}]`;
@@ -45,8 +43,9 @@ export class ChatLogExporter {
     if (message.name) str += ChatLogExporter.escapeHtml(message.name);
     str += '</b>';
 
+    const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     str += '：';
-    if (!message.isSecret || message.isSendFromSelf) {
+    if (!message.isSecret || canSee) {
       if (message.text) str += ChatLogExporter.escapeHtml(message.text).replace(/\n/g, '<br>');
     } else {
       str += '（シークレットダイス）';
@@ -57,7 +56,7 @@ export class ChatLogExporter {
     return str;
   }
 
-  static formatMessageCoc(tabName: string, message: ChatMessage): string {
+  static formatMessageCoc(tabName: string, message: ChatMessage, userId?: string): string {
     if (!message) return '';
     let str = '';
     str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
@@ -68,7 +67,8 @@ export class ChatLogExporter {
     str += '      <span>\n';
     str += '        ';
 
-    if (!message.isSecret || message.isSendFromSelf) {
+    const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
+    if (!message.isSecret || canSee) {
       if (message.text) str += ChatLogExporter.escapeHtml(message.text).replace(/\n/g, '<br>').replace(/→/g, '＞');
     } else {
       str += '（シークレットダイス）';
@@ -82,7 +82,7 @@ export class ChatLogExporter {
     return str;
   }
 
-  static exportTabHtml(tab: ChatTab): string {
+  static exportTabHtml(tab: ChatTab, userId?: string): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
@@ -94,13 +94,13 @@ export class ChatLogExporter {
 `;
     let main = '';
     for (const mess of tab.chatMessages) {
-      if (!ChatLogExporter.isVisibleMessage(mess)) continue;
-      main += ChatLogExporter.formatMessageStandard(true, '', mess);
+      if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
+      main += ChatLogExporter.formatMessageStandard(true, '', mess, userId);
     }
     return head + main + '\n  </body>\n</html>';
   }
 
-  static exportTabHtmlCoc(tab: ChatTab): string {
+  static exportTabHtmlCoc(tab: ChatTab, userId?: string): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -114,13 +114,13 @@ export class ChatLogExporter {
 `;
     let main = '';
     for (const mess of tab.chatMessages) {
-      if (!ChatLogExporter.isVisibleMessage(mess)) continue;
-      main += ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess);
+      if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
+      main += ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId);
     }
     return head + main + '  </body>\n</html>';
   }
 
-  static exportAllTabsHtml(tabs: ChatTab[], showTime: number | boolean): string {
+  static exportAllTabsHtml(tabs: ChatTab[], showTime: number | boolean, userId?: string): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
@@ -130,13 +130,15 @@ export class ChatLogExporter {
   </head>
   <body>
 `;
-    const main = ChatLogExporter.mergeTabMessages(tabs, (tabName, message) =>
-      ChatLogExporter.formatMessageStandard(!!showTime, tabName, message)
+    const main = ChatLogExporter.mergeTabMessages(
+      tabs,
+      (tabName, message) => ChatLogExporter.formatMessageStandard(!!showTime, tabName, message, userId),
+      userId
     );
     return head + main + '\n  </body>\n</html>';
   }
 
-  static exportAllTabsHtmlCoc(tabs: ChatTab[]): string {
+  static exportAllTabsHtmlCoc(tabs: ChatTab[], userId?: string): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -148,19 +150,24 @@ export class ChatLogExporter {
   <body>
 
 `;
-    const main = ChatLogExporter.mergeTabMessages(tabs, ChatLogExporter.formatMessageCoc);
+    const main = ChatLogExporter.mergeTabMessages(
+      tabs,
+      (tabName, message) => ChatLogExporter.formatMessageCoc(tabName, message, userId),
+      userId
+    );
     return head + main + '  </body>\n</html>';
   }
 
-  private static isVisibleMessage(message: ChatMessage): boolean {
+  static isVisibleMessage(message: ChatMessage, userId?: string): boolean {
     const to = message.to;
     if (!to) return true;
-    const from = message.from;
-    const myId = Network.peerContext.userId;
-    return to === myId || from === myId;
+    if (userId != null) {
+      return to === userId || message.from === userId;
+    }
+    return message.isDisplayable;
   }
 
-  private static mergeTabMessages(tabs: ChatTab[], formatter: MessageFormatter): string {
+  private static mergeTabMessages(tabs: ChatTab[], formatter: MessageFormatter, userId?: string): string {
     if (!tabs || tabs.length === 0) return '';
     const tabNum = tabs.length;
     const indexList = new Array<number>(tabNum).fill(0);
@@ -181,7 +188,7 @@ export class ChatLogExporter {
       if (fastTabIndex === -1) break;
 
       const message = tabs[fastTabIndex].chatMessages[indexList[fastTabIndex]];
-      if (ChatLogExporter.isVisibleMessage(message)) {
+      if (ChatLogExporter.isVisibleMessage(message, userId)) {
         main += formatter(tabs[fastTabIndex].name, message);
       }
       indexList[fastTabIndex]++;

@@ -8,7 +8,6 @@ import { EventSystem } from '@axe/class/core/system';
 import { DiceBot } from '@axe/class/dice-bot';
 import { GameCharacter } from '@axe/class/game-character';
 import { PeerCursor } from '@axe/class/peer-cursor';
-import GameSystemClass from 'bcdice/lib/game_system';
 import { BadgeComponent } from '@axe/component/badge/badge.component';
 import { ChatInputComponent } from '@axe/component/chat-input/chat-input.component';
 import { ChatInputComponent as ChatInputComponent_1 } from '@axe/component/chat-input/chat-input.component';
@@ -16,6 +15,7 @@ import { ChatMessageService } from '@axe/service/chat-message.service';
 import { ContextMenuService } from '@axe/service/context-menu.service';
 import { PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   selector: 'chat-palette',

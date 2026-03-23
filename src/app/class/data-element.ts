@@ -9,6 +9,20 @@ const SAN_WARNING_THRESHOLD = 0.8;
 const SAN_WARNING_COLOR = '#D22';
 const DEFAULT_VALUE_COLOR = '#444';
 
+/** DataElement.type に設定される型識別子 */
+export const DataElementType = {
+  /** 数値リソース (現在値/最大値を持つ) */
+  NUMBER_RESOURCE: 'numberResource',
+  /** 通常テキスト (デフォルト) */
+  TEXT: '',
+  /** ノート (長文テキスト) */
+  NOTE: 'note',
+  /** マークダウン */
+  MARKDOWN: 'markdown',
+} as const;
+
+export type DataElementTypeValue = (typeof DataElementType)[keyof typeof DataElementType];
+
 @SyncObject('data')
 export class DataElement extends ObjectNode {
   @SyncVar() name: string;
@@ -16,10 +30,10 @@ export class DataElement extends ObjectNode {
   @SyncVar() currentValue: number | string;
 
   get isNumberResource(): boolean {
-    return this.type != null && this.type === 'numberResource';
+    return this.type != null && this.type === DataElementType.NUMBER_RESOURCE;
   }
   get isNote(): boolean {
-    return this.type != null && this.type === 'note';
+    return this.type != null && this.type === DataElementType.NOTE;
   }
 
   public static create(

@@ -1,5 +1,5 @@
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 import { TabletopObject } from './tabletop-object';
 import { moveToTopmost } from './tabletop-object-util';
 
@@ -58,7 +58,7 @@ export class TextNote extends TabletopObject {
     object.commonDataElement.appendChild(DataElement.create('fontsize', fontSize, {}, `fontsize_${object.identifier}`));
     object.commonDataElement.appendChild(DataElement.create('title', title, {}, `title_${object.identifier}`));
     object.commonDataElement.appendChild(
-      DataElement.create('text', text, { type: 'note', currentValue: text }, `text_${object.identifier}`)
+      DataElement.create('text', text, { type: DataElementType.NOTE, currentValue: text }, `text_${object.identifier}`)
     );
     object.initialize();
 

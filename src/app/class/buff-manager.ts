@@ -1,4 +1,4 @@
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 
 export class BuffManager {
   constructor(private buffDataElement: DataElement) {}
@@ -54,7 +54,7 @@ export class BuffManager {
     } else {
       container.appendChild(
         DataElement.create(name, round, {
-          type: 'numberResource',
+          type: DataElementType.NUMBER_RESOURCE,
           currentValue: info,
         })
       );

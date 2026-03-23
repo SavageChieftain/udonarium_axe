@@ -90,13 +90,22 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return 0 < this.sendTo.length ? true : false;
   }
   get isSendFromSelf(): boolean {
-    return this.from === Network.peerContext.userId || this.originFrom === Network.peerContext.userId;
+    return this.isSentBy(Network.peerContext.userId);
+  }
+  isSentBy(userId: string): boolean {
+    return this.from === userId || this.originFrom === userId;
   }
   get isRelatedToMe(): boolean {
-    return -1 < this.sendTo.indexOf(Network.peerContext.userId) || this.isSendFromSelf ? true : false;
+    return this.isRelatedTo(Network.peerContext.userId);
+  }
+  isRelatedTo(userId: string): boolean {
+    return -1 < this.sendTo.indexOf(userId) || this.isSentBy(userId) ? true : false;
   }
   get isDisplayable(): boolean {
     return this.isDirect ? this.isRelatedToMe : true;
+  }
+  isDisplayableTo(userId: string): boolean {
+    return this.isDirect ? this.isRelatedTo(userId) : true;
   }
   get isSystem(): boolean {
     return -1 < this.tags.indexOf('system') ? true : false;
@@ -115,6 +124,9 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return -1 < this.tags.indexOf('to-pl-system-message') ? true : false;
   }
   get changeable(): boolean {
-    return this.from == Network.peerContext.userId && this.name != 'システムメッセージ' ? true : false;
+    return this.isChangeableBy(Network.peerContext.userId);
+  }
+  isChangeableBy(userId: string): boolean {
+    return userId === this.from && this.name !== 'システムメッセージ';
   }
 }

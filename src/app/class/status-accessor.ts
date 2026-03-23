@@ -1,4 +1,4 @@
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 
 export class StatusAccessor {
   constructor(
@@ -9,16 +9,20 @@ export class StatusAccessor {
   canChangeName(name: string): boolean {
     const data = this.detailDataElement.getFirstElementByName(name);
     if (!data) return false;
-    return data.type === 'numberResource' || data.type === '' || data.type === 'note';
+    return (
+      data.type === DataElementType.NUMBER_RESOURCE ||
+      data.type === DataElementType.TEXT ||
+      data.type === DataElementType.NOTE
+    );
   }
 
   canChange(name: string, nowOrMax: string): boolean {
     const data = this.detailDataElement.getFirstElementByName(name);
     if (!data) return false;
-    if (data.type === 'numberResource') {
+    if (data.type === DataElementType.NUMBER_RESOURCE) {
       return nowOrMax === 'now' || nowOrMax === 'max';
     }
-    if (data.type === '' || data.type === 'note') {
+    if (data.type === DataElementType.TEXT || data.type === DataElementType.NOTE) {
       return nowOrMax === 'now';
     }
     return false;
@@ -27,10 +31,10 @@ export class StatusAccessor {
   getType(name: string, nowOrMax: string): string {
     const data = this.detailDataElement.getFirstElementByName(name);
     if (!data) return null!;
-    if (data.type === 'numberResource') {
+    if (data.type === DataElementType.NUMBER_RESOURCE) {
       if (nowOrMax === 'now') return 'currentValue';
       if (nowOrMax === 'max') return 'value';
-    } else if (data.type === '') {
+    } else if (data.type === DataElementType.TEXT) {
       if (nowOrMax === 'now') return 'value';
     }
     return null!;
@@ -39,7 +43,7 @@ export class StatusAccessor {
   getTextType(name: string): string {
     const data = this.detailDataElement.getFirstElementByName(name);
     if (!data) return null!;
-    return data.type === 'numberResource' ? 'currentValue' : 'value';
+    return data.type === DataElementType.NUMBER_RESOURCE ? 'currentValue' : 'value';
   }
 
   getValue(name: string, nowOrMax: string): number {

@@ -1,6 +1,6 @@
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { Network } from './core/system';
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 import { PeerCursor } from './peer-cursor';
 import { TabletopObject } from './tabletop-object';
 
@@ -63,18 +63,27 @@ export class GameTableMask extends TabletopObject {
     return 0 < this.owner.length;
   }
   get ownerIsOnline(): boolean {
+    return this.isOwnerOnline(Network.peerContext, Network.peerContexts);
+  }
+  isOwnerOnline(
+    self: { userId: string; isOpen: boolean },
+    peerContexts: { peerId: string; userId?: string; isOpen: boolean }[]
+  ): boolean {
     if (!this.hasOwner) return false;
     return (
-      (Network.peerContext.userId === this.owner && Network.peerContext.isOpen) ||
-      Network.peerContexts.some((context) => {
-        const cursor = PeerCursor.findByPeerId(context.peerId); // とりあえずPeerCursorから取る
+      (self.userId === this.owner && self.isOpen) ||
+      peerContexts.some((context) => {
+        const cursor = PeerCursor.findByPeerId(context.peerId);
         return cursor && cursor.userId === this.owner && context.isOpen;
       })
     );
   }
 
   get isMine(): boolean {
-    return Network.peerContext.userId === this.owner;
+    return this.isOwnedBy(Network.peerContext.userId);
+  }
+  isOwnedBy(userId: string): boolean {
+    return userId === this.owner;
   }
 
   complement(): void {}
@@ -96,7 +105,7 @@ export class GameTableMask extends TabletopObject {
       DataElement.create(
         'opacity',
         opacity,
-        { type: 'numberResource', currentValue: opacity },
+        { type: DataElementType.NUMBER_RESOURCE, currentValue: opacity },
         `opacity_${object.identifier}`
       )
     );

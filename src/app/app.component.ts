@@ -23,7 +23,6 @@ import { ReloadCheck } from '@axe/class/reload-check';
 import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
 import { TableSelecter } from '@axe/class/table-selecter';
 import { Vote } from '@axe/class/vote';
-import { NgSelectConfig } from '@ng-select/ng-select';
 import { AlarmWindowComponent } from '@axe/component/alarm-window/alarm-window.component';
 import { ChatWindowComponent } from '@axe/component/chat-window/chat-window.component';
 import { ContextMenuComponent } from '@axe/component/context-menu/context-menu.component';
@@ -46,6 +45,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import { SaveDataService } from '@axe/service/save-data.service';
+import { NgSelectConfig } from '@ng-select/ng-select';
 
 import { GameTableComponent } from './component/game-table/game-table.component';
 import { NetworkIndicatorComponent } from './component/network-indicator/network-indicator.component';

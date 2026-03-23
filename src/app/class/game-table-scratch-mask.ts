@@ -95,10 +95,16 @@ export class GameTableScratchMask extends TabletopObject {
     return 0 < this.owner.length;
   }
   get isMine(): boolean {
-    return Network.peerContext.userId === this.owner;
+    return this.isOwnedBy(Network.peerContext.userId);
+  }
+  isOwnedBy(userId: string): boolean {
+    return userId === this.owner;
   }
   get ownerIsOnline(): boolean {
-    return this.hasOwner && Network.peerContexts.some((context) => context.userId === this.owner && context.isOpen);
+    return this.isOwnerOnline(Network.peerContexts);
+  }
+  isOwnerOnline(peerContexts: { userId: string; isOpen: boolean }[]): boolean {
+    return this.hasOwner && peerContexts.some((context) => context.userId === this.owner && context.isOpen);
   }
 
   static create(

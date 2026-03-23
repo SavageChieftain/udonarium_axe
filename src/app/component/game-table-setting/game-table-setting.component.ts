@@ -9,13 +9,13 @@ import { EventSystem, Network } from '@axe/class/core/system';
 import { DiceBot } from '@axe/class/dice-bot';
 import { FilterType, GameTable, GridType } from '@axe/class/game-table';
 import { TableSelecter } from '@axe/class/table-selecter';
-import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import { FileSelecterComponent } from '@axe/component/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ImageService } from '@axe/service/image.service';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 import { SaveDataService } from '@axe/service/save-data.service';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   selector: 'game-table-setting',

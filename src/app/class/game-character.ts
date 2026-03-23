@@ -7,7 +7,7 @@ import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 import { StatusAccessor } from './status-accessor';
 import { TabletopObject } from './tabletop-object';
 
@@ -151,7 +151,12 @@ export class GameCharacter extends TabletopObject {
       const testElement: DataElement = DataElement.create('立ち絵位置', '', {}, `立ち絵位置${this.identifier}`);
       this.detailDataElement.appendChild(testElement);
       testElement.appendChild(
-        DataElement.create('POS', 11, { type: 'numberResource', currentValue: '0' }, `POS_${this.identifier}`)
+        DataElement.create(
+          'POS',
+          11,
+          { type: DataElementType.NUMBER_RESOURCE, currentValue: '0' },
+          `POS_${this.identifier}`
+        )
       );
     }
 
@@ -175,7 +180,7 @@ export class GameCharacter extends TabletopObject {
         DataElement.create(
           'ICON',
           this.imageDataElement.children.length - 1,
-          { type: 'numberResource', currentValue: 0 },
+          { type: DataElementType.NUMBER_RESOURCE, currentValue: 0 },
           `ICON_${this.identifier}`
         )
       );

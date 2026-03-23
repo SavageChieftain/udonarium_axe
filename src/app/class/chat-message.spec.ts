@@ -219,4 +219,106 @@ describe('ChatMessage', () => {
       expect(msg.changeable).toBe(false);
     });
   });
+
+  describe('isSentBy', () => {
+    it('fromが指定userIdの場合true', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'user-A';
+      expect(msg.isSentBy('user-A')).toBe(true);
+    });
+
+    it('originFromが指定userIdの場合もtrue', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'other';
+      msg.originFrom = 'user-A';
+      expect(msg.isSentBy('user-A')).toBe(true);
+    });
+
+    it('どちらも一致しない場合false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'user-A';
+      msg.originFrom = 'user-B';
+      expect(msg.isSentBy('user-C')).toBe(false);
+    });
+  });
+
+  describe('isRelatedTo', () => {
+    it('sendTo に含まれる場合true', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.to = 'user-A user-B';
+      msg.from = 'sender';
+      expect(msg.isRelatedTo('user-A')).toBe(true);
+    });
+
+    it('送信者の場合もtrue', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.to = 'target';
+      msg.from = 'user-A';
+      expect(msg.isRelatedTo('user-A')).toBe(true);
+    });
+
+    it('無関係の場合false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.to = 'target';
+      msg.from = 'sender';
+      expect(msg.isRelatedTo('user-C')).toBe(false);
+    });
+  });
+
+  describe('isDisplayableTo', () => {
+    it('directでないメッセージは誰でもtrue', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.to = '';
+      expect(msg.isDisplayableTo('anyone')).toBe(true);
+    });
+
+    it('directメッセージで関連ユーザーはtrue', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.to = 'user-A';
+      msg.from = 'user-B';
+      expect(msg.isDisplayableTo('user-A')).toBe(true);
+    });
+
+    it('directメッセージで無関係ユーザーはfalse', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.to = 'user-A';
+      msg.from = 'user-B';
+      expect(msg.isDisplayableTo('user-C')).toBe(false);
+    });
+  });
+
+  describe('isChangeableBy', () => {
+    it('fromが一致しシステムメッセージでない場合true', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'user-A';
+      msg.name = 'キャラ名';
+      expect(msg.isChangeableBy('user-A')).toBe(true);
+    });
+
+    it('システムメッセージの場合false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'user-A';
+      msg.name = 'システムメッセージ';
+      expect(msg.isChangeableBy('user-A')).toBe(false);
+    });
+
+    it('fromが一致しない場合false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'user-A';
+      msg.name = 'キャラ名';
+      expect(msg.isChangeableBy('user-B')).toBe(false);
+    });
+  });
 });

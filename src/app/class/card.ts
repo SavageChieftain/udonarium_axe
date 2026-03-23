@@ -60,10 +60,16 @@ export class Card extends TabletopObject {
     return 0 < this.owner.length;
   }
   get ownerIsOnline(): boolean {
-    return this.hasOwner && Network.peerContexts.some((context) => context.userId === this.owner && context.isOpen);
+    return this.isOwnerOnline(Network.peerContexts);
+  }
+  isOwnerOnline(peerContexts: { userId: string; isOpen: boolean }[]): boolean {
+    return this.hasOwner && peerContexts.some((context) => context.userId === this.owner && context.isOpen);
   }
   get isHand(): boolean {
-    return Network.peerContext.userId === this.owner;
+    return this.isOwnedBy(Network.peerContext.userId);
+  }
+  isOwnedBy(userId: string): boolean {
+    return userId === this.owner;
   }
   get isFront(): boolean {
     return this.state === CardState.FRONT;

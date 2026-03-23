@@ -1,7 +1,7 @@
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 
 import { ChatLogExporter } from './chat-log-exporter';
-import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from './chat-message';
+import { ChatMessage, ChatMessageContext } from './chat-message';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
 import { InnerXml, ObjectSerializer } from './core/synchronize-object/object-serializer';
@@ -131,7 +131,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     }
   }
 
-  addMessage(message: ChatMessageContext, messageTargetContext?: ChatMessageTargetContext[]): ChatMessage {
+  addMessage(message: ChatMessageContext): ChatMessage {
     message.tabIdentifier = this.identifier;
 
     const chat = new ChatMessage();
@@ -183,36 +183,6 @@ export class ChatTab extends ObjectNode implements InnerXml {
     if (0 > chat.tags.indexOf('secret')) {
       this.cutInLauncher.chatActivateCutIn(chat.text, message.to ?? ''); // カットイン末尾発動
     }
-
-    let isContext = false;
-    if (messageTargetContext) {
-      if (messageTargetContext.length >= 1) {
-        isContext = true;
-      }
-    }
-    if (isContext) {
-      for (const context of messageTargetContext!) {
-        EventSystem.trigger('SEND_MESSAGE', {
-          tabIdentifier: this.identifier,
-          messageIdentifier: chat.identifier,
-          messageTrget: context,
-        });
-      }
-    } else {
-      EventSystem.trigger('SEND_MESSAGE', {
-        tabIdentifier: this.identifier,
-        messageIdentifier: chat.identifier,
-        messageTrget: null,
-      });
-    }
-
-    EventSystem.trigger('DICE_TABLE_MESSAGE', { tabIdentifier: this.identifier, messageIdentifier: chat.identifier });
-
-    EventSystem.trigger('RESOURCE_EDIT_MESSAGE', {
-      tabIdentifier: this.identifier,
-      messageIdentifier: chat.identifier,
-      messageTargetContext: messageTargetContext ? messageTargetContext : null,
-    });
 
     this.appendChild(chat);
     return chat;

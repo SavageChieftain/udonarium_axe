@@ -365,4 +365,41 @@ describe('Card', () => {
       expect(CardState.FRONT).not.toBe(CardState.BACK);
     });
   });
+
+  describe('isOwnedBy', () => {
+    it('指定ユーザーがownerの場合true', () => {
+      const card = new Card();
+      card.owner = 'user-A';
+      expect(card.isOwnedBy('user-A')).toBe(true);
+    });
+
+    it('指定ユーザーがownerでない場合false', () => {
+      const card = new Card();
+      card.owner = 'user-A';
+      expect(card.isOwnedBy('user-B')).toBe(false);
+    });
+  });
+
+  describe('isOwnerOnline', () => {
+    it('ownerがオンラインの場合true', () => {
+      const card = new Card();
+      card.owner = 'user-A';
+      const contexts = [{ userId: 'user-A', isOpen: true }];
+      expect(card.isOwnerOnline(contexts)).toBe(true);
+    });
+
+    it('ownerがオフラインの場合false', () => {
+      const card = new Card();
+      card.owner = 'user-A';
+      const contexts = [{ userId: 'user-A', isOpen: false }];
+      expect(card.isOwnerOnline(contexts)).toBe(false);
+    });
+
+    it('ownerが接続リストにない場合false', () => {
+      const card = new Card();
+      card.owner = 'user-A';
+      const contexts: { userId: string; isOpen: boolean }[] = [];
+      expect(card.isOwnerOnline(contexts)).toBe(false);
+    });
+  });
 });

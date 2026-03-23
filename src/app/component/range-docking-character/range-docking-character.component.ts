@@ -15,10 +15,10 @@ import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { GameCharacter } from '@axe/class/game-character';
 import { RangeArea } from '@axe/class/range';
 import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
-import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   selector: 'range-docking-character',

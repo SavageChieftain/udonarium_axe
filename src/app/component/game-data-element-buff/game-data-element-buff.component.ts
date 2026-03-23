@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EventSystem } from '@axe/class/core/system';
-import { DataElement } from '@axe/class/data-element';
+import { DataElement, DataElementType } from '@axe/class/data-element';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',
@@ -82,7 +82,7 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterVie
 
   addElement() {
     this.gameDataElement.appendChild(
-      DataElement.create('TEST', 8, { type: 'numberResource', currentValue: '001' }, 'TEST')
+      DataElement.create('TEST', 8, { type: DataElementType.NUMBER_RESOURCE, currentValue: '001' }, 'TEST')
     ); // + '_' + character.identifier
   }
 

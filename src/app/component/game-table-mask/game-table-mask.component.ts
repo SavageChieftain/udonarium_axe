@@ -23,7 +23,6 @@ import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet
 import { InputHandler } from '@axe/directive/input-handler';
 import { MovableOption } from '@axe/directive/movable.directive';
 import { MovableDirective } from '@axe/directive/movable.directive';
-import { xor } from 'lodash';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
 import { CoordinateService } from '@axe/service/coordinate.service';
@@ -31,6 +30,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import { TabletopActionService } from '@axe/service/tabletop-action.service';
+import { xor } from 'lodash';
 
 @Component({
   selector: 'game-table-mask',

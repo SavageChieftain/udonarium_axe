@@ -14,10 +14,10 @@ import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { DataElement } from '@axe/class/data-element';
 import { GameCharacter } from '@axe/class/game-character';
-import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   selector: 'import-character-img',

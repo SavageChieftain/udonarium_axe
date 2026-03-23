@@ -5,7 +5,7 @@ import { ChatTabList } from '@axe/class/chat-tab-list';
 import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
 import { Logger } from '@axe/class/core/logger';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
-import { Network } from '@axe/class/core/system';
+import { EventSystem, Network } from '@axe/class/core/system';
 import { DataElement } from '@axe/class/data-element';
 import { DiceBot } from '@axe/class/dice-bot';
 import { GameCharacter } from '@axe/class/game-character';
@@ -200,7 +200,44 @@ export class ChatMessageService {
         }
       }
     }
-    return chatTab.addMessage(chatMessage, messageTargetContext ?? undefined);
+    const chat = chatTab.addMessage(chatMessage);
+
+    this.triggerMessageEvents(chatTab, chat, messageTargetContext ?? undefined);
+
+    return chat;
+  }
+
+  private triggerMessageEvents(
+    chatTab: ChatTab,
+    chat: ChatMessage,
+    messageTargetContext?: ChatMessageTargetContext[]
+  ): void {
+    if (messageTargetContext && messageTargetContext.length >= 1) {
+      for (const context of messageTargetContext) {
+        EventSystem.trigger('SEND_MESSAGE', {
+          tabIdentifier: chatTab.identifier,
+          messageIdentifier: chat.identifier,
+          messageTrget: context,
+        });
+      }
+    } else {
+      EventSystem.trigger('SEND_MESSAGE', {
+        tabIdentifier: chatTab.identifier,
+        messageIdentifier: chat.identifier,
+        messageTrget: null,
+      });
+    }
+
+    EventSystem.trigger('DICE_TABLE_MESSAGE', {
+      tabIdentifier: chatTab.identifier,
+      messageIdentifier: chat.identifier,
+    });
+
+    EventSystem.trigger('RESOURCE_EDIT_MESSAGE', {
+      tabIdentifier: chatTab.identifier,
+      messageIdentifier: chat.identifier,
+      messageTargetContext: messageTargetContext ?? null,
+    });
   }
 
   private findId(identifier: string): string {

@@ -4,10 +4,10 @@ import { DiceTablePalette } from '@axe/class/chat-palette';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { DiceBot } from '@axe/class/dice-bot';
 import { DiceTable } from '@axe/class/dice-table';
-import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
 import { SaveDataService } from '@axe/service/save-data.service';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   selector: 'dice-table-setting',

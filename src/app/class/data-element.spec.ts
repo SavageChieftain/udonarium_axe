@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { ObjectStore } from './core/synchronize-object/object-store';
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 
 describe('DataElement', () => {
   let store: ObjectStore;
@@ -59,7 +59,7 @@ describe('DataElement', () => {
     });
 
     it('should create with custom attributes', () => {
-      const attributes = { type: 'note', max: '10' };
+      const attributes = { type: DataElementType.NOTE, max: '10' };
       const element = DataElement.create('memo', 'text', attributes);
 
       expect(element.name).toBe('memo');
@@ -84,7 +84,7 @@ describe('DataElement', () => {
   describe('type getters', () => {
     it('should identify numberResource type', () => {
       const element = new DataElement();
-      element.type = 'numberResource';
+      element.type = DataElementType.NUMBER_RESOURCE;
 
       expect(element.isNumberResource).toBe(true);
       expect(element.isNote).toBe(false);
@@ -92,7 +92,7 @@ describe('DataElement', () => {
 
     it('should identify note type', () => {
       const element = new DataElement();
-      element.type = 'note';
+      element.type = DataElementType.NOTE;
 
       expect(element.isNote).toBe(true);
       expect(element.isNumberResource).toBe(false);
@@ -181,13 +181,13 @@ describe('DataElement', () => {
   describe('getElementsByType()', () => {
     it('should find direct children by type', () => {
       const parent = DataElement.create('parent', '');
-      const child1 = DataElement.create('child1', '', { type: 'note' });
-      const child2 = DataElement.create('child2', '', { type: 'numberResource' });
+      const child1 = DataElement.create('child1', '', { type: DataElementType.NOTE });
+      const child2 = DataElement.create('child2', '', { type: DataElementType.NUMBER_RESOURCE });
 
       parent.appendChild(child1);
       parent.appendChild(child2);
 
-      const results = parent.getElementsByType('note');
+      const results = parent.getElementsByType(DataElementType.NOTE);
 
       expect(results.length).toBe(1);
       expect(results[0]).toBe(child1);
@@ -196,12 +196,12 @@ describe('DataElement', () => {
     it('should find nested children by type', () => {
       const parent = DataElement.create('parent', '');
       const child = DataElement.create('child', '');
-      const grandchild = DataElement.create('grandchild', '', { type: 'note' });
+      const grandchild = DataElement.create('grandchild', '', { type: DataElementType.NOTE });
 
       parent.appendChild(child);
       child.appendChild(grandchild);
 
-      const results = parent.getElementsByType('note');
+      const results = parent.getElementsByType(DataElementType.NOTE);
 
       expect(results.length).toBe(1);
       expect(results[0]).toBe(grandchild);
@@ -209,13 +209,13 @@ describe('DataElement', () => {
 
     it('should find multiple elements with same type', () => {
       const parent = DataElement.create('parent', '');
-      const child1 = DataElement.create('child1', '', { type: 'note' });
-      const child2 = DataElement.create('child2', '', { type: 'note' });
+      const child1 = DataElement.create('child1', '', { type: DataElementType.NOTE });
+      const child2 = DataElement.create('child2', '', { type: DataElementType.NOTE });
 
       parent.appendChild(child1);
       parent.appendChild(child2);
 
-      const results = parent.getElementsByType('note');
+      const results = parent.getElementsByType(DataElementType.NOTE);
 
       expect(results.length).toBe(2);
       expect(results).toContain(child1);
@@ -224,11 +224,11 @@ describe('DataElement', () => {
 
     it('should return empty array when type not found', () => {
       const parent = DataElement.create('parent', '');
-      const child = DataElement.create('child', '', { type: 'note' });
+      const child = DataElement.create('child', '', { type: DataElementType.NOTE });
 
       parent.appendChild(child);
 
-      const results = parent.getElementsByType('numberResource');
+      const results = parent.getElementsByType(DataElementType.NUMBER_RESOURCE);
 
       expect(results).toEqual([]);
     });
@@ -299,7 +299,7 @@ describe('DataElement', () => {
 
   describe('nowValueColor', () => {
     it('should return red color for SAN below 80%', () => {
-      const element = DataElement.create('SAN', 10, { type: 'numberResource' });
+      const element = DataElement.create('SAN', 10, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 6; // 6/10 = 60% < 80%
 
       const color = element.nowValueColor;
@@ -308,7 +308,7 @@ describe('DataElement', () => {
     });
 
     it('should return red color for san (lowercase) below 80%', () => {
-      const element = DataElement.create('san', 10, { type: 'numberResource' });
+      const element = DataElement.create('san', 10, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 7; // 7/10 = 70% < 80%
 
       const color = element.nowValueColor;
@@ -317,7 +317,7 @@ describe('DataElement', () => {
     });
 
     it('should return red color for 正気度 below 80%', () => {
-      const element = DataElement.create('正気度', 100, { type: 'numberResource' });
+      const element = DataElement.create('正気度', 100, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 70; // 70/100 = 70% < 80%
 
       const color = element.nowValueColor;
@@ -326,7 +326,7 @@ describe('DataElement', () => {
     });
 
     it('should return red color for SAN at exactly 80%', () => {
-      const element = DataElement.create('SAN', 10, { type: 'numberResource' });
+      const element = DataElement.create('SAN', 10, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 8; // 8/10 = 80%, condition is <=
 
       const color = element.nowValueColor;
@@ -335,7 +335,7 @@ describe('DataElement', () => {
     });
 
     it('should return default color for SAN above 80%', () => {
-      const element = DataElement.create('SAN', 10, { type: 'numberResource' });
+      const element = DataElement.create('SAN', 10, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 9; // 9/10 = 90% > 80%
 
       const color = element.nowValueColor;
@@ -344,7 +344,7 @@ describe('DataElement', () => {
     });
 
     it('should return default color for non-SAN numberResource', () => {
-      const element = DataElement.create('HP', 10, { type: 'numberResource' });
+      const element = DataElement.create('HP', 10, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 5;
 
       const color = element.nowValueColor;
@@ -353,7 +353,7 @@ describe('DataElement', () => {
     });
 
     it('should return default color for non-numberResource type', () => {
-      const element = DataElement.create('SAN', 10, { type: 'note' });
+      const element = DataElement.create('SAN', 10, { type: DataElementType.NOTE });
       element.currentValue = 5;
 
       const color = element.nowValueColor;
@@ -371,7 +371,7 @@ describe('DataElement', () => {
     });
 
     it('should handle string values correctly', () => {
-      const element = DataElement.create('SAN', 'max', { type: 'numberResource' });
+      const element = DataElement.create('SAN', 'max', { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 'current';
 
       const color = element.nowValueColor;
@@ -390,7 +390,7 @@ describe('DataElement', () => {
 
     it('should have type property synchronized', () => {
       const element = new DataElement();
-      element.type = 'numberResource';
+      element.type = DataElementType.NUMBER_RESOURCE;
 
       expect(element.type).toBe('numberResource');
     });

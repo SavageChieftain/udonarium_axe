@@ -15,11 +15,11 @@ import { ChatMessage } from '@axe/class/chat-message';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { DiceBot } from '@axe/class/dice-bot';
 import { PeerCursor } from '@axe/class/peer-cursor';
-import GameSystemClass from 'bcdice/lib/game_system';
 import { BatchService } from '@axe/service/batch.service';
 import { ChatMessageService } from '@axe/service/chat-message.service';
 import { PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   selector: 'chat-message-fix',

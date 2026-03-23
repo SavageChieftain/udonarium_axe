@@ -1,5 +1,5 @@
 import { ChatPalette } from './chat-palette';
-import { DataElement } from './data-element';
+import { DataElement, DataElementType } from './data-element';
 import type { GameCharacter } from './game-character';
 
 export class CharacterTemplateFactory {
@@ -18,13 +18,13 @@ export class CharacterTemplateFactory {
     const hpElement = DataElement.create(
       'HP',
       200,
-      { type: 'numberResource', currentValue: '200' },
+      { type: DataElementType.NUMBER_RESOURCE, currentValue: '200' },
       `HP_${character.identifier}`
     );
     const mpElement = DataElement.create(
       'MP',
       100,
-      { type: 'numberResource', currentValue: '100' },
+      { type: DataElementType.NUMBER_RESOURCE, currentValue: '100' },
       `MP_${character.identifier}`
     );
     character.commonDataElement.appendChild(nameElement);
@@ -55,13 +55,13 @@ export class CharacterTemplateFactory {
     const hpElement = DataElement.create(
       'HP',
       200,
-      { type: 'numberResource', currentValue: '200' },
+      { type: DataElementType.NUMBER_RESOURCE, currentValue: '200' },
       `HP_${character.identifier}`
     );
     const mpElement = DataElement.create(
       'MP',
       100,
-      { type: 'numberResource', currentValue: '100' },
+      { type: DataElementType.NUMBER_RESOURCE, currentValue: '100' },
       `MP_${character.identifier}`
     );
 
@@ -91,7 +91,7 @@ export class CharacterTemplateFactory {
 |　|[]掘削術|　|[]怪力|　|[]第六感|　|[]経済力|　|[]人脈|　|[]呪術|12|
 `;
     infoElement.appendChild(
-      DataElement.create('忍術', textMarkDown, { type: 'markdown' }, `忍術${character.identifier}`)
+      DataElement.create('忍術', textMarkDown, { type: DataElementType.MARKDOWN }, `忍術${character.identifier}`)
     );
 
     const textMarkDownNecro = `|損傷|使用|タイミング|コスト|射程|効果|
@@ -101,7 +101,7 @@ export class CharacterTemplateFactory {
       DataElement.create(
         'ネクロニカ的パーツ',
         textMarkDownNecro,
-        { type: 'markdown' },
+        { type: DataElementType.MARKDOWN },
         `ネクロニカ的パーツ${character.identifier}`
       )
     );
@@ -109,7 +109,7 @@ export class CharacterTemplateFactory {
       DataElement.create(
         '宝物への依存',
         '[][][][] 幼児退行',
-        { type: 'markdown' },
+        { type: DataElementType.MARKDOWN },
         `ネクロニカ的未練${character.identifier}`
       )
     );

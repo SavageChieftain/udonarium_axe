@@ -5,7 +5,7 @@ import { CharacterTemplateFactory } from '@axe/class/character-template-factory'
 import { ImageContext, ImageFile } from '@axe/class/core/file-storage/image-file';
 import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
 import { EventSystem } from '@axe/class/core/system';
-import { DataElement } from '@axe/class/data-element';
+import { DataElement, DataElementType } from '@axe/class/data-element';
 import { DiceSymbol, DiceType } from '@axe/class/dice-symbol';
 import { GameCharacter } from '@axe/class/game-character';
 import { GameTable } from '@axe/class/game-table';
@@ -212,7 +212,7 @@ export class TabletopActionService {
           DataElement.create(
             name,
             round,
-            { type: 'numberResource', currentValue: subcom },
+            { type: DataElementType.NUMBER_RESOURCE, currentValue: subcom },
             name + '_' + character.identifier
           )
         );

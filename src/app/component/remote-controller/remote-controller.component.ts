@@ -13,7 +13,6 @@ import { DiceBot } from '@axe/class/dice-bot';
 import { GameCharacter } from '@axe/class/game-character';
 import { PeerCursor } from '@axe/class/peer-cursor';
 import { TabletopObject } from '@axe/class/tabletop-object';
-import GameSystemClass from 'bcdice/lib/game_system';
 import { ControllerInputComponent } from '@axe/component/controller-input/controller-input.component';
 import { ControllerInputComponent as ControllerInputComponent_1 } from '@axe/component/controller-input/controller-input.component';
 import { GameCharacterBuffViewComponent } from '@axe/component/game-character-buff-view/game-character-buff-view.component';
@@ -23,6 +22,7 @@ import { ContextMenuService } from '@axe/service/context-menu.service';
 import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 class RemoteControllerSelect {
   name!: string;

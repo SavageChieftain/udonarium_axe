@@ -22,14 +22,14 @@ import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeou
 import { DiceBot } from '@axe/class/dice-bot';
 import { GameCharacter } from '@axe/class/game-character';
 import { PeerCursor } from '@axe/class/peer-cursor';
-import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-import GameSystemClass from 'bcdice/lib/game_system';
 import { ChatColorSettingComponent } from '@axe/component/chat-color-setting/chat-color-setting.component';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { BatchService } from '@axe/service/batch.service';
 import { ChatMessageService } from '@axe/service/chat-message.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   selector: 'controller-input',
