@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, inject, OnDestroy } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/system';
+import { EventSystem, Network } from '@axe/class/core/system';
 
 @Component({
   selector: 'network-indicator',

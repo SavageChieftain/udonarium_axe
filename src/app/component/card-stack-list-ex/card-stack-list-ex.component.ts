@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { Card } from '@axe/card';
-import { CardStack } from '@axe/card-stack';
-import { ObjectNode } from '@axe/core/synchronize-object/object-node';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { PanelOption, PanelService } from 'service/panel.service';
+import { Card } from '@axe/class/card';
+import { CardStack } from '@axe/class/card-stack';
+import { ObjectNode } from '@axe/class/core/synchronize-object/object-node';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'card-stack-list-ex',

@@ -13,27 +13,27 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { GameObject } from '@axe/core/synchronize-object/game-object';
-import { ObjectNode } from '@axe/core/synchronize-object/object-node';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { GameCharacter } from '@axe/game-character';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { ChatPaletteComponent } from 'component/chat-palette/chat-palette.component';
-import { GameCharacterBuffViewComponent } from 'component/game-character-buff-view/game-character-buff-view.component';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { GameDataElementBuffComponent } from 'component/game-data-element-buff/game-data-element-buff.component';
-import { RemoteControllerComponent } from 'component/remote-controller/remote-controller.component';
-import { InputHandler } from 'directive/input-handler';
-import { MovableOption } from 'directive/movable.directive';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableOption } from 'directive/rotable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { GameObject } from '@axe/class/core/synchronize-object/game-object';
+import { ObjectNode } from '@axe/class/core/synchronize-object/object-node';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { GameCharacter } from '@axe/class/game-character';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { ChatPaletteComponent } from '@axe/component/chat-palette/chat-palette.component';
+import { GameCharacterBuffViewComponent } from '@axe/component/game-character-buff-view/game-character-buff-view.component';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { GameDataElementBuffComponent } from '@axe/component/game-data-element-buff/game-data-element-buff.component';
+import { RemoteControllerComponent } from '@axe/component/remote-controller/remote-controller.component';
+import { InputHandler } from '@axe/directive/input-handler';
+import { MovableOption } from '@axe/directive/movable.directive';
+import { MovableDirective } from '@axe/directive/movable.directive';
+import { RotableOption } from '@axe/directive/rotable.directive';
+import { RotableDirective } from '@axe/directive/rotable.directive';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'game-character',

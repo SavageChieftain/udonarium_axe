@@ -1,4 +1,4 @@
-import { EventSystem } from '@axe/core/system/event/event-system';
+import { EventSystem } from '@axe/class/core/system/event/event-system';
 
 import { markForChanged, markForChildrenChanged } from './object-event-extension';
 import { ObjectNode } from './object-node';

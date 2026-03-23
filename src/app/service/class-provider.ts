@@ -1,17 +1,17 @@
 import { Provider } from '@angular/core';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { Config } from '@axe/config';
-import { AudioSharingSystem } from '@axe/core/file-storage/audio-sharing-system';
-import { AudioStorage } from '@axe/core/file-storage/audio-storage';
-import { FileArchiver } from '@axe/core/file-storage/file-archiver';
-import { ImageSharingSystem } from '@axe/core/file-storage/image-sharing-system';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectFactory } from '@axe/core/synchronize-object/object-factory';
-import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { ObjectSynchronizer } from '@axe/core/synchronize-object/object-synchronizer';
-import { DataSummarySetting } from '@axe/data-summary-setting';
-import { TableSelecter } from '@axe/table-selecter';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { Config } from '@axe/class/config';
+import { AudioSharingSystem } from '@axe/class/core/file-storage/audio-sharing-system';
+import { AudioStorage } from '@axe/class/core/file-storage/audio-storage';
+import { FileArchiver } from '@axe/class/core/file-storage/file-archiver';
+import { ImageSharingSystem } from '@axe/class/core/file-storage/image-sharing-system';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { ObjectFactory } from '@axe/class/core/synchronize-object/object-factory';
+import { ObjectSerializer } from '@axe/class/core/synchronize-object/object-serializer';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { ObjectSynchronizer } from '@axe/class/core/synchronize-object/object-synchronizer';
+import { DataSummarySetting } from '@axe/class/data-summary-setting';
+import { TableSelecter } from '@axe/class/table-selecter';
 
 /**
  * src/app/class/ 配下のシングルトン群を Angular DI に登録するプロバイダ配列。

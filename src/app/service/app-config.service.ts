@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { LoggerService } from 'service/logger.service';
+import { EventSystem } from '@axe/class/core/system';
+import { LoggerService } from '@axe/service/logger.service';
 
 export interface AppConfig {
   backend: {

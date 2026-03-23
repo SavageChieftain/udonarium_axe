@@ -1,12 +1,12 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, inject, NgZone, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Alarm } from '@axe/alarm';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { ChatMessageService } from 'service/chat-message.service';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { Alarm } from '@axe/class/alarm';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'app-alarm-window',

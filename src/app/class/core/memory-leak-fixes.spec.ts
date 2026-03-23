@@ -6,11 +6,11 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-import { GameObject } from '@axe/core/synchronize-object/game-object';
+import { GameObject } from '@axe/class/core/synchronize-object/game-object';
 // ──────────────────────────────────────────────────────────────────────────────
 // 1. ObjectStore._garbageCollection — GCロジックのバグ修正テスト
 // ──────────────────────────────────────────────────────────────────────────────
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 
 describe('ObjectStore GC修正', () => {
   let store: ObjectStore;
@@ -65,7 +65,7 @@ describe('ObjectStore GC修正', () => {
 // ──────────────────────────────────────────────────────────────────────────────
 // 2. AudioPlayer — Blob URLリーク & キャッシュ肥大化修正テスト
 // ──────────────────────────────────────────────────────────────────────────────
-import { AudioPlayer } from '@axe/core/file-storage/audio-player';
+import { AudioPlayer } from '@axe/class/core/file-storage/audio-player';
 
 describe('AudioPlayer キャッシュ管理修正', () => {
   let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>;
@@ -436,7 +436,7 @@ describe('NetworkIndicator タイマーリーク修正', () => {
 // ──────────────────────────────────────────────────────────────────────────────
 // 10. ChatInput / ControllerInput — タイマー&writingPeersリーク修正テスト
 // ──────────────────────────────────────────────────────────────────────────────
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
 
 describe('ChatInput/ControllerInput タイマーリーク修正', () => {
   it('writingEventIntervalがngOnDestroyで解放される', () => {

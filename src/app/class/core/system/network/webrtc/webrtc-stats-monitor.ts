@@ -1,4 +1,4 @@
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
 
 export interface WebRTCConnection {
   open: boolean;

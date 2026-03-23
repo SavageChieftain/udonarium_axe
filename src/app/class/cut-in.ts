@@ -1,5 +1,5 @@
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
 
 import { AudioFile } from './core/file-storage/audio-file';
 import { AudioPlayer } from './core/file-storage/audio-player';

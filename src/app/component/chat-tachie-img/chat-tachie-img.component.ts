@@ -10,16 +10,16 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
-import { ChatTab } from '@axe/chat-tab';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ChatTab } from '@axe/class/chat-tab';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'chat-tachie-img',

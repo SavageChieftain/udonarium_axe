@@ -1,5 +1,5 @@
-import { Logger } from '@axe/core/logger';
-import { decodeEntityReference, encodeEntityReference, xml2element } from '@axe/core/system/util/xml-util';
+import { Logger } from '@axe/class/core/logger';
+import { decodeEntityReference, encodeEntityReference, xml2element } from '@axe/class/core/system/util/xml-util';
 
 import { Attributes } from './attributes';
 import { GameObject, ObjectContext } from './game-object';

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { DataElement } from '@axe/data-element';
+import { DataElement } from '@axe/class/data-element';
 
 import { GameObject } from './game-object';
 import { ObjectSerializer } from './object-serializer';

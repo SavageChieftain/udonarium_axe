@@ -1,5 +1,5 @@
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { GameCharacter } from '@axe/game-character';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { GameCharacter } from '@axe/class/game-character';
 
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { generateUuid } from './core/system/util/uuid';

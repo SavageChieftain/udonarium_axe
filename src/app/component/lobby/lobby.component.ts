@@ -1,13 +1,13 @@
 import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { Logger } from '@axe/core/logger';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { PeerCursor } from '@axe/peer-cursor';
-import { PasswordCheckComponent } from 'component/password-check/password-check.component';
-import { RoomSettingComponent } from 'component/room-setting/room-setting.component';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { Logger } from '@axe/class/core/logger';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PeerContext } from '@axe/class/core/system/network/peer-context';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { PasswordCheckComponent } from '@axe/component/password-check/password-check.component';
+import { RoomSettingComponent } from '@axe/component/room-setting/room-setting.component';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'lobby',

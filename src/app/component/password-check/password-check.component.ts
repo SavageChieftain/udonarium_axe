@@ -10,10 +10,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PeerContext } from '@axe/class/core/system/network/peer-context';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'password-check',

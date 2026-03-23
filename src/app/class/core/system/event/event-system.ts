@@ -1,5 +1,5 @@
-import { Logger } from '@axe/core/logger';
-import { Network } from '@axe/core/system/network/network';
+import { Logger } from '@axe/class/core/logger';
+import { Network } from '@axe/class/core/system/network/network';
 
 import { Event, EventContext } from './event';
 import { Listener } from './listener';

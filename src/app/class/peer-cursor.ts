@@ -1,4 +1,4 @@
-import { Vote } from '@axe/vote';
+import { Vote } from '@axe/class/vote';
 
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';

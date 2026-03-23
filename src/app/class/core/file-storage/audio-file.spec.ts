@@ -1,4 +1,4 @@
-import { AudioFile, AudioFileContext, AudioState } from '@axe/core/file-storage/audio-file';
+import { AudioFile, AudioFileContext, AudioState } from '@axe/class/core/file-storage/audio-file';
 
 describe('AudioFile', () => {
   let createObjectURLSpy: ReturnType<typeof vi.spyOn>;

@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/class/core/logger';
 import { decodeXML, escapeUTF8 } from 'entities';
 
 export function xml2element(xml: string): HTMLElement {

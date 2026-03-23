@@ -1,11 +1,11 @@
 import { inject, Injectable } from '@angular/core';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { toHalfWidth } from '@axe/core/system/util/string-util';
-import { DataElement } from '@axe/data-element';
-import { DataSummarySetting, SortOrder } from '@axe/data-summary-setting';
-import { GameCharacter } from '@axe/game-character';
-import { TabletopObject } from '@axe/tabletop-object';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { toHalfWidth } from '@axe/class/core/system/util/string-util';
+import { DataElement } from '@axe/class/data-element';
+import { DataSummarySetting, SortOrder } from '@axe/class/data-summary-setting';
+import { GameCharacter } from '@axe/class/game-character';
+import { TabletopObject } from '@axe/class/tabletop-object';
 
 type ObjectIdentifier = string;
 type LocationName = string;

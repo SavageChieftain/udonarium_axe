@@ -10,16 +10,16 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
-import { PeerCursor } from '@axe/peer-cursor';
-import { SafePipe } from 'pipe/safe.pipe';
-import { BatchService } from 'service/batch.service';
-import { ChatMessageService } from 'service/chat-message.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { PointerCoordinate } from 'service/pointer-device.service';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { BatchService } from '@axe/service/batch.service';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { PointerCoordinate } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'peer-cursor, [peer-cursor]',

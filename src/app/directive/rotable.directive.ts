@@ -1,10 +1,10 @@
 import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { RangeArea } from '@axe/range';
-import { TabletopObject } from '@axe/tabletop-object';
-import { BatchService } from 'service/batch.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { PointerCoordinate, PointerDeviceService } from 'service/pointer-device.service';
+import { EventSystem } from '@axe/class/core/system';
+import { RangeArea } from '@axe/class/range';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { BatchService } from '@axe/service/batch.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { PointerCoordinate, PointerDeviceService } from '@axe/service/pointer-device.service';
 
 import { InputHandler } from './input-handler';
 

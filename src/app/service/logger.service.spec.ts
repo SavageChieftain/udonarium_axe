@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/class/core/logger';
 
 import { LoggerService, LogLevel } from './logger.service';
 

@@ -1,8 +1,8 @@
 import { NgClass } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { EventSystem } from '@axe/class/core/system';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'open-url',

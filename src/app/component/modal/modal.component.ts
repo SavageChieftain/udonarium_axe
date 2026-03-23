@@ -7,7 +7,7 @@ import {
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
-import { ModalService } from 'service/modal.service';
+import { ModalService } from '@axe/service/modal.service';
 
 @Component({
   selector: 'modal',

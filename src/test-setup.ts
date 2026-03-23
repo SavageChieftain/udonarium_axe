@@ -5,7 +5,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
-import { Logger, LogLevel } from '@axe/core/logger';
+import { Logger, LogLevel } from '@axe/class/core/logger';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 

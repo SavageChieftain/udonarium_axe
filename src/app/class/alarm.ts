@@ -1,5 +1,5 @@
-import { PeerCursor } from '@axe/peer-cursor';
-import { PresetSound } from '@axe/sound-effect';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { PresetSound } from '@axe/class/sound-effect';
 
 import { AudioPlayer } from './core/file-storage/audio-player';
 import { AudioStorage } from './core/file-storage/audio-storage';

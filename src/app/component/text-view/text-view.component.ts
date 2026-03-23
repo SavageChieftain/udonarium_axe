@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnInit } from '@angular/core';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'text-view',

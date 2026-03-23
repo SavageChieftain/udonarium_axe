@@ -1,5 +1,5 @@
 import { inject, TestBed } from '@angular/core/testing';
-import { TEST_PROVIDERS } from 'testing/test-providers';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { TabletopService } from './tabletop.service';
 

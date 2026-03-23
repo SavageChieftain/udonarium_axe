@@ -1,11 +1,11 @@
-import { Logger } from '@axe/core/logger';
-import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
-import { PeerSessionGrade } from '@axe/core/system/network/peer-session-state';
-import { CandidateType, WebRTCStats } from '@axe/core/system/network/webrtc/webrtc-stats';
-import { WebRTCConnection, WebRTCStatsMonitor } from '@axe/core/system/network/webrtc/webrtc-stats-monitor';
-import * as MessagePack from '@axe/core/system/util/message-pack';
-import { generateUuid } from '@axe/core/system/util/uuid';
-import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
+import { Logger } from '@axe/class/core/logger';
+import { IPeerContext, PeerContext } from '@axe/class/core/system/network/peer-context';
+import { PeerSessionGrade } from '@axe/class/core/system/network/peer-session-state';
+import { CandidateType, WebRTCStats } from '@axe/class/core/system/network/webrtc/webrtc-stats';
+import { WebRTCConnection, WebRTCStatsMonitor } from '@axe/class/core/system/network/webrtc/webrtc-stats-monitor';
+import * as MessagePack from '@axe/class/core/system/util/message-pack';
+import { generateUuid } from '@axe/class/core/system/util/uuid';
+import { setZeroTimeout } from '@axe/class/core/system/util/zero-timeout';
 import {
   isRemoteMember,
   LocalDataStream,

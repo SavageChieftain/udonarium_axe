@@ -1,5 +1,5 @@
 import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
-import { TabletopObject } from '@axe/tabletop-object';
+import { TabletopObject } from '@axe/class/tabletop-object';
 
 interface ContextMenuPoint {
   x: number;

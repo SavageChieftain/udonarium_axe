@@ -1,6 +1,6 @@
-import { Logger as AppLogger } from '@axe/core/logger';
-import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
-import { sha256Base64Url } from '@axe/core/system/util/crypto-util';
+import { Logger as AppLogger } from '@axe/class/core/logger';
+import { IPeerContext, PeerContext } from '@axe/class/core/system/network/peer-context';
+import { sha256Base64Url } from '@axe/class/core/system/util/crypto-util';
 import {
   Channel,
   LocalDataStream,

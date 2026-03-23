@@ -1,4 +1,4 @@
-import { PointerCoordinate, PointerData } from 'service/pointer-device.service';
+import { PointerCoordinate, PointerData } from '@axe/service/pointer-device.service';
 
 const MOUSE_IDENTIFIER = -9999;
 

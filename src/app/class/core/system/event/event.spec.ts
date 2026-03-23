@@ -1,4 +1,4 @@
-import { Network } from '@axe/core/system/network/network';
+import { Network } from '@axe/class/core/system/network/network';
 
 import { Event } from './event';
 

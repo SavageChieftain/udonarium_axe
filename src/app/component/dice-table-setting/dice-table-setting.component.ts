@@ -1,13 +1,13 @@
 import { AfterViewInit, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DiceTablePalette } from '@axe/chat-palette';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { DiceBot } from '@axe/dice-bot';
-import { DiceTable } from '@axe/dice-table';
+import { DiceTablePalette } from '@axe/class/chat-palette';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { DiceBot } from '@axe/class/dice-bot';
+import { DiceTable } from '@axe/class/dice-table';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-import { SaveDataService } from 'service/save-data.service';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
+import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
   selector: 'dice-table-setting',

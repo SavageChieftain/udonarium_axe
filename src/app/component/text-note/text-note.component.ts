@@ -14,22 +14,22 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ObjectNode } from '@axe/core/synchronize-object/object-node';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { TextNote } from '@axe/text-note';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { InputHandler } from 'directive/input-handler';
-import { MovableOption } from 'directive/movable.directive';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableOption } from 'directive/rotable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ObjectNode } from '@axe/class/core/synchronize-object/object-node';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { TextNote } from '@axe/class/text-note';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { InputHandler } from '@axe/directive/input-handler';
+import { MovableOption } from '@axe/directive/movable.directive';
+import { MovableDirective } from '@axe/directive/movable.directive';
+import { RotableOption } from '@axe/directive/rotable.directive';
+import { RotableDirective } from '@axe/directive/rotable.directive';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'text-note',

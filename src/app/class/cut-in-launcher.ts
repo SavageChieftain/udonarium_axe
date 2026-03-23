@@ -1,6 +1,6 @@
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Network } from '@axe/core/system';
-import { Jukebox } from '@axe/Jukebox';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { Network } from '@axe/class/core/system';
+import { Jukebox } from '@axe/class/Jukebox';
 
 import { AudioStorage } from './core/file-storage/audio-storage';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';

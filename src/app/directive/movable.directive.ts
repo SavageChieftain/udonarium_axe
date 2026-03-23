@@ -9,12 +9,12 @@ import {
   OnDestroy,
   Output,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { TableSelecter } from '@axe/table-selecter';
-import { TabletopObject } from '@axe/tabletop-object';
-import { BatchService } from 'service/batch.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { PointerCoordinate, PointerDeviceService } from 'service/pointer-device.service';
+import { EventSystem } from '@axe/class/core/system';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { BatchService } from '@axe/service/batch.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { PointerCoordinate, PointerDeviceService } from '@axe/service/pointer-device.service';
 
 import { InputHandler } from './input-handler';
 

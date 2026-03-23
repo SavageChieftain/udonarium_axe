@@ -1,21 +1,22 @@
 import { inject, Injectable } from '@angular/core';
-import { Card } from '@axe/card';
-import { CardStack } from '@axe/card-stack';
-import { ImageContext, ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { EventSystem } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { DiceSymbol, DiceType } from '@axe/dice-symbol';
-import { GameCharacter } from '@axe/game-character';
-import { GameTable } from '@axe/game-table';
-import { GameTableMask } from '@axe/game-table-mask';
-import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
-import { ImageTag } from '@axe/image-tag';
-import { RangeArea } from '@axe/range';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { TableSelecter } from '@axe/table-selecter';
-import { Terrain } from '@axe/terrain';
-import { TextNote } from '@axe/text-note';
+import { Card } from '@axe/class/card';
+import { CardStack } from '@axe/class/card-stack';
+import { CharacterTemplateFactory } from '@axe/class/character-template-factory';
+import { ImageContext, ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { EventSystem } from '@axe/class/core/system';
+import { DataElement } from '@axe/class/data-element';
+import { DiceSymbol, DiceType } from '@axe/class/dice-symbol';
+import { GameCharacter } from '@axe/class/game-character';
+import { GameTable } from '@axe/class/game-table';
+import { GameTableMask } from '@axe/class/game-table-mask';
+import { GameTableScratchMask } from '@axe/class/game-table-scratch-mask';
+import { ImageTag } from '@axe/class/image-tag';
+import { RangeArea } from '@axe/class/range';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { Terrain } from '@axe/class/terrain';
+import { TextNote } from '@axe/class/text-note';
 
 import { ContextMenuAction } from './context-menu.service';
 import { PointerCoordinate } from './pointer-device.service';
@@ -410,14 +411,14 @@ export class TabletopActionService {
     testCharacter.initialize();
     ImageTag.create(testFile.identifier).tag = 'モンスター'; //本家PR #92より
 
-    testCharacter.createTestGameDataElement('モンスターA', 1, testFile.identifier);
+    CharacterTemplateFactory.createDefault(testCharacter, 'モンスターA', 1, testFile.identifier);
     this.addBuffRound(testCharacter, 'テストバフ1', '防+1', 3);
     //-------------------------
     testCharacter = new GameCharacter('testCharacter_2');
     testCharacter.location.x = 8 * 50;
     testCharacter.location.y = 8 * 50;
     testCharacter.initialize();
-    testCharacter.createTestGameDataElement('モンスターB', 1, testFile.identifier);
+    CharacterTemplateFactory.createDefault(testCharacter, 'モンスターB', 1, testFile.identifier);
 
     //-------------------------
     testCharacter = new GameCharacter('testCharacter_3');
@@ -429,7 +430,7 @@ export class TabletopActionService {
 
     testFile = this.imageStorage.add(fileContext);
     ImageTag.create(testFile.identifier).tag = 'モンスター'; //本家PR #92より
-    testCharacter.createTestGameDataElement('モンスターC', 3, testFile.identifier);
+    CharacterTemplateFactory.createDefault(testCharacter, 'モンスターC', 3, testFile.identifier);
     //-------------------------
 
     testCharacter = new GameCharacter('testCharacter_4');
@@ -444,7 +445,7 @@ export class TabletopActionService {
     testCharacter.location.x = 6 * 50;
     testCharacter.location.y = 11 * 50;
     testCharacter.initialize();
-    testCharacter.createTestGameDataElement('キャラクターA', 1, testFile.identifier);
+    CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターA', 1, testFile.identifier);
     this.addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
     //-------------------------
     testCharacter = new GameCharacter('testCharacter_5');
@@ -454,7 +455,7 @@ export class TabletopActionService {
     testCharacter.location.x = 12 * 50;
     testCharacter.location.y = 12 * 50;
     testCharacter.initialize();
-    testCharacter.createTestGameDataElement('キャラクターB', 1, testFile.identifier);
+    CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターB', 1, testFile.identifier);
     this.addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
 
     //-------------------------
@@ -470,7 +471,7 @@ export class TabletopActionService {
     testCharacter.location.x = 5 * 50;
     testCharacter.location.y = 13 * 50;
     testCharacter.initialize();
-    testCharacter.createTestGameDataElement('キャラクターC', 1, testFile.identifier);
+    CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターC', 1, testFile.identifier);
     this.addBuffRound(testCharacter, 'テストバフ3', '', 3);
 
     //-------------------------
@@ -485,7 +486,7 @@ export class TabletopActionService {
     testCharacter.initialize();
     testCharacter.location.x = 10 * 50;
     testCharacter.location.y = 5 * 50;
-    testCharacter.createTestGameDataElementCheckTable('忍者A', 1, testFile.identifier);
+    CharacterTemplateFactory.createCheckTable(testCharacter, '忍者A', 1, testFile.identifier);
   }
 
   makeDefaultContextMenuActions(position: PointerCoordinate): ContextMenuAction[] {

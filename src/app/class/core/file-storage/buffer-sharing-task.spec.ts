@@ -1,4 +1,4 @@
-import { EventSystem } from '@axe/core/system';
+import { EventSystem } from '@axe/class/core/system';
 
 import { BufferSharingTask } from './buffer-sharing-task';
 

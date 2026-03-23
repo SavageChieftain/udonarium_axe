@@ -1,6 +1,6 @@
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Network } from '@axe/core/system';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 
+import { ChatLogExporter } from './chat-log-exporter';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from './chat-message';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
@@ -233,157 +233,23 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
   // ChatMessageに入れるか考えたがログ以外に使わないのでここにおく
   messageHtml(isTime: boolean, tabName: string, message: ChatMessage): string {
-    let str = '';
-    if (message) {
-      if (tabName) str += `[${this.escapeHtml(tabName)}]`;
-
-      if (isTime) {
-        const date = new Date(message.timestamp);
-        str += `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}：`;
-      }
-
-      str += "<font color='";
-      if (message.messColor) str += message.messColor.toLowerCase();
-      str += "'>";
-
-      str += '<b>';
-      if (message.name) str += this.escapeHtml(message.name);
-      str += '</b>';
-
-      str += '：';
-      if (!message.isSecret || message.isSendFromSelf) {
-        if (message.text) str += this.escapeHtml(message.text).replace(/\n/g, '<br>');
-      } else {
-        str += '（シークレットダイス）';
-      }
-      let fixd = '';
-      if (message.fixd) {
-        fixd = ' (編集済)';
-      }
-      str += fixd;
-      str += '</font><br>';
-      str += '\n';
-    }
-    return str;
+    return ChatLogExporter.formatMessageStandard(isTime, tabName, message);
   }
 
   messageHtmlCoc(tabName: string, message: ChatMessage): string {
-    let str = '';
-    if (message) {
-      str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
-      str += `      <span> [${tabName}]</span>\n`;
-      str += `      <span>${this.escapeHtml(message.name ?? '')
-        .replace('<', '')
-        .replace('>', '')}</span>\n`;
-      str += '      <span>\n';
-      str += '        ';
-
-      if (!message.isSecret || message.isSendFromSelf) {
-        if (message.text) str += this.escapeHtml(message.text).replace(/\n/g, '<br>').replace(/→/g, '＞');
-      } else {
-        str += '（シークレットダイス）';
-      }
-      let fixd = '';
-      if (message.fixd) {
-        fixd = ' (編集済)';
-      }
-      str += fixd;
-      str += '\n';
-
-      str += '      </span>\n';
-      str += '    </p>\n';
-      str += '    \n';
-    }
-    return str;
+    return ChatLogExporter.formatMessageCoc(tabName, message);
   }
 
-  escapeHtml(string: unknown): string {
-    if (typeof string !== 'string') {
-      return String(string);
-    }
-    const escapeText = (string as string).replace(/[&'`"<>]/g, function (match) {
-      return (
-        (
-          {
-            '&': '&amp;',
-            "'": '&#x27;',
-            '`': '&#x60;',
-            '"': '&quot;',
-            '<': '&lt;',
-            '>': '&gt;',
-          } as Record<string, string>
-        )[match] ?? match
-      );
-    });
-
-    return escapeText.replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\s/g, ' ');
+  escapeHtml(value: unknown): string {
+    return ChatLogExporter.escapeHtml(value);
   }
 
   logHtml(): string {
-    const head = `<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
-<html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
-  <head>
-    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-    <title>チャットログ：${this.escapeHtml(this.name)}</title>
-  </head>
-  <body>
-`;
-
-    const last = '\n  </body>\n</html>';
-
-    let main: string = '';
-
-    for (const mess of this.chatMessages) {
-      const to = mess.to;
-      const from = mess.from;
-      const myId = Network.peerContext.userId; // 1.13.xとのmargeで修正
-
-      if (to) {
-        if (to != myId && from != myId) {
-          continue;
-        }
-      }
-
-      main += this.messageHtml(true, '', mess);
-    }
-    const str: string = head + main + last;
-
-    return str;
+    return ChatLogExporter.exportTabHtml(this);
   }
 
   logHtmlCoc(): string {
-    const head = `<!DOCTYPE html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Udonalium Axe - logs</title>
-  </head>
-  <body>
-
-`;
-
-    const last = '  </body>\n</html>';
-
-    let main: string = '';
-
-    for (const mess of this.chatMessages) {
-      const to = mess.to;
-      const from = mess.from;
-      const myId = Network.peerContext.userId; // 1.13.xとのmargeで修正
-      if (to) {
-        if (to != myId && from != myId) {
-          continue;
-        }
-      }
-
-      main += this.messageHtmlCoc(this.escapeHtml(this.name), mess);
-    }
-    const str: string = head + main + last;
-
-    return str;
+    return ChatLogExporter.exportTabHtmlCoc(this);
   }
 
   parseInnerXml(element: Element) {

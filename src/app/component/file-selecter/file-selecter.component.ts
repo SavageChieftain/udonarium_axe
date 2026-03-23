@@ -9,13 +9,13 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { EventSystem, Network } from '@axe/core/system';
-import { ImageTag } from '@axe/image-tag';
-import { SafePipe } from 'pipe/safe.pipe'; //本家PR #92より
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { ImageTag } from '@axe/class/image-tag';
+import { SafePipe } from '@axe/pipe/safe.pipe'; //本家PR #92より
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'file-selector',

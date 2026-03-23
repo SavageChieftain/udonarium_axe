@@ -1,4 +1,4 @@
-import { PeerContext } from '@axe/core/system/network/peer-context';
+import { PeerContext } from '@axe/class/core/system/network/peer-context';
 
 import { SkyWayDataStream } from './skyway-data-stream';
 

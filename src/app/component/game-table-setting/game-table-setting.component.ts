@@ -1,21 +1,21 @@
 import { NgClass } from '@angular/common';
 import { AfterViewInit, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Config } from '@axe/config';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { DiceBot } from '@axe/dice-bot';
-import { FilterType, GameTable, GridType } from '@axe/game-table';
-import { TableSelecter } from '@axe/table-selecter';
+import { Config } from '@axe/class/config';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ObjectSerializer } from '@axe/class/core/synchronize-object/object-serializer';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { DiceBot } from '@axe/class/dice-bot';
+import { FilterType, GameTable, GridType } from '@axe/class/game-table';
+import { TableSelecter } from '@axe/class/table-selecter';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ImageService } from 'service/image.service';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-import { SaveDataService } from 'service/save-data.service';
+import { FileSelecterComponent } from '@axe/component/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ImageService } from '@axe/service/image.service';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
+import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
   selector: 'game-table-setting',

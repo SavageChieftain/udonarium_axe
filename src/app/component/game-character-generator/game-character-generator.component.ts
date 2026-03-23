@@ -1,16 +1,16 @@
 import { AfterViewInit, Component, inject, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
-import { EventSystem } from '@axe/core/system';
-import { GameCharacter } from '@axe/game-character';
-import { GameTableMask } from '@axe/game-table-mask';
-import { TableSelecter } from '@axe/table-selecter';
-import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { ObjectSerializer } from '@axe/class/core/synchronize-object/object-serializer';
+import { EventSystem } from '@axe/class/core/system';
+import { GameCharacter } from '@axe/class/game-character';
+import { GameTableMask } from '@axe/class/game-table-mask';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { FileSelecterComponent } from '@axe/component/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'game-character-generator',

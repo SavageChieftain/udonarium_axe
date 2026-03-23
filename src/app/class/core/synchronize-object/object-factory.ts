@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/class/core/logger';
 
 import { GameObject } from './game-object';
 

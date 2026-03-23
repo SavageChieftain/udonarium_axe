@@ -1,15 +1,15 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnInit } from '@angular/core';
-import { ChatMessage } from '@axe/chat-message';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { ChatMessageFixComponent } from 'component/chat-message-fix/chat-message-fix.component';
-import { LinkifyPipe } from 'pipe/linkify.pipe';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ChatMessage } from '@axe/class/chat-message';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { ChatMessageFixComponent } from '@axe/component/chat-message-fix/chat-message-fix.component';
+import { LinkifyPipe } from '@axe/pipe/linkify.pipe';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'chat-message',

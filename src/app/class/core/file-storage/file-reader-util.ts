@@ -1,4 +1,4 @@
-import { sha256Hex } from '@axe/core/system/util/crypto-util';
+import { sha256Hex } from '@axe/class/core/system/util/crypto-util';
 
 export function readAsArrayBufferAsync(blob: Blob): Promise<ArrayBuffer> {
   return new Promise<ArrayBuffer>((resolve, reject) => {

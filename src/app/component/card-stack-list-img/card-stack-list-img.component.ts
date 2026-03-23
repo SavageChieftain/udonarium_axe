@@ -9,11 +9,11 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'card-stack-list-img',

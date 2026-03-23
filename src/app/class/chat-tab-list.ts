@@ -1,7 +1,7 @@
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Network } from '@axe/core/system';
-import { ReloadCheck } from '@axe/reload-check';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { ReloadCheck } from '@axe/class/reload-check';
 
+import { ChatLogExporter } from './chat-log-exporter';
 import { ChatTab } from './chat-tab';
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectNode } from './core/synchronize-object/object-node';
@@ -99,138 +99,10 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   }
 
   logHtml(): string {
-    const head = `<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
-<html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
-  <head>
-    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-    <title>チャットログ：全タブ</title>
-  </head>
-  <body>
-`;
-
-    const last = '\n  </body>\n</html>';
-
-    let main: string = '';
-
-    //泥臭くやる
-    if (this.chatTabs) {
-      const tabNum = this.chatTabs.length;
-      const indexList: number[] = [];
-      for (let i = 0; i < tabNum; i++) {
-        indexList.push(0);
-      }
-
-      let fastTabIndex: number;
-      let chkTimestamp: number;
-
-      while (true) {
-        fastTabIndex = -1;
-        chkTimestamp = -1;
-
-        for (let i = 0; i < tabNum; i++) {
-          if (this.chatTabs[i].chatMessages.length <= indexList[i]) continue;
-
-          if (chkTimestamp == -1) {
-            chkTimestamp = this.chatTabs[i].chatMessages[indexList[i]].timestamp;
-            fastTabIndex = i;
-          }
-          if (chkTimestamp > this.chatTabs[i].chatMessages[indexList[i]].timestamp) {
-            chkTimestamp = this.chatTabs[i].chatMessages[indexList[i]].timestamp;
-            fastTabIndex = i;
-          }
-        }
-        if (fastTabIndex == -1) break;
-
-        const to = this.chatTabs[fastTabIndex].chatMessages[indexList[fastTabIndex]].to;
-        const from = this.chatTabs[fastTabIndex].chatMessages[indexList[fastTabIndex]].from;
-        const myId = Network.peerContext.userId; //1.13.xとのmargeで修正
-        if (to) {
-          if (to != myId && from != myId) {
-            indexList[fastTabIndex]++;
-            continue;
-          }
-        }
-
-        main += this.chatTabs[fastTabIndex].messageHtml(
-          this.simpleDispFlagTime ? true : false,
-          this.chatTabs[fastTabIndex].name,
-          this.chatTabs[fastTabIndex].chatMessages[indexList[fastTabIndex]]
-        );
-        indexList[fastTabIndex]++;
-      }
-    }
-
-    const str: string = head + main + last;
-
-    return str;
+    return ChatLogExporter.exportAllTabsHtml(this.chatTabs, this.simpleDispFlagTime);
   }
 
   logHtmlCoc(): string {
-    const head = `<!DOCTYPE html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Udonalium Axe - logs</title>
-  </head>
-  <body>
-
-`;
-
-    const last = '  </body>\n</html>';
-
-    let main: string = '';
-
-    if (this.chatTabs) {
-      const tabNum = this.chatTabs.length;
-      const indexList: number[] = [];
-      for (let i = 0; i < tabNum; i++) {
-        indexList.push(0);
-      }
-
-      let fastTabIndex: number;
-      let chkTimestamp: number;
-
-      while (true) {
-        fastTabIndex = -1;
-        chkTimestamp = -1;
-
-        for (let i = 0; i < tabNum; i++) {
-          if (this.chatTabs[i].chatMessages.length <= indexList[i]) continue;
-
-          if (chkTimestamp == -1) {
-            chkTimestamp = this.chatTabs[i].chatMessages[indexList[i]].timestamp;
-            fastTabIndex = i;
-          }
-          if (chkTimestamp > this.chatTabs[i].chatMessages[indexList[i]].timestamp) {
-            chkTimestamp = this.chatTabs[i].chatMessages[indexList[i]].timestamp;
-            fastTabIndex = i;
-          }
-        }
-        if (fastTabIndex == -1) break;
-
-        const to = this.chatTabs[fastTabIndex].chatMessages[indexList[fastTabIndex]].to;
-        const from = this.chatTabs[fastTabIndex].chatMessages[indexList[fastTabIndex]].from;
-        const myId = Network.peerContext.userId; //1.13.xとのmargeで修正
-        if (to) {
-          if (to != myId && from != myId) {
-            indexList[fastTabIndex]++;
-            continue;
-          }
-        }
-
-        main += this.chatTabs[fastTabIndex].messageHtmlCoc(
-          this.chatTabs[fastTabIndex].name,
-          this.chatTabs[fastTabIndex].chatMessages[indexList[fastTabIndex]]
-        );
-        indexList[fastTabIndex]++;
-      }
-    }
-
-    const str: string = head + main + last;
-
-    return str;
+    return ChatLogExporter.exportAllTabsHtmlCoc(this.chatTabs);
   }
 }

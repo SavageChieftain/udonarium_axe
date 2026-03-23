@@ -1,25 +1,25 @@
 import { AfterViewInit, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Card } from '@axe/card';
-import { CardStack } from '@axe/card-stack';
-import { EventSystem, Network } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { DiceSymbol } from '@axe/dice-symbol';
-import { GameCharacter } from '@axe/game-character';
-import { GameTableMask } from '@axe/game-table-mask';
-import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
-import { RangeArea } from '@axe/range';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { Terrain } from '@axe/terrain';
-import { TextNote } from '@axe/text-note';
-import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
-import { GameDataElementComponent } from 'component/game-data-element/game-data-element.component';
-import { ImportCharacterImgComponent } from 'component/import-character-img/import-character-img.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ModalService } from 'service/modal.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-import { SaveDataService } from 'service/save-data.service';
+import { Card } from '@axe/class/card';
+import { CardStack } from '@axe/class/card-stack';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { DataElement } from '@axe/class/data-element';
+import { DiceSymbol } from '@axe/class/dice-symbol';
+import { GameCharacter } from '@axe/class/game-character';
+import { GameTableMask } from '@axe/class/game-table-mask';
+import { GameTableScratchMask } from '@axe/class/game-table-scratch-mask';
+import { RangeArea } from '@axe/class/range';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { Terrain } from '@axe/class/terrain';
+import { TextNote } from '@axe/class/text-note';
+import { FileSelecterComponent } from '@axe/component/file-selecter/file-selecter.component';
+import { GameDataElementComponent } from '@axe/component/game-data-element/game-data-element.component';
+import { ImportCharacterImgComponent } from '@axe/component/import-character-img/import-character-img.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
   selector: 'game-character-sheet',

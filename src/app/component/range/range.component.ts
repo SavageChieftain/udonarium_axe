@@ -13,29 +13,29 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ObjectNode } from '@axe/core/synchronize-object/object-node';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { GameCharacter } from '@axe/game-character';
-import { GameTable } from '@axe/game-table';
-import { RangeArea } from '@axe/range';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { TableSelecter } from '@axe/table-selecter';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { RangeDockingCharacterComponent } from 'component/range-docking-character/range-docking-character.component';
-import { InputHandler } from 'directive/input-handler';
-import { MovableOption } from 'directive/movable.directive';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableOption } from 'directive/rotable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { TooltipDirective } from 'directive/tooltip.directive';
-import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-import { TabletopService } from 'service/tabletop.service';
-import { TabletopActionService } from 'service/tabletop-action.service';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ObjectNode } from '@axe/class/core/synchronize-object/object-node';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { GameCharacter } from '@axe/class/game-character';
+import { GameTable } from '@axe/class/game-table';
+import { RangeArea } from '@axe/class/range';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { RangeDockingCharacterComponent } from '@axe/component/range-docking-character/range-docking-character.component';
+import { InputHandler } from '@axe/directive/input-handler';
+import { MovableOption } from '@axe/directive/movable.directive';
+import { MovableDirective } from '@axe/directive/movable.directive';
+import { RotableOption } from '@axe/directive/rotable.directive';
+import { RotableDirective } from '@axe/directive/rotable.directive';
+import { TooltipDirective } from '@axe/directive/tooltip.directive';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { TabletopService } from '@axe/service/tabletop.service';
+import { TabletopActionService } from '@axe/service/tabletop-action.service';
 
 import {
   ClipAreaCorn,

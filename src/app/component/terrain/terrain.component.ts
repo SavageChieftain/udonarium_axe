@@ -13,30 +13,30 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { Config } from '@axe/config';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ObjectNode } from '@axe/core/synchronize-object/object-node';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { GameTable, GridType } from '@axe/game-table';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { TableSelecter } from '@axe/table-selecter';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/terrain';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { GridLineRender } from 'component/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { InputHandler } from 'directive/input-handler';
-import { MovableOption } from 'directive/movable.directive';
-import { MovableDirective } from 'directive/movable.directive';
-import { RotableOption } from 'directive/rotable.directive';
-import { RotableDirective } from 'directive/rotable.directive';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { ImageService } from 'service/image.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-import { TabletopService } from 'service/tabletop.service';
-import { TabletopActionService } from 'service/tabletop-action.service';
+import { Config } from '@axe/class/config';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ObjectNode } from '@axe/class/core/synchronize-object/object-node';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { GameTable, GridType } from '@axe/class/game-table';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { SlopeDirection, Terrain, TerrainViewState } from '@axe/class/terrain';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { GridLineRender } from '@axe/component/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
+import { InputHandler } from '@axe/directive/input-handler';
+import { MovableOption } from '@axe/directive/movable.directive';
+import { MovableDirective } from '@axe/directive/movable.directive';
+import { RotableOption } from '@axe/directive/rotable.directive';
+import { RotableDirective } from '@axe/directive/rotable.directive';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { ImageService } from '@axe/service/image.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { TabletopService } from '@axe/service/tabletop.service';
+import { TabletopActionService } from '@axe/service/tabletop-action.service';
 
 @Component({
   selector: 'terrain',

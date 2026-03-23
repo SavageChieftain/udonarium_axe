@@ -1,18 +1,18 @@
 import { DatePipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { PeerCursor } from '@axe/peer-cursor';
-import { TableSelecter } from '@axe/table-selecter';
-import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
-import { LobbyComponent } from 'component/lobby/lobby.component';
-import { ReConnectComponent } from 'component/re-connect/re-connect.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-import { TabletopActionService } from 'service/tabletop-action.service';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PeerContext } from '@axe/class/core/system/network/peer-context';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { FileSelecterComponent } from '@axe/component/file-selecter/file-selecter.component';
+import { LobbyComponent } from '@axe/component/lobby/lobby.component';
+import { ReConnectComponent } from '@axe/component/re-connect/re-connect.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
+import { TabletopActionService } from '@axe/service/tabletop-action.service';
 
 @Component({
   selector: 'peer-menu',

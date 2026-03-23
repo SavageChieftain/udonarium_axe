@@ -13,26 +13,26 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatMessage } from '@axe/chat-message';
-import { Config } from '@axe/config';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
-import { DiceBot } from '@axe/dice-bot';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
+import { ChatMessage } from '@axe/class/chat-message';
+import { Config } from '@axe/class/config';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PeerContext } from '@axe/class/core/system/network/peer-context';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
+import { DiceBot } from '@axe/class/dice-bot';
+import { GameCharacter } from '@axe/class/game-character';
+import { PeerCursor } from '@axe/class/peer-cursor';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
-import { ChatColorSettingComponent } from 'component/chat-color-setting/chat-color-setting.component';
-import { TextViewComponent } from 'component/text-view/text-view.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { BatchService } from 'service/batch.service';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ChatColorSettingComponent } from '@axe/component/chat-color-setting/chat-color-setting.component';
+import { TextViewComponent } from '@axe/component/text-view/text-view.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { BatchService } from '@axe/service/batch.service';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'chat-input',

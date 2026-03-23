@@ -1,5 +1,5 @@
-import { Config } from '@axe/config';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
+import { Config } from '@axe/class/config';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 
 import { AudioFile } from './core/file-storage/audio-file';
 import { AudioPlayer } from './core/file-storage/audio-player';

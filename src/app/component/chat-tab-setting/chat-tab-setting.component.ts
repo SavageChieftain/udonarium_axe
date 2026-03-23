@@ -1,16 +1,16 @@
 import { NgClass } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatTab } from '@axe/chat-tab';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ObjectSerializer } from '@axe/core/synchronize-object/object-serializer';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerCursor } from '@axe/peer-cursor';
-import { ChatMessageService } from 'service/chat-message.service';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
-import { SaveDataService } from 'service/save-data.service';
+import { ChatTab } from '@axe/class/chat-tab';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ObjectSerializer } from '@axe/class/core/synchronize-object/object-serializer';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
+import { SaveDataService } from '@axe/service/save-data.service';
 
 @Component({
   selector: 'app-chat-tab-setting',

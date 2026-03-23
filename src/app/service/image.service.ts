@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
 
 const skeletonImage: ImageFile = ImageFile.create('./assets/images/skeleton.png');
 

@@ -1,24 +1,24 @@
 import { AfterViewInit, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatMessage, ChatMessageTargetContext } from '@axe/chat-message';
-import { ChatTab } from '@axe/chat-tab';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { DiceBot } from '@axe/dice-bot';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
+import { ChatMessage, ChatMessageTargetContext } from '@axe/class/chat-message';
+import { ChatTab } from '@axe/class/chat-tab';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { DiceBot } from '@axe/class/dice-bot';
+import { GameCharacter } from '@axe/class/game-character';
+import { PeerCursor } from '@axe/class/peer-cursor';
 import GameSystemClass from 'bcdice/lib/game_system';
-import { AlarmMenuComponent } from 'component/alarm-menu/alarm-menu.component';
-import { BadgeComponent } from 'component/badge/badge.component';
-import { ChatInputComponent } from 'component/chat-input/chat-input.component';
-import { ChatTabComponent } from 'component/chat-tab/chat-tab.component';
-import { ChatTabSettingComponent } from 'component/chat-tab-setting/chat-tab-setting.component';
-import { ChatTachieComponent } from 'component/chat-tachie/chat-tachie.component';
-import { DiceTableSettingComponent } from 'component/dice-table-setting/dice-table-setting.component';
-import { VoteMenuComponent } from 'component/vote-menu/vote-menu.component';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { AlarmMenuComponent } from '@axe/component/alarm-menu/alarm-menu.component';
+import { BadgeComponent } from '@axe/component/badge/badge.component';
+import { ChatInputComponent } from '@axe/component/chat-input/chat-input.component';
+import { ChatTabComponent } from '@axe/component/chat-tab/chat-tab.component';
+import { ChatTabSettingComponent } from '@axe/component/chat-tab-setting/chat-tab-setting.component';
+import { ChatTachieComponent } from '@axe/component/chat-tachie/chat-tachie.component';
+import { DiceTableSettingComponent } from '@axe/component/dice-table-setting/dice-table-setting.component';
+import { VoteMenuComponent } from '@axe/component/vote-menu/vote-menu.component';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'chat-window',

@@ -1,5 +1,5 @@
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { Jukebox } from '@axe/Jukebox';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { Jukebox } from '@axe/class/Jukebox';
 
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { ObjectContext } from './core/synchronize-object/game-object';

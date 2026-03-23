@@ -11,10 +11,10 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/system';
-import { TabletopObject } from '@axe/tabletop-object';
-import { ContextMenuAction, ContextMenuService } from 'service/context-menu.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { EventSystem } from '@axe/class/core/system';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { ContextMenuAction, ContextMenuService } from '@axe/service/context-menu.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 @Component({
   selector: 'context-menu',
   templateUrl: './context-menu.component.html',

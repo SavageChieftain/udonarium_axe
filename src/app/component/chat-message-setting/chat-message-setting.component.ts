@@ -8,13 +8,13 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { GameCharacter } from '@axe/class/game-character';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'chat-message-setting',

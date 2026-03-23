@@ -1,5 +1,5 @@
-import { ChatTabList } from '@axe/chat-tab-list';
-import { GameCharacter } from '@axe/game-character';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { GameCharacter } from '@axe/class/game-character';
 
 import { ImageFile } from './core/file-storage/image-file';
 import { ImageStorage } from './core/file-storage/image-storage';

@@ -9,22 +9,22 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { GameObject } from '@axe/core/synchronize-object/game-object';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { SortOrder } from '@axe/data-summary-setting';
-import { GameCharacter } from '@axe/game-character';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { TabletopObject } from '@axe/tabletop-object';
-import { ChatPaletteComponent } from 'component/chat-palette/chat-palette.component';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { RemoteControllerComponent } from 'component/remote-controller/remote-controller.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { GameObjectInventoryService } from 'service/game-object-inventory.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { GameObject } from '@axe/class/core/synchronize-object/game-object';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { DataElement } from '@axe/class/data-element';
+import { SortOrder } from '@axe/class/data-summary-setting';
+import { GameCharacter } from '@axe/class/game-character';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { ChatPaletteComponent } from '@axe/component/chat-palette/chat-palette.component';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { RemoteControllerComponent } from '@axe/component/remote-controller/remote-controller.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'game-object-inventory',

@@ -1,8 +1,8 @@
-import { Logger } from '@axe/core/logger';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { xml2element } from '@axe/core/system/util/xml-util';
-import { ReloadCheck } from '@axe/reload-check';
+import { Logger } from '@axe/class/core/logger';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { xml2element } from '@axe/class/core/system/util/xml-util';
+import { ReloadCheck } from '@axe/class/reload-check';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 

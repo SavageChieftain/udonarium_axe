@@ -1,4 +1,4 @@
-import { GridType } from '@axe/game-table';
+import { GridType } from '@axe/class/game-table';
 
 type StrokeGridFunc = (w: number, h: number, gridSize: number) => GridPosition;
 type GridPosition = { gx: number; gy: number };

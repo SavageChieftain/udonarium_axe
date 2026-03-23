@@ -11,15 +11,15 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatTab } from '@axe/chat-tab';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { ChatMessageSettingComponent } from 'component/chat-message-setting/chat-message-setting.component';
-import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from 'component/chat-tachie-img/chat-tachie-img.component';
-import { ChatMessageService } from 'service/chat-message.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ChatTab } from '@axe/class/chat-tab';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { ChatMessageSettingComponent } from '@axe/component/chat-message-setting/chat-message-setting.component';
+import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/component/chat-tachie-img/chat-tachie-img.component';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'chat-tachie',

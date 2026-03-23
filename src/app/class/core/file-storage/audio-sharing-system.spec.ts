@@ -1,8 +1,8 @@
-import { AudioFile, AudioFileContext, AudioState } from '@axe/core/file-storage/audio-file';
-import { AudioSharingSystem } from '@axe/core/file-storage/audio-sharing-system';
-import { AudioStorage } from '@axe/core/file-storage/audio-storage';
-import { BufferSharingTask } from '@axe/core/file-storage/buffer-sharing-task';
-import { EventSystem, Network } from '@axe/core/system';
+import { AudioFile, AudioFileContext, AudioState } from '@axe/class/core/file-storage/audio-file';
+import { AudioSharingSystem } from '@axe/class/core/file-storage/audio-sharing-system';
+import { AudioStorage } from '@axe/class/core/file-storage/audio-storage';
+import { BufferSharingTask } from '@axe/class/core/file-storage/buffer-sharing-task';
+import { EventSystem, Network } from '@axe/class/core/system';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 

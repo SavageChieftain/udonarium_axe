@@ -2,27 +2,27 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatPalette } from '@axe/chat-palette';
-import { ChatTab } from '@axe/chat-tab';
-import { GameObject } from '@axe/core/synchronize-object/game-object';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { SortOrder } from '@axe/data-summary-setting';
-import { DiceBot } from '@axe/dice-bot';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
-import { TabletopObject } from '@axe/tabletop-object';
+import { ChatPalette } from '@axe/class/chat-palette';
+import { ChatTab } from '@axe/class/chat-tab';
+import { GameObject } from '@axe/class/core/synchronize-object/game-object';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { DataElement } from '@axe/class/data-element';
+import { SortOrder } from '@axe/class/data-summary-setting';
+import { DiceBot } from '@axe/class/dice-bot';
+import { GameCharacter } from '@axe/class/game-character';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { TabletopObject } from '@axe/class/tabletop-object';
 import GameSystemClass from 'bcdice/lib/game_system';
-import { ControllerInputComponent } from 'component/controller-input/controller-input.component';
-import { ControllerInputComponent as ControllerInputComponent_1 } from 'component/controller-input/controller-input.component';
-import { GameCharacterBuffViewComponent } from 'component/game-character-buff-view/game-character-buff-view.component';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ChatMessageService } from 'service/chat-message.service';
-import { ContextMenuService } from 'service/context-menu.service';
-import { GameObjectInventoryService } from 'service/game-object-inventory.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ControllerInputComponent } from '@axe/component/controller-input/controller-input.component';
+import { ControllerInputComponent as ControllerInputComponent_1 } from '@axe/component/controller-input/controller-input.component';
+import { GameCharacterBuffViewComponent } from '@axe/component/game-character-buff-view/game-character-buff-view.component';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { ContextMenuService } from '@axe/service/context-menu.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 class RemoteControllerSelect {
   name!: string;
@@ -407,7 +407,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
     if (gameCharacters.length > 0) {
       for (const object of gameCharacters) {
-        object.decreaseBuffRound();
+        object.buffs.decreaseRound();
         text = text + '[' + object.name + ']';
       }
       const mess = 'バフのRを減少 ' + text;
@@ -435,7 +435,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     const gameCharacters = this.getTargetCharacters(checkedOnly);
     if (gameCharacters.length > 0) {
       for (const object of gameCharacters) {
-        object.deleteZeroRoundBuff();
+        object.buffs.deleteZeroRound();
         text = text + '[' + object.name + ']';
       }
       const mess = '0R以下のバフを消去 ' + text;
@@ -463,7 +463,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       return;
     }
     for (const character of gameCharacters) {
-      character.addBuffRound(name, info, round);
+      character.buffs.addRound(name, info, round);
     }
   }
 
@@ -540,7 +540,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       const name = this.remoteControllerSelect.name;
       const nowOrMax = this.remoteControllerSelect.nowOrMax;
       const addValue = this.remoteNumber;
-      text += object.changeStatusValue(name, nowOrMax, addValue, this.recoveryLimitFlagMin, this.recoveryLimitFlag);
+      text += object.status.changeValue(name, nowOrMax, addValue, this.recoveryLimitFlagMin, this.recoveryLimitFlag);
     }
     if (text != '') {
       let hugou = '+';

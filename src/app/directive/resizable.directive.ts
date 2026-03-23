@@ -9,8 +9,8 @@ import {
   OnDestroy,
   Output,
 } from '@angular/core';
-import { CSSNumber } from '@axe/transform/css-number';
-import { PointerCoordinate } from 'service/pointer-device.service';
+import { CSSNumber } from '@axe/class/transform/css-number';
+import { PointerCoordinate } from '@axe/service/pointer-device.service';
 
 import { HandleType, ResizeHandler } from './resize-handler';
 

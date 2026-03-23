@@ -12,17 +12,17 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { MarkDown } from '@axe/mark-down';
-import { FileSelecterComponent } from 'component/file-selecter/file-selecter.component';
-import { LinkifyPipe } from 'pipe/linkify.pipe';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { DataElement } from '@axe/class/data-element';
+import { MarkDown } from '@axe/class/mark-down';
+import { FileSelecterComponent } from '@axe/component/file-selecter/file-selecter.component';
+import { LinkifyPipe } from '@axe/pipe/linkify.pipe';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',

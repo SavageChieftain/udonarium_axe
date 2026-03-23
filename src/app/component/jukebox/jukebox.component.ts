@@ -1,18 +1,18 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Config } from '@axe/config';
-import { AudioFile } from '@axe/core/file-storage/audio-file';
-import { AudioPlayer, VolumeType } from '@axe/core/file-storage/audio-player';
-import { AudioStorage } from '@axe/core/file-storage/audio-storage';
-import { FileArchiver } from '@axe/core/file-storage/file-archiver';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { CutInLauncher } from '@axe/cut-in-launcher';
-import { Jukebox } from '@axe/Jukebox';
-import { CutInListComponent } from 'component/cut-in-list/cut-in-list.component';
-import { ModalService } from 'service/modal.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { Config } from '@axe/class/config';
+import { AudioFile } from '@axe/class/core/file-storage/audio-file';
+import { AudioPlayer, VolumeType } from '@axe/class/core/file-storage/audio-player';
+import { AudioStorage } from '@axe/class/core/file-storage/audio-storage';
+import { FileArchiver } from '@axe/class/core/file-storage/file-archiver';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { CutInLauncher } from '@axe/class/cut-in-launcher';
+import { Jukebox } from '@axe/class/Jukebox';
+import { CutInListComponent } from '@axe/component/cut-in-list/cut-in-list.component';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'app-jukebox',

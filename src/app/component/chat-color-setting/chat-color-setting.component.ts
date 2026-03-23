@@ -7,10 +7,10 @@ import {
   Input,
   OnDestroy,
 } from '@angular/core';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { GameCharacter } from '@axe/class/game-character';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'chat-color-setting',

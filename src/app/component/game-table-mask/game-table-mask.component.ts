@@ -12,25 +12,25 @@ import {
   OnChanges,
   OnDestroy,
 } from '@angular/core';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem, Network } from '@axe/core/system';
-import { generateUuid } from '@axe/core/system/util/uuid';
-import { GameTableMask } from '@axe/game-table-mask';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { TableSelecter } from '@axe/table-selecter';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { InputHandler } from 'directive/input-handler';
-import { MovableOption } from 'directive/movable.directive';
-import { MovableDirective } from 'directive/movable.directive';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { generateUuid } from '@axe/class/core/system/util/uuid';
+import { GameTableMask } from '@axe/class/game-table-mask';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { TableSelecter } from '@axe/class/table-selecter';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { InputHandler } from '@axe/directive/input-handler';
+import { MovableOption } from '@axe/directive/movable.directive';
+import { MovableDirective } from '@axe/directive/movable.directive';
 import { xor } from 'lodash';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { ModalService } from 'service/modal.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-import { TabletopActionService } from 'service/tabletop-action.service';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { TabletopActionService } from '@axe/service/tabletop-action.service';
 
 @Component({
   selector: 'game-table-mask',

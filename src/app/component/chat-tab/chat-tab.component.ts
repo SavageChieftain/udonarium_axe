@@ -15,15 +15,15 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { ChatMessage, ChatMessageContext } from '@axe/chat-message';
-import { ChatTab } from '@axe/chat-tab';
-import { ChatTabList } from '@axe/chat-tab-list';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
-import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
-import { ChatMessageComponent } from 'component/chat-message/chat-message.component';
-import { PanelService } from 'service/panel.service';
+import { ChatMessage, ChatMessageContext } from '@axe/class/chat-message';
+import { ChatTab } from '@axe/class/chat-tab';
+import { ChatTabList } from '@axe/class/chat-tab-list';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
+import { setZeroTimeout } from '@axe/class/core/system/util/zero-timeout';
+import { ChatMessageComponent } from '@axe/component/chat-message/chat-message.component';
+import { PanelService } from '@axe/service/panel.service';
 
 type ScrollPosition = { top: number; bottom: number; clientHeight: number; scrollHeight: number };
 

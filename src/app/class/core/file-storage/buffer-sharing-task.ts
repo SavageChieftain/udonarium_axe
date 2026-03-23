@@ -1,8 +1,8 @@
-import { Logger } from '@axe/core/logger';
-import { EventSystem } from '@axe/core/system';
-import * as MessagePack from '@axe/core/system/util/message-pack';
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
-import { clearZeroTimeout, setZeroTimeout } from '@axe/core/system/util/zero-timeout';
+import { Logger } from '@axe/class/core/logger';
+import { EventSystem } from '@axe/class/core/system';
+import * as MessagePack from '@axe/class/core/system/util/message-pack';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
+import { clearZeroTimeout, setZeroTimeout } from '@axe/class/core/system/util/zero-timeout';
 
 interface ChankData {
   index: number;

@@ -8,11 +8,11 @@ import {
   OnDestroy,
   ViewContainerRef,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { TabletopObject } from '@axe/tabletop-object';
-import { OverviewPanelComponent } from 'component/overview-panel/overview-panel.component';
-import { ContextMenuService } from 'service/context-menu.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { EventSystem } from '@axe/class/core/system';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { OverviewPanelComponent } from '@axe/component/overview-panel/overview-panel.component';
+import { ContextMenuService } from '@axe/service/context-menu.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Directive({ selector: '[appTooltip]' })
 export class TooltipDirective implements AfterViewInit, OnDestroy {

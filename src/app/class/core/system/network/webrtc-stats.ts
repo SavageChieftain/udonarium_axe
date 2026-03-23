@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/class/core/logger';
 
 export enum CandidateType {
   UNKNOWN = 'unknown',

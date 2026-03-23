@@ -1,6 +1,6 @@
-import { Logger } from '@axe/core/logger';
-import { EventSystem, Network } from '@axe/core/system';
-import { generateUuid } from '@axe/core/system/util/uuid';
+import { Logger } from '@axe/class/core/logger';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { generateUuid } from '@axe/class/core/system/util/uuid';
 
 import { BufferSharingTask } from './buffer-sharing-task';
 import * as FileReaderUtil from './file-reader-util';

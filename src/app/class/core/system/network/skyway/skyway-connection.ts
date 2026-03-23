@@ -1,11 +1,11 @@
-import { Logger } from '@axe/core/logger';
-import { Connection, ConnectionCallback } from '@axe/core/system/network/connection';
-import { IPeerContext, PeerContext } from '@axe/core/system/network/peer-context';
-import { IRoomInfo, RoomInfo } from '@axe/core/system/network/room-info';
-import { diff } from '@axe/core/system/util/array-util';
-import { compressAsync, decompressAsync } from '@axe/core/system/util/compress';
-import * as MessagePack from '@axe/core/system/util/message-pack';
-import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
+import { Logger } from '@axe/class/core/logger';
+import { Connection, ConnectionCallback } from '@axe/class/core/system/network/connection';
+import { IPeerContext, PeerContext } from '@axe/class/core/system/network/peer-context';
+import { IRoomInfo, RoomInfo } from '@axe/class/core/system/network/room-info';
+import { diff } from '@axe/class/core/system/util/array-util';
+import { compressAsync, decompressAsync } from '@axe/class/core/system/util/compress';
+import * as MessagePack from '@axe/class/core/system/util/message-pack';
+import { setZeroTimeout } from '@axe/class/core/system/util/zero-timeout';
 
 import { SkyWayDataStream } from './skyway-data-stream';
 import { SkyWayDataStreamList } from './skyway-data-stream-list';

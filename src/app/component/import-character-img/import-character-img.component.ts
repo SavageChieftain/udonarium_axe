@@ -9,15 +9,15 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageFile } from '@axe/core/file-storage/image-file';
-import { ImageStorage } from '@axe/core/file-storage/image-storage';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { DataElement } from '@axe/data-element';
-import { GameCharacter } from '@axe/game-character';
+import { ImageFile } from '@axe/class/core/file-storage/image-file';
+import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { DataElement } from '@axe/class/data-element';
+import { GameCharacter } from '@axe/class/game-character';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-import { SafePipe } from 'pipe/safe.pipe';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'import-character-img',

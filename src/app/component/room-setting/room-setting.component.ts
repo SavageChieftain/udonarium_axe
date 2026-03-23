@@ -1,10 +1,10 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/system';
-import { PeerContext } from '@axe/core/system/network/peer-context';
-import { PeerCursor } from '@axe/peer-cursor';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { EventSystem, Network } from '@axe/class/core/system';
+import { PeerContext } from '@axe/class/core/system/network/peer-context';
+import { PeerCursor } from '@axe/class/peer-cursor';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'room-setting',

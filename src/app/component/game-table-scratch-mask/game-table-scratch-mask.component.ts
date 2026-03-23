@@ -9,17 +9,17 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/system';
-import { GameTableScratchMask } from '@axe/game-table-scratch-mask';
-import { PresetSound, SoundEffect } from '@axe/sound-effect';
-import { GameCharacterSheetComponent } from 'component/game-character-sheet/game-character-sheet.component';
-import { MovableOption } from 'directive/movable.directive';
-import { MovableDirective } from 'directive/movable.directive';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from 'service/context-menu.service';
-import { CoordinateService } from 'service/coordinate.service';
-import { PanelOption, PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
-import { TabletopActionService } from 'service/tabletop-action.service';
+import { EventSystem } from '@axe/class/core/system';
+import { GameTableScratchMask } from '@axe/class/game-table-scratch-mask';
+import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
+import { GameCharacterSheetComponent } from '@axe/component/game-character-sheet/game-character-sheet.component';
+import { MovableOption } from '@axe/directive/movable.directive';
+import { MovableDirective } from '@axe/directive/movable.directive';
+import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { CoordinateService } from '@axe/service/coordinate.service';
+import { PanelOption, PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { TabletopActionService } from '@axe/service/tabletop-action.service';
 
 @Component({
   selector: 'game-table-scratch-mask',

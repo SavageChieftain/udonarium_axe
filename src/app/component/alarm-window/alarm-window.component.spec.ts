@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Alarm } from '@axe/alarm';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { TEST_PROVIDERS } from 'testing/test-providers';
+import { Alarm } from '@axe/class/alarm';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { AlarmWindowComponent } from './alarm-window.component';
 

@@ -1,8 +1,8 @@
 import { Component, inject, Input } from '@angular/core';
-import { TabletopObject } from '@axe/tabletop-object';
-import { GameDataElementBuffComponent } from 'component/game-data-element-buff/game-data-element-buff.component';
-import { ModalService } from 'service/modal.service';
-import { PanelService } from 'service/panel.service';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { GameDataElementBuffComponent } from '@axe/component/game-data-element-buff/game-data-element-buff.component';
+import { ModalService } from '@axe/service/modal.service';
+import { PanelService } from '@axe/service/panel.service';
 
 @Component({
   selector: 'game-character-buff-view',

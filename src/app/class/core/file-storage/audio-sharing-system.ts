@@ -1,5 +1,5 @@
-import { Logger } from '@axe/core/logger';
-import { EventSystem, Network } from '@axe/core/system';
+import { Logger } from '@axe/class/core/logger';
+import { EventSystem, Network } from '@axe/class/core/system';
 
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 import { AudioStorage, CatalogItem } from './audio-storage';

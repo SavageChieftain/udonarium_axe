@@ -1,13 +1,13 @@
 import { NgClass, NgStyle } from '@angular/common';
 import { Component, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { CutIn } from '@axe/cut-in';
-import { CardStackListImageComponent as CardStackListImageComponent_1 } from 'component/card-stack-list-img/card-stack-list-img.component';
-import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from 'component/chat-tachie-img/chat-tachie-img.component';
-import { DraggableDirective } from 'directive/draggable.directive';
-import { ResizableDirective } from 'directive/resizable.directive';
-import { PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { CutIn } from '@axe/class/cut-in';
+import { CardStackListImageComponent as CardStackListImageComponent_1 } from '@axe/component/card-stack-list-img/card-stack-list-img.component';
+import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/component/chat-tachie-img/chat-tachie-img.component';
+import { DraggableDirective } from '@axe/directive/draggable.directive';
+import { ResizableDirective } from '@axe/directive/resizable.directive';
+import { PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'ui-panel',

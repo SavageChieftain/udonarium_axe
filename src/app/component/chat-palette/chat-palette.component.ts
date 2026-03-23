@@ -1,21 +1,21 @@
 import { Component, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatMessageTargetContext } from '@axe/chat-message';
-import { ChatPalette, PaletteIndex } from '@axe/chat-palette';
-import { ChatTab } from '@axe/chat-tab';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { DiceBot } from '@axe/dice-bot';
-import { GameCharacter } from '@axe/game-character';
-import { PeerCursor } from '@axe/peer-cursor';
+import { ChatMessageTargetContext } from '@axe/class/chat-message';
+import { ChatPalette, PaletteIndex } from '@axe/class/chat-palette';
+import { ChatTab } from '@axe/class/chat-tab';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { DiceBot } from '@axe/class/dice-bot';
+import { GameCharacter } from '@axe/class/game-character';
+import { PeerCursor } from '@axe/class/peer-cursor';
 import GameSystemClass from 'bcdice/lib/game_system';
-import { BadgeComponent } from 'component/badge/badge.component';
-import { ChatInputComponent } from 'component/chat-input/chat-input.component';
-import { ChatInputComponent as ChatInputComponent_1 } from 'component/chat-input/chat-input.component';
-import { ChatMessageService } from 'service/chat-message.service';
-import { ContextMenuService } from 'service/context-menu.service';
-import { PanelService } from 'service/panel.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { BadgeComponent } from '@axe/component/badge/badge.component';
+import { ChatInputComponent } from '@axe/component/chat-input/chat-input.component';
+import { ChatInputComponent as ChatInputComponent_1 } from '@axe/component/chat-input/chat-input.component';
+import { ChatMessageService } from '@axe/service/chat-message.service';
+import { ContextMenuService } from '@axe/service/context-menu.service';
+import { PanelService } from '@axe/service/panel.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'chat-palette',

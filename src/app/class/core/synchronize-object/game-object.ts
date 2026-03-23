@@ -1,4 +1,4 @@
-import { generateUuid } from '@axe/core/system/util/uuid';
+import { generateUuid } from '@axe/class/core/system/util/uuid';
 
 import { ObjectFactory } from './object-factory';
 import { ObjectSerializer } from './object-serializer';

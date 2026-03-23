@@ -1,19 +1,18 @@
-import { defineConfig } from 'vitest/config';
+import angular from '@analogjs/vite-plugin-angular';
 import { resolve } from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  plugins: [angular({ jit: false })],
   resolve: {
     alias: {
-      '@axe': resolve(__dirname, 'src/app/class'),
-      directive: resolve(__dirname, 'src/app/directive'),
-      component: resolve(__dirname, 'src/app/component'),
-      pipe: resolve(__dirname, 'src/app/pipe'),
-      service: resolve(__dirname, 'src/app/service'),
+      '@axe': resolve(__dirname, 'src/app'),
     },
   },
   test: {
     globals: true,
     environment: 'happy-dom',
+    pool: 'threads',
     include: ['src/**/*.spec.ts'],
     setupFiles: ['src/test-setup.ts'],
     coverage: {

@@ -1,5 +1,5 @@
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { GameCharacter } from '@axe/game-character';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { GameCharacter } from '@axe/class/game-character';
 
 describe('GameCharacter', () => {
   let character: GameCharacter;

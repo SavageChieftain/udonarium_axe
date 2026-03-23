@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/class/core/logger';
 import * as Pako from 'pako';
 
 import { setZeroTimeout } from './zero-timeout';

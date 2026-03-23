@@ -1,4 +1,4 @@
-import { Event, EventSystem, Network } from '@axe/core/system';
+import { Event, EventSystem, Network } from '@axe/class/core/system';
 
 import { GameObject } from './game-object';
 import { ObjectNode } from './object-node';

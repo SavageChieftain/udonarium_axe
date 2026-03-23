@@ -1,4 +1,4 @@
-import { PeerCursor } from '@axe/peer-cursor';
+import { PeerCursor } from '@axe/class/peer-cursor';
 
 import { SyncObject, SyncVar } from './core/synchronize-object/decorator';
 import { GameObject, ObjectContext } from './core/synchronize-object/game-object';

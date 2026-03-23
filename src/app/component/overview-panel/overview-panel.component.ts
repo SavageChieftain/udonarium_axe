@@ -13,21 +13,21 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Card } from '@axe/card'; //
-import { CardStack } from '@axe/card-stack'; //
-import { ObjectNode } from '@axe/core/synchronize-object/object-node';
-import { ObjectStore } from '@axe/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/core/system';
-import { DataElement } from '@axe/data-element';
-import { GameCharacter } from '@axe/game-character'; //
-import { MarkDown } from '@axe/mark-down';
-import { TabletopObject } from '@axe/tabletop-object';
-import { TextNote } from '@axe/text-note'; //
-import { DraggableDirective } from 'directive/draggable.directive';
-import { LinkifyPipe } from 'pipe/linkify.pipe';
-import { SafePipe } from 'pipe/safe.pipe';
-import { GameObjectInventoryService } from 'service/game-object-inventory.service';
-import { PointerDeviceService } from 'service/pointer-device.service';
+import { Card } from '@axe/class/card'; //
+import { CardStack } from '@axe/class/card-stack'; //
+import { ObjectNode } from '@axe/class/core/synchronize-object/object-node';
+import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
+import { EventSystem } from '@axe/class/core/system';
+import { DataElement } from '@axe/class/data-element';
+import { GameCharacter } from '@axe/class/game-character'; //
+import { MarkDown } from '@axe/class/mark-down';
+import { TabletopObject } from '@axe/class/tabletop-object';
+import { TextNote } from '@axe/class/text-note'; //
+import { DraggableDirective } from '@axe/directive/draggable.directive';
+import { LinkifyPipe } from '@axe/pipe/linkify.pipe';
+import { SafePipe } from '@axe/pipe/safe.pipe';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
+import { PointerDeviceService } from '@axe/service/pointer-device.service';
 
 @Component({
   selector: 'overview-panel',

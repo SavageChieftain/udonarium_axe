@@ -1,4 +1,4 @@
-import { ReloadCheck } from '@axe/reload-check';
+import { ReloadCheck } from '@axe/class/reload-check';
 
 import { Card } from './card';
 import { CardStack } from './card-stack';

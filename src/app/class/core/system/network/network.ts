@@ -1,5 +1,5 @@
-import { Logger } from '@axe/core/logger';
-import { setZeroTimeout } from '@axe/core/system/util/zero-timeout';
+import { Logger } from '@axe/class/core/logger';
+import { setZeroTimeout } from '@axe/class/core/system/util/zero-timeout';
 
 import { Connection, ConnectionCallback } from './connection';
 import { IPeerContext, PeerContext } from './peer-context';

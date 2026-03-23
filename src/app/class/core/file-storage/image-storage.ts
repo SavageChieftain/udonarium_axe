@@ -1,5 +1,5 @@
-import { EventSystem } from '@axe/core/system';
-import { ResettableTimeout } from '@axe/core/system/util/resettable-timeout';
+import { EventSystem } from '@axe/class/core/system';
+import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeout';
 
 import { ImageContext, ImageFile, ImageState } from './image-file';
 
