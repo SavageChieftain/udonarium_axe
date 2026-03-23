@@ -31,7 +31,6 @@
   "files.insertFinalNewline": true,
   "files.exclude": {
     "**/.angular": true,
-    "**/dist": true,
     "**/out-tsc": true,
     "**/node_modules": true
   },
