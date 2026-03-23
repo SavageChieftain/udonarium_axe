@@ -57,5 +57,31 @@ describe('ChatWindowComponent', () => {
 
       expect((component as unknown as { _chatTabidentifier: string })._chatTabidentifier).not.toBe(oldIdentifier);
     });
+
+    it('UPDATE_GAME_OBJECTでタブ再選択時にscrollToBottomが呼ばれること', () => {
+      fixture.detectChanges();
+      const spy = vi.spyOn(component, 'scrollToBottom');
+      const invalidId = 'non-existent-tab-id';
+      (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = invalidId;
+
+      const chatTabList = ChatTabList.instance;
+      EventSystem.trigger('UPDATE_GAME_OBJECT', chatTabList.toContext());
+
+      expect(spy).toHaveBeenCalledWith(true);
+    });
+
+    it('DELETE_GAME_OBJECTでタブ再選択時にscrollToBottomが呼ばれること', () => {
+      fixture.detectChanges();
+      const spy = vi.spyOn(component, 'scrollToBottom');
+      const oldIdentifier = 'non-existent-tab-id';
+      (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = oldIdentifier;
+
+      EventSystem.trigger('DELETE_GAME_OBJECT', {
+        aliasName: 'chat-tab',
+        identifier: oldIdentifier,
+      });
+
+      expect(spy).toHaveBeenCalledWith(true);
+    });
   });
 });

@@ -9,6 +9,7 @@ import {
   inject,
   Input,
   OnDestroy,
+  OnInit,
   ViewChild,
 } from '@angular/core';
 import { ChatTab } from '@axe/class/chat-tab';
@@ -29,7 +30,7 @@ import { PointerDeviceService } from '@axe/service/pointer-device.service';
   styleUrls: ['./chat-tachie-img.component.css'],
   imports: [NgStyle, SafePipe],
 })
-export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
+export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
@@ -128,6 +129,18 @@ export class ChatTachieImageComponent implements OnDestroy, AfterViewInit, After
   }
 
   private timerId: ReturnType<typeof setTimeout> | null = null;
+
+  ngOnInit() {
+    EventSystem.register(this)
+      .on('SYNCHRONIZE_FILE_LIST', () => {
+        this.changeDetectionRef.markForCheck();
+      })
+      .on('UPDATE_GAME_OBJECT', (event) => {
+        if (event.data.identifier === this.chatTabidentifier) {
+          this.changeDetectionRef.markForCheck();
+        }
+      });
+  }
 
   //立ち絵表示幅取得
   ngAfterViewInit() {

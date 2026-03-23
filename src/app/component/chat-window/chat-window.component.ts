@@ -119,8 +119,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         if (object instanceof ChatTab || object instanceof ChatTabList) {
           if (this._chatTabidentifier && !this.objectStore.get<ChatTab>(this._chatTabidentifier)) {
             const chatTabs = this.chatMessageService.chatTabs;
-            this._chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
-            this.updatePanelTitle();
+            this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
           }
           this.changeDetector.markForCheck();
         }
@@ -129,8 +128,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         if (event.data.aliasName !== 'chat-tab') return;
         if (this._chatTabidentifier === event.data.identifier) {
           const chatTabs = this.chatMessageService.chatTabs;
-          this._chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
-          this.updatePanelTitle();
+          this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
         this.changeDetector.markForCheck();
       });

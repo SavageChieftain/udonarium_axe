@@ -262,7 +262,11 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   }
 
   ngOnChanges() {
-    queueMicrotask(() => this.resetMessages());
+    if (this.panelService?.scrollablePanel) {
+      this.resetMessages();
+    } else {
+      queueMicrotask(() => this.resetMessages());
+    }
   }
 
   ngAfterViewChecked() {
@@ -279,6 +283,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   }
 
   resetMessages() {
+    if (!this.chatTab || !this.panelService?.scrollablePanel) return;
     const lastIndex = this.chatTab.chatMessages.length - 1;
     //    this.topIndex = lastIndex - Math.floor(this.panelService.scrollablePanel.clientHeight / this.minMessageHeight);
     this.topIndex = this.chatMessagesDisplayableTopIndex(
