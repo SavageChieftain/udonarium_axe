@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageTargetContext } from '@axe/class/chat-message';
 import { ChatPalette, PaletteIndex } from '@axe/class/chat-palette';
@@ -15,6 +15,7 @@ import { ChatMessageService } from '@axe/service/chat-message.service';
 import { ContextMenuService } from '@axe/service/context-menu.service';
 import { PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
@@ -29,6 +30,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
+  private uiSignalService = inject(UiSignalService);
 
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('chatInput', { static: true }) chatInputComponent: ChatInputComponent;
@@ -88,23 +90,19 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
     this.gameType = this.character.chatPalette ? this.character.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
-    EventSystem.register(this)
-      .on('DELETE_GAME_OBJECT', (event) => {
-        if (this.character && this.character.identifier === event.data.identifier) {
-          this.panelService.close();
-        }
-        if (this.chatTabidentifier === event.data.identifier) {
-          this.chatTabidentifier = this.chatMessageService.chatTabs
-            ? this.chatMessageService.chatTabs[0].identifier
-            : '';
-        }
-      })
-      .on('JUMP_INDEX', -1000, (event) => {
-        if (this._timeId != event.data.targetId) {
-          return;
-        }
-        this.japmIndex(event.data.lineNo);
-      });
+    EventSystem.register(this).on('DELETE_GAME_OBJECT', (event) => {
+      if (this.character && this.character.identifier === event.data.identifier) {
+        this.panelService.close();
+      }
+      if (this.chatTabidentifier === event.data.identifier) {
+        this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
+      }
+    });
+    effect(() => {
+      const req = this.uiSignalService.jumpIndexRequest();
+      if (!req || this._timeId != req.targetId) return;
+      this.japmIndex(req.lineNo);
+    });
   }
 
   ngOnDestroy() {

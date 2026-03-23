@@ -3,6 +3,8 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
+  effect,
   ElementRef,
   HostListener,
   inject,
@@ -11,13 +13,13 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Card } from '@axe/class/card';
 import { CardStack } from '@axe/class/card-stack';
 import { Config } from '@axe/class/config';
 import { ImageFile } from '@axe/class/core/file-storage/image-file';
 import { GameObject } from '@axe/class/core/synchronize-object/game-object';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/class/core/system';
 import { DiceSymbol } from '@axe/class/dice-symbol';
 import { GameCharacter } from '@axe/class/game-character';
 import { FilterType, GameTable, GridType } from '@axe/class/game-table';
@@ -45,9 +47,12 @@ import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@ax
 import { CoordinateService } from '@axe/service/coordinate.service';
 import { ImageService } from '@axe/service/image.service';
 import { ModalService } from '@axe/service/modal.service';
+import { ObjectChangeService } from '@axe/service/object-change.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 import { TabletopService } from '@axe/service/tabletop.service';
 import { TabletopActionService } from '@axe/service/tabletop-action.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 import { GridLineRender } from './grid-line-render';
 import { TableMouseGesture, TableMouseGestureEvent } from './table-mouse-gesture';
@@ -85,6 +90,10 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private tabletopActionService = inject(TabletopActionService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
+  private uiSignalService = inject(UiSignalService);
+  private objectChangeService = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('gameTable', { static: true }) gameTable: ElementRef<HTMLElement>;
@@ -169,64 +178,60 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        if (
-          event.data.identifier !== this.currentTable.identifier &&
-          event.data.identifier !== this.tableSelecter.identifier
-        )
-          return;
-        this.setGameTableGrid(
-          this.currentTable.width,
-          this.currentTable.height,
-          this.currentTable.gridSize,
-          this.currentTable.gridType,
-          this.currentTable.gridColor
-        );
-      })
-      .on('RE_DRAW_TABLE', (_event) => {
-        this.changeDetector.detectChanges();
-        this.changeDetector.markForCheck();
-      })
-      .on('DRAG_LOCKED_OBJECT', (_event) => {
-        this.isTableTransformMode = true;
-        this.pointerDeviceService.isDragging = false;
-        let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
-        if (this.roomGridDispAlways) {
-          opacity = 1.0;
-        }
-        this.gridCanvas.nativeElement.style.opacity = opacity + '';
-      })
-      .on('FOCUS_TO_TABLETOP_COORDINATE', (event) => {
+    this.objectChangeService.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.identifier !== this.currentTable.identifier && event.identifier !== this.tableSelecter.identifier)
+        return;
+      this.setGameTableGrid(
+        this.currentTable.width,
+        this.currentTable.height,
+        this.currentTable.gridSize,
+        this.currentTable.gridType,
+        this.currentTable.gridColor
+      );
+    });
+    effect(() => {
+      this.selectionSignalService.dragLockedVersion();
+      if (!this.gridCanvas) return;
+      this.isTableTransformMode = true;
+      this.pointerDeviceService.isDragging = false;
+      let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
+      if (this.roomGridDispAlways) {
+        opacity = 1.0;
+      }
+      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    });
+    effect(() => {
+      const focus = this.selectionSignalService.focusCoordinate();
+      if (!focus || !this.gameTable) return;
+      setTimeout(() => {
+        this.gameTable.nativeElement.style.transition = '0.2s ease-out';
         setTimeout(() => {
-          this.gameTable.nativeElement.style.transition = '0.2s ease-out';
-          setTimeout(() => {
-            this.gameTable.nativeElement.style.transition = null!;
-          }, 100);
-          // 座標変換
-          const centerX = this.gridCanvas.nativeElement.clientWidth / 2;
-          const centerY = this.gridCanvas.nativeElement.clientHeight / 2;
-          const movedX = event.data.x - centerX;
-          const movedY = event.data.y - centerY;
-          // z軸回転
-          const rotateZRad = (this.viewRotateZ / 180) * Math.PI;
-          const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
-          const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
-          // x軸回転
-          const rotateXRad = (this.viewRotateX / 180) * Math.PI;
-          const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
-          const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
-          // 移動
-          this.setTransform(
-            100 - rotatedMovedX - this.viewPotisonX,
-            -rotatedMovedY - this.viewPotisonY,
-            -rotatedMovedZ - this.viewPotisonZ,
-            0,
-            0,
-            0
-          );
-        }, 50);
-      });
+          this.gameTable.nativeElement.style.transition = null!;
+        }, 100);
+        // 座標変換
+        const centerX = this.gridCanvas.nativeElement.clientWidth / 2;
+        const centerY = this.gridCanvas.nativeElement.clientHeight / 2;
+        const movedX = focus.x - centerX;
+        const movedY = focus.y - centerY;
+        // z軸回転
+        const rotateZRad = (this.viewRotateZ / 180) * Math.PI;
+        const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
+        const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
+        // x軸回転
+        const rotateXRad = (this.viewRotateX / 180) * Math.PI;
+        const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
+        const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
+        // 移動
+        this.setTransform(
+          100 - rotatedMovedX - this.viewPotisonX,
+          -rotatedMovedY - this.viewPotisonY,
+          -rotatedMovedZ - this.viewPotisonZ,
+          0,
+          0,
+          0
+        );
+      }, 50);
+    });
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();
     this.tabletopActionService.initAprilDiceImage();
@@ -251,7 +256,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.mouseGesture) this.mouseGesture.destroy();
     if (this.touchGesture) this.touchGesture.destroy();
   }
@@ -323,7 +327,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       this.isTableTransformMode = false;
       this.pointerDeviceService.isDragging = true;
       this.gridCanvas.nativeElement.style.opacity = 1.0 + '';
-      EventSystem.trigger('DISP_TERRAIN_GRID', {});
+      this.uiSignalService.notifyTerrainGridShow();
     }
     if (!document.activeElement?.contains(me.target as Node)) {
       this.removeSelectionRanges();
@@ -333,7 +337,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onTableMouseEnd(_e: TouchEvent | MouseEvent | PointerEvent) {
     this.cancelInput();
-    EventSystem.trigger('DISP_TERRAIN_GRID_END', {});
+    this.uiSignalService.notifyTerrainGridEnd();
   }
 
   onTableMouseTransform(
@@ -428,11 +432,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (rotateX != 0 || rotateY != 0 || rotateX != 0) {
       this.ngZone.run(() => {
-        EventSystem.trigger('TABLE_VIEW_ROTATE', {
-          x: this.viewRotateX,
-          y: this.viewRotateY,
-          z: this.viewRotateZ,
-        });
+        this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
       });
     }
 

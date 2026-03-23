@@ -20,6 +20,7 @@ import { ModalService } from '@axe/service/modal.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
 import { SaveDataService } from '@axe/service/save-data.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
   selector: 'game-character-sheet',
@@ -32,6 +33,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private uiSignalService = inject(UiSignalService);
 
   @Input() tabletopObject:
     | GameCharacter
@@ -159,9 +161,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   clickLimitHeight() {
     //高さが更新されない場合があるので雑だがこの方法で処理する
     setTimeout(() => {
-      EventSystem.trigger('RESIZE_NOTE_OBJECT', {
-        identifier: this.tabletopObject!.identifier,
-      });
+      this.uiSignalService.requestNoteResize(this.tabletopObject!.identifier);
     }, 100);
   }
 

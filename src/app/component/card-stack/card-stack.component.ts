@@ -32,6 +32,7 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-m
 import { ImageService } from '@axe/service/image.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 
 @Component({
   selector: 'card-stack',
@@ -49,6 +50,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
 
   @Input() cardStack: CardStack = null!;
   @Input() is3D: boolean = false;
@@ -251,13 +253,10 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     this.startIconHiddenTimer();
 
     if (this.isLock) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
 
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: this.cardStack.identifier,
-      className: 'GameCharacter',
-    });
+    this.selectionSignalService.selectObject(this.cardStack.identifier, 'GameCharacter');
   }
 
   @HostListener('contextmenu', ['$event'])
@@ -504,10 +503,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private showDetail(gameObject: CardStack) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = '山札設定';
     if (gameObject.name.length) title += ' - ' + gameObject.name;
@@ -523,10 +519,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private showStackList(gameObject: CardStack) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
 
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x - 200, top: coordinate.y - 300, width: 400, height: 600 };

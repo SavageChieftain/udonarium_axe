@@ -31,6 +31,7 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-m
 import { ImageService } from '@axe/service/image.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 import { TabletopService } from '@axe/service/tabletop.service';
 
 @Component({
@@ -50,6 +51,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
 
   @Input() card: Card = null!;
   @Input() is3D: boolean = false;
@@ -255,7 +257,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.startIconHiddenTimer();
 
     if (this.isLock) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -435,10 +437,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private showDetail(gameObject: Card) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = 'カード設定';
     if (gameObject.name.length) title += ' - ' + gameObject.name;

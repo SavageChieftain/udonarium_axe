@@ -30,6 +30,7 @@ import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@ax
 import { ImageService } from '@axe/service/image.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 
 @Component({
   selector: 'dice-symbol',
@@ -47,6 +48,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
 
   @Input() diceSymbol: DiceSymbol = null!;
   @Input() is3D: boolean = false;
@@ -206,7 +208,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // TODO:もっと良い方法考える
     if (this.isLock) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -353,10 +355,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   showDetail(gameObject: DiceSymbol) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = 'ダイスシンボル設定';
     if (gameObject.name.length) title += ' - ' + gameObject.name;

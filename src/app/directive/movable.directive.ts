@@ -15,6 +15,7 @@ import { TabletopObject } from '@axe/class/tabletop-object';
 import { BatchService } from '@axe/service/batch.service';
 import { CoordinateService } from '@axe/service/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 
 import { InputHandler } from './input-handler';
 
@@ -33,6 +34,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tableSelecter = inject(TableSelecter);
+  private selectionSignalService = inject(SelectionSignalService);
 
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 
@@ -171,7 +173,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.setCollidableLayer(false);
   }
 
-  scratchObjectPosition(start: boolean) {
+  scratchObjectPosition(_start: boolean) {
     const pointerScratch2d = {
       x: this.input.pointer.x,
       y: this.input.pointer.y,
@@ -187,14 +189,6 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
 
     pointerSchratch3d.x -= this.posX;
     pointerSchratch3d.y -= this.posY;
-
-    EventSystem.trigger('SCRATCH_POINTER_XYZ', {
-      x: pointerSchratch3d.x,
-      y: pointerSchratch3d.y,
-      z: pointerSchratch3d.z,
-      identifier: this.tabletopObject.identifier,
-      start: start,
-    });
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {
@@ -313,10 +307,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
 
   private callSelectedEvent() {
     if (this.tabletopObject)
-      EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-        identifier: this.tabletopObject.identifier,
-        className: this.tabletopObject.aliasName,
-      });
+      this.selectionSignalService.selectObject(this.tabletopObject.identifier, this.tabletopObject.aliasName);
   }
 
   snapToGrid(gridSize: number = 25) {

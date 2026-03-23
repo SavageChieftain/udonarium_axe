@@ -48,7 +48,6 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   set volume(volume: number) {
     this.jukebox.volume = volume;
     AudioPlayer.volume = volume * this.roomVolume;
-    EventSystem.trigger('CHANGE_JUKEBOX_VOLUME', null!);
   }
 
   get auditionVolume(): number {
@@ -57,7 +56,6 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   set auditionVolume(auditionVolume: number) {
     this.jukebox.auditionVolume = auditionVolume;
     AudioPlayer.auditionVolume = auditionVolume * this.roomVolume;
-    EventSystem.trigger('CHANGE_JUKEBOX_VOLUME', null!);
   }
 
   get audios(): AudioFile[] {

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   inject,
   OnDestroy,
   OnInit,
@@ -25,6 +26,7 @@ import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@ax
 import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 
 @Component({
   selector: 'game-object-inventory',
@@ -40,6 +42,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
 
   inventoryTypes: string[] = ['table', 'common', 'graveyard'];
 
@@ -100,17 +103,19 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
+    effect(() => {
+      const selection = this.selectionSignalService.selectedObject();
+      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
+        this.selectedIdentifier = selection.identifier;
+        this.changeDetector.markForCheck();
+      }
+    });
+    effect(() => {
+      this.inventoryService.inventoryVersion();
+      this.changeDetector.markForCheck();
+    });
     EventSystem.register(this)
-      .on('SELECT_TABLETOP_OBJECT', (event) => {
-        if (this.objectStore.get(event.data.identifier) instanceof TabletopObject) {
-          this.selectedIdentifier = event.data.identifier;
-          this.changeDetector.markForCheck();
-        }
-      })
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_INVENTORY', (event) => {
         if (event.isSendFromSelf) this.changeDetector.markForCheck();
       })
       .on('OPEN_NETWORK', (_event) => {
@@ -367,10 +372,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   }
 
   private showDetail(gameObject: GameCharacter) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = 'キャラクターシート';
     if (gameObject.name.length) title += ' - ' + gameObject.name;
@@ -419,10 +421,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
     if (gameObject.location.name != 'table') {
       return;
     }
-    EventSystem.trigger('FOCUS_TO_TABLETOP_COORDINATE', {
-      x: gameObject.location.x,
-      y: gameObject.location.y,
-    });
+    this.selectionSignalService.focusToCoordinate(gameObject.location.x, gameObject.location.y);
   }
 
   selectGameObject(gameObject: GameObject) {
@@ -433,13 +432,8 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
         this.multiMoveTargets.add(gameObject.identifier);
       }
     }
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
-    EventSystem.trigger('HIGHTLIGHT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
+    this.selectionSignalService.highlightObject(gameObject.identifier);
   }
 
   private deleteGameObject(gameObject: GameObject) {

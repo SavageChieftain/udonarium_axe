@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   HostListener,
   inject,
@@ -28,8 +29,11 @@ import { RotableOption } from '@axe/directive/rotable.directive';
 import { RotableDirective } from '@axe/directive/rotable.directive';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
   selector: 'text-note',
@@ -46,6 +50,9 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
+  private inventoryService = inject(GameObjectInventoryService);
+  private uiSignalService = inject(UiSignalService);
 
   @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
 
@@ -180,13 +187,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     EventSystem.register(this)
-      .on('RESIZE_NOTE_OBJECT', -1000, (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.textNote || !object) return;
-        if (this.textNote === object) {
-          this.calcFitHeight();
-        }
-      })
       .on('UPDATE_GAME_OBJECT', -1000, (event) => {
         const object = this.objectStore.get(event.data.identifier);
         if (!this.textNote || !object) return;
@@ -199,13 +199,20 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
       })
       .on('UPDATE_FILE_RESOURE', -1000, (_event) => {
         this.changeDetector.markForCheck();
-      })
-      .on<{ z?: number }>('TABLE_VIEW_ROTATE', -1000, (event) => {
-        this.ngZone.run(() => {
-          this.viewRotateZ = event.data['z'] ?? 10;
-          this.changeDetector.markForCheck();
-        });
       });
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z ?? 10;
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      const req = this.uiSignalService.noteResizeRequest();
+      if (!req || !this.textNote) return;
+      if (this.textNote.identifier === req.identifier) {
+        this.calcFitHeight();
+      }
+    });
     this.movableOption = {
       tabletopObject: this.textNote,
       transformCssOffset: 'translateZ(0.15px)',
@@ -243,7 +250,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // TODO:もっと良い方法考える
     if (e.button === 2) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
       return;
     }
     this.addMouseEventListeners();
@@ -272,7 +279,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // TODO:もっと良い方法考える
     if (this.isLock) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -308,7 +315,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
                   action: () => {
                     this.isAltitudeIndicate = false;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 }
               : {
@@ -316,7 +323,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
                   action: () => {
                     this.isAltitudeIndicate = true;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 },
           ],
@@ -446,10 +453,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private showDetail(gameObject: TextNote) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = '共有メモ設定';
     if (gameObject.title.length) title += ' - ' + gameObject.title;

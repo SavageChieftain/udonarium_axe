@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ElementRef, inject, Input, ViewChild } from '@angular/core';
+import { effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatPalette } from '@axe/class/chat-palette';
@@ -22,6 +22,8 @@ import { ContextMenuService } from '@axe/service/context-menu.service';
 import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 class RemoteControllerSelect {
@@ -44,6 +46,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
+  private uiSignalService = inject(UiSignalService);
 
   get palette(): ChatPalette {
     return this.character.remoteController;
@@ -212,24 +216,26 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       }
     });
 
+    effect(() => {
+      const selection = this.selectionSignalService.selectedObject();
+      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
+        this.selectedIdentifier = selection.identifier;
+        this.changeDetector.markForCheck();
+      }
+    });
+    effect(() => {
+      this.inventoryService.inventoryVersion();
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      const data = this.uiSignalService.targetChange();
+      if (!data) return;
+      if (this.objectStore.get(data.identifier) instanceof GameCharacter) {
+        this.targetSetChkBox(this.objectStore.get(data.identifier));
+      }
+    });
     EventSystem.register(this)
-      .on('SELECT_TABLETOP_OBJECT', -1000, (event) => {
-        if (this.objectStore.get(event.data.identifier) instanceof TabletopObject) {
-          this.selectedIdentifier = event.data.identifier;
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('CHK_TARGET_CHANGE', -1000, (event) => {
-        if (this.objectStore.get(event.data.identifier) instanceof GameCharacter) {
-          this.targetSetChkBox(this.objectStore.get(event.data.identifier));
-        }
-      })
       .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('UPDATE_INVENTORY', (event) => {
         if (event.isSendFromSelf) {
           this.changeDetector.markForCheck();
         }
@@ -368,10 +374,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   selectGameObject(gameObject: GameObject) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     this.selectCharacter = gameObject;
   }
 
@@ -588,10 +591,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
         object.targeted = value.check;
         if (box) {
           box.checked = object.targeted;
-          EventSystem.trigger('CHK_TARGET_CHANGE', {
-            identifier: object.identifier,
-            className: object.aliasName,
-          });
+          this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
         }
       }
     }
@@ -607,10 +607,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   targetBlockClick(object: GameCharacter) {
     object.targeted = object.targeted ? false : true;
     this.targetSetChkBox(object);
-    EventSystem.trigger('CHK_TARGET_CHANGE', {
-      identifier: object.identifier,
-      className: object.aliasName,
-    });
+    this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
   }
 
   onChange(object: GameCharacter) {

@@ -10,11 +10,11 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ChatTabList } from '@axe/class/chat-tab-list';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/class/core/system';
 import { GameCharacter } from '@axe/class/game-character';
 import { PeerCursor } from '@axe/class/peer-cursor';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelService } from '@axe/service/panel.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
   selector: 'chat-message-setting',
@@ -28,6 +28,7 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
+  private uiSignalService = inject(UiSignalService);
 
   @Input() isAllowedEmpty: boolean = false;
   @Input() tabletopObject: GameCharacter = null!;
@@ -41,12 +42,12 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   }
 
   changeDispFlagTime() {
-    EventSystem.trigger('RE_DRAW_CHAT', {});
+    this.uiSignalService.notifyChatRedraw();
     //中身なし
   }
 
   changeDispFlagUserId() {
-    EventSystem.trigger('RE_DRAW_CHAT', {});
+    this.uiSignalService.notifyChatRedraw();
     //中身なし
   }
 

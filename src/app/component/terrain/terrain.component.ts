@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   HostListener,
   inject,
@@ -32,11 +33,14 @@ import { RotableDirective } from '@axe/directive/rotable.directive';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
 import { CoordinateService } from '@axe/service/coordinate.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { ImageService } from '@axe/service/image.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 import { TabletopService } from '@axe/service/tabletop.service';
 import { TabletopActionService } from '@axe/service/tabletop-action.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
   selector: 'terrain',
@@ -57,6 +61,9 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   private coordinateService = inject(CoordinateService);
   private tabletopService = inject(TabletopService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
+  private inventoryService = inject(GameObjectInventoryService);
+  private uiSignalService = inject(UiSignalService);
 
   @Input() terrain: Terrain = null!;
   @Input() is3D: boolean = false;
@@ -217,37 +224,39 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
           this.currentTable.gridColor
         );
       })
-      .on('DISP_TERRAIN_GRID', (_event) => {
-        let opacity: number = 0.0;
-        if (this.terrain.isGrid) {
-          opacity = 1.0;
-        }
-        this.gridCanvas.nativeElement.style.opacity = opacity + '';
-      })
-      .on('DISP_TERRAIN_GRID_END', (_event) => {
-        let opacity: number = 0.0;
-        if (this.terrain.isGrid) {
-          if (this.roomGridDispAlways) {
-            opacity = 1.0;
-          }
-          if (this.tableSelecter.gridShow) {
-            opacity = 1.0;
-          }
-        }
-        this.gridCanvas.nativeElement.style.opacity = opacity + '';
-      })
       .on('SYNCHRONIZE_FILE_LIST', (_event) => {
         this.changeDetector.markForCheck();
       })
       .on('UPDATE_FILE_RESOURE', (_event) => {
         this.changeDetector.markForCheck();
-      })
-      .on<object>('TABLE_VIEW_ROTATE', -1000, (event) => {
-        this.ngZone.run(() => {
-          this.viewRotateZ = (event.data as Record<string, number>)['z'];
-          this.changeDetector.markForCheck();
-        });
       });
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      this.uiSignalService.terrainGridShowVersion();
+      let opacity: number = 0.0;
+      if (this.terrain.isGrid) {
+        opacity = 1.0;
+      }
+      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    });
+    effect(() => {
+      this.uiSignalService.terrainGridEndVersion();
+      let opacity: number = 0.0;
+      if (this.terrain.isGrid) {
+        if (this.roomGridDispAlways) {
+          opacity = 1.0;
+        }
+        if (this.tableSelecter.gridShow) {
+          opacity = 1.0;
+        }
+      }
+      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    });
     this.movableOption = {
       tabletopObject: this.terrain,
       colideLayers: ['terrain'],
@@ -287,7 +296,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // TODO:もっと良い方法考える
     if (this.isLocked) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -323,7 +332,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
                   action: () => {
                     this.isAltitudeIndicate = false;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 }
               : {
@@ -331,7 +340,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
                   action: () => {
                     this.isAltitudeIndicate = true;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 },
             this.isDropShadow
@@ -340,7 +349,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
                   action: () => {
                     this.isDropShadow = false;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 }
               : {
@@ -348,7 +357,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
                   action: () => {
                     this.isDropShadow = true;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 },
           ],
@@ -547,10 +556,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private showDetail(gameObject: Terrain) {
-    EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-      identifier: gameObject.identifier,
-      className: gameObject.aliasName,
-    });
+    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = '地形設定';
     if (gameObject.name.length) title += ' - ' + gameObject.name;

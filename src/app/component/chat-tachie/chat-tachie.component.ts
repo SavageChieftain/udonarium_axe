@@ -14,12 +14,12 @@ import { FormsModule } from '@angular/forms';
 import { ChatTab } from '@axe/class/chat-tab';
 import { ChatTabList } from '@axe/class/chat-tab-list';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
-import { EventSystem } from '@axe/class/core/system';
 import { ChatMessageSettingComponent } from '@axe/component/chat-message-setting/chat-message-setting.component';
 import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/component/chat-tachie-img/chat-tachie-img.component';
 import { ChatMessageService } from '@axe/service/chat-message.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
   selector: 'chat-tachie',
@@ -33,6 +33,7 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private uiSignalService = inject(UiSignalService);
 
   @Input() chatTabidentifier: string = '';
   @ViewChild('tachieArea', { read: ElementRef }) private tachieArea: ElementRef;
@@ -85,15 +86,13 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
     this.panelService.open<ChatMessageSettingComponent>(ChatMessageSettingComponent, option);
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;
   }
 
   changeSimpleDisp() {
-    EventSystem.trigger('RE_DRAW_CHAT', {});
+    this.uiSignalService.notifyChatRedraw();
   }
 }

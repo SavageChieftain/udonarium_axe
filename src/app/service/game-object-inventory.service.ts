@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { ObjectStore } from '@axe/class/core/synchronize-object/object-store';
 import { EventSystem, Network } from '@axe/class/core/system';
 import { toHalfWidth } from '@axe/class/core/system/util/string-util';
@@ -17,6 +17,8 @@ type ElementName = string;
 export class GameObjectInventoryService {
   private objectStore = inject(ObjectStore);
   private dataSummarySetting = inject(DataSummarySetting);
+
+  readonly inventoryVersion = signal(0);
 
   private get summarySetting(): DataSummarySetting {
     return this.dataSummarySetting;
@@ -176,7 +178,11 @@ export class GameObjectInventoryService {
   }
 
   private callInventoryUpdate() {
-    EventSystem.trigger('UPDATE_INVENTORY', null!);
+    this.inventoryVersion.update((v) => v + 1);
+  }
+
+  notifyInventoryUpdate() {
+    this.callInventoryUpdate();
   }
 
   private isAnyLocation(location: string): boolean {

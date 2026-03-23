@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   HostListener,
   inject,
@@ -26,10 +27,13 @@ import { MovableDirective } from '@axe/directive/movable.directive';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
 import { CoordinateService } from '@axe/service/coordinate.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { ModalService } from '@axe/service/modal.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 import { TabletopActionService } from '@axe/service/tabletop-action.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 import { xor } from 'lodash';
 
 @Component({
@@ -51,6 +55,9 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private coordinateService = inject(CoordinateService);
   private objectStore = inject(ObjectStore);
   private tableSelecter = inject(TableSelecter);
+  private inventoryService = inject(GameObjectInventoryService);
+  private selectionSignalService = inject(SelectionSignalService);
+  private uiSignalService = inject(UiSignalService);
 
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
@@ -289,24 +296,21 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       .on(`UPDATE_OBJECT_CHILDREN/identifier/${this.gameTableMask?.identifier}`, (_event) => {
         this.changeDetector.markForCheck();
       })
-      .on('CHANGE_GM_MODE', (_event) => {
-        this.changeDetector.markForCheck();
-      })
       .on('SYNCHRONIZE_FILE_LIST', (_event) => {
         this.changeDetector.markForCheck();
       })
       .on('UPDATE_FILE_RESOURE', (_event) => {
         this.changeDetector.markForCheck();
       })
-      .on<{ z: number }>('TABLE_VIEW_ROTATE', -1000, (event) => {
-        this.ngZone.run(() => {
-          this.viewRotateZ = event.data['z'];
-          this.changeDetector.markForCheck();
-        });
-      })
       .on(`UPDATE_SELECTION/identifier/${this.gameTableMask?.identifier}`, (_event) => {
         this.changeDetector.markForCheck();
       });
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
     this.movableOption = {
       tabletopObject: this.gameTableMask!,
       transformCssOffset: 'translateZ(0.10px)',
@@ -343,7 +347,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     }
     // TODO:もっと良い方法考える
     if ((this.isLock && !this.isScratching) || (this.isScratching && !this.gameTableMask!.isMine)) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', { srcEvent: e });
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -478,7 +482,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
                 action: () => {
                   this.isAltitudeIndicate = false;
                   SoundEffect.play(PresetSound.sweep);
-                  EventSystem.trigger('UPDATE_INVENTORY', null!);
+                  this.inventoryService.notifyInventoryUpdate();
                 },
               }
             : {
@@ -486,7 +490,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
                 action: () => {
                   this.isAltitudeIndicate = true;
                   SoundEffect.play(PresetSound.sweep);
-                  EventSystem.trigger('UPDATE_INVENTORY', null!);
+                  this.inventoryService.notifyInventoryUpdate();
                 },
               },
         ],

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   HostListener,
   inject,
@@ -32,10 +33,13 @@ import { RotableDirective } from '@axe/directive/rotable.directive';
 import { TooltipDirective } from '@axe/directive/tooltip.directive';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
 import { CoordinateService } from '@axe/service/coordinate.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 import { TabletopService } from '@axe/service/tabletop.service';
 import { TabletopActionService } from '@axe/service/tabletop-action.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 import {
   ClipAreaCorn,
@@ -64,6 +68,9 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private coordinateService = inject(CoordinateService);
   private tabletopService = inject(TabletopService);
   private objectStore = inject(ObjectStore);
+  private inventoryService = inject(GameObjectInventoryService);
+  private selectionSignalService = inject(SelectionSignalService);
+  private uiSignalService = inject(UiSignalService);
 
   @Input() range: RangeArea = null!;
   @Input() is3D: boolean = false;
@@ -309,13 +316,13 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
       })
       .on('UPDATE_FILE_RESOURE', -1000, (_event) => {
         this.changeDetector.markForCheck();
-      })
-      .on<object>('TABLE_VIEW_ROTATE', -1000, (event) => {
-        this.ngZone.run(() => {
-          this.viewRotateZ = (event.data as Record<string, unknown>)['z'] as number;
-          this.changeDetector.markForCheck();
-        });
       });
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
     this.movableOption = {
       tabletopObject: this.range,
       transformCssOffset: 'translateZ(0.25px)',
@@ -351,7 +358,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // TODO:もっと良い方法考える
     if (this.isLock) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -386,7 +393,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
               action: () => {
                 this.isAltitudeIndicate = false;
                 SoundEffect.play(PresetSound.sweep);
-                EventSystem.trigger('UPDATE_INVENTORY', null!);
+                this.inventoryService.notifyInventoryUpdate();
               },
             }
           : {
@@ -394,7 +401,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
               action: () => {
                 this.isAltitudeIndicate = true;
                 SoundEffect.play(PresetSound.sweep);
-                EventSystem.trigger('UPDATE_INVENTORY', null!);
+                this.inventoryService.notifyInventoryUpdate();
               },
             },
       ],

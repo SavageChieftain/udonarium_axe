@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   EventEmitter,
   inject,
@@ -24,6 +25,7 @@ import { ResettableTimeout } from '@axe/class/core/system/util/resettable-timeou
 import { setZeroTimeout } from '@axe/class/core/system/util/zero-timeout';
 import { ChatMessageComponent } from '@axe/component/chat-message/chat-message.component';
 import { PanelService } from '@axe/service/panel.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 type ScrollPosition = { top: number; bottom: number; clientHeight: number; scrollHeight: number };
 
@@ -43,6 +45,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
+  private uiSignalService = inject(UiSignalService);
 
   sampleMessages: ChatMessageContext[] = [
     {
@@ -230,11 +233,11 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
         ) {
           this.changeDetector.markForCheck();
         }
-      })
-      .on('RE_DRAW_CHAT', (_event) => {
-        setTimeout(() => this.redraw(), 0);
-        // フラグの更新前にイベントが走るためタイマーを使う。ひとまずやむなし
       });
+    effect(() => {
+      this.uiSignalService.chatRedrawVersion();
+      setTimeout(() => this.redraw(), 0);
+    });
   }
 
   ngAfterViewInit() {

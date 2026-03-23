@@ -11,10 +11,10 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/class/core/system';
 import { TabletopObject } from '@axe/class/tabletop-object';
 import { ContextMenuAction, ContextMenuService } from '@axe/service/context-menu.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 @Component({
   selector: 'context-menu',
   templateUrl: './context-menu.component.html',
@@ -25,6 +25,7 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
+  private uiSignalService = inject(UiSignalService);
 
   @ViewChild('root', { static: true }) rootElementRef!: ElementRef<HTMLElement>;
 
@@ -161,7 +162,7 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   indexAction(indexline: number, id: string) {
-    EventSystem.trigger('JUMP_INDEX', { lineNo: indexline, targetId: id });
+    this.uiSignalService.requestJumpIndex(id, indexline);
   }
 
   doAction(action: ContextMenuAction) {

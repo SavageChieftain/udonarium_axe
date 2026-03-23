@@ -4,7 +4,6 @@ import { CardStack } from '@axe/class/card-stack';
 import { CharacterTemplateFactory } from '@axe/class/character-template-factory';
 import { ImageContext, ImageFile } from '@axe/class/core/file-storage/image-file';
 import { ImageStorage } from '@axe/class/core/file-storage/image-storage';
-import { EventSystem } from '@axe/class/core/system';
 import { DataElement, DataElementType } from '@axe/class/data-element';
 import { DiceSymbol, DiceType } from '@axe/class/dice-symbol';
 import { GameCharacter } from '@axe/class/game-character';
@@ -17,6 +16,7 @@ import { PresetSound, SoundEffect } from '@axe/class/sound-effect';
 import { TableSelecter } from '@axe/class/table-selecter';
 import { Terrain } from '@axe/class/terrain';
 import { TextNote } from '@axe/class/text-note';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
 
 import { ContextMenuAction } from './context-menu.service';
 import { PointerCoordinate } from './pointer-device.service';
@@ -27,6 +27,7 @@ import { PointerCoordinate } from './pointer-device.service';
 export class TabletopActionService {
   private imageStorage = inject(ImageStorage);
   private tableSelecter = inject(TableSelecter);
+  private selectionSignalService = inject(SelectionSignalService);
 
   constructor() {}
 
@@ -506,10 +507,7 @@ export class TabletopActionService {
       name: 'キャラクターを作成',
       action: () => {
         const character = this.createGameCharacter(position);
-        EventSystem.trigger('SELECT_TABLETOP_OBJECT', {
-          identifier: character.identifier,
-          className: character.aliasName,
-        });
+        this.selectionSignalService.selectObject(character.identifier, character.aliasName);
         SoundEffect.play(PresetSound.piecePut);
       },
     };

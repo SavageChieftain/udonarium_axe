@@ -1,7 +1,22 @@
 import { Event, EventSystem, Network } from '@axe/class/core/system';
+import { Subject } from 'rxjs';
 
 import { GameObject } from './game-object';
 import { ObjectNode } from './object-node';
+
+export interface ObjectChangeEvent {
+  identifier: string;
+  aliasName: string;
+}
+
+export interface ChildrenChangeEvent {
+  identifier: string;
+}
+
+/** RxJS Subject for batched object change events. Shared with ObjectChangeService. */
+export const objectChanged$ = new Subject<ObjectChangeEvent>();
+/** RxJS Subject for batched children-change events. Shared with ObjectChangeService. */
+export const childrenChanged$ = new Subject<ChildrenChangeEvent>();
 
 const objectBatches = new Map<string, { object: GameObject; originFrom: string }>();
 const nodeBatches = new Set<string>();
@@ -50,12 +65,14 @@ const triggerEvent = () => {
     };
     EventSystem.trigger(new Event(`UPDATE_GAME_OBJECT/aliasName/${context.aliasName}`, context, data.originFrom));
     EventSystem.trigger(new Event(`UPDATE_GAME_OBJECT/identifier/${context.identifier}`, context, data.originFrom));
+    objectChanged$.next(context);
   }
 
   for (const identifier of nodes) {
     EventSystem.trigger(`UPDATE_OBJECT_CHILDREN/identifier/${identifier}`, {
       identifier: identifier,
     });
+    childrenChanged$.next({ identifier });
   }
 
   if (objects.length > 0 || nodes.length > 0) {

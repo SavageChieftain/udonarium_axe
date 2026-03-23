@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   HostListener,
   inject,
@@ -32,8 +33,11 @@ import { RotableOption } from '@axe/directive/rotable.directive';
 import { RotableDirective } from '@axe/directive/rotable.directive';
 import { SafePipe } from '@axe/pipe/safe.pipe';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/service/context-menu.service';
+import { GameObjectInventoryService } from '@axe/service/game-object-inventory.service';
 import { PanelOption, PanelService } from '@axe/service/panel.service';
 import { PointerDeviceService } from '@axe/service/pointer-device.service';
+import { SelectionSignalService } from '@axe/service/selection-signal.service';
+import { UiSignalService } from '@axe/service/ui-signal.service';
 
 @Component({
   selector: 'game-character',
@@ -50,6 +54,9 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private selectionSignalService = inject(SelectionSignalService);
+  private inventoryService = inject(GameObjectInventoryService);
+  private uiSignalService = inject(UiSignalService);
 
   @Input() gameCharacter: GameCharacter | null = null!;
   @Input() is3D: boolean = false;
@@ -151,52 +158,49 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
       })
       .on('UPDATE_FILE_RESOURE', (_event) => {
         this.changeDetector.markForCheck();
-      })
-      .on<{ x: number; z: number }>('TABLE_VIEW_ROTATE', -1000, (event) => {
-        this.ngZone.run(() => {
-          this.viewRotateX = event.data['x'];
-          this.viewRotateZ = event.data['z'];
-          this.changeDetector.markForCheck();
-        });
-      })
-      .on('CHK_TARGET_CHANGE', -1000, (event) => {
-        const objct = this.objectStore.get(event.data.identifier);
-        if (objct == this.gameCharacter!) {
-          this.changeDetector.detectChanges();
-        }
-      })
-
-      .on('HIGHTLIGHT_TABLETOP_OBJECT', (event) => {
-        if (this.gameCharacter!.identifier !== event.data.identifier) {
-          return;
-        }
-        if (this.gameCharacter!.location.name != 'table') {
-          return;
-        }
-
-        // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
-        if (this.highlightTimer != null) {
-          return;
-        }
-
-        // アニメーション中であればアニメーションを初期化
-        if (this.rootElementRef.nativeElement.classList.contains('focused')) {
-          clearTimeout(this.unhighlightTimer);
-          this.rootElementRef.nativeElement.classList.remove('focused');
-        }
-
-        // アニメーション開始処理タイマー
-        this.highlightTimer = setTimeout(() => {
-          this.highlightTimer = null!;
-          this.rootElementRef.nativeElement.classList.add('focused');
-        }, 0);
-
-        // アニメーション終了処理タイマー
-        this.unhighlightTimer = setTimeout(() => {
-          this.unhighlightTimer = null!;
-          this.rootElementRef.nativeElement.classList.remove('focused');
-        }, 1010);
       });
+    effect(() => {
+      const rotation = this.uiSignalService.tableViewRotation();
+      if (!rotation) return;
+      this.viewRotateX = rotation.x;
+      this.viewRotateZ = rotation.z;
+      this.changeDetector.markForCheck();
+    });
+    effect(() => {
+      const data = this.uiSignalService.targetChange();
+      if (!data || !this.gameCharacter) return;
+      const objct = this.objectStore.get(data.identifier);
+      if (objct == this.gameCharacter!) {
+        this.changeDetector.detectChanges();
+      }
+    });
+    effect(() => {
+      const highlight = this.selectionSignalService.highlightedObject();
+      if (!highlight || !this.gameCharacter) return;
+      if (this.gameCharacter.identifier !== highlight.identifier) return;
+      if (this.gameCharacter.location.name != 'table') return;
+
+      // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
+      if (this.highlightTimer != null) return;
+
+      // アニメーション中であればアニメーションを初期化
+      if (this.rootElementRef.nativeElement.classList.contains('focused')) {
+        clearTimeout(this.unhighlightTimer);
+        this.rootElementRef.nativeElement.classList.remove('focused');
+      }
+
+      // アニメーション開始処理タイマー
+      this.highlightTimer = setTimeout(() => {
+        this.highlightTimer = null!;
+        this.rootElementRef.nativeElement.classList.add('focused');
+      }, 0);
+
+      // アニメーション終了処理タイマー
+      this.unhighlightTimer = setTimeout(() => {
+        this.unhighlightTimer = null!;
+        this.rootElementRef.nativeElement.classList.remove('focused');
+      }, 1010);
+    });
     this.movableOption = {
       tabletopObject: this.gameCharacter!,
       transformCssOffset: 'translateZ(1.0px)',
@@ -232,7 +236,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 
     // TODO:もっと良い方法考える
     if (this.isLock) {
-      EventSystem.trigger('DRAG_LOCKED_OBJECT', {});
+      this.selectionSignalService.notifyDragLocked();
     }
   }
 
@@ -267,7 +271,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
                   action: () => {
                     this.isAltitudeIndicate = false;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 }
               : {
@@ -275,7 +279,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
                   action: () => {
                     this.isAltitudeIndicate = true;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 },
             this.isDropShadow
@@ -284,7 +288,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
                   action: () => {
                     this.isDropShadow = false;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 }
               : {
@@ -292,7 +296,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
                   action: () => {
                     this.isDropShadow = true;
                     SoundEffect.play(PresetSound.sweep);
-                    EventSystem.trigger('UPDATE_INVENTORY', null!);
+                    this.inventoryService.notifyInventoryUpdate();
                   },
                 },
           ],
@@ -406,10 +410,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
       const objects = this.objectStore.getObjects(GameCharacter);
       for (const object of objects) {
         object.targeted = false;
-        EventSystem.trigger('CHK_TARGET_CHANGE', {
-          identifier: object.identifier,
-          className: object.aliasName,
-        });
+        this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
       }
     }
 
