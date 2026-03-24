@@ -95,7 +95,7 @@
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
             "watch": false,
-            "setupFiles": ["src/test-setup.ts"]
+            "setupFiles": ["src/app/testing/test-setup.ts"]
           }
         },
         "lint": {

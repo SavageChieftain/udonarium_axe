@@ -14,7 +14,7 @@ export default defineConfig({
     environment: 'happy-dom',
     pool: 'threads',
     include: ['src/**/*.spec.ts'],
-    setupFiles: ['src/test-setup.ts'],
+    setupFiles: ['src/app/testing/test-setup.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/app/**/*.ts'],

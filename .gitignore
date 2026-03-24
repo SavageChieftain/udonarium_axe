@@ -54,3 +54,6 @@ src/assets/config.json
 /blob-report
 /playwright/.cache
 /test-results
+
+# temp plan markdown
+plan-*.md
