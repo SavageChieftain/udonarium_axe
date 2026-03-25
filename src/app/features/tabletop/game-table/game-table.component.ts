@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   effect,
@@ -81,7 +80,6 @@ import { TableTouchGesture, TableTouchGestureEvent } from './table-touch-gesture
   ],
 })
 export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
@@ -196,33 +194,43 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private mouseGesture: TableMouseGesture = null!;
   private touchGesture: TableTouchGesture = null!;
   get characters(): GameCharacter[] {
+    this.objectChangeService.collectionOf('character')();
     return this.tabletopService.characters;
   }
   get tableMasks(): GameTableMask[] {
+    this.objectChangeService.collectionOf('table-mask')();
     return this.tabletopService.tableMasks;
   }
   get tableScratchMasks(): GameTableScratchMask[] {
+    this.objectChangeService.collectionOf('table-scratch-mask')();
     return this.tabletopService.tableScratchMasks;
   }
   get cards(): Card[] {
+    this.objectChangeService.collectionOf('card')();
     return this.tabletopService.cards;
   }
   get cardStacks(): CardStack[] {
+    this.objectChangeService.collectionOf('card-stack')();
     return this.tabletopService.cardStacks;
   }
   get ranges(): RangeArea[] {
+    this.objectChangeService.collectionOf('range')();
     return this.tabletopService.ranges;
   }
   get terrains(): Terrain[] {
+    this.objectChangeService.collectionOf('terrain')();
     return this.tabletopService.terrains;
   }
   get textNotes(): TextNote[] {
+    this.objectChangeService.collectionOf('text-note')();
     return this.tabletopService.textNotes;
   }
   get diceSymbols(): DiceSymbol[] {
+    this.objectChangeService.collectionOf('dice-symbol')();
     return this.tabletopService.diceSymbols;
   }
   get peerCursors(): PeerCursor[] {
+    this.objectChangeService.collectionOf('PeerCursor')();
     return this.tabletopService.peerCursors;
   }
 
@@ -237,9 +245,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
           this.currentTable.gridColor
         );
       }
-    });
-    this.objectChangeService.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
     });
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();

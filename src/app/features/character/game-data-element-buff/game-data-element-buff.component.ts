@@ -1,7 +1,6 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   inject,
@@ -23,7 +22,6 @@ import { filter } from 'rxjs';
   imports: [FormsModule],
 })
 export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
@@ -72,15 +70,6 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterVie
       )
       .subscribe(() => {
         this.setValues(this.gameDataElement);
-      });
-
-    this.objectChange.objectDeleted$
-      .pipe(
-        filter((e) => !!this.gameDataElement && this.gameDataElement.identifier === e.identifier),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => {
-        this.changeDetector.markForCheck();
       });
   }
 

@@ -2,7 +2,6 @@ import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   HostListener,
@@ -37,7 +36,6 @@ import { filter } from 'rxjs';
 export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
-  private changeDetector = inject(ChangeDetectorRef);
   private domSanitizer = inject(DomSanitizer);
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
@@ -91,15 +89,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
       )
       .subscribe(() => {
         this.setValues(this.gameDataElement);
-      });
-
-    this.objectChange.objectDeleted$
-      .pipe(
-        filter((e) => !!this.gameDataElement && this.gameDataElement.identifier === e.identifier),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => {
-        this.changeDetector.markForCheck();
       });
   }
 

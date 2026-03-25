@@ -1,13 +1,5 @@
 import { NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -37,7 +29,6 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   private objectStore = inject(ObjectStore);
   private objectSerializer = inject(ObjectSerializer);
   private chatTabList = inject(ChatTabList);
-  private changeDetector = inject(ChangeDetectorRef);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
@@ -65,6 +56,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   }
 
   get chatTabs(): ChatTab[] {
+    this.objectChange.collectionOf('chat-tab')();
     return this.chatMessageService.chatTabs;
   }
   get isEmpty(): boolean {
@@ -93,7 +85,6 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
         this.selectedTabXml = object.toXml();
       }
       this.selectedTab = null;
-      this.changeDetector.markForCheck();
     });
 
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {

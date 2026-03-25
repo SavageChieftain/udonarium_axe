@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnInit,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -44,7 +36,6 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
-  private changeDetector = inject(ChangeDetectorRef);
 
   sendFrom: string = 'Guest';
 
@@ -90,6 +81,7 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
 
   get chatTab(): ChatTab {
     this.objectChange.versionOf(this.chatTabidentifier)();
+    this.objectChange.collectionOf('chat-tab')();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
   isAutoScroll: boolean = true;
@@ -133,7 +125,6 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
         const chatTabs = this.chatMessageService.chatTabs;
         this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
       }
-      this.changeDetector.markForCheck();
     });
     queueMicrotask(() => this.updatePanelTitle());
   }
