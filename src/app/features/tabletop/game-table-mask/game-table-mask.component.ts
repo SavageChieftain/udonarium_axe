@@ -35,8 +35,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import { xor } from 'lodash';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'game-table-mask',
@@ -61,8 +59,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
 
-  private eventSubscription = new Subscription();
-
   constructor() {}
 
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
@@ -78,6 +74,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.gameTableMask!.identifier)();
     return this.gameTableMask!.name;
   }
   get width(): number {
@@ -254,20 +251,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   private input: InputHandler = null!;
   ngOnChanges(): void {
-    this.eventSubscription.unsubscribe();
-    const id = this.gameTableMask?.identifier;
-    this.eventSubscription = new Subscription();
-
-    this.eventSubscription.add(
-      this.objectChange.objectChanged$
-        .pipe(filter((event) => event.identifier === id))
-        .subscribe(() => this.changeDetector.markForCheck())
-    );
-    this.eventSubscription.add(
-      this.objectChange.childrenChanged$
-        .pipe(filter((event) => event.identifier === id))
-        .subscribe(() => this.changeDetector.markForCheck())
-    );
     this.movableOption = {
       tabletopObject: this.gameTableMask!,
       transformCssOffset: 'translateZ(0.10px)',
@@ -284,7 +267,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   ngOnDestroy() {
     if (this.input) this.input.destroy();
-    this.eventSubscription.unsubscribe();
     clearTimeout(this._scratchingTimerId);
   }
 

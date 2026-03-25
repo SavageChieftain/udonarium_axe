@@ -15,11 +15,9 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -111,6 +109,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.gameCharacter!.identifier)();
     return this.gameCharacter!.name;
   }
   get size(): number {
@@ -187,13 +186,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnInit() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!this.gameCharacter || !object) return;
-      if (this.gameCharacter === object || (object instanceof ObjectNode && this.gameCharacter!.contains(object))) {
-        this.changeDetector.markForCheck();
-      }
-    });
     this.movableOption = {
       tabletopObject: this.gameCharacter!,
       transformCssOffset: 'translateZ(1.0px)',

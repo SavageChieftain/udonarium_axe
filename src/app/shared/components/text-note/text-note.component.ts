@@ -15,11 +15,9 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/shared/text-note';
@@ -73,6 +71,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() is3D: boolean = false;
 
   get title(): string {
+    this.objectChange.versionOf(this.textNote.identifier)();
     return this.textNote.title;
   }
   get isLock(): boolean {
@@ -200,13 +199,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   ngOnInit() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!this.textNote || !object) return;
-      if (this.textNote === object || (object instanceof ObjectNode && this.textNote.contains(object))) {
-        this.changeDetector.markForCheck();
-      }
-    });
     this.movableOption = {
       tabletopObject: this.textNote,
       transformCssOffset: 'translateZ(0.15px)',

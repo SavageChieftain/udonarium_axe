@@ -5,7 +5,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  DestroyRef,
   ElementRef,
   inject,
   Input,
@@ -13,7 +12,6 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -40,7 +38,6 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
   private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
 
   @Input() chatTabidentifier: string = '';
   @Input() isTilteTop = false;
@@ -50,6 +47,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
+    this.objectChange.versionOf(this.chatTabidentifier)();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
 
@@ -134,13 +132,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
 
   private timerId: ReturnType<typeof setTimeout> | null = null;
 
-  ngOnInit() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (e.identifier === this.chatTabidentifier) {
-        this.changeDetectionRef.markForCheck();
-      }
-    });
-  }
+  ngOnInit() {}
 
   //立ち絵表示幅取得
   ngAfterViewInit() {

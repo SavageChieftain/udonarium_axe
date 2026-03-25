@@ -12,11 +12,9 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card'; //
 import { CardStack } from '@axe/domain/card/card-stack'; //
@@ -55,6 +53,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
 
   get imageUrl(): string {
     this.objectChange.fileVersion();
+    if (this.tabletopObject) this.objectChange.versionOf(this.tabletopObject.identifier)();
     return this.tabletopObject && this.tabletopObject.imageFile ? this.tabletopObject.imageFile.url : '';
   }
   get hasImage(): boolean {
@@ -100,13 +99,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.adjustPositionRoot();
     }, 16);
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!this.tabletopObject || !object || !(object instanceof ObjectNode)) return;
-      if (this.tabletopObject === object || this.tabletopObject.contains(object)) {
-        this.changeDetector.markForCheck();
-      }
-    });
   }
 
   ngOnDestroy() {}

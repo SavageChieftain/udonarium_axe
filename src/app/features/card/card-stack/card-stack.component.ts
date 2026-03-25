@@ -17,7 +17,6 @@ import { ImageService } from '@axe/core/image.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -67,6 +66,11 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.cardStack.identifier)();
+    if (this.cardStack.owner) {
+      const cursor = PeerCursor.findByUserId(this.cardStack.owner);
+      if (cursor) this.objectChange.versionOf(cursor.identifier)();
+    }
     return this.cardStack.name;
   }
   get rotate(): number {
@@ -127,17 +131,6 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     this.objectChange.shuffleCardStack$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.cardStack.identifier) {
         this.animeState = 'active';
-        this.changeDetector.markForCheck();
-      }
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const object = this.objectStore.get(event.identifier);
-      if (!this.cardStack || !object) return;
-      if (
-        this.cardStack === object ||
-        (object instanceof ObjectNode && this.cardStack.contains(object)) ||
-        (object instanceof PeerCursor && object.userId === this.cardStack.owner)
-      ) {
         this.changeDetector.markForCheck();
       }
     });

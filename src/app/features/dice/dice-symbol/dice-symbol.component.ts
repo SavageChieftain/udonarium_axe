@@ -17,7 +17,6 @@ import { ImageService } from '@axe/core/image.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { callRollDiceSymbol } from '@axe/domain/domain-events';
@@ -77,6 +76,11 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.diceSymbol.identifier)();
+    if (this.diceSymbol.owner) {
+      const cursor = PeerCursor.findByUserId(this.diceSymbol.owner);
+      if (cursor) this.objectChange.versionOf(cursor.identifier)();
+    }
     return this.diceSymbol.name;
   }
   set name(name: string) {
@@ -146,17 +150,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
           this.animeState = 'active';
           this.changeDetector.markForCheck();
         });
-      }
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const object = this.objectStore.get(event.identifier);
-      if (!this.diceSymbol || !object) return;
-      if (
-        this.diceSymbol === object ||
-        (object instanceof ObjectNode && this.diceSymbol.contains(object)) ||
-        (object instanceof PeerCursor && object.userId === this.diceSymbol.owner)
-      ) {
-        this.changeDetector.markForCheck();
       }
     });
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {

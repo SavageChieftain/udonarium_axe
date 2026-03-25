@@ -17,7 +17,6 @@ import { ImageService } from '@axe/core/image.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card, CardState } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -74,6 +73,11 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.card.identifier)();
+    if (this.card.owner) {
+      const cursor = PeerCursor.findByUserId(this.card.owner);
+      if (cursor) this.objectChange.versionOf(cursor.identifier)();
+    }
     return this.card.name;
   }
   get state(): CardState {
@@ -146,17 +150,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private input: InputHandler = null!;
   ngOnInit() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!this.card || !object) return;
-      if (
-        this.card === object ||
-        (object instanceof ObjectNode && this.card.contains(object)) ||
-        (object instanceof PeerCursor && object.userId === this.card.owner)
-      ) {
-        this.changeDetector.markForCheck();
-      }
-    });
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       const cursor = PeerCursor.findByPeerId(e.peerId);
       if (!cursor || this.card.owner === cursor.userId) this.changeDetector.markForCheck();

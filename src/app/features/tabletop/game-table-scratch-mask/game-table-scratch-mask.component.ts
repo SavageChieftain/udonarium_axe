@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { CoordinateService } from '@axe/core/coordinate.service';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -32,12 +21,10 @@ import { PanelOption, PanelService } from '@axe/shared/panel.service';
 export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestroy {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tabletopActionService = inject(TabletopActionService);
   private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
 
   @Input() gameTableScratchMask: GameTableScratchMask | null = null!;
 
@@ -45,6 +32,7 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
   movableOption: MovableOption = {};
 
   get name(): string {
+    this.objectChange.versionOf(this.gameTableScratchMask!.identifier)();
     return this.gameTableScratchMask!.name;
   }
   get width(): number {
@@ -74,11 +62,6 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
   }
 
   ngOnInit() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (e.identifier === this.gameTableScratchMask?.identifier) {
-        this.changeDetector.markForCheck();
-      }
-    });
     this.movableOption = {
       tabletopObject: this.gameTableScratchMask!,
       colideLayers: ['terrain'],
