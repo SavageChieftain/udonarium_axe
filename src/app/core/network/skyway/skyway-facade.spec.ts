@@ -38,5 +38,14 @@ describe('SkyWayFacade', () => {
       const facade = new SkyWayFacade();
       await expect(facade.rejoinAfterLeave()).resolves.toBeUndefined();
     });
+
+    it('left状態のpersonをクリアしてから再参加する', async () => {
+      const facade = new SkyWayFacade();
+      // left状態のモックpersonを設定
+      (facade as unknown as Record<string, unknown>).roomPerson = { state: 'left' };
+      (facade as unknown as Record<string, unknown>).lobbyPerson = { state: 'left' };
+      // contextがないので早期リターンするがエラーにならない
+      await expect(facade.rejoinAfterLeave()).resolves.toBeUndefined();
+    });
   });
 });

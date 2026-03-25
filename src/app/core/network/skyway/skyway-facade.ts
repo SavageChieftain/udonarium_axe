@@ -96,6 +96,13 @@ export class SkyWayFacade {
   async rejoinAfterLeave() {
     if (this.isDestroyed || !this.context || this.context.disposed) return;
     try {
+      // left 状態の person をクリアして新規参加できるようにする
+      if (this.roomPerson?.state === 'left') this.roomPerson = null!;
+      if (this.lobbyPerson?.state === 'left') this.lobbyPerson = null!;
+      if (this.publication) {
+        this.publication.onSubscribed.removeAllListeners();
+        this.publication = null!;
+      }
       await this.joinRoomPerson();
       await this.createRoomDataStream();
       await this.joinLobbyPerson();
