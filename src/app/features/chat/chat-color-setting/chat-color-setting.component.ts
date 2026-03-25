@@ -2,6 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDes
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { PanelService } from '@axe/shared/panel.service';
 export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
+  private objectChange = inject(ObjectChangeService);
 
   @Input() isAllowedEmpty: boolean = false;
   @Input() tabletopObject: GameCharacter = null!;
@@ -32,6 +34,7 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
       }
     } else {
       this.myPeer.chatColorCode[num] = event;
+      this.objectChange.notifyChanged(this.myPeer.identifier);
     }
   }
 

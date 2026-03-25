@@ -1,9 +1,17 @@
 import { BufferSharingTask } from './buffer-sharing-task';
 
-vi.mock('@axe/core/network/network-messaging', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@axe/core/network/network-messaging')>();
-  return { ...actual, networkSend: vi.fn() };
+const mocks = vi.hoisted(() => {
+  const noop = { subscribe: () => ({ unsubscribe: () => {} }) };
+  return {
+    networkSend: vi.fn(),
+    networkMessage$: { pipe: () => noop },
+  };
 });
+
+vi.mock('@axe/core/network/network-messaging', () => ({
+  networkSend: mocks.networkSend,
+  networkMessage$: mocks.networkMessage$,
+}));
 
 describe('BufferSharingTask', () => {
   afterEach(() => {

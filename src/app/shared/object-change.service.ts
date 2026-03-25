@@ -103,6 +103,11 @@ export class ObjectChangeService {
     return sig.asReadonly();
   }
 
+  /** 非 @SyncVar プロパティの変更時に versionOf signal を手動で increment する。 */
+  notifyChanged(identifier: string): void {
+    this._versions.get(identifier)?.update((v) => v + 1);
+  }
+
   // --- Per-aliasName collection signals ---
   private readonly _collections = new Map<string, WritableSignal<number>>();
 

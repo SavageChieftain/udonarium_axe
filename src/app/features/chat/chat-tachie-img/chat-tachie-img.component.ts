@@ -52,8 +52,8 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   get tachieY_Pos(): number {
-    if (!this.chatTabList.isTachieInWindow) {
-      return -this.chatTabList.tachieHeightValue - 26;
+    if (!this.chatTabList?.isTachieInWindow) {
+      return -(this.chatTabList?.tachieHeightValue ?? 0) - 26;
     } else {
       return 0;
     }
@@ -68,12 +68,14 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   get dispFlag(): boolean {
+    if (!this.chatTabList) return false;
     if (this.isTilteTop && !this.chatTabList.isTachieInWindow) return true;
     if (!this.isTilteTop && this.chatTabList.isTachieInWindow) return true;
     return false;
   }
 
   get isTachieDispMode() {
+    if (!this.chatTabList) return false;
     if (this.chatTabList.isKeepTachieOutWindow) {
       return this.dispFlag;
     } else {

@@ -210,6 +210,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   charactorChatColor(num: number) {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
+      this.objectChange.versionOf(object.identifier)();
       return object.chatColorCode[num];
     } else {
       return '#000000';
@@ -238,6 +239,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   playerChatColor(num: number) {
+    this.objectChange.versionOf(this.myPeer.identifier)();
     return this.myPeer.chatColorCode[num];
   }
 
