@@ -10,6 +10,7 @@ import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource
 import {
   diceTableMessage$,
   DiceTableMessageEvent,
+  emitSendMessage,
   resourceEditMessage$,
   ResourceEditMessageEvent,
   sendMessage$,
@@ -358,7 +359,8 @@ export class DiceBot extends GameObject {
     }
     const chatTab = ObjectStore.instance.get<ChatTab>(originalMessage.tabIdentifier);
     if (chatTab) {
-      chatTab.addMessage(diceBotMessage);
+      const chat = chatTab.addMessage(diceBotMessage);
+      emitSendMessage({ messageIdentifier: chat.identifier, messageTrget: null });
     }
   }
 

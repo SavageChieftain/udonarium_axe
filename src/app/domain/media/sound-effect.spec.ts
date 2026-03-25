@@ -72,4 +72,64 @@ describe('SoundEffect', () => {
       se.play('test-identifier');
     });
   });
+
+  describe('sendMessage$購読によるダイス音再生', () => {
+    it('isDicebotがtrueのメッセージでSoundEffect.playが呼ばれる', async () => {
+      const { emitSendMessage } = await import('@axe/domain/domain-events');
+      const { ChatMessage } = await import('@axe/domain/chat/chat-message');
+      const { Network } = await import('@axe/core/network/network');
+
+      const se = new SoundEffect('test-se');
+      se.initialize();
+      store.add(se);
+
+      const playSpy = vi.spyOn(SoundEffect, 'play').mockImplementation(() => {});
+
+      // isDicebotがtrueになるChatMessageを作成
+      const msg = new ChatMessage();
+      msg.setAttribute('tag', 'system');
+      msg.setAttribute('from', 'System-BCDice');
+      msg.setAttribute('sendFrom', Network.peerContext.userId);
+      msg.initialize();
+      store.add(msg);
+
+      emitSendMessage({ messageIdentifier: msg.identifier, messageTrget: null });
+
+      // 非同期のSubscription処理を待つ
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(playSpy).toHaveBeenCalledTimes(1);
+      const calledWith = playSpy.mock.calls[0][0] as unknown as string;
+      expect(calledWith === PresetSound.diceRoll1 || calledWith === PresetSound.diceRoll2).toBe(true);
+
+      playSpy.mockRestore();
+    });
+
+    it('isDicebotがfalseのメッセージではplayが呼ばれない', async () => {
+      const { emitSendMessage } = await import('@axe/domain/domain-events');
+      const { ChatMessage } = await import('@axe/domain/chat/chat-message');
+      const { Network } = await import('@axe/core/network/network');
+
+      const se = new SoundEffect('test-se-2');
+      se.initialize();
+      store.add(se);
+
+      const playSpy = vi.spyOn(SoundEffect, 'play').mockImplementation(() => {});
+
+      // 通常メッセージ（isDicebot = false）
+      const msg = new ChatMessage();
+      msg.setAttribute('tag', '');
+      msg.setAttribute('from', Network.peerContext.userId);
+      msg.initialize();
+      store.add(msg);
+
+      emitSendMessage({ messageIdentifier: msg.identifier, messageTrget: null });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(playSpy).not.toHaveBeenCalled();
+
+      playSpy.mockRestore();
+    });
+  });
 });
