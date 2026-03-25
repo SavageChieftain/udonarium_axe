@@ -54,6 +54,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
 
   private _name: string = '';
   get name(): string {
+    if (this.gameDataElement) this.objectChange.versionOf(this.gameDataElement.identifier)();
     return this._name;
   }
   set name(name: string) {
@@ -90,7 +91,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
       )
       .subscribe(() => {
         this.setValues(this.gameDataElement);
-        this.changeDetector.markForCheck();
       });
 
     this.objectChange.objectDeleted$

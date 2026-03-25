@@ -1,17 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
-import { ObjectNode } from '@axe/core/sync/object-node';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { callShuffleCardStack } from '@axe/domain/domain-events';
@@ -30,8 +19,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 })
 export class CardStackListComponentEx implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
-  private objectStore = inject(ObjectStore);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
@@ -39,15 +26,17 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
 
   owner: string = Network.peerContext.userId;
 
+  get cards(): Card[] {
+    if (!this.cardStack) return [];
+    this.objectChange.versionOf(this.cardStack.identifier)();
+    return this.cardStack.cards;
+  }
+
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
     if (this.cardStack) this.panelService.cardStack = this.cardStack;
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!this.cardStack || !object) return;
-      if (this.cardStack === object || (object instanceof ObjectNode && this.cardStack.contains(object))) {
-        this.changeDetector.markForCheck();
-      }
+      if (!this.cardStack) return;
       if (e.identifier === this.cardStack.identifier && this.cardStack.owner !== this.owner) {
         this.panelService.close();
       }

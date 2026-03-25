@@ -155,6 +155,8 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get tableImage(): ImageFile {
     this.objectChangeService.fileVersion();
+    this.objectChangeService.versionOf(this.currentTable.identifier)();
+    this.objectChangeService.versionOf(this.tableSelecter.identifier)();
     return this.imageService.getSkeletonOr(this.currentTable.imageIdentifier);
   }
 
@@ -235,7 +237,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
           this.currentTable.gridColor
         );
       }
-      this.changeDetector.markForCheck();
     });
     this.objectChangeService.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.changeDetector.markForCheck();

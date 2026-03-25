@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
@@ -20,7 +19,6 @@ import { CoordinateService } from '@axe/core/coordinate.service';
 import { ImageService } from '@axe/core/image.service';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { Config } from '@axe/domain/peer/config';
@@ -57,7 +55,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tabletopService = inject(TabletopService);
@@ -104,6 +101,9 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.terrain.identifier)();
+    this.objectChange.versionOf(this.currentTable.identifier)();
+    this.objectChange.versionOf(this.tableSelecter.identifier)();
     return this.terrain.name;
   }
   get mode(): TerrainViewState {
@@ -232,11 +232,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!this.terrain || !object) return;
-      if (this.terrain === object || (object instanceof ObjectNode && this.terrain.contains(object))) {
-        this.changeDetector.markForCheck();
-      }
+      if (!this.terrain) return;
       if (
         e.identifier !== this.currentTable.identifier &&
         e.identifier !== this.tableSelecter.identifier &&

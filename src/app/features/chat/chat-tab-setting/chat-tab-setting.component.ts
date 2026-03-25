@@ -57,6 +57,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   }
 
   get tabName(): string {
+    if (this.selectedTab) this.objectChange.versionOf(this.selectedTab.identifier)();
     return this.selectedTab?.name ?? '';
   }
   set tabName(tabName: string) {
@@ -104,7 +105,6 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
         if (!this.selectedTab && this.chatTabs.length > 0) {
           this.selectedTab = this.chatTabs[0];
         }
-        this.changeDetector.markForCheck();
       }
     });
   }

@@ -89,6 +89,7 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
   private testcount: number = 0;
 
   get chatTab(): ChatTab {
+    this.objectChange.versionOf(this.chatTabidentifier)();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
   isAutoScroll: boolean = true;
@@ -114,7 +115,6 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
         this.checkAutoScroll();
       }
       if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
-      this.changeDetector.markForCheck();
     });
 
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
@@ -124,7 +124,6 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
           const chatTabs = this.chatMessageService.chatTabs;
           this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
-        this.changeDetector.markForCheck();
       }
     });
 
