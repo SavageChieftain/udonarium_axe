@@ -2,7 +2,6 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   effect,
@@ -39,7 +38,6 @@ import { SelectionSignalService } from '@axe/shared/selection-signal.service';
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
 export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDestroy {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private inventoryService = inject(GameObjectInventoryService);
   private contextMenuService = inject(ContextMenuService);
@@ -66,7 +64,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   isEdit: boolean = false;
   isMultiMove: boolean = false;
-  disptimer: ReturnType<typeof setInterval> = null!;
 
   get sortTag(): string {
     return this.inventoryService.sortTag;
@@ -127,18 +124,10 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   }
 
   ngAfterViewInit() {
-    this.disptimer = setInterval(() => {
-      this.changeDetector.detectChanges();
-    }, 200);
-    // インベントリ非表示機能のために追加、操作を検知して更新する方式に変えたい
+    // signal 駆動に移行済み — ポーリング不要
   }
 
-  ngOnDestroy() {
-    if (this.disptimer) {
-      clearInterval(this.disptimer);
-    }
-    this.disptimer = null!;
-  }
+  ngOnDestroy() {}
 
   getTabTitle(inventoryType: string) {
     switch (inventoryType) {
@@ -169,6 +158,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   getGameObjects(inventoryType: string): TabletopObject[] {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
+    this.objectChange.collectionOf('character')();
     switch (inventoryType) {
       case 'table': {
         const tableCharacterList_dest = [];

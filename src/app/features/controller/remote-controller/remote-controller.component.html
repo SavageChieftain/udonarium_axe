@@ -237,7 +237,7 @@
                 class="target_chk"
                 id="{{ gameObject.identifier }}_{{ initTimestamp }}"
                 name="target_chk"
-                value="object.targeted"
+                [checked]="gameObject.targeted"
                 type="checkbox"
               />
               <!--(change) ="onChange(gameObject)"-->

@@ -1,6 +1,6 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, DestroyRef, effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -44,7 +44,6 @@ class RemoteControllerSelect {
 export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewInit {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private inventoryService = inject(GameObjectInventoryService);
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -160,8 +159,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
   recoveryLimitFlag = false;
   recoveryLimitFlagMin = false;
-
-  disptimer: ReturnType<typeof setInterval> | null = null;
   selectCharacter: GameObject | null = null;
 
   remoteControllerSelect: RemoteControllerSelect = {
@@ -234,20 +231,9 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       }
     });
     this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-
-    this.disptimer = setInterval(() => {
-      this.changeDetector.detectChanges();
-      const objectList = this.getGameObjects(this.selectTab);
-      for (const object of objectList) {
-        if (object instanceof GameCharacter) {
-          this.targetSetChkBox(object);
-        }
-      }
-    }, 200);
   }
 
   ngOnDestroy() {
-    this.disptimer = null;
     if (this.isEdit) {
       this.toggleEditMode();
     }
@@ -336,6 +322,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   getGameObjects(inventoryType: string): TabletopObject[] {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
+    this.objectChange.collectionOf('character')();
     switch (inventoryType) {
       case 'table': {
         const tableCharacterList_dest = [];
