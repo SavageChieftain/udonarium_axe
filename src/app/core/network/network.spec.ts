@@ -54,4 +54,28 @@ describe('Network', () => {
       expect(Network.instance.callback).toBeTruthy();
     });
   });
+
+  describe('beforeunload/unloadハンドラ', () => {
+    it('callbackUnloadがプライベートフィールドとして存在する', () => {
+      const instance = Network.instance as unknown as Record<string, unknown>;
+      expect(typeof instance['callbackUnload']).toBe('function');
+    });
+
+    it('callbackBeforeUnloadがプライベートフィールドとして存在する', () => {
+      const instance = Network.instance as unknown as Record<string, unknown>;
+      expect(typeof instance['callbackBeforeUnload']).toBe('function');
+    });
+
+    it('callbackUnloadはconnection未設定でもエラーにならない', () => {
+      const instance = Network.instance as unknown as Record<string, (...args: unknown[]) => void>;
+      expect(() => instance['callbackUnload']()).not.toThrow();
+    });
+
+    it('callbackBeforeUnloadはconnection未設定でもエラーにならない', () => {
+      const instance = Network.instance as unknown as Record<string, (...args: unknown[]) => void>;
+      const event = { preventDefault: vi.fn() } as unknown as BeforeUnloadEvent;
+      expect(() => instance['callbackBeforeUnload'](event)).not.toThrow();
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+  });
 });

@@ -72,6 +72,39 @@ export class SkyWayFacade {
     }
   }
 
+  /**
+   * ページアンロード時に使用する即時退室メソッド。
+   * awaitせずにleave()を発火し、サーバに退室を通知する。
+   * コンテキストは破棄しない（beforeunloadキャンセル時の再参加に備える）。
+   */
+  leaveImmediately() {
+    try {
+      if (this.roomPerson?.state !== 'left') {
+        this.roomPerson?.leave().catch(() => {});
+      }
+      if (this.lobbyPerson?.state !== 'left') {
+        this.lobbyPerson?.leave().catch(() => {});
+      }
+    } catch {
+      // ページアンロード中のエラーは無視
+    }
+  }
+
+  /**
+   * beforeunloadダイアログがキャンセルされた後にルーム・ロビーへ再参加する。
+   */
+  async rejoinAfterLeave() {
+    if (this.isDestroyed || !this.context || this.context.disposed) return;
+    try {
+      await this.joinRoomPerson();
+      await this.createRoomDataStream();
+      await this.joinLobbyPerson();
+      AppLogger.info('[SkyWay] beforeunloadキャンセル後の再参加完了');
+    } catch (err) {
+      AppLogger.error('[SkyWay] 再参加失敗', err);
+    }
+  }
+
   private async createContext() {
     await this.disposeContext();
     if (this.isDestroyed) return;
@@ -166,6 +199,7 @@ export class SkyWayFacade {
 
     const lobbyPerson = await this.lobby.join({
       name: this.peer.peerId,
+      preventAutoLeaveOnBeforeUnload: true,
     });
 
     lobbyPerson.onLeft.add(() => {});
@@ -209,6 +243,7 @@ export class SkyWayFacade {
 
     const roomPerson = await this.room.join({
       name: this.peer.peerId,
+      preventAutoLeaveOnBeforeUnload: true,
     });
 
     roomPerson.onFatalError.add((err) => {

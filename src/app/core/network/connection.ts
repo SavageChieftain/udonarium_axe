@@ -22,6 +22,8 @@ export interface Connection {
   open(userId?: string): void;
   open(userId: string, roomId: string, roomName: string, password: string): void;
   close(): void;
+  leaveImmediately?(): void;
+  rejoinAfterLeave?(): Promise<void>;
   connect(peer: IPeerContext): boolean | Promise<boolean>;
   disconnect(peer: IPeerContext): boolean;
   disconnectAll(): void;

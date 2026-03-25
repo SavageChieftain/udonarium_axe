@@ -81,6 +81,19 @@ export class SkyWayConnection implements Connection {
     this.skyWay.close();
   }
 
+  leaveImmediately() {
+    this.skyWay.leaveImmediately();
+  }
+
+  async rejoinAfterLeave() {
+    await this.skyWay.rejoinAfterLeave();
+    for (const peerId of [...this.trustedPeerIds]) {
+      const peer = PeerContext.parse(peerId);
+      this.disconnect(peer);
+      this.connect(peer);
+    }
+  }
+
   async connect(peer: IPeerContext): Promise<boolean> {
     if (!this.peer.isRoom) {
       Logger.warn('[SkyWay] ルーム接続のみ可能');

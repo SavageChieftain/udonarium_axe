@@ -68,6 +68,10 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this._timestamp = timestamp;
   }
 
+  resetTimestamp(): void {
+    this._timestamp = performance.now();
+  }
+
   private _ping: number = 0;
   get ping(): number {
     return this._ping;

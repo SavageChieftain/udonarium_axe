@@ -21,6 +21,14 @@ export class WebRTCStatsMonitor {
     this.monitoringConnections.delete(connection);
   }
 
+  static resetAllTimestamps(): void {
+    for (const connection of this.monitoringConnections) {
+      if ('resetTimestamp' in connection && typeof connection.resetTimestamp === 'function') {
+        connection.resetTimestamp();
+      }
+    }
+  }
+
   private static restart() {
     if (this.updateWebRTCStatsTimer == null) {
       this.updateWebRTCStatsTimer = new ResettableTimeout(() => this.doMonitoringAsync(), this.calcIntervalTime());
