@@ -1,7 +1,6 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   inject,
@@ -34,7 +33,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
-  private changeDetectionRef = inject(ChangeDetectorRef);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
   private objectChange = inject(ObjectChangeService);
@@ -49,7 +47,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   width = 200;
   height = 150;
 
-  private lazyUpdateTimer: ReturnType<typeof setTimeout> | null = null;
   readonly audioPlayer: AudioPlayer = new AudioPlayer();
   private cutInTimeOut: ReturnType<typeof setTimeout> | null = null;
   timerCheckWindowSize: ReturnType<typeof setTimeout> | null = null;
@@ -250,10 +247,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       clearTimeout(this.cutInTimeOut);
       this.cutInTimeOut = null!;
     }
-    if (this.lazyUpdateTimer) {
-      clearTimeout(this.lazyUpdateTimer);
-      this.lazyUpdateTimer = null;
-    }
     if (this.timerCheckWindowSize) {
       clearTimeout(this.timerCheckWindowSize);
       this.timerCheckWindowSize = null;
@@ -263,13 +256,5 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       this._timeoutIdVideo = null;
     }
     this.stopCutIn();
-  }
-
-  private lazyMarkForCheck() {
-    if (this.lazyUpdateTimer !== null) return;
-    this.lazyUpdateTimer = setTimeout(() => {
-      this.lazyUpdateTimer = null!;
-      this.changeDetectionRef.markForCheck();
-    }, 100);
   }
 }

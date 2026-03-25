@@ -172,7 +172,7 @@
           'px) rotateX(-90deg) translateY(' +
           (terreinAltitude > 0 ? -(altitude + (isSlope || isWallExist ? 0 : height)) * gridSize : 0) +
           'px) rotateY(' +
-          viewRotateZ +
+          viewRotateZ() +
           'deg)',
       }"
     >

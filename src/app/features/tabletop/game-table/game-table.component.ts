@@ -154,6 +154,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get tableImage(): ImageFile {
+    this.objectChangeService.fileVersion();
     return this.imageService.getSkeletonOr(this.currentTable.imageIdentifier);
   }
 
@@ -238,14 +239,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     this.objectChangeService.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.changeDetector.markForCheck();
-    });
-    this.objectChangeService.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      this.changeDetector.detectChanges();
-    });
-    this.objectChangeService.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      this.changeDetector.detectChanges();
     });
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();

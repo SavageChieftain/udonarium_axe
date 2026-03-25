@@ -2,7 +2,6 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   inject,
@@ -30,7 +29,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
-  private changeDetectionRef = inject(ChangeDetectorRef);
   private chatMessageService = inject(ChatMessageService);
   private objectStore = inject(ObjectStore);
   private objectChange = inject(ObjectChangeService);

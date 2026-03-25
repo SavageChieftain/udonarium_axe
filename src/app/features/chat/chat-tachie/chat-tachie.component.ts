@@ -3,7 +3,6 @@ import {
   AfterViewChecked,
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   inject,
@@ -31,7 +30,6 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
 })
 export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
-  private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);

@@ -4,7 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  effect,
+  computed,
   ElementRef,
   HostListener,
   inject,
@@ -63,14 +63,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   private eventSubscription = new Subscription();
 
-  constructor() {
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
-  }
+  constructor() {}
 
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
@@ -97,6 +90,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     return this.gameTableMask!.opacity;
   }
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.gameTableMask!.imageFile;
   }
   get isLock(): boolean {
@@ -231,7 +225,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   //  get isGMMode(): boolean { return this.gameTableMask!.isGMMode; }
   get isInverse(): boolean {
-    return 90 < Math.abs(this.viewRotateZ) % 360 && Math.abs(this.viewRotateZ) % 360 < 270;
+    return 90 < Math.abs(this.viewRotateZ()) % 360 && Math.abs(this.viewRotateZ()) % 360 < 270;
   }
   get isScratching(): boolean {
     return !!this.gameTableMask!.owner;
@@ -254,7 +248,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   gridSize: number = 50;
   math = Math;
-  viewRotateZ = 10;
+  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   movableOption: MovableOption = {};
 
@@ -274,19 +268,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
         .pipe(filter((event) => event.identifier === id))
         .subscribe(() => this.changeDetector.markForCheck())
     );
-    this.eventSubscription.add(
-      this.objectChange.fileSyncList$.subscribe(() => {
-        this.changeDetector.markForCheck();
-        setTimeout(() => this.changeDetector.detectChanges());
-      })
-    );
-    this.eventSubscription.add(
-      this.objectChange.fileResourceUpdated$.subscribe(() => {
-        this.changeDetector.markForCheck();
-        setTimeout(() => this.changeDetector.detectChanges());
-      })
-    );
-
     this.movableOption = {
       tabletopObject: this.gameTableMask!,
       transformCssOffset: 'translateZ(0.10px)',

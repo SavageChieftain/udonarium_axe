@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DoCheck,
-  inject,
-  ViewChild,
-  ViewContainerRef,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, ViewChild, ViewContainerRef } from '@angular/core';
 import { ModalService } from '@axe/shared/modal.service';
 
 @Component({
@@ -15,20 +7,14 @@ import { ModalService } from '@axe/shared/modal.service';
   styleUrls: ['./modal.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModalComponent implements DoCheck {
+export class ModalComponent {
   modalService = inject(ModalService);
-  private cdr = inject(ChangeDetectorRef);
 
-  title = '';
+  get title(): string {
+    return this.modalService.title;
+  }
 
   @ViewChild('content', { read: ViewContainerRef, static: true }) content: ViewContainerRef;
-
-  ngDoCheck(): void {
-    if (this.title !== this.modalService.title) {
-      this.title = this.modalService.title;
-      this.cdr.markForCheck();
-    }
-  }
 
   clickBackground(event: MouseEvent) {
     if (event.target === event.currentTarget) this.resolve();

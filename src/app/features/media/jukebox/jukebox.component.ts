@@ -1,13 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
@@ -22,6 +14,7 @@ import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
+import { debounceTime, merge } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,8 +25,6 @@ import { PanelOption, PanelService } from '@axe/shared/panel.service';
 })
 export class JukeboxComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
-  private changeDetector = inject(ChangeDetectorRef);
-  private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -70,7 +61,15 @@ export class JukeboxComponent implements OnInit, OnDestroy {
     AudioPlayer.auditionVolume = auditionVolume * this.roomVolume;
   }
 
+  private readonly fileVersion = toSignal(
+    merge(this.objectChange.fileSyncList$, this.objectChange.fileResourceUpdated$, this.objectChange.fileLoaded$).pipe(
+      debounceTime(100)
+    ),
+    { initialValue: undefined }
+  );
+
   get audios(): AudioFile[] {
+    this.fileVersion();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get jukebox(): Jukebox {
@@ -82,15 +81,9 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   }
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
-  private lazyUpdateTimer: NodeJS.Timeout = null!;
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.lazyMarkForCheck());
-    this.objectChange.fileResourceUpdated$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.lazyMarkForCheck());
-    this.objectChange.fileLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.lazyMarkForCheck());
   }
 
   ngOnDestroy() {
@@ -124,14 +117,6 @@ export class JukeboxComponent implements OnInit, OnDestroy {
     const files = input.files;
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
-  }
-
-  private lazyMarkForCheck() {
-    if (this.lazyUpdateTimer !== null) return;
-    this.lazyUpdateTimer = setTimeout(() => {
-      this.lazyUpdateTimer = null!;
-      this.changeDetector.markForCheck();
-    }, 100);
   }
 
   openCutInList() {

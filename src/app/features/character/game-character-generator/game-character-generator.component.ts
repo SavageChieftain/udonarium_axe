@@ -1,14 +1,5 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnInit,
-  ViewContainerRef,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnInit, ViewContainerRef } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -21,6 +12,7 @@ import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { filter, map } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,9 +28,7 @@ export class GameCharacterGeneratorComponent implements OnInit, AfterViewInit {
   private imageStorage = inject(ImageStorage);
   private objectSerializer = inject(ObjectSerializer);
   private tableSelecter = inject(TableSelecter);
-  private changeDetector = inject(ChangeDetectorRef);
   private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
 
   name: string = 'ゲームキャラクター';
   size: number = 1;
@@ -47,23 +37,22 @@ export class GameCharacterGeneratorComponent implements OnInit, AfterViewInit {
   minSize: number = 1;
   maxSize: number = 20;
 
-  tableBackgroundImage: ImageFile = ImageFile.createEmpty('null');
+  readonly tableBackgroundImage = toSignal(
+    this.objectChange.selectFile$.pipe(
+      map((event) => this.imageStorage.get(event.fileIdentifier)),
+      filter((file): file is ImageFile => !!file)
+    ),
+    { initialValue: ImageFile.createEmpty('null') }
+  );
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
-    this.objectChange.selectFile$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const file: ImageFile = this.imageStorage.get(event.fileIdentifier);
-      if (file) {
-        this.tableBackgroundImage = file;
-        this.changeDetector.markForCheck();
-      }
-    });
   }
 
   ngAfterViewInit() {}
 
   createGameCharacter() {
-    GameCharacter.create(this.name, this.size, this.tableBackgroundImage.identifier);
+    GameCharacter.create(this.name, this.size, this.tableBackgroundImage().identifier);
   }
   createGameTableMask() {
     const viewTable = this.tableSelecter.viewTable;

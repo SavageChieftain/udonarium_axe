@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -27,12 +17,10 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe'; //本家PR #92より
   imports: [FormsModule, SafePipe],
 })
 export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private imageStorage = inject(ImageStorage);
   private fileArchiver = inject(FileArchiver);
   private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
 
   protected initTimestamp: number = 0;
 
@@ -65,6 +53,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get images(): ImageFile[] {
+    this.objectChange.fileVersion();
     const imageFileList: ImageFile[] = [];
     if (this.selectTag == '全て') return this.getAllImage();
     for (const imageFile of this.fileStorageService.images) {
@@ -160,13 +149,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
     queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));
   }
 
-  ngAfterViewInit() {
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (e.isSendFromSelf) {
-        this.changeDetector.markForCheck();
-      }
-    });
-  }
+  ngAfterViewInit() {}
 
   ngOnDestroy() {}
 

@@ -121,6 +121,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.imageService.getSkeletonOr(this.card.imageFile);
   }
   get frontImage(): ImageFile {
@@ -155,14 +156,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
       ) {
         this.changeDetector.markForCheck();
       }
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
     });
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       const cursor = PeerCursor.findByPeerId(e.peerId);

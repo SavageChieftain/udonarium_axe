@@ -1,5 +1,5 @@
-import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { GameCharacterGeneratorComponent } from './game-character-generator.component';
@@ -24,8 +24,9 @@ describe('GameCharacterGeneratorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('OnPushコンポーネントでChangeDetectorRefが注入されていること', () => {
-    const cdr = fixture.debugElement.injector.get(ChangeDetectorRef);
-    expect(cdr).toBeTruthy();
+  it('tableBackgroundImageの初期値が空のImageFileであること', () => {
+    const image = component.tableBackgroundImage();
+    expect(image).toBeInstanceOf(ImageFile);
+    expect(image.identifier).toBe('null');
   });
 });

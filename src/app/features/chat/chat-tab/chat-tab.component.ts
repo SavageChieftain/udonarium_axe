@@ -459,7 +459,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
       this.scrollSpeed = scrollPosition.top - this.preScrollTop;
       this.preScrollTop = scrollPosition.top;
       this.changeDetector.markForCheck();
-      this.changeDetector.markForCheck();
     });
   }
 

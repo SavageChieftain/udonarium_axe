@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -69,12 +70,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {
     effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
       this.uiSignalService.terrainGridShowVersion();
       let opacity: number = 0.0;
       if (this.terrain.isGrid) {
@@ -132,6 +127,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get wallImage(): ImageFile {
+    this.objectChange.fileVersion();
     return this.imageService.getSkeletonOr(this.terrain.wallImage);
   }
   get floorImage(): ImageFile {
@@ -232,7 +228,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   slopeDirectionState = SlopeDirection;
 
   private input: InputHandler = null!;
-  viewRotateZ = 10;
+  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   ngOnInit() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
@@ -254,14 +250,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
         this.currentTable.gridType,
         this.currentTable.gridColor
       );
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
     });
     this.movableOption = {
       tabletopObject: this.terrain,

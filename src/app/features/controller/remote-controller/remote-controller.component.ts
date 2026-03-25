@@ -96,17 +96,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   constructor() {
     this.initTimestamp = Date.now();
     effect(() => {
-      const selection = this.selectionSignalService.selectedObject();
-      if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
-        this.selectedIdentifier = selection.identifier;
-        this.changeDetector.markForCheck();
-      }
-    });
-    effect(() => {
-      this.inventoryService.inventoryVersion();
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
       const data = this.uiSignalService.targetChange();
       if (!data) return;
       if (this.objectStore.get(data.identifier) instanceof GameCharacter) {
@@ -192,7 +181,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
   inventoryTypes: string[] = ['table', 'common', 'graveyard'];
   selectTab = 'table';
-  selectedIdentifier = '';
 
   hideChkBoxEvent(eventValue: boolean) {
     this.buffAreaIsHide = eventValue;
@@ -239,11 +227,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       }
     });
 
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (e.isSendFromSelf) {
-        this.changeDetector.markForCheck();
-      }
-    });
     this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
       if (!this.inventoryTypes.includes(this.selectTab)) {
@@ -351,6 +334,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   getGameObjects(inventoryType: string): TabletopObject[] {
+    this.inventoryService.inventoryVersion();
+    this.objectChange.fileVersion();
     switch (inventoryType) {
       case 'table': {
         const tableCharacterList_dest = [];

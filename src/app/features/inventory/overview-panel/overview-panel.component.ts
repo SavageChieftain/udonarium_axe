@@ -54,6 +54,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   @Input() top: number = 0;
 
   get imageUrl(): string {
+    this.objectChange.fileVersion();
     return this.tabletopObject && this.tabletopObject.imageFile ? this.tabletopObject.imageFile.url : '';
   }
   get hasImage(): boolean {
@@ -105,12 +106,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
       if (this.tabletopObject === object || this.tabletopObject.contains(object)) {
         this.changeDetector.markForCheck();
       }
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
     });
   }
 

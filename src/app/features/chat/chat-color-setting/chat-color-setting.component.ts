@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  inject,
-  Input,
-  OnDestroy,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy } from '@angular/core';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ModalService } from '@axe/shared/modal.service';
@@ -19,7 +11,6 @@ import { PanelService } from '@axe/shared/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 

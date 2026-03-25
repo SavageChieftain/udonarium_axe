@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -18,7 +19,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -63,18 +63,11 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 
   constructor() {
     effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateX = rotation.x;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
       const data = this.uiSignalService.targetChange();
       if (!data || !this.gameCharacter) return;
       const objct = this.objectStore.get(data.identifier);
       if (objct == this.gameCharacter!) {
-        this.changeDetector.detectChanges();
+        this.changeDetector.markForCheck();
       }
     });
     effect(() => {
@@ -130,6 +123,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     this.gameCharacter!.altitude = altitude;
   }
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.gameCharacter!.imageFile;
   }
   get rotate(): number {
@@ -163,7 +157,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   math = Math;
 
   viewRotateX = 50;
-  viewRotateZ = 10;
+  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   movableOption: MovableOption = {};
   private input: InputHandler = null!;
@@ -199,14 +193,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
       if (this.gameCharacter === object || (object instanceof ObjectNode && this.gameCharacter!.contains(object))) {
         this.changeDetector.markForCheck();
       }
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      this.changeDetector.detectChanges();
     });
     this.movableOption = {
       tabletopObject: this.gameCharacter!,
@@ -382,11 +368,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
       ],
       this.name
     );
-  }
-
-  private deleteGameObject(gameObject: GameObject) {
-    gameObject.destroy();
-    this.changeDetector.markForCheck();
   }
 
   onMove() {

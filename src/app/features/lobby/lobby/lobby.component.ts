@@ -112,7 +112,7 @@ export class LobbyComponent implements OnInit {
       this.help = 'ルーム一覧の取得に失敗しました。「一覧を更新」で再検索できます。';
     } finally {
       this.isReloading = false;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 

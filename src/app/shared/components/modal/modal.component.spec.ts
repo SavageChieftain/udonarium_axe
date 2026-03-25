@@ -20,4 +20,11 @@ describe('ModalComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('title getter', () => {
+    it('ModalServiceのtitleを取得すること', () => {
+      component.modalService.title = 'テストタイトル';
+      expect(component.title).toBe('テストタイトル');
+    });
+  });
 });

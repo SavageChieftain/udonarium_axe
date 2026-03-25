@@ -97,6 +97,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.diceSymbol.faces;
   }
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.imageService.getEmptyOr(this.diceSymbol.imageFile);
   }
 
@@ -158,14 +159,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
         this.changeDetector.markForCheck();
       }
     });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       const cursor = PeerCursor.findByPeerId(event.peerId);
       if (!cursor || this.diceSymbol.owner === cursor.userId) this.changeDetector.markForCheck();
@@ -199,7 +192,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onDiceRollEnd() {
     this.animeState = 'inactive';
-    this.changeDetector.markForCheck();
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {

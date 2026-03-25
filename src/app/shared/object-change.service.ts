@@ -1,4 +1,5 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
 import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
 import {
@@ -18,7 +19,7 @@ import {
   stopCutInByBgm$,
   xmlLoaded$,
 } from '@axe/domain/domain-events';
-import { Subject, Subscription } from 'rxjs';
+import { debounceTime, merge, Subject, Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 export type {
@@ -138,6 +139,20 @@ export class ObjectChangeService {
   readonly xmlLoaded$ = xmlLoaded$;
   readonly loadConfig$ = loadConfig$;
   readonly domainFileResourceUpdated$ = domainFileResourceUpdated$;
+
+  /** Signal that updates when any file-related event occurs (debounced). Read in getters to track file changes. */
+  readonly fileVersion = toSignal(
+    merge(this._fileSyncList$, this._fileResourceUpdated$, this.fileLoaded$, this.domainFileResourceUpdated$).pipe(
+      debounceTime(100)
+    ),
+    { initialValue: undefined }
+  );
+
+  /** Signal that updates when network peer events occur (debounced). Read in getters to track peer changes. */
+  readonly networkVersion = toSignal(
+    merge(this._networkOpen$, this._peerConnect$, this._peerDisconnect$).pipe(debounceTime(100)),
+    { initialValue: undefined }
+  );
 
   constructor() {
     const sub = new Subscription();

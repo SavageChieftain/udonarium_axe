@@ -54,12 +54,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
       const selection = this.selectionSignalService.selectedObject();
       if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
         this.selectedIdentifier = selection.identifier;
-        this.changeDetector.markForCheck();
       }
-    });
-    effect(() => {
-      this.inventoryService.inventoryVersion();
-      this.changeDetector.markForCheck();
     });
   }
 
@@ -122,9 +117,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-    });
     this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
       if (!this.inventoryTypes.includes(this.selectTab)) {
@@ -175,6 +167,8 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   }
 
   getGameObjects(inventoryType: string): TabletopObject[] {
+    this.inventoryService.inventoryVersion();
+    this.objectChange.fileVersion();
     switch (inventoryType) {
       case 'table': {
         const tableCharacterList_dest = [];
@@ -444,7 +438,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   private deleteGameObject(gameObject: GameObject) {
     gameObject.destroy();
-    this.changeDetector.markForCheck();
   }
 
   trackByGameObject(index: number, gameObject: GameObject) {

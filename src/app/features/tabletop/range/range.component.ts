@@ -4,8 +4,8 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   DestroyRef,
-  effect,
   ElementRef,
   HostListener,
   inject,
@@ -74,14 +74,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  constructor() {
-    effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z;
-      this.changeDetector.markForCheck();
-    });
-  }
+  constructor() {}
 
   @Input() range: RangeArea = null!;
   @Input() is3D: boolean = false;
@@ -233,6 +226,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.range.opacity;
   }
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.range.imageFile;
   }
   get isLock(): boolean {
@@ -301,7 +295,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   math = Math;
 
   viewRotateX = 50;
-  viewRotateZ = 10;
+  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   movableOption: MovableOption = {};
   rotableOption: RotableOption = {};
@@ -320,14 +314,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.range.following();
         this.setRange();
       }
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
     });
     this.movableOption = {
       tabletopObject: this.range,

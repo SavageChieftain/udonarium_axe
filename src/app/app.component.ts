@@ -226,7 +226,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     });
     this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.lazyMarkForCheck(false);
-      setTimeout(() => this.changeDetector.detectChanges());
     });
     this.objectChange.loadConfig$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       Network.configure(event.config as Record<string, unknown>);

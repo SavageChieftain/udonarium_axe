@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  inject,
-  Input,
-  OnDestroy,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -24,7 +16,6 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
   imports: [FormsModule],
 })
 export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);

@@ -1,15 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -28,12 +17,10 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe'; //本家PR #92より
   imports: [FormsModule, SafePipe],
 })
 export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private imageStorage = inject(ImageStorage);
   private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
 
   //本家PR #92より
   searchWord: string = '';
@@ -70,6 +57,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   //本家PR #92より
   get images(): ImageFile[] {
+    this.objectChange.fileVersion();
     const imageFileList: ImageFile[] = [];
     if (this.selectTag == '全て') return this.getAllImage();
 
@@ -158,16 +146,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ファイル一覧'));
   }
 
-  ngAfterViewInit() {
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-  }
+  ngAfterViewInit() {}
 
   ngOnDestroy() {}
 

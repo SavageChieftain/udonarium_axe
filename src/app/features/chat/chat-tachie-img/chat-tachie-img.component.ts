@@ -135,9 +135,6 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   private timerId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetectionRef.markForCheck();
-    });
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       if (e.identifier === this.chatTabidentifier) {
         this.changeDetectionRef.markForCheck();
@@ -285,6 +282,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
 
   //この実装は後でどうにかしたい
   get imageFileUrl_00(): string {
+    this.objectChange.fileVersion();
     if (!this.chatTab.imageIdentifier) return '';
     const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[0]);
     if (image) return image.url;

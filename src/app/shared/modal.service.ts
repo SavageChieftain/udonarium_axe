@@ -1,4 +1,4 @@
-import { ComponentRef, Injectable, Injector, ViewContainerRef } from '@angular/core';
+import { ComponentRef, Injectable, Injector, signal, ViewContainerRef } from '@angular/core';
 
 class ModalContext {
   constructor(
@@ -21,7 +21,13 @@ export class ModalService {
   private modalContext: ModalContext = null!;
   private count = 0;
 
-  title: string = '無名のモーダル';
+  private readonly _title = signal('無名のモーダル');
+  get title(): string {
+    return this._title();
+  }
+  set title(value: string) {
+    this._title.set(value);
+  }
 
   /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;

@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -27,7 +18,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })
 export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterViewInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);

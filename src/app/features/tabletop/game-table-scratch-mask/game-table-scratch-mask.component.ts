@@ -79,15 +79,6 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
         this.changeDetector.markForCheck();
       }
     });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-
     this.movableOption = {
       tabletopObject: this.gameTableScratchMask!,
       colideLayers: ['terrain'],

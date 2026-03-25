@@ -103,6 +103,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.cardStack.topCard;
   }
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.imageService.getSkeletonOr(this.cardStack.imageFile);
   }
 
@@ -143,14 +144,6 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     this.objectChange.cardStackDecreased$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.cardStackIdentifier === this.cardStack.identifier && this.cardStack) this.changeDetector.markForCheck();
     });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.changeDetector.detectChanges());
-    });
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       const cursor = PeerCursor.findByPeerId(event.peerId);
       if (!cursor || this.cardStack.owner === cursor.userId) this.changeDetector.markForCheck();
@@ -178,7 +171,6 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onShuffleDone() {
     this.animeState = 'inactive';
-    this.changeDetector.markForCheck();
   }
 
   @HostListener('carddrop', ['$event'])

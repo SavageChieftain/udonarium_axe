@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
@@ -24,7 +24,6 @@ import { merge, take } from 'rxjs';
   styleUrls: ['./re-connect.component.css'],
 })
 export class ReConnectComponent implements OnInit {
-  private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
@@ -221,6 +220,5 @@ export class ReConnectComponent implements OnInit {
 
   private deleteGameObject(gameObject: GameObject) {
     gameObject.destroy();
-    this.changeDetector.markForCheck();
   }
 }

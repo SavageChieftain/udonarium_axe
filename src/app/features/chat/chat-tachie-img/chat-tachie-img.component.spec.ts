@@ -2,9 +2,8 @@ import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { FileSyncEvent, ObjectChangeService } from '@axe/shared/object-change.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-import { Subject } from 'rxjs';
 
 import { ChatTachieImageComponent } from './chat-tachie-img.component';
 
@@ -35,14 +34,12 @@ describe('ChatTachieImageComponent', () => {
   });
 
   describe('イベントリスナー', () => {
-    it('SYNCHRONIZE_FILE_LISTイベントでmarkForCheckが呼ばれること', () => {
+    it('imageFileUrl_00がfileVersion()シグナルを読み取ること', () => {
       fixture.detectChanges();
-      const cdr = (component as unknown as { changeDetectionRef: ChangeDetectorRef }).changeDetectionRef;
-      const spy = vi.spyOn(cdr, 'markForCheck');
+      const spy = vi.spyOn(objectChange, 'fileVersion');
 
-      (objectChange as unknown as { _fileSyncList$: Subject<FileSyncEvent> })._fileSyncList$.next({
-        isSendFromSelf: false,
-      });
+      // getterを呼び出すとfileVersion()が読まれる
+      void component.imageFileUrl_00;
 
       expect(spy).toHaveBeenCalled();
     });

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -58,12 +59,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {
     effect(() => {
-      const rotation = this.uiSignalService.tableViewRotation();
-      if (!rotation) return;
-      this.viewRotateZ = rotation.z ?? 10;
-      this.changeDetector.markForCheck();
-    });
-    effect(() => {
       const req = this.uiSignalService.noteResizeRequest();
       if (!req || !this.textNote) return;
       if (this.textNote.identifier === req.identifier) {
@@ -109,6 +104,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.textNote.fontSize;
   }
   get imageFile(): ImageFile {
+    this.objectChange.fileVersion();
     return this.textNote.imageFile;
   }
   get rotate(): number {
@@ -201,7 +197,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   rotableOption: RotableOption = {};
 
   private input: InputHandler | null = null;
-  viewRotateZ = 10;
+  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   ngOnInit() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
@@ -210,12 +206,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.textNote === object || (object instanceof ObjectNode && this.textNote.contains(object))) {
         this.changeDetector.markForCheck();
       }
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-    });
-    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
     });
     this.movableOption = {
       tabletopObject: this.textNote,
