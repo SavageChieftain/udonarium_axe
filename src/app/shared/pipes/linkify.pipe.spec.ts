@@ -22,6 +22,12 @@ describe('LinkifyPipe', () => {
     expect(result).toContain('</a>');
   });
 
+  it('リンクが別タブで開くようtarget="_blank"が付与される', () => {
+    const result = pipe.transform('https://example.com');
+    expect(result).toContain('target="_blank"');
+    expect(result).toContain('rel="noopener noreferrer"');
+  });
+
   it('複数URLを変換する', () => {
     const result = pipe.transform('https://a.com と https://b.com');
     expect(result).toContain('https://a.com');

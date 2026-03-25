@@ -5,6 +5,6 @@ import linkifyHtml from 'linkify-html';
 export class LinkifyPipe implements PipeTransform {
   transform(value: string | number | null | undefined): string {
     if (value === null || value === undefined) return '';
-    return linkifyHtml(String(value));
+    return linkifyHtml(String(value), { target: '_blank', rel: 'noopener noreferrer' });
   }
 }
