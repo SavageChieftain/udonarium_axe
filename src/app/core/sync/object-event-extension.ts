@@ -20,6 +20,16 @@ export const objectChanged$ = new Subject<ObjectChangeEvent>();
 /** RxJS Subject for batched children-change events. Shared with ObjectChangeService. */
 export const childrenChanged$ = new Subject<ChildrenChangeEvent>();
 
+export interface ObjectStoreEvent {
+  identifier: string;
+  aliasName: string;
+}
+
+/** Emitted synchronously when ObjectStore.add() succeeds. */
+export const objectAdded$ = new Subject<ObjectStoreEvent>();
+/** Emitted synchronously when ObjectStore.remove() succeeds. */
+export const objectRemoved$ = new Subject<ObjectStoreEvent>();
+
 const objectBatches = new Map<string, { object: GameObject; originFrom: string }>();
 const nodeBatches = new Set<string>();
 

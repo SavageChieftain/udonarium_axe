@@ -1,4 +1,11 @@
-import { childrenChanged$, markForChanged, markForChildrenChanged, objectChanged$ } from './object-event-extension';
+import {
+  childrenChanged$,
+  markForChanged,
+  markForChildrenChanged,
+  objectAdded$,
+  objectChanged$,
+  objectRemoved$,
+} from './object-event-extension';
 import { ObjectNode } from './object-node';
 import { ObjectStore } from './object-store';
 
@@ -53,6 +60,20 @@ describe('object-event-extension', () => {
       expect(callback).toHaveBeenCalled();
       expect(callback.mock.calls[0][0]).toEqual(expect.objectContaining({ identifier: parent.identifier }));
       sub.unsubscribe();
+    });
+  });
+
+  describe('objectAdded$', () => {
+    it('Subject として公開されている', () => {
+      expect(objectAdded$).toBeTruthy();
+      expect(typeof objectAdded$.subscribe).toBe('function');
+    });
+  });
+
+  describe('objectRemoved$', () => {
+    it('Subject として公開されている', () => {
+      expect(objectRemoved$).toBeTruthy();
+      expect(typeof objectRemoved$.subscribe).toBe('function');
     });
   });
 });

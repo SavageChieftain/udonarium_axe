@@ -2,6 +2,7 @@ import { networkSend } from '@axe/core/network/network-messaging';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
 
 import { GameObject, ObjectContext } from './game-object';
+import { objectAdded$, objectRemoved$ } from './object-event-extension';
 import { Type } from './object-factory';
 
 type ObjectAliasName = string;
@@ -39,6 +40,7 @@ export class ObjectStore {
     objectsMap!.set(object.identifier, object);
     object.onStoreAdded();
     if (shouldBroadcast) this.update(object.toContext());
+    objectAdded$.next({ identifier: object.identifier, aliasName: object.aliasName });
     return object;
   }
 
@@ -49,6 +51,7 @@ export class ObjectStore {
     const objectsMap = this.aliasNameMap.get(object.aliasName);
     if (objectsMap) objectsMap.delete(object.identifier);
     object.onStoreRemoved();
+    objectRemoved$.next({ identifier: object.identifier, aliasName: object.aliasName });
     return object;
   }
 

@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/network/network';
 
 import { GameObject } from './game-object';
+import { objectAdded$, objectRemoved$ } from './object-event-extension';
 import { ObjectStore } from './object-store';
 
 describe('ObjectStore', () => {
@@ -415,6 +416,118 @@ describe('ObjectStore', () => {
 
       // Entry should remain in garbage map
       expect(store.isDeleted('gc-small-test')).toBe(true);
+    });
+  });
+
+  describe('objectAdded$ / objectRemoved$ emit', () => {
+    it('add() で objectAdded$ が emit される', () => {
+      const callback = vi.fn();
+      const sub = objectAdded$.subscribe(callback);
+
+      const obj = new GameObject('emit-add-1');
+      store.add(obj, false);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        identifier: 'emit-add-1',
+        aliasName: GameObject.aliasName,
+      });
+      sub.unsubscribe();
+    });
+
+    it('add() が重複で失敗した場合は emit されない', () => {
+      const obj = new GameObject('emit-add-2');
+      store.add(obj, false);
+
+      const callback = vi.fn();
+      const sub = objectAdded$.subscribe(callback);
+
+      store.add(obj, false); // duplicate → returns null
+
+      expect(callback).not.toHaveBeenCalled();
+      sub.unsubscribe();
+    });
+
+    it('add() が削除済み identifier で失敗した場合は emit されない', () => {
+      const obj = new GameObject('emit-add-3');
+      store.add(obj, false);
+      store.delete(obj, false);
+
+      const callback = vi.fn();
+      const sub = objectAdded$.subscribe(callback);
+
+      const newObj = new GameObject('emit-add-3');
+      store.add(newObj, false); // deleted → returns null
+
+      expect(callback).not.toHaveBeenCalled();
+      sub.unsubscribe();
+    });
+
+    it('remove() で objectRemoved$ が emit される', () => {
+      const obj = new GameObject('emit-rm-1');
+      store.add(obj, false);
+
+      const callback = vi.fn();
+      const sub = objectRemoved$.subscribe(callback);
+
+      store.remove(obj);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        identifier: 'emit-rm-1',
+        aliasName: GameObject.aliasName,
+      });
+      sub.unsubscribe();
+    });
+
+    it('remove() が存在しないオブジェクトで失敗した場合は emit されない', () => {
+      const callback = vi.fn();
+      const sub = objectRemoved$.subscribe(callback);
+
+      const obj = new GameObject('emit-rm-2');
+      store.remove(obj); // not in store → returns null
+
+      expect(callback).not.toHaveBeenCalled();
+      sub.unsubscribe();
+    });
+
+    it('delete() は内部で remove() を呼ぶため objectRemoved$ が emit される', () => {
+      const obj = new GameObject('emit-del-1');
+      store.add(obj, false);
+
+      const callback = vi.fn();
+      const sub = objectRemoved$.subscribe(callback);
+
+      store.delete(obj, false);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        identifier: 'emit-del-1',
+        aliasName: GameObject.aliasName,
+      });
+      sub.unsubscribe();
+    });
+
+    it('emit される identifier と aliasName が正しい', () => {
+      const addedEvents: { identifier: string; aliasName: string }[] = [];
+      const removedEvents: { identifier: string; aliasName: string }[] = [];
+      const sub1 = objectAdded$.subscribe((e) => addedEvents.push(e));
+      const sub2 = objectRemoved$.subscribe((e) => removedEvents.push(e));
+
+      const obj1 = new GameObject('emit-multi-1');
+      const obj2 = new GameObject('emit-multi-2');
+      store.add(obj1, false);
+      store.add(obj2, false);
+      store.remove(obj1);
+
+      expect(addedEvents).toHaveLength(2);
+      expect(addedEvents[0].identifier).toBe('emit-multi-1');
+      expect(addedEvents[1].identifier).toBe('emit-multi-2');
+      expect(removedEvents).toHaveLength(1);
+      expect(removedEvents[0].identifier).toBe('emit-multi-1');
+
+      sub1.unsubscribe();
+      sub2.unsubscribe();
     });
   });
 });
