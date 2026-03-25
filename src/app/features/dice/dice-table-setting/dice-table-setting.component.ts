@@ -35,11 +35,11 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   @Input('gameType') _gameType: string = '';
   @Output() gameTypeChange = new EventEmitter<string>();
   get gameType(): string {
-    return this.isEditable ? this.selectedTable.diceTablePalette.dicebot : '';
+    return this.isEditable ? this.selectedTable!.diceTablePalette.dicebot : '';
   }
   set gameType(gameType: string) {
     if (this.isEditable) {
-      this.selectedTable.diceTablePalette.dicebot = gameType;
+      this.selectedTable!.diceTablePalette.dicebot = gameType;
       this._gameType = gameType;
       this.gameTypeChange.emit(gameType);
     }
@@ -54,44 +54,44 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get tableName(): string {
-    return this.isEditable ? this.selectedTable.name : '';
+    return this.isEditable ? this.selectedTable!.name : '';
   }
   set tableName(tableName: string) {
-    if (this.isEditable) this.selectedTable.name = tableName;
+    if (this.isEditable) this.selectedTable!.name = tableName;
   }
 
   get tableDice(): string {
-    return this.isEditable ? this.selectedTable.dice : '';
+    return this.isEditable ? this.selectedTable!.dice : '';
   }
   set tableDice(tableDice: string) {
-    if (this.isEditable) this.selectedTable.dice = tableDice;
+    if (this.isEditable) this.selectedTable!.dice = tableDice;
   }
 
   get tableCommand(): string {
-    return this.isEditable ? this.selectedTable.command : '';
+    return this.isEditable ? this.selectedTable!.command : '';
   }
   set tableCommand(tableCommand: string) {
-    if (this.isEditable) this.selectedTable.command = tableCommand;
+    if (this.isEditable) this.selectedTable!.command = tableCommand;
   }
 
   get tableText(): string {
-    return this.isEditable ? this.selectedTable.text : '';
+    return this.isEditable ? this.selectedTable!.text : '';
   }
   set tableText(tableText: string) {
-    if (this.isEditable) this.selectedTable.text = tableText + '';
+    if (this.isEditable) this.selectedTable!.text = tableText + '';
   }
 
   get diceTablePalette(): DiceTablePalette {
     if (!this.isEditable) return null!;
 
-    for (const child of this.selectedTable.children) {
+    for (const child of this.selectedTable!.children) {
       if (child instanceof DiceTablePalette) return child;
     }
     return null!;
   }
 
   isEdit: boolean = false;
-  selectedTable: DiceTable = null!;
+  selectedTable: DiceTable | null = null;
   editPalette: string = '';
 
   //  get isEmpty(): boolean { return this.tableSelecter ? (this.tableSelecter.viewTable ? false : true) : true; }
@@ -163,9 +163,9 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
     if (this.isEdit) {
-      this.editPalette = this.selectedTable.diceTablePalette.value + '';
+      this.editPalette = this.selectedTable!.diceTablePalette.value + '';
     } else {
-      this.selectedTable.diceTablePalette.setPalette(this.editPalette);
+      this.selectedTable!.diceTablePalette.setPalette(this.editPalette);
     }
   }
 }
