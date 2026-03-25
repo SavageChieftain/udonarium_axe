@@ -179,7 +179,10 @@ export class CutInListComponent implements OnInit, OnDestroy {
     return this.isEditable ? this.selectedCutIn.isLoop : false;
   }
   set cutInIsLoop(cutInIsLoop: boolean) {
-    if (this.isEditable && this.selectedCutIn) this.selectedCutIn.isLoop = cutInIsLoop;
+    if (this.isEditable && this.selectedCutIn) {
+      this.selectedCutIn.isLoop = cutInIsLoop;
+      if (cutInIsLoop) this.selectedCutIn.outTime = 0;
+    }
   }
 
   get chatActivate(): boolean {
@@ -264,7 +267,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   get isEmpty(): boolean {
-    return false;
+    return this.getCutIns().length <= 0;
   }
 
   get cutInImageUrl(): string {

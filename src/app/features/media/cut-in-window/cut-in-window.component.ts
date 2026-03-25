@@ -207,7 +207,10 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     $event.target.playVideo();
   }
 
-  onPlayerStateChange($event: { data: number }) {
+  onPlayerStateChange($event: {
+    data: number;
+    target?: { seekTo?: (seconds: number, allowSeekAhead: boolean) => void; playVideo?: () => void };
+  }) {
     const state = $event.data;
     if (state == 1) {
       this.videoStateTransition = true;
@@ -231,8 +234,15 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       }, 200);
     }
     if (state == 0) {
-      this.cutInTimeOut = null!;
-      this.panelService.close();
+      // 動画終了時：ループ設定なら先頭から再生し直す
+      if (this.cutIn?.isLoop && $event.target?.seekTo && $event.target?.playVideo) {
+        const startSec = this.cutIn.videoStart ? +this.cutIn.videoStart : 0;
+        $event.target.seekTo(startSec, true);
+        $event.target.playVideo();
+      } else {
+        this.cutInTimeOut = null!;
+        this.panelService.close();
+      }
     }
   }
 

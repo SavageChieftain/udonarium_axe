@@ -193,6 +193,18 @@ describe('CutIn', () => {
       cutIn.videoUrl = 'https://vimeo.com/123456';
       expect(cutIn.videoId).toBe('');
     });
+
+    it('YouTube Shorts URLからIDを抽出する', () => {
+      cutIn.isVideoCutIn = true;
+      cutIn.videoUrl = 'https://www.youtube.com/shorts/dQw4w9WgXcQ';
+      expect(cutIn.videoId).toBe('dQw4w9WgXcQ');
+    });
+
+    it('YouTube Shorts URLにクエリパラメータがあってもIDを抽出する', () => {
+      cutIn.isVideoCutIn = true;
+      cutIn.videoUrl = 'https://www.youtube.com/shorts/dQw4w9WgXcQ?feature=share';
+      expect(cutIn.videoId).toBe('dQw4w9WgXcQ');
+    });
   });
 
   describe('videoStart', () => {

@@ -167,7 +167,7 @@
           type="number"
           min="0"
           style="width: 5em"
-          [attr.disabled]="!isEditable ? '' : null"
+          [attr.disabled]="!isEditable || cutInIsLoop ? '' : null"
         />
       </div>
       <div>
@@ -216,9 +216,9 @@
       </div>
       <hr />
       <div>
-        @if (!isSelected) {
+        @if (isSelected) {
           <button (click)="save()">保存</button>
-          <button class="danger" (click)="delete()" [attr.disabled]="getCutIns().length <= 0 ? '' : null">削除</button>
+          <button class="danger" (click)="delete()">削除</button>
         }
       </div>
     }

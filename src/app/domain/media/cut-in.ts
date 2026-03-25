@@ -115,10 +115,16 @@ export class CutIn extends GameObject {
     if (!this.isVideoCutIn || !this.videoUrl) return '';
     let ret = '';
     if (this.validUrl(this.videoUrl)) {
-      const hostname = new URL(this.videoUrl).hostname;
+      const url = new URL(this.videoUrl);
+      const hostname = url.hostname;
       if (hostname == 'youtube.com' || hostname == 'www.youtube.com') {
-        const tmp = this.videoUrl.split('v=');
-        if (tmp[1]) ret = encodeURI(tmp[1].split(/[?&#/]/)[0]);
+        const shortsMatch = url.pathname.match(/^\/shorts\/([^/?&#]+)/);
+        if (shortsMatch) {
+          ret = encodeURI(shortsMatch[1]);
+        } else {
+          const tmp = this.videoUrl.split('v=');
+          if (tmp[1]) ret = encodeURI(tmp[1].split(/[?&#/]/)[0]);
+        }
       } else if (hostname == 'youtu.be') {
         const tmp = this.videoUrl.split('youtu.be/');
         if (tmp[1]) ret = encodeURI(tmp[1].split(/[?&#/]/)[0]);
