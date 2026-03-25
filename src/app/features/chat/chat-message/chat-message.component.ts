@@ -7,6 +7,7 @@ import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/chat-message-fix.component';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
@@ -23,6 +24,7 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   private pointerDeviceService = inject(PointerDeviceService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
+  private objectChange = inject(ObjectChangeService);
 
   @Input() chatMessage: ChatMessage;
 
@@ -60,6 +62,7 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   }
 
   escapeHtmlAndRuby(text: string) {
+    this.objectChange.versionOf(this.chatMessage?.identifier)();
     // ルビ機能 ハーメルン記法を参考 半角全角|始まり。振られる側にスペースは不可。
     // 記入例：|永遠力暴風雪《エターナルフォースブリザード》
     // 振られる側に《スキル名》は有効：|《約束された勝利の剣》《エクスカリバー》
