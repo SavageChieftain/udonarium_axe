@@ -62,9 +62,13 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   }
 
   private readonly fileVersion = toSignal(
-    merge(this.objectChange.fileSyncList$, this.objectChange.fileResourceUpdated$, this.objectChange.fileLoaded$).pipe(
-      debounceTime(100)
-    ),
+    merge(
+      this.objectChange.fileSyncList$,
+      this.objectChange.fileResourceUpdated$,
+      this.objectChange.fileLoaded$,
+      this.objectChange.audioSyncList$,
+      this.objectChange.domainFileResourceUpdated$
+    ).pipe(debounceTime(100)),
     { initialValue: undefined }
   );
 
