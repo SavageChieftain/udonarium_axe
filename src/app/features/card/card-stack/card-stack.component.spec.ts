@@ -41,5 +41,16 @@ describe('CardStackComponent', () => {
       void component.name;
       expect(spy).toHaveBeenCalled();
     });
+
+    it('isIconHiddenがsignalであること', () => {
+      expect(typeof component.isIconHidden).toBe('function');
+      expect(component.isIconHidden()).toBe(false);
+    });
+
+    it('ChangeDetectorRefを使用していないこと', () => {
+      // Batch A+Bで全markForCheckを除去後、CDRefは不要
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((component as any).changeDetector).toBeUndefined();
+    });
   });
 });

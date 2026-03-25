@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -48,7 +47,6 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private changeDetector = inject(ChangeDetectorRef);
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
@@ -88,6 +86,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.cardStack.isShowTotal;
   }
   get cards(): Card[] {
+    this.cardsVersion();
     return this.cardStack.cards;
   }
   get isEmpty(): boolean {
@@ -114,11 +113,10 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   readonly animeState = signal<'active' | 'inactive'>('inactive');
+  private readonly cardsVersion = signal(0);
 
   private iconHiddenTimer: NodeJS.Timeout = null!;
-  get isIconHidden(): boolean {
-    return this.iconHiddenTimer != null;
-  }
+  readonly isIconHidden = signal(false);
 
   gridSize: number = 50;
 
@@ -136,7 +134,8 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
     this.objectChange.cardStackDecreased$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.cardStackIdentifier === this.cardStack.identifier && this.cardStack) this.changeDetector.markForCheck();
+      if (event.cardStackIdentifier === this.cardStack.identifier && this.cardStack)
+        this.cardsVersion.update((v) => v + 1);
     });
     this.movableOption = {
       tabletopObject: this.cardStack,
@@ -517,8 +516,8 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     clearTimeout(this.iconHiddenTimer);
     this.iconHiddenTimer = setTimeout(() => {
       this.iconHiddenTimer = null!;
-      this.changeDetector.markForCheck();
+      this.isIconHidden.set(false);
     }, 300);
-    this.changeDetector.markForCheck();
+    this.isIconHidden.set(true);
   }
 }

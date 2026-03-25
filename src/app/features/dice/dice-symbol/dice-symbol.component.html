@@ -19,7 +19,7 @@
     >
       <div class="pedestal-inner" [ngClass]="{ 'is-gray-border': hasOwner }"></div>
       <div class="pedestal-outer"></div>
-      @if (!isIconHidden) {
+      @if (!isIconHidden()) {
         @if (!isLock) {
           <div class="pedestal-grab rotate-grab is-3d will-change">
             <div class="pedestal-grab-border">

@@ -36,5 +36,10 @@ describe('CardComponent', () => {
       void component.name;
       expect(spy).toHaveBeenCalled();
     });
+
+    it('isIconHiddenがsignalであること', () => {
+      expect(typeof component.isIconHidden).toBe('function');
+      expect(component.isIconHidden()).toBe(false);
+    });
   });
 });

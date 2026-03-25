@@ -2,7 +2,6 @@ import { NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
@@ -10,6 +9,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
 import { ImageService } from '@axe/core/image.service';
 import { Network } from '@axe/core/index';
@@ -44,7 +44,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private changeDetector = inject(ChangeDetectorRef);
   private tabletopService = inject(TabletopService);
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -134,9 +133,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private iconHiddenTimer: NodeJS.Timeout = null!;
-  get isIconHidden(): boolean {
-    return this.iconHiddenTimer != null;
-  }
+  readonly isIconHidden = signal(false);
 
   gridSize: number = 50;
 
@@ -408,9 +405,9 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     clearTimeout(this.iconHiddenTimer);
     this.iconHiddenTimer = setTimeout(() => {
       this.iconHiddenTimer = null!;
-      this.changeDetector.markForCheck();
+      this.isIconHidden.set(false);
     }, 300);
-    this.changeDetector.markForCheck();
+    this.isIconHidden.set(true);
   }
 
   private adjustMinBounds(value: number, min: number = 0): number {

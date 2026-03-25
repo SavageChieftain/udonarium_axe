@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -46,7 +45,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private panelService = inject(PanelService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private changeDetector = inject(ChangeDetectorRef);
   private imageService = inject(ImageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
@@ -130,9 +128,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly animeState = signal<'inactive' | 'active'>('inactive');
 
   private iconHiddenTimer: NodeJS.Timeout = null!;
-  get isIconHidden(): boolean {
-    return this.iconHiddenTimer != null;
-  }
+  readonly isIconHidden = signal(false);
 
   gridSize: number = 50;
 
@@ -355,9 +351,9 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     clearTimeout(this.iconHiddenTimer);
     this.iconHiddenTimer = setTimeout(() => {
       this.iconHiddenTimer = null!;
-      this.changeDetector.markForCheck();
+      this.isIconHidden.set(false);
     }, 300);
-    this.changeDetector.markForCheck();
+    this.isIconHidden.set(true);
   }
 
   private adjustMinBounds(value: number, min: number = 0): number {
