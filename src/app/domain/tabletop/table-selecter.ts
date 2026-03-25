@@ -1,7 +1,8 @@
-import { EventSystem } from '@axe/core/index';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { emitSelectGameTable, selectGameTable$ } from '@axe/domain/domain-events';
+import { Subscription } from 'rxjs';
 
 import { GameTable } from './game-table';
 
@@ -20,21 +21,24 @@ export class TableSelecter extends GameObject {
   @SyncVar() tableGridDummy: boolean = false;
   gridShow: boolean = false; // true=常時グリッド表示
   gridSnap: boolean = true;
+  private subscription = new Subscription();
 
   // GameObject Lifecycle
   onStoreAdded() {
     super.onStoreAdded();
-    EventSystem.register(this).on('SELECT_GAME_TABLE', (event) => {
-      if (this.viewTable) this.viewTable.selected = false;
-      this.viewTableIdentifier = event.data.identifier;
-      if (this.viewTable) this.viewTable.selected = true;
-    });
+    this.subscription.add(
+      selectGameTable$.subscribe((data) => {
+        if (this.viewTable) this.viewTable.selected = false;
+        this.viewTableIdentifier = data.identifier;
+        if (this.viewTable) this.viewTable.selected = true;
+      })
+    );
   }
 
   // GameObject Lifecycle
   onStoreRemoved() {
     super.onStoreRemoved();
-    EventSystem.unregister(this);
+    this.subscription.unsubscribe();
   }
 
   get viewTable(): GameTable {
@@ -43,7 +47,7 @@ export class TableSelecter extends GameObject {
       table = ObjectStore.instance.getObjects<GameTable>(GameTable)[0];
       if (table && (this.viewTableIdentifier.length < 1 || ObjectStore.instance.isDeleted(this.viewTableIdentifier))) {
         this.viewTableIdentifier = table.identifier;
-        EventSystem.trigger('SELECT_GAME_TABLE', { identifier: table.identifier });
+        emitSelectGameTable({ identifier: table.identifier });
       }
     }
     return table;

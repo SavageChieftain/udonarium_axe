@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject,
@@ -11,14 +12,16 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImageService } from '@axe/core/image.service';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
+import { callShuffleCardStack } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CardStackListComponent } from '@axe/features/card/card-stack-list/card-stack-list.component';
@@ -29,6 +32,7 @@ import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
@@ -49,6 +53,8 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() cardStack: CardStack = null!;
   @Input() is3D: boolean = false;
@@ -117,38 +123,38 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private input: InputHandler = null!;
   ngOnInit() {
-    EventSystem.register(this)
-      .on('SHUFFLE_CARD_STACK', (event) => {
-        if (event.data.identifier === this.cardStack.identifier) {
-          this.animeState = 'active';
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.cardStack || !object) return;
-        if (
-          this.cardStack === object ||
-          (object instanceof ObjectNode && this.cardStack.contains(object)) ||
-          (object instanceof PeerCursor && object.userId === this.cardStack.owner)
-        ) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('CARD_STACK_DECREASED', (event) => {
-        if (event.data.cardStackIdentifier === this.cardStack.identifier && this.cardStack)
-          this.changeDetector.markForCheck();
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (_event) => {
+    this.objectChange.shuffleCardStack$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.identifier === this.cardStack.identifier) {
+        this.animeState = 'active';
         this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', (_event) => {
+      }
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const object = this.objectStore.get(event.identifier);
+      if (!this.cardStack || !object) return;
+      if (
+        this.cardStack === object ||
+        (object instanceof ObjectNode && this.cardStack.contains(object)) ||
+        (object instanceof PeerCursor && object.userId === this.cardStack.owner)
+      ) {
         this.changeDetector.markForCheck();
-      })
-      .on('DISCONNECT_PEER', (event) => {
-        const cursor = PeerCursor.findByPeerId(event.data.peerId);
-        if (!cursor || this.cardStack.owner === cursor.userId) this.changeDetector.markForCheck();
-      });
+      }
+    });
+    this.objectChange.cardStackDecreased$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.cardStackIdentifier === this.cardStack.identifier && this.cardStack) this.changeDetector.markForCheck();
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const cursor = PeerCursor.findByPeerId(event.peerId);
+      if (!cursor || this.cardStack.owner === cursor.userId) this.changeDetector.markForCheck();
+    });
     this.movableOption = {
       tabletopObject: this.cardStack,
       transformCssOffset: 'translateZ(0.15px)',
@@ -168,7 +174,6 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     clearTimeout(this.doubleClickTimer);
     clearTimeout(this.iconHiddenTimer);
     if (this.input) this.input.destroy();
-    EventSystem.unregister(this);
   }
 
   onShuffleDone() {
@@ -332,7 +337,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
           action: () => {
             this.cardStack.shuffle();
             SoundEffect.play(PresetSound.cardShuffle);
-            EventSystem.call('SHUFFLE_CARD_STACK', { identifier: this.cardStack.identifier });
+            callShuffleCardStack(this.cardStack.identifier);
           },
         },
         {

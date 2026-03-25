@@ -1,7 +1,8 @@
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { xml2element } from '@axe/core/util/xml-util';
+import { emitFileLoaded, emitXmlLoaded } from '@axe/domain/domain-events';
 import { ReloadCheck } from '@axe/domain/shared/reload-check';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
@@ -93,7 +94,7 @@ export class FileArchiver {
       await this.handleAudio(file);
       await this.handleText(file);
       await this.handleZip(file);
-      EventSystem.trigger('FILE_LOADED', { file: file });
+      emitFileLoaded();
     }
   }
 
@@ -128,7 +129,7 @@ export class FileArchiver {
     if (isLoadOk) {
       try {
         const xmlElement: Element = xml2element(await FileReaderUtil.readAsTextAsync(file));
-        if (xmlElement) EventSystem.trigger('XML_LOADED', { xmlElement: xmlElement });
+        if (xmlElement) emitXmlLoaded({ xmlElement: xmlElement });
       } catch (reason) {
         Logger.warn('[FileArchiver] XML読み込みエラー', reason);
       }

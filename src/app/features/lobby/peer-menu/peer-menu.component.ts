@@ -4,12 +4,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -19,6 +21,7 @@ import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
 import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -36,6 +39,8 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private tableSelecter = inject(TableSelecter);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
   targetUserId = '';
   networkService = Network;
   gameRoomService = this.objectStore;
@@ -55,7 +60,7 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.changeDetector.detach();
 
-    EventSystem.register(this).on('OPEN_NETWORK', (_event) => {
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.changeDetector.markForCheck();
     });
 
@@ -66,7 +71,6 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.disptimer != null) {
       clearInterval(this.disptimer);
       this.disptimer = null;

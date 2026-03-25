@@ -3,16 +3,19 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { emitSelectFile } from '@axe/domain/domain-events';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe'; //本家PR #92より
 
@@ -28,6 +31,8 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private imageStorage = inject(ImageStorage);
   private fileArchiver = inject(FileArchiver);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   protected initTimestamp: number = 0;
 
@@ -156,16 +161,14 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    EventSystem.register(this).on('SYNCHRONIZE_FILE_LIST', (event) => {
-      if (event.isSendFromSelf) {
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (e.isSendFromSelf) {
         this.changeDetector.markForCheck();
       }
     });
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   handleFileSelect(event: Event) {
     const input = <HTMLInputElement>event.target;
@@ -175,7 +178,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onSelectedFile(file: ImageFile) {
-    EventSystem.call('SELECT_FILE', { fileIdentifier: file.identifier }, Network.peerId);
+    emitSelectFile({ fileIdentifier: file.identifier });
 
     this.selectedFile = file; //本家PR #92より
   }

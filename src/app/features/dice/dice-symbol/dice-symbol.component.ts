@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject,
@@ -11,13 +12,15 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImageService } from '@axe/core/image.service';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
+import { callRollDiceSymbol } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -27,6 +30,7 @@ import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
@@ -47,6 +51,8 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() diceSymbol: DiceSymbol = null!;
   @Input() is3D: boolean = false;
@@ -131,38 +137,39 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private input: InputHandler = null!;
   ngOnInit() {
-    EventSystem.register(this)
-      .on('ROLL_DICE_SYMBOL', (event) => {
-        if (event.data.identifier === this.diceSymbol.identifier) {
-          this.animeState = 'inactive';
-          this.changeDetector.markForCheck();
-          setTimeout(() => {
-            this.animeState = 'active';
-            this.changeDetector.markForCheck();
-          });
-        }
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.diceSymbol || !object) return;
-        if (
-          this.diceSymbol === object ||
-          (object instanceof ObjectNode && this.diceSymbol.contains(object)) ||
-          (object instanceof PeerCursor && object.userId === this.diceSymbol.owner)
-        ) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (_event) => {
+    this.objectChange.rollDiceSymbol$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.identifier === this.diceSymbol.identifier) {
+        this.animeState = 'inactive';
         this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', (_event) => {
+        setTimeout(() => {
+          this.animeState = 'active';
+          this.changeDetector.markForCheck();
+        });
+      }
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const object = this.objectStore.get(event.identifier);
+      if (!this.diceSymbol || !object) return;
+      if (
+        this.diceSymbol === object ||
+        (object instanceof ObjectNode && this.diceSymbol.contains(object)) ||
+        (object instanceof PeerCursor && object.userId === this.diceSymbol.owner)
+      ) {
         this.changeDetector.markForCheck();
-      })
-      .on('DISCONNECT_PEER', (event) => {
-        const cursor = PeerCursor.findByPeerId(event.data.peerId);
-        if (!cursor || this.diceSymbol.owner === cursor.userId) this.changeDetector.markForCheck();
-      });
+      }
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const cursor = PeerCursor.findByPeerId(event.peerId);
+      if (!cursor || this.diceSymbol.owner === cursor.userId) this.changeDetector.markForCheck();
+    });
     this.movableOption = {
       tabletopObject: this.diceSymbol,
       transformCssOffset: 'translateZ(1.0px)',
@@ -182,7 +189,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     clearTimeout(this.doubleClickTimer);
     clearTimeout(this.iconHiddenTimer);
     if (this.input) this.input.destroy();
-    EventSystem.unregister(this);
   }
 
   @HostListener('dragstart', ['$event'])
@@ -343,7 +349,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   diceRoll(): string {
-    EventSystem.call('ROLL_DICE_SYMBOL', { identifier: this.diceSymbol.identifier });
+    callRollDiceSymbol(this.diceSymbol.identifier);
     SoundEffect.play(PresetSound.diceRoll1);
     return this.diceSymbol.diceRoll();
   }

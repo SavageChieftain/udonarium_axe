@@ -60,7 +60,7 @@ describe('SoundEffect', () => {
 
   describe('static play()', () => {
     it('文字列引数で呼び出せる', () => {
-      // EventSystem.callを内部で呼ぶがエラーにはならない
+      // callSoundEffect()を内部で呼ぶがエラーにはならない
       SoundEffect.play('test-identifier');
     });
   });

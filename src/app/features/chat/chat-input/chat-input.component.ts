@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   DoCheck,
   ElementRef,
   EventEmitter,
@@ -13,8 +14,9 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -24,12 +26,14 @@ import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { callWritingAMessage } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { BatchService } from '@axe/features/inventory/batch.service';
 import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
@@ -44,8 +48,10 @@ import GameSystemClass from 'bcdice/lib/game_system';
 })
 export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   private changeDetector = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
@@ -324,57 +330,56 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
 
   private calcFitHeightInterval: NodeJS.Timeout = null!;
   ngOnInit(): void {
-    EventSystem.register(this)
-      .on('MESSAGE_ADDED', (event) => {
-        if (event.data.tabIdentifier !== this.chatTabidentifier) return;
-        const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
-        const peerCursor = this.objectStore
-          .getObjects<PeerCursor>(PeerCursor)
-          .find((obj) => obj.userId === message.from);
-        const sendFrom = peerCursor ? peerCursor.peerId : '?';
-        if (this.writingPeers.has(sendFrom)) {
-          this.writingPeers.get(sendFrom)!.stop();
-          this.writingPeers.delete(sendFrom);
-          this.updateWritingPeerNames();
+    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.tabIdentifier !== this.chatTabidentifier) return;
+      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
+      const peerCursor = this.objectStore.getObjects<PeerCursor>(PeerCursor).find((obj) => obj.userId === message.from);
+      const sendFrom = peerCursor ? peerCursor.peerId : '?';
+      if (this.writingPeers.has(sendFrom)) {
+        this.writingPeers.get(sendFrom)!.stop();
+        this.writingPeers.delete(sendFrom);
+        this.updateWritingPeerNames();
+      }
+    });
+
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.aliasName !== GameCharacter.aliasName) return;
+      this.shouldUpdateCharacterList = true;
+      if (event.identifier !== this.sendFrom) return;
+      const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
+      if (gameCharacter && !this.allowsChat(gameCharacter)) {
+        if (0 < this.gameCharacters.length && this.onlyCharacters) {
+          this.sendFrom = this.gameCharacters[0].identifier;
+        } else {
+          this.sendFrom = this.myPeer.identifier;
         }
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        if (event.data.aliasName !== GameCharacter.aliasName) return;
-        this.shouldUpdateCharacterList = true;
-        if (event.data.identifier !== this.sendFrom) return;
-        const gameCharacter = this.objectStore.get<GameCharacter>(event.data.identifier);
-        if (gameCharacter && !this.allowsChat(gameCharacter)) {
-          if (0 < this.gameCharacters.length && this.onlyCharacters) {
-            this.sendFrom = this.gameCharacters[0].identifier;
-          } else {
-            this.sendFrom = this.myPeer.identifier;
-          }
-        }
-      })
-      .on('DISCONNECT_PEER', (event) => {
-        const object = this.objectStore.get(this.sendTo);
-        if (object instanceof PeerCursor && object.peerId === event.data.peerId) {
-          this.sendTo = '';
-        }
-      })
-      .on<string>('WRITING_A_MESSAGE', (event) => {
-        if (event.isSendFromSelf || event.data !== this.chatTabidentifier) return;
-        if (!this.writingPeers.has(event.sendFrom)) {
-          this.writingPeers.set(
-            event.sendFrom,
-            new ResettableTimeout(() => {
-              this.writingPeers.delete(event.sendFrom);
-              this.updateWritingPeerNames();
-              this.changeDetector.markForCheck();
-            }, 2000)
-          );
-        }
-        this.writingPeers.get(event.sendFrom)!.reset();
-      });
+      }
+    });
+
+    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const object = this.objectStore.get(this.sendTo);
+      if (object instanceof PeerCursor && object.peerId === event.peerId) {
+        this.sendTo = '';
+      }
+    });
+
+    this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier) return;
+      if (!this.writingPeers.has(event.sendFrom)) {
+        this.writingPeers.set(
+          event.sendFrom,
+          new ResettableTimeout(() => {
+            this.writingPeers.delete(event.sendFrom);
+            this.updateWritingPeerNames();
+            this.changeDetector.markForCheck();
+          }, 2000)
+        );
+      }
+      this.writingPeers.get(event.sendFrom)!.reset();
+    });
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     this.batchService.remove(this);
     if (this.writingEventInterval) {
       clearTimeout(this.writingEventInterval);
@@ -407,7 +412,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
           if (peer) sendTo = peer.peerId;
         }
       }
-      EventSystem.call('WRITING_A_MESSAGE', this.chatTabidentifier, sendTo);
+      callWritingAMessage(this.chatTabidentifier, sendTo);
       this.writingEventInterval = setTimeout(() => {
         this.writingEventInterval = null!;
       }, 200);

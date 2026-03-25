@@ -1,12 +1,14 @@
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { domainPeerDisconnect$ } from '@axe/domain/domain-events';
 import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/shared/constants';
 import { Vote } from '@axe/domain/shared/vote';
+import { Subscription } from 'rxjs';
 
 const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
 
@@ -148,6 +150,7 @@ export class PeerCursor extends GameObject {
   private static userIdMap: Map<UserId, ObjectIdentifier> = new Map();
   private static peerIdMap: Map<PeerId, ObjectIdentifier> = new Map();
   chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
+  private subscription = new Subscription();
 
   private _diceImageType = '';
   private _diceImageIndex = -1;
@@ -188,22 +191,24 @@ export class PeerCursor extends GameObject {
   onStoreAdded() {
     super.onStoreAdded();
     if (!this.isMine) {
-      EventSystem.register(this).on('DISCONNECT_PEER', (event) => {
-        if (event.data.peerId !== this.peerId) return;
-        setTimeout(() => {
-          if (Network.peerIds.includes(this.peerId)) return;
-          PeerCursor.userIdMap.delete(this.userId);
-          PeerCursor.peerIdMap.delete(this.peerId);
-          ObjectStore.instance.remove(this);
-        }, PEER_DISCONNECT_TIMEOUT_MS);
-      });
+      this.subscription.add(
+        domainPeerDisconnect$.subscribe((data) => {
+          if (data.peerId !== this.peerId) return;
+          setTimeout(() => {
+            if (Network.peerIds.includes(this.peerId)) return;
+            PeerCursor.userIdMap.delete(this.userId);
+            PeerCursor.peerIdMap.delete(this.peerId);
+            ObjectStore.instance.remove(this);
+          }, PEER_DISCONNECT_TIMEOUT_MS);
+        })
+      );
     }
   }
 
   // GameObject Lifecycle
   onStoreRemoved() {
     super.onStoreRemoved();
-    EventSystem.unregister(this);
+    this.subscription.unsubscribe();
     PeerCursor.userIdMap.delete(this.userId);
     PeerCursor.peerIdMap.delete(this.peerId);
   }

@@ -1,6 +1,6 @@
-import { EventSystem } from '@axe/core/index';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import { emitSelectGameTable } from '@axe/domain/domain-events';
 
 import { GameTableMask } from './game-table-mask';
 import { GameTableScratchMask } from './game-table-scratch-mask';
@@ -60,6 +60,6 @@ export class GameTable extends ObjectNode {
   // GameObject Lifecycle
   onStoreAdded() {
     super.onStoreAdded();
-    if (this.selected) EventSystem.trigger('SELECT_GAME_TABLE', { identifier: this.identifier });
+    if (this.selected) emitSelectGameTable({ identifier: this.identifier });
   }
 }

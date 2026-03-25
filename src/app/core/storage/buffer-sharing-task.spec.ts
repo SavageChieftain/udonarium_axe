@@ -1,17 +1,11 @@
-import { EventSystem } from '@axe/core/index';
-
 import { BufferSharingTask } from './buffer-sharing-task';
 
-describe('BufferSharingTask', () => {
-  beforeEach(() => {
-    const listenerMock = { on: vi.fn().mockReturnThis() };
-    vi.spyOn(EventSystem, 'register').mockReturnValue(
-      listenerMock as unknown as ReturnType<typeof EventSystem.register>
-    );
-    vi.spyOn(EventSystem, 'unregister');
-    vi.spyOn(EventSystem, 'call');
-  });
+vi.mock('@axe/core/network/network-messaging', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@axe/core/network/network-messaging')>();
+  return { ...actual, networkSend: vi.fn() };
+});
 
+describe('BufferSharingTask', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });

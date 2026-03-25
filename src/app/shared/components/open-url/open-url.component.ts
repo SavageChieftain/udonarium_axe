@@ -1,6 +1,5 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
 
@@ -49,7 +48,6 @@ export class OpenUrlComponent implements OnInit, OnDestroy {
       }
       this.modalService.title = this.panelService.title = titleBar;
     });
-    EventSystem.register(this);
   }
 
   validUrl(url: string): boolean {
@@ -62,9 +60,7 @@ export class OpenUrlComponent implements OnInit, OnDestroy {
     return /^https?:\/\//.test(url.trim());
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   openUrl() {
     window.open(this.url.trim(), '_blank', 'noopener');

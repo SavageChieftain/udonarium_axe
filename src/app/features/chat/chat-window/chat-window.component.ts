@@ -3,12 +3,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
-  OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -26,6 +26,7 @@ import { ChatTachieComponent } from '@axe/features/chat/chat-tachie/chat-tachie.
 import { DiceTableSettingComponent } from '@axe/features/dice/dice-table-setting/dice-table-setting.component';
 import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -36,8 +37,10 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-window.component.css'],
   imports: [ChatTabComponent, FormsModule, ChatTachieComponent, BadgeComponent, ChatInputComponent],
 })
-export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ChatWindowComponent implements OnInit, AfterViewInit {
   chatMessageService = inject(ChatMessageService);
+  private destroyRef = inject(DestroyRef);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
@@ -102,45 +105,42 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this._chatTabidentifier =
       0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : '';
 
-    EventSystem.register(this)
-      .on('MESSAGE_ADDED', (event) => {
-        if (event.data.tabIdentifier !== this.chatTabidentifier) return;
-        const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
-        if (message && message.isSendFromSelf) {
-          this.isAutoScroll = true;
-        } else {
-          this.checkAutoScroll();
-        }
-        if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
-        this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (object instanceof ChatTab || object instanceof ChatTabList) {
-          if (this._chatTabidentifier && !this.objectStore.get<ChatTab>(this._chatTabidentifier)) {
-            const chatTabs = this.chatMessageService.chatTabs;
-            this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
-          }
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('DELETE_GAME_OBJECT', (event) => {
-        if (event.data.aliasName !== 'chat-tab') return;
-        if (this._chatTabidentifier === event.data.identifier) {
+    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.tabIdentifier !== this.chatTabidentifier) return;
+      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
+      if (message && message.isSendFromSelf) {
+        this.isAutoScroll = true;
+      } else {
+        this.checkAutoScroll();
+      }
+      if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
+      this.changeDetector.markForCheck();
+    });
+
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const object = this.objectStore.get(event.identifier);
+      if (object instanceof ChatTab || object instanceof ChatTabList) {
+        if (this._chatTabidentifier && !this.objectStore.get<ChatTab>(this._chatTabidentifier)) {
           const chatTabs = this.chatMessageService.chatTabs;
           this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
         this.changeDetector.markForCheck();
-      });
+      }
+    });
+
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.aliasName !== 'chat-tab') return;
+      if (this._chatTabidentifier === event.identifier) {
+        const chatTabs = this.chatMessageService.chatTabs;
+        this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
+      }
+      this.changeDetector.markForCheck();
+    });
     queueMicrotask(() => this.updatePanelTitle());
   }
 
   ngAfterViewInit() {
     queueMicrotask(() => this.scrollToBottom(true));
-  }
-
-  ngOnDestroy() {
-    EventSystem.unregister(this);
   }
 
   // @TODO やり方はもう少し考えた方がいいい

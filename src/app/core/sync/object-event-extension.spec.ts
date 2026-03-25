@@ -1,23 +1,18 @@
-import { EventSystem } from '@axe/core/event/event-system';
-
-import { markForChanged, markForChildrenChanged } from './object-event-extension';
+import { childrenChanged$, markForChanged, markForChildrenChanged, objectChanged$ } from './object-event-extension';
 import { ObjectNode } from './object-node';
 import { ObjectStore } from './object-store';
 
 describe('object-event-extension', () => {
   let store: ObjectStore;
-  let key: object;
 
   beforeEach(() => {
     store = ObjectStore.instance;
-    key = {};
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    EventSystem.instance.unregister(key);
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
@@ -25,23 +20,24 @@ describe('object-event-extension', () => {
   });
 
   describe('markForChanged', () => {
-    it('オブジェクト変更イベントをバッチ発火する', async () => {
+    it('objectChanged$ にバッチ発火する', async () => {
       const obj = new ObjectNode();
       obj.initialize();
 
       const callback = vi.fn();
-      EventSystem.instance.register(key).on(`UPDATE_GAME_OBJECT/identifier/${obj.identifier}`, callback);
+      const sub = objectChanged$.subscribe(callback);
 
       markForChanged(obj);
 
-      // queueMicrotaskで非同期実行されるので少し待つ
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(callback).toHaveBeenCalled();
+      expect(callback.mock.calls[0][0]).toEqual(expect.objectContaining({ identifier: obj.identifier }));
+      sub.unsubscribe();
     });
   });
 
   describe('markForChildrenChanged', () => {
-    it('親ノードに対して子変更イベントをバッチ発火する', async () => {
+    it('childrenChanged$ にバッチ発火する', async () => {
       const parent = new ObjectNode();
       parent.initialize();
       const child = new ObjectNode();
@@ -49,12 +45,14 @@ describe('object-event-extension', () => {
       parent.appendChild(child);
 
       const callback = vi.fn();
-      EventSystem.instance.register(key).on(`UPDATE_OBJECT_CHILDREN/identifier/${parent.identifier}`, callback);
+      const sub = childrenChanged$.subscribe(callback);
 
       markForChildrenChanged(parent);
 
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(callback).toHaveBeenCalled();
+      expect(callback.mock.calls[0][0]).toEqual(expect.objectContaining({ identifier: parent.identifier }));
+      sub.unsubscribe();
     });
   });
 });

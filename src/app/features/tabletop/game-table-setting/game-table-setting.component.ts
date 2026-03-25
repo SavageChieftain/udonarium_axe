@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   inject,
   Input,
@@ -11,19 +12,21 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/core/image.service';
-import { EventSystem, Network } from '@axe/core/index';
 import { SaveDataService } from '@axe/core/save-data.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
@@ -44,6 +47,8 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   private objectSerializer = inject(ObjectSerializer);
   private tableSelecter = inject(TableSelecter);
   private changeDetector = inject(ChangeDetectorRef);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input('gameType') _gameType: string = '';
   @Output() gameTypeChange = new EventEmitter<string>();
@@ -129,7 +134,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   set tableGridShow(tableGridShow: boolean) {
     this.tableSelecter.gridShow = tableGridShow;
     if (tableGridShow) this.tableSelecter.viewTable.gridClipRect = null!;
-    EventSystem.trigger('UPDATE_GAME_OBJECT', this.tableSelecter.toContext()); // 自分にだけイベントを発行してグリッド更新を誘発
+    triggerUpdateGameObject(this.tableSelecter.toContext()); // 自分にだけイベントを発行してグリッド更新を誘発
   }
 
   get tableGridSnap(): boolean {
@@ -173,9 +178,9 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'テーブル設定'));
     this.selectedTable = this.tableSelecter.viewTable;
-    EventSystem.register(this).on('DELETE_GAME_OBJECT', 2000, (event) => {
-      if (!this.selectedTable || event.data.identifier !== this.selectedTable.identifier) return;
-      const object = this.objectStore.get(event.data.identifier);
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (!this.selectedTable || e.identifier !== this.selectedTable.identifier) return;
+      const object = this.objectStore.get(e.identifier);
       if (object !== null) {
         this.selectedTableXml = object.toXml();
       }
@@ -185,12 +190,10 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   ngAfterViewInit() {}
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   selectGameTable(identifier: string) {
-    EventSystem.call('SELECT_GAME_TABLE', { identifier: identifier }, Network.peerId);
+    emitSelectGameTable({ identifier });
     this.selectedTable = this.objectStore.get<GameTable>(identifier);
     this.selectedTableXml = '';
   }

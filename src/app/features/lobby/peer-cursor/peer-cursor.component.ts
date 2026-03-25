@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   inject,
   Input,
@@ -10,15 +11,18 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerCoordinate } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { callCursorMove, callHeartBeat } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { BatchService } from '@axe/features/inventory/batch.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
 @Component({
@@ -32,6 +36,8 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   private batchService = inject(BatchService);
   private coordinateService = inject(CoordinateService);
   private chatMessageService = inject(ChatMessageService);
+  private destroyRef = inject(DestroyRef);
+  private objectChange = inject(ObjectChangeService);
   private objectStore = inject(ObjectStore);
 
   @ViewChild('cursor') cursorElementRef: ElementRef;
@@ -78,41 +84,41 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     if (!this.isMine) {
-      EventSystem.register(this)
-        .on('CURSOR_MOVE', (event) => {
-          if (event.sendFrom !== this.cursor.peerId) return;
-          this.batchService.add(() => {
-            this.stopTransition();
-            this.setAnimatedTransition();
-            this.setPosition(event.data[0], event.data[1], event.data[2]);
-            this.resetFadeOut();
-          }, this);
-        })
-        .on('HEART_BEAT', (event) => {
-          if (event.sendFrom !== this.cursor.peerId) return;
+      this.objectChange.cursorMove$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        if (event.sendFrom !== this.cursor.peerId) return;
+        this.batchService.add(() => {
+          this.stopTransition();
+          this.setAnimatedTransition();
+          this.setPosition(event.x, event.y, event.z);
+          this.resetFadeOut();
+        }, this);
+      });
 
-          this.batchService.add(() => {
-            this.cursor.timestampSend = event.data[0];
-            this.cursor.timestampReceive = Date.now();
-            this.cursor.timeDiffDown =
-              this.cursor.timestampReceive - this.cursor.timestampSend + PeerCursor.myCursor.debugReceiveDelay;
+      this.objectChange.heartBeat$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        if (event.sendFrom !== this.cursor.peerId) return;
 
-            const messId = event.data[1];
-            const diffUp = event.data[2];
-            this.cursor.lastTimeSignNo = event.data[3];
-            if (this.cursor.firstTimeSignNo < 0) {
-              this.cursor.firstTimeSignNo = event.data[3];
+        this.batchService.add(() => {
+          this.cursor.timestampSend = event.timestamp;
+          this.cursor.timestampReceive = Date.now();
+          this.cursor.timeDiffDown =
+            this.cursor.timestampReceive - this.cursor.timestampSend + PeerCursor.myCursor.debugReceiveDelay;
+
+          const messId = event.id;
+          const diffUp = event.diffDown;
+          this.cursor.lastTimeSignNo = event.secdCounter;
+          if (this.cursor.firstTimeSignNo < 0) {
+            this.cursor.firstTimeSignNo = event.secdCounter;
+          }
+          this.cursor.totalTimeSignNum++;
+
+          if (messId == PeerCursor.myCursor.peerId) {
+            if (diffUp != null) {
+              this.cursor.timeDiffUp = diffUp;
+              this.cursor.timeLatency = diffUp + this.cursor.timeDiffDown;
             }
-            this.cursor.totalTimeSignNum++;
-
-            if (messId == PeerCursor.myCursor.peerId) {
-              if (diffUp != null) {
-                this.cursor.timeDiffUp = diffUp;
-                this.cursor.timeLatency = diffUp + this.cursor.timeDiffDown;
-              }
-            }
-          }, this);
-        });
+          }
+        }, this);
+      });
     }
   }
 
@@ -187,7 +193,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
             const peerCursor = PeerCursor.findByPeerId(id);
             const diffDown = peerCursor ? peerCursor.timeDiffDown : null!;
 
-            EventSystem.call('HEART_BEAT', [timestanmp, id, diffDown, this.secdCounter]);
+            callHeartBeat([timestanmp, id, diffDown, this.secdCounter]);
             this.indexCounter++;
             this.secdCounter++;
           }
@@ -221,7 +227,6 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     document.body.removeEventListener('mousemove', this.callcack);
     document.body.removeEventListener('touchmove', this.callcack);
-    EventSystem.unregister(this);
     this.batchService.remove(this);
     if (this.fadeOutTimer) this.fadeOutTimer.clear();
 
@@ -257,7 +262,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     let coordinate: PointerCoordinate = { x, y, z: 0 };
     coordinate = this.coordinateService.calcTabletopLocalCoordinate(coordinate, target);
 
-    EventSystem.call('CURSOR_MOVE', [coordinate.x, coordinate.y, coordinate.z]);
+    callCursorMove([coordinate.x, coordinate.y, coordinate.z]);
   }
 
   private resetFadeOut() {

@@ -1,6 +1,6 @@
-import { EventSystem } from '@axe/core/index';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
+import { emitEndOldVote, emitFinishVote, emitStartVote } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 export interface VoteContext {
@@ -96,7 +96,7 @@ export class Vote extends GameObject {
         }
       }
       setTimeout(() => {
-        EventSystem.trigger('FINISH_VOTE', { text: text_ });
+        emitFinishVote({ text: text_ });
       }, 1);
     }
   }
@@ -142,8 +142,8 @@ export class Vote extends GameObject {
   }
 
   startVote() {
-    EventSystem.trigger('END_OLD_VOTE', {});
-    EventSystem.trigger('START_VOTE', {});
+    emitEndOldVote();
+    emitStartVote();
   }
 
   // GameObject Lifecycle

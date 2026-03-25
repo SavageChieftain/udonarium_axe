@@ -1,8 +1,9 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, DestroyRef, effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -20,6 +21,7 @@ import { ControllerInputComponent } from '@axe/features/controller/controller-in
 import { ControllerInputComponent as ControllerInputComponent_1 } from '@axe/features/controller/controller-input/controller-input.component';
 import { GameObjectInventoryService } from '@axe/features/inventory/game-object-inventory.service';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
@@ -49,6 +51,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   get palette(): ChatPalette {
     return this.character.remoteController;
@@ -226,27 +230,26 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
     this.gameType = this.character.remoteController ? this.character.remoteController.dicebot : '';
-    EventSystem.register(this).on('DELETE_GAME_OBJECT', -1000, (event) => {
-      if (this.character && this.character.identifier === event.data.identifier) {
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
-      if (this.chatTabidentifier === event.data.identifier) {
+      if (this.chatTabidentifier === e.identifier) {
         this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
       }
     });
 
-    EventSystem.register(this)
-      .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('OPEN_NETWORK', (_event) => {
-        this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-        if (!this.inventoryTypes.includes(this.selectTab)) {
-          this.selectTab = Network.peerId;
-        }
-      });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (e.isSendFromSelf) {
+        this.changeDetector.markForCheck();
+      }
+    });
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
+      if (!this.inventoryTypes.includes(this.selectTab)) {
+        this.selectTab = Network.peerId;
+      }
+    });
     this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
 
     this.disptimer = setInterval(() => {
@@ -261,7 +264,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     this.disptimer = null;
     if (this.isEdit) {
       this.toggleEditMode();

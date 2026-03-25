@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject,
@@ -11,9 +12,9 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -26,6 +27,7 @@ import { TextNote } from '@axe/domain/shared/text-note'; //
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { GameObjectInventoryService } from '@axe/features/inventory/game-object-inventory.service';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -42,6 +44,8 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   private domSanitizer = inject(DomSanitizer);
   private objectStore = inject(ObjectStore);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('draggablePanel', { static: true }) draggablePanel: ElementRef<HTMLElement>;
   @Input() tabletopObject: TabletopObject | null = null;
@@ -95,25 +99,22 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.adjustPositionRoot();
     }, 16);
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.tabletopObject || !object || !(object instanceof ObjectNode)) return;
-        if (this.tabletopObject === object || this.tabletopObject.contains(object)) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (_event) => {
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      const object = this.objectStore.get(e.identifier);
+      if (!this.tabletopObject || !object || !(object instanceof ObjectNode)) return;
+      if (this.tabletopObject === object || this.tabletopObject.contains(object)) {
         this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', (_event) => {
-        this.changeDetector.markForCheck();
-      });
+      }
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+    });
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   private initPanelPosition() {
     const panel: HTMLElement = this.draggablePanel.nativeElement;

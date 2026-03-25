@@ -91,7 +91,9 @@ export class SkyWayConnection implements Connection {
       return false;
     }
 
-    if (!(await this.shouldConnect(peer.peerId))) return false;
+    if (!(await this.shouldConnect(peer.peerId))) {
+      return false;
+    }
 
     this.connectStream(SkyWayDataStream.createSubscription(this.skyWay, peer));
     return true;
@@ -114,7 +116,8 @@ export class SkyWayConnection implements Connection {
       return false;
     }
 
-    if (!this.skyWay?.room?.members.find((member) => member.name === peerId)) {
+    const roomMembers = this.skyWay?.room?.members?.map((m) => m.name) ?? [];
+    if (!roomMembers.includes(peerId)) {
       return false;
     }
 
@@ -170,7 +173,9 @@ export class SkyWayConnection implements Connection {
   private sendUnicast(container: DataContainer, sendTo: string) {
     container.ttl = 0;
     const stream = this.streams.find(sendTo);
-    if (stream && stream.open) stream.send(container);
+    if (stream && stream.open) {
+      stream.send(container);
+    }
   }
 
   private sendBroadcast(container: DataContainer) {

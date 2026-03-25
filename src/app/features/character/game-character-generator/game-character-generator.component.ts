@@ -3,13 +3,13 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
-  OnDestroy,
   OnInit,
   ViewContainerRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
@@ -18,6 +18,7 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -28,7 +29,7 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
   styleUrls: ['./game-character-generator.component.css'],
   imports: [FormsModule, SafePipe],
 })
-export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameCharacterGeneratorComponent implements OnInit, AfterViewInit {
   private viewContainerRef = inject(ViewContainerRef);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
@@ -36,6 +37,8 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
   private objectSerializer = inject(ObjectSerializer);
   private tableSelecter = inject(TableSelecter);
   private changeDetector = inject(ChangeDetectorRef);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   name: string = 'ゲームキャラクター';
   size: number = 1;
@@ -48,10 +51,8 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
-    EventSystem.register(this).on('SELECT_FILE', (event) => {
-      const fileIdentifier: string = event.data.fileIdentifier;
-
-      const file: ImageFile = this.imageStorage.get(fileIdentifier);
+    this.objectChange.selectFile$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const file: ImageFile = this.imageStorage.get(event.fileIdentifier);
       if (file) {
         this.tableBackgroundImage = file;
         this.changeDetector.markForCheck();
@@ -60,10 +61,6 @@ export class GameCharacterGeneratorComponent implements OnInit, OnDestroy, After
   }
 
   ngAfterViewInit() {}
-
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
 
   createGameCharacter() {
     GameCharacter.create(this.name, this.size, this.tableBackgroundImage.identifier);

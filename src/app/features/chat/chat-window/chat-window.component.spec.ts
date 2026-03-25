@@ -1,15 +1,18 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { EventSystem } from '@axe/core/index';
+import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { Subject } from 'rxjs';
 
 import { ChatWindowComponent } from './chat-window.component';
 
 describe('ChatWindowComponent', () => {
   let component: ChatWindowComponent;
   let fixture: ComponentFixture<ChatWindowComponent>;
+  let objectChange: ObjectChangeService;
 
   beforeEach(async () => {
     PeerCursor.createMyCursor();
@@ -22,6 +25,7 @@ describe('ChatWindowComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ChatWindowComponent);
     component = fixture.componentInstance;
+    objectChange = TestBed.inject(ObjectChangeService);
   });
 
   it('should create', () => {
@@ -40,7 +44,11 @@ describe('ChatWindowComponent', () => {
       (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = invalidId;
 
       const chatTabList = ChatTabList.instance;
-      EventSystem.trigger('UPDATE_GAME_OBJECT', chatTabList.toContext());
+      objectChanged$.next({
+        identifier: chatTabList.identifier,
+        aliasName: chatTabList.aliasName,
+        isSendFromSelf: false,
+      });
 
       expect((component as unknown as { _chatTabidentifier: string })._chatTabidentifier).not.toBe(invalidId);
     });
@@ -50,9 +58,10 @@ describe('ChatWindowComponent', () => {
       const oldIdentifier = 'non-existent-tab-id';
       (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = oldIdentifier;
 
-      EventSystem.trigger('DELETE_GAME_OBJECT', {
+      (objectChange as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
         aliasName: 'chat-tab',
         identifier: oldIdentifier,
+        isSendFromSelf: true,
       });
 
       expect((component as unknown as { _chatTabidentifier: string })._chatTabidentifier).not.toBe(oldIdentifier);
@@ -65,7 +74,11 @@ describe('ChatWindowComponent', () => {
       (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = invalidId;
 
       const chatTabList = ChatTabList.instance;
-      EventSystem.trigger('UPDATE_GAME_OBJECT', chatTabList.toContext());
+      objectChanged$.next({
+        identifier: chatTabList.identifier,
+        aliasName: chatTabList.aliasName,
+        isSendFromSelf: false,
+      });
 
       expect(spy).toHaveBeenCalledWith(true);
     });
@@ -76,9 +89,10 @@ describe('ChatWindowComponent', () => {
       const oldIdentifier = 'non-existent-tab-id';
       (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = oldIdentifier;
 
-      EventSystem.trigger('DELETE_GAME_OBJECT', {
+      (objectChange as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
         aliasName: 'chat-tab',
         identifier: oldIdentifier,
+        isSendFromSelf: true,
       });
 
       expect(spy).toHaveBeenCalledWith(true);

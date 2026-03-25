@@ -1,10 +1,21 @@
-import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  DestroyRef,
+  Directive,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Input,
+  OnDestroy,
+  Output,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
-import { EventSystem } from '@axe/core/index';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/pointer-device.service';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { BatchService } from '@axe/features/inventory/batch.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 
 import { InputHandler } from './input-handler';
 
@@ -24,6 +35,8 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   private batchService = inject(BatchService);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   protected tabletopObject!: RotableTabletopObject;
 
@@ -87,7 +100,6 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.cancel();
     this.input?.destroy();
-    EventSystem.unregister(this);
     this.batchService.remove(this);
     this.batchService.remove(this.elementRef);
   }
@@ -100,11 +112,11 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
     this.input.onContextMenu = (e) => this.onContextMenu(e);
 
     if (this.tabletopObject) {
-      EventSystem.register(this).on('UPDATE_GAME_OBJECT', (event) => {
+      this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
         if (
           !this.tabletopObject ||
           (event.isSendFromSelf && this.input?.isGrabbing) ||
-          event.data.identifier !== this.tabletopObject.identifier ||
+          event.identifier !== this.tabletopObject.identifier ||
           !this.shouldTransition(this.tabletopObject)
         )
           return;

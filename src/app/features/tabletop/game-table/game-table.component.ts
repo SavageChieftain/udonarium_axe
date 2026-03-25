@@ -225,16 +225,27 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     this.objectChangeService.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.identifier !== this.currentTable.identifier && event.identifier !== this.tableSelecter.identifier)
-        return;
-      this.setGameTableGrid(
-        this.currentTable.width,
-        this.currentTable.height,
-        this.currentTable.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor
-      );
+      if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
+        this.setGameTableGrid(
+          this.currentTable.width,
+          this.currentTable.height,
+          this.currentTable.gridSize,
+          this.currentTable.gridType,
+          this.currentTable.gridColor
+        );
+      }
       this.changeDetector.markForCheck();
+    });
+    this.objectChangeService.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+    });
+    this.objectChangeService.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+    this.objectChangeService.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
     });
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();

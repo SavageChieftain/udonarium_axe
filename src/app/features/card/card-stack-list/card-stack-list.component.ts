@@ -1,12 +1,24 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Network } from '@axe/core/index';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
+import { callShuffleCardStack } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -21,6 +33,8 @@ export class CardStackListComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private changeDetector = inject(ChangeDetectorRef);
   private objectStore = inject(ObjectStore);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() cardStack: CardStack | null = null;
 
@@ -28,26 +42,25 @@ export class CardStackListComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.cardStack || !object) return;
-        if (this.cardStack === object || (object instanceof ObjectNode && this.cardStack.contains(object))) {
-          this.changeDetector.markForCheck();
-        }
-        if (event.data.identifier === this.cardStack.identifier && this.cardStack.owner !== this.owner) {
-          this.panelService.close();
-        }
-      })
-      .on('DELETE_GAME_OBJECT', (event) => {
-        if (this.cardStack && this.cardStack.identifier === event.data.identifier) {
-          this.panelService.close();
-        }
-      });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      const object = this.objectStore.get(e.identifier);
+      if (!this.cardStack || !object) return;
+      if (this.cardStack === object || (object instanceof ObjectNode && this.cardStack.contains(object))) {
+        this.changeDetector.markForCheck();
+      }
+      if (e.identifier === this.cardStack.identifier && this.cardStack.owner !== this.owner) {
+        this.panelService.close();
+      }
+    });
+
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (this.cardStack && this.cardStack.identifier === e.identifier) {
+        this.panelService.close();
+      }
+    });
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.cardStack && this.cardStack.owner === this.owner) {
       this.cardStack.owner = '';
     }
@@ -86,7 +99,7 @@ export class CardStackListComponent implements OnInit, OnDestroy {
   close(needShuffle: boolean = false) {
     if (needShuffle && this.cardStack) {
       this.cardStack.shuffle();
-      EventSystem.call('SHUFFLE_CARD_STACK', { identifier: this.cardStack.identifier });
+      callShuffleCardStack(this.cardStack.identifier);
       SoundEffect.play(PresetSound.cardShuffle);
     }
     this.panelService.close();

@@ -1,4 +1,5 @@
-import { Event, EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/network/network';
+import { localDispatch } from '@axe/core/network/network-messaging';
 import { Subject } from 'rxjs';
 
 import { GameObject } from './game-object';
@@ -7,6 +8,7 @@ import { ObjectNode } from './object-node';
 export interface ObjectChangeEvent {
   identifier: string;
   aliasName: string;
+  isSendFromSelf: boolean;
 }
 
 export interface ChildrenChangeEvent {
@@ -63,19 +65,15 @@ const triggerEvent = () => {
       aliasName: data.object.aliasName,
       identifier: data.object.identifier,
     };
-    EventSystem.trigger(new Event(`UPDATE_GAME_OBJECT/aliasName/${context.aliasName}`, context, data.originFrom));
-    EventSystem.trigger(new Event(`UPDATE_GAME_OBJECT/identifier/${context.identifier}`, context, data.originFrom));
-    objectChanged$.next(context);
+    const isSendFromSelf = data.originFrom === Network.peerId;
+    objectChanged$.next({ ...context, isSendFromSelf });
   }
 
   for (const identifier of nodes) {
-    EventSystem.trigger(`UPDATE_OBJECT_CHILDREN/identifier/${identifier}`, {
-      identifier: identifier,
-    });
     childrenChanged$.next({ identifier });
   }
 
   if (objects.length > 0 || nodes.length > 0) {
-    EventSystem.trigger('LOCAL_OBJECT_UPDATED', null);
+    localDispatch('LOCAL_OBJECT_UPDATED', null);
   }
 };

@@ -1,4 +1,3 @@
-import { EventSystem } from '@axe/core/index';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -6,6 +5,8 @@ import { SyncObject } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { callSoundEffect, sendMessage$, soundEffect$ } from '@axe/domain/domain-events';
+import { Subscription } from 'rxjs';
 
 export class PresetSound {
   static dicePick: string = '';
@@ -28,28 +29,33 @@ export class PresetSound {
 
 @SyncObject('sound-effect')
 export class SoundEffect extends GameObject {
+  private subscription = new Subscription();
+
   // GameObject Lifecycle
   onStoreAdded() {
     super.onStoreAdded();
-    EventSystem.register(this)
-      .on<string>('SOUND_EFFECT', (event) => {
-        AudioPlayer.play(AudioStorage.instance.get(event.data), 0.5);
+    this.subscription.add(
+      soundEffect$.subscribe((identifier) => {
+        AudioPlayer.play(AudioStorage.instance.get(identifier), 0.5);
       })
-      .on('SEND_MESSAGE', (event) => {
-        const chatMessage = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+    );
+    this.subscription.add(
+      sendMessage$.subscribe((data) => {
+        const chatMessage = ObjectStore.instance.get<ChatMessage>(data.messageIdentifier);
         if (!chatMessage || !chatMessage.isSendFromSelf || !chatMessage.isDicebot) return;
         if (Math.random() < 0.5) {
           SoundEffect.play(PresetSound.diceRoll1);
         } else {
           SoundEffect.play(PresetSound.diceRoll2);
         }
-      });
+      })
+    );
   }
 
   // GameObject Lifecycle
   onStoreRemoved() {
     super.onStoreRemoved();
-    EventSystem.unregister(this);
+    this.subscription.unsubscribe();
   }
 
   play(identifier: string): void;
@@ -75,6 +81,6 @@ export class SoundEffect extends GameObject {
   }
 
   private static _play(identifier: string) {
-    EventSystem.call('SOUND_EFFECT', identifier);
+    callSoundEffect(identifier);
   }
 }

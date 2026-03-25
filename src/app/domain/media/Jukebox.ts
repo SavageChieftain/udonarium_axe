@@ -1,11 +1,12 @@
-import { EventSystem } from '@axe/core/index';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { updateAudioResource$ } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
+import { Subscription } from 'rxjs';
 
 @SyncObject('jukebox')
 export class Jukebox extends GameObject {
@@ -19,6 +20,7 @@ export class Jukebox extends GameObject {
   }
 
   private audioPlayer: AudioPlayer = new AudioPlayer();
+  private audioUpdateSub: Subscription | null = null;
 
   get config(): Config {
     return ObjectStore.instance.get<Config>('Config');
@@ -88,7 +90,7 @@ export class Jukebox extends GameObject {
   }
 
   private playAfterFileUpdate() {
-    EventSystem.register(this).on('UPDATE_AUDIO_RESOURE', () => {
+    this.audioUpdateSub = updateAudioResource$.subscribe(() => {
       this._play();
     });
   }
@@ -105,7 +107,8 @@ export class Jukebox extends GameObject {
   }
 
   private unregisterEvent() {
-    EventSystem.unregister(this, 'UPDATE_AUDIO_RESOURE');
+    this.audioUpdateSub?.unsubscribe();
+    this.audioUpdateSub = null;
   }
 
   // override

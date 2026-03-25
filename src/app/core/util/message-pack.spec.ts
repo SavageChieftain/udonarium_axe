@@ -107,4 +107,53 @@ describe('MessagePack', () => {
       expect(MessagePack.decode(MessagePack.encode(3.14))).toBeCloseTo(3.14);
     });
   });
+
+  describe('バイナリデータ', () => {
+    it('Uint8Arrayをエンコード/デコードでバイナリとして復元する', () => {
+      const original = new Uint8Array([0, 1, 2, 127, 128, 255]);
+      const decoded = MessagePack.decode(MessagePack.encode(original));
+      expect(decoded).toBeInstanceOf(Uint8Array);
+      expect(decoded).toEqual(original);
+    });
+
+    it('オブジェクト内のUint8Arrayフィールドが正しく復元される', () => {
+      const blob = new Uint8Array([10, 20, 30]);
+      const original = { identifier: 'img-1', type: 'image/png', blob };
+      const decoded = MessagePack.decode(MessagePack.encode(original)) as typeof original;
+      expect(decoded.identifier).toBe('img-1');
+      expect(decoded.blob).toBeInstanceOf(Uint8Array);
+      expect(decoded.blob).toEqual(blob);
+    });
+
+    it('ArrayBufferはバイナリとして復元されない（回帰テスト）', () => {
+      // @msgpack/msgpack v3ではArrayBufferはプレーンオブジェクト扱いになる
+      const buf = new Uint8Array([1, 2, 3]).buffer;
+      const decoded = MessagePack.decode(MessagePack.encode(buf));
+      // ArrayBufferはUint8Arrayとして復元されないことを確認
+      expect(decoded).not.toBeInstanceOf(Uint8Array);
+    });
+
+    it('空のUint8Arrayのラウンドトリップ', () => {
+      const original = new Uint8Array(0);
+      const decoded = MessagePack.decode(MessagePack.encode(original));
+      expect(decoded).toBeInstanceOf(Uint8Array);
+      expect((decoded as Uint8Array).length).toBe(0);
+    });
+
+    it('大きなUint8Arrayのラウンドトリップ', () => {
+      const original = new Uint8Array(1024);
+      for (let i = 0; i < original.length; i++) original[i] = i % 256;
+      const decoded = MessagePack.decode(MessagePack.encode(original));
+      expect(decoded).toBeInstanceOf(Uint8Array);
+      expect(decoded).toEqual(original);
+    });
+
+    it('配列内のUint8Arrayが正しく復元される', () => {
+      const original = [{ blob: new Uint8Array([1, 2]) }, { blob: new Uint8Array([3, 4]) }];
+      const decoded = MessagePack.decode(MessagePack.encode(original)) as typeof original;
+      expect(decoded[0].blob).toBeInstanceOf(Uint8Array);
+      expect(decoded[0].blob).toEqual(new Uint8Array([1, 2]));
+      expect(decoded[1].blob).toEqual(new Uint8Array([3, 4]));
+    });
+  });
 });

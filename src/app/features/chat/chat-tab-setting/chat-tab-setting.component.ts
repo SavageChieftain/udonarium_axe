@@ -1,7 +1,16 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { SaveDataService } from '@axe/core/save-data.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -10,6 +19,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 
 @Component({
@@ -28,6 +38,8 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
   private objectSerializer = inject(ObjectSerializer);
   private chatTabList = inject(ChatTabList);
   private changeDetector = inject(ChangeDetectorRef);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   selectedTab: ChatTab | null = null;
   selectedTabXml = '';
@@ -73,33 +85,31 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
-    EventSystem.register(this)
-      .on('DELETE_GAME_OBJECT', 2000, (event) => {
-        if (!this.selectedTab || event.data.identifier !== this.selectedTab.identifier) return;
-        const object = this.objectStore.get(event.data.identifier);
-        if (object !== null) {
-          this.selectedTabXml = object.toXml();
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (!this.selectedTab || e.identifier !== this.selectedTab.identifier) return;
+      const object = this.objectStore.get(e.identifier);
+      if (object !== null) {
+        this.selectedTabXml = object.toXml();
+      }
+      this.selectedTab = null;
+      this.changeDetector.markForCheck();
+    });
+
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      const object = this.objectStore.get(e.identifier);
+      if (object instanceof ChatTab || object instanceof ChatTabList) {
+        if (this.selectedTab && !this.objectStore.get(this.selectedTab.identifier)) {
+          this.selectedTab = null;
         }
-        this.selectedTab = null;
+        if (!this.selectedTab && this.chatTabs.length > 0) {
+          this.selectedTab = this.chatTabs[0];
+        }
         this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (object instanceof ChatTab || object instanceof ChatTabList) {
-          if (this.selectedTab && !this.objectStore.get(this.selectedTab.identifier)) {
-            this.selectedTab = null;
-          }
-          if (!this.selectedTab && this.chatTabs.length > 0) {
-            this.selectedTab = this.chatTabs[0];
-          }
-          this.changeDetector.markForCheck();
-        }
-      });
+      }
+    });
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   onChangeSelectTab(identifier: string) {
     this.selectedTab = this.objectStore.get<ChatTab>(identifier);

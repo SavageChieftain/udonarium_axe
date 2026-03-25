@@ -1,6 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { SaveDataService } from '@axe/core/save-data.service';
 import { Card } from '@axe/domain/card/card';
@@ -18,6 +28,7 @@ import { GameDataElementComponent } from '@axe/features/character/game-data-elem
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
 import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
@@ -35,6 +46,8 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   private modalService = inject(ModalService);
   private pointerDeviceService = inject(PointerDeviceService);
   private uiSignalService = inject(UiSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() tabletopObject:
     | GameCharacter
@@ -55,8 +68,8 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   progresPercent: number = 0;
 
   ngOnInit() {
-    EventSystem.register(this).on('DELETE_GAME_OBJECT', (event) => {
-      if (this.tabletopObject && this.tabletopObject!.identifier === event.data.identifier) {
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (this.tabletopObject && this.tabletopObject.identifier === e.identifier) {
         this.panelService.close();
       }
     });
@@ -64,9 +77,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
 
   ngAfterViewInit() {}
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;

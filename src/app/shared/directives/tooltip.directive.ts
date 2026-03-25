@@ -1,14 +1,17 @@
 import { AfterViewInit, ComponentRef, Directive, inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Directive({ selector: '[appTooltip]' })
 export class TooltipDirective implements AfterViewInit, OnDestroy {
   private viewContainerRef = inject(ViewContainerRef);
   private pointerDeviceService = inject(PointerDeviceService);
+  private objectChange = inject(ObjectChangeService);
 
   private static activeTooltips: ComponentRef<OverviewPanelComponent>[] = [];
 
@@ -22,6 +25,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
   private closeTooltipTimer!: NodeJS.Timeout;
 
   private tooltipComponentRef!: ComponentRef<OverviewPanelComponent>;
+  private deleteSub?: Subscription;
 
   ngAfterViewInit() {
     this.addEventListeners(this.viewContainerRef.element.nativeElement);
@@ -31,6 +35,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
     this.removeEventListeners(this.viewContainerRef.element.nativeElement);
     this.clearTimer();
     this.close();
+    this.deleteSub?.unsubscribe();
   }
 
   private onMouseEnter(_e: MouseEvent) {
@@ -110,9 +115,9 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
     document.body.addEventListener('touchstart', this.callbackOnMouseDown, true);
     document.body.addEventListener('mousedown', this.callbackOnMouseDown, true);
 
-    EventSystem.register(this).on('DELETE_GAME_OBJECT', (event) => {
-      if (this.tabletopObject && this.tabletopObject.identifier === event.data.identifier) this.closeAll();
-    });
+    this.deleteSub = this.objectChange.objectDeleted$
+      .pipe(filter((e) => this.tabletopObject && this.tabletopObject.identifier === e.identifier))
+      .subscribe(() => this.closeAll());
 
     this.tooltipComponentRef.onDestroy(() => {
       this.removeEventListeners(this.tooltipComponentRef.location.nativeElement);
@@ -120,7 +125,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
       document.body.removeEventListener('mousedown', this.callbackOnMouseDown, true);
       this.clearTimer();
       this.tooltipComponentRef = null!;
-      EventSystem.unregister(this);
+      this.deleteSub?.unsubscribe();
     });
     TooltipDirective.activeTooltips.push(this.tooltipComponentRef);
   }

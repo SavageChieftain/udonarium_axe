@@ -1,5 +1,8 @@
-import { EventSystem, Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
+import { Network } from '@axe/core/network/network';
+import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { GameObject, ObjectContext } from './game-object';
 import { markForChanged } from './object-event-extension';
@@ -20,65 +23,96 @@ export class ObjectSynchronizer {
   private requestMap: Map<ObjectIdentifier, SynchronizeRequest> = new Map();
   private peerMap: Map<PeerId, SynchronizeTask[]> = new Map();
   private tasks: SynchronizeTask[] = [];
+  private subscription = new Subscription();
 
   private constructor() {}
 
   initialize() {
     this.destroy();
-    EventSystem.register(this)
-      .on('CONNECT_PEER', 2, (event) => {
-        if (!event.isSendFromSelf) return;
-        this.sendCatalog(event.data.peerId);
-      })
-      .on('DISCONNECT_PEER', (event) => {
-        this.removePeerMap(event.data.peerId);
-      })
-      .on<CatalogItem[]>('SYNCHRONIZE_GAME_OBJECT', (event) => {
-        if (event.isSendFromSelf) return;
-        const catalog: CatalogItem[] = event.data;
-        for (const item of catalog) {
-          if (ObjectStore.instance.isDeleted(item.identifier)) {
-            EventSystem.call('DELETE_GAME_OBJECT', { aliasName: '', identifier: item.identifier }, event.sendFrom);
-          } else {
-            this.addRequestMap(item, event.sendFrom);
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'CONNECT_PEER'))
+        .subscribe((msg) => {
+          if (!msg.isSendFromSelf) return;
+          this.sendCatalog(msg.data.peerId);
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'DISCONNECT_PEER'))
+        .subscribe((msg) => {
+          this.removePeerMap(msg.data.peerId);
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<CatalogItem[]> => msg.eventName === 'SYNCHRONIZE_GAME_OBJECT'))
+        .subscribe((msg) => {
+          if (msg.isSendFromSelf) return;
+          const catalog: CatalogItem[] = msg.data;
+          for (const item of catalog) {
+            if (ObjectStore.instance.isDeleted(item.identifier)) {
+              networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: item.identifier }, msg.sendFrom);
+            } else {
+              this.addRequestMap(item, msg.sendFrom);
+            }
           }
-        }
-        this.synchronize();
-      })
-      .on('REQUEST_GAME_OBJECT', (event) => {
-        if (event.isSendFromSelf) return;
-        if (ObjectStore.instance.isDeleted(event.data)) {
-          EventSystem.call('DELETE_GAME_OBJECT', { aliasName: '', identifier: event.data }, event.sendFrom);
-        } else {
-          const object: GameObject = ObjectStore.instance.get(event.data);
-          if (object) EventSystem.call('UPDATE_GAME_OBJECT', object.toContext(), event.sendFrom);
-        }
-      })
-      .on('UPDATE_GAME_OBJECT', 1000, (event) => {
-        const context: ObjectContext = event.data;
-        let object: GameObject = ObjectStore.instance.get(context.identifier);
-        if (object) {
-          if (!event.isSendFromSelf) object = this.updateObject(object, context);
-          markForChanged(object, event.sendFrom);
-        } else if (ObjectStore.instance.isDeleted(context.identifier)) {
-          EventSystem.call(
-            'DELETE_GAME_OBJECT',
-            { aliasName: context.aliasName, identifier: context.identifier },
-            event.sendFrom
-          );
-        } else {
-          object = this.createObject(context);
-          markForChanged(object, event.sendFrom);
-        }
-      })
-      .on('DELETE_GAME_OBJECT', 1000, (event) => {
-        const identifier: ObjectIdentifier = event.data.identifier;
-        ObjectStore.instance.delete(identifier, false);
-      });
+          this.synchronize();
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<string> => msg.eventName === 'REQUEST_GAME_OBJECT'))
+        .subscribe((msg) => {
+          if (msg.isSendFromSelf) return;
+          if (ObjectStore.instance.isDeleted(msg.data)) {
+            networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: msg.data }, msg.sendFrom);
+          } else {
+            const object: GameObject = ObjectStore.instance.get(msg.data);
+            if (object) networkSend('UPDATE_GAME_OBJECT', object.toContext(), msg.sendFrom);
+          }
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<ObjectContext> => msg.eventName === 'UPDATE_GAME_OBJECT'))
+        .subscribe((msg) => {
+          const context: ObjectContext = msg.data;
+          let object: GameObject = ObjectStore.instance.get(context.identifier);
+          if (object) {
+            if (!msg.isSendFromSelf) object = this.updateObject(object, context);
+            markForChanged(object, msg.sendFrom);
+          } else if (ObjectStore.instance.isDeleted(context.identifier)) {
+            networkSend(
+              'DELETE_GAME_OBJECT',
+              { aliasName: context.aliasName, identifier: context.identifier },
+              msg.sendFrom
+            );
+          } else {
+            object = this.createObject(context);
+            markForChanged(object, msg.sendFrom);
+          }
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<{ identifier: string }> => msg.eventName === 'DELETE_GAME_OBJECT'))
+        .subscribe((msg) => {
+          const identifier: ObjectIdentifier = msg.data.identifier;
+          ObjectStore.instance.delete(identifier, false);
+        })
+    );
   }
 
   destroy() {
-    EventSystem.unregister(this);
+    this.subscription.unsubscribe();
+    this.subscription = new Subscription();
   }
 
   private updateObject(object: GameObject, context: ObjectContext): GameObject {
@@ -103,7 +137,7 @@ export class ObjectSynchronizer {
     const catalog = ObjectStore.instance.getCatalog();
     const interval = setInterval(() => {
       const count = catalog.length < 2048 ? catalog.length : 2048;
-      EventSystem.call('SYNCHRONIZE_GAME_OBJECT', catalog.splice(0, count), sendTo);
+      networkSend('SYNCHRONIZE_GAME_OBJECT', catalog.splice(0, count), sendTo);
       if (catalog.length < 1) clearInterval(interval);
     });
   }

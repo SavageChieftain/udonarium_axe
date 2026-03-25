@@ -4,15 +4,16 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   HostListener,
   inject,
   Input,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { EventSystem } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -20,9 +21,11 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',
@@ -38,6 +41,8 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   private domSanitizer = inject(DomSanitizer);
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() gameDataElement: DataElement = null!;
   @Input() isEdit: boolean = false;
@@ -78,23 +83,27 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   ngOnInit() {
     if (this.gameDataElement) this.setValues(this.gameDataElement);
 
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        if (this.gameDataElement && event.data.identifier === this.gameDataElement.identifier) {
-          this.setValues(this.gameDataElement);
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('DELETE_GAME_OBJECT', (event) => {
-        if (this.gameDataElement && this.gameDataElement.identifier === event.data.identifier) {
-          this.changeDetector.markForCheck();
-        }
+    this.objectChange.objectChanged$
+      .pipe(
+        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement.identifier),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.setValues(this.gameDataElement);
+        this.changeDetector.markForCheck();
+      });
+
+    this.objectChange.objectDeleted$
+      .pipe(
+        filter((e) => !!this.gameDataElement && this.gameDataElement.identifier === e.identifier),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.changeDetector.markForCheck();
       });
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   ngAfterViewInit() {}
 

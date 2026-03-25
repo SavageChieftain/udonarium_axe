@@ -1,8 +1,6 @@
-import { EventSystem as _EventSystem } from './event/event-system';
 import { Network as _Network } from './network/network';
 
-export { Event } from './event/event';
-export { Listener } from './event/listener';
+export type { EventContext, NetworkMessage } from './network/network-messaging';
+export { initializeNetworkMessaging, localDispatch, networkMessage$, networkSend } from './network/network-messaging';
 
-export const EventSystem = _EventSystem.instance;
 export const Network = _Network.instance;

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   EventEmitter,
@@ -15,7 +16,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
@@ -23,6 +24,7 @@ import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
@@ -41,6 +43,8 @@ const isiOS =
 })
 export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, AfterViewChecked {
   private changeDetector = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private uiSignalService = inject(UiSignalService);
@@ -216,29 +220,29 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     }
     this.sampleMessages = messages;
 
-    EventSystem.register(this)
-      .on('MESSAGE_ADDED', (event) => {
-        const message = this.objectStore.get<ChatMessage>(event.data.messageIdentifier);
-        if (!message || !this.chatTab.contains(message)) return;
+    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
+      if (!message || !this.chatTab.contains(message)) return;
 
-        if (this.topTimestamp <= message.timestamp) {
-          this.changeDetector.markForCheck();
-          this.needUpdate = true;
-          this.onMessageInit();
-        }
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const message = this.objectStore.get(event.data.identifier);
-        if (
-          message &&
-          message instanceof ChatMessage &&
-          this.topTimestamp <= message.timestamp &&
-          message.timestamp <= this.botomTimestamp &&
-          this.chatTab.contains(message)
-        ) {
-          this.changeDetector.markForCheck();
-        }
-      });
+      if (this.topTimestamp <= message.timestamp) {
+        this.changeDetector.markForCheck();
+        this.needUpdate = true;
+        this.onMessageInit();
+      }
+    });
+
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const message = this.objectStore.get(event.identifier);
+      if (
+        message &&
+        message instanceof ChatMessage &&
+        this.topTimestamp <= message.timestamp &&
+        message.timestamp <= this.botomTimestamp &&
+        this.chatTab.contains(message)
+      ) {
+        this.changeDetector.markForCheck();
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -250,7 +254,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.panelService.scrollablePanel) {
       this.panelService.scrollablePanel.removeEventListener('scroll', this.callbackOnScroll, false);
       this.panelService.scrollablePanel.removeEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);

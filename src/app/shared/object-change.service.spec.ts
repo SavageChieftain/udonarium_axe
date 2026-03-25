@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { EventSystem } from '@axe/core/index';
 import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { Subject } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 
-import { ObjectChangeService } from './object-change.service';
+import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from './object-change.service';
 
 describe('ObjectChangeService', () => {
   let service: ObjectChangeService;
@@ -50,7 +50,7 @@ describe('ObjectChangeService', () => {
   });
 
   it('should emit on objectChanged$ when objectChanged$ Subject fires', async () => {
-    const testData = { identifier: 'test-id', aliasName: 'TestAlias' };
+    const testData = { identifier: 'test-id', aliasName: 'TestAlias', isSendFromSelf: false };
     const promise = firstValueFrom(service.objectChanged$);
     objectChanged$.next(testData);
     const event = await promise;
@@ -66,34 +66,37 @@ describe('ObjectChangeService', () => {
     expect(event.identifier).toBe('child-id');
   });
 
-  it('should emit on objectDeleted$ when DELETE_GAME_OBJECT fires', async () => {
+  it('should emit on objectDeleted$ when _objectDeleted$ fires', async () => {
     const promise = firstValueFrom(service.objectDeleted$);
-    EventSystem.trigger('DELETE_GAME_OBJECT', {
+    (service as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
       identifier: 'del-id',
       aliasName: 'GameCharacter',
+      isSendFromSelf: true,
     });
     const event = await promise;
     expect(event.identifier).toBe('del-id');
     expect(event.aliasName).toBe('GameCharacter');
   });
 
-  it('should emit on peerConnect$ when CONNECT_PEER fires', async () => {
+  it('should emit on peerConnect$ when _peerConnect$ fires', async () => {
     const promise = firstValueFrom(service.peerConnect$);
-    EventSystem.trigger('CONNECT_PEER', { peerId: 'peer-123' });
+    (service as unknown as { _peerConnect$: Subject<NetworkPeerEvent> })._peerConnect$.next({ peerId: 'peer-123' });
     const event = await promise;
     expect(event.peerId).toBe('peer-123');
   });
 
-  it('should emit on peerDisconnect$ when DISCONNECT_PEER fires', async () => {
+  it('should emit on peerDisconnect$ when _peerDisconnect$ fires', async () => {
     const promise = firstValueFrom(service.peerDisconnect$);
-    EventSystem.trigger('DISCONNECT_PEER', { peerId: 'peer-456' });
+    (service as unknown as { _peerDisconnect$: Subject<NetworkPeerEvent> })._peerDisconnect$.next({
+      peerId: 'peer-456',
+    });
     const event = await promise;
     expect(event.peerId).toBe('peer-456');
   });
 
-  it('should emit on networkOpen$ when OPEN_NETWORK fires', async () => {
+  it('should emit on networkOpen$ when _networkOpen$ fires', async () => {
     const promise = firstValueFrom(service.networkOpen$);
-    EventSystem.trigger('OPEN_NETWORK', { peerId: 'my-peer' });
+    (service as unknown as { _networkOpen$: Subject<NetworkPeerEvent> })._networkOpen$.next({ peerId: 'my-peer' });
     const event = await promise;
     expect(event.peerId).toBe('my-peer');
   });

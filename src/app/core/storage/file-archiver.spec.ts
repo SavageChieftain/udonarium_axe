@@ -1,15 +1,10 @@
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 
 import { FileArchiver } from './file-archiver';
 
 describe('FileArchiver', () => {
   beforeEach(() => {
-    vi.spyOn(EventSystem, 'trigger');
-    vi.spyOn(EventSystem, 'register').mockReturnValue({ on: vi.fn().mockReturnThis() } as unknown as ReturnType<
-      typeof EventSystem.register
-    >);
-    vi.spyOn(EventSystem, 'unregister');
     vi.spyOn(ObjectStore.instance, 'get').mockReturnValue({
       isLoadOk: () => true,
       reloadCheckStart: vi.fn(),

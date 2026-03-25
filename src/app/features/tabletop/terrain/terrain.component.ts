@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   HostListener,
@@ -13,9 +14,9 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
 import { ImageService } from '@axe/core/image.service';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectNode } from '@axe/core/sync/object-node';
@@ -36,6 +37,7 @@ import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
@@ -62,6 +64,8 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   private selectionSignalService = inject(SelectionSignalService);
   private inventoryService = inject(GameObjectInventoryService);
   private uiSignalService = inject(UiSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -231,33 +235,34 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   viewRotateZ = 10;
 
   ngOnInit() {
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.terrain || !object) return;
-        if (this.terrain === object || (object instanceof ObjectNode && this.terrain.contains(object))) {
-          this.changeDetector.markForCheck();
-        }
-        if (
-          event.data.identifier !== this.currentTable.identifier &&
-          event.data.identifier !== this.tableSelecter.identifier &&
-          event.data.identifier !== this.terrain.identifier
-        )
-          return;
-        this.setGameTableGrid(
-          this.width,
-          this.depth,
-          this.gridSize,
-          this.currentTable.gridType,
-          this.currentTable.gridColor
-        );
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (_event) => {
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      const object = this.objectStore.get(e.identifier);
+      if (!this.terrain || !object) return;
+      if (this.terrain === object || (object instanceof ObjectNode && this.terrain.contains(object))) {
         this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', (_event) => {
-        this.changeDetector.markForCheck();
-      });
+      }
+      if (
+        e.identifier !== this.currentTable.identifier &&
+        e.identifier !== this.tableSelecter.identifier &&
+        e.identifier !== this.terrain.identifier
+      )
+        return;
+      this.setGameTableGrid(
+        this.width,
+        this.depth,
+        this.gridSize,
+        this.currentTable.gridType,
+        this.currentTable.gridColor
+      );
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
     this.movableOption = {
       tabletopObject: this.terrain,
       colideLayers: ['terrain'],
@@ -281,7 +286,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     if (this.input) this.input.destroy();
-    EventSystem.unregister(this);
   }
 
   @HostListener('dragstart', ['$event'])

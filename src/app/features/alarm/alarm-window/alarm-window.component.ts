@@ -1,7 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/shared/alarm';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
@@ -36,7 +35,5 @@ export class AlarmWindowComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {}
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 }

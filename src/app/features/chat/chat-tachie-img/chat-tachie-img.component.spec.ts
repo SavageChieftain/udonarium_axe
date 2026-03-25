@@ -1,14 +1,17 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { EventSystem } from '@axe/core/index';
+import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { FileSyncEvent, ObjectChangeService } from '@axe/shared/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { Subject } from 'rxjs';
 
 import { ChatTachieImageComponent } from './chat-tachie-img.component';
 
 describe('ChatTachieImageComponent', () => {
   let component: ChatTachieImageComponent;
   let fixture: ComponentFixture<ChatTachieImageComponent>;
+  let objectChange: ObjectChangeService;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -20,6 +23,7 @@ describe('ChatTachieImageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ChatTachieImageComponent);
     component = fixture.componentInstance;
+    objectChange = TestBed.inject(ObjectChangeService);
 
     const chatTabList = ChatTabList.instance;
     const chatTab = chatTabList.chatTabs[0] ?? chatTabList.addChatTab('テスト');
@@ -36,34 +40,30 @@ describe('ChatTachieImageComponent', () => {
       const cdr = (component as unknown as { changeDetectionRef: ChangeDetectorRef }).changeDetectionRef;
       const spy = vi.spyOn(cdr, 'markForCheck');
 
-      EventSystem.trigger('SYNCHRONIZE_FILE_LIST', []);
+      (objectChange as unknown as { _fileSyncList$: Subject<FileSyncEvent> })._fileSyncList$.next({
+        isSendFromSelf: false,
+      });
 
       expect(spy).toHaveBeenCalled();
     });
 
-    it('UPDATE_GAME_OBJECTイベントで対象タブのmarkForCheckが呼ばれること', () => {
+    it('objectChanged$で対象タブのmarkForCheckが呼ばれること', () => {
       fixture.detectChanges();
       const cdr = (component as unknown as { changeDetectionRef: ChangeDetectorRef }).changeDetectionRef;
       const spy = vi.spyOn(cdr, 'markForCheck');
 
       const chatTab = ChatTabList.instance.chatTabs[0];
-      EventSystem.trigger('UPDATE_GAME_OBJECT', chatTab.toContext());
+      objectChanged$.next({ identifier: chatTab.identifier, aliasName: chatTab.aliasName, isSendFromSelf: false });
 
       expect(spy).toHaveBeenCalled();
     });
 
-    it('UPDATE_GAME_OBJECTイベントで無関係なオブジェクトではmarkForCheckが呼ばれないこと', () => {
+    it('objectChanged$で無関係なオブジェクトではmarkForCheckが呼ばれないこと', () => {
       fixture.detectChanges();
       const cdr = (component as unknown as { changeDetectionRef: ChangeDetectorRef }).changeDetectionRef;
       const spy = vi.spyOn(cdr, 'markForCheck');
 
-      EventSystem.trigger('UPDATE_GAME_OBJECT', {
-        identifier: 'unrelated-id',
-        majorVersion: 0,
-        minorVersion: 0,
-        syncData: {},
-        aliasName: 'other',
-      });
+      objectChanged$.next({ identifier: 'unrelated-id', aliasName: 'other', isSendFromSelf: false });
 
       expect(spy).not.toHaveBeenCalled();
     });

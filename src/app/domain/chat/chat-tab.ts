@@ -1,8 +1,8 @@
-import { EventSystem } from '@axe/core/index';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { emitMessageAdded } from '@axe/domain/domain-events';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 
 import { ChatLogExporter } from './chat-log-exporter';
@@ -127,7 +127,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
         this.imageDispFlag[child.imagePos] = true;
       }
 
-      EventSystem.trigger('MESSAGE_ADDED', { tabIdentifier: this.identifier, messageIdentifier: child.identifier });
+      emitMessageAdded({ tabIdentifier: this.identifier, messageIdentifier: child.identifier });
     }
   }
 

@@ -3,13 +3,16 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
-import { AppConfig, AppConfigService } from '@axe/core/app-config.service';
-import { EventSystem, Network } from '@axe/core/index';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AppConfigService } from '@axe/core/app-config.service';
+import { Network } from '@axe/core/network/network';
+import { initializeNetworkMessaging } from '@axe/core/network/network-messaging';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { SaveDataService } from '@axe/core/save-data.service';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
@@ -56,6 +59,7 @@ import { UIPanelComponent } from '@axe/shared/components/ui-panel/ui-panel.compo
 import { UIPanelComponent as UIPanelComponent_1 } from '@axe/shared/components/ui-panel/ui-panel.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { NgSelectConfig } from '@ng-select/ng-select';
 
@@ -69,6 +73,8 @@ import { NgSelectConfig } from '@ng-select/ng-select';
 export class AppComponent implements AfterViewInit, OnDestroy {
   private modalService = inject(ModalService);
   private changeDetector = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private chatMessageService = inject(ChatMessageService);
@@ -101,8 +107,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   dispcounter = 10; // 表示更新用ダミーカットインを閉じるときに無理やり更新させている。
 
   constructor() {
-    void EventSystem;
-    void Network;
+    initializeNetworkMessaging();
     this.fileArchiver.initialize();
     ImageSharingSystem.instance.initialize();
     AudioSharingSystem.instance.initialize();
@@ -189,85 +194,78 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     PeerCursor.myCursor.name = 'プレイヤー';
     PeerCursor.myCursor.imageIdentifier = noneIconImage.identifier;
 
-    EventSystem.register(this)
-      .on('ALARM_TIMEUP_ORIGIN', (event) => {
-        this.alarmTimeUpOrigin(event.data.text);
-      })
-      .on('ALARM_POP', (event) => {
-        this.alarmPop(event.data.title, String(event.data.time));
-      })
-      .on('START_VOTE', (_event) => {
-        this.startVote();
-      })
-      .on('FINISH_VOTE', (event) => {
-        this.finishVote(event.data.text);
-      })
-      .on<{ cutIn: CutIn }>('START_CUT_IN', (event) => {
-        this.startCutIn(event.data.cutIn);
-      })
-      .on<{ cutIn: CutIn }>('STOP_CUT_IN', (event) => {
-        if (!event.data.cutIn) return;
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        this.lazyMarkForCheck(event.isSendFromSelf);
-      })
-      .on('LOCAL_OBJECT_UPDATED', (_event) => {
-        this.lazyMarkForCheck(true);
-      })
-      .on('DELETE_GAME_OBJECT', (event) => {
-        this.lazyMarkForCheck(event.isSendFromSelf);
-      })
-      .on('SYNCHRONIZE_AUDIO_LIST', (event) => {
-        if (event.isSendFromSelf) this.lazyMarkForCheck(false);
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) this.lazyMarkForCheck(false);
-      })
-      .on<AppConfig>('LOAD_CONFIG', (event) => {
-        Network.configure(event.data as unknown as Record<string, unknown>);
-        Network.open();
-      })
-      .on<File>('FILE_LOADED', (_event) => {
-        this.lazyMarkForCheck(false);
-      })
-      .on('OPEN_NETWORK', (_event) => {
-        PeerCursor.myCursor.peerId = Network.peerContext.peerId;
-        PeerCursor.myCursor.userId = Network.peerContext.userId;
-      })
-      .on('NETWORK_ERROR', async (event) => {
-        const errorType: string = event.data.errorType;
-        const errorMessage: string = event.data.errorMessage;
+    this.objectChange.alarmTimeUp$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.alarmTimeUpOrigin(event.text);
+    });
+    this.objectChange.alarmPop$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.alarmPop(event.title, String(event.time));
+    });
+    this.objectChange.startVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.startVote();
+    });
+    this.objectChange.finishVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.finishVote(event.text);
+    });
+    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.startCutIn(event.cutIn as CutIn);
+    });
+    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (!event.cutIn) return;
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.lazyMarkForCheck(event.isSendFromSelf);
+    });
+    this.objectChange.localObjectUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.lazyMarkForCheck(true);
+    });
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.lazyMarkForCheck(event.isSendFromSelf);
+    });
+    this.objectChange.audioSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.lazyMarkForCheck(false);
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.lazyMarkForCheck(false);
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.loadConfig$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      Network.configure(event.config as Record<string, unknown>);
+      Network.open();
+    });
+    this.objectChange.fileLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.lazyMarkForCheck(false);
+    });
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      PeerCursor.myCursor.peerId = Network.peerContext.peerId;
+      PeerCursor.myCursor.userId = Network.peerContext.userId;
+    });
+    this.objectChange.networkError$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (event) => {
+      const errorType = event.errorType;
+      const errorMessage = event.errorMessage;
 
-        //SKyWayエラーハンドリング
-        const quietErrorTypes = ['peer-unavailable'];
-        const reconnectErrorTypes = [
-          'disconnected',
-          'socket-error',
-          'unavailable-id',
-          'authentication',
-          'server-error',
-        ];
+      const quietErrorTypes = ['peer-unavailable'];
+      const reconnectErrorTypes = ['disconnected', 'socket-error', 'unavailable-id', 'authentication', 'server-error'];
 
-        if (quietErrorTypes.includes(errorType)) return;
-        await this.modalService.open(TextViewComponent, {
-          title: 'ネットワークエラー',
-          text: errorMessage,
-        });
-
-        if (!reconnectErrorTypes.includes(errorType)) return;
-        await this.modalService.open(TextViewComponent, {
-          title: 'ネットワークエラー',
-          text: 'このウィンドウを閉じると再接続を試みます。',
-        });
-        Network.open();
-      })
-      .on('CONNECT_PEER', (event) => {
-        if (event.isSendFromSelf) this.chatMessageService.calibrateTimeOffset();
-        this.lazyMarkForCheck(event.isSendFromSelf);
-      })
-      .on('DISCONNECT_PEER', (event) => {
-        this.lazyMarkForCheck(event.isSendFromSelf);
+      if (quietErrorTypes.includes(errorType)) return;
+      await this.modalService.open(TextViewComponent, {
+        title: 'ネットワークエラー',
+        text: errorMessage,
       });
+
+      if (!reconnectErrorTypes.includes(errorType)) return;
+      await this.modalService.open(TextViewComponent, {
+        title: 'ネットワークエラー',
+        text: 'このウィンドウを閉じると再接続を試みます。',
+      });
+      Network.open();
+    });
+    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.chatMessageService.calibrateTimeOffset();
+      this.lazyMarkForCheck(true);
+    });
+    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.lazyMarkForCheck(false);
+    });
   }
 
   ngAfterViewInit() {
@@ -290,9 +288,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     }, 0);
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   alarmTimeUpOrigin(text: string) {
     this.chatMessageService.sendSystemMessageLastSendCharactor(text);

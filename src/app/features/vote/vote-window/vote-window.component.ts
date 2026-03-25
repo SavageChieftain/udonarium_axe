@@ -4,17 +4,19 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/shared/vote';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -31,7 +33,8 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private changeDetectionRef = inject(ChangeDetectorRef);
   private chatMessageService = inject(ChatMessageService);
   private objectStore = inject(ObjectStore);
-
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
   private timestamp = 0;
   get vote(): Vote {
     return this.objectStore.get<Vote>('Vote');
@@ -65,7 +68,7 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    EventSystem.register(this).on('END_OLD_VOTE', (_event) => {
+    this.objectChange.endOldVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.timestamp != this.vote.initTimeStamp) {
         this.panelService.close();
       }
@@ -106,7 +109,5 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       text += '棄権しました' + '(' + this.vote.votedTotalNum() + '/' + this.answerList.length + ')';
       this.chatMessageService.sendSystemMessageLastSendCharactor(text);
     }
-
-    EventSystem.unregister(this);
   }
 }

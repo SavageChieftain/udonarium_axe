@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   HostListener,
@@ -13,7 +14,8 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { GameObject } from '@axe/core/sync/game-object';
@@ -33,6 +35,7 @@ import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
@@ -55,6 +58,8 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private selectionSignalService = inject(SelectionSignalService);
   private inventoryService = inject(GameObjectInventoryService);
   private uiSignalService = inject(UiSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -188,20 +193,21 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnInit() {
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!this.gameCharacter || !object) return;
-        if (this.gameCharacter === object || (object instanceof ObjectNode && this.gameCharacter!.contains(object))) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (_event) => {
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      const object = this.objectStore.get(e.identifier);
+      if (!this.gameCharacter || !object) return;
+      if (this.gameCharacter === object || (object instanceof ObjectNode && this.gameCharacter!.contains(object))) {
         this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', (_event) => {
-        this.changeDetector.markForCheck();
-      });
+      }
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
     this.movableOption = {
       tabletopObject: this.gameCharacter!,
       transformCssOffset: 'translateZ(1.0px)',
@@ -221,7 +227,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     clearTimeout(this.highlightTimer);
     clearTimeout(this.unhighlightTimer);
     if (this.input) this.input.destroy();
-    EventSystem.unregister(this);
   }
 
   @HostListener('dragstart', ['$event'])
@@ -477,9 +482,10 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   get buffNum(): number {
-    if (this.gameCharacter!.buffDataElement.children.length == 0) {
+    const children = this.gameCharacter?.buffDataElement?.children;
+    if (!children || children.length === 0) {
       return 0;
     }
-    return this.gameCharacter!.buffDataElement.children[0].children.length;
+    return children[0].children.length;
   }
 }

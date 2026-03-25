@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -9,6 +9,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { emitDiceTableMessage, emitResourceEditMessage, emitSendMessage } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -214,27 +215,23 @@ export class ChatMessageService {
   ): void {
     if (messageTargetContext && messageTargetContext.length >= 1) {
       for (const context of messageTargetContext) {
-        EventSystem.trigger('SEND_MESSAGE', {
-          tabIdentifier: chatTab.identifier,
+        emitSendMessage({
           messageIdentifier: chat.identifier,
           messageTrget: context,
         });
       }
     } else {
-      EventSystem.trigger('SEND_MESSAGE', {
-        tabIdentifier: chatTab.identifier,
+      emitSendMessage({
         messageIdentifier: chat.identifier,
         messageTrget: null,
       });
     }
 
-    EventSystem.trigger('DICE_TABLE_MESSAGE', {
-      tabIdentifier: chatTab.identifier,
+    emitDiceTableMessage({
       messageIdentifier: chat.identifier,
     });
 
-    EventSystem.trigger('RESOURCE_EDIT_MESSAGE', {
-      tabIdentifier: chatTab.identifier,
+    emitResourceEditMessage({
       messageIdentifier: chat.identifier,
       messageTargetContext: messageTargetContext ?? null,
     });

@@ -7,10 +7,8 @@ import {
   ElementRef,
   inject,
   Input,
-  OnDestroy,
   ViewChild,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
@@ -22,7 +20,7 @@ import { PanelService } from '@axe/shared/panel.service';
   templateUrl: './card-stack-list-img.component.html',
   styleUrls: ['./card-stack-list-img.component.css'],
 })
-export class CardStackListImageComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
+export class CardStackListImageComponent implements AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
@@ -100,9 +98,6 @@ export class CardStackListImageComponent implements OnDestroy, AfterViewInit, Af
   //z-index取得
   private _zindexOffset = 10;
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
   /*
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;

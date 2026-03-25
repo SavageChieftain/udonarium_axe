@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -7,6 +15,7 @@ import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Jukebox } from '@axe/domain/media/Jukebox';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 
 @Component({
@@ -18,6 +27,8 @@ import { PanelService } from '@axe/shared/panel.service';
 export class CutInBgmComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private changeDetector = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
@@ -35,13 +46,12 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインBGM選択'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
-    EventSystem.register(this).on('*', (_event) => {
+    this.objectChange.eventActivity$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.lazyMarkForCheck();
     });
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.lazyUpdateTimer) {
       clearTimeout(this.lazyUpdateTimer);
       this.lazyUpdateTimer = null!;

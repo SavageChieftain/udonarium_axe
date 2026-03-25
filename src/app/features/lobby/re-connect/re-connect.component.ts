@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { GameObject } from '@axe/core/sync/game-object';
@@ -12,7 +13,9 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
+import { merge, take } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,11 +23,13 @@ import { PanelService } from '@axe/shared/panel.service';
   templateUrl: './re-connect.component.html',
   styleUrls: ['./re-connect.component.css'],
 })
-export class ReConnectComponent implements OnInit, OnDestroy {
+export class ReConnectComponent implements OnInit {
   private changeDetector = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
@@ -64,8 +69,6 @@ export class ReConnectComponent implements OnInit, OnDestroy {
     this.modalService.title = this.panelService.title = '再接続';
     this.modalService.title = this.panelService.title = '＜' + this.roomName + '/' + this.roomId + '＞';
   }
-
-  ngOnDestroy() {}
 
   reConnect() {
     this.disConnect();
@@ -133,29 +136,19 @@ export class ReConnectComponent implements OnInit, OnDestroy {
     PeerCursor.myCursor.peerId = Network.peerId;
 
     const triedPeer: string[] = [];
-    EventSystem.register(triedPeer).on('OPEN_NETWORK', (event) => {
-      Logger.info('[Network] ピア接続開始', event.data.peerId);
-      EventSystem.unregister(triedPeer);
+    this.objectChange.networkOpen$.pipe(take(1)).subscribe(() => {
+      Logger.info('[Network] ピア接続開始');
       this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }
-      EventSystem.register(triedPeer)
-        .on('CONNECT_PEER', (event) => {
-          triedPeer.push(event.data.peerId);
-          Logger.info(`[Network] 接続成功 (${triedPeer.length}/${peerContexts.length})`, event.data.peerId);
+      merge(this.objectChange.peerConnect$, this.objectChange.peerDisconnect$)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((event) => {
+          triedPeer.push(event.peerId);
+          Logger.info(`[Network] 接続結果 (${triedPeer.length}/${peerContexts.length})`, event.peerId);
           if (peerContexts.length <= triedPeer.length) {
             this.resetNetwork();
-            EventSystem.unregister(triedPeer);
-            this.closeIfConnected();
-          }
-        })
-        .on('DISCONNECT_PEER', (event) => {
-          triedPeer.push(event.data.peerId);
-          Logger.warn(`[Network] 接続失敗 (${triedPeer.length}/${peerContexts.length})`, event.data.peerId);
-          if (peerContexts.length <= triedPeer.length) {
-            this.resetNetwork();
-            EventSystem.unregister(triedPeer);
             this.closeIfConnected();
           }
         });

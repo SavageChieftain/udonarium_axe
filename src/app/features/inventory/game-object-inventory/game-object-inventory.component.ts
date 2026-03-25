@@ -4,13 +4,15 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   effect,
   inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -24,6 +26,7 @@ import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palet
 import { RemoteControllerComponent } from '@axe/features/controller/remote-controller/remote-controller.component';
 import { GameObjectInventoryService } from '@axe/features/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
@@ -43,6 +46,8 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -117,16 +122,15 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
-    EventSystem.register(this)
-      .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) this.changeDetector.markForCheck();
-      })
-      .on('OPEN_NETWORK', (_event) => {
-        this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-        if (!this.inventoryTypes.includes(this.selectTab)) {
-          this.selectTab = Network.peerId;
-        }
-      });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+    });
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
+      if (!this.inventoryTypes.includes(this.selectTab)) {
+        this.selectTab = Network.peerId;
+      }
+    });
     this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
   }
 
@@ -138,7 +142,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.disptimer) {
       clearInterval(this.disptimer);
     }

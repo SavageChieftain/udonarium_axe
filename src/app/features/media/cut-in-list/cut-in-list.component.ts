@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 //
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { SaveDataService } from '@axe/core/save-data.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
@@ -282,9 +281,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   selectCutIn(identifier: string) {
     this.selectedCutIn = this.objectStore.get<CutIn>(identifier);

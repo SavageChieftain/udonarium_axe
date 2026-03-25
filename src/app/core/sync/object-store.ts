@@ -1,4 +1,4 @@
-import { EventSystem } from '@axe/core/index';
+import { networkSend } from '@axe/core/network/network-messaging';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
 
 import { GameObject, ObjectContext } from './game-object';
@@ -71,7 +71,7 @@ export class ObjectStore {
   private _delete(object: GameObject, shouldBroadcast: boolean): GameObject {
     if (this.remove(object) === null) return null!;
     if (shouldBroadcast)
-      EventSystem.call('DELETE_GAME_OBJECT', {
+      networkSend('DELETE_GAME_OBJECT', {
         aliasName: object.aliasName,
         identifier: object.identifier,
       });
@@ -124,7 +124,7 @@ export class ObjectStore {
       }
       return;
     }
-    EventSystem.call('UPDATE_GAME_OBJECT', context);
+    networkSend('UPDATE_GAME_OBJECT', context);
     this.queueMap.set(context.identifier, context);
     if (this.updateInterval === null) {
       this.updateInterval = setZeroTimeout(this.updateCallback);

@@ -3,13 +3,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { YouTubePlayer } from '@angular/youtube-player';
-import { EventSystem } from '@axe/core/index';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -19,6 +20,7 @@ import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/Jukebox';
 import { Config } from '@axe/domain/peer/config';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -35,6 +37,8 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private changeDetectionRef = inject(ChangeDetectorRef);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   // @ViewChild('cutInImageElement', { static: false }) cutInImageElement: ElementRef;
   @ViewChild('videoPlayerComponent', { static: false })
@@ -104,29 +108,30 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    EventSystem.register(this)
-      .on<{ cutIn: CutIn }>('START_CUT_IN', (event) => {
-        if (this.cutIn) {
-          if (this.cutIn.identifier == event.data.cutIn.identifier || this.cutIn.tagName == event.data.cutIn.tagName) {
-            this.panelService.close();
-          }
+    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const cutIn = event.cutIn as CutIn;
+      if (this.cutIn) {
+        if (this.cutIn.identifier == cutIn.identifier || this.cutIn.tagName == cutIn.tagName) {
+          this.panelService.close();
         }
-      })
-      .on('STOP_CUT_IN_BY_BGM', (_event) => {
-        if (this.cutIn) {
-          const audio = this.audioStorage.get(this.cutIn.audioIdentifier);
-          if (this.cutIn.tagName == '' && audio) {
-            this.panelService.close();
-          }
+      }
+    });
+    this.objectChange.stopCutInByBgm$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.cutIn) {
+        const audio = this.audioStorage.get(this.cutIn.audioIdentifier);
+        if (this.cutIn.tagName == '' && audio) {
+          this.panelService.close();
         }
-      })
-      .on<{ cutIn: CutIn }>('STOP_CUT_IN', (event) => {
-        if (this.cutIn) {
-          if (this.cutIn.identifier == event.data.cutIn.identifier) {
-            this.panelService.close();
-          }
+      }
+    });
+    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const cutIn = event.cutIn as CutIn;
+      if (this.cutIn) {
+        if (this.cutIn.identifier == cutIn.identifier) {
+          this.panelService.close();
         }
-      });
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -258,7 +263,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       this._timeoutIdVideo = null;
     }
     this.stopCutIn();
-    EventSystem.unregister(this);
   }
 
   private lazyMarkForCheck() {

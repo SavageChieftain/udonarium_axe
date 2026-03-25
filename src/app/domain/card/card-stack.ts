@@ -1,8 +1,8 @@
-import { EventSystem } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { DataElement } from '@axe/domain/data/data-element';
+import { emitCardStackDecreased } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
@@ -58,7 +58,7 @@ export class CardStack extends TabletopObject {
   onChildRemoved(child: ObjectNode) {
     super.onChildRemoved(child);
     if (child instanceof Card) {
-      EventSystem.trigger('CARD_STACK_DECREASED', {
+      emitCardStackDecreased({
         cardStackIdentifier: this.identifier,
         cardIdentifier: child.identifier,
       });

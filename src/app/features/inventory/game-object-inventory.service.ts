@@ -1,11 +1,13 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { toHalfWidth } from '@axe/core/util/string-util';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 
 type ObjectIdentifier = string;
 type LocationName = string;
@@ -17,6 +19,8 @@ type ElementName = string;
 export class GameObjectInventoryService {
   private objectStore = inject(ObjectStore);
   private dataSummarySetting = inject(DataSummarySetting);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   readonly inventoryVersion = signal(0);
 
@@ -84,59 +88,58 @@ export class GameObjectInventoryService {
   }
 
   private initialize() {
-    EventSystem.register(this)
-      .on('OPEN_NETWORK', (_event) => {
-        this.refresh();
-      })
-      .on('CONNECT_PEER', (_event) => {
-        this.refresh();
-      })
-      .on('DISCONNECT_PEER', (_event) => {
-        this.refresh();
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        const object = this.objectStore.get(event.data.identifier);
-        if (!object) return;
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.refresh();
+    });
+    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.refresh();
+    });
+    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.refresh();
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      const object = this.objectStore.get(e.identifier);
+      if (!object) return;
 
-        if (object instanceof GameCharacter) {
-          const prevLocation = this.locationMap.get(object.identifier);
-          if (object.location.name !== prevLocation) {
-            this.locationMap.set(object.identifier, object.location.name);
-            this.refresh();
-          }
-        } else if (object instanceof DataElement) {
-          if (!this.containsInGameCharacter(object)) return;
+      if (object instanceof GameCharacter) {
+        const prevLocation = this.locationMap.get(object.identifier);
+        if (object.location.name !== prevLocation) {
+          this.locationMap.set(object.identifier, object.location.name);
+          this.refresh();
+        }
+      } else if (object instanceof DataElement) {
+        if (!this.containsInGameCharacter(object)) return;
 
-          const prevName = this.tagNameMap.get(object.identifier);
-          if (
-            (this.dataTags.includes(prevName ?? '') || this.dataTags.includes(object.name)) &&
-            object.name !== prevName
-          ) {
-            this.tagNameMap.set(object.identifier, object.name);
-            this.refreshDataElements();
-          }
-          if (this.sortTag === object.name || this.sortTag2nd === object.name) {
-            this.refreshSort();
-          }
-          if (0 < object.children.length) {
-            this.refreshDataElements();
-            this.refreshSort();
-          }
-          this.callInventoryUpdate();
-        } else if (object instanceof DataSummarySetting) {
+        const prevName = this.tagNameMap.get(object.identifier);
+        if (
+          (this.dataTags.includes(prevName ?? '') || this.dataTags.includes(object.name)) &&
+          object.name !== prevName
+        ) {
+          this.tagNameMap.set(object.identifier, object.name);
+          this.refreshDataElements();
+        }
+        if (this.sortTag === object.name || this.sortTag2nd === object.name) {
+          this.refreshSort();
+        }
+        if (0 < object.children.length) {
           this.refreshDataElements();
           this.refreshSort();
-          this.callInventoryUpdate();
         }
-      })
-      .on('DELETE_GAME_OBJECT', (event) => {
-        this.locationMap.delete(event.data.identifier);
-        this.tagNameMap.delete(event.data.identifier);
-        this.refresh();
-      })
-      .on('SYNCHRONIZE_FILE_LIST', (event) => {
-        if (event.isSendFromSelf) this.callInventoryUpdate();
-      });
+        this.callInventoryUpdate();
+      } else if (object instanceof DataSummarySetting) {
+        this.refreshDataElements();
+        this.refreshSort();
+        this.callInventoryUpdate();
+      }
+    });
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      this.locationMap.delete(e.identifier);
+      this.tagNameMap.delete(e.identifier);
+      this.refresh();
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (e.isSendFromSelf) this.callInventoryUpdate();
+    });
   }
 
   private containsInGameCharacter(element: DataElement): boolean {

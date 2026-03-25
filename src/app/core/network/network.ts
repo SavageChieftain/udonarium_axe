@@ -16,6 +16,42 @@ export class Network {
     if (!Network._instance) Network._instance = new Network();
     return Network._instance;
   }
+
+  // --- Static convenience accessors (delegate to singleton instance) ---
+  static get isOpen(): boolean {
+    return Network.instance.isOpen;
+  }
+  static get peerId(): string {
+    return Network.instance.peerId;
+  }
+  static get peerIds(): string[] {
+    return Network.instance.peerIds;
+  }
+  static get peer(): IPeerContext {
+    return Network.instance.peer;
+  }
+  static get peers(): IPeerContext[] {
+    return Network.instance.peers;
+  }
+  static get peerContext(): IPeerContext {
+    return Network.instance.peerContext;
+  }
+  static get peerContexts(): IPeerContext[] {
+    return Network.instance.peerContexts;
+  }
+  static get bandwidthUsage(): number {
+    return Network.instance.bandwidthUsage;
+  }
+  static configure(config: Record<string, unknown>) {
+    Network.instance.configure(config);
+  }
+  static open(userId?: string): void;
+  static open(userId: string, roomId: string, roomName: string, password: string): void;
+  static open(...args: string[]): void {
+    Network.instance.open(...(args as [string, string, string, string]));
+  }
+
+  // --- Instance members ---
   get isOpen(): boolean {
     return this.connection ? this.connection.peer.isOpen : false;
   }
@@ -34,7 +70,6 @@ export class Network {
     return this.connection ? this.connection.peers.concat() : [];
   }
 
-  // 後方互換エイリアス（フォーク独自コードとの互換性維持）
   get peerContext(): IPeerContext {
     return this.peer;
   }

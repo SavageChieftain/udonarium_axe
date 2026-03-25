@@ -13,7 +13,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CoordinateService } from '@axe/core/coordinate.service';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -29,11 +29,14 @@ import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import { xor } from 'lodash';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'game-table-mask',
@@ -46,6 +49,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -56,6 +60,8 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private inventoryService = inject(GameObjectInventoryService);
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
+
+  private eventSubscription = new Subscription();
 
   constructor() {
     effect(() => {
@@ -253,63 +259,34 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   movableOption: MovableOption = {};
 
   private input: InputHandler = null!;
-
-  /*
-  ngOnInit() {
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', event => {
-        let object = this.objectStore.get(event.data.identifier);
-        if (!this.gameTableMask || !object) return;
-        if (this.gameTableMask === object || (object instanceof ObjectNode && this.gameTableMask!.contains(object))) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('CHANGE_GM_MODE', event => {
-        this.changeDetector.markForCheck();
-      })
-      .on('SYNCHRONIZE_FILE_LIST', event => {
-        this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', event => {
-        this.changeDetector.markForCheck();
-      })
-      .on<object>('TABLE_VIEW_ROTATE', -1000, event => {
-        this.viewRotateZ = event.data['z'];
-        this.changeDetector.markForCheck();
-      })
-      .on(`UPDATE_SELECTION/identifier/${this.gameTableMask?.identifier}`, event => {
-        this.changeDetector.markForCheck();
-      });
-    this.movableOption = {
-      tabletopObject: this.gameTableMask!,
-      transformCssOffset: 'translateZ(0.10px)',
-      colideLayers: ['terrain']
-    };
-    this.panelId = generateUuid();
-  }
-
   ngOnChanges(): void {
-  }
+    this.eventSubscription.unsubscribe();
+    const id = this.gameTableMask?.identifier;
+    this.eventSubscription = new Subscription();
 
-*/
-  ngOnChanges(): void {
-    EventSystem.unregister(this);
-    EventSystem.register(this)
-      .on(`UPDATE_GAME_OBJECT/identifier/${this.gameTableMask?.identifier}`, (_event) => {
+    this.eventSubscription.add(
+      this.objectChange.objectChanged$
+        .pipe(filter((event) => event.identifier === id))
+        .subscribe(() => this.changeDetector.markForCheck())
+    );
+    this.eventSubscription.add(
+      this.objectChange.childrenChanged$
+        .pipe(filter((event) => event.identifier === id))
+        .subscribe(() => this.changeDetector.markForCheck())
+    );
+    this.eventSubscription.add(
+      this.objectChange.fileSyncList$.subscribe(() => {
         this.changeDetector.markForCheck();
+        setTimeout(() => this.changeDetector.detectChanges());
       })
-      .on(`UPDATE_OBJECT_CHILDREN/identifier/${this.gameTableMask?.identifier}`, (_event) => {
+    );
+    this.eventSubscription.add(
+      this.objectChange.fileResourceUpdated$.subscribe(() => {
         this.changeDetector.markForCheck();
+        setTimeout(() => this.changeDetector.detectChanges());
       })
-      .on('SYNCHRONIZE_FILE_LIST', (_event) => {
-        this.changeDetector.markForCheck();
-      })
-      .on('UPDATE_FILE_RESOURE', (_event) => {
-        this.changeDetector.markForCheck();
-      })
-      .on(`UPDATE_SELECTION/identifier/${this.gameTableMask?.identifier}`, (_event) => {
-        this.changeDetector.markForCheck();
-      });
+    );
+
     this.movableOption = {
       tabletopObject: this.gameTableMask!,
       transformCssOffset: 'translateZ(0.10px)',
@@ -326,7 +303,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   ngOnDestroy() {
     if (this.input) this.input.destroy();
-    EventSystem.unregister(this);
+    this.eventSubscription.unsubscribe();
     clearTimeout(this._scratchingTimerId);
   }
 

@@ -3,14 +3,17 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   Input,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',
@@ -21,6 +24,8 @@ import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 })
 export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterViewInit {
   private changeDetector = inject(ChangeDetectorRef);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() gameDataElement: DataElement = null!;
   @Input() isEdit: boolean = false;
@@ -59,23 +64,27 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterVie
   ngOnInit() {
     if (this.gameDataElement) this.setValues(this.gameDataElement);
 
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', -1000, (event) => {
-        if (this.gameDataElement && event.data.identifier === this.gameDataElement.identifier) {
-          this.setValues(this.gameDataElement);
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('DELETE_GAME_OBJECT', -1000, (event) => {
-        if (this.gameDataElement && this.gameDataElement.identifier === event.data.identifier) {
-          this.changeDetector.markForCheck();
-        }
+    this.objectChange.objectChanged$
+      .pipe(
+        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement.identifier),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.setValues(this.gameDataElement);
+        this.changeDetector.markForCheck();
+      });
+
+    this.objectChange.objectDeleted$
+      .pipe(
+        filter((e) => !!this.gameDataElement && this.gameDataElement.identifier === e.identifier),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.changeDetector.markForCheck();
       });
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   ngAfterViewInit() {}
 

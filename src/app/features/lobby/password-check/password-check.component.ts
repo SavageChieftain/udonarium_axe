@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
@@ -51,16 +51,13 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
-    EventSystem.register(this);
   }
 
   ngAfterViewInit() {
     this.passwordInputElementRef().nativeElement.focus();
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   onInputChange(_value: string) {
     this.help.set('');

@@ -1,15 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import { EventSystem } from '@axe/core/index';
+import { Network } from '@axe/core/network/network';
 
 import { GameObject } from './game-object';
 import { ObjectStore } from './object-store';
 
 describe('ObjectStore', () => {
   let store: ObjectStore;
+  let sendSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
+    sendSpy = vi.spyOn(Network.instance, 'send').mockImplementation(() => {});
     // Clear any existing objects from previous tests
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
@@ -219,26 +221,27 @@ describe('ObjectStore', () => {
     });
 
     it('should broadcast DELETE_GAME_OBJECT event when shouldBroadcast is true', () => {
-      vi.spyOn(EventSystem, 'call');
       const obj = new GameObject('test-id-20');
       store.add(obj, false);
 
       store.delete(obj, true);
 
-      expect(EventSystem.call).toHaveBeenCalledWith('DELETE_GAME_OBJECT', {
-        aliasName: obj.aliasName,
-        identifier: obj.identifier,
-      });
+      expect(sendSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: 'DELETE_GAME_OBJECT',
+          data: { aliasName: obj.aliasName, identifier: obj.identifier },
+        }),
+        undefined
+      );
     });
 
     it('should not broadcast event when shouldBroadcast is false', () => {
-      vi.spyOn(EventSystem, 'call');
       const obj = new GameObject('test-id-21');
       store.add(obj, false);
 
       store.delete(obj, false);
 
-      expect(EventSystem.call).not.toHaveBeenCalled();
+      expect(sendSpy).not.toHaveBeenCalled();
     });
 
     it('should return null when deleting non-existent object by identifier', () => {
@@ -250,28 +253,28 @@ describe('ObjectStore', () => {
 
   describe('update()', () => {
     it('should queue update by identifier', () => {
-      vi.spyOn(EventSystem, 'call');
       const obj = new GameObject('test-id-22');
       store.add(obj, false);
 
       store.update('test-id-22');
 
-      expect(EventSystem.call).toHaveBeenCalledWith('UPDATE_GAME_OBJECT', expect.any(Object));
+      expect(sendSpy).toHaveBeenCalledWith(expect.objectContaining({ eventName: 'UPDATE_GAME_OBJECT' }), undefined);
     });
 
     it('should queue update by context', () => {
-      vi.spyOn(EventSystem, 'call');
       const obj = new GameObject('test-id-23');
       store.add(obj, false);
       const context = obj.toContext();
 
       store.update(context);
 
-      expect(EventSystem.call).toHaveBeenCalledWith('UPDATE_GAME_OBJECT', context);
+      expect(sendSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ eventName: 'UPDATE_GAME_OBJECT', data: context }),
+        undefined
+      );
     });
 
     it('should merge multiple updates for the same object', () => {
-      vi.spyOn(EventSystem, 'call');
       const obj = new GameObject('test-id-24');
       store.add(obj, false);
       const context1 = obj.toContext();
@@ -283,15 +286,13 @@ describe('ObjectStore', () => {
       store.update(context2);
 
       // Should be called only once initially, then queued updates are merged
-      expect(EventSystem.call).toHaveBeenCalledTimes(1);
+      expect(sendSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should do nothing for non-existent object identifier', () => {
-      vi.spyOn(EventSystem, 'call');
-
       store.update('non-existent');
 
-      expect(EventSystem.call).not.toHaveBeenCalled();
+      expect(sendSpy).not.toHaveBeenCalled();
     });
   });
 

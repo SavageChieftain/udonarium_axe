@@ -1,6 +1,6 @@
-import { inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
-import { EventSystem } from '@axe/core/index';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
@@ -19,6 +19,7 @@ import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 type ObjectIdentifier = string;
 type LocationName = string;
 
@@ -29,6 +30,8 @@ export class TabletopService {
   private objectSerializer = inject(ObjectSerializer);
   private chatTabList = inject(ChatTabList);
   readonly tableSelecter = inject(TableSelecter);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   private _emptyTable: GameTable = new GameTable('');
   get currentTable(): GameTable {
@@ -102,60 +105,56 @@ export class TabletopService {
 
   private initialize() {
     this.refreshCacheAll();
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        if (
-          event.data.identifier === this.currentTable.identifier ||
-          event.data.identifier === this.tableSelecter.identifier
-        ) {
-          this.refreshCache(GameTableMask.aliasName);
-          this.refreshCache(GameTableScratchMask.aliasName);
-          this.refreshCache(Terrain.aliasName);
-          return;
-        }
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
+        this.refreshCache(GameTableMask.aliasName);
+        this.refreshCache(GameTableScratchMask.aliasName);
+        this.refreshCache(Terrain.aliasName);
+        return;
+      }
 
-        const object = this.objectStore.get(event.data.identifier);
-        if (!object || !(object instanceof TabletopObject)) {
-          this.refreshCache(event.data.aliasName);
-        } else if (this.shouldRefreshCache(object)) {
-          this.refreshCache(event.data.aliasName);
-          this.updateMap(object);
-        }
-      })
-      .on('DELETE_GAME_OBJECT', (event) => {
-        const aliasName = event.data.aliasName;
-        if (!aliasName) {
-          this.refreshCacheAll();
-        } else {
-          this.refreshCache(aliasName);
-        }
-      })
-      .on('XML_LOADED', (event) => {
-        const xmlElement: Element = event.data.xmlElement;
-        // todo:立体地形の上にドロップした時の挙動
+      const object = this.objectStore.get(event.identifier);
+      if (!object || !(object instanceof TabletopObject)) {
+        this.refreshCache(event.aliasName);
+      } else if (this.shouldRefreshCache(object)) {
+        this.refreshCache(event.aliasName);
+        this.updateMap(object);
+      }
+    });
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const aliasName = event.aliasName;
+      if (!aliasName) {
+        this.refreshCacheAll();
+      } else {
+        this.refreshCache(aliasName);
+      }
+    });
+    this.objectChange.xmlLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const xmlElement: Element = event.xmlElement;
+      // todo:立体地形の上にドロップした時の挙動
 
-        const gameObject = this.objectSerializer.parseXml(xmlElement);
+      const gameObject = this.objectSerializer.parseXml(xmlElement);
 
-        if (gameObject instanceof TabletopObject) {
-          const pointer = this.coordinateService.calcTabletopLocalCoordinate();
-          gameObject.location.x = pointer.x - 25;
-          gameObject.location.y = pointer.y - 25;
-          gameObject.posZ = pointer.z;
-          this.placeToTabletop(gameObject);
-          SoundEffect.play(PresetSound.piecePut);
-        } else if (gameObject instanceof ChatTab) {
-          this.chatTabList.addChatTab(gameObject);
-        }
+      if (gameObject instanceof TabletopObject) {
+        const pointer = this.coordinateService.calcTabletopLocalCoordinate();
+        gameObject.location.x = pointer.x - 25;
+        gameObject.location.y = pointer.y - 25;
+        gameObject.posZ = pointer.z;
+        this.placeToTabletop(gameObject);
+        SoundEffect.play(PresetSound.piecePut);
+      } else if (gameObject instanceof ChatTab) {
+        this.chatTabList.addChatTab(gameObject);
+      }
 
-        //通常版データが投下されたときに、追加が必要な要素を追加
-        const objects: TabletopObject[] = this.objectStore.getObjects(GameCharacter);
-        for (const gameObject of objects) {
-          if (gameObject instanceof GameCharacter) {
-            const gameCharacter: GameCharacter = gameObject;
-            gameCharacter.addExtendData();
-          }
+      //通常版データが投下されたときに、追加が必要な要素を追加
+      const objects: TabletopObject[] = this.objectStore.getObjects(GameCharacter);
+      for (const gameObject of objects) {
+        if (gameObject instanceof GameCharacter) {
+          const gameCharacter: GameCharacter = gameObject;
+          gameCharacter.addExtendData();
         }
-      });
+      }
+    });
   }
 
   private findCache(aliasName: string): TabletopCache<TabletopObject> {

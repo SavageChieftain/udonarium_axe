@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { EventSystem } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { Subscription } from 'rxjs';
 
 import { Vote } from './vote';
 
@@ -320,12 +321,25 @@ describe('Vote', () => {
 
   describe('startVote()', () => {
     it('END_OLD_VOTE と START_VOTE がトリガーされる', () => {
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      let endOldVoteCalled = false;
+      let startVoteCalled = false;
+      const sub = new Subscription();
+      sub.add(
+        domainEvents.endOldVote$.subscribe(() => {
+          endOldVoteCalled = true;
+        })
+      );
+      sub.add(
+        domainEvents.startVote$.subscribe(() => {
+          startVoteCalled = true;
+        })
+      );
 
       vote.startVote();
 
-      expect(triggerSpy).toHaveBeenCalledWith('END_OLD_VOTE', {});
-      expect(triggerSpy).toHaveBeenCalledWith('START_VOTE', {});
+      expect(endOldVoteCalled).toBe(true);
+      expect(startVoteCalled).toBe(true);
+      sub.unsubscribe();
     });
   });
 
@@ -377,12 +391,15 @@ describe('Vote', () => {
       vote.voteTitle = 'テスト投票';
 
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 1, voteAnswer: 0 } as unknown as PeerCursor);
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      const finishEvents: domainEvents.FinishVoteEvent[] = [];
+      const sub = domainEvents.finishVote$.subscribe((e) => finishEvents.push(e));
 
       vote.chkFinishVote();
       vi.advanceTimersByTime(10);
 
-      expect(triggerSpy).toHaveBeenCalledWith('FINISH_VOTE', expect.objectContaining({ text: expect.any(String) }));
+      expect(finishEvents).toHaveLength(1);
+      expect(finishEvents[0]).toEqual(expect.objectContaining({ text: expect.any(String) }));
+      sub.unsubscribe();
       vi.useRealTimers();
     });
 
@@ -393,12 +410,14 @@ describe('Vote', () => {
       vote.voteId = 1;
 
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 1, voteAnswer: 0 } as unknown as PeerCursor);
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      const finishEvents: domainEvents.FinishVoteEvent[] = [];
+      const sub = domainEvents.finishVote$.subscribe((e) => finishEvents.push(e));
 
       vote.chkFinishVote();
       vi.advanceTimersByTime(10);
 
-      expect(triggerSpy).not.toHaveBeenCalledWith('FINISH_VOTE', expect.anything());
+      expect(finishEvents).toHaveLength(0);
+      sub.unsubscribe();
       vi.useRealTimers();
     });
   });

@@ -1,10 +1,21 @@
-import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  DestroyRef,
+  Directive,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Input,
+  OnDestroy,
+  Output,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
-import { EventSystem } from '@axe/core/index';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/pointer-device.service';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { BatchService } from '@axe/features/inventory/batch.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 
 import { InputHandler } from './input-handler';
@@ -24,6 +35,8 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   private coordinateService = inject(CoordinateService);
   private tableSelecter = inject(TableSelecter);
   private selectionSignalService = inject(SelectionSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 
@@ -120,7 +133,6 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.cancel();
     if (this.input) this.input.destroy();
     this.unregister();
-    EventSystem.unregister(this);
     this.batchService.remove(this);
     this.batchService.remove(this.elementRef);
   }
@@ -132,11 +144,11 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.input.onEnd = (e) => this.onInputEnd(e);
     this.input.onContextMenu = (e) => this.onContextMenu(e);
 
-    EventSystem.register(this).on('UPDATE_GAME_OBJECT', (event) => {
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (
         !this.tabletopObject ||
         (event.isSendFromSelf && this.input.isGrabbing) ||
-        event.data.identifier !== this.tabletopObject.identifier ||
+        event.identifier !== this.tabletopObject.identifier ||
         !this.shouldTransition(this.tabletopObject)
       )
         return;
@@ -398,12 +410,12 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     let isEnable = isCollidable;
     for (const layerName in MovableDirective.layerHash) {
       if (-1 < this.colideLayers.indexOf(layerName)) {
-        isEnable = this.input.isGrabbing ? isCollidable : true;
+        isEnable = this.input?.isGrabbing ? isCollidable : true;
       } else {
         isEnable = !isCollidable;
       }
       MovableDirective.layerHash[layerName].forEach((movable) => {
-        if (movable === this || movable.input.isGrabbing) return;
+        if (movable === this || movable.input?.isGrabbing) return;
         movable.setPointerEvents(isEnable);
       });
     }

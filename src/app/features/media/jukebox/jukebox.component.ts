@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
@@ -12,6 +20,7 @@ import { Jukebox } from '@axe/domain/media/Jukebox';
 import { Config } from '@axe/domain/peer/config';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 
 @Component({
@@ -24,6 +33,8 @@ import { PanelOption, PanelService } from '@axe/shared/panel.service';
 export class JukeboxComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private changeDetector = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
+  private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
@@ -75,13 +86,14 @@ export class JukeboxComponent implements OnInit, OnDestroy {
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
-    EventSystem.register(this).on('*', (event) => {
-      if (event.eventName.startsWith('FILE_')) this.lazyMarkForCheck();
-    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.lazyMarkForCheck());
+    this.objectChange.fileResourceUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.lazyMarkForCheck());
+    this.objectChange.fileLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.lazyMarkForCheck());
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     this.stop();
   }
 

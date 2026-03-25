@@ -1,5 +1,8 @@
-import { EventSystem, Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
+import { Network } from '@axe/core/network/network';
+import { localDispatch, NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 import { AudioStorage, CatalogItem } from './audio-storage';
@@ -17,104 +20,136 @@ export class AudioSharingSystem {
   private receiveTaskMap: Map<string, BufferSharingTask<AudioFileContext>> = new Map();
   private maxSendTask: number = 2;
   private maxReceiveTask: number = 4;
+  private subscription = new Subscription();
 
   private constructor() {}
 
   initialize() {
-    this.destroy();
-    EventSystem.register(this)
-      .on('CONNECT_PEER', -1, (event) => {
-        if (!event.isSendFromSelf) return;
-        AudioStorage.instance.synchronize();
-      })
-      .on<CatalogItem[]>('SYNCHRONIZE_AUDIO_LIST', (event) => {
-        if (event.isSendFromSelf) return;
+    this.subscription.unsubscribe();
+    this.subscription = new Subscription();
 
-        const otherCatalog: CatalogItem[] = event.data;
-        const request: CatalogItem[] = [];
-        for (const item of otherCatalog) {
-          let audio: AudioFile = AudioStorage.instance.get(item.identifier);
-          if (audio === null) {
-            audio = AudioFile.createEmpty(item.identifier);
-            AudioStorage.instance.add(audio);
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'CONNECT_PEER'))
+        .subscribe((msg) => {
+          if (!msg.isSendFromSelf) return;
+          AudioStorage.instance.synchronize();
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<CatalogItem[]> => msg.eventName === 'SYNCHRONIZE_AUDIO_LIST'))
+        .subscribe((msg) => {
+          if (msg.isSendFromSelf) return;
+
+          const otherCatalog: CatalogItem[] = msg.data;
+          const request: CatalogItem[] = [];
+          for (const item of otherCatalog) {
+            let audio: AudioFile = AudioStorage.instance.get(item.identifier);
+            if (audio === null) {
+              audio = AudioFile.createEmpty(item.identifier);
+              AudioStorage.instance.add(audio);
+            }
+            if (audio.state < AudioState.COMPLETE && !this.receiveTaskMap.has(item.identifier)) {
+              request.push({ identifier: item.identifier, state: audio.state });
+            }
           }
-          if (audio.state < AudioState.COMPLETE && !this.receiveTaskMap.has(item.identifier)) {
-            request.push({ identifier: item.identifier, state: audio.state });
+
+          if (
+            request.length < 1 &&
+            !this.hasActiveTask() &&
+            otherCatalog.length < AudioStorage.instance.getCatalog().length
+          ) {
+            AudioStorage.instance.synchronize(msg.sendFrom);
           }
-        }
 
-        // Peer切断時などのエッジケースに対応する
-        if (
-          request.length < 1 &&
-          !this.hasActiveTask() &&
-          otherCatalog.length < AudioStorage.instance.getCatalog().length
-        ) {
-          AudioStorage.instance.synchronize(event.sendFrom);
-        }
+          if (request.length < 1 || this.isLimitReceiveTask()) {
+            return;
+          }
+          const index = Math.floor(Math.random() * request.length);
+          this.request([request[index]], msg.sendFrom);
+        })
+    );
 
-        if (request.length < 1 || this.isLimitReceiveTask()) {
-          return;
-        }
-        const index = Math.floor(Math.random() * request.length);
-        this.request([request[index]], event.sendFrom);
-      })
-      .on<{ identifiers: CatalogItem[]; receiver: string; candidatePeers: string[] }>(
-        'REQUEST_AUDIO_RESOURE',
-        (event) => {
-          if (event.isSendFromSelf) return;
+    this.subscription.add(
+      networkMessage$
+        .pipe(
+          filter(
+            (msg): msg is NetworkMessage<{ identifiers: CatalogItem[]; receiver: string; candidatePeers: string[] }> =>
+              msg.eventName === 'REQUEST_AUDIO_RESOURE'
+          )
+        )
+        .subscribe((msg) => {
+          if (msg.isSendFromSelf) return;
 
-          const request: CatalogItem[] = event.data.identifiers;
+          const request: CatalogItem[] = msg.data.identifiers;
           const randomRequest: CatalogItem[] = request.filter((item) => {
             const audio: AudioFile = AudioStorage.instance.get(item.identifier);
             return audio && item.state < audio.state;
           });
 
-          if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(event.data.receiver)) {
+          if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(msg.data.receiver)) {
             const index = Math.floor(Math.random() * randomRequest.length);
             const item: { identifier: string; state: number } = randomRequest[index];
             const audio: AudioFile = AudioStorage.instance.get(item.identifier);
-            this.startSendTask(audio, event.data.receiver);
+            this.startSendTask(audio, msg.data.receiver);
           } else {
             // 中継
-            const candidatePeers: string[] = event.data.candidatePeers;
+            const candidatePeers: string[] = msg.data.candidatePeers;
             const index = candidatePeers.indexOf(Network.peerId);
             if (-1 < index) candidatePeers.splice(index, 1);
 
             for (const peerId of candidatePeers) {
-              EventSystem.call(event, peerId);
+              networkSend(msg.eventName, msg.data, peerId);
               return;
             }
           }
-        }
-      )
-      .on<AudioFileContext[]>('UPDATE_AUDIO_RESOURE', 1000, (event) => {
-        const updateAudios: AudioFileContext[] = event.data;
-        for (const context of updateAudios) {
-          if (context.blob) context.blob = new Blob([context.blob], { type: context.type });
-          AudioStorage.instance.add(context);
-        }
-      })
-      .on('START_AUDIO_TRANSMISSION', (event) => {
-        const identifier: string = event.data.fileIdentifier;
-        const audio: AudioFile = AudioStorage.instance.get(identifier);
-        if (this.receiveTaskMap.has(identifier) || audio?.isReady) {
-          Logger.warn('[AudioSync] タスクキャンセル', identifier);
-          EventSystem.call(`CANCEL_TASK_${identifier}`, null, event.sendFrom);
-        } else {
-          this.startReceiveTask(identifier);
-        }
-      });
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(filter((msg): msg is NetworkMessage<AudioFileContext[]> => msg.eventName === 'UPDATE_AUDIO_RESOURE'))
+        .subscribe((msg) => {
+          const updateAudios: AudioFileContext[] = msg.data;
+          for (const context of updateAudios) {
+            if (context.blob) context.blob = new Blob([context.blob], { type: context.type });
+            AudioStorage.instance.add(context);
+          }
+        })
+    );
+
+    this.subscription.add(
+      networkMessage$
+        .pipe(
+          filter(
+            (msg): msg is NetworkMessage<{ fileIdentifier: string }> => msg.eventName === 'START_AUDIO_TRANSMISSION'
+          )
+        )
+        .subscribe((msg) => {
+          const identifier: string = msg.data.fileIdentifier;
+          const audio: AudioFile = AudioStorage.instance.get(identifier);
+          if (this.receiveTaskMap.has(identifier) || audio?.isReady) {
+            Logger.warn('[AudioSync] タスクキャンセル', identifier);
+            networkSend(`CANCEL_TASK_${identifier}`, null, msg.sendFrom);
+          } else {
+            this.startReceiveTask(identifier);
+          }
+        })
+    );
   }
 
   private destroy() {
-    EventSystem.unregister(this);
+    this.subscription.unsubscribe();
+    this.subscription = new Subscription();
   }
 
   private async startSendTask(audio: AudioFile, sendTo: string) {
     const task = BufferSharingTask.createSendTask<AudioFileContext>(audio.identifier, sendTo);
     this.sendTaskMap.set(audio.identifier, task);
 
-    EventSystem.call('START_AUDIO_TRANSMISSION', { fileIdentifier: audio.identifier }, sendTo);
+    networkSend('START_AUDIO_TRANSMISSION', { fileIdentifier: audio.identifier }, sendTo);
 
     const context: AudioFileContext = {
       identifier: audio.identifier,
@@ -127,7 +162,8 @@ export class AudioSharingSystem {
     if (audio.state === AudioState.URL) {
       context.url = audio.url;
     } else {
-      context.blob = (await FileReaderUtil.readAsArrayBufferAsync(audio.blob!)) as unknown as Blob;
+      const buf = await FileReaderUtil.readAsArrayBufferAsync(audio.blob!);
+      context.blob = new Uint8Array(buf) as unknown as Blob;
       context.type = audio.blob!.type;
     }
 
@@ -151,7 +187,7 @@ export class AudioSharingSystem {
     };
     task.onfinish = (task, data) => {
       this.stopReceiveTask(task.identifier);
-      if (data) EventSystem.trigger('UPDATE_AUDIO_RESOURE', [data]);
+      if (data) localDispatch('UPDATE_AUDIO_RESOURE', [data]);
       AudioStorage.instance.synchronize();
     };
 
@@ -171,7 +207,7 @@ export class AudioSharingSystem {
   private request(request: CatalogItem[], peerId: string) {
     const peerIds = Network.peerIds;
     peerIds.splice(peerIds.indexOf(Network.peerId), 1);
-    EventSystem.call(
+    networkSend(
       'REQUEST_AUDIO_RESOURE',
       {
         identifiers: request,

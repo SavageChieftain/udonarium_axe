@@ -59,7 +59,5 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {}
 
-  ngOnDestroy() {
-    //    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 }

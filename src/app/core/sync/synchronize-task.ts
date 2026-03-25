@@ -1,5 +1,7 @@
-import { EventSystem } from '@axe/core/index';
+import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 type PeerId = string;
 type ObjectIdentifier = string;
@@ -12,7 +14,7 @@ export interface SynchronizeRequest {
 }
 
 export class SynchronizeTask {
-  private static key: object = {};
+  private static subscription: Subscription | null = null;
   private static tasksMap: Map<ObjectIdentifier, SynchronizeTask[]> = new Map();
 
   onsynchronize: (task: SynchronizeTask, identifier: string) => void;
@@ -26,18 +28,31 @@ export class SynchronizeTask {
 
   static create(peerId: PeerId, requests: SynchronizeRequest[]): SynchronizeTask {
     if (SynchronizeTask.tasksMap.size < 1) {
-      EventSystem.register(SynchronizeTask.key)
-        .on('DISCONNECT_PEER', (event) => {
-          SynchronizeTask.onDisconnect(event.data.peerId);
-        })
-        .on('UPDATE_GAME_OBJECT', (event) => {
-          if (event.isSendFromSelf) return;
-          SynchronizeTask.onUpdate(event.data.identifier);
-        })
-        .on('DELETE_GAME_OBJECT', (event) => {
-          if (event.isSendFromSelf) return;
-          SynchronizeTask.onUpdate(event.data.identifier);
-        });
+      const sub = new Subscription();
+      sub.add(
+        networkMessage$
+          .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'DISCONNECT_PEER'))
+          .subscribe((msg) => {
+            SynchronizeTask.onDisconnect(msg.data.peerId);
+          })
+      );
+      sub.add(
+        networkMessage$
+          .pipe(filter((msg): msg is NetworkMessage<{ identifier: string }> => msg.eventName === 'UPDATE_GAME_OBJECT'))
+          .subscribe((msg) => {
+            if (msg.isSendFromSelf) return;
+            SynchronizeTask.onUpdate(msg.data.identifier);
+          })
+      );
+      sub.add(
+        networkMessage$
+          .pipe(filter((msg): msg is NetworkMessage<{ identifier: string }> => msg.eventName === 'DELETE_GAME_OBJECT'))
+          .subscribe((msg) => {
+            if (msg.isSendFromSelf) return;
+            SynchronizeTask.onUpdate(msg.data.identifier);
+          })
+      );
+      SynchronizeTask.subscription = sub;
     }
     const task = new SynchronizeTask(peerId);
     task.initialize(requests);
@@ -64,7 +79,7 @@ export class SynchronizeTask {
       tasks.push(this);
       SynchronizeTask.tasksMap.set(request.identifier, tasks);
       const sendTo = this.peerId != null && request.holderIds.includes(this.peerId) ? this.peerId : null!;
-      EventSystem.call('REQUEST_GAME_OBJECT', request.identifier, sendTo);
+      networkSend('REQUEST_GAME_OBJECT', request.identifier, sendTo);
     }
 
     if (this.requestMap.size < 1) {
@@ -95,7 +110,10 @@ export class SynchronizeTask {
         if (task.peerId === peerId) task.timeout();
       }
     }
-    if (SynchronizeTask.tasksMap.size < 1) EventSystem.unregister(SynchronizeTask.key);
+    if (SynchronizeTask.tasksMap.size < 1) {
+      SynchronizeTask.subscription?.unsubscribe();
+      SynchronizeTask.subscription = null;
+    }
   }
 
   private static onUpdate(identifier: ObjectIdentifier) {
@@ -104,7 +122,10 @@ export class SynchronizeTask {
     for (const task of tasks.concat()) {
       task.onUpdate(identifier);
     }
-    if (SynchronizeTask.tasksMap.size < 1) EventSystem.unregister(SynchronizeTask.key);
+    if (SynchronizeTask.tasksMap.size < 1) {
+      SynchronizeTask.subscription?.unsubscribe();
+      SynchronizeTask.subscription = null;
+    }
   }
 
   private onUpdate(identifier: ObjectIdentifier) {

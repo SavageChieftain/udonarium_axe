@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
+import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ModalService } from '@axe/shared/modal.service';
@@ -38,13 +38,10 @@ export class RoomSettingComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ルーム作成'));
-    EventSystem.register(this);
     this.calcPeerId(this.roomName, this.password);
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   async calcPeerId(roomName: string, password: string) {
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();

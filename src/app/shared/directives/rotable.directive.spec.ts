@@ -40,7 +40,7 @@ describe('RotableDirective', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(RotableDirective);
       expect(directive['tabletopObject']).toBeFalsy();
-      // tabletopObject未設定時、initializeではEventSystem.registerが呼ばれない（elseブランチ）
+      // tabletopObject未設定時、initializeではイベント登録が行われない（elseブランチ）
       // → null guardは不要だがテストでカバレッジ確認
     });
   });

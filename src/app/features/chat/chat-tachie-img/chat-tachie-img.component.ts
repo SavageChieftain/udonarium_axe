@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   inject,
   Input,
@@ -12,7 +13,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -20,6 +21,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -37,6 +39,8 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() chatTabidentifier: string = '';
   @Input() isTilteTop = false;
@@ -131,15 +135,14 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   private timerId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
-    EventSystem.register(this)
-      .on('SYNCHRONIZE_FILE_LIST', () => {
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetectionRef.markForCheck();
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (e.identifier === this.chatTabidentifier) {
         this.changeDetectionRef.markForCheck();
-      })
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        if (event.data.identifier === this.chatTabidentifier) {
-          this.changeDetectionRef.markForCheck();
-        }
-      });
+      }
+    });
   }
 
   //立ち絵表示幅取得
@@ -369,9 +372,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
     this.chatTab.tachiePosHide(pos);
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;

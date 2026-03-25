@@ -1,4 +1,4 @@
-import { EventSystem } from '@axe/core/index';
+import { networkSend } from '@axe/core/network/network-messaging';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 
 import { ImageContext, ImageFile, ImageState } from './image-file';
@@ -95,7 +95,8 @@ export class ImageStorage {
 
   synchronize(peer?: string) {
     if (this.lazyTimer) this.lazyTimer.stop();
-    EventSystem.call('SYNCHRONIZE_FILE_LIST', this.getCatalog(), peer);
+    const catalog = this.getCatalog();
+    networkSend('SYNCHRONIZE_FILE_LIST', catalog, peer);
   }
 
   lazySynchronize(ms: number, peer?: string) {

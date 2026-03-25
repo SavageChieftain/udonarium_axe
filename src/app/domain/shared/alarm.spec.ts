@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { EventSystem } from '@axe/core/index';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { Subscription } from 'rxjs';
 
 import { Alarm } from './alarm';
 
@@ -152,12 +153,18 @@ describe('Alarm', () => {
       alarm.targetPeerId = ['other-peer'];
       alarm.isSound = true;
       alarm.isPopUp = true;
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      const timeUpEvents: domainEvents.AlarmTimeUpEvent[] = [];
+      const popEvents: domainEvents.AlarmPopEvent[] = [];
+      const sub = new Subscription();
+      sub.add(domainEvents.alarmTimeUp$.subscribe((e) => timeUpEvents.push(e)));
+      sub.add(domainEvents.alarmPop$.subscribe((e) => popEvents.push(e)));
 
       alarm.startAlarm();
       vi.advanceTimersByTime(100000);
 
-      expect(triggerSpy).not.toHaveBeenCalled();
+      expect(timeUpEvents).toHaveLength(0);
+      expect(popEvents).toHaveLength(0);
+      sub.unsubscribe();
     });
 
     it('isSound=true ならタイムアップ時にALARM_TIMEUP_ORIGINがトリガーされる', () => {
@@ -168,17 +175,17 @@ describe('Alarm', () => {
       alarm.isSound = true;
       alarm.isPopUp = false;
 
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      const timeUpEvents: domainEvents.AlarmTimeUpEvent[] = [];
+      const sub = domainEvents.alarmTimeUp$.subscribe((e) => timeUpEvents.push(e));
       vi.spyOn(AudioPlayer, 'play').mockImplementation(() => {});
       vi.spyOn(AudioStorage, 'instance', 'get').mockReturnValue({ get: () => null } as unknown as AudioStorage);
 
       alarm.startAlarm();
       vi.advanceTimersByTime(5000);
 
-      expect(triggerSpy).toHaveBeenCalledWith(
-        'ALARM_TIMEUP_ORIGIN',
-        expect.objectContaining({ text: expect.any(String) })
-      );
+      expect(timeUpEvents).toHaveLength(1);
+      expect(timeUpEvents[0]).toEqual(expect.objectContaining({ text: expect.any(String) }));
+      sub.unsubscribe();
     });
 
     it('isPopUp=true ならタイムアップ時にALARM_POPがトリガーされる', () => {
@@ -188,12 +195,15 @@ describe('Alarm', () => {
       alarm.isSound = false;
       alarm.isPopUp = true;
 
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      const popEvents: domainEvents.AlarmPopEvent[] = [];
+      const sub = domainEvents.alarmPop$.subscribe((e) => popEvents.push(e));
 
       alarm.startAlarm();
       vi.advanceTimersByTime(3000);
 
-      expect(triggerSpy).toHaveBeenCalledWith('ALARM_POP', { title: 'ポップアップテスト', time: 3 });
+      expect(popEvents).toHaveLength(1);
+      expect(popEvents[0]).toEqual({ title: 'ポップアップテスト', time: 3 });
+      sub.unsubscribe();
     });
 
     it('alarmTime秒後にコールバックが実行される', () => {
@@ -203,17 +213,19 @@ describe('Alarm', () => {
       alarm.isPopUp = true;
       alarm.alarmTitle = 'タイミングテスト';
 
-      const triggerSpy = vi.spyOn(EventSystem, 'trigger');
+      const popEvents: domainEvents.AlarmPopEvent[] = [];
+      const sub = domainEvents.alarmPop$.subscribe((e) => popEvents.push(e));
 
       alarm.startAlarm();
 
       // 9秒ではまだ実行されない
       vi.advanceTimersByTime(9999);
-      expect(triggerSpy).not.toHaveBeenCalled();
+      expect(popEvents).toHaveLength(0);
 
       // 10秒で実行される
       vi.advanceTimersByTime(1);
-      expect(triggerSpy).toHaveBeenCalled();
+      expect(popEvents).toHaveLength(1);
+      sub.unsubscribe();
     });
   });
 

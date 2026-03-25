@@ -1,4 +1,4 @@
-import { EventSystem } from '@axe/core/index';
+import { networkSend } from '@axe/core/network/network-messaging';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 
 import { AudioFile, AudioFileContext, AudioState } from './audio-file';
@@ -94,7 +94,7 @@ export class AudioStorage {
 
   synchronize(peer?: string) {
     if (this.lazyTimer) this.lazyTimer.stop();
-    EventSystem.call('SYNCHRONIZE_AUDIO_LIST', this.getCatalog(), peer);
+    networkSend('SYNCHRONIZE_AUDIO_LIST', this.getCatalog(), peer);
   }
 
   lazySynchronize(ms: number, peer?: string) {

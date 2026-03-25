@@ -3,17 +3,20 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   Input,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem, Network } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { emitSelectFile } from '@axe/domain/domain-events';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe'; //本家PR #92より
 
@@ -29,6 +32,8 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private imageStorage = inject(ImageStorage);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   //本家PR #92より
   searchWord: string = '';
@@ -154,19 +159,20 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    EventSystem.register(this).on('SYNCHRONIZE_FILE_LIST', (event) => {
-      if (event.isSendFromSelf) {
-        this.changeDetector.markForCheck();
-      }
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
     });
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   onSelectedFile(file: ImageFile) {
-    EventSystem.call('SELECT_FILE', { fileIdentifier: file.identifier }, Network.peerId);
+    emitSelectFile({ fileIdentifier: file.identifier });
     this.modalService.resolve(file.identifier);
   }
 }

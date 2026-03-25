@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { EventSystem } from '@axe/core/index';
 import { LoggerService } from '@axe/core/logger.service';
+import { emitLoadConfig } from '@axe/domain/domain-events';
 
 export interface AppConfig {
   backend: {
@@ -41,6 +41,6 @@ export class AppConfigService {
     } catch (e) {
       this.logger.warn('config.json の読み込みに失敗しました', e);
     }
-    EventSystem.trigger('LOAD_CONFIG', AppConfigService.appConfig);
+    emitLoadConfig({ config: AppConfigService.appConfig });
   }
 }

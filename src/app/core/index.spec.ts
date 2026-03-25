@@ -1,21 +1,14 @@
-import { Event, EventSystem, Listener, Network } from './index';
+import { initializeNetworkMessaging, localDispatch, Network, networkMessage$, networkSend } from './index';
 
 describe('system/index re-exports', () => {
-  it('EventSystemシングルトンがエクスポートされている', () => {
-    expect(EventSystem).toBeDefined();
-    expect(typeof EventSystem.register).toBe('function');
-    expect(typeof EventSystem.trigger).toBe('function');
-  });
-
   it('Networkシングルトンがエクスポートされている', () => {
     expect(Network).toBeDefined();
   });
 
-  it('Eventクラスがエクスポートされている', () => {
-    expect(Event).toBeDefined();
-  });
-
-  it('Listenerクラスがエクスポートされている', () => {
-    expect(Listener).toBeDefined();
+  it('NetworkMessaging関数がエクスポートされている', () => {
+    expect(typeof networkSend).toBe('function');
+    expect(typeof localDispatch).toBe('function');
+    expect(typeof initializeNetworkMessaging).toBe('function');
+    expect(networkMessage$).toBeDefined();
   });
 });

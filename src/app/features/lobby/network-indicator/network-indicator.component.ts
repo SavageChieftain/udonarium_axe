@@ -1,5 +1,15 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnDestroy,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Network } from '@axe/core/index';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -8,7 +18,9 @@ import { EventSystem, Network } from '@axe/core/index';
   styleUrls: ['./network-indicator.component.css'],
 })
 export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
+  private destroyRef = inject(DestroyRef);
   private elementRef = inject(ElementRef);
+  private objectChange = inject(ObjectChangeService);
 
   private timer: NodeJS.Timeout = null!;
   private needRepeat = false;
@@ -24,7 +36,7 @@ export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
       }
     };
 
-    EventSystem.register(this).on('*', (_event) => {
+    this.objectChange.eventActivity$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.needRepeat || Network.bandwidthUsage < 3 * 1024) return;
       if (this.timer === null) {
         this.elementRef.nativeElement.style.display = 'block';
@@ -36,7 +48,6 @@ export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null!;

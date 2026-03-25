@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { EventSystem, Network } from '@axe/core/index';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -7,7 +8,9 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PasswordCheckComponent } from '@axe/features/lobby/password-check/password-check.component';
 import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
 import { ModalService } from '@axe/shared/modal.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
+import { merge, take } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,11 +18,13 @@ import { PanelService } from '@axe/shared/panel.service';
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.css'],
 })
-export class LobbyComponent implements OnInit, OnDestroy {
+export class LobbyComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private cdr = inject(ChangeDetectorRef);
   private objectStore = inject(ObjectStore);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
@@ -43,20 +48,19 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     queueMicrotask(() => this.changeTitle());
-    EventSystem.register(this)
-      .on('OPEN_NETWORK', (_event) => {
-        this.changeTitle();
-        if (Network.peerContext.isRoom) {
-          this.modalService.resolve();
-          return;
-        }
-        if (!this.isReloading) this.reload();
-        this.cdr.markForCheck();
-      })
-      .on('CONNECT_PEER', (_event) => {
-        this.changeTitle();
-        this.cdr.markForCheck();
-      });
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeTitle();
+      if (Network.peerContext.isRoom) {
+        queueMicrotask(() => this.modalService.resolve());
+        return;
+      }
+      if (!this.isReloading) this.reload();
+      this.cdr.markForCheck();
+    });
+    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeTitle();
+      this.cdr.markForCheck();
+    });
     if (Network.isOpen) {
       this.reload();
     }
@@ -68,10 +72,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
       this.modalService.title = this.panelService.title =
         '＜' + Network.peerContext.roomName + '/' + Network.peerContext.roomId + '＞';
     }
-  }
-
-  ngOnDestroy() {
-    EventSystem.unregister(this);
   }
 
   async reload() {
@@ -136,26 +136,17 @@ export class LobbyComponent implements OnInit, OnDestroy {
     PeerCursor.myCursor.peerId = Network.peerId;
 
     const triedPeer: string[] = [];
-    EventSystem.register(triedPeer).on('OPEN_NETWORK', (_event) => {
-      EventSystem.unregister(triedPeer);
+    this.objectChange.networkOpen$.pipe(take(1)).subscribe(() => {
       this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }
-      EventSystem.register(triedPeer)
-        .on('CONNECT_PEER', (event) => {
-          triedPeer.push(event.data.peerId);
+      merge(this.objectChange.peerConnect$, this.objectChange.peerDisconnect$)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((event) => {
+          triedPeer.push(event.peerId);
           if (peerContexts.length <= triedPeer.length) {
             this.resetNetwork();
-            EventSystem.unregister(triedPeer);
-            this.closeIfConnected();
-          }
-        })
-        .on('DISCONNECT_PEER', (event) => {
-          triedPeer.push(event.data.peerId);
-          if (peerContexts.length <= triedPeer.length) {
-            this.resetNetwork();
-            EventSystem.unregister(triedPeer);
             this.closeIfConnected();
           }
         });

@@ -2,14 +2,15 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
@@ -18,6 +19,7 @@ import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.se
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 
 @Component({
@@ -34,6 +36,8 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tabletopActionService = inject(TabletopActionService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @Input() gameTableScratchMask: GameTableScratchMask | null = null!;
 
@@ -70,14 +74,19 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
   }
 
   ngOnInit() {
-    EventSystem.register(this)
-      .on('UPDATE_GAME_OBJECT', (event) => {
-        if (event.data.identifier === this.gameTableScratchMask?.identifier) {
-          this.changeDetector.markForCheck();
-        }
-      })
-      .on('SYNCHRONIZE_FILE_LIST', () => this.changeDetector.markForCheck())
-      .on('UPDATE_FILE_RESOURE', () => this.changeDetector.markForCheck());
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (e.identifier === this.gameTableScratchMask?.identifier) {
+        this.changeDetector.markForCheck();
+      }
+    });
+    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
+    this.objectChange.fileResourceUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.changeDetector.detectChanges());
+    });
 
     this.movableOption = {
       tabletopObject: this.gameTableScratchMask!,
@@ -92,9 +101,7 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
     };
   }
 
-  ngOnDestroy() {
-    EventSystem.unregister(this);
-  }
+  ngOnDestroy() {}
 
   onMove() {}
   onMoved() {}

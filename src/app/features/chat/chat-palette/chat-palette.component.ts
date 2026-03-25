@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -9,8 +10,8 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EventSystem } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -24,6 +25,7 @@ import { ChatInputComponent as ChatInputComponent_1 } from '@axe/features/chat/c
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
@@ -42,6 +44,8 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private uiSignalService = inject(UiSignalService);
+  private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('chatInput', { static: true }) chatInputComponent: ChatInputComponent;
@@ -101,11 +105,11 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
     this.gameType = this.character.chatPalette ? this.character.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
-    EventSystem.register(this).on('DELETE_GAME_OBJECT', (event) => {
-      if (this.character && this.character.identifier === event.data.identifier) {
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
-      if (this.chatTabidentifier === event.data.identifier) {
+      if (this.chatTabidentifier === e.identifier) {
         this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
       }
     });
@@ -117,7 +121,6 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    EventSystem.unregister(this);
     if (this.isEdit) this.toggleEditMode();
   }
 

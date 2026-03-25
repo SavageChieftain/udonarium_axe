@@ -1,9 +1,9 @@
 import { Network } from '@axe/core/index';
-import { EventSystem } from '@axe/core/index';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { emitStartCutIn, emitStopCutIn, emitStopCutInByBgm } from '@axe/domain/domain-events';
 import { Jukebox } from '@axe/domain/media/Jukebox';
 
 import { CutIn } from './cut-in';
@@ -87,7 +87,7 @@ export class CutInLauncher extends GameObject {
 
   stopBlankTagCutIn() {
     this.stopBlankTagCutInTimeStamp = this.stopBlankTagCutInTimeStamp + 1;
-    EventSystem.trigger('STOP_CUT_IN_BY_BGM', {});
+    emitStopCutInByBgm();
   }
 
   sameTagCutIn(cutIn: CutIn): CutIn[] {
@@ -104,17 +104,17 @@ export class CutInLauncher extends GameObject {
 
   startSelfCutIn() {
     const cutIn_ = ObjectStore.instance.get(this.launchCutInIdentifier);
-    EventSystem.trigger('START_CUT_IN', { cutIn: cutIn_ });
+    emitStartCutIn({ cutIn: cutIn_ });
   }
 
   stopSelfCutIn() {
     const cutIn_ = ObjectStore.instance.get(this.launchCutInIdentifier);
-    EventSystem.trigger('STOP_CUT_IN', { cutIn: cutIn_ });
+    emitStopCutIn({ cutIn: cutIn_ });
   }
 
   stopSelfCutInByIdentifier(identifier: string) {
     const cutIn_ = ObjectStore.instance.get(identifier);
-    EventSystem.trigger('STOP_CUT_IN', { cutIn: cutIn_ });
+    emitStopCutIn({ cutIn: cutIn_ });
   }
 
   getCutIns(): CutIn[] {
@@ -144,7 +144,7 @@ export class CutInLauncher extends GameObject {
     } // ソロ再生用の場合他の人は発火しない
 
     if (stopBlankTagCutInTimeStamp !== this.stopBlankTagCutInTimeStamp) {
-      EventSystem.trigger('STOP_CUT_IN_BY_BGM', {});
+      emitStopCutInByBgm();
     }
 
     if (this.sendTo != '') {

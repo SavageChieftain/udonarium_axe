@@ -1,17 +1,25 @@
-import { EventSystem } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
 import { SyncObject } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { toHalfWidth } from '@axe/core/util/string-util';
-import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
+import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
+import {
+  diceTableMessage$,
+  DiceTableMessageEvent,
+  resourceEditMessage$,
+  ResourceEditMessageEvent,
+  sendMessage$,
+  SendMessageEvent,
+} from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
 import GameSystemClass from 'bcdice/lib/game_system';
 import StaticLoader from 'bcdice/lib/loader/static_loader';
+import { Subscription } from 'rxjs';
 
 import { DiceTable } from './dice-table';
 
@@ -23,6 +31,7 @@ export class DiceBot extends GameObject {
     DiceBot.diceRollAsync.bind(DiceBot),
     DiceBot.loadGameSystemAsync.bind(DiceBot)
   );
+  private subscription = new Subscription();
 
   static diceBotInfos: GameSystemInfo[] = [];
 
@@ -189,26 +198,20 @@ export class DiceBot extends GameObject {
   // GameObject Lifecycle
   onStoreAdded() {
     super.onStoreAdded();
-    EventSystem.register(this)
-      .on('SEND_MESSAGE', (event) => this.handleSendMessage(event))
-      .on('DICE_TABLE_MESSAGE', (event) => this.handleDiceTableMessage(event))
-      .on<{ messageIdentifier: string; messageTargetContext: ChatMessageTargetContext[] | null }>(
-        'RESOURCE_EDIT_MESSAGE',
-        (event) => this.handleResourceEditMessage(event)
-      );
+    this.subscription.add(sendMessage$.subscribe((data) => this.handleSendMessage(data)));
+    this.subscription.add(diceTableMessage$.subscribe((data) => this.handleDiceTableMessage(data)));
+    this.subscription.add(resourceEditMessage$.subscribe((data) => this.handleResourceEditMessage(data)));
   }
 
-  private async handleSendMessage(event: {
-    data: { messageIdentifier: string; messageTrget: { text: string; object: { name: string } | null } | null };
-  }) {
-    const chatMessage = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+  private async handleSendMessage(data: SendMessageEvent) {
+    const chatMessage = ObjectStore.instance.get<ChatMessage>(data.messageIdentifier);
     if (!chatMessage || !chatMessage.isSendFromSelf || chatMessage.isSystem) {
       return;
     }
 
     let text: string;
-    if (event.data.messageTrget) {
-      text = toHalfWidth(event.data.messageTrget.text);
+    if (data.messageTrget) {
+      text = toHalfWidth(data.messageTrget.text);
     } else {
       text = toHalfWidth(chatMessage.text);
     }
@@ -238,9 +241,9 @@ export class DiceBot extends GameObject {
         return;
       }
 
-      if (event.data.messageTrget) {
-        if (event.data.messageTrget.object) {
-          this.sendResultMessage(rollResult, chatMessage, ` [${event.data.messageTrget.object.name}]`);
+      if (data.messageTrget) {
+        if (data.messageTrget.object) {
+          this.sendResultMessage(rollResult, chatMessage, ` [${data.messageTrget.object.name}]`);
         } else {
           this.sendResultMessage(rollResult, chatMessage);
         }
@@ -252,8 +255,8 @@ export class DiceBot extends GameObject {
     }
   }
 
-  private async handleDiceTableMessage(event: { data: { messageIdentifier: string } }) {
-    const chatMessage = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+  private async handleDiceTableMessage(data: DiceTableMessageEvent) {
+    const chatMessage = ObjectStore.instance.get<ChatMessage>(data.messageIdentifier);
     if (!chatMessage || !chatMessage.isSendFromSelf || chatMessage.isSystem) {
       return;
     }
@@ -313,17 +316,15 @@ export class DiceBot extends GameObject {
     }
   }
 
-  private async handleResourceEditMessage(event: {
-    data: { messageIdentifier: string; messageTargetContext: ChatMessageTargetContext[] | null };
-  }) {
-    const chatMessage = ObjectStore.instance.get<ChatMessage>(event.data.messageIdentifier);
+  private async handleResourceEditMessage(data: ResourceEditMessageEvent) {
+    const chatMessage = ObjectStore.instance.get<ChatMessage>(data.messageIdentifier);
     if (!chatMessage || !chatMessage.isSendFromSelf || chatMessage.isSystem) {
       return;
     }
 
     this.resourceProcessor.checkResourceEditCommand(
       chatMessage,
-      event.data.messageTargetContext ? event.data.messageTargetContext : []
+      data.messageTargetContext ? data.messageTargetContext : []
     );
   }
 
@@ -364,6 +365,6 @@ export class DiceBot extends GameObject {
   // GameObject Lifecycle
   onStoreRemoved() {
     super.onStoreRemoved();
-    EventSystem.unregister(this);
+    this.subscription.unsubscribe();
   }
 }
