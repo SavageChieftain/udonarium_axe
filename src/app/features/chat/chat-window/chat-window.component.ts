@@ -1,4 +1,13 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -29,7 +38,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-window.component.css'],
   imports: [ChatTabComponent, FormsModule, ChatTachieComponent, BadgeComponent, ChatInputComponent],
 })
-export class ChatWindowComponent implements OnInit, AfterViewInit {
+export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
   chatMessageService = inject(ChatMessageService);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
@@ -85,7 +94,10 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
     return this.objectStore.get<ChatTab>(this.chatTabidentifier);
   }
   isAutoScroll: boolean = true;
+  hasNewMessage = signal(false);
+  isNearBottom = signal(true);
   scrollToBottomTimer: NodeJS.Timeout = null!;
+  private scrollListener: (() => void) | null = null;
   testadd() {
     this.chatTab.count++;
   }
@@ -103,8 +115,12 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (message && message.isSendFromSelf) {
         this.isAutoScroll = true;
+        this.hasNewMessage.set(false);
       } else {
         this.checkAutoScroll();
+        if (!this.isAutoScroll) {
+          this.hasNewMessage.set(true);
+        }
       }
       if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
     });
@@ -131,6 +147,32 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     queueMicrotask(() => this.scrollToBottom(true));
+    if (this.panelService.scrollablePanel) {
+      this.scrollListener = () => this.onScrollPositionChange();
+      this.panelService.scrollablePanel.addEventListener('scroll', this.scrollListener, { passive: true });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.scrollListener && this.panelService.scrollablePanel) {
+      this.panelService.scrollablePanel.removeEventListener('scroll', this.scrollListener);
+    }
+  }
+
+  private onScrollPositionChange() {
+    if (!this.panelService.scrollablePanel) return;
+    const panel = this.panelService.scrollablePanel;
+    const distanceFromBottom = panel.scrollHeight - panel.clientHeight - panel.scrollTop;
+    const nearBottom = distanceFromBottom <= 350;
+    this.isNearBottom.set(nearBottom);
+    if (nearBottom) {
+      this.hasNewMessage.set(false);
+    }
+  }
+
+  onClickScrollToBottom() {
+    this.hasNewMessage.set(false);
+    this.scrollToBottom(true);
   }
 
   // @TODO やり方はもう少し考えた方がいいい
@@ -151,15 +193,13 @@ export class ChatWindowComponent implements OnInit, AfterViewInit {
     }, 0);
   }
 
-  // @TODO
   checkAutoScroll() {
     if (!this.panelService.scrollablePanel) return;
-    const top = this.panelService.scrollablePanel.scrollHeight - this.panelService.scrollablePanel.clientHeight;
-    if (top - 150 <= this.panelService.scrollablePanel.scrollTop) {
-      this.isAutoScroll = true;
-    } else {
-      this.isAutoScroll = false;
-    }
+    const distanceFromBottom =
+      this.panelService.scrollablePanel.scrollHeight -
+      this.panelService.scrollablePanel.clientHeight -
+      this.panelService.scrollablePanel.scrollTop;
+    this.isAutoScroll = distanceFromBottom <= 350;
   }
 
   updatePanelTitle() {

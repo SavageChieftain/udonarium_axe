@@ -11,6 +11,16 @@
     }
   </div>
   <div class="sticky-bottom">
+    @if (!isNearBottom()) {
+      <button
+        class="scroll-to-bottom-btn"
+        [class.has-new-message]="hasNewMessage()"
+        (click)="onClickScrollToBottom()"
+        [title]="hasNewMessage() ? '新しいメッセージがあります' : '最新メッセージへ移動'"
+      >
+        <i class="material-icons">expand_more</i>
+      </button>
+    }
     <form>
       <!--  -->
 
