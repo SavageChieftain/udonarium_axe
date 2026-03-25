@@ -49,4 +49,14 @@ describe('GameCharacter', () => {
       expect(character.komaImageHeight).toBe(100);
     });
   });
+
+  // ----------------------------------------------------------------
+  // imageFile null safety
+  // ----------------------------------------------------------------
+  describe('imageFile', () => {
+    it('imageDataElementが無い場合はImageFile.Emptyを返す', () => {
+      expect(character.imageFile).toBeDefined();
+      expect(character.imageFile.url).toBe('');
+    });
+  });
 });

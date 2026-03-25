@@ -72,6 +72,7 @@ export class GameCharacter extends TabletopObject {
   }
 
   private getIconNumElement(): DataElement {
+    if (!this.detailDataElement) return null!;
     const iconNum = this.detailDataElement.getFirstElementByName('ICON');
     if (!iconNum || !iconNum.isNumberResource) return null!;
     return iconNum;
@@ -83,11 +84,13 @@ export class GameCharacter extends TabletopObject {
     const iconNum = this.getIconNumElement();
     if (!iconNum) {
       const image: DataElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
+      if (!image) return ImageFile.Empty;
       const file = ImageStorage.instance.get(image.value as string);
       return file ? file : ImageFile.Empty;
     } else {
       let n = iconNum.currentValue as number;
       if (n > this.imageDataElement.children.length - 1) n = this.imageDataElement.children.length - 1;
+      if (n < 0 || this.imageDataElement.children.length === 0) return ImageFile.Empty;
       const image = this.imageDataElement.children[n];
       const file = ImageStorage.instance.get(image.value as string);
       return file ? file : ImageFile.Empty;
