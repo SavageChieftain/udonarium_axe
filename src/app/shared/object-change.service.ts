@@ -1,7 +1,7 @@
-import { DestroyRef, inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
-import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
 import {
   alarmPop$,
   alarmTimeUp$,
@@ -89,6 +89,33 @@ export class ObjectChangeService {
   /** Batched children hierarchy change notifications */
   readonly childrenChanged$ = childrenChanged$.asObservable();
 
+  // --- Per-identifier version signals ---
+  private readonly _versions = new Map<string, WritableSignal<number>>();
+
+  /** 特定オブジェクトの変更 signal（読み取り専用）。
+   *  自身のプロパティ変更 + 子孫ノードの変更 の両方で increment される。 */
+  versionOf(identifier: string): Signal<number> {
+    let sig = this._versions.get(identifier);
+    if (!sig) {
+      sig = signal(0);
+      this._versions.set(identifier, sig);
+    }
+    return sig.asReadonly();
+  }
+
+  // --- Per-aliasName collection signals ---
+  private readonly _collections = new Map<string, WritableSignal<number>>();
+
+  /** 特定型のオブジェクトが追加/削除されたことを通知する signal（読み取り専用）。 */
+  collectionOf(aliasName: string): Signal<number> {
+    let sig = this._collections.get(aliasName);
+    if (!sig) {
+      sig = signal(0);
+      this._collections.set(aliasName, sig);
+    }
+    return sig.asReadonly();
+  }
+
   // --- Events bridged from networkMessage$ (network/P2P events only) ---
   private readonly _objectDeleted$ = new Subject<ObjectDeleteEvent>();
   private readonly _fileSyncList$ = new Subject<FileSyncEvent>();
@@ -156,6 +183,35 @@ export class ObjectChangeService {
 
   constructor() {
     const sub = new Subscription();
+
+    // --- Per-identifier version signal: increment on objectChanged$ ---
+    sub.add(
+      objectChanged$.subscribe((e) => {
+        this._versions.get(e.identifier)?.update((v) => v + 1);
+      })
+    );
+
+    // --- Per-identifier version signal: increment on childrenChanged$ (ancestor propagation) ---
+    sub.add(
+      childrenChanged$.subscribe((e) => {
+        this._versions.get(e.identifier)?.update((v) => v + 1);
+      })
+    );
+
+    // --- Per-aliasName collection signal: increment on objectAdded$ ---
+    sub.add(
+      objectAdded$.subscribe((e) => {
+        this._collections.get(e.aliasName)?.update((v) => v + 1);
+      })
+    );
+
+    // --- Per-aliasName collection signal: increment + version cleanup on objectRemoved$ ---
+    sub.add(
+      objectRemoved$.subscribe((e) => {
+        this._collections.get(e.aliasName)?.update((v) => v + 1);
+        this._versions.delete(e.identifier);
+      })
+    );
 
     sub.add(
       networkMessage$.pipe(filter((msg) => msg.eventName === 'DELETE_GAME_OBJECT')).subscribe((msg) => {

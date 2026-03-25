@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
 import { Subject } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 
@@ -99,5 +99,157 @@ describe('ObjectChangeService', () => {
     (service as unknown as { _networkOpen$: Subject<NetworkPeerEvent> })._networkOpen$.next({ peerId: 'my-peer' });
     const event = await promise;
     expect(event.peerId).toBe('my-peer');
+  });
+
+  describe('versionOf()', () => {
+    it('メソッドが公開されている', () => {
+      expect(typeof service.versionOf).toBe('function');
+    });
+
+    it('初回呼び出しで Signal を返す（初期値 0）', () => {
+      const sig = service.versionOf('test-id-1');
+      expect(sig()).toBe(0);
+    });
+
+    it('同じ identifier に対しては同じ Signal を返す', () => {
+      const sig1 = service.versionOf('test-id-2');
+      const sig2 = service.versionOf('test-id-2');
+      expect(sig1).toBe(sig2);
+    });
+
+    it('異なる identifier に対しては異なる Signal を返す', () => {
+      const sig1 = service.versionOf('test-id-3a');
+      const sig2 = service.versionOf('test-id-3b');
+      expect(sig1).not.toBe(sig2);
+    });
+
+    it('objectChanged$ が emit されると該当 identifier の version が increment される', () => {
+      const sig = service.versionOf('obj-changed-1');
+      expect(sig()).toBe(0);
+
+      objectChanged$.next({ identifier: 'obj-changed-1', aliasName: 'TestAlias', isSendFromSelf: true });
+
+      expect(sig()).toBe(1);
+    });
+
+    it('objectChanged$ が emit されても無関係な identifier の version は変わらない', () => {
+      const sigTarget = service.versionOf('obj-changed-2a');
+      const sigOther = service.versionOf('obj-changed-2b');
+
+      objectChanged$.next({ identifier: 'obj-changed-2a', aliasName: 'TestAlias', isSendFromSelf: true });
+
+      expect(sigTarget()).toBe(1);
+      expect(sigOther()).toBe(0);
+    });
+
+    it('childrenChanged$ が emit されると該当 identifier の version が increment される', () => {
+      const sig = service.versionOf('parent-1');
+      expect(sig()).toBe(0);
+
+      childrenChanged$.next({ identifier: 'parent-1' });
+
+      expect(sig()).toBe(1);
+    });
+
+    it('objectChanged$ と childrenChanged$ が連続で emit されると version が累積する', () => {
+      const sig = service.versionOf('combo-1');
+
+      objectChanged$.next({ identifier: 'combo-1', aliasName: 'TestAlias', isSendFromSelf: true });
+      childrenChanged$.next({ identifier: 'combo-1' });
+
+      expect(sig()).toBe(2);
+    });
+
+    it('versionOf 未登録の identifier への objectChanged$ は無視される（エラーにならない）', () => {
+      // versionOf を呼ばずに objectChanged$ を emit しても例外が発生しないこと
+      expect(() => {
+        objectChanged$.next({ identifier: 'unregistered-1', aliasName: 'TestAlias', isSendFromSelf: true });
+      }).not.toThrow();
+    });
+
+    it('objectRemoved$ が emit されると該当 identifier の Signal がクリーンアップされる', () => {
+      const sig1 = service.versionOf('cleanup-1');
+      expect(sig1()).toBe(0);
+
+      objectRemoved$.next({ identifier: 'cleanup-1', aliasName: 'TestAlias' });
+
+      // 再呼び出しすると新しいSignalが返される（version 0 にリセット）
+      const sig2 = service.versionOf('cleanup-1');
+      expect(sig2()).toBe(0);
+      expect(sig2).not.toBe(sig1);
+    });
+
+    it('読み取り専用のSignalを返す（asReadonly）', () => {
+      const sig = service.versionOf('readonly-1');
+      // WritableSignal ではなく Signal（set/update メソッドがない）
+      expect(typeof (sig as unknown as Record<string, unknown>)['set']).not.toBe('function');
+      expect(typeof (sig as unknown as Record<string, unknown>)['update']).not.toBe('function');
+    });
+  });
+
+  describe('collectionOf()', () => {
+    it('メソッドが公開されている', () => {
+      expect(typeof service.collectionOf).toBe('function');
+    });
+
+    it('初回呼び出しで Signal を返す（初期値 0）', () => {
+      const sig = service.collectionOf('test-alias-1');
+      expect(sig()).toBe(0);
+    });
+
+    it('同じ aliasName に対しては同じ Signal を返す', () => {
+      const sig1 = service.collectionOf('test-alias-2');
+      const sig2 = service.collectionOf('test-alias-2');
+      expect(sig1).toBe(sig2);
+    });
+
+    it('objectAdded$ が emit されると該当 aliasName の collection が increment される', () => {
+      const sig = service.collectionOf('character');
+      expect(sig()).toBe(0);
+
+      objectAdded$.next({ identifier: 'char-1', aliasName: 'character' });
+
+      expect(sig()).toBe(1);
+    });
+
+    it('objectAdded$ が emit されても無関係な aliasName の collection は変わらない', () => {
+      const sigTarget = service.collectionOf('character');
+      const sigOther = service.collectionOf('card');
+
+      objectAdded$.next({ identifier: 'char-2', aliasName: 'character' });
+
+      expect(sigTarget()).toBe(1);
+      expect(sigOther()).toBe(0);
+    });
+
+    it('objectRemoved$ が emit されると該当 aliasName の collection が increment される', () => {
+      const sig = service.collectionOf('character');
+
+      objectRemoved$.next({ identifier: 'char-3', aliasName: 'character' });
+
+      expect(sig()).toBe(1);
+    });
+
+    it('add と remove で version が累積する', () => {
+      const sig = service.collectionOf('card-stack');
+
+      objectAdded$.next({ identifier: 'cs-1', aliasName: 'card-stack' });
+      objectAdded$.next({ identifier: 'cs-2', aliasName: 'card-stack' });
+      objectRemoved$.next({ identifier: 'cs-1', aliasName: 'card-stack' });
+
+      expect(sig()).toBe(3);
+    });
+
+    it('collectionOf 未登録の aliasName への objectAdded$ は無視される（エラーにならない）', () => {
+      expect(() => {
+        objectAdded$.next({ identifier: 'x', aliasName: 'unregistered-alias' });
+      }).not.toThrow();
+    });
+
+    it('読み取り専用のSignalを返す（asReadonly）', () => {
+      const sig = service.collectionOf('readonly-alias');
+      expect(typeof (sig as unknown as Record<string, unknown>)['set']).not.toBe('function');
+      expect(typeof (sig as unknown as Record<string, unknown>)['update']).not.toBe('function');
+    });
   });
 });
