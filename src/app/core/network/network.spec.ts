@@ -55,7 +55,7 @@ describe('Network', () => {
     });
   });
 
-  describe('beforeunload/unloadハンドラ', () => {
+  describe('beforeunload/unload/pagehideハンドラ', () => {
     it('callbackUnloadがプライベートフィールドとして存在する', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       expect(typeof instance['callbackUnload']).toBe('function');
@@ -64,6 +64,11 @@ describe('Network', () => {
     it('callbackBeforeUnloadがプライベートフィールドとして存在する', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       expect(typeof instance['callbackBeforeUnload']).toBe('function');
+    });
+
+    it('callbackPageHideがプライベートフィールドとして存在する', () => {
+      const instance = Network.instance as unknown as Record<string, unknown>;
+      expect(typeof instance['callbackPageHide']).toBe('function');
     });
 
     it('callbackUnloadはconnection未設定でもエラーにならない', () => {
@@ -76,6 +81,31 @@ describe('Network', () => {
       const event = { preventDefault: vi.fn() } as unknown as BeforeUnloadEvent;
       expect(() => instance['callbackBeforeUnload'](event)).not.toThrow();
       expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('callbackPageHideはconnection未設定でもエラーにならない', () => {
+      const instance = Network.instance as unknown as Record<string, (...args: unknown[]) => void>;
+      expect(() => instance['callbackPageHide']({} as PageTransitionEvent)).not.toThrow();
+    });
+
+    it('callbackBeforeUnloadはleaveImmediatelyを呼ばない', () => {
+      const instance = Network.instance as unknown as Record<string, unknown>;
+      const leaveImmediately = vi.fn();
+      instance['connection'] = { leaveImmediately } as unknown;
+      const event = { preventDefault: vi.fn() } as unknown as BeforeUnloadEvent;
+      (instance['callbackBeforeUnload'] as (e: BeforeUnloadEvent) => void)(event);
+      expect(leaveImmediately).not.toHaveBeenCalled();
+      expect(event.preventDefault).toHaveBeenCalled();
+      instance['connection'] = null;
+    });
+
+    it('callbackPageHideはleaveImmediatelyを呼ぶ', () => {
+      const instance = Network.instance as unknown as Record<string, unknown>;
+      const leaveImmediately = vi.fn();
+      instance['connection'] = { leaveImmediately } as unknown;
+      (instance['callbackPageHide'] as (e: PageTransitionEvent) => void)({} as PageTransitionEvent);
+      expect(leaveImmediately).toHaveBeenCalled();
+      instance['connection'] = null;
     });
   });
 });

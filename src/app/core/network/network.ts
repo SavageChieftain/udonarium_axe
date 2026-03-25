@@ -1,5 +1,4 @@
 import { Logger } from '@axe/core/logger';
-import { WebRTCStatsMonitor } from '@axe/core/network/webrtc/webrtc-stats-monitor';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
 
 import { Connection, ConnectionCallback } from './connection';
@@ -101,19 +100,17 @@ export class Network {
     this.close();
   };
 
-  private callbackBeforeUnload: (e: BeforeUnloadEvent) => void = (e: BeforeUnloadEvent) => {
-    // beforeunload中はWebSocketが生きているため、ここでleaveを送信する（unloadでは手遅れ）
+  private callbackPageHide: (e: PageTransitionEvent) => void = () => {
+    // pagehideはunloadより信頼性が高く、WebSocketがまだ生きている可能性が高い
     if (this.connection?.leaveImmediately) {
       this.connection.leaveImmediately();
     }
+  };
+
+  private callbackBeforeUnload: (e: BeforeUnloadEvent) => void = (e: BeforeUnloadEvent) => {
+    // beforeunloadではleaveせず、確認ダイアログだけ表示する
+    // 実際のleaveはunload/pagehideで行う（leaveImmediately + close）
     e.preventDefault();
-    // ダイアログがキャンセルされた場合：ルームへ再参加し、ヘルスチェック基準時刻をリセット
-    setTimeout(() => {
-      if (this.connection?.rejoinAfterLeave) {
-        this.connection.rejoinAfterLeave();
-      }
-      WebRTCStatsMonitor.resetAllTimestamps();
-    }, 0);
   };
 
   private constructor() {}
@@ -147,6 +144,7 @@ export class Network {
     this.connection.open(...args);
 
     window.addEventListener('unload', this.callbackUnload, false);
+    window.addEventListener('pagehide', this.callbackPageHide);
     window.addEventListener('beforeunload', this.callbackBeforeUnload);
   }
 
@@ -155,6 +153,7 @@ export class Network {
     this.connection = null!;
     this.connectionClassPromise = null!;
     window.removeEventListener('unload', this.callbackUnload, false);
+    window.removeEventListener('pagehide', this.callbackPageHide);
     window.removeEventListener('beforeunload', this.callbackBeforeUnload);
     Logger.debug('[Network] close');
   }
