@@ -70,4 +70,9 @@ describe('ChatTabComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
   });
+
+  it('ChangeDetectorRefを使用していないこと', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((component as any).changeDetector).toBeUndefined();
+  });
 });

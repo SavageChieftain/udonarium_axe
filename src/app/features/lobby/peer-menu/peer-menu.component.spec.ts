@@ -22,4 +22,13 @@ describe('PeerMenuComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('ChangeDetectorRefを使用していないこと', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((component as any).changeDetector).toBeUndefined();
+  });
+
+  it('myTimeがsignalであること', () => {
+    expect(typeof component.myTime).toBe('function');
+  });
 });

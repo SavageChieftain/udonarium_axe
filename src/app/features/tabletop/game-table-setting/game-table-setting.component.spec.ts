@@ -1,6 +1,5 @@
-import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FilterType, GridType } from '@axe/domain/tabletop/game-table';
+import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -26,9 +25,9 @@ describe('GameTableSettingComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('OnPushコンポーネントでChangeDetectorRefが注入されていること', () => {
-    const cdr = fixture.debugElement.injector.get(ChangeDetectorRef);
-    expect(cdr).toBeTruthy();
+  it('ChangeDetectorRefを使用していないこと', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((component as any).changeDetector).toBeUndefined();
   });
 
   describe('selectedTableがnullの場合', () => {
@@ -67,6 +66,26 @@ describe('GameTableSettingComponent', () => {
       const spy = vi.spyOn(objectChangeService, 'collectionOf');
       void component.isDeleted;
       expect(spy).toHaveBeenCalledWith('game-table');
+    });
+
+    it('tableBackgroundImageゲッターがversionOfシグナルを使用すること', () => {
+      const objectChangeService = TestBed.inject(ObjectChangeService);
+      const spy = vi.spyOn(objectChangeService, 'versionOf');
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+      void component.tableBackgroundImage;
+      expect(spy).toHaveBeenCalledWith(table.identifier);
+    });
+
+    it('tableDistanceviewImageゲッターがversionOfシグナルを使用すること', () => {
+      const objectChangeService = TestBed.inject(ObjectChangeService);
+      const spy = vi.spyOn(objectChangeService, 'versionOf');
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+      void component.tableDistanceviewImage;
+      expect(spy).toHaveBeenCalledWith(table.identifier);
     });
   });
 });

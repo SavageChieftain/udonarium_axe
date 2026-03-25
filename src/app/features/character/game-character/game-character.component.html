@@ -104,7 +104,7 @@
                                 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) translateY(-100%)',
                             }"
                           >
-                            <div [hidden]="!this.gameCharacter.targeted" class="target-icon-buff scrolldown5">
+                            <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
                               <img src="./assets/images/target/target.png" />
                             </div>
                             <div [hidden]="foldingBuff">
@@ -151,7 +151,7 @@
                           >
                             <div
                               class="target-icon-buff2 scrolldown5"
-                              [hidden]="!this.gameCharacter.targeted"
+                              [hidden]="!isTargeted()"
                               [ngStyle]="{ transform: 'rotateY(180deg)' }"
                             >
                               <img src="./assets/images/target/target.png" />
@@ -197,7 +197,7 @@
               <div [hidden]="!(this.buffNum === 0)">
                 <div
                   class="target-icon scrolldown4"
-                  [hidden]="!this.gameCharacter.targeted"
+                  [hidden]="!isTargeted()"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
                 >
                   <img src="./assets/images/target/target.png" />

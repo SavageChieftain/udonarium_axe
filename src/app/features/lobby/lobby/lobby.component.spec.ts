@@ -1,5 +1,5 @@
-import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { LobbyComponent } from './lobby.component';
@@ -24,8 +24,29 @@ describe('LobbyComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('OnPushコンポーネントでChangeDetectorRefが注入されていること', () => {
-    const cdr = fixture.debugElement.injector.get(ChangeDetectorRef);
-    expect(cdr).toBeTruthy();
+  it('ChangeDetectorRefを使用していないこと', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((component as any).cdr).toBeUndefined();
+  });
+
+  describe('signal-driven CD', () => {
+    it('roomsがsignalであること', () => {
+      expect(typeof component.rooms).toBe('function');
+    });
+
+    it('isReloadingがsignalであること', () => {
+      expect(typeof component.isReloading).toBe('function');
+    });
+
+    it('helpがsignalであること', () => {
+      expect(typeof component.help).toBe('function');
+    });
+
+    it('isConnectedゲッターがnetworkVersionシグナルを使用すること', () => {
+      const objectChangeService = TestBed.inject(ObjectChangeService);
+      const spy = vi.spyOn(objectChangeService, 'networkVersion');
+      void component.isConnected;
+      expect(spy).toHaveBeenCalled();
+    });
   });
 });

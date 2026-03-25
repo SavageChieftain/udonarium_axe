@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logger';
@@ -21,16 +21,15 @@ import { merge, take } from 'rxjs';
 export class LobbyComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
-  private cdr = inject(ChangeDetectorRef);
   private objectStore = inject(ObjectStore);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
+  rooms = signal<{ alias: string; roomName: string; peerContexts: PeerContext[] }[]>([]);
 
-  isReloading: boolean = false;
+  isReloading = signal(false);
 
-  help: string = '「一覧を更新」ボタンを押すと接続可能なルーム一覧を表示します。';
+  help = signal('「一覧を更新」ボタンを押すと接続可能なルーム一覧を表示します。');
 
   get currentRoom(): string {
     return Network.peerContext.roomId;
@@ -39,6 +38,7 @@ export class LobbyComponent implements OnInit {
     return Network.peerId;
   }
   get isConnected(): boolean {
+    this.objectChange.networkVersion();
     return Network.peerIds.length <= 1 ? false : true;
   }
 
@@ -54,12 +54,10 @@ export class LobbyComponent implements OnInit {
         queueMicrotask(() => this.modalService.resolve());
         return;
       }
-      if (!this.isReloading) this.reload();
-      this.cdr.markForCheck();
+      if (!this.isReloading()) this.reload();
     });
     this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.changeTitle();
-      this.cdr.markForCheck();
     });
     if (Network.isOpen) {
       this.reload();
@@ -75,9 +73,9 @@ export class LobbyComponent implements OnInit {
   }
 
   async reload() {
-    this.isReloading = true;
-    this.help = '検索中...';
-    this.rooms = [];
+    this.isReloading.set(true);
+    this.help.set('検索中...');
+    this.rooms.set([]);
     try {
       const peersOfroom: { [room: string]: PeerContext[] } = {};
       const peerIds = await Promise.race([
@@ -94,25 +92,26 @@ export class LobbyComponent implements OnInit {
           peersOfroom[alias].push(context);
         }
       }
+      const roomsList: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
       for (const alias in peersOfroom) {
-        this.rooms.push({
+        roomsList.push({
           alias: alias,
           roomName: peersOfroom[alias][0].roomName,
           peerContexts: peersOfroom[alias],
         });
       }
-      this.rooms.sort((a, b) => {
+      roomsList.sort((a, b) => {
         if (a.alias < b.alias) return -1;
         if (a.alias > b.alias) return 1;
         return 0;
       });
-      this.help = '接続可能なルームが見つかりませんでした。「新しいルームを作成する」で新規ルームを作成できます。';
+      this.rooms.set(roomsList);
+      this.help.set('接続可能なルームが見つかりませんでした。「新しいルームを作成する」で新規ルームを作成できます。');
     } catch (e) {
       Logger.error('[Lobby] ルーム一覧の取得に失敗しました', e);
-      this.help = 'ルーム一覧の取得に失敗しました。「一覧を更新」で再検索できます。';
+      this.help.set('ルーム一覧の取得に失敗しました。「一覧を更新」で再検索できます。');
     } finally {
-      this.isReloading = false;
-      this.cdr.markForCheck();
+      this.isReloading.set(false);
     }
   }
 

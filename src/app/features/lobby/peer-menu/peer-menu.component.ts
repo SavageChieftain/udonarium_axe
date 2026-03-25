@@ -1,15 +1,5 @@
 import { DatePipe } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -21,7 +11,6 @@ import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
 import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
@@ -34,13 +23,10 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 })
 export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private tabletopActionService = inject(TabletopActionService);
-  private changeDetector = inject(ChangeDetectorRef);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private tableSelecter = inject(TableSelecter);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
   targetUserId = '';
   networkService = Network;
   gameRoomService = this.objectStore;
@@ -58,15 +44,8 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.changeDetector.detach();
-
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-    });
-
     this.disptimer = setInterval(() => {
       this.dispInfo();
-      this.changeDetector.detectChanges();
     }, 1000);
   }
 
@@ -163,8 +142,8 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return degree;
   }
 
-  myTime = 0;
+  myTime = signal(0);
   dispInfo() {
-    this.myTime = Date.now();
+    this.myTime.set(Date.now());
   }
 }

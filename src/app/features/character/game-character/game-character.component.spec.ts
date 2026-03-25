@@ -39,4 +39,13 @@ describe('GameCharacterComponent', () => {
       expect(component.viewRotateZ()).toBe(120);
     });
   });
+
+  it('ChangeDetectorRefを使用していないこと', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((component as any).changeDetector).toBeUndefined();
+  });
+
+  it('isTargetedがcomputed signalであること', () => {
+    expect(typeof component.isTargeted).toBe('function');
+  });
 });

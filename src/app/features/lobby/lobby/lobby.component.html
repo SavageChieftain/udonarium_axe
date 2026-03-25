@@ -1,9 +1,9 @@
 @if (!isConnected) {
   <div>
-    <button (click)="reload()" [disabled]="isReloading">一覧を更新</button>
+    <button (click)="reload()" [disabled]="isReloading()">一覧を更新</button>
     <button (click)="showRoomSetting()">新しいルームを作成する</button>
     <hr />
-    @if (rooms.length) {
+    @if (rooms().length) {
       <table class="room-list">
         <tr>
           <th>ルームID</th>
@@ -12,7 +12,7 @@
           <th>参加者</th>
           <th></th>
         </tr>
-        @for (room of rooms; track room) {
+        @for (room of rooms(); track room) {
           <tr>
             <td class="is-small-font">{{ room.peerContexts[0]?.roomId }}</td>
             <td class="room-name">{{ room.roomName }}</td>
@@ -40,8 +40,8 @@
         }
       </table>
     }
-    @if (rooms.length < 1) {
-      <span style="font-size: 12px">{{ help }}</span>
+    @if (rooms().length < 1) {
+      <span style="font-size: 12px">{{ help() }}</span>
     }
   </div>
 } @else {

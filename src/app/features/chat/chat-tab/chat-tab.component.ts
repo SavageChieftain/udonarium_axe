@@ -2,7 +2,6 @@ import {
   AfterViewChecked,
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   effect,
@@ -14,6 +13,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -42,7 +42,7 @@ const isiOS =
   imports: [ChatMessageComponent],
 })
 export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, AfterViewChecked {
-  private changeDetector = inject(ChangeDetectorRef);
+  private renderVersion = signal(0);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
@@ -149,6 +149,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
 
   private _chatMessages: ChatMessage[] = [];
   get chatMessages(): ChatMessage[] {
+    this.renderVersion();
     if (!this.chatTab) return [];
     if (this.needUpdate) {
       this.needUpdate = false;
@@ -225,7 +226,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
       if (!message || !this.chatTab.contains(message)) return;
 
       if (this.topTimestamp <= message.timestamp) {
-        this.changeDetector.markForCheck();
+        this.renderVersion.update((v) => v + 1);
         this.needUpdate = true;
         this.onMessageInit();
       }
@@ -240,7 +241,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
         message.timestamp <= this.botomTimestamp &&
         this.chatTab.contains(message)
       ) {
-        this.changeDetector.markForCheck();
+        this.renderVersion.update((v) => v + 1);
       }
     });
   }
@@ -299,7 +300,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     this.scrollSpeed = 0;
     this.topElm = this.bottomElm = null!;
     this.adjustIndex();
-    this.changeDetector.markForCheck();
+    this.renderVersion.update((v) => v + 1);
   }
 
   trackByChatMessage(index: number, message: ChatMessage) {
@@ -390,8 +391,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     if (scrollPosition.scrollHeight <= scrollPosition.bottom + 100) {
       setZeroTimeout(() => {
         this.chatTab.markForRead();
-        this.changeDetector.markForCheck();
-        this.changeDetector.markForCheck();
+        this.renderVersion.update((v) => v + 1);
       });
     }
   }
@@ -458,13 +458,13 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
       const scrollPosition = this.getScrollPosition();
       this.scrollSpeed = scrollPosition.top - this.preScrollTop;
       this.preScrollTop = scrollPosition.top;
-      this.changeDetector.markForCheck();
+      this.renderVersion.update((v) => v + 1);
     });
   }
 
   redraw() {
     // 強制的に再描画させる
-    this.changeDetector.detectChanges();
+    this.renderVersion.update((v) => v + 1);
   }
 
   private calcElementMaxHeight(chatMessageElements: NodeListOf<HTMLElement>): number {

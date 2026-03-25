@@ -1,11 +1,11 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   inject,
   OnDestroy,
+  signal,
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
@@ -72,7 +72,6 @@ import { NgSelectConfig } from '@ng-select/ng-select';
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   private modalService = inject(ModalService);
-  private changeDetector = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
@@ -99,11 +98,12 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
   networkService = Network;
 
+  private renderVersion = signal(0);
   private immediateUpdateTimer: number = null!;
   private lazyUpdateTimer: number = null!;
   private openPanelCount = 0;
-  isSaveing = false;
-  progresPercent = 0;
+  isSaveing = signal(false);
+  progresPercent = signal(0);
   dispcounter = 10; // 表示更新用ダミーカットインを閉じるときに無理やり更新させている。
 
   constructor() {
@@ -417,19 +417,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   async save() {
-    if (this.isSaveing) return;
-    this.isSaveing = true;
-    this.progresPercent = 0;
+    if (this.isSaveing()) return;
+    this.isSaveing.set(true);
+    this.progresPercent.set(0);
 
     const roomName =
       Network.peerContext && 0 < Network.peerContext.roomName.length ? Network.peerContext.roomName : 'ルームデータ';
     await this.saveDataService.saveRoomAsync(roomName, (percent) => {
-      this.progresPercent = percent;
+      this.progresPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing = false;
-      this.progresPercent = 0;
+      this.isSaveing.set(false);
+      this.progresPercent.set(0);
     }, 500);
   }
 
@@ -452,7 +452,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
           cancelAnimationFrame(this.lazyUpdateTimer);
           this.lazyUpdateTimer = null!;
         }
-        this.changeDetector.markForCheck();
+        this.renderVersion.update((v) => v + 1);
       });
     } else {
       if (this.lazyUpdateTimer !== null) return;
@@ -462,7 +462,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
           cancelAnimationFrame(this.immediateUpdateTimer);
           this.immediateUpdateTimer = null!;
         }
-        this.changeDetector.markForCheck();
+        this.renderVersion.update((v) => v + 1);
       });
     }
   }

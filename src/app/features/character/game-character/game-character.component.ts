@@ -2,7 +2,6 @@ import { NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
@@ -50,7 +49,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
@@ -59,15 +57,12 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
+  readonly isTargeted = computed(() => {
+    this.uiSignalService.targetChange();
+    return this.gameCharacter?.targeted ?? false;
+  });
+
   constructor() {
-    effect(() => {
-      const data = this.uiSignalService.targetChange();
-      if (!data || !this.gameCharacter) return;
-      const objct = this.objectStore.get(data.identifier);
-      if (objct == this.gameCharacter!) {
-        this.changeDetector.markForCheck();
-      }
-    });
     effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
       if (!highlight || !this.gameCharacter) return;

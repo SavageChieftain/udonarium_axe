@@ -55,7 +55,7 @@
           </label>
         </a>
       </li>
-      @if (!isSaveing) {
+      @if (!isSaveing()) {
         <li (click)="save()">
           <a routerLink="/" routerLinkActive="active">
             <div><i class="material-icons">sd_storage</i></div>
@@ -63,11 +63,11 @@
           </a>
         </li>
       }
-      @if (isSaveing) {
+      @if (isSaveing()) {
         <li style="pointer-events: none">
           <a>
             <div><i class="material-icons vibration-amine">sd_storage</i></div>
-            <div>{{ progresPercent }}%</div>
+            <div>{{ progresPercent() }}%</div>
           </a>
         </li>
       }
