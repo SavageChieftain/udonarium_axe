@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
@@ -46,7 +45,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);

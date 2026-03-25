@@ -2,7 +2,6 @@ import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -38,7 +37,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 })
 export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private inventoryService = inject(GameObjectInventoryService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private domSanitizer = inject(DomSanitizer);
   private objectStore = inject(ObjectStore);

@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   computed,
   ElementRef,
@@ -49,7 +48,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private modalService = inject(ModalService);
   private coordinateService = inject(CoordinateService);
