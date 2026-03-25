@@ -11,6 +11,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImageService } from '@axe/core/image.service';
@@ -67,6 +68,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get name(): string {
     this.objectChange.versionOf(this.cardStack.identifier)();
+    this.objectChange.networkVersion();
     if (this.cardStack.owner) {
       const cursor = PeerCursor.findByUserId(this.cardStack.owner);
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
@@ -111,7 +113,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.imageService.getSkeletonOr(this.cardStack.imageFile);
   }
 
-  animeState: 'active' | 'inactive' = 'inactive';
+  readonly animeState = signal<'active' | 'inactive'>('inactive');
 
   private iconHiddenTimer: NodeJS.Timeout = null!;
   get isIconHidden(): boolean {
@@ -130,16 +132,11 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.objectChange.shuffleCardStack$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.cardStack.identifier) {
-        this.animeState = 'active';
-        this.changeDetector.markForCheck();
+        this.animeState.set('active');
       }
     });
     this.objectChange.cardStackDecreased$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.cardStackIdentifier === this.cardStack.identifier && this.cardStack) this.changeDetector.markForCheck();
-    });
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const cursor = PeerCursor.findByPeerId(event.peerId);
-      if (!cursor || this.cardStack.owner === cursor.userId) this.changeDetector.markForCheck();
     });
     this.movableOption = {
       tabletopObject: this.cardStack,
@@ -163,7 +160,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onShuffleDone() {
-    this.animeState = 'inactive';
+    this.animeState.set('inactive');
   }
 
   @HostListener('carddrop', ['$event'])

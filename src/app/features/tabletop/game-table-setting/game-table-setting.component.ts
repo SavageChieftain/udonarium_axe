@@ -165,6 +165,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     return this.tableSelecter ? (this.tableSelecter.viewTable ? false : true) : true;
   }
   get isDeleted(): boolean {
+    this.objectChange.collectionOf('game-table')();
     if (!this.selectedTable) return true;
     return this.objectStore.get<GameTable>(this.selectedTable.identifier) == null;
   }
@@ -184,7 +185,6 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
       if (object !== null) {
         this.selectedTableXml = object.toXml();
       }
-      this.changeDetector.markForCheck();
     });
   }
 

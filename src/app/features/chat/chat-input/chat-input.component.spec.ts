@@ -22,4 +22,11 @@ describe('ChatInputComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('signal-driven CD', () => {
+    it('writingPeerNamesがsignalであること', () => {
+      expect(typeof component.writingPeerNames).toBe('function');
+      expect(component.writingPeerNames()).toEqual([]);
+    });
+  });
 });

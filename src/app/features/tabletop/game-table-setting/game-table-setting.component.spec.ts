@@ -1,6 +1,7 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FilterType, GridType } from '@axe/domain/tabletop/game-table';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { GameTableSettingComponent } from './game-table-setting.component';
@@ -57,6 +58,15 @@ describe('GameTableSettingComponent', () => {
         component.tableGridType = 1 as GridType;
         component.tableDistanceviewFilter = FilterType.WHITE;
       }).not.toThrow();
+    });
+  });
+
+  describe('signal-driven CD', () => {
+    it('isDeletedゲッターがcollectionOfシグナルを使用すること', () => {
+      const objectChangeService = TestBed.inject(ObjectChangeService);
+      const spy = vi.spyOn(objectChangeService, 'collectionOf');
+      void component.isDeleted;
+      expect(spy).toHaveBeenCalledWith('game-table');
     });
   });
 });

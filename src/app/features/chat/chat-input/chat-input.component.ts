@@ -1,7 +1,6 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   DoCheck,
@@ -12,6 +11,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -47,7 +47,6 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
-  private changeDetector = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
@@ -309,7 +308,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   private writingEventInterval: NodeJS.Timeout = null!;
   private previousWritingLength: number = 0;
   writingPeers: Map<string, ResettableTimeout> = new Map();
-  writingPeerNames: string[] = [];
+  readonly writingPeerNames = signal<string[]>([]);
 
   private _diceBotInfosSnapshot: typeof DiceBot.diceBotInfos = [];
   get diceBotInfos() {
@@ -371,7 +370,6 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
           new ResettableTimeout(() => {
             this.writingPeers.delete(event.sendFrom);
             this.updateWritingPeerNames();
-            this.changeDetector.markForCheck();
           }, 2000)
         );
       }
@@ -396,10 +394,12 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private updateWritingPeerNames() {
-    this.writingPeerNames = Array.from(this.writingPeers.keys()).map((peerId) => {
-      const peer = PeerCursor.findByPeerId(peerId);
-      return peer ? peer.name : '';
-    });
+    this.writingPeerNames.set(
+      Array.from(this.writingPeers.keys()).map((peerId) => {
+        const peer = PeerCursor.findByPeerId(peerId);
+        return peer ? peer.name : '';
+      })
+    );
   }
 
   onInput() {

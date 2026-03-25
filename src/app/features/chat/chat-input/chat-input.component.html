@@ -172,11 +172,11 @@
       </form>
     </div>
     <div class="writing-info">
-      @if (0 < writingPeerNames.length) {
-        @for (peerName of writingPeerNames; track peerName; let i = $index) {
+      @if (0 < writingPeerNames().length) {
+        @for (peerName of writingPeerNames(); track peerName; let i = $index) {
           <span style="font-weight: bold"
             >{{ peerName }}
-            @if (writingPeerNames.length !== i + 1) {
+            @if (writingPeerNames().length !== i + 1) {
               <span>, </span>
             }
           </span>

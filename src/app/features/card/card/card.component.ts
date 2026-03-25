@@ -4,7 +4,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  DestroyRef,
   ElementRef,
   HostListener,
   inject,
@@ -12,7 +11,6 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImageService } from '@axe/core/image.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -53,7 +51,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
   private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
 
   @Input() card: Card = null!;
   @Input() is3D: boolean = false;
@@ -74,6 +71,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get name(): string {
     this.objectChange.versionOf(this.card.identifier)();
+    this.objectChange.networkVersion();
     if (this.card.owner) {
       const cursor = PeerCursor.findByUserId(this.card.owner);
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
@@ -150,10 +148,6 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private input: InputHandler = null!;
   ngOnInit() {
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      const cursor = PeerCursor.findByPeerId(e.peerId);
-      if (!cursor || this.card.owner === cursor.userId) this.changeDetector.markForCheck();
-    });
     this.movableOption = {
       tabletopObject: this.card,
       transformCssOffset: 'translateZ(0.15px)',

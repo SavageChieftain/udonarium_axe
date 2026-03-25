@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RangeArea } from '@axe/domain/tabletop/range';
+import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -33,6 +35,17 @@ describe('RangeComponent', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 90);
       expect(component.viewRotateZ()).toBe(90);
+    });
+  });
+
+  describe('signal-driven CD', () => {
+    it('nameゲッターがversionOfシグナルを使用すること', () => {
+      const range = RangeArea.create('テスト範囲', 3, 5, 1);
+      component.range = range;
+      const objectChangeService = TestBed.inject(ObjectChangeService);
+      const spy = vi.spyOn(objectChangeService, 'versionOf');
+      void component.name;
+      expect(spy).toHaveBeenCalledWith(range.identifier);
     });
   });
 });

@@ -2,7 +2,6 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
@@ -18,7 +17,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -63,7 +61,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
-  private changeDetector = inject(ChangeDetectorRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
   private tabletopService = inject(TabletopService);
@@ -214,6 +211,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get name(): string {
+    this.objectChange.versionOf(this.range.identifier)();
     return this.range.name;
   }
   get width(): number {
@@ -307,9 +305,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!this.range || !object) return;
       this.setRange();
 
-      if (this.range === object || (object instanceof ObjectNode && this.range.contains(object))) {
-        this.changeDetector.markForCheck();
-      }
       if (object.identifier == this.range.followingCharctorIdentifier) {
         this.range.following();
         this.setRange();
