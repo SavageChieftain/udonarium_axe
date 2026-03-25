@@ -11,6 +11,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImageService } from '@axe/core/image.service';
@@ -77,6 +78,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get name(): string {
     this.objectChange.versionOf(this.diceSymbol.identifier)();
+    this.objectChange.networkVersion();
     if (this.diceSymbol.owner) {
       const cursor = PeerCursor.findByUserId(this.diceSymbol.owner);
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
@@ -125,7 +127,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     this.diceSymbol.isLock = isLock;
   }
 
-  animeState: 'inactive' | 'active' = 'inactive';
+  readonly animeState = signal<'inactive' | 'active'>('inactive');
 
   private iconHiddenTimer: NodeJS.Timeout = null!;
   get isIconHidden(): boolean {
@@ -144,17 +146,11 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.objectChange.rollDiceSymbol$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.diceSymbol.identifier) {
-        this.animeState = 'inactive';
-        this.changeDetector.markForCheck();
+        this.animeState.set('inactive');
         setTimeout(() => {
-          this.animeState = 'active';
-          this.changeDetector.markForCheck();
+          this.animeState.set('active');
         });
       }
-    });
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const cursor = PeerCursor.findByPeerId(event.peerId);
-      if (!cursor || this.diceSymbol.owner === cursor.userId) this.changeDetector.markForCheck();
     });
     this.movableOption = {
       tabletopObject: this.diceSymbol,
@@ -184,7 +180,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onDiceRollEnd() {
-    this.animeState = 'inactive';
+    this.animeState.set('inactive');
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {

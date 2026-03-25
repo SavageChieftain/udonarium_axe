@@ -31,7 +31,7 @@
       }
       <div
         class="component-content is-3d"
-        [class.dice-rolling]="animeState === 'active'"
+        [class.dice-rolling]="animeState() === 'active'"
         (animationend)="onDiceRollEnd()"
       >
         <div class="upright-transform is-fit-width is-3d">

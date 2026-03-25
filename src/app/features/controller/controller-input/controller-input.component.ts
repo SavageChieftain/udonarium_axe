@@ -1,7 +1,6 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -11,6 +10,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -29,7 +29,6 @@ import { callWritingAMessage } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
 import { ChatMessageService } from '@axe/features/chat/chat-message.service';
-import { BatchService } from '@axe/features/inventory/batch.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
@@ -44,10 +43,8 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ControllerInputComponent implements OnInit, OnDestroy {
-  private changeDetector = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
-  private batchService = inject(BatchService);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -275,7 +272,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   //  writingPeers: Map<string, NodeJS.Timeout> = new Map();
   writingPeers: Map<string, ResettableTimeout> = new Map(); // 1.13.xとのmargeで修正
 
-  writingPeerNames: string[] = [];
+  readonly writingPeerNames = signal<string[]>([]);
 
   buffHideIsChk = false;
 
@@ -364,18 +361,15 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
           new ResettableTimeout(() => {
             this.writingPeers.delete(event.sendFrom);
             this.updateWritingPeerNames();
-            this.changeDetector.markForCheck();
           }, 2000)
         );
       }
       this.writingPeers.get(event.sendFrom)!.reset();
       this.updateWritingPeerNames();
-      this.batchService.add(() => this.changeDetector.markForCheck(), this);
     });
   }
 
   ngOnDestroy() {
-    this.batchService.remove(this);
     if (this.writingEventInterval) {
       clearTimeout(this.writingEventInterval);
       this.writingEventInterval = null!;
@@ -387,11 +381,13 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   private updateWritingPeerNames() {
-    this.writingPeerNames = Array.from(this.writingPeers.keys()).map((peerId) => {
-      //      let peer = PeerCursor.find(peerId);
-      const peer = PeerCursor.findByPeerId(peerId); // 1.13.xとのmargeで修正
-      return peer ? peer.name : '';
-    });
+    this.writingPeerNames.set(
+      Array.from(this.writingPeers.keys()).map((peerId) => {
+        //      let peer = PeerCursor.find(peerId);
+        const peer = PeerCursor.findByPeerId(peerId); // 1.13.xとのmargeで修正
+        return peer ? peer.name : '';
+      })
+    );
   }
 
   onInput() {
