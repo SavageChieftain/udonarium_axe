@@ -48,6 +48,7 @@ export class Alarm extends GameObject {
   }
 
   chkToMe(): boolean {
+    if (!PeerCursor.myCursor) return false;
     for (const target of this.targetPeerId) {
       if (PeerCursor.myCursor.peerId == target) return true;
     }

@@ -36,6 +36,7 @@ const nodeBatches = new Set<string>();
 let isBatching = false;
 
 export function markForChanged(object: GameObject, sendFrom: string = Network.peerId) {
+  if (!object) return;
   objectBatches.set(object.identifier, {
     object: object,
     originFrom: sendFrom,

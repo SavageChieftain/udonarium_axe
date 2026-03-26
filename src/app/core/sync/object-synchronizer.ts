@@ -95,7 +95,7 @@ export class ObjectSynchronizer {
             );
           } else {
             object = this.createObject(context);
-            markForChanged(object, msg.sendFrom);
+            if (object) markForChanged(object, msg.sendFrom);
           }
         })
     );
