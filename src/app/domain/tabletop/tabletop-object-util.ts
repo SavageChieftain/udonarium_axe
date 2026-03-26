@@ -10,7 +10,7 @@ export interface Stackable extends TabletopObject {
 
 export function moveToTopmost(topmost: Stackable, otherRelatives: AliasName[] = []) {
   let objects: Stackable[] = ObjectStore.instance.getObjects(topmost.aliasName);
-  otherRelatives.forEach((aliasName) => (objects = objects.concat(ObjectStore.instance.getObjects(aliasName))));
+  otherRelatives.forEach((aliasName) => objects.push(...(ObjectStore.instance.getObjects(aliasName) as Stackable[])));
   objects = objects.filter((obj) => obj.isVisibleOnTable);
 
   let maxZindex: number = -1;

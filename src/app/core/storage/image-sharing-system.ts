@@ -101,7 +101,7 @@ export class ImageSharingSystem {
               });
           }
 
-          if (this.isLimitSendTask() === false && 0 < randomRequest.length && !this.existsSendTask(msg.data.receiver)) {
+          if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(msg.data.receiver)) {
             const updateImages: ImageContext[] = this.makeSendUpdateImages(randomRequest);
             this.startSendTask(updateImages, msg.data.receiver);
           } else {

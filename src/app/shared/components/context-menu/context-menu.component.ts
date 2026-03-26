@@ -79,7 +79,7 @@ export class ContextMenuComponent implements OnDestroy, AfterViewInit {
   }
 
   onOutsideClick(event: Event) {
-    if (this.rootElementRef().nativeElement.contains(event.target as Node) === false) {
+    if (!this.rootElementRef().nativeElement.contains(event.target as Node)) {
       this.close();
     }
   }

@@ -44,9 +44,9 @@ export class InputHandler {
     option: InputHandlerOption = { capture: false, passive: false, always: false }
   ) {
     this.option = {
-      capture: option.capture === true,
-      passive: option.passive === true,
-      always: option.always === true,
+      capture: !!option.capture,
+      passive: !!option.passive,
+      always: !!option.always,
     };
     this.initialize();
   }

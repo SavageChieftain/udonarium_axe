@@ -91,7 +91,7 @@ export class MarkDown extends GameObject {
     for (let i = 0; i < splitLine.length; i++) {
       const splitVar = splitLine[i].split(/[|｜]/);
       if (splitVar.length == 1) {
-        if (tableMaking == false) {
+        if (!tableMaking) {
           textOut += `${splitLine[i]}\n`;
         } else {
           textOut += '</div>';
@@ -99,7 +99,7 @@ export class MarkDown extends GameObject {
           tableMaking = false;
         }
       } else {
-        if (tableMaking == false) {
+        if (!tableMaking) {
           textOut += splitVar[0];
           textOut +=
             '<div class="markdown_table" style="display: table; table-layout: fixed; border: 1px solid #000000;">';
@@ -118,19 +118,9 @@ export class MarkDown extends GameObject {
         }
       }
     }
-    if (tableMaking == true) {
+    if (tableMaking) {
       textOut += '</div>';
     }
     return textOut;
-  }
-
-  // GameObject Lifecycle
-  onStoreAdded() {
-    super.onStoreAdded();
-  }
-
-  // GameObject Lifecycle
-  onStoreRemoved() {
-    super.onStoreRemoved();
   }
 }

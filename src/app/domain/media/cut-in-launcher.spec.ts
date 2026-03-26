@@ -22,12 +22,6 @@ describe('CutInLauncher', () => {
   });
 
   describe('SyncVar デフォルト値', () => {
-    it('test がデフォルト "test001"', () => {
-      const launcher = new CutInLauncher('CutInLauncher');
-      launcher.initialize();
-      expect(launcher.test).toBe('test001');
-    });
-
     it('launchCutInIdentifier がデフォルト空文字', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();

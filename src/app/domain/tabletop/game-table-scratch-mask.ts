@@ -49,13 +49,13 @@ export class GameTableScratchMask extends TabletopObject {
   }
 
   copyBack2MainMap() {
-    this.M = this.fillMapBack.concat();
+    this.M = [...this.fillMapBack];
     this.dummy++;
     if (this.dummy >= 100) this.dummy = 0;
   }
 
   copyMain2BackMap() {
-    this.fillMapBack = this.M.concat();
+    this.fillMapBack = [...this.M];
   }
 
   reverseMapXY(x: number, y: number) {

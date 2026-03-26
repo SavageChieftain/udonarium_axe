@@ -46,7 +46,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
       this.needsSort = false;
       this._children.sort((a, b) => a.index - b.index);
     }
-    return this._children.concat();
+    return [...this._children];
   }
 
   // TODO 名前　親Nodeの存在が未知の状態であるNode
@@ -56,7 +56,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
   // override
   destroy() {
     super.destroy();
-    for (const child of this._children.concat()) {
+    for (const child of [...this._children]) {
       child.destroy();
     }
     this._children = [];

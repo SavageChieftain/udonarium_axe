@@ -17,7 +17,7 @@ export class ReloadCheck extends TabletopObject {
   }
 
   answerCheck(): boolean {
-    if (this.isAnswer == false) {
+    if (!this.isAnswer) {
       this.reloadOK = window.confirm(
         'プレイ中にルーム根幹設定を含むデータが入力されました\nこのデータを本当に読み込んでいいですか？ 古いデータは上書きされます'
       );

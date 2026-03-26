@@ -106,7 +106,7 @@ export class SynchronizeTask {
 
   private static onDisconnect(peerId: PeerId) {
     for (const tasks of SynchronizeTask.tasksMap.values()) {
-      for (const task of tasks.concat()) {
+      for (const task of [...tasks]) {
         if (task.peerId === peerId) task.timeout();
       }
     }
@@ -119,7 +119,7 @@ export class SynchronizeTask {
   private static onUpdate(identifier: ObjectIdentifier) {
     if (!SynchronizeTask.tasksMap.has(identifier)) return;
     const tasks = SynchronizeTask.tasksMap.get(identifier)!;
-    for (const task of tasks.concat()) {
+    for (const task of [...tasks]) {
       task.onUpdate(identifier);
     }
     if (SynchronizeTask.tasksMap.size < 1) {

@@ -171,10 +171,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onCardDrop(e: Event) {
     const ce = e as CustomEvent;
-    if (
-      this.card() === ce.detail ||
-      (ce.detail instanceof Card === false && ce.detail instanceof CardStack === false)
-    ) {
+    if (this.card() === ce.detail || (!(ce.detail instanceof Card) && !(ce.detail instanceof CardStack))) {
       return;
     }
     e.stopPropagation();

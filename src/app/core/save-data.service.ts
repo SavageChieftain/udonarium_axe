@@ -43,9 +43,7 @@ export class SaveDataService {
     files.push(new File([configXml], 'config.xml', { type: 'text/plain' }));
     files.push(new File([summarySetting], 'summary.xml', { type: 'text/plain' }));
 
-    let images: ImageFile[] = [];
-    images = images.concat(this.searchImageFiles(roomXml));
-    images = images.concat(this.searchImageFiles(chatXml));
+    const images: ImageFile[] = [...this.searchImageFiles(roomXml), ...this.searchImageFiles(chatXml)];
     for (const image of images) {
       if (image.state === ImageState.COMPLETE) {
         files.push(
@@ -79,8 +77,7 @@ export class SaveDataService {
     const xml: string = this.convertToXml(gameObject);
 
     files.push(new File([xml], 'data.xml', { type: 'text/plain' }));
-    let images: ImageFile[] = [];
-    images = images.concat(this.searchImageFiles(xml));
+    const images: ImageFile[] = this.searchImageFiles(xml);
     for (const image of images) {
       if (image.state === ImageState.COMPLETE) {
         files.push(

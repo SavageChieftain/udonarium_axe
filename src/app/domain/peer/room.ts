@@ -30,20 +30,19 @@ export class Room extends GameObject implements InnerXml {
 
   innerXml(): string {
     let xml = '';
-    let objects: GameObject[] = [];
-    objects = objects.concat(ObjectStore.instance.getObjects(GameTable));
-    objects = objects.concat(ObjectStore.instance.getObjects(GameCharacter));
-    objects = objects.concat(ObjectStore.instance.getObjects(RangeArea));
-    objects = objects.concat(ObjectStore.instance.getObjects(TextNote));
-    objects = objects.concat(ObjectStore.instance.getObjects(CardStack));
-    objects = objects.concat(
-      ObjectStore.instance.getObjects(Card).filter((obj) => {
+    const objects: GameObject[] = [
+      ...ObjectStore.instance.getObjects(GameTable),
+      ...ObjectStore.instance.getObjects(GameCharacter),
+      ...ObjectStore.instance.getObjects(RangeArea),
+      ...ObjectStore.instance.getObjects(TextNote),
+      ...ObjectStore.instance.getObjects(CardStack),
+      ...ObjectStore.instance.getObjects(Card).filter((obj) => {
         return obj.parent === null;
-      })
-    );
-    objects = objects.concat(ObjectStore.instance.getObjects(DiceSymbol));
-    objects = objects.concat(ObjectStore.instance.getObjects(CutIn));
-    objects = objects.concat(ObjectStore.instance.getObjects(DiceTable));
+      }),
+      ...ObjectStore.instance.getObjects(DiceSymbol),
+      ...ObjectStore.instance.getObjects(CutIn),
+      ...ObjectStore.instance.getObjects(DiceTable),
+    ];
 
     for (const object of objects) {
       xml += object.toXml();
@@ -52,20 +51,20 @@ export class Room extends GameObject implements InnerXml {
   }
 
   parseInnerXml(element: Element) {
-    let objects: GameObject[] = [];
-    objects = objects.concat(ObjectStore.instance.getObjects(GameTable));
-    objects = objects.concat(ObjectStore.instance.getObjects(GameTableMask));
-    objects = objects.concat(ObjectStore.instance.getObjects(GameTableScratchMask));
-    objects = objects.concat(ObjectStore.instance.getObjects(Terrain));
-    objects = objects.concat(ObjectStore.instance.getObjects(GameCharacter));
-    objects = objects.concat(ObjectStore.instance.getObjects(RangeArea));
-    objects = objects.concat(ObjectStore.instance.getObjects(TextNote));
-    objects = objects.concat(ObjectStore.instance.getObjects(CardStack));
-    objects = objects.concat(ObjectStore.instance.getObjects(Card));
-    objects = objects.concat(ObjectStore.instance.getObjects(DiceSymbol));
-
-    objects = objects.concat(ObjectStore.instance.getObjects(CutIn));
-    objects = objects.concat(ObjectStore.instance.getObjects(DiceTable));
+    const objects: GameObject[] = [
+      ...ObjectStore.instance.getObjects(GameTable),
+      ...ObjectStore.instance.getObjects(GameTableMask),
+      ...ObjectStore.instance.getObjects(GameTableScratchMask),
+      ...ObjectStore.instance.getObjects(Terrain),
+      ...ObjectStore.instance.getObjects(GameCharacter),
+      ...ObjectStore.instance.getObjects(RangeArea),
+      ...ObjectStore.instance.getObjects(TextNote),
+      ...ObjectStore.instance.getObjects(CardStack),
+      ...ObjectStore.instance.getObjects(Card),
+      ...ObjectStore.instance.getObjects(DiceSymbol),
+      ...ObjectStore.instance.getObjects(CutIn),
+      ...ObjectStore.instance.getObjects(DiceTable),
+    ];
 
     const reLoadOk = this.reloadCheck.answerCheck();
     if (reLoadOk) {

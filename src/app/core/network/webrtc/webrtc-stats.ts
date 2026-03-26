@@ -78,7 +78,7 @@ export class WebRTCStats {
 
     let candidateType = CandidateType.UNKNOWN;
     const types: CandidateType[] = Object.values(CandidateType);
-    usedLocalCandidates.concat(usedRemoteCandidates).forEach((candidate) => {
+    [...usedLocalCandidates, ...usedRemoteCandidates].forEach((candidate) => {
       const index = types.indexOf(candidate.candidateType);
       if (types.indexOf(candidateType) < index) candidateType = types[index];
     });

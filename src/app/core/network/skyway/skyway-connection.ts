@@ -22,10 +22,7 @@ interface DataContainer {
 
 export class SkyWayConnection implements Connection {
   private get userIds(): string[] {
-    return this.peers
-      .map((peer) => peer.userId)
-      .filter((userId) => 0 < userId.length)
-      .concat([this.peer.userId]);
+    return [...this.peers.map((peer) => peer.userId).filter((userId) => 0 < userId.length), this.peer.userId];
   }
 
   get peerId(): string {

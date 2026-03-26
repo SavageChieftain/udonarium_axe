@@ -9,7 +9,7 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
   }
 
   [Symbol.iterator]() {
-    const streams = this.streams.concat();
+    const streams = [...this.streams];
     let index = 0;
     return {
       next(): IteratorResult<SkyWayDataStream> {

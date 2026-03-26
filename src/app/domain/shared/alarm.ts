@@ -70,16 +70,6 @@ export class Alarm extends GameObject {
     }
   }
 
-  // GameObject Lifecycle
-  onStoreAdded() {
-    super.onStoreAdded();
-  }
-
-  // GameObject Lifecycle
-  onStoreRemoved() {
-    super.onStoreRemoved();
-  }
-
   // override
   apply(context: ObjectContext) {
     const initTimeStamp = this.initTimeStamp;

@@ -60,14 +60,14 @@ export class Network {
     return this.connection ? this.connection.peerId : unknownPeer.peerId;
   }
   get peerIds(): string[] {
-    return this.connection ? this.connection.peerIds.concat() : [];
+    return this.connection ? [...this.connection.peerIds] : [];
   }
 
   get peer(): IPeerContext {
     return this.connection ? this.connection.peer : unknownPeer;
   }
   get peers(): IPeerContext[] {
-    return this.connection ? this.connection.peers.concat() : [];
+    return this.connection ? [...this.connection.peers] : [];
   }
 
   get peerContext(): IPeerContext {

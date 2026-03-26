@@ -167,10 +167,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onCardDrop(e: Event) {
     const ce = e as CustomEvent;
-    if (
-      this.cardStack() === ce.detail ||
-      (ce.detail instanceof Card === false && ce.detail instanceof CardStack === false)
-    ) {
+    if (this.cardStack() === ce.detail || (!(ce.detail instanceof Card) && !(ce.detail instanceof CardStack))) {
       return;
     }
     e.stopPropagation();
@@ -465,7 +462,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const bottomCards: Card[] = bottomStack.drawCardAll();
     const topCards: Card[] = topStack.drawCardAll();
-    for (const card of topCards.concat(bottomCards)) newCardStack.putOnBottom(card);
+    for (const card of [...topCards, ...bottomCards]) newCardStack.putOnBottom(card);
 
     bottomStack.setLocation('');
     bottomStack.destroy();

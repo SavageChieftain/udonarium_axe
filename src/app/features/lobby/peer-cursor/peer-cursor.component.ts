@@ -144,7 +144,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     } else {
-      if (this.cursor().isDisConnect == true) {
+      if (this.cursor().isDisConnect) {
         setTimeout(() => {
           this.timestampInterval = null!;
           const text = 'あなたと' + this.cursor().userId + '[' + this.cursor().name + '] さんの接続を確認しました。';

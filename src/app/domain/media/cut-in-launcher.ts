@@ -10,7 +10,6 @@ import { CutIn } from './cut-in';
 
 @SyncObject('cut-in-launcher')
 export class CutInLauncher extends GameObject {
-  @SyncVar() test: string = 'test001';
   @SyncVar() launchCutInIdentifier: string = '';
   @SyncVar() launchTimeStamp: number = 0;
   @SyncVar() launchMySelf = false;
@@ -119,16 +118,6 @@ export class CutInLauncher extends GameObject {
 
   getCutIns(): CutIn[] {
     return ObjectStore.instance.getObjects(CutIn);
-  }
-
-  // GameObject Lifecycle
-  onStoreAdded() {
-    super.onStoreAdded();
-  }
-
-  // GameObject Lifecycle
-  onStoreRemoved() {
-    super.onStoreRemoved();
   }
 
   // override
