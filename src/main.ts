@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { enableProdMode, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, enableProdMode, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { YouTubePlayerModule } from '@angular/youtube-player';
 import { AppConfigService } from '@axe/core/app-config.service';
+import { AppInitializationService } from '@axe/core/app-initialization.service';
 import { CLASS_SINGLETON_PROVIDERS } from '@axe/core/class-provider';
 import { Logger } from '@axe/core/logger';
 import { LoggerService } from '@axe/core/logger.service';
@@ -46,6 +47,12 @@ bootstrapApplication(AppComponent, {
     PanelService,
     PointerDeviceService,
     TabletopService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (service: AppInitializationService) => () => service.initialize(),
+      deps: [AppInitializationService],
+      multi: true,
+    },
   ],
 })
   .then((appRef) => ServiceLocator.init(appRef.injector))

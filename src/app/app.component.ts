@@ -1,269 +1,62 @@
 import {
+  afterNextRender,
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   inject,
-  OnDestroy,
   signal,
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AppConfigService } from '@axe/core/app-config.service';
+import { AppEventHandlerService } from '@axe/core/app-event-handler.service';
 import { Network } from '@axe/core/network/network';
-import { initializeNetworkMessaging } from '@axe/core/network/network-messaging';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { SaveDataService } from '@axe/core/save-data.service';
-import { AudioPlayer } from '@axe/core/storage/audio-player';
-import { AudioSharingSystem } from '@axe/core/storage/audio-sharing-system';
-import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
-import { ImageFile } from '@axe/core/storage/image-file';
-import { ImageSharingSystem } from '@axe/core/storage/image-sharing-system';
-import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
-import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
-import { MarkDown } from '@axe/domain/data/mark-down';
-import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { CutIn } from '@axe/domain/media/cut-in';
-import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-import { Jukebox } from '@axe/domain/media/Jukebox';
-import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { Config } from '@axe/domain/peer/config';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { Alarm } from '@axe/domain/shared/alarm';
 import { ReloadCheck } from '@axe/domain/shared/reload-check';
-import { Vote } from '@axe/domain/shared/vote';
-import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { AlarmWindowComponent } from '@axe/features/alarm/alarm-window/alarm-window.component';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator/network-indicator.component';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
-import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
-import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
 import { ContextMenuComponent } from '@axe/shared/components/context-menu/context-menu.component';
 import { ModalComponent } from '@axe/shared/components/modal/modal.component';
-import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
 import { UIPanelComponent } from '@axe/shared/components/ui-panel/ui-panel.component';
-import { UIPanelComponent as UIPanelComponent_1 } from '@axe/shared/components/ui-panel/ui-panel.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
-import { NgSelectConfig } from '@ng-select/ng-select';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [GameTableComponent, UIPanelComponent_1, NetworkIndicatorComponent],
+  imports: [GameTableComponent, UIPanelComponent, NetworkIndicatorComponent],
 })
-export class AppComponent implements AfterViewInit, OnDestroy {
-  private modalService = inject(ModalService);
-  private destroyRef = inject(DestroyRef);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private chatMessageService = inject(ChatMessageService);
-  private appConfigService = inject(AppConfigService);
-  private saveDataService = inject(SaveDataService);
-  private ngSelectConfig = inject(NgSelectConfig);
-
-  private objectStore = inject(ObjectStore);
-  private fileArchiver = inject(FileArchiver);
-  private imageStorage = inject(ImageStorage);
-  private audioStorage = inject(AudioStorage);
-  private chatTabList = inject(ChatTabList);
-  private tableSelecter = inject(TableSelecter);
-  private config = inject(Config);
-  private dataSummarySetting = inject(DataSummarySetting);
+export class AppComponent implements AfterViewInit {
+  private readonly panelService = inject(PanelService);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly fileArchiver = inject(FileArchiver);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly eventHandler = inject(AppEventHandlerService);
 
   @ViewChild('modalLayer', { read: ViewContainerRef, static: true })
   modalLayerViewContainerRef!: ViewContainerRef;
 
-  get reloadCheck(): ReloadCheck {
-    return this.objectStore.get<ReloadCheck>('ReloadCheck');
-  }
-  networkService = Network;
-
-  private renderVersion = signal(0);
-  private immediateUpdateTimer: number = null!;
-  private lazyUpdateTimer: number = null!;
-  private openPanelCount = 0;
   isSaveing = signal(false);
   progresPercent = signal(0);
-  dispcounter = 10; // 表示更新用ダミーカットインを閉じるときに無理やり更新させている。
+  private openPanelCount = 0;
 
   constructor() {
-    initializeNetworkMessaging();
-    this.fileArchiver.initialize();
-    ImageSharingSystem.instance.initialize();
-    AudioSharingSystem.instance.initialize();
-    ObjectSynchronizer.instance.initialize();
-    this.appConfigService.initialize();
-    this.pointerDeviceService.initialize();
-    this.ngSelectConfig.appendTo = 'body';
-
-    this.tableSelecter.initialize();
-    this.chatTabList.initialize();
-
-    this.config.initialize();
-
-    this.dataSummarySetting.initialize();
-
-    const diceBot: DiceBot = new DiceBot('DiceBot');
-    diceBot.initialize();
-    DiceBot.getHelpMessage('').then(() => this.lazyMarkForCheck(true));
-
-    const jukebox: Jukebox = new Jukebox('Jukebox');
-    jukebox.initialize();
-
-    const markdown: MarkDown = new MarkDown('markdwon');
-    markdown.initialize();
-
-    const cutInLauncher = new CutInLauncher('CutInLauncher');
-    cutInLauncher.initialize();
-
-    const vote = new Vote('Vote');
-    vote.initialize();
-
-    const alarm = new Alarm('Alarm');
-    alarm.initialize();
-
-    const reloadCheck = new ReloadCheck('ReloadCheck');
-    reloadCheck.initialize();
-
-    const soundEffect: SoundEffect = new SoundEffect('SoundEffect');
-    soundEffect.initialize();
-
-    this.chatTabList.addChatTab('メインタブ', 'MainTab');
-    this.chatTabList.addChatTab('サブタブ', 'SubTab');
-
-    const fileContext = ImageFile.createEmpty('none_icon').toContext();
-    fileContext.url = './assets/images/ic_account_circle_black_24dp_2x.png';
-    const noneIconImage = this.imageStorage.add(fileContext);
-
-    AudioPlayer.resumeAudioContext();
-    PresetSound.dicePick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.dicePut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.diceRoll1 = this.audioStorage.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3').identifier;
-    PresetSound.diceRoll2 = this.audioStorage.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3').identifier;
-    PresetSound.cardDraw = this.audioStorage.add('./assets/sounds/soundeffect-lab/card-turn-over1.mp3').identifier;
-    PresetSound.cardPick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.cardPut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.cardShuffle = this.audioStorage.add('./assets/sounds/soundeffect-lab/card-open1.mp3').identifier;
-    PresetSound.piecePick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.piecePut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.blockPick = this.audioStorage.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
-    PresetSound.blockPut = this.audioStorage.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
-    PresetSound.lock = this.audioStorage.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
-    PresetSound.unlock = this.audioStorage.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
-    PresetSound.sweep = this.audioStorage.add('./assets/sounds/tm2/tm2_swing003.wav').identifier;
-    PresetSound.alarm = this.audioStorage.add('./assets/sounds/alarm/alarm.mp3').identifier;
-
-    this.audioStorage.get(PresetSound.dicePick).isHidden = true;
-    this.audioStorage.get(PresetSound.dicePut).isHidden = true;
-    this.audioStorage.get(PresetSound.diceRoll1).isHidden = true;
-    this.audioStorage.get(PresetSound.diceRoll2).isHidden = true;
-    this.audioStorage.get(PresetSound.cardDraw).isHidden = true;
-    this.audioStorage.get(PresetSound.cardPick).isHidden = true;
-    this.audioStorage.get(PresetSound.cardPut).isHidden = true;
-    this.audioStorage.get(PresetSound.cardShuffle).isHidden = true;
-    this.audioStorage.get(PresetSound.piecePick).isHidden = true;
-    this.audioStorage.get(PresetSound.piecePut).isHidden = true;
-    this.audioStorage.get(PresetSound.blockPick).isHidden = true;
-    this.audioStorage.get(PresetSound.blockPut).isHidden = true;
-    this.audioStorage.get(PresetSound.lock).isHidden = true;
-    this.audioStorage.get(PresetSound.unlock).isHidden = true;
-    this.audioStorage.get(PresetSound.sweep).isHidden = true;
-    this.audioStorage.get(PresetSound.alarm).isHidden = true;
-
-    PeerCursor.createMyCursor();
-    PeerCursor.myCursor.name = 'プレイヤー';
-    PeerCursor.myCursor.imageIdentifier = noneIconImage.identifier;
-
-    this.objectChange.alarmTimeUp$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.alarmTimeUpOrigin(event.text);
-    });
-    this.objectChange.alarmPop$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.alarmPop(event.title, String(event.time));
-    });
-    this.objectChange.startVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.startVote();
-    });
-    this.objectChange.finishVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.finishVote(event.text);
-    });
-    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.startCutIn(event.cutIn as CutIn);
-    });
-    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (!event.cutIn) return;
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.lazyMarkForCheck(event.isSendFromSelf);
-    });
-    this.objectChange.localObjectUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(true);
-    });
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.lazyMarkForCheck(event.isSendFromSelf);
-    });
-    this.objectChange.audioSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
-    });
-    this.objectChange.loadConfig$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      Network.configure(event.config as Record<string, unknown>);
-      Network.open();
-    });
-    this.objectChange.fileLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
-    });
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      PeerCursor.myCursor.peerId = Network.peerContext.peerId;
-      PeerCursor.myCursor.userId = Network.peerContext.userId;
-    });
-    this.objectChange.networkError$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (event) => {
-      const errorType = event.errorType;
-      const errorMessage = event.errorMessage;
-
-      const quietErrorTypes = ['peer-unavailable'];
-      const reconnectErrorTypes = ['disconnected', 'socket-error', 'unavailable-id', 'authentication', 'server-error'];
-
-      if (quietErrorTypes.includes(errorType)) return;
-      await this.modalService.open(TextViewComponent, {
-        title: 'ネットワークエラー',
-        text: errorMessage,
-      });
-
-      if (!reconnectErrorTypes.includes(errorType)) return;
-      await this.modalService.open(TextViewComponent, {
-        title: 'ネットワークエラー',
-        text: 'このウィンドウを閉じると再接続を試みます。',
-      });
-      Network.open();
-    });
-    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.chatMessageService.calibrateTimeOffset();
-      this.lazyMarkForCheck(true);
-    });
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
+    this.eventHandler.initialize();
+    afterNextRender(() => {
+      this.panelService.open(PeerMenuComponent, { width: 500, height: 450, left: 100 });
+      this.panelService.open(ChatWindowComponent, { width: 700, height: 400, left: 100, top: 450 });
     });
   }
 
@@ -272,108 +65,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       ModalService.defaultParentViewContainerRef =
       ContextMenuService.defaultParentViewContainerRef =
         this.modalLayerViewContainerRef;
-    setTimeout(() => {
-      this.panelService.open(PeerMenuComponent, {
-        width: 500,
-        height: 450,
-        left: 100,
-      });
-      this.panelService.open(ChatWindowComponent, {
-        width: 700,
-        height: 400,
-        left: 100,
-        top: 450,
-      });
-    }, 0);
-  }
-
-  ngOnDestroy() {}
-
-  alarmTimeUpOrigin(text: string) {
-    this.chatMessageService.sendSystemMessageLastSendCharactor(text);
-  }
-
-  alarmTimeUpTarget(text: string) {
-    this.chatMessageService.sendSystemMessageLastSendCharactor(text);
-  }
-
-  startVote() {
-    const vote = this.objectStore.get<Vote>('Vote');
-    if (!vote.chkToMe()) return;
-
-    const option: PanelOption = { left: 0, top: 0, width: 450, height: 400 };
-    option.title = '点呼/投票';
-
-    let margin_w = (window.innerWidth - option.width!) / 2;
-    let margin_h = (window.innerHeight - option.height!) / 2;
-    if (margin_w < 0) margin_w = 0;
-    if (margin_h < 0) margin_h = 0;
-    option.left = margin_w;
-    option.top = margin_h;
-    this.panelService.open(VoteWindowComponent, option);
-  }
-
-  finishVote(text: string) {
-    this.chatMessageService.sendSystemMessageLastSendCharactor(text);
-  }
-
-  alarmPop(title: string, time: string) {
-    const winH = 100;
-    const winW = 200;
-    const option: PanelOption = {
-      width: winW,
-      height: winH,
-      left: 300,
-      top: 100,
-    };
-    option.title = 'アラーム ' + title;
-
-    let margin_w = window.innerWidth - winW;
-    let margin_h = window.innerHeight - winH - 25;
-
-    if (margin_w < 0) margin_w = 0;
-    if (margin_h < 0) margin_h = 0;
-
-    const margin_x = margin_w * 0.5;
-    const margin_y = margin_h * 0.5;
-
-    option.width = winW;
-    option.height = winH + 25;
-    option.left = margin_x;
-    option.top = margin_y;
-
-    const component = this.panelService.open(AlarmWindowComponent, option);
-    component.title = title;
-    component.time = time;
-  }
-
-  startCutIn(cutIn: CutIn) {
-    if (!cutIn) return;
-    const option: PanelOption = { width: 200, height: 100, left: 300, top: 100 };
-    option.title = 'カットイン : ' + cutIn.name;
-
-    const cutin_w = cutIn.width;
-    const cutin_h = cutIn.height;
-
-    let margin_w = window.innerWidth - cutin_w;
-    let margin_h = window.innerHeight - cutin_h - 25;
-
-    if (margin_w < 0) margin_w = 0;
-    if (margin_h < 0) margin_h = 0;
-
-    const margin_x = (margin_w * cutIn.x_pos) / 100;
-    const margin_y = (margin_h * cutIn.y_pos) / 100;
-
-    option.width = cutin_w;
-    option.height = cutin_h + 25;
-    option.left = margin_x;
-    option.top = margin_y;
-    option.isCutIn = true;
-    option.cutInIdentifier = cutIn.identifier;
-
-    const component = this.panelService.open(CutInWindowComponent, option);
-    component.cutIn = cutIn;
-    component.startCutIn();
   }
 
   open(componentName: string) {
@@ -434,37 +125,12 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   handleFileSelect(event: Event) {
-    const input = <HTMLInputElement>event.target;
+    const input = event.target as HTMLInputElement;
     const files = input.files;
-
-    this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName != '');
-
+    const reloadCheck = this.objectStore.get<ReloadCheck>('ReloadCheck');
+    reloadCheck.reloadCheckStart(Network.peerContext.roomName != '');
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
-  }
-
-  private lazyMarkForCheck(isImmediate: boolean) {
-    if (isImmediate) {
-      if (this.immediateUpdateTimer !== null) return;
-      this.immediateUpdateTimer = requestAnimationFrame(() => {
-        this.immediateUpdateTimer = null!;
-        if (this.lazyUpdateTimer !== null) {
-          cancelAnimationFrame(this.lazyUpdateTimer);
-          this.lazyUpdateTimer = null!;
-        }
-        this.renderVersion.update((v) => v + 1);
-      });
-    } else {
-      if (this.lazyUpdateTimer !== null) return;
-      this.lazyUpdateTimer = requestAnimationFrame(() => {
-        this.lazyUpdateTimer = null!;
-        if (this.immediateUpdateTimer !== null) {
-          cancelAnimationFrame(this.immediateUpdateTimer);
-          this.immediateUpdateTimer = null!;
-        }
-        this.renderVersion.update((v) => v + 1);
-      });
-    }
   }
 }
 
