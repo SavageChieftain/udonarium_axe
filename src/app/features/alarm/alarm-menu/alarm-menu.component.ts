@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { SaveDataService } from '@axe/core/save-data.service';
@@ -18,7 +18,7 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
   styleUrls: ['./alarm-menu.component.css'],
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
-export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
+export class AlarmMenuComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -45,17 +45,15 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.objectStore.get<Alarm>('Alarm');
   }
 
-  constructor() {}
+  constructor() {
+    afterNextRender(() => {
+      this.setDefaultCheck();
+    });
+  }
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'アラームタイマ'));
     this.setDefaultCheck();
-  }
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this.setDefaultCheck();
-    }, 0);
   }
 
   isPeerIsDisConnect(peerId: string): boolean {

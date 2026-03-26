@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -13,6 +14,7 @@ import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.se
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { interval } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,18 +23,18 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
   styleUrls: ['./peer-menu.component.css'],
   imports: [FormsModule, DatePipe, SafePipe],
 })
-export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
+export class PeerMenuComponent implements OnInit {
   private tabletopActionService = inject(TabletopActionService);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private tableSelecter = inject(TableSelecter);
+  private destroyRef = inject(DestroyRef);
   targetUserId = '';
   networkService = Network;
   gameRoomService = this.objectStore;
   help: string = '';
   isPasswordVisible = false;
-  disptimer: ReturnType<typeof setInterval> | null = null;
   dispDetailFlag = false;
 
   get myPeer(): PeerCursor {
@@ -41,19 +43,9 @@ export class PeerMenuComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = '接続情報'));
-  }
-
-  ngAfterViewInit() {
-    this.disptimer = setInterval(() => {
-      this.dispInfo();
-    }, 1000);
-  }
-
-  ngOnDestroy() {
-    if (this.disptimer != null) {
-      clearInterval(this.disptimer);
-      this.disptimer = null;
-    }
+    interval(1000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.dispInfo());
   }
 
   changeIcon() {

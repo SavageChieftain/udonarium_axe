@@ -1,5 +1,6 @@
 import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
+  afterNextRender,
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
@@ -92,11 +93,14 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
 
   isOpenImageView: boolean = false;
 
+  constructor() {
+    afterNextRender(() => {
+      this.adjustPositionRoot();
+    });
+  }
+
   ngAfterViewInit() {
     this.initPanelPosition();
-    setTimeout(() => {
-      this.adjustPositionRoot();
-    }, 16);
   }
 
   ngOnDestroy() {}
