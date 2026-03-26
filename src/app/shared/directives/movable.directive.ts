@@ -2,12 +2,12 @@ import {
   AfterViewInit,
   DestroyRef,
   Directive,
+  effect,
   ElementRef,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnDestroy,
-  Output,
+  output,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -45,20 +45,15 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   private colideLayers: string[] = [];
   private transformCssOffset: string = '';
 
-  @Input('movable.option') set option(option: MovableOption) {
-    this.tabletopObject = option.tabletopObject != null ? option.tabletopObject : this.tabletopObject;
-    this.layerName = option.layerName != null ? option.layerName : this.layerName;
-    this.colideLayers = option.colideLayers != null ? option.colideLayers : this.colideLayers;
-    this.transformCssOffset = option.transformCssOffset != null ? option.transformCssOffset : this.transformCssOffset;
-  }
-  @Input('movable.disable') isDisable: boolean = false;
-  @Input('movable.scratch_owner') isScratcOwner: boolean = false;
+  readonly option = input.required<MovableOption>({ alias: 'movable.option' });
+  readonly isDisable = input(false, { alias: 'movable.disable' });
+  readonly isScratcOwner = input(false, { alias: 'movable.scratch_owner' });
 
-  @Output('movable.onstart') onstart: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('movable.ondragstart') ondragstart: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('movable.ondrag') ondrag: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('movable.ondragend') ondragend: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('movable.onend') onend: EventEmitter<PointerEvent> = new EventEmitter();
+  readonly onstart = output<PointerEvent>({ alias: 'movable.onstart' });
+  readonly ondragstart = output<PointerEvent>({ alias: 'movable.ondragstart' });
+  readonly ondrag = output<PointerEvent>({ alias: 'movable.ondrag' });
+  readonly ondragend = output<PointerEvent>({ alias: 'movable.ondragend' });
+  readonly onend = output<PointerEvent>({ alias: 'movable.onend' });
 
   private get nativeElement(): HTMLElement {
     return this.elementRef.nativeElement;
@@ -124,7 +119,22 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     return this.tableSelecter.gridSnap;
   }
 
+  constructor() {
+    effect(() => {
+      const opt = this.option();
+      if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
+      if (opt.layerName != null) this.layerName = opt.layerName;
+      if (opt.colideLayers != null) this.colideLayers = opt.colideLayers;
+      if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
+    });
+  }
+
   ngAfterViewInit() {
+    const opt = this.option();
+    if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
+    if (opt.layerName != null) this.layerName = opt.layerName;
+    if (opt.colideLayers != null) this.colideLayers = opt.colideLayers;
+    if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
     this.batchService.add(() => this.initialize(), this.elementRef);
     this.setPosition(this.tabletopObject);
   }
@@ -197,7 +207,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.callSelectedEvent();
     if (this.collidableElements.length < 1) this.findCollidableElements(); // 稀にcollidableElementsの取得に失敗している
 
-    if ((this.isDisable && !this.isScratcOwner) || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
+    if ((this.isDisable() && !this.isScratcOwner()) || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
       return this.cancel();
     this.onstart.emit(e as PointerEvent);
 
@@ -227,7 +237,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
 
     this.targetStartRect = this.nativeElement.getBoundingClientRect();
 
-    if (this.isScratcOwner) {
+    if (this.isScratcOwner()) {
       this.scratchObjectPosition(true);
     }
 
@@ -239,7 +249,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
       return this.cancel(); // todo
     }
 
-    if ((this.isDisable && !this.isScratcOwner) || !this.input.isGrabbing) return this.cancel();
+    if ((this.isDisable() && !this.isScratcOwner()) || !this.input.isGrabbing) return this.cancel();
 
     if (e.cancelable) e.preventDefault();
 
@@ -272,7 +282,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
       this.ratio += (ratio - this.ratio) * 0.1;
     }
 
-    if (!this.isScratcOwner) {
+    if (!this.isScratcOwner()) {
       //スクラッチマスク用の処理スキップ
       this.posX = pointer3d.x;
       this.posY = pointer3d.y;
@@ -283,15 +293,15 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   onInputEnd(e: MouseEvent | TouchEvent) {
-    if (this.isDisable) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     if (this.input.isDragging) this.ondragend.emit(e as PointerEvent);
-    if (this.isGridSnap && this.input.isDragging && !this.isScratcOwner) this.snapToGrid();
+    if (this.isGridSnap && this.input.isDragging && !this.isScratcOwner()) this.snapToGrid();
     this.cancel();
     this.onend.emit(e as PointerEvent);
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
-    if (this.isDisable) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     if (e.cancelable) e.preventDefault();
 
     if (this.isGridSnap && this.input.isDragging) this.snapToGrid();

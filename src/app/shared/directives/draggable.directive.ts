@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
 import { PointerCoordinate } from '@axe/core/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
 
@@ -8,17 +8,17 @@ import { InputHandler } from './input-handler';
 export class DraggableDirective implements AfterViewInit, OnDestroy {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  @Input('draggable.disable') isDisable: boolean = false;
-  @Input('draggable.bounds') boundsSelector: string = 'body';
-  @Input('draggable.handle') handleSelector: string = '';
-  @Input('draggable.unhandle') unhandleSelector: string = 'input,textarea,button,select,option,span';
-  @Input('draggable.stack') stackSelector: string = '';
-  @Input('draggable.opacity') opacity: number = 0.7;
-  @Input('draggable.allowOverHalf') allowOverHalf: boolean = false;
+  readonly isDisable = input(false, { alias: 'draggable.disable' });
+  readonly boundsSelector = input('body', { alias: 'draggable.bounds' });
+  readonly handleSelector = input('', { alias: 'draggable.handle' });
+  readonly unhandleSelector = input('input,textarea,button,select,option,span', { alias: 'draggable.unhandle' });
+  readonly stackSelector = input('', { alias: 'draggable.stack' });
+  readonly opacity = input(0.7, { alias: 'draggable.opacity' });
+  readonly allowOverHalf = input(false, { alias: 'draggable.allowOverHalf' });
 
-  @Output('draggable.start') onstart: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
-  @Output('draggable.move') onmove: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
-  @Output('draggable.end') onend: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
+  readonly onstart = output<MouseEvent | TouchEvent>({ alias: 'draggable.start' });
+  readonly onmove = output<MouseEvent | TouchEvent>({ alias: 'draggable.move' });
+  readonly onend = output<MouseEvent | TouchEvent>({ alias: 'draggable.end' });
 
   private callbackOnResize = () => this.adjustPosition();
 
@@ -94,7 +94,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
     trans.z += correction.z;
 
     if (0 < trans.x ** 2 + trans.y ** 2 + trans.z ** 2) {
-      this.elementRef.nativeElement.style.opacity = this.opacity + '';
+      this.elementRef.nativeElement.style.opacity = this.opacity() + '';
     }
 
     this.elementRef.nativeElement.style.willChange = 'top, left';
@@ -147,13 +147,13 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private isHandleElement(target: HTMLElement): boolean {
-    if (this.handleSelector.length < 1) return true;
-    return this.isContainsElement(target, this.handleSelector);
+    if (this.handleSelector().length < 1) return true;
+    return this.isContainsElement(target, this.handleSelector());
   }
 
   private isUnhandleElement(target: HTMLElement): boolean {
-    if (this.unhandleSelector.length < 1) return false;
-    return this.isContainsElement(target, this.unhandleSelector);
+    if (this.unhandleSelector().length < 1) return false;
+    return this.isContainsElement(target, this.unhandleSelector());
   }
 
   private isContainsElement(target: HTMLElement, selectors: string): boolean {
@@ -165,7 +165,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private isScrollableElement(target: HTMLElement) {
-    const boundsElm = this.elementRef.nativeElement.ownerDocument.querySelector(this.boundsSelector);
+    const boundsElm = this.elementRef.nativeElement.ownerDocument.querySelector(this.boundsSelector());
     let node: HTMLElement | null = target;
     const overflowType = ['scroll', 'auto'];
     const positionType = ['fixed', 'sticky', '-webkit-sticky'];
@@ -182,9 +182,9 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
     const correction: PointerCoordinate = { x: 0, y: 0, z: 0 };
     const box = this.elementRef.nativeElement.getBoundingClientRect();
     const bounds = this.elementRef.nativeElement.ownerDocument
-      .querySelector(this.boundsSelector)!
+      .querySelector(this.boundsSelector())!
       .getBoundingClientRect();
-    if (this.allowOverHalf) {
+    if (this.allowOverHalf()) {
       const boxWidth = box.right - box.left;
       const boxHeight = box.bottom - box.top;
       if (bounds.right + boxWidth / 2 < box.right + diff.x) {
@@ -226,8 +226,8 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private setForeground() {
-    if (this.stackSelector.length < 1) return;
-    const stacks = this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector);
+    if (this.stackSelector().length < 1) return;
+    const stacks = this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector());
     let topZindex: number = 0;
     let bottomZindex: number = 99999;
     stacks.forEach((elm) => {

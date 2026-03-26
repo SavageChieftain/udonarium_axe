@@ -1,4 +1,4 @@
-import { AfterViewInit, ComponentRef, Directive, inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ComponentRef, Directive, inject, input, OnDestroy, ViewContainerRef } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
@@ -15,7 +15,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
 
   private static activeTooltips: ComponentRef<OverviewPanelComponent>[] = [];
 
-  @Input('appTooltip') tabletopObject: TabletopObject;
+  readonly tabletopObject = input.required<TabletopObject>({ alias: 'appTooltip' });
 
   private callbackOnMouseEnter = (e: Event) => this.onMouseEnter(e as MouseEvent);
   private callbackOnMouseLeave = (e: Event) => this.onMouseLeave(e as MouseEvent);
@@ -107,7 +107,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
       injector,
     });
 
-    this.tooltipComponentRef.instance.tabletopObject = this.tabletopObject;
+    this.tooltipComponentRef.instance.tabletopObject = this.tabletopObject();
     this.tooltipComponentRef.instance.left = this.pointerDeviceService.pointerX;
     this.tooltipComponentRef.instance.top = this.pointerDeviceService.pointerY;
 
@@ -116,7 +116,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
     document.body.addEventListener('mousedown', this.callbackOnMouseDown, true);
 
     this.deleteSub = this.objectChange.objectDeleted$
-      .pipe(filter((e) => this.tabletopObject && this.tabletopObject.identifier === e.identifier))
+      .pipe(filter((e) => this.tabletopObject() && this.tabletopObject().identifier === e.identifier))
       .subscribe(() => this.closeAll());
 
     this.tooltipComponentRef.onDestroy(() => {

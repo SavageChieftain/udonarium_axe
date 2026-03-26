@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, EventEmitter, inject, Input, OnDestroy, Output } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
 import { PointerCoordinate } from '@axe/core/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
 
@@ -15,15 +15,15 @@ interface BoxSize {
 export class ResizableDirective implements AfterViewInit, OnDestroy {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  @Input('resizable.disable') isDisable: boolean = false;
-  @Input('resizable.bounds') boundsSelector: string = 'body';
-  @Input('resizable.stack') stackSelector: string = '';
-  @Input('resizable.minWidth') minWidth: number = 100;
-  @Input('resizable.minHeight') minHeight: number = 100;
+  readonly isDisable = input(false, { alias: 'resizable.disable' });
+  readonly boundsSelector = input('body', { alias: 'resizable.bounds' });
+  readonly stackSelector = input('', { alias: 'resizable.stack' });
+  readonly minWidth = input(100, { alias: 'resizable.minWidth' });
+  readonly minHeight = input(100, { alias: 'resizable.minHeight' });
 
-  @Output('resizable.start') ostart: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
-  @Output('resizable.move') onmove: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
-  @Output('resizable.end') onend: EventEmitter<MouseEvent | TouchEvent> = new EventEmitter();
+  readonly ostart = output<MouseEvent | TouchEvent>({ alias: 'resizable.start' });
+  readonly onmove = output<MouseEvent | TouchEvent>({ alias: 'resizable.move' });
+  readonly onend = output<MouseEvent | TouchEvent>({ alias: 'resizable.end' });
 
   private handleMap = new Map<HandleType, ResizeHandler>();
   private handleTypes: HandleType[] = [
@@ -72,7 +72,7 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
   }
 
   private onResizeStart(e: MouseEvent | TouchEvent, handle: ResizeHandler) {
-    if (this.isDisable) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     if ((e as MouseEvent).button === 1 || (e as MouseEvent).button === 2) return this.cancel();
     this.setForeground();
     this.handleMap.forEach((h) => {
@@ -128,13 +128,13 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
         break;
     }
 
-    if (trans.width + this.startPosition.width < this.minWidth) {
-      trans.width = this.minWidth - this.startPosition.width;
+    if (trans.width + this.startPosition.width < this.minWidth()) {
+      trans.width = this.minWidth() - this.startPosition.width;
       trans.left = trans.left !== 0 ? -trans.width : trans.left;
     }
 
-    if (trans.height + this.startPosition.height < this.minHeight) {
-      trans.height = this.minHeight - this.startPosition.height;
+    if (trans.height + this.startPosition.height < this.minHeight()) {
+      trans.height = this.minHeight() - this.startPosition.height;
       trans.top = trans.top !== 0 ? -trans.height : trans.top;
     }
 
@@ -174,7 +174,7 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
     const correction: BoxSize = { left: 0, top: 0, width: 0, height: 0 };
     const box = this.elementRef.nativeElement.getBoundingClientRect();
     const bounds = this.elementRef.nativeElement.ownerDocument
-      .querySelector(this.boundsSelector)!
+      .querySelector(this.boundsSelector())!
       .getBoundingClientRect();
 
     if (bounds.right < box.right + diff.left + diff.width) {
@@ -211,8 +211,8 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
   }
 
   private setForeground() {
-    if (this.stackSelector.length < 1) return;
-    const stacks = this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector);
+    if (this.stackSelector().length < 1) return;
+    const stacks = this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector());
     let topZindex: number = 0;
     let bottomZindex: number = 99999;
     stacks.forEach((elm) => {

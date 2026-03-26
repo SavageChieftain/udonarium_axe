@@ -2,12 +2,12 @@ import {
   AfterViewInit,
   DestroyRef,
   Directive,
+  effect,
   ElementRef,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnDestroy,
-  Output,
+  output,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -42,17 +42,13 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
 
   private transformCssOffset: string = '';
   private grabbingSelecter: string = '.rotate-grab';
-  @Input('rotable.option') set option(option: RotableOption) {
-    this.tabletopObject = option.tabletopObject != null ? option.tabletopObject : this.tabletopObject;
-    this.grabbingSelecter = option.grabbingSelecter != null ? option.grabbingSelecter : this.grabbingSelecter;
-    this.transformCssOffset = option.transformCssOffset != null ? option.transformCssOffset : this.transformCssOffset;
-  }
-  @Input('rotable.disable') isDisable: boolean = false;
-  @Output('rotable.onstart') onstart: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('rotable.ondragstart') ondragstart: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('rotable.ondrag') ondrag: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('rotable.ondragend') ondragend: EventEmitter<PointerEvent> = new EventEmitter();
-  @Output('rotable.onend') onend: EventEmitter<PointerEvent> = new EventEmitter();
+  readonly option = input<RotableOption | undefined>(undefined, { alias: 'rotable.option' });
+  readonly isDisable = input(false, { alias: 'rotable.disable' });
+  readonly onstart = output<PointerEvent>({ alias: 'rotable.onstart' });
+  readonly ondragstart = output<PointerEvent>({ alias: 'rotable.ondragstart' });
+  readonly ondrag = output<PointerEvent>({ alias: 'rotable.ondrag' });
+  readonly ondragend = output<PointerEvent>({ alias: 'rotable.ondragend' });
+  readonly onend = output<PointerEvent>({ alias: 'rotable.onend' });
 
   private get nativeElement(): HTMLElement {
     return this.elementRef.nativeElement;
@@ -66,11 +62,8 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
     this._rotate = rotate;
     this.setUpdateTimer();
   }
-  @Input('rotable.value') set value(value: number) {
-    this._rotate = value;
-    this.updateTransformCss();
-  }
-  @Output('rotable.valueChange') valueChange: EventEmitter<number> = new EventEmitter();
+  readonly value = input(0, { alias: 'rotable.value' });
+  readonly valueChange = output<number>({ alias: 'rotable.valueChange' });
 
   private get isAllowedToRotate(): boolean {
     if (!this.grabbingElement || !this.nativeElement) return false;
@@ -88,7 +81,29 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   private updateTimer: NodeJS.Timeout = null!;
   private grabbingElement: HTMLElement | null = null;
   private input: InputHandler | null = null;
+
+  constructor() {
+    effect(() => {
+      const opt = this.option();
+      if (opt == null) return;
+      if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
+      if (opt.grabbingSelecter != null) this.grabbingSelecter = opt.grabbingSelecter;
+      if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
+    });
+    effect(() => {
+      this._rotate = this.value();
+      this.updateTransformCss();
+    });
+  }
+
   ngAfterViewInit() {
+    const opt = this.option();
+    if (opt != null) {
+      if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
+      if (opt.grabbingSelecter != null) this.grabbingSelecter = opt.grabbingSelecter;
+      if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
+    }
+    this._rotate = this.value();
     this.batchService.add(() => this.initialize(), this.elementRef);
     if (this.tabletopObject) {
       this.setRotate(this.tabletopObject);
@@ -144,7 +159,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
 
   onInputStart(e: MouseEvent | TouchEvent) {
     this.grabbingElement = e.target as HTMLElement;
-    if (this.isDisable || !this.isAllowedToRotate || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
+    if (this.isDisable() || !this.isAllowedToRotate || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
       return this.cancel();
     e.stopPropagation();
     this.onstart.emit(e as PointerEvent);
@@ -162,7 +177,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
     if (this.input?.isGrabbing && !this.pointerDeviceService.isDragging) {
       return this.cancel(); // todo
     }
-    if (this.isDisable || !this.input?.isGrabbing) return this.cancel();
+    if (this.isDisable() || !this.input?.isGrabbing) return this.cancel();
 
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
@@ -179,7 +194,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   }
 
   onInputEnd(e: MouseEvent | TouchEvent) {
-    if (this.isDisable) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     e.stopPropagation();
     if (this.input?.isDragging) this.ondragend.emit(e as PointerEvent);
     this.cancel();
@@ -188,7 +203,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
-    if (this.isDisable) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     if (e.cancelable) e.preventDefault();
     this.cancel();
     this.snapToPolygonal();
