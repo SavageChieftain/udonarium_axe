@@ -6,10 +6,10 @@ import {
   DestroyRef,
   ElementRef,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -40,18 +40,18 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private objectStore = inject(ObjectStore);
 
-  @ViewChild('cursor') cursorElementRef: ElementRef;
-  @ViewChild('opacity') opacityElementRef: ElementRef;
-  @Input() cursor: PeerCursor = PeerCursor.myCursor;
+  readonly cursorElementRef = viewChild<ElementRef>('cursor');
+  readonly opacityElementRef = viewChild<ElementRef>('opacity');
+  readonly cursor = input(PeerCursor.myCursor);
 
   get iconUrl(): string {
-    return this.cursor.image.url;
+    return this.cursor().image.url;
   }
   get name(): string {
-    return this.cursor.name;
+    return this.cursor().name;
   }
   get isMine(): boolean {
-    return this.cursor.isMine;
+    return this.cursor().isMine;
   }
   get chatTabList(): ChatTabList {
     return this.objectStore.get<ChatTabList>('ChatTabList');
@@ -85,7 +85,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     if (!this.isMine) {
       this.objectChange.cursorMove$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-        if (event.sendFrom !== this.cursor.peerId) return;
+        if (event.sendFrom !== this.cursor().peerId) return;
         this.batchService.add(() => {
           this.stopTransition();
           this.setAnimatedTransition();
@@ -95,26 +95,26 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.objectChange.heartBeat$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-        if (event.sendFrom !== this.cursor.peerId) return;
+        if (event.sendFrom !== this.cursor().peerId) return;
 
         this.batchService.add(() => {
-          this.cursor.timestampSend = event.timestamp;
-          this.cursor.timestampReceive = Date.now();
-          this.cursor.timeDiffDown =
-            this.cursor.timestampReceive - this.cursor.timestampSend + PeerCursor.myCursor.debugReceiveDelay;
+          this.cursor().timestampSend = event.timestamp;
+          this.cursor().timestampReceive = Date.now();
+          this.cursor().timeDiffDown =
+            this.cursor().timestampReceive - this.cursor().timestampSend + PeerCursor.myCursor.debugReceiveDelay;
 
           const messId = event.id;
           const diffUp = event.diffDown;
-          this.cursor.lastTimeSignNo = event.secdCounter;
-          if (this.cursor.firstTimeSignNo < 0) {
-            this.cursor.firstTimeSignNo = event.secdCounter;
+          this.cursor().lastTimeSignNo = event.secdCounter;
+          if (this.cursor().firstTimeSignNo < 0) {
+            this.cursor().firstTimeSignNo = event.secdCounter;
           }
-          this.cursor.totalTimeSignNum++;
+          this.cursor().totalTimeSignNum++;
 
           if (messId == PeerCursor.myCursor.peerId) {
             if (diffUp != null) {
-              this.cursor.timeDiffUp = diffUp;
-              this.cursor.timeLatency = diffUp + this.cursor.timeDiffDown;
+              this.cursor().timeDiffUp = diffUp;
+              this.cursor().timeLatency = diffUp + this.cursor().timeDiffDown;
             }
           }
         }, this);
@@ -124,19 +124,19 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private chkDisConnect() {
     const timeout = PeerCursor.myCursor.timeout * 1000;
-    const elapsedTime = Date.now() - this.cursor.timestampReceive;
+    const elapsedTime = Date.now() - this.cursor().timestampReceive;
 
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = chatTabList.systemMessageTab;
 
     if (timeout <= elapsedTime) {
-      if (!this.cursor.isDisConnect) {
-        this.cursor.isDisConnect = true;
+      if (!this.cursor().isDisConnect) {
+        this.cursor().isDisConnect = true;
         if (sysTab) {
           const text =
-            this.cursor.userId +
+            this.cursor().userId +
             '[' +
-            this.cursor.name +
+            this.cursor().name +
             '] さんからあなたへの接続確認信号が' +
             PeerCursor.myCursor.timeout +
             '秒以上受信できません。通信障害の可能性があります。';
@@ -144,26 +144,26 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     } else {
-      if (this.cursor.isDisConnect == true) {
+      if (this.cursor().isDisConnect == true) {
         setTimeout(() => {
           this.timestampInterval = null!;
-          const text = 'あなたと' + this.cursor.userId + '[' + this.cursor.name + '] さんの接続を確認しました。';
+          const text = 'あなたと' + this.cursor().userId + '[' + this.cursor().name + '] さんの接続を確認しました。';
           if (sysTab) {
             this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
           }
         }, 1000);
       }
-      this.cursor.isDisConnect = false;
+      this.cursor().isDisConnect = false;
     }
   }
 
   private logoutMessage() {
-    if (!this.cursor) return;
+    if (!this.cursor()) return;
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     if (!chatTabList) return;
     const sysTab = chatTabList.systemMessageTab;
     if (sysTab) {
-      const text = this.cursor.userId + '[' + this.cursor.name + '] さんがログアウトしました。';
+      const text = this.cursor().userId + '[' + this.cursor().name + '] さんがログアウトしました。';
       this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
     }
   }
@@ -177,7 +177,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.timestampInterval = setTimeout(() => {
         this.timestampInterval = null!;
 
-        if (PeerCursor.myCursor.peerId == this.cursor.peerId) {
+        if (PeerCursor.myCursor.peerId == this.cursor().peerId) {
           const peerlength = this.networkService.peerContexts.length;
           if (peerlength) {
             if (peerlength <= this.indexCounter) this.indexCounter = 0;
@@ -211,8 +211,8 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
       document.body.addEventListener('mousemove', this.callcack);
       document.body.addEventListener('touchmove', this.callcack);
     } else {
-      this.cursorElement = this.cursorElementRef.nativeElement;
-      this.opacityElement = this.opacityElementRef.nativeElement;
+      this.cursorElement = this.cursorElementRef()?.nativeElement;
+      this.opacityElement = this.opacityElementRef()?.nativeElement;
       this.setAnimatedTransition();
       this.setPosition(0, 0, 0);
       this.resetFadeOut();

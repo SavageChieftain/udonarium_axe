@@ -1,6 +1,6 @@
 <!-- 下2行なぜこれで クロームver102 の重さが軽減できるのか検証が終わっていないが保留にして入れておく -->
 <div class="dummy-will-change" appMovable [movable.option]="movableOption"></div>
-@if (gameCharacter) {
+@if (gameCharacter()) {
   <div
     class="component is-3d is-grab is-pointer-events-none"
     [style.width.px]="size * gridSize"
@@ -20,10 +20,10 @@
         (rotable.ondragstart)="onMove()"
         (rotable.ondragend)="onMoved()"
       >
-        @if (!this.gameCharacter.hideInventory) {
+        @if (!this.gameCharacter()!.hideInventory) {
           <div class="pedestal-inner is-3d" [style]="{ border: 'solid 6px #FFCC80' }"></div>
         }
-        @if (this.gameCharacter.hideInventory) {
+        @if (this.gameCharacter()!.hideInventory) {
           <div class="pedestal-inner is-3d" [style]="{ border: 'solid 6px #A0E0FF' }"></div>
         }
         <div class="pedestal-outer"></div>
@@ -37,11 +37,11 @@
           </div>
         }
         <!--影-->
-        @if (isDropShadow && 0 < imageFile.url.length && this.gameCharacter.specifyKomaImageFlag) {
+        @if (isDropShadow && 0 < imageFile.url.length && this.gameCharacter()!.specifyKomaImageFlag) {
           <img
             class="image is-pointer-events-none chrome-smooth-image-trick"
             [ngStyle]="{
-              height: +this.gameCharacter.komaImageHeight + 'px',
+              height: +this.gameCharacter()!.komaImageHeight + 'px',
               transform:
                 'translateX(-50%) translateX(' +
                 (size * gridSize) / 2 +
@@ -53,7 +53,7 @@
             style="filter: brightness(0) opacity(0.7) blur(1px)"
           />
         }
-        @if (isDropShadow && 0 < imageFile.url.length && !this.gameCharacter.specifyKomaImageFlag) {
+        @if (isDropShadow && 0 < imageFile.url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
           <img
             class="image is-pointer-events-none chrome-smooth-image-trick"
             [ngStyle]="{
@@ -90,12 +90,12 @@
             <div class="rotate-inner is-3d">
               <!-- バフ表示 -->
               <!-- クロームver102の描画問題に対処するため構成を修正している -->
-              @if (this.gameCharacter.buffDataElement) {
+              @if (this.gameCharacter()!.buffDataElement) {
                 <div class="is-3d">
-                  @if (this.gameCharacter.buffDataElement.children.length === 1) {
-                    @for (child of this.gameCharacter.buffDataElement.children; track child) {
+                  @if (this.gameCharacter()!.buffDataElement.children.length === 1) {
+                    @for (child of this.gameCharacter()!.buffDataElement.children; track child) {
                       @if (child.children.length > 0) {
-                        @if (this.gameCharacter.buffDataElement) {
+                        @if (this.gameCharacter()!.buffDataElement) {
                           <div
                             style=""
                             class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
@@ -110,7 +110,10 @@
                             <div [hidden]="foldingBuff">
                               <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
                               <div class="!table is-3d">
-                                @for (childElement of this.gameCharacter.buffDataElement.children; track childElement) {
+                                @for (
+                                  childElement of this.gameCharacter()!.buffDataElement.children;
+                                  track childElement
+                                ) {
                                   <div class="flex-item is-3d">
                                     <div
                                       class="table-row fornt-tag is-3d"
@@ -138,7 +141,7 @@
                             </div>
                           </div>
                         }
-                        @if (this.gameCharacter.buffDataElement) {
+                        @if (this.gameCharacter()!.buffDataElement) {
                           <div
                             style=""
                             class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
@@ -159,7 +162,10 @@
                             <div [hidden]="foldingBuff">
                               <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
                               <div class="table is-3d">
-                                @for (childElement of this.gameCharacter.buffDataElement.children; track childElement) {
+                                @for (
+                                  childElement of this.gameCharacter()!.buffDataElement.children;
+                                  track childElement
+                                ) {
                                   <div class="flex-item is-3d">
                                     <div
                                       class="table-row fornt-tag is-3d"
@@ -203,7 +209,7 @@
                   <img src="./assets/images/target/target.png" />
                 </div>
               </div>
-              @if (this.gameCharacter.nonTalkFlag) {
+              @if (this.gameCharacter()!.nonTalkFlag) {
                 @if (0 < name.length) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
@@ -241,7 +247,7 @@
                   </div>
                 }
               }
-              @if (!this.gameCharacter.nonTalkFlag) {
+              @if (!this.gameCharacter()!.nonTalkFlag) {
                 @if (0 < name.length) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
@@ -285,17 +291,17 @@
                 </div>
               }
               <!--画像-->
-              @if (0 < imageFile.url.length && this.gameCharacter.specifyKomaImageFlag) {
+              @if (0 < imageFile.url.length && this.gameCharacter()!.specifyKomaImageFlag) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
-                    height: +this.gameCharacter.komaImageHeight + 'px',
+                    height: +this.gameCharacter()!.komaImageHeight + 'px',
                     transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)',
                   }"
                   [src]="imageFile.url | safe: 'resourceUrl'"
                 />
               }
-              @if (0 < imageFile.url.length && !this.gameCharacter.specifyKomaImageFlag) {
+              @if (0 < imageFile.url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{ width: '100%' }"

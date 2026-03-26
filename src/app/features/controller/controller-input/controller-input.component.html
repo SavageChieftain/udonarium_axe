@@ -12,11 +12,12 @@
             <ng-select
               class="ud-select"
               style="width: 10em"
-              [(ngModel)]="sendFrom"
+              [ngModel]="sendFrom()"
+              (ngModelChange)="sendFrom.set($event)"
               [searchable]="false"
               [clearable]="false"
             >
-              @if (!onlyCharacters) {
+              @if (!onlyCharacters()) {
                 <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
               }
               @for (gameCharacter of gameCharacters; track gameCharacter) {
@@ -59,12 +60,12 @@
         </div>
         <div class="table-cell">
           <div style="font-size: 0.8em; text-align: right">
-            選択数：{{ selectNum }}<br />
+            選択数：{{ selectNum() }}<br />
             <button class="color-setting small-font" (click)="allBoxCheck()" style="width: 7em">
-              @if (0 !== selectNum) {
+              @if (0 !== selectNum()) {
                 全解除口→
               }
-              @if (0 === selectNum) {
+              @if (0 === selectNum()) {
                 全選択〆→
               }
             </button>
@@ -121,7 +122,8 @@
         <textarea
           class="controller-input"
           placeholder="Enterで送信"
-          [(ngModel)]="text"
+          [ngModel]="text()"
+          (ngModelChange)="text.set($event)"
           [ngModelOptions]="{ standalone: true }"
           (input)="onInput()"
           (keydown.enter)="sendChat($event)"

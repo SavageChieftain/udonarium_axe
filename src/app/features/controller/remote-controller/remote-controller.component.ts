@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, DestroyRef, effect, ElementRef, inject, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, DestroyRef, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -127,11 +127,9 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   get newLineString(): string {
     return this.inventoryService.newLineString;
   }
-  @ViewChild('controllerInput', { static: true })
-  controllerInputComponent!: ControllerInputComponent;
-  @ViewChild('chatPalette')
-  chatPaletteElementRef!: ElementRef<HTMLSelectElement>;
-  @Input() character!: GameCharacter;
+  readonly controllerInputComponent = viewChild.required<ControllerInputComponent>('controllerInput');
+  readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
+  character!: GameCharacter;
   errorMessageBuff = '';
   errorMessageController = '';
 
@@ -139,10 +137,10 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   text = '';
 
   get buffHideIsChk(): boolean {
-    return this.controllerInputComponent?.buffHideIsChk ?? false;
+    return this.controllerInputComponent()?.buffHideIsChk ?? false;
   }
   onInput() {
-    this.controllerInputComponent?.onInput();
+    this.controllerInputComponent()?.onInput();
   }
 
   public buffAreaIsHide = false;
@@ -260,7 +258,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     if (this.doubleClickTimer && this.text === line) {
       clearTimeout(this.doubleClickTimer);
       this.doubleClickTimer = null;
-      this.controllerInputComponent.sendChat(null);
+      this.controllerInputComponent().sendChat(null);
     } else {
       this.text = line;
       this.doubleClickTimer = setTimeout(() => {
@@ -270,10 +268,10 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   resetPaletteSelect() {
-    if (!this.chatPaletteElementRef.nativeElement) {
+    if (!this.chatPaletteElementRef()?.nativeElement) {
       return;
     }
-    this.chatPaletteElementRef.nativeElement.selectedIndex = -1;
+    this.chatPaletteElementRef()!.nativeElement.selectedIndex = -1;
   }
 
   toggleEditMode() {
@@ -386,7 +384,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
         this._gameSystem,
         this.sendFrom,
         '',
-        this.controllerInputComponent.tachieNum
+        this.controllerInputComponent().tachieNum
       );
     }
   }
@@ -414,7 +412,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
         this._gameSystem,
         this.sendFrom,
         '',
-        this.controllerInputComponent.tachieNum
+        this.controllerInputComponent().tachieNum
       );
     }
   }
@@ -523,8 +521,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
         this._gameSystem,
         this.sendFrom,
         '',
-        this.controllerInputComponent.tachieNum,
-        this.controllerInputComponent.selectChatColor
+        this.controllerInputComponent().tachieNum,
+        this.controllerInputComponent().selectChatColor
       );
       this.errorMessageController = '';
     } else {

@@ -33,7 +33,7 @@ describe('DiceSymbolComponent', () => {
 
     it('nameゲッターがnetworkVersionを参照していること', () => {
       const diceSymbol = DiceSymbol.create('テストダイス', 1, 1);
-      component.diceSymbol = diceSymbol;
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const original = objectChangeService.networkVersion;
       const spy = vi.fn(() => original());

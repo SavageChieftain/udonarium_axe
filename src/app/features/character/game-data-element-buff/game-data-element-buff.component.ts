@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
@@ -21,19 +12,19 @@ import { filter } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
-export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameDataElementBuffComponent implements OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @Input() gameDataElement: DataElement = null!;
-  @Input() isEdit: boolean = false;
-  @Input() isTagLocked: boolean = false;
-  @Input() isValueLocked: boolean = false;
-  @Input() isPieceMode: boolean = false;
+  readonly gameDataElement = input<DataElement>(null!);
+  readonly isEdit = input(false);
+  readonly isTagLocked = input(false);
+  readonly isValueLocked = input(false);
+  readonly isPieceMode = input(false);
 
   private _name: string = '';
   get name(): string {
-    if (this.gameDataElement) this.objectChange.versionOf(this.gameDataElement.identifier)();
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
     return this._name;
   }
   set name(name: string) {
@@ -61,52 +52,50 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterVie
 
   private updateTimer: NodeJS.Timeout = null!;
   ngOnInit() {
-    if (this.gameDataElement) this.setValues(this.gameDataElement);
+    if (this.gameDataElement()) this.setValues(this.gameDataElement());
 
     this.objectChange.objectChanged$
       .pipe(
-        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement.identifier),
+        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement().identifier),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
-        this.setValues(this.gameDataElement);
+        this.setValues(this.gameDataElement());
       });
   }
 
   ngOnDestroy() {}
 
-  ngAfterViewInit() {}
-
   addElement() {
-    this.gameDataElement.appendChild(
+    this.gameDataElement().appendChild(
       DataElement.create('TEST', 8, { type: DataElementType.NUMBER_RESOURCE, currentValue: '001' }, 'TEST')
     ); // + '_' + character.identifier
   }
 
   deleteElement() {
-    this.gameDataElement.destroy();
+    this.gameDataElement().destroy();
   }
 
   upElement() {
-    const parentElement = this.gameDataElement.parent;
-    const index: number = parentElement.children.indexOf(this.gameDataElement);
+    const parentElement = this.gameDataElement().parent;
+    const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (0 < index) {
       const prevElement = parentElement.children[index - 1];
-      parentElement.insertBefore(this.gameDataElement, prevElement);
+      parentElement.insertBefore(this.gameDataElement(), prevElement);
     }
   }
 
   downElement() {
-    const parentElement = this.gameDataElement.parent;
-    const index: number = parentElement.children.indexOf(this.gameDataElement);
+    const parentElement = this.gameDataElement().parent;
+    const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index < parentElement.children.length - 1) {
       const nextElement = parentElement.children[index + 1];
-      parentElement.insertBefore(nextElement, this.gameDataElement);
+      parentElement.insertBefore(nextElement, this.gameDataElement());
     }
   }
 
   setElementType(type: string) {
-    this.gameDataElement.setAttribute('type', type);
+    this.gameDataElement().setAttribute('type', type);
   }
 
   private setValues(object: DataElement) {
@@ -118,10 +107,10 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy, AfterVie
   private setUpdateTimer() {
     clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => {
-      if (this.gameDataElement.name !== this.name) this.gameDataElement.name = this.name;
-      if (this.gameDataElement.currentValue !== this.currentValue)
-        this.gameDataElement.currentValue = this.currentValue;
-      if (this.gameDataElement.value !== this.value) this.gameDataElement.value = this.value;
+      if (this.gameDataElement().name !== this.name) this.gameDataElement().name = this.name;
+      if (this.gameDataElement().currentValue !== this.currentValue)
+        this.gameDataElement().currentValue = this.currentValue;
+      if (this.gameDataElement().value !== this.value) this.gameDataElement().value = this.value;
       this.updateTimer = null!;
     }, 66);
   }

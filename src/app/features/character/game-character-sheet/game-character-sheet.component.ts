@@ -4,7 +4,6 @@ import {
   Component,
   DestroyRef,
   inject,
-  Input,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -49,7 +48,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @Input() tabletopObject:
+  tabletopObject:
     | GameCharacter
     | DiceSymbol
     | Card

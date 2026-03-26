@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
 import { ModalService } from '@axe/shared/modal.service';
@@ -17,6 +17,6 @@ export class GameCharacterBuffViewComponent {
 
   //  @Input() title: string = '';
 
-  @Input() character: TabletopObject = null!;
-  @Input() isEdit: boolean = false;
+  character: TabletopObject = null!;
+  isEdit: boolean = false;
 }

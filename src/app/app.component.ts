@@ -5,7 +5,7 @@ import {
   Component,
   inject,
   signal,
-  ViewChild,
+  viewChild,
   ViewContainerRef,
 } from '@angular/core';
 import { AppEventHandlerService } from '@axe/core/app-event-handler.service';
@@ -45,8 +45,7 @@ export class AppComponent implements AfterViewInit {
   private readonly objectStore = inject(ObjectStore);
   private readonly eventHandler = inject(AppEventHandlerService);
 
-  @ViewChild('modalLayer', { read: ViewContainerRef, static: true })
-  modalLayerViewContainerRef!: ViewContainerRef;
+  readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
 
   isSaveing = signal(false);
   progresPercent = signal(0);
@@ -64,7 +63,7 @@ export class AppComponent implements AfterViewInit {
     PanelService.defaultParentViewContainerRef =
       ModalService.defaultParentViewContainerRef =
       ContextMenuService.defaultParentViewContainerRef =
-        this.modalLayerViewContainerRef;
+        this.modalLayerViewContainerRef();
   }
 
   open(componentName: string) {

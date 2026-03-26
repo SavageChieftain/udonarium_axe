@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/core/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -32,8 +22,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
 
-  @Input('gameType') _gameType: string = '';
-  @Output() gameTypeChange = new EventEmitter<string>();
+  _gameType: string = '';
   get gameType(): string {
     return this.isEditable ? this.selectedTable!.diceTablePalette.dicebot : '';
   }
@@ -41,7 +30,6 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     if (this.isEditable) {
       this.selectedTable!.diceTablePalette.dicebot = gameType;
       this._gameType = gameType;
-      this.gameTypeChange.emit(gameType);
     }
   }
 

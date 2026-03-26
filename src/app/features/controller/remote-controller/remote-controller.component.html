@@ -25,7 +25,7 @@
           [(gameType)]="gameType"
           [(sendFrom)]="sendFrom"
           [(text)]="text"
-          [(selectNum)]="this.getTargetCharacters(true).length"
+          [selectNum]="this.getTargetCharacters(true).length"
           (allBox)="allBoxCheck($event)"
           (chat)="sendChat($event)"
           (hideChkEvent)="hideChkBoxEvent($event)"
@@ -60,10 +60,10 @@
                       [(ngModel)]="text"
                       [ngModelOptions]="{ standalone: true }"
                       (input)="onInput()"
-                      (keydown.enter)="controllerInputComponent.sendChat($event)"
+                      (keydown.enter)="controllerInputComponent().sendChat($event)"
                       #textArea
                     ></textarea>
-                    <button type="submit" (click)="controllerInputComponent.sendChat(null)">実行</button>
+                    <button type="submit" (click)="controllerInputComponent().sendChat(null)">実行</button>
                   }
                 </form>
                 @if (palette) {

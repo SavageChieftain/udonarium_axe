@@ -7,7 +7,7 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { YouTubePlayer } from '@angular/youtube-player';
@@ -39,9 +39,8 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('cutInArea', { static: false }) cutInArea!: ElementRef<HTMLDivElement>;
-  @ViewChild('videoPlayerComponent', { static: false })
-  videoPlayer!: YouTubePlayer;
+  readonly cutInArea = viewChild<ElementRef<HTMLDivElement>>('cutInArea');
+  readonly videoPlayer = viewChild<YouTubePlayer>('videoPlayerComponent');
 
   left = 0;
   top = 0;
@@ -188,11 +187,11 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   get youTubeWidth(): number {
-    return this.cutInArea?.nativeElement.clientWidth ?? 640;
+    return this.cutInArea()?.nativeElement.clientWidth ?? 640;
   }
 
   get youTubeHeight(): number {
-    return this.cutInArea?.nativeElement.clientHeight ?? 340;
+    return this.cutInArea()?.nativeElement.clientHeight ?? 340;
   }
 
   onPlayerReady($event: { target: { setVolume: (v: number) => void; playVideo: () => void } }) {

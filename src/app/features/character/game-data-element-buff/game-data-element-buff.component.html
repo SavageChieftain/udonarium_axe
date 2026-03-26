@@ -1,14 +1,14 @@
-@if (!isPieceMode) {
-  @if (gameDataElement) {
-    @if (gameDataElement.children.length < 1) {
-      @switch (gameDataElement.type) {
+@if (!isPieceMode()) {
+  @if (gameDataElement()) {
+    @if (gameDataElement().children.length < 1) {
+      @switch (gameDataElement().type) {
         @case ('numberResource') {
           <div class="table-cell" style="border-bottom: none">
-            <button (click)="deletBuff(gameDataElement)" style="width: 5em">削除</button>
+            <button (click)="deletBuff(gameDataElement())" style="width: 5em">削除</button>
           </div>
           <div class="table table-cell" style="" style="border-bottom: none">
             <div class="table-cell" style="width: 60%">
-              @if (!isTagLocked) {
+              @if (!isTagLocked()) {
                 <!-- NAME -->
                 <div class="hidden-spacer" style="font-family: Cambria, Georgia; font-size: 0.9rem">{{ name }}</div>
                 <input
@@ -48,8 +48,8 @@
         @default {
           <div class="table" style="width: 100%">
             <div class="table-cell_inner-table-title">
-              @if (!isTagLocked) {
-                <div class="inputLock">{{ gameDataElement.name }}</div>
+              @if (!isTagLocked()) {
+                <div class="inputLock">{{ gameDataElement().name }}</div>
                 <!--
                 <input style="width:100%; min-width:10px; font-family: Cambria, Georgia; font-size: 1.0rem; font-weight: bold;"
                   size="1" [(ngModel)]="name" placeholder="Value" />
@@ -60,26 +60,26 @@
         }
       }
     }
-    @if (0 < gameDataElement.children.length) {
+    @if (0 < gameDataElement().children.length) {
       <div class="table" style="width: 100%">
         <div class="table-cell_inner-table-title">
-          @if (!isTagLocked) {
-            <div class="inputLock">{{ gameDataElement.name }}</div>
+          @if (!isTagLocked()) {
+            <div class="inputLock">{{ gameDataElement().name }}</div>
             <!--
             <input style="width:100%; min-width:10px; font-family: Cambria, Georgia; font-size: 1.0rem; font-weight: bold;"
               size="1" [(ngModel)]="name" placeholder="Value" />
             -->
           }
         </div>
-        @if (0 < gameDataElement.children.length) {
+        @if (0 < gameDataElement().children.length) {
           <div class="table">
-            @for (childElement of gameDataElement.children; track childElement) {
+            @for (childElement of gameDataElement().children; track childElement) {
               <div
                 game-data-element-buff
                 class="table-row"
                 [gameDataElement]="$any(childElement)"
-                [isEdit]="isEdit"
-                [isTagLocked]="isTagLocked"
+                [isEdit]="isEdit()"
+                [isTagLocked]="isTagLocked()"
               ></div>
             }
           </div>
@@ -91,25 +91,25 @@
   }
 }
 
-@if (isPieceMode) {
-  @if (gameDataElement.children.length < 1) {
-    @switch (gameDataElement.type) {
+@if (isPieceMode()) {
+  @if (gameDataElement().children.length < 1) {
+    @switch (gameDataElement().type) {
       @case ('numberResource') {
         <span style="font-family: Cambria, Georgia; font-size: 12px">
-          {{ gameDataElement.name }} / {{ gameDataElement.currentValue }} / {{ gameDataElement.value }}R
+          {{ gameDataElement().name }} / {{ gameDataElement().currentValue }} / {{ gameDataElement().value }}R
         </span>
       }
     }
   }
-  @if (0 < gameDataElement.children.length) {
-    @for (childElement of gameDataElement.children; track childElement) {
+  @if (0 < gameDataElement().children.length) {
+    @for (childElement of gameDataElement().children; track childElement) {
       <div
         game-data-element-buff
         class="table-row"
         [gameDataElement]="$any(childElement)"
-        [isEdit]="isEdit"
-        [isTagLocked]="isTagLocked"
-        [isPieceMode]="isPieceMode"
+        [isEdit]="isEdit()"
+        [isTagLocked]="isTagLocked()"
+        [isPieceMode]="isPieceMode()"
       ></div>
     }
   }

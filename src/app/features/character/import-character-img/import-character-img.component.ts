@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -23,7 +23,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
 
-  @Input() tabletopObject: GameCharacter = null!;
+  tabletopObject: GameCharacter = null!;
 
   private _sendFrom!: string;
   get sendFrom(): string {

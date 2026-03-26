@@ -4,14 +4,14 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  EventEmitter,
   inject,
-  Input,
+  input,
+  model,
   OnDestroy,
   OnInit,
-  Output,
+  output,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -51,40 +51,13 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
 
-  get gameType(): string {
-    return this._gameType;
-  }
-  set gameType(gameType: string) {
-    this._gameType = gameType;
-    this.gameTypeChange.emit(gameType);
-  }
-  get sendFrom(): string {
-    return this._sendFrom;
-  }
-  set sendFrom(sendFrom: string) {
-    this._sendFrom = sendFrom;
-    this.sendFromChange.emit(sendFrom);
-  }
-  get sendTo(): string {
-    return this._sendTo;
-  }
-  set sendTo(sendTo: string) {
-    this._sendTo = sendTo;
-    this.sendToChange.emit(sendTo);
-  }
-  get text(): string {
-    return this._text;
-  }
-  set text(text: string) {
-    this._text = text;
-    this.textChange.emit(text);
-  }
-  get selectNum(): number {
-    return this._selectNum;
-  }
+  readonly gameType = model('');
+  readonly sendFrom = model(PeerCursor.myCursor ? PeerCursor.myCursor.identifier : '');
+  readonly sendTo = model('');
+  readonly text = model('');
 
   get tachieNum(): number {
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       return object.selectedTachieNum;
     }
@@ -92,14 +65,14 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   set tachieNum(num: number) {
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       object.selectedTachieNum = num;
     }
   }
 
   get isDirect(): boolean {
-    return this.sendTo != null && this.sendTo.length ? true : false;
+    return this.sendTo() != null && this.sendTo().length ? true : false;
   }
 
   get colorSelectNo(): number {
@@ -175,7 +148,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get selectCharacterTachie() {
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       if (object.imageDataElement.children.length > this.tachieNum) {
         return object.imageDataElement.children[this.tachieNum];
@@ -185,7 +158,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get selectCharacterTachieNum(): number {
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       return object.imageDataElement.children.length;
     } else if (object instanceof PeerCursor) {
@@ -199,7 +172,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       const imageFile: ImageFile = this.imageStorage.get(this.selectCharacterTachie.value as string);
       return imageFile ? imageFile : ImageFile.Empty;
     }
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     let image: ImageFile = null!;
     if (object instanceof GameCharacter) {
       image = object.imageFile;
@@ -227,29 +200,14 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   get otherPeers(): PeerCursor[] {
     return this.objectStore.getObjects(PeerCursor);
   }
-  @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
+  readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
-  @Input() onlyCharacters = false;
-  @Input() chatTabidentifier = '';
+  readonly onlyCharacters = input(false);
+  readonly chatTabidentifier = input('');
 
-  @Input('gameType') _gameType = '';
-  @Output() gameTypeChange = new EventEmitter<string>();
+  readonly selectNum = input(0);
 
-  @Input('sendFrom') _sendFrom: string = this.myPeer ? this.myPeer.identifier : '';
-  @Output() sendFromChange = new EventEmitter<string>();
-
-  @Input('sendTo') _sendTo = '';
-  @Output() sendToChange = new EventEmitter<string>();
-
-  @Input('text') _text = '';
-  @Output() textChange = new EventEmitter<string>();
-
-  @Input('selectNum') _selectNum = 0;
-  //  set selectNum( num :number){ this._selectNum = num; }
-
-  @Output() selectNumChange = new EventEmitter<number>();
-
-  @Output() chat = new EventEmitter<{
+  readonly chat = output<{
     text: string;
     gameSystem: GameSystemClass;
     sendFrom: string;
@@ -258,8 +216,8 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     messColor: string;
   }>();
 
-  @Output() allBox = new EventEmitter<{ check: boolean }>();
-  @Output() hideChkEvent = new EventEmitter<boolean>();
+  readonly allBox = output<{ check: boolean }>();
+  readonly hideChkEvent = output<boolean>();
   gameHelp = '';
 
   colorSelectNo_: number = 0;
@@ -281,7 +239,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   charactorChatColor(num: number) {
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       return object.chatColorCode[num];
     } else {
@@ -290,7 +248,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   shoeColorSetting() {
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];
       let title = '色設定';
@@ -312,7 +270,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       // 1.13.xとのmargeで修正
-      if (event.tabIdentifier !== this.chatTabidentifier) {
+      if (event.tabIdentifier !== this.chatTabidentifier()) {
         return;
       }
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
@@ -330,29 +288,29 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
         return;
       }
       this.shouldUpdateCharacterList = true;
-      if (event.identifier !== this.sendFrom) {
+      if (event.identifier !== this.sendFrom()) {
         return;
       }
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
       if (gameCharacter && !this.allowsChat(gameCharacter)) {
-        if (0 < this.gameCharacters.length && this.onlyCharacters) {
-          this.sendFrom = this.gameCharacters[0].identifier;
+        if (0 < this.gameCharacters.length && this.onlyCharacters()) {
+          this.sendFrom.set(this.gameCharacters[0].identifier);
         } else {
-          this.sendFrom = this.myPeer.identifier;
+          this.sendFrom.set(this.myPeer.identifier);
         }
       }
     });
 
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const object = this.objectStore.get(this.sendTo);
+      const object = this.objectStore.get(this.sendTo());
       if (object instanceof PeerCursor && object.peerId === event.peerId) {
-        this.sendTo = '';
+        this.sendTo.set('');
       }
     });
 
     this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       // 1.13.xとのmargeで修正
-      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier) {
+      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) {
         return;
       }
       if (!this.writingPeers.has(event.sendFrom)) {
@@ -391,10 +349,10 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   onInput() {
-    if (this.writingEventInterval === null && this.previousWritingLength <= this.text.length) {
+    if (this.writingEventInterval === null && this.previousWritingLength <= this.text().length) {
       let sendTo: string = null!;
       if (this.isDirect) {
-        const object = this.objectStore.get(this.sendTo);
+        const object = this.objectStore.get(this.sendTo());
         if (object instanceof PeerCursor) {
           //          let peer = PeerContext.create(object.peerId);
           //          if (peer) sendTo = peer.id;
@@ -404,12 +362,12 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
           } // 1.13.xとのmargeで修正
         }
       }
-      callWritingAMessage(this.chatTabidentifier, sendTo);
+      callWritingAMessage(this.chatTabidentifier(), sendTo);
       this.writingEventInterval = setTimeout(() => {
         this.writingEventInterval = null!;
       }, 200);
     }
-    this.previousWritingLength = this.text.length;
+    this.previousWritingLength = this.text().length;
     this.calcFitHeight();
   }
 
@@ -418,25 +376,25 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       event.preventDefault();
     }
 
-    if (!this.text.length) {
+    if (!this.text().length) {
       return;
     }
     if (event && (event as KeyboardEvent).keyCode !== 13) {
       return;
     }
 
-    if (!this.sendFrom.length) {
-      this.sendFrom = this.myPeer.identifier;
+    if (!this.sendFrom().length) {
+      this.sendFrom.set(this.myPeer.identifier);
     }
 
     const message = {
-      text: this.text,
-      sendFrom: this.sendFrom,
-      sendTo: this.sendTo,
+      text: this.text(),
+      sendFrom: this.sendFrom(),
+      sendTo: this.sendTo(),
       tachieNum: this.tachieNum,
       messColor: this.selectChatColor,
     };
-    DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
+    DiceBot.loadGameSystemAsync(this.gameType()).then((gameSystem) => {
       this.chat.emit({
         text: message.text,
         gameSystem,
@@ -446,15 +404,15 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
         messColor: message.messColor,
       });
     });
-    this.text = '';
-    this.previousWritingLength = this.text.length;
-    const textArea: HTMLTextAreaElement = this.textAreaElementRef.nativeElement;
+    this.text.set('');
+    this.previousWritingLength = this.text().length;
+    const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
     textArea.value = '';
     this.calcFitHeight();
   }
 
   allBoxCheck() {
-    if (this.selectNum > 0) {
+    if (this.selectNum() > 0) {
       this.allBox.emit({ check: false });
     } else {
       this.allBox.emit({ check: true });
@@ -462,7 +420,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   calcFitHeight() {
-    const textArea: HTMLTextAreaElement = this.textAreaElementRef.nativeElement;
+    const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
     textArea.style.height = '';
     if (textArea.scrollHeight >= textArea.offsetHeight) {
       textArea.style.height = textArea.scrollHeight + 'px';

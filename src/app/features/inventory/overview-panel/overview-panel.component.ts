@@ -6,11 +6,9 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  HostListener,
   inject,
-  Input,
   OnDestroy,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -35,6 +33,9 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
   styleUrls: ['./overview-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkifyPipe, SafePipe],
+  host: {
+    '(click)': 'onClick($event)',
+  },
 })
 export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private inventoryService = inject(GameObjectInventoryService);
@@ -44,11 +45,11 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('draggablePanel', { static: true }) draggablePanel: ElementRef<HTMLElement>;
-  @Input() tabletopObject: TabletopObject | null = null;
+  readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
+  tabletopObject: TabletopObject | null = null;
 
-  @Input() left: number = 0;
-  @Input() top: number = 0;
+  left: number = 0;
+  top: number = 0;
 
   get imageUrl(): string {
     this.objectChange.fileVersion();
@@ -106,7 +107,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {}
 
   private initPanelPosition() {
-    const panel: HTMLElement = this.draggablePanel.nativeElement;
+    const panel: HTMLElement = this.draggablePanel().nativeElement;
     const outerWidth = panel.offsetWidth;
     const outerHeight = panel.offsetHeight;
 
@@ -136,7 +137,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   private adjustPositionRoot() {
-    const panel: HTMLElement = this.draggablePanel.nativeElement;
+    const panel: HTMLElement = this.draggablePanel().nativeElement;
 
     const alias = this.tabletopObject?.aliasName;
     let width: number = 250;
@@ -299,8 +300,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     return this.domSanitizer.bypassSecurityTrustHtml(textTable.replace(/\n/g, '<br>'));
   }
 
-  @HostListener('click', ['$event'])
-  click(event: MouseEvent) {
+  onClick(event: MouseEvent) {
     if (this.markdown) {
       this.markdown.changeMarkDownCheckBox((event.target as HTMLElement).id, event.timeStamp);
     }

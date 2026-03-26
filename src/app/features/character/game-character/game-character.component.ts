@@ -7,12 +7,11 @@ import {
   DestroyRef,
   effect,
   ElementRef,
-  HostListener,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -44,6 +43,10 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
   styleUrls: ['./game-character.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgStyle, GameDataElementBuffComponent, SafePipe],
+  host: {
+    '(dragstart)': 'onDragstart($event)',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
 export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
@@ -59,90 +62,89 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 
   readonly isTargeted = computed(() => {
     this.uiSignalService.targetChange();
-    return this.gameCharacter?.targeted ?? false;
+    return this.gameCharacter()?.targeted ?? false;
   });
 
   constructor() {
     effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
-      if (!highlight || !this.gameCharacter) return;
-      if (this.gameCharacter.identifier !== highlight.identifier) return;
-      if (this.gameCharacter.location.name != 'table') return;
+      if (!highlight || !this.gameCharacter()) return;
+      if (this.gameCharacter()!.identifier !== highlight.identifier) return;
+      if (this.gameCharacter()!.location.name != 'table') return;
 
       // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
       if (this.highlightTimer != null) return;
 
       // アニメーション中であればアニメーションを初期化
-      if (this.rootElementRef.nativeElement.classList.contains('focused')) {
+      if (this.rootElementRef().nativeElement.classList.contains('focused')) {
         clearTimeout(this.unhighlightTimer);
-        this.rootElementRef.nativeElement.classList.remove('focused');
+        this.rootElementRef().nativeElement.classList.remove('focused');
       }
 
       // アニメーション開始処理タイマー
       this.highlightTimer = setTimeout(() => {
         this.highlightTimer = null!;
-        this.rootElementRef.nativeElement.classList.add('focused');
+        this.rootElementRef().nativeElement.classList.add('focused');
       }, 0);
 
       // アニメーション終了処理タイマー
       this.unhighlightTimer = setTimeout(() => {
         this.unhighlightTimer = null!;
-        this.rootElementRef.nativeElement.classList.remove('focused');
+        this.rootElementRef().nativeElement.classList.remove('focused');
       }, 1010);
     });
   }
 
-  @Input() gameCharacter: GameCharacter | null = null!;
-  @Input() is3D: boolean = false;
-  @ViewChild('root') rootElementRef!: ElementRef<HTMLElement>;
+  readonly gameCharacter = input<GameCharacter | null>(null!);
+  readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
   get isLock(): boolean {
-    return this.gameCharacter!.isLock;
+    return this.gameCharacter()!.isLock;
   }
   set isLock(isLock: boolean) {
-    this.gameCharacter!.isLock = isLock;
+    this.gameCharacter()!.isLock = isLock;
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.gameCharacter!.identifier)();
-    return this.gameCharacter!.name;
+    this.objectChange.versionOf(this.gameCharacter()!.identifier)();
+    return this.gameCharacter()!.name;
   }
   get size(): number {
-    return this.adjustMinBounds(this.gameCharacter!.size);
+    return this.adjustMinBounds(this.gameCharacter()!.size);
   }
   get altitude(): number {
-    return this.gameCharacter!.altitude;
+    return this.gameCharacter()!.altitude;
   }
   set altitude(altitude: number) {
-    this.gameCharacter!.altitude = altitude;
+    this.gameCharacter()!.altitude = altitude;
   }
   get imageFile(): ImageFile {
     this.objectChange.fileVersion();
-    return this.gameCharacter!.imageFile;
+    return this.gameCharacter()!.imageFile;
   }
   get rotate(): number {
-    return this.gameCharacter!.rotate;
+    return this.gameCharacter()!.rotate;
   }
   set rotate(rotate: number) {
-    this.gameCharacter!.rotate = rotate;
+    this.gameCharacter()!.rotate = rotate;
   }
   get roll(): number {
-    return this.gameCharacter!.roll;
+    return this.gameCharacter()!.roll;
   }
   set roll(roll: number) {
-    this.gameCharacter!.roll = roll;
+    this.gameCharacter()!.roll = roll;
   }
   get isDropShadow(): boolean {
-    return this.gameCharacter!.isDropShadow;
+    return this.gameCharacter()!.isDropShadow;
   }
   set isDropShadow(isDropShadow: boolean) {
-    this.gameCharacter!.isDropShadow = isDropShadow;
+    this.gameCharacter()!.isDropShadow = isDropShadow;
   }
   get isAltitudeIndicate(): boolean {
-    return this.gameCharacter!.isAltitudeIndicate;
+    return this.gameCharacter()!.isAltitudeIndicate;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.gameCharacter!.isAltitudeIndicate = isAltitudeIndicate;
+    this.gameCharacter()!.isAltitudeIndicate = isAltitudeIndicate;
   }
 
   protected foldingBuff: boolean = false;
@@ -162,7 +164,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   private unhighlightTimer: ReturnType<typeof setTimeout> = null!;
 
   get elevation(): number {
-    return +((this.gameCharacter!.posZ + this.altitude * this.gridSize) / this.gridSize).toFixed(1);
+    return +((this.gameCharacter()!.posZ + this.altitude * this.gridSize) / this.gridSize).toFixed(1);
   }
 
   get chatBubbleAltitude(): number {
@@ -174,7 +176,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     const altitude1 = (this.characterImageHeight + (this.name != '' ? 24 : 0)) * cos + 4;
     const altitude2 = (this.characterImageWidth / 2) * sin + 4 + this.characterImageWidth / 2;
     let ret = altitude1 > altitude2 ? altitude1 : altitude2;
-    this.gameCharacter!.chatBubbleAltitude = ret;
+    this.gameCharacter()!.chatBubbleAltitude = ret;
 */
     const ret = 0;
     return ret;
@@ -182,12 +184,12 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 
   ngOnInit() {
     this.movableOption = {
-      tabletopObject: this.gameCharacter!,
+      tabletopObject: this.gameCharacter()!,
       transformCssOffset: 'translateZ(1.0px)',
       colideLayers: ['terrain'],
     };
     this.rotableOption = {
-      tabletopObject: this.gameCharacter!,
+      tabletopObject: this.gameCharacter()!,
     };
   }
 
@@ -202,7 +204,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     if (this.input) this.input.destroy();
   }
 
-  @HostListener('dragstart', ['$event'])
   onDragstart(e: DragEvent) {
     e.stopPropagation();
     e.preventDefault();
@@ -217,7 +218,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -240,7 +240,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
                   SoundEffect.play(PresetSound.sweep);
                 }
               },
-              altitudeHande: this.gameCharacter!,
+              altitudeHande: this.gameCharacter()!,
             },
             this.isAltitudeIndicate
               ? {
@@ -282,46 +282,46 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
         {
           name: '詳細を表示',
           action: () => {
-            this.showDetail(this.gameCharacter!);
+            this.showDetail(this.gameCharacter()!);
           },
         },
         {
           name: 'チャットパレットを表示',
           action: () => {
-            this.showChatPalette(this.gameCharacter!);
+            this.showChatPalette(this.gameCharacter()!);
           },
         },
         {
           name: 'リモコンを表示',
           action: () => {
-            this.showRemoteController(this.gameCharacter!);
+            this.showRemoteController(this.gameCharacter()!);
           },
         },
         {
           name: 'バフ編集',
           action: () => {
-            this.showBuffEdit(this.gameCharacter!);
+            this.showBuffEdit(this.gameCharacter()!);
           },
         },
         ContextMenuSeparator,
         {
           name: '共有イベントリに移動',
           action: () => {
-            this.gameCharacter!.setLocation('common');
+            this.gameCharacter()!.setLocation('common');
             SoundEffect.play(PresetSound.piecePut);
           },
         },
         {
           name: '個人イベントリに移動',
           action: () => {
-            this.gameCharacter!.setLocation(Network.peerId);
+            this.gameCharacter()!.setLocation(Network.peerId);
             SoundEffect.play(PresetSound.piecePut);
           },
         },
         {
           name: '墓場に移動',
           action: () => {
-            this.gameCharacter!.setLocation('graveyard');
+            this.gameCharacter()!.setLocation('graveyard');
             SoundEffect.play(PresetSound.sweep);
           },
         },
@@ -345,7 +345,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
         {
           name: 'コピーを作る',
           action: () => {
-            const cloneObject = this.gameCharacter!.clone();
+            const cloneObject = this.gameCharacter()!.clone();
             cloneObject.location.x += this.gridSize;
             cloneObject.location.y += this.gridSize;
             cloneObject.update();
@@ -375,7 +375,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     //キーに対応した処理
 
     if (key_alt) {
-      this.gameCharacter!.targeted = this.gameCharacter!.targeted ? false : true;
+      this.gameCharacter()!.targeted = this.gameCharacter()!.targeted ? false : true;
     }
 
     if (key_shift && key_alt) {
@@ -450,7 +450,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   get buffNum(): number {
-    const children = this.gameCharacter?.buffDataElement?.children;
+    const children = this.gameCharacter()?.buffDataElement?.children;
     if (!children || children.length === 0) {
       return 0;
     }

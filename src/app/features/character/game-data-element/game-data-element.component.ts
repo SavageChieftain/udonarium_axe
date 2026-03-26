@@ -1,15 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  HostListener,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -32,8 +22,11 @@ import { filter } from 'rxjs';
   styleUrls: ['./game-data-element.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet, FormsModule, LinkifyPipe, SafePipe],
+  host: {
+    '(click)': 'click($event)',
+  },
 })
-export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameDataElementComponent implements OnInit, OnDestroy {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private domSanitizer = inject(DomSanitizer);
@@ -42,17 +35,17 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @Input() gameDataElement: DataElement = null!;
-  @Input() isEdit: boolean = false;
-  @Input() isTagLocked: boolean = false;
-  @Input() isValueLocked: boolean = false;
+  readonly gameDataElement = input<DataElement>(null!);
+  readonly isEdit = input(false);
+  readonly isTagLocked = input(false);
+  readonly isValueLocked = input(false);
 
-  @Input() isImage: boolean = false;
-  @Input() indexNum: number = 0;
+  readonly isImage = input(false);
+  readonly indexNum = input(0);
 
   private _name: string = '';
   get name(): string {
-    if (this.gameDataElement) this.objectChange.versionOf(this.gameDataElement.identifier)();
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
     return this._name;
   }
   set name(name: string) {
@@ -80,24 +73,22 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
 
   private updateTimer: NodeJS.Timeout = null!;
   ngOnInit() {
-    if (this.gameDataElement) this.setValues(this.gameDataElement);
+    if (this.gameDataElement()) this.setValues(this.gameDataElement());
 
     this.objectChange.objectChanged$
       .pipe(
-        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement.identifier),
+        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement().identifier),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
-        this.setValues(this.gameDataElement);
+        this.setValues(this.gameDataElement());
       });
   }
 
   ngOnDestroy() {}
 
-  ngAfterViewInit() {}
-
   get imageFileUrl(): string {
-    const image: ImageFile = this.imageStorage.get(<string>this.gameDataElement.value);
+    const image: ImageFile = this.imageStorage.get(<string>this.gameDataElement().value);
     if (image) return image.url;
     return '';
   }
@@ -105,7 +96,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   openModal(_name: string = '', isAllowedEmpty: boolean = false) {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: isAllowedEmpty }).then((value) => {
       if (!value) return;
-      const element = this.gameDataElement;
+      const element = this.gameDataElement();
       if (!element) return;
       element.value = value;
     });
@@ -121,48 +112,48 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   addImageElement() {
-    this.gameDataElement.appendChild(DataElement.create('imageIdentifier', '', { type: 'image' }));
-    const root: DataElement = <DataElement>this.gameDataElement.parent;
+    this.gameDataElement().appendChild(DataElement.create('imageIdentifier', '', { type: 'image' }));
+    const root: DataElement = <DataElement>this.gameDataElement().parent;
 
     this.updateKomaIconMaxValue(root);
   }
 
   addElement() {
-    this.gameDataElement.appendChild(DataElement.create('タグ', '', {}));
+    this.gameDataElement().appendChild(DataElement.create('タグ', '', {}));
   }
 
   deleteElement() {
-    this.gameDataElement.destroy();
+    this.gameDataElement().destroy();
   }
 
   deleteImageElement() {
-    const root: DataElement = <DataElement>this.gameDataElement.parent.parent;
-    if (this.gameDataElement.parent.children[0] != this.gameDataElement) {
-      this.gameDataElement.destroy();
+    const root: DataElement = <DataElement>this.gameDataElement().parent.parent;
+    if (this.gameDataElement().parent.children[0] != this.gameDataElement()) {
+      this.gameDataElement().destroy();
       this.updateKomaIconMaxValue(root);
     }
   }
 
   upElement() {
-    const parentElement = this.gameDataElement.parent;
-    const index: number = parentElement.children.indexOf(this.gameDataElement);
+    const parentElement = this.gameDataElement().parent;
+    const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (0 < index) {
       const prevElement = parentElement.children[index - 1];
-      parentElement.insertBefore(this.gameDataElement, prevElement);
+      parentElement.insertBefore(this.gameDataElement(), prevElement);
     }
   }
 
   downElement() {
-    const parentElement = this.gameDataElement.parent;
-    const index: number = parentElement.children.indexOf(this.gameDataElement);
+    const parentElement = this.gameDataElement().parent;
+    const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index < parentElement.children.length - 1) {
       const nextElement = index < parentElement.children.length - 2 ? parentElement.children[index + 2] : null!;
-      parentElement.insertBefore(this.gameDataElement, nextElement);
+      parentElement.insertBefore(this.gameDataElement(), nextElement);
     }
   }
 
   setElementType(type: string) {
-    this.gameDataElement.setAttribute('type', type);
+    this.gameDataElement().setAttribute('type', type);
   }
 
   private setValues(object: DataElement) {
@@ -174,10 +165,10 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
   private setUpdateTimer() {
     clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => {
-      if (this.gameDataElement.name !== this.name) this.gameDataElement.name = this.name;
-      if (this.gameDataElement.currentValue !== this.currentValue)
-        this.gameDataElement.currentValue = this.currentValue;
-      if (this.gameDataElement.value !== this.value) this.gameDataElement.value = this.value;
+      if (this.gameDataElement().name !== this.name) this.gameDataElement().name = this.name;
+      if (this.gameDataElement().currentValue !== this.currentValue)
+        this.gameDataElement().currentValue = this.currentValue;
+      if (this.gameDataElement().value !== this.value) this.gameDataElement().value = this.value;
       this.updateTimer = null!;
     }, 66);
   }
@@ -203,7 +194,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
     return this.domSanitizer.bypassSecurityTrustHtml('<div>' + textTable + '</div>');
   }
 
-  @HostListener('click', ['$event'])
   click(event: MouseEvent) {
     if (this.markdown) {
       this.markdown.changeMarkDownCheckBox((event.target as HTMLElement)?.id, event.timeStamp);

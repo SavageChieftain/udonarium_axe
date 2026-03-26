@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -38,7 +38,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   //
 
-  @Input() isAllowedEmpty: boolean = false;
+  isAllowedEmpty: boolean = false;
 
   getAllImage(): ImageFile[] {
     const imageFileList: ImageFile[] = [];

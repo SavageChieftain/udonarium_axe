@@ -5,9 +5,8 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  HostListener,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
   signal,
@@ -40,6 +39,10 @@ import { SelectionSignalService } from '@axe/shared/selection-signal.service';
   styleUrls: ['./dice-symbol.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
+  host: {
+    '(dragstart)': 'onDragstart($event)',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
 export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private panelService = inject(PanelService);
@@ -52,77 +55,76 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @Input() diceSymbol: DiceSymbol = null!;
-  @Input() is3D: boolean = false;
+  readonly diceSymbol = input<DiceSymbol>(null!);
 
   get face(): string {
-    return this.diceSymbol.face;
+    return this.diceSymbol().face;
   }
   set face(face: string) {
-    this.diceSymbol.face = face;
+    this.diceSymbol().face = face;
   }
   get owner(): string {
-    return this.diceSymbol.owner;
+    return this.diceSymbol().owner;
   }
   set owner(owner: string) {
-    this.diceSymbol.owner = owner;
+    this.diceSymbol().owner = owner;
   }
   get rotate(): number {
-    return this.diceSymbol.rotate;
+    return this.diceSymbol().rotate;
   }
   set rotate(rotate: number) {
-    this.diceSymbol.rotate = rotate;
+    this.diceSymbol().rotate = rotate;
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.diceSymbol.identifier)();
+    this.objectChange.versionOf(this.diceSymbol().identifier)();
     this.objectChange.networkVersion();
-    if (this.diceSymbol.owner) {
-      const cursor = PeerCursor.findByUserId(this.diceSymbol.owner);
+    if (this.diceSymbol().owner) {
+      const cursor = PeerCursor.findByUserId(this.diceSymbol().owner);
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
     }
-    return this.diceSymbol.name;
+    return this.diceSymbol().name;
   }
   set name(name: string) {
-    this.diceSymbol.name = name;
+    this.diceSymbol().name = name;
   }
   get size(): number {
-    return this.adjustMinBounds(this.diceSymbol.size);
+    return this.adjustMinBounds(this.diceSymbol().size);
   }
 
   get imageHeignt(): number {
-    return this.diceSymbol.komaImageHeight;
+    return this.diceSymbol().komaImageHeight;
   }
   get specifyImageFlag(): boolean {
-    return this.diceSymbol.specifyKomaImageFlag;
+    return this.diceSymbol().specifyKomaImageFlag;
   }
 
   get faces(): string[] {
-    return this.diceSymbol.faces;
+    return this.diceSymbol().faces;
   }
   get imageFile(): ImageFile {
     this.objectChange.fileVersion();
-    return this.imageService.getEmptyOr(this.diceSymbol.imageFile);
+    return this.imageService.getEmptyOr(this.diceSymbol().imageFile);
   }
 
   get isMine(): boolean {
-    return this.diceSymbol.isMine;
+    return this.diceSymbol().isMine;
   }
   get hasOwner(): boolean {
-    return this.diceSymbol.hasOwner;
+    return this.diceSymbol().hasOwner;
   }
   get ownerName(): string {
-    return this.diceSymbol.ownerName;
+    return this.diceSymbol().ownerName;
   }
   get isVisible(): boolean {
-    return this.diceSymbol.isVisible;
+    return this.diceSymbol().isVisible;
   }
 
   get isLock(): boolean {
-    return this.diceSymbol.isLock;
+    return this.diceSymbol().isLock;
   }
   set isLock(isLock: boolean) {
-    this.diceSymbol.isLock = isLock;
+    this.diceSymbol().isLock = isLock;
   }
 
   readonly animeState = signal<'inactive' | 'active'>('inactive');
@@ -141,7 +143,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private input: InputHandler = null!;
   ngOnInit() {
     this.objectChange.rollDiceSymbol$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.identifier === this.diceSymbol.identifier) {
+      if (event.identifier === this.diceSymbol().identifier) {
         this.animeState.set('inactive');
         setTimeout(() => {
           this.animeState.set('active');
@@ -149,12 +151,12 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
     this.movableOption = {
-      tabletopObject: this.diceSymbol,
+      tabletopObject: this.diceSymbol(),
       transformCssOffset: 'translateZ(1.0px)',
       colideLayers: ['terrain'],
     };
     this.rotableOption = {
-      tabletopObject: this.diceSymbol,
+      tabletopObject: this.diceSymbol(),
     };
   }
 
@@ -169,7 +171,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.input) this.input.destroy();
   }
 
-  @HostListener('dragstart', ['$event'])
   onDragstart(e: DragEvent) {
     e.stopPropagation();
     e.preventDefault();
@@ -219,7 +220,6 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -294,13 +294,13 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     actions.push({
       name: '詳細を表示',
       action: () => {
-        this.showDetail(this.diceSymbol);
+        this.showDetail(this.diceSymbol());
       },
     });
     actions.push({
       name: 'コピーを作る',
       action: () => {
-        const cloneObject = this.diceSymbol.clone();
+        const cloneObject = this.diceSymbol().clone();
         cloneObject.location.x += this.gridSize;
         cloneObject.location.y += this.gridSize;
         cloneObject.update();
@@ -310,7 +310,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
     actions.push({
       name: '削除する',
       action: () => {
-        this.diceSymbol.destroy();
+        this.diceSymbol().destroy();
         SoundEffect.play(PresetSound.sweep);
       },
     });
@@ -326,9 +326,9 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   diceRoll(): string {
-    callRollDiceSymbol(this.diceSymbol.identifier);
+    callRollDiceSymbol(this.diceSymbol().identifier);
     SoundEffect.play(PresetSound.diceRoll1);
-    return this.diceSymbol.diceRoll();
+    return this.diceSymbol().diceRoll();
   }
 
   showDetail(gameObject: DiceSymbol) {
