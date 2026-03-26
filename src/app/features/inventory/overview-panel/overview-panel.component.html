@@ -265,7 +265,11 @@
           <div>
             {{ dataElm.name }}
             <span [hidden]="!isUrlText(dataElm.value)">
-              &nbsp;&nbsp;URL編集:<input id="{{ dataElm.myIdentifer }}" type="checkbox" (change)="changeChk()" />
+              &nbsp;&nbsp;URL編集:<input
+                type="checkbox"
+                [checked]="editCheckedIds.has(dataElm.myIdentifer)"
+                (change)="changeChk(dataElm.myIdentifer)"
+              />
             </span>
           </div>
           <div class="note" style="position: relative">

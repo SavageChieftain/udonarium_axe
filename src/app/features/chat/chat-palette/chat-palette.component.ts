@@ -50,6 +50,8 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
   @ViewChild('chatInput', { static: true }) chatInputComponent: ChatInputComponent;
   @ViewChild('chatPalette') chatPaletteElementRef: ElementRef<HTMLSelectElement>;
+  @ViewChild('completeSelect') completeSelectRef: ElementRef<HTMLSelectElement>;
+  @ViewChild('editText') editTextRef: ElementRef<HTMLTextAreaElement>;
   @Input() character: GameCharacter = null!;
 
   get palette(): ChatPalette {
@@ -58,7 +60,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
 
   private _gameType: string = '';
   private _paletteIndex: PaletteIndex[] = [];
-  /* private */ _timeId: string = '';
+  private _timeId: string = '';
   private _autoCompleteEnable = false;
   private _completeIndex = -1;
 
@@ -162,7 +164,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   autoCompleteSwitchRelative(direction: number) {
-    const selectObj = <HTMLSelectElement>document.getElementById(this._timeId + '_complete');
+    const selectObj = this.completeSelectRef?.nativeElement;
     if (!selectObj) {
       return;
     }
@@ -181,15 +183,15 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   autoCompleteDoRelative(index: number) {
-    const selectObj = <HTMLSelectElement>document.getElementById(this._timeId + '_complete');
-    if (index != selectObj.selectedIndex) return;
+    const selectObj = this.completeSelectRef?.nativeElement;
+    if (!selectObj || index != selectObj.selectedIndex) return;
     this.selectAutoComplete(this.text, selectObj.value);
   }
 
   selectPalette(line: string) {
     const multiLine = line.replace(/\\n/g, '\n');
     this.text = multiLine;
-    const selectObj = <HTMLSelectElement>document.getElementById(this._timeId + '_complete');
+    const selectObj = this.completeSelectRef?.nativeElement;
     if (selectObj) {
       selectObj.selectedIndex = -1;
     }
@@ -197,7 +199,8 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   selectAutoComplete(text: string, selectText: string) {
-    const selectObj = <HTMLSelectElement>document.getElementById(this._timeId + '_complete');
+    const selectObj = this.completeSelectRef?.nativeElement;
+    if (!selectObj) return;
     const lineNo = this.palette.paletteMatchLine(text, selectObj.selectedIndex);
     this.japmIndex(lineNo);
     this.selectPalette(selectText);
@@ -315,19 +318,15 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
     if (this.isEdit) {
-      const selectObj = document.getElementById(this._timeId + '_select')!;
-      const textObj = document.getElementById(this._timeId + '_text')!;
-      /*
-      const lineNum = this.palette.getPalette().length;
-*/
+      const selectEl = this.chatPaletteElementRef?.nativeElement;
       this.editPalette = this.palette.value + '';
-      const selectTop = selectObj.scrollTop;
-      const selectHeight = selectObj.scrollHeight;
-      /*
-      const centerLine = lineNum > 0 ? (selectObj.clientHeight/2 + selectObj.scrollHeight) / lineNum : lineNum;
-*/
+      const selectTop = selectEl?.scrollTop ?? 0;
+      const selectHeight = selectEl?.scrollHeight ?? 1;
       setTimeout(() => {
-        textObj.scrollTop = (selectTop * textObj.scrollHeight) / selectHeight;
+        const textEl = this.editTextRef?.nativeElement;
+        if (textEl) {
+          textEl.scrollTop = (selectTop * textEl.scrollHeight) / selectHeight;
+        }
       }, 10);
     } else {
       this.palette.setPalette(this.editPalette);
@@ -335,15 +334,16 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   moveTest() {
-    const textObj = <HTMLInputElement>document.getElementById(this._timeId + '_text');
-    textObj.focus();
+    const textEl = this.editTextRef?.nativeElement;
+    if (!textEl) return;
+    textEl.focus();
     setTimeout(() => {
-      textObj.setSelectionRange(600, 600);
+      textEl.setSelectionRange(600, 600);
     }, 10);
   }
 
   japmIndex(lineNo: number) {
-    const select = <HTMLSelectElement>document.getElementById(this._timeId + '_select');
+    const select = this.chatPaletteElementRef?.nativeElement;
     if (select) {
       select.scrollTop = select.scrollHeight;
       select.options[lineNo].selected = false;

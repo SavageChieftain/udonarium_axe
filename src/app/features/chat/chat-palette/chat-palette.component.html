@@ -52,7 +52,7 @@
       @if ((autoCompleteList().length === 1 && autoCompleteList()[0] !== text) || autoCompleteList().length > 1) {
         <select
           class="complete"
-          id="{{ _timeId }}_complete"
+          #completeSelect
           style="overflow-y: auto"
           size="5"
           (input)="selectAutoComplete(text, $any($event.target).value)"
@@ -68,7 +68,6 @@
   <div [hidden]="isEdit" style="flex-grow: 1; height: 0; min-height: 100px">
     <select
       class="palette"
-      id="{{ _timeId }}_select"
       style="overflow-y: auto"
       size="5"
       (input)="selectPalette($any($event.target).value)"
@@ -86,7 +85,7 @@
   <div [hidden]="!isEdit" style="flex-grow: 1; height: 0; min-height: 100px">
     <textarea
       class="palette is-caret"
-      id="{{ _timeId }}_text"
+      #editText
       style="resize: none"
       [(ngModel)]="editPalette"
       placeholder="チャットパレット"

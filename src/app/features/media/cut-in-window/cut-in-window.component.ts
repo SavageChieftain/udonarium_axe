@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   inject,
   OnDestroy,
   OnInit,
@@ -38,7 +39,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  // @ViewChild('cutInImageElement', { static: false }) cutInImageElement: ElementRef;
+  @ViewChild('cutInArea', { static: false }) cutInArea!: ElementRef<HTMLDivElement>;
   @ViewChild('videoPlayerComponent', { static: false })
   videoPlayer!: YouTubePlayer;
 
@@ -186,20 +187,12 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     return (this.isTest ? this.jukebox.auditionVolume : this.jukebox.volume) * this.config.roomVolume * 100;
   }
 
-  get cutInAreaId(): string {
-    if (!this.cutIn) {
-      return '';
-    } else {
-      return this.cutIn.identifier + '_window';
-    }
-  }
-
   get youTubeWidth(): number {
-    return document.getElementById(this.cutInAreaId) ? document.getElementById(this.cutInAreaId)!.clientWidth : 640;
+    return this.cutInArea?.nativeElement.clientWidth ?? 640;
   }
 
   get youTubeHeight(): number {
-    return document.getElementById(this.cutInAreaId) ? document.getElementById(this.cutInAreaId)!.clientHeight : 340;
+    return this.cutInArea?.nativeElement.clientHeight ?? 340;
   }
 
   onPlayerReady($event: { target: { setVolume: (v: number) => void; playVideo: () => void } }) {

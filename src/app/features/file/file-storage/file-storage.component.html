@@ -46,13 +46,7 @@
           <img src="assets/images/loading.gif" alt="{{ file.name }}" />
         }
         @if (0 < file.url.length) {
-          <input
-            class="img-chk"
-            id="{{ file.identifier }}_{{ initTimestamp }}"
-            name="tag_chg_chk"
-            type="checkbox"
-            (change)="onChange(file.identifier)"
-          />
+          <input class="img-chk" name="tag_chg_chk" type="checkbox" [checked]="checkedFiles.has(file.identifier)" />
         }
       </div>
     </span>

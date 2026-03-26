@@ -25,7 +25,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private saveDataService = inject(SaveDataService);
   private objectStore = inject(ObjectStore);
 
-  protected initTimestamp = 0;
+  protected checkedPeers = new Set<string>();
   networkService = Network;
   voteContentsText = '';
   alarmTitle = 'タイマ';
@@ -45,9 +45,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.objectStore.get<Alarm>('Alarm');
   }
 
-  constructor() {
-    this.initTimestamp = Date.now();
-  }
+  constructor() {}
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'アラームタイマ'));
@@ -65,11 +63,10 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   setDefaultCheck() {
-    const list = this.peerList;
-    for (const peer of list) {
-      const box = <HTMLInputElement>document.getElementById(peer.peerId + '_' + this.initTimestamp);
-      if (box) {
-        box.checked = !this.isPeerIsDisConnect(peer.peerId);
+    this.checkedPeers.clear();
+    for (const peer of this.peerList) {
+      if (!this.isPeerIsDisConnect(peer.peerId)) {
+        this.checkedPeers.add(peer.peerId);
       }
     }
   }
@@ -79,16 +76,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   selectedList(): string[] {
-    const list = this.peerList;
-    const sendList: string[] = [];
-    for (const peer of list) {
-      const box = <HTMLInputElement>document.getElementById(peer.peerId + '_' + this.initTimestamp);
-      if (box) {
-        if (box.checked) {
-          sendList.push(peer.peerId);
-        }
-      }
-    }
+    const sendList = [...this.checkedPeers];
     if (this.includSelf) {
       sendList.push(this.myPeer.peerId);
     }
@@ -139,18 +127,16 @@ export class AlarmMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     // 処理なし
   }
 
-  onChangeType(_name: string) {
-    const box = <HTMLInputElement>document.getElementById('rollcall' + '_' + this.initTimestamp);
-    this.isRollCall = box.checked;
+  onChangeType(value: string) {
+    this.isRollCall = value === 'rollcall';
   }
 
   voteBlockClick(id: string) {
-    const box = <HTMLInputElement>document.getElementById(id + '_' + this.initTimestamp);
-    box.checked = !box.checked;
-  }
-
-  onChange(id: string) {
-    this.voteBlockClick(id);
+    if (this.checkedPeers.has(id)) {
+      this.checkedPeers.delete(id);
+    } else {
+      this.checkedPeers.add(id);
+    }
   }
 
   findUserId(peerId: string) {

@@ -210,16 +210,14 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
     }
   }
 
+  protected editCheckedIds = new Set<string>();
+
   isEditMarkDown(dataElmIdentifier: string) {
-    const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
-    if (!box) return false;
-    return box.checked;
+    return this.editCheckedIds.has(dataElmIdentifier);
   }
 
   isEditUrl(dataElmIdentifier: string) {
-    const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
-    if (!box) return false;
-    return box.checked;
+    return this.editCheckedIds.has(dataElmIdentifier);
   }
 
   isUrlText(text: string | number): boolean {
@@ -229,12 +227,15 @@ export class GameDataElementComponent implements OnInit, OnDestroy, AfterViewIni
     return false;
   }
 
-  changeChk() {
-    //実処理なし
+  changeChk(dataElmIdentifier: string) {
+    if (this.editCheckedIds.has(dataElmIdentifier)) {
+      this.editCheckedIds.delete(dataElmIdentifier);
+    } else {
+      this.editCheckedIds.add(dataElmIdentifier);
+    }
   }
 
   textFocus(dataElmIdentifier: string) {
-    const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
-    box.checked = true;
+    this.editCheckedIds.add(dataElmIdentifier);
   }
 }

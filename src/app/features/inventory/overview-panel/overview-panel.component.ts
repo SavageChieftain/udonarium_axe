@@ -302,10 +302,10 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  protected editCheckedIds = new Set<string>();
+
   isEditUrl(dataElmIdentifier: string) {
-    const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
-    if (!box) return false;
-    return box.checked;
+    return this.editCheckedIds.has(dataElmIdentifier);
   }
 
   isUrlText(text: string) {
@@ -314,12 +314,15 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     return false;
   }
 
-  changeChk() {
-    //実処理なし
+  changeChk(dataElmIdentifier: string) {
+    if (this.editCheckedIds.has(dataElmIdentifier)) {
+      this.editCheckedIds.delete(dataElmIdentifier);
+    } else {
+      this.editCheckedIds.add(dataElmIdentifier);
+    }
   }
 
   textFocus(dataElmIdentifier: string) {
-    const box = <HTMLInputElement>document.getElementById(dataElmIdentifier);
-    box.checked = true;
+    this.editCheckedIds.add(dataElmIdentifier);
   }
 }

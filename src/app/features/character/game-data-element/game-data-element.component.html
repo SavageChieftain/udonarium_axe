@@ -74,9 +74,9 @@
         @case ('note') {
           <span [hidden]="!isUrlText(value)" style="font-size: 0.8em">
             &nbsp;&nbsp;URL編集:<input
-              id="{{ gameDataElement.myIdentifer + '_elm' }}"
               type="checkbox"
-              (change)="changeChk()"
+              [checked]="editCheckedIds.has(gameDataElement.myIdentifer + '_elm')"
+              (change)="changeChk(gameDataElement.myIdentifer + '_elm')"
             />
           </span>
           <!--
@@ -106,9 +106,9 @@
         @case ('markdown') {
           <span style="font-size: 0.8em">
             &nbsp;&nbsp;内容編集:<input
-              id="{{ gameDataElement.myIdentifer + '_elm' }}"
               type="checkbox"
-              (change)="changeChk()"
+              [checked]="editCheckedIds.has(gameDataElement.myIdentifer + '_elm')"
+              (change)="changeChk(gameDataElement.myIdentifer + '_elm')"
             />
           </span>
           <textarea

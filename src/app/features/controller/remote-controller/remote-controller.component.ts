@@ -93,13 +93,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   constructor() {
-    this.initTimestamp = Date.now();
     effect(() => {
-      const data = this.uiSignalService.targetChange();
-      if (!data) return;
-      if (this.objectStore.get(data.identifier) instanceof GameCharacter) {
-        this.targetSetChkBox(this.objectStore.get(data.identifier));
-      }
+      this.uiSignalService.targetChange();
     });
   }
 
@@ -141,7 +136,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   errorMessageController = '';
 
   private _gameType = '';
-  protected initTimestamp = 0;
   text = '';
 
   get buffHideIsChk(): boolean {
@@ -362,11 +356,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
           continue;
         } // 非表示対象の除外のため
 
-        const box = document.getElementById(object.identifier + '_' + this.initTimestamp) as HTMLInputElement;
-        if (box) {
-          if (box.checked || !checkedOnly) {
-            gameCharacters.push(object);
-          }
+        if (object.targeted || !checkedOnly) {
+          gameCharacters.push(object);
         }
       }
     }
@@ -562,30 +553,14 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     const objectList = this.getGameObjects(this.selectTab);
     for (const object of objectList) {
       if (object instanceof GameCharacter) {
-        const box = document.getElementById(object.identifier + '_' + this.initTimestamp) as HTMLInputElement;
         object.targeted = value.check;
-        if (box) {
-          box.checked = object.targeted;
-          this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
-        }
+        this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
       }
     }
   }
 
-  targetSetChkBox(object: GameCharacter) {
-    const box = document.getElementById(object.identifier + '_' + this.initTimestamp) as HTMLInputElement;
-    if (box) {
-      box.checked = object.targeted;
-    }
-  }
-
   targetBlockClick(object: GameCharacter) {
-    object.targeted = object.targeted ? false : true;
-    this.targetSetChkBox(object);
+    object.targeted = !object.targeted;
     this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
-  }
-
-  onChange(object: GameCharacter) {
-    this.targetBlockClick(object);
   }
 }

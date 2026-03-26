@@ -257,7 +257,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private calcLocalCoordinate(x: number, y: number, target: HTMLElement) {
-    if (!document.getElementById('app-table-layer')?.contains(target)) return;
+    if (!target.closest('#app-table-layer')) return;
 
     let coordinate: PointerCoordinate = { x, y, z: 0 };
     coordinate = this.coordinateService.calcTabletopLocalCoordinate(coordinate, target);

@@ -22,7 +22,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   private fileArchiver = inject(FileArchiver);
   private objectChange = inject(ObjectChangeService);
 
-  protected initTimestamp: number = 0;
+  protected checkedFiles = new Set<string>();
 
   //本家PR #92より
   searchWord: string = '';
@@ -118,16 +118,13 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
     const changeableImages = this.images;
 
     for (const img of changeableImages) {
-      const box = <HTMLInputElement>document.getElementById(img.context.identifier + '_' + this.initTimestamp);
-      if (box) {
-        if (box.checked) {
-          let imageTag = ImageTag.get(img.context.identifier);
-          imageTag = imageTag ? imageTag : ImageTag.create(img.context.identifier);
-          if (this.newTagName == '未設定') {
-            imageTag.tag = '';
-          } else {
-            imageTag.tag = this.newTagName;
-          }
+      if (this.checkedFiles.has(img.context.identifier)) {
+        let imageTag = ImageTag.get(img.context.identifier);
+        imageTag = imageTag ? imageTag : ImageTag.create(img.context.identifier);
+        if (this.newTagName == '未設定') {
+          imageTag.tag = '';
+        } else {
+          imageTag.tag = this.newTagName;
         }
       }
     }
@@ -141,9 +138,7 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   //本家PR #92より
-  constructor() {
-    this.initTimestamp = Date.now();
-  }
+  constructor() {}
 
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));
@@ -167,11 +162,10 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   imgBlockClick(identifier: string) {
-    const box = <HTMLInputElement>document.getElementById(identifier + '_' + this.initTimestamp);
-    box.checked = !box.checked;
-  }
-
-  onChange(identifier: string) {
-    this.imgBlockClick(identifier);
+    if (this.checkedFiles.has(identifier)) {
+      this.checkedFiles.delete(identifier);
+    } else {
+      this.checkedFiles.add(identifier);
+    }
   }
 }

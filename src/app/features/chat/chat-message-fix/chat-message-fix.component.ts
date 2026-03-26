@@ -57,7 +57,6 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
   }>();
 
   chatMessage!: ChatMessage;
-  initTimestamp = 0;
 
   private previousWritingLength: number = 0;
 
@@ -72,9 +71,6 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
   }
 
   private calcFitHeightInterval: NodeJS.Timeout = null!;
-  constructor() {
-    this.initTimestamp = Date.now();
-  }
 
   ngOnInit(): void {
     this.kickCalcFitHeight();
@@ -96,8 +92,7 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
       this.calcFitHeightInterval = setTimeout(() => {
         this.calcFitHeightInterval = null!;
         this.calcFitHeight();
-        const txtarea = <HTMLInputElement>document.getElementById('messageFix' + '_' + this.initTimestamp);
-        txtarea.focus();
+        this.textAreaElementRef.nativeElement.focus();
       }, 0);
     }
   }

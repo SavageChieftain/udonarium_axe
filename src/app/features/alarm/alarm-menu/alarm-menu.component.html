@@ -20,7 +20,6 @@
             value="includSelf"
             [(ngModel)]="includSelf"
             name="includSelf"
-            id="includSelf_{{ initTimestamp }}"
             (click)="changeIncludSelf()"
           /><span>自分を含める</span>
         </div>
@@ -51,22 +50,12 @@
           <span style="display: inline-block; margin-left: 0.5em">人数:{{ selectedNum() }}</span>
         </div>
         <div style="display: table-cell; align: left">
-          <input
-            type="checkbox"
-            value="isSound"
-            [(ngModel)]="isSound"
-            name="isSound"
-            id="isSound_{{ initTimestamp }}"
-            (click)="changeIsSound()"
-          /><span>音</span>
-          <input
-            type="checkbox"
-            value="isPopUp"
-            [(ngModel)]="isPopUp"
-            name="isPopUp"
-            id="isPopUp_{{ initTimestamp }}"
-            (click)="changeIsPopUp()"
-          /><span>ポップアップ</span>
+          <input type="checkbox" value="isSound" [(ngModel)]="isSound" name="isSound" (click)="changeIsSound()" /><span
+            >音</span
+          >
+          <input type="checkbox" value="isPopUp" [(ngModel)]="isPopUp" name="isPopUp" (click)="changeIsPopUp()" /><span
+            >ポップアップ</span
+          >
         </div>
       </div>
     </div>
@@ -82,8 +71,8 @@
           <div>
             <input
               type="checkbox"
-              id="{{ peer.peerId }}_{{ initTimestamp }}"
-              (change)="onChange(peer.peerId)"
+              [checked]="checkedPeers.has(peer.peerId)"
+              (change)="voteBlockClick(peer.peerId)"
               name="vote_chk"
             />
           </div>
