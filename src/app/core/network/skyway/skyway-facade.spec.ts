@@ -1,9 +1,5 @@
 import { SkyWayFacade } from './skyway-facade';
 
-vi.mock('@skyway-sdk/core', () => ({
-  Logger: { level: '' },
-}));
-
 describe('SkyWayFacade', () => {
   it('クラスがエクスポートされている', () => {
     expect(SkyWayFacade).toBeDefined();
