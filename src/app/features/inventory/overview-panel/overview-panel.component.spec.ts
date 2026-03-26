@@ -60,4 +60,22 @@ describe('OverviewPanelComponent', () => {
       expect(result[0]).toBeTruthy();
     });
   });
+
+  describe('editCheckedIds による編集チェック状態管理', () => {
+    it('changeChk で未登録のIDが追加されること', () => {
+      component.changeChk('elem-1');
+      expect(component.isEditUrl('elem-1')).toBe(true);
+    });
+
+    it('changeChk で登録済みのIDが削除されること', () => {
+      component.changeChk('elem-1');
+      component.changeChk('elem-1');
+      expect(component.isEditUrl('elem-1')).toBe(false);
+    });
+
+    it('textFocus でIDが追加されること', () => {
+      component.textFocus('elem-2');
+      expect(component.isEditUrl('elem-2')).toBe(true);
+    });
+  });
 });
