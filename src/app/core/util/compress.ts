@@ -1,50 +1,21 @@
 import { Logger } from '@axe/core/logger';
-import * as Pako from 'pako';
 
-import { setZeroTimeout } from './zero-timeout';
-
-export async function compressAsync(data: Uint8Array, chunkSize?: number): Promise<Uint8Array> {
-  const deflate = new Pako.Deflate({ level: 2, gzip: true });
-
+export async function compressAsync(data: Uint8Array, _chunkSize?: number): Promise<Uint8Array> {
   try {
-    await processAsync(deflate, data, chunkSize);
-    return deflate.result as Uint8Array;
+    const stream = new Blob([new Uint8Array(data)]).stream().pipeThrough(new CompressionStream('gzip'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
   } catch (e) {
     Logger.error('[Compress] 圧縮エラー', e);
   }
   return null!;
 }
 
-export async function decompressAsync(data: Uint8Array, chunkSize?: number): Promise<Uint8Array> {
-  const inflate = new Pako.Inflate();
-
+export async function decompressAsync(data: Uint8Array, _chunkSize?: number): Promise<Uint8Array> {
   try {
-    await processAsync(inflate, data, chunkSize);
-    return inflate.result as Uint8Array;
+    const stream = new Blob([new Uint8Array(data)]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
   } catch (e) {
     Logger.error('[Compress] 解凍エラー', e);
   }
   return null!;
-}
-
-async function processAsync<T extends Pako.Deflate | Pako.Inflate>(
-  pakoObj: T,
-  data: Uint8Array,
-  chunkSize: number = 16 * 1024
-): Promise<T> {
-  const total = Math.ceil(data.byteLength / chunkSize);
-  let sliceData: Uint8Array;
-
-  for (let sliceIndex = 0; sliceIndex < total; sliceIndex++) {
-    await waitTickAsync();
-    sliceData = data.slice(sliceIndex * chunkSize, (sliceIndex + 1) * chunkSize);
-    pakoObj.push(sliceData, total <= sliceIndex + 1);
-  }
-
-  if (pakoObj.err) throw new Error(`error: ${pakoObj.err}`);
-  return pakoObj;
-}
-
-function waitTickAsync(): Promise<void> {
-  return new Promise((resolve) => setZeroTimeout(resolve));
 }

@@ -81,26 +81,11 @@ export class GameObject {
       identifier: this.context.identifier,
       majorVersion: this.context.majorVersion,
       minorVersion: this.context.minorVersion,
-      syncData: deepCopy(this.context.syncData),
+      syncData: structuredClone(this.context.syncData),
     };
   }
 
   toXml(): string {
     return ObjectSerializer.instance.toXml(this);
   }
-}
-
-function deepCopy(obj: object): object {
-  if (obj == null) return obj;
-  const clone: Record<string, unknown> = Array.isArray(obj) ? ([] as unknown as Record<string, unknown>) : {};
-  const keys = Object.getOwnPropertyNames(obj);
-  for (const key of keys) {
-    const type = typeof (obj as Record<string, unknown>)[key];
-    if ((obj as Record<string, unknown>)[key] != null && type === 'object') {
-      clone[key] = deepCopy((obj as Record<string, unknown>)[key] as object);
-    } else if (type !== 'function') {
-      clone[key] = (obj as Record<string, unknown>)[key];
-    }
-  }
-  return clone;
 }

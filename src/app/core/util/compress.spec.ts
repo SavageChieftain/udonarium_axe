@@ -18,10 +18,10 @@ describe('compress', () => {
       expect(compressed.length).toBeLessThan(data.length);
     });
 
-    it('空のUint8Arrayを圧縮するとエラーになる', async () => {
+    it('空のUint8Arrayを圧縮できる', async () => {
       const data = new Uint8Array(0);
       const compressed = await compressAsync(data);
-      expect(compressed).toBeFalsy();
+      expect(compressed).toBeInstanceOf(Uint8Array);
     });
 
     it('chunkSizeを指定できる', async () => {
