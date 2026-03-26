@@ -6,12 +6,12 @@ Udonarium Axe はブラウザベースの TRPG オンラインセッション支
 
 ### 4層構造（`src/app/`）
 
-| レイヤー | パス | 説明 | 依存ルール |
-|----------|------|------|-----------|
-| **core** | `core/` | インフラ層: network/, storage/, sync/, transform/, util/, app-wide services | 他レイヤーをimportしない |
-| **domain** | `domain/` | ドメインモデル: character/, chat/, tabletop/, card/, dice/, media/, peer/, data/, shared/ | Angular無依存。`@SyncObject`/`@SyncVar`のみ |
-| **features** | `features/` | UI機能単位: chat/, tabletop/, character/, card/, dice/, media/, lobby/, inventory/, vote/, alarm/, controller/, file/ | core, domain, shared に依存可 |
-| **shared** | `shared/` | 横断UI: components/, directives/, pipes/, services | core, domain に依存可 |
+| レイヤー     | パス        | 説明                                                                                                                  | 依存ルール                                  |
+| ------------ | ----------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **core**     | `core/`     | インフラ層: network/, storage/, sync/, transform/, util/, app-wide services                                           | 他レイヤーをimportしない                    |
+| **domain**   | `domain/`   | ドメインモデル: character/, chat/, tabletop/, card/, dice/, media/, peer/, data/, shared/                             | Angular無依存。`@SyncObject`/`@SyncVar`のみ |
+| **features** | `features/` | UI機能単位: chat/, tabletop/, character/, card/, dice/, media/, lobby/, inventory/, vote/, alarm/, controller/, file/ | core, domain, shared に依存可               |
+| **shared**   | `shared/`   | 横断UI: components/, directives/, pipes/, services                                                                    | core, domain に依存可                       |
 
 ### パスエイリアス
 
@@ -31,10 +31,10 @@ Udonarium Axe はブラウザベースの TRPG オンラインセッション支
 
 ### デュアルランナー
 
-| ランナー | コマンド | ビルドツール |
-|----------|----------|-------------|
-| Angular builder | `npm test` (`ng test`) | `@angular/build:unit-test` + ESBuild |
-| Standalone vitest | `npx vitest run` | `@analogjs/vite-plugin-angular` + Vite |
+| ランナー          | コマンド               | ビルドツール                           |
+| ----------------- | ---------------------- | -------------------------------------- |
+| Angular builder   | `npm test` (`ng test`) | `@angular/build:unit-test` + ESBuild   |
+| Standalone vitest | `npx vitest run`       | `@analogjs/vite-plugin-angular` + Vite |
 
 **両方のランナーでテストが通過する必要がある。**
 
@@ -43,11 +43,13 @@ Udonarium Axe はブラウザベースの TRPG オンラインセッション支
 Angular builder の `@angular/build:unit-test` はESBuildでモジュールをバンドルするため、ESMモジュールの`export`が **non-configurable** になる。
 
 **使用不可:**
+
 - `vi.spyOn(moduleNamespace, 'exportedFunc')` — `TypeError: Cannot redefine property`
 - `vi.mock(path, factory)` — ファクトリは実行されるがモジュールは置換されない
 - `vi.mock('./relative/path')` — 相対importのモックは明示的に拒否される
 
 **使用可能:**
+
 - `vi.spyOn(classInstance, 'method')` — クラスインスタンスのプロパティは configurable
 - `vi.spyOn(ClassName, 'staticMethod')` — static メソッドも configurable
 - Observable の subscribe で検証
@@ -82,16 +84,6 @@ this.objectChange.collectionOf(GameCharacter.aliasName)();
 
 - `@msgpack/msgpack` v3 は `ArrayBuffer` を正しくシリアライズできない（encode → decode で `{}` になる）
 - P2Pでバイナリ送信時は `new Uint8Array(buf)` でラップ必須
-
-## バックエンド設定
-
-```json
-{
-  "backend": {
-    "url": "https://udonarium-backend-vercel.vercel.app/"
-  }
-}
-```
 
 ## 未着手作業（Phase 8 — オプション）
 
