@@ -6,11 +6,10 @@ import {
   DestroyRef,
   effect,
   ElementRef,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -78,6 +77,12 @@ import { TableTouchGesture, TableTouchGestureEvent } from './table-touch-gesture
     GameCharacterComponent,
     SafePipe,
   ],
+  host: {
+    '(contextmenu)': 'onContextMenu($event)',
+    '(document:mousedown)': 'onDocumentMouseDown($event)',
+    '(document:touchstart)': 'onDocumentTouchStart($event)',
+    '(document:contextmenu)': 'onDocumentContextMenu($event)',
+  },
 })
 export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
@@ -103,19 +108,19 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.roomGridDispAlways) {
         opacity = 1.0;
       }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+      this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });
     effect(() => {
       const focus = this.selectionSignalService.focusCoordinate();
       if (!focus || !this.gameTable) return;
       setTimeout(() => {
-        this.gameTable.nativeElement.style.transition = '0.2s ease-out';
+        this.gameTable().nativeElement.style.transition = '0.2s ease-out';
         setTimeout(() => {
-          this.gameTable.nativeElement.style.transition = null!;
+          this.gameTable().nativeElement.style.transition = null!;
         }, 100);
         // 座標変換
-        const centerX = this.gridCanvas.nativeElement.clientWidth / 2;
-        const centerY = this.gridCanvas.nativeElement.clientHeight / 2;
+        const centerX = this.gridCanvas().nativeElement.clientWidth / 2;
+        const centerY = this.gridCanvas().nativeElement.clientHeight / 2;
         const movedX = focus.x - centerX;
         const movedY = focus.y - centerY;
         // z軸回転
@@ -139,10 +144,10 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
-  @ViewChild('gameTable', { static: true }) gameTable: ElementRef<HTMLElement>;
-  @ViewChild('gameObjects', { static: true }) gameObjects: ElementRef<HTMLElement>;
-  @ViewChild('gridCanvas', { static: true }) gridCanvas: ElementRef<HTMLCanvasElement>;
+  readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
+  readonly gameTable = viewChild.required<ElementRef<HTMLElement>>('gameTable');
+  readonly gameObjects = viewChild.required<ElementRef<HTMLElement>>('gameObjects');
+  readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
 
   get tableSelecter(): TableSelecter {
     return this.tabletopService.tableSelecter;
@@ -264,7 +269,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       this.currentTable.gridColor
     );
     this.setTransform(0, 0, 0, 0, 0, 0);
-    this.coordinateService.tabletopOriginElement = this.gameObjects.nativeElement;
+    this.coordinateService.tabletopOriginElement = this.gameObjects().nativeElement;
   }
 
   ngOnDestroy() {
@@ -273,7 +278,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   initializeTableTouchGesture() {
-    this.touchGesture = new TableTouchGesture(this.rootElementRef.nativeElement);
+    this.touchGesture = new TableTouchGesture(this.rootElementRef().nativeElement);
     this.touchGesture.onstart = () => this.onTableTouchStart();
     this.touchGesture.onend = () => this.onTableTouchEnd();
     this.touchGesture.ongesture = () => this.onTableTouchGesture();
@@ -282,7 +287,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   initializeTableMouseGesture() {
-    this.mouseGesture = new TableMouseGesture(this.rootElementRef.nativeElement);
+    this.mouseGesture = new TableMouseGesture(this.rootElementRef().nativeElement);
     this.mouseGesture.onstart = (e) => this.onTableMouseStart(e);
     this.mouseGesture.onend = (e) => this.onTableMouseEnd(e);
     this.mouseGesture.ontransform = (tX, tY, tZ, rX, rY, rZ, ev, src) =>
@@ -333,12 +338,12 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onTableMouseStart(e: TouchEvent | MouseEvent | PointerEvent) {
     const me = e as MouseEvent;
-    if ((me.target as HTMLElement).contains(this.gameObjects.nativeElement) || me.button === 1 || me.button === 2) {
+    if ((me.target as HTMLElement).contains(this.gameObjects().nativeElement) || me.button === 1 || me.button === 2) {
       this.isTableTransformMode = true;
     } else {
       this.isTableTransformMode = false;
       this.pointerDeviceService.isDragging = true;
-      this.gridCanvas.nativeElement.style.opacity = 1.0 + '';
+      this.gridCanvas().nativeElement.style.opacity = 1.0 + '';
       this.uiSignalService.notifyTerrainGridShow();
     }
     if (!document.activeElement?.contains(me.target as Node)) {
@@ -387,12 +392,11 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.roomGridDispAlways) {
       opacity = 1.0;
     }
-    this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    this.gridCanvas().nativeElement.style.opacity = opacity + '';
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: MouseEvent) {
-    if (!document.activeElement?.contains(this.gameObjects.nativeElement)) return;
+    if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;
     e.preventDefault();
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
@@ -411,17 +415,14 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     this.contextMenuService.open(menuPosition, menuActions, this.currentTable.name);
   }
-  @HostListener('document:mousedown', ['$event'])
   onDocumentMouseDown(_e: MouseEvent) {
     this.isTableTransformed = false;
   }
 
-  @HostListener('document:touchstart', ['$event'])
   onDocumentTouchStart(_e: TouchEvent) {
     this.isTableTransformed = false;
   }
 
-  @HostListener('document:contextmenu', ['$event'])
   onDocumentContextMenu(e: MouseEvent) {
     if (this.isTableTransformed && !this.pointerDeviceService.isAllowedToOpenContextMenu) e.preventDefault();
   }
@@ -446,7 +447,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
     }
 
-    this.gameTable.nativeElement.style.transform = `translateZ(${this.viewPotisonZ.toFixed(4)}px) translateY(${this.viewPotisonY.toFixed(4)}px) translateX(${this.viewPotisonX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;
+    this.gameTable().nativeElement.style.transform = `translateZ(${this.viewPotisonZ.toFixed(4)}px) translateY(${this.viewPotisonY.toFixed(4)}px) translateX(${this.viewPotisonX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;
   }
 
   private setGameTableGrid(
@@ -456,10 +457,10 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
     gridType: GridType = GridType.SQUARE,
     gridColor: string = '#000000e6'
   ) {
-    this.gameTable.nativeElement.style.width = width * gridSize + 'px';
-    this.gameTable.nativeElement.style.height = height * gridSize + 'px';
+    this.gameTable().nativeElement.style.width = width * gridSize + 'px';
+    this.gameTable().nativeElement.style.height = height * gridSize + 'px';
 
-    const render = new GridLineRender(this.gridCanvas.nativeElement);
+    const render = new GridLineRender(this.gridCanvas().nativeElement);
     render.render(width, height, gridSize, gridType, gridColor);
 
     setTimeout(() => {
@@ -468,7 +469,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.roomGridDispAlways) {
         opacity = 1.0;
       }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+      this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });
   }
 

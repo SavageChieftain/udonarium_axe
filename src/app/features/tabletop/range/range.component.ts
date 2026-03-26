@@ -6,12 +6,11 @@ import {
   computed,
   DestroyRef,
   ElementRef,
-  HostListener,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -55,6 +54,10 @@ import {
   styleUrls: ['./range.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, TooltipDirective, RotableDirective, NgStyle],
+  host: {
+    '(dragstart)': 'onDragstart($event)',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
 export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private tabletopActionService = inject(TabletopActionService);
@@ -73,19 +76,15 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {}
 
-  @Input() range: RangeArea = null!;
-  @Input() is3D: boolean = false;
-  //  @Input() rotateDeg : string = ''
+  readonly range = input<RangeArea>(null!);
 
-  @ViewChild('gridCanvas', { static: true })
-  gridCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('rangeCanvas', { static: true })
-  rangeCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('rotate') rotate: ElementRef<HTMLElement>;
+  readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
+  readonly rangeCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('rangeCanvas');
+  readonly rotate = viewChild<ElementRef<HTMLElement>>('rotate');
 
   public get clipPathText() {
     let text: string;
-    switch (this.range.type) {
+    switch (this.range().type) {
       case 'LINE':
         text = this.clipLine;
         break;
@@ -107,7 +106,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public get clipCircle() {
-    const clipSize = (this.range.length + 1.5) * this.gridSize;
+    const clipSize = (this.range().length + 1.5) * this.gridSize;
     const circle = 'circle(' + clipSize + 'px)';
     return circle;
   }
@@ -211,27 +210,27 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.range.identifier)();
-    return this.range.name;
+    this.objectChange.versionOf(this.range().identifier)();
+    return this.range().name;
   }
   get width(): number {
-    return this.adjustMinBounds(this.range.width);
+    return this.adjustMinBounds(this.range().width);
   }
   get length(): number {
-    return this.adjustMinBounds(this.range.length);
+    return this.adjustMinBounds(this.range().length);
   }
   get opacity(): number {
-    return this.range.opacity;
+    return this.range().opacity;
   }
   get imageFile(): ImageFile {
     this.objectChange.fileVersion();
-    return this.range.imageFile;
+    return this.range().imageFile;
   }
   get isLock(): boolean {
-    return this.range.isLock;
+    return this.range().isLock;
   }
   set isLock(isLock: boolean) {
-    this.range.isLock = isLock;
+    this.range().isLock = isLock;
   }
 
   get areaQuadrantSize(): number {
@@ -242,37 +241,38 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get rotateDeg(): number {
     let data2: string;
-    if (!this.rotate) {
+    const rotateEl = this.rotate();
+    if (!rotateEl) {
       return 0;
     }
-    if (!this.rotate.nativeElement) {
+    if (!rotateEl.nativeElement) {
       return 0;
     }
-    if (!this.rotate.nativeElement.style) {
+    if (!rotateEl.nativeElement.style) {
       return 0;
     }
-    if (!this.rotate.nativeElement.style.transform) {
+    if (!rotateEl.nativeElement.style.transform) {
       return 0;
     }
 
-    const data = this.rotate.nativeElement.style.transform;
+    const data = rotateEl.nativeElement.style.transform;
     data2 = data.replace(/[^0-9.-]/g, '');
     if (!data2) data2 = '0.0';
     return parseFloat(data2);
   }
 
   get altitude(): number {
-    return this.range.altitude;
+    return this.range().altitude;
   }
   set altitude(altitude: number) {
-    this.range.altitude = altitude;
+    this.range().altitude = altitude;
   }
 
   get isFollowed(): boolean {
-    return this.objectStore.get(this.range.followingCharctorIdentifier) != null;
+    return this.objectStore.get(this.range().followingCharctorIdentifier) != null;
   }
   get followingCharactor(): GameCharacter | null {
-    const obj = this.objectStore.get(this.range.followingCharctorIdentifier);
+    const obj = this.objectStore.get(this.range().followingCharctorIdentifier);
     return obj instanceof GameCharacter ? obj : null;
   }
   get elevation(): number {
@@ -283,10 +283,10 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get isAltitudeIndicate(): boolean {
-    return this.range.isAltitudeIndicate;
+    return this.range().isAltitudeIndicate;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.range.isAltitudeIndicate = isAltitudeIndicate;
+    this.range().isAltitudeIndicate = isAltitudeIndicate;
   }
 
   gridSize: number = 50;
@@ -302,21 +302,21 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
-      if (!this.range || !object) return;
+      if (!this.range() || !object) return;
       this.setRange();
 
-      if (object.identifier == this.range.followingCharctorIdentifier) {
-        this.range.following();
+      if (object.identifier == this.range().followingCharctorIdentifier) {
+        this.range().following();
         this.setRange();
       }
     });
     this.movableOption = {
-      tabletopObject: this.range,
+      tabletopObject: this.range(),
       transformCssOffset: 'translateZ(0.25px)',
       colideLayers: ['terrain'],
     };
     this.rotableOption = {
-      tabletopObject: this.range,
+      tabletopObject: this.range(),
     };
     this.setRange();
   }
@@ -331,7 +331,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.input) this.input.destroy();
   }
 
-  @HostListener('dragstart', ['$event'])
   onDragstart(e: DragEvent) {
     e.stopPropagation();
     e.preventDefault();
@@ -346,7 +345,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -369,7 +367,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
               SoundEffect.play(PresetSound.sweep);
             }
           },
-          altitudeHande: this.range,
+          altitudeHande: this.range(),
         },
         this.isAltitudeIndicate
           ? {
@@ -408,14 +406,14 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
             },
           }
     );
-    if (this.range.type == 'CIRCLE' || this.range.type == 'SQUARE' || this.range.type == 'DIAMOND') {
+    if (this.range().type == 'CIRCLE' || this.range().type == 'SQUARE' || this.range().type == 'DIAMOND') {
       menuArray.push(
-        this.objectStore.get(this.range.followingCharctorIdentifier) != null
+        this.objectStore.get(this.range().followingCharctorIdentifier) != null
           ? {
               name: '追従を解除',
               action: () => {
                 SoundEffect.play(PresetSound.unlock);
-                this.range.followingCharctorIdentifier = null!;
+                this.range().followingCharctorIdentifier = null!;
               },
             }
           : {
@@ -430,24 +428,24 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     menuArray.push({
       name: '射程範囲を編集',
       action: () => {
-        this.showDetail(this.range);
+        this.showDetail(this.range());
       },
     });
     menuArray.push({
       name: 'コピーを作る',
       action: () => {
-        const cloneObject = this.range.clone();
+        const cloneObject = this.range().clone();
         cloneObject.location.x += this.gridSize;
         cloneObject.location.y += this.gridSize;
         cloneObject.isLock = false;
-        if (this.range.parent) this.range.parent.appendChild(cloneObject);
+        if (this.range().parent) this.range().parent.appendChild(cloneObject);
         SoundEffect.play(PresetSound.cardPut);
       },
     });
     menuArray.push({
       name: '削除する',
       action: () => {
-        this.range.destroy();
+        this.range().destroy();
         SoundEffect.play(PresetSound.sweep);
       },
     });
@@ -471,7 +469,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     };
     option.title = 'キャラクターに追従';
     const component = this.panelService.open<RangeDockingCharacterComponent>(RangeDockingCharacterComponent, option);
-    component.tabletopObject = <RangeArea>this.range;
+    component.tabletopObject = this.range();
   }
 
   onMove() {
@@ -502,29 +500,29 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setRange() {
-    const render = new RangeRender(this.gridCanvas.nativeElement, this.rangeCanvas.nativeElement);
+    const render = new RangeRender(this.gridCanvas().nativeElement, this.rangeCanvas().nativeElement);
 
     const setting: RangeRenderSetting = {
       areaWidth: this.areaQuadrantSize * 2,
       areaHeight: this.areaQuadrantSize * 2,
       range: this.length < 1 ? 1 : this.length,
       width: this.width < 0.1 ? 0.1 : this.width,
-      centerX: this.range.location.x,
-      centerY: this.range.location.y,
+      centerX: this.range().location.x,
+      centerY: this.range().location.y,
       gridSize: this.gridSize,
-      type: this.range.type,
-      gridColor: this.range.gridColor,
-      rangeColor: this.range.rangeColor,
+      type: this.range().type,
+      gridColor: this.range().gridColor,
+      rangeColor: this.range().rangeColor,
       fanDegree: 0.0,
       degree: this.rotateDeg,
-      offSetX: this.range.offSetX,
-      offSetY: this.range.offSetY,
-      fillOutLine: this.range.fillOutLine,
+      offSetX: this.range().offSetX,
+      offSetY: this.range().offSetY,
+      fillOutLine: this.range().fillOutLine,
       gridType: this.currentTable.gridType,
-      isDocking: this.objectStore.get(this.range.followingCharctorIdentifier) ? true : false,
+      isDocking: this.objectStore.get(this.range().followingCharctorIdentifier) ? true : false,
     };
 
-    switch (this.range.type) {
+    switch (this.range().type) {
       case 'LINE':
         this.clipAreaLine = render.renderLine(setting);
         break;
@@ -543,7 +541,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
     }
 
-    const opacity: number = this.range.opacity;
-    this.gridCanvas.nativeElement.style.opacity = opacity + '';
+    const opacity: number = this.range().opacity;
+    this.gridCanvas().nativeElement.style.opacity = opacity + '';
   }
 }

@@ -4,12 +4,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  EventEmitter,
   inject,
-  Input,
   OnDestroy,
   OnInit,
-  Output,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -48,8 +45,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @Input('gameType') _gameType: string = '';
-  @Output() gameTypeChange = new EventEmitter<string>();
+  _gameType: string = '';
   get gameType(): string {
     return this.config.defaultDiceBot;
   }

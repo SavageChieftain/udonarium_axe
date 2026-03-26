@@ -1,11 +1,11 @@
 <!-- 下2行なぜこれで クロームver102 の重さが軽減できるのか検証が終わっていないが保留にして入れておく -->
 <div class="dummy-will-change" appMovable [movable.option]="movableOption"></div>
-@if (gameTableMask) {
+@if (gameTableMask()) {
   <div
     class="component is-3d"
     [ngClass]="{
       'is-grab': !isLock && !isScratching,
-      'is-scratching': isScratching && gameTableMask.isMine,
+      'is-scratching': isScratching && gameTableMask()!.isMine,
       'is-border': true,
     }"
     style="pointer-events: none"
@@ -205,7 +205,7 @@
         </div>
       }
       <!--
-    <div *ngIf="isScratching" class="draw-icon is-center is-3d" style="pointer-events: none; z-index: 10; backface-visibility: hidden" [ngClass]="{'is-mine': gameTableMask.isMine}">
+    <div *ngIf="isScratching" class="draw-icon is-center is-3d" style="pointer-events: none; z-index: 10; backface-visibility: hidden" [ngClass]="{'is-mine': gameTableMask()!.isMine}">
       <i class="material-icons" style="pointer-events: none; backface-visibility: hidden">{{ isPreviewMode ? 'visibility' : 'draw' }}</i>
     </div>
     -->
@@ -221,18 +221,18 @@
           >
             <span style="display: inline-block" [ngClass]="{ 'is-inverse': isInverse }"
               ><b>{{ ownerName }}</b> が操作中
-              @if (gameTableMask.isMine) {
+              @if (gameTableMask()!.isMine) {
                 <button
                   class="edit-button"
                   (pointerdown)="prevent($event)"
                   (mousedown)="prevent($event)"
                   (click)="scratchDone($event)"
-                  [title]="gameTableMask.scratchingGrids ? '確定' : '終了'"
+                  [title]="gameTableMask()!.scratchingGrids ? '確定' : '終了'"
                 >
                   <i class="material-icons small-font">done</i>
                 </button>
               }
-              @if (gameTableMask.isMine) {
+              @if (gameTableMask()!.isMine) {
                 <button
                   class="edit-button"
                   (pointerdown)="prevent($event)"

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { CoordinateService } from '@axe/core/coordinate.service';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -18,7 +18,7 @@ import { PanelOption, PanelService } from '@axe/shared/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective],
 })
-export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestroy {
+export class GameTableScratchMaskComponent implements OnInit, OnDestroy {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -26,51 +26,55 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
   private tabletopActionService = inject(TabletopActionService);
   private objectChange = inject(ObjectChangeService);
 
-  @Input() gameTableScratchMask: GameTableScratchMask | null = null!;
+  readonly gameTableScratchMask = input<GameTableScratchMask | null>(null);
 
   gridSize = 50;
   movableOption: MovableOption = {};
 
+  constructor() {
+    effect(() => {
+      const mask = this.gameTableScratchMask();
+      if (!mask) return;
+      this.movableOption = {
+        tabletopObject: mask,
+        colideLayers: ['terrain'],
+      };
+    });
+  }
+
   get name(): string {
-    this.objectChange.versionOf(this.gameTableScratchMask!.identifier)();
-    return this.gameTableScratchMask!.name;
+    this.objectChange.versionOf(this.gameTableScratchMask()!.identifier)();
+    return this.gameTableScratchMask()!.name;
   }
   get width(): number {
-    return Math.max(1, this.gameTableScratchMask!.width);
+    return Math.max(1, this.gameTableScratchMask()!.width);
   }
   get height(): number {
-    return Math.max(1, this.gameTableScratchMask!.height);
+    return Math.max(1, this.gameTableScratchMask()!.height);
   }
   get isLock(): boolean {
-    return this.gameTableScratchMask!.isLock;
+    return this.gameTableScratchMask()!.isLock;
   }
   get color(): string {
-    return this.gameTableScratchMask!.color;
+    return this.gameTableScratchMask()!.color;
   }
   get isMine(): boolean {
-    return this.gameTableScratchMask!.isMine;
+    return this.gameTableScratchMask()!.isMine;
   }
 
   get posX(): number {
-    return this.gameTableScratchMask!.location.x;
+    return this.gameTableScratchMask()!.location.x;
   }
   get posY(): number {
-    return this.gameTableScratchMask!.location.y;
+    return this.gameTableScratchMask()!.location.y;
   }
   get posZ(): number {
-    return this.gameTableScratchMask!.posZ;
+    return this.gameTableScratchMask()!.posZ;
   }
 
   ngOnInit() {
     this.movableOption = {
-      tabletopObject: this.gameTableScratchMask!,
-      colideLayers: ['terrain'],
-    };
-  }
-
-  ngOnChanges() {
-    this.movableOption = {
-      tabletopObject: this.gameTableScratchMask!,
+      tabletopObject: this.gameTableScratchMask()!,
       colideLayers: ['terrain'],
     };
   }
@@ -99,7 +103,7 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
     actions.push({
       name: '削除する',
       action: () => {
-        this.gameTableScratchMask!.destroy();
+        this.gameTableScratchMask()!.destroy();
         SoundEffect.play(PresetSound.sweep);
       },
     });
@@ -108,12 +112,12 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
   }
 
   lock() {
-    this.gameTableScratchMask!.isLock = true;
+    this.gameTableScratchMask()!.isLock = true;
     SoundEffect.play(PresetSound.lock);
   }
 
   unlock() {
-    this.gameTableScratchMask!.isLock = false;
+    this.gameTableScratchMask()!.isLock = false;
     SoundEffect.play(PresetSound.unlock);
   }
 
@@ -130,6 +134,6 @@ export class GameTableScratchMaskComponent implements OnInit, OnChanges, OnDestr
       height: 300,
     };
     const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = this.gameTableScratchMask;
+    component.tabletopObject = this.gameTableScratchMask();
   }
 }

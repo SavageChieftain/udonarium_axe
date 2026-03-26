@@ -4,11 +4,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
-  HostListener,
   inject,
-  Input,
-  OnChanges,
+  input,
   OnDestroy,
 } from '@angular/core';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -41,8 +40,14 @@ import { xor } from 'lodash';
   styleUrls: ['./game-table-mask.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, NgStyle, SafePipe],
+  host: {
+    '(dragstart)': 'onDragstart($event)',
+    '(pointerdown)': 'onInputStartPointer($event)',
+    '(pointermove)': 'onInputMovePointer($event)',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
-export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewInit {
+export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -57,42 +62,52 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
 
-  constructor() {}
+  constructor() {
+    effect(() => {
+      const mask = this.gameTableMask();
+      if (!mask) return;
+      this.movableOption = {
+        tabletopObject: mask,
+        transformCssOffset: 'translateZ(0.10px)',
+        colideLayers: ['terrain'],
+      };
+      this.panelId = generateUuid();
+    });
+  }
 
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
-  @Input() gameTableMask: GameTableMask | null = null!;
-  @Input() is3D: boolean = false;
+  readonly gameTableMask = input<GameTableMask | null>(null!);
 
   get dispLockMark(): boolean {
-    return this.gameTableMask!.dispLockMark;
+    return this.gameTableMask()!.dispLockMark;
   }
   set dispLockMark(disp: boolean) {
-    this.gameTableMask!.dispLockMark = disp;
+    this.gameTableMask()!.dispLockMark = disp;
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.gameTableMask!.identifier)();
-    return this.gameTableMask!.name;
+    this.objectChange.versionOf(this.gameTableMask()!.identifier)();
+    return this.gameTableMask()!.name;
   }
   get width(): number {
-    return this.adjustMinBounds(this.gameTableMask!.width);
+    return this.adjustMinBounds(this.gameTableMask()!.width);
   }
   get height(): number {
-    return this.adjustMinBounds(this.gameTableMask!.height);
+    return this.adjustMinBounds(this.gameTableMask()!.height);
   }
   get opacity(): number {
-    return this.gameTableMask!.opacity;
+    return this.gameTableMask()!.opacity;
   }
   get imageFile(): ImageFile {
     this.objectChange.fileVersion();
-    return this.gameTableMask!.imageFile;
+    return this.gameTableMask()!.imageFile;
   }
   get isLock(): boolean {
-    return this.gameTableMask!.isLock;
+    return this.gameTableMask()!.isLock;
   }
   set isLock(isLock: boolean) {
-    this.gameTableMask!.isLock = isLock;
+    this.gameTableMask()!.isLock = isLock;
   }
 
   get blendType(): number {
@@ -100,27 +115,27 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   }
 
   get color(): string {
-    return this.gameTableMask!.color;
+    return this.gameTableMask()!.color;
   }
   set color(color: string) {
-    this.gameTableMask!.color = color;
+    this.gameTableMask()!.color = color;
   }
   get bgcolor(): string {
-    return this.gameTableMask!.bgcolor;
+    return this.gameTableMask()!.bgcolor;
   }
   set bgcolor(bgcolor: string) {
-    this.gameTableMask!.bgcolor = bgcolor;
+    this.gameTableMask()!.bgcolor = bgcolor;
   }
 
   get isPreview(): boolean {
-    return this.gameTableMask!.isPreview;
+    return this.gameTableMask()!.isPreview;
   }
   set isPreview(isPreview: boolean) {
-    this.gameTableMask!.isPreview = isPreview;
+    this.gameTableMask()!.isPreview = isPreview;
   }
   get isPreviewMode(): boolean {
-    if (!this.gameTableMask!) return false;
-    return this.isPreview && this.gameTableMask!.isMine;
+    if (!this.gameTableMask()!) return false;
+    return this.isPreview && this.gameTableMask()!.isMine;
     return false;
   }
 
@@ -129,25 +144,25 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   }
 
   get scratchedGrids() {
-    return this.gameTableMask!.scratchedGrids;
+    return this.gameTableMask()!.scratchedGrids;
   }
   set scratchedGrids(scratchedGrids: string) {
-    this.gameTableMask!.scratchedGrids = scratchedGrids;
+    this.gameTableMask()!.scratchedGrids = scratchedGrids;
   }
 
   get scratchingGrids() {
-    return this.gameTableMask!.scratchingGrids;
+    return this.gameTableMask()!.scratchingGrids;
   }
   set scratchingGrids(scratchingGrids: string) {
-    this.gameTableMask!.scratchingGrids = scratchingGrids;
+    this.gameTableMask()!.scratchingGrids = scratchingGrids;
   }
 
   get isNonScratched(): boolean {
-    return !this.gameTableMask!.scratchedGrids;
+    return !this.gameTableMask()!.scratchedGrids;
   }
 
   get isNonScratching(): boolean {
-    return !(this.gameTableMask!.scratchingGrids || this._currentScratchingSet);
+    return !(this.gameTableMask()!.scratchingGrids || this._currentScratchingSet);
   }
 
   get masksCss(): string {
@@ -176,7 +191,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
 
   get scratchingGridInfos(): { x: number; y: number; state: string }[] {
     const ret: { x: number; y: number; state: string }[] = [];
-    if (!this.gameTableMask || (this.isNonScratching && this.isNonScratched)) return ret;
+    if (!this.gameTableMask() || (this.isNonScratching && this.isNonScratched)) return ret;
     const scratchingGridSet: Set<string> = this._currentScratchingSet
       ? this._currentScratchingSet
       : new Set(this.scratchingGrids.split(/,/g));
@@ -200,43 +215,43 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   }
 
   get operateOpacity(): number {
-    const ret = this.opacity * (this.gameTableMask!.isMine ? 0.6 : 1);
+    const ret = this.opacity * (this.gameTableMask()!.isMine ? 0.6 : 1);
     return ret < 0.4 && this.isScratching ? 0.4 : ret;
   }
 
   get altitude(): number {
-    return this.gameTableMask!.altitude;
+    return this.gameTableMask()!.altitude;
   }
   set altitude(altitude: number) {
-    this.gameTableMask!.altitude = altitude;
+    this.gameTableMask()!.altitude = altitude;
   }
 
   get isAltitudeIndicate(): boolean {
-    return this.gameTableMask!.isAltitudeIndicate;
+    return this.gameTableMask()!.isAltitudeIndicate;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.gameTableMask!.isAltitudeIndicate = isAltitudeIndicate;
+    this.gameTableMask()!.isAltitudeIndicate = isAltitudeIndicate;
   }
 
-  //  get isGMMode(): boolean { return this.gameTableMask!.isGMMode; }
+  //  get isGMMode(): boolean { return this.gameTableMask()!.isGMMode; }
   get isInverse(): boolean {
     return 90 < Math.abs(this.viewRotateZ()) % 360 && Math.abs(this.viewRotateZ()) % 360 < 270;
   }
   get isScratching(): boolean {
-    return !!this.gameTableMask!.owner;
+    return !!this.gameTableMask()!.owner;
   }
 
   get hasOwner(): boolean {
-    return this.gameTableMask!.hasOwner;
+    return this.gameTableMask()!.hasOwner;
   }
   get ownerIsOnline(): boolean {
-    return this.gameTableMask!.ownerIsOnline;
+    return this.gameTableMask()!.ownerIsOnline;
   }
   get ownerName(): string {
-    return this.gameTableMask!.ownerName;
+    return this.gameTableMask()!.ownerName;
   }
   get ownerColor(): string {
-    return this.gameTableMask!.ownerColor;
+    return this.gameTableMask()!.ownerColor;
   }
 
   panelId: string = '';
@@ -248,14 +263,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   movableOption: MovableOption = {};
 
   private input: InputHandler = null!;
-  ngOnChanges(): void {
-    this.movableOption = {
-      tabletopObject: this.gameTableMask!,
-      transformCssOffset: 'translateZ(0.10px)',
-      colideLayers: ['terrain'],
-    };
-    this.panelId = generateUuid();
-  }
 
   ngAfterViewInit() {
     this.input = new InputHandler(this.elementRef.nativeElement);
@@ -268,27 +275,25 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     clearTimeout(this._scratchingTimerId);
   }
 
-  @HostListener('dragstart', ['$event'])
   onDragstart(e: Event) {
     e.stopPropagation();
     e.preventDefault();
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {
-    if (!this.isScratching || !this.gameTableMask!.isMine) {
+    if (!this.isScratching || !this.gameTableMask()!.isMine) {
       this.input.cancel();
     } else if (!window.PointerEvent && (e as MouseEvent).button < 2 && (e as MouseEvent).buttons < 2) {
       this.scratching(true);
     }
     // TODO:もっと良い方法考える
-    if ((this.isLock && !this.isScratching) || (this.isScratching && !this.gameTableMask!.isMine)) {
+    if ((this.isLock && !this.isScratching) || (this.isScratching && !this.gameTableMask()!.isMine)) {
       this.selectionSignalService.notifyDragLocked();
     }
   }
 
-  @HostListener('pointerdown', ['$event'])
   onInputStartPointer(e: PointerEvent) {
-    if (!this.isScratching || !this.gameTableMask!.isMine) {
+    if (!this.isScratching || !this.gameTableMask()!.isMine) {
       //this.input.cancel();
     } else if (e.button < 2 && e.buttons < 2) {
       this.scratching(true, { offsetX: e.offsetX, offsetY: e.offsetY });
@@ -298,14 +303,13 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private _scratchingGridX = -1;
   private _scratchingGridY = -1;
   onInputMove(_e: MouseEvent | TouchEvent) {
-    if (!window.PointerEvent && this.isScratching && this.gameTableMask!.isMine && this.input.isDragging) {
+    if (!window.PointerEvent && this.isScratching && this.gameTableMask()!.isMine && this.input.isDragging) {
       this.scratching(false);
     }
   }
 
-  @HostListener('pointermove', ['$event'])
   onInputMovePointer(e: PointerEvent) {
-    if (this.isScratching && this.gameTableMask!.isMine && this.input.isDragging && e.buttons < 2) {
+    if (this.isScratching && this.gameTableMask()!.isMine && this.input.isDragging && e.buttons < 2) {
       this.scratching(false, { offsetX: e.offsetX, offsetY: e.offsetY });
     }
     e.stopPropagation();
@@ -315,7 +319,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
   private _currentScratchingSet: Set<string> = null!;
   private _scratchingTimerId!: ReturnType<typeof setTimeout> | undefined;
   scratching(isStart: boolean, position: { offsetX: number; offsetY: number } | null = null) {
-    if (!this.gameTableMask!.isMine) return;
+    if (!this.gameTableMask()!.isMine) return;
     // とりあえず、本当は周辺を表示したい。
     const tableSelecter = this.tableSelecter;
 
@@ -326,7 +330,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
         bottom: 0,
         left: 0,
       };
-    //viewTable.gridHeight = this.gameTableMask!.posZ + this.gameTableMask!.altitude * this.gridSize + 0.5;
+    //viewTable.gridHeight = this.gameTableMask()!.posZ + this.gameTableMask()!.altitude * this.gridSize + 0.5;
     let offsetX;
     let offsetY;
     if (position) {
@@ -337,14 +341,14 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
         this.pointerDeviceService.pointers[0],
         this.elementRef.nativeElement
       );
-      offsetX = scratchingPosition.x - this.gameTableMask!.location.x;
-      offsetY = scratchingPosition.y - this.gameTableMask!.location.y;
+      offsetX = scratchingPosition.x - this.gameTableMask()!.location.x;
+      offsetY = scratchingPosition.y - this.gameTableMask()!.location.y;
     }
     if (
       offsetX < 0 ||
-      this.gameTableMask!.width * this.gridSize <= offsetX ||
+      this.gameTableMask()!.width * this.gridSize <= offsetX ||
       offsetY < 0 ||
-      this.gameTableMask!.height * this.gridSize <= offsetY
+      this.gameTableMask()!.height * this.gridSize <= offsetY
     )
       return;
     const gridX = Math.floor(offsetX / this.gridSize);
@@ -387,7 +391,6 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       .join(',');
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -409,7 +412,7 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
                 SoundEffect.play(PresetSound.sweep);
               }
             },
-            altitudeHande: this.gameTableMask!,
+            altitudeHande: this.gameTableMask()!,
           },
           this.isAltitudeIndicate
             ? {
@@ -467,18 +470,18 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
             }
       );
     }
-    if (!this.gameTableMask!.isMine) {
+    if (!this.gameTableMask()!.isMine) {
       menuArray.push({
         name: 'スクラッチ開始',
         action: () => {
-          if (this.gameTableMask!.owner != '') {
+          if (this.gameTableMask()!.owner != '') {
             this.isPreview = false;
             clearTimeout(this._scratchingTimerId);
             this._currentScratchingSet = null!;
           }
           //            this.isPreview = true;
           SoundEffect.play(PresetSound.cardDraw);
-          this.gameTableMask!.owner = Network.peerContext.userId;
+          this.gameTableMask()!.owner = Network.peerContext.userId;
           this._scratchingGridX = -1;
           this._scratchingGridY = -1;
           SoundEffect.play(PresetSound.lock);
@@ -490,17 +493,17 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
         action: () => {
           this.scratchDone();
           this.isPreview = false;
-          this.gameTableMask!.owner = '';
+          this.gameTableMask()!.owner = '';
         },
       });
     }
-    if (this.gameTableMask!.isMine) {
+    if (this.gameTableMask()!.isMine) {
       menuArray.push({
         name: 'スクラッチキャンセル',
         action: () => {
           //              this.isScratch = false;
           SoundEffect.play(PresetSound.cardDraw);
-          this.gameTableMask!.owner = '';
+          this.gameTableMask()!.owner = '';
         },
       });
     }
@@ -509,24 +512,24 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
     menuArray.push({
       name: 'マスクを編集',
       action: () => {
-        this.showDetail(this.gameTableMask!);
+        this.showDetail(this.gameTableMask()!);
       },
     });
     menuArray.push({
       name: 'コピーを作る',
       action: () => {
-        const cloneObject = this.gameTableMask!.clone();
+        const cloneObject = this.gameTableMask()!.clone();
         cloneObject.location.x += this.gridSize;
         cloneObject.location.y += this.gridSize;
         cloneObject.isLock = false;
-        if (this.gameTableMask!.parent) this.gameTableMask!.parent.appendChild(cloneObject);
+        if (this.gameTableMask()!.parent) this.gameTableMask()!.parent.appendChild(cloneObject);
         SoundEffect.play(PresetSound.cardPut);
       },
     });
     menuArray.push({
       name: '削除する',
       action: () => {
-        this.gameTableMask!.destroy();
+        this.gameTableMask()!.destroy();
         SoundEffect.play(PresetSound.sweep);
       },
     });
@@ -552,15 +555,15 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!this.gameTableMask!.isMine) return false;
+    if (!this.gameTableMask()!.isMine) return false;
     this.scratched();
-    this.gameTableMask!.owner = '';
+    this.gameTableMask()!.owner = '';
     this.scratchingGrids = '';
     this.isPreview = false;
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.cardPut);
-    //    this.chatMessageService.sendOperationLog(`${ this.gameTableMask!.name == '' ? '(無名のマップマスク)' : this.gameTableMask!.name } のスクラッチを終了した`);
+    //    this.chatMessageService.sendOperationLog(`${ this.gameTableMask()!.name == '' ? '(無名のマップマスク)' : this.gameTableMask()!.name } のスクラッチを終了した`);
     return false;
   }
 
@@ -569,14 +572,14 @@ export class GameTableMaskComponent implements OnChanges, OnDestroy, AfterViewIn
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!this.gameTableMask!.isMine && this.ownerIsOnline) return false;
-    this.gameTableMask!.owner = '';
+    if (!this.gameTableMask()!.isMine && this.ownerIsOnline) return false;
+    this.gameTableMask()!.owner = '';
     this.scratchingGrids = '';
     this.isPreview = false;
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.unlock);
-    //    this.chatMessageService.sendOperationLog(`${ this.gameTableMask!.name == '' ? '(無名のマップマスク)' : this.gameTableMask!.name } のスクラッチを終了した`);
+    //    this.chatMessageService.sendOperationLog(`${ this.gameTableMask()!.name == '' ? '(無名のマップマスク)' : this.gameTableMask()!.name } のスクラッチを終了した`);
     return false;
   }
 

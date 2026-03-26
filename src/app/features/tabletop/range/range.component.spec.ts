@@ -41,7 +41,7 @@ describe('RangeComponent', () => {
   describe('signal-driven CD', () => {
     it('nameゲッターがversionOfシグナルを使用すること', () => {
       const range = RangeArea.create('テスト範囲', 3, 5, 1);
-      component.range = range;
+      fixture.componentRef.setInput('range', range);
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'versionOf');
       void component.name;

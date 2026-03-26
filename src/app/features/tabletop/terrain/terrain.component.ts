@@ -7,12 +7,11 @@ import {
   DestroyRef,
   effect,
   ElementRef,
-  HostListener,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/coordinate.service';
@@ -48,6 +47,10 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
   styleUrls: ['./terrain.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
+  host: {
+    '(dragstart)': 'onDragstart($event)',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
 export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   private imageService = inject(ImageService);
@@ -69,15 +72,15 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       this.uiSignalService.terrainGridShowVersion();
       let opacity: number = 0.0;
-      if (this.terrain.isGrid) {
+      if (this.terrain().isGrid) {
         opacity = 1.0;
       }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+      this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });
     effect(() => {
       this.uiSignalService.terrainGridEndVersion();
       let opacity: number = 0.0;
-      if (this.terrain.isGrid) {
+      if (this.terrain().isGrid) {
         if (this.roomGridDispAlways) {
           opacity = 1.0;
         }
@@ -85,13 +88,13 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
           opacity = 1.0;
         }
       }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+      this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });
   }
 
-  @Input() terrain: Terrain = null!;
-  @Input() is3D: boolean = false;
-  @ViewChild('gridCanvas', { static: true }) gridCanvas: ElementRef<HTMLCanvasElement>;
+  readonly terrain = input<Terrain>(null!);
+  readonly is3D = input(false);
+  readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
 
   get tableSelecter(): TableSelecter {
     return this.tabletopService.tableSelecter;
@@ -101,92 +104,92 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.terrain.identifier)();
+    this.objectChange.versionOf(this.terrain().identifier)();
     this.objectChange.versionOf(this.currentTable.identifier)();
     this.objectChange.versionOf(this.tableSelecter.identifier)();
-    return this.terrain.name;
+    return this.terrain().name;
   }
   get mode(): TerrainViewState {
-    return this.terrain.mode;
+    return this.terrain().mode;
   }
   set mode(mode: TerrainViewState) {
-    this.terrain.mode = mode;
+    this.terrain().mode = mode;
   }
 
   get isLocked(): boolean {
-    return this.terrain.isLocked;
+    return this.terrain().isLocked;
   }
   set isLocked(isLocked: boolean) {
-    this.terrain.isLocked = isLocked;
+    this.terrain().isLocked = isLocked;
   }
   get hasWall(): boolean {
-    return this.terrain.hasWall;
+    return this.terrain().hasWall;
   }
   get hasFloor(): boolean {
-    return this.terrain.hasFloor;
+    return this.terrain().hasFloor;
   }
 
   get wallImage(): ImageFile {
     this.objectChange.fileVersion();
-    return this.imageService.getSkeletonOr(this.terrain.wallImage);
+    return this.imageService.getSkeletonOr(this.terrain().wallImage);
   }
   get floorImage(): ImageFile {
-    return this.imageService.getSkeletonOr(this.terrain.floorImage);
+    return this.imageService.getSkeletonOr(this.terrain().floorImage);
   }
 
   get height(): number {
-    return this.adjustMinBounds(this.terrain.height);
+    return this.adjustMinBounds(this.terrain().height);
   }
   get width(): number {
-    return this.adjustMinBounds(this.terrain.width);
+    return this.adjustMinBounds(this.terrain().width);
   }
   get depth(): number {
-    return this.adjustMinBounds(this.terrain.depth);
+    return this.adjustMinBounds(this.terrain().depth);
   }
   get altitude(): number {
-    return this.terrain.altitude;
+    return this.terrain().altitude;
   }
   set altitude(altitude: number) {
-    this.terrain.altitude = altitude;
+    this.terrain().altitude = altitude;
   }
 
   get isDropShadow(): boolean {
-    return this.terrain.isDropShadow;
+    return this.terrain().isDropShadow;
   }
   set isDropShadow(isDropShadow: boolean) {
-    this.terrain.isDropShadow = isDropShadow;
+    this.terrain().isDropShadow = isDropShadow;
   }
 
   get isSurfaceShading(): boolean {
-    return this.terrain.isSurfaceShading;
+    return this.terrain().isSurfaceShading;
   }
   set isSurfaceShading(isSurfaceShading: boolean) {
-    this.terrain.isSurfaceShading = isSurfaceShading;
+    this.terrain().isSurfaceShading = isSurfaceShading;
   }
 
   get isSlope(): boolean {
-    return this.terrain.isSlope;
+    return this.terrain().isSlope;
   }
   set isSlope(isSlope: boolean) {
-    this.terrain.isSlope = isSlope;
-    if (!isSlope) this.terrain.slopeDirection = SlopeDirection.NONE;
+    this.terrain().isSlope = isSlope;
+    if (!isSlope) this.terrain().slopeDirection = SlopeDirection.NONE;
   }
 
   get slopeDirection(): number {
-    if (!this.terrain.isSlope) return SlopeDirection.NONE;
-    if (this.terrain.isSlope && this.terrain.slopeDirection === SlopeDirection.NONE) return SlopeDirection.BOTTOM;
-    return this.terrain.slopeDirection;
+    if (!this.terrain().isSlope) return SlopeDirection.NONE;
+    if (this.terrain().isSlope && this.terrain().slopeDirection === SlopeDirection.NONE) return SlopeDirection.BOTTOM;
+    return this.terrain().slopeDirection;
   }
   set slopeDirection(slopeDirection: number) {
-    this.terrain.isSlope = slopeDirection != SlopeDirection.NONE;
-    this.terrain.slopeDirection = slopeDirection;
+    this.terrain().isSlope = slopeDirection != SlopeDirection.NONE;
+    this.terrain().slopeDirection = slopeDirection;
   }
 
   get isAltitudeIndicate(): boolean {
-    return this.terrain.isAltitudeIndicate;
+    return this.terrain().isAltitudeIndicate;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.terrain.isAltitudeIndicate = isAltitudeIndicate;
+    this.terrain().isAltitudeIndicate = isAltitudeIndicate;
   }
 
   get isVisibleFloor(): boolean {
@@ -232,11 +235,11 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (!this.terrain) return;
+      if (!this.terrain()) return;
       if (
         e.identifier !== this.currentTable.identifier &&
         e.identifier !== this.tableSelecter.identifier &&
-        e.identifier !== this.terrain.identifier
+        e.identifier !== this.terrain().identifier
       )
         return;
       this.setGameTableGrid(
@@ -248,11 +251,11 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
       );
     });
     this.movableOption = {
-      tabletopObject: this.terrain,
+      tabletopObject: this.terrain(),
       colideLayers: ['terrain'],
     };
     this.rotableOption = {
-      tabletopObject: this.terrain,
+      tabletopObject: this.terrain(),
     };
   }
 
@@ -272,7 +275,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.input) this.input.destroy();
   }
 
-  @HostListener('dragstart', ['$event'])
   onDragstart(e: DragEvent) {
     e.stopPropagation();
     e.preventDefault();
@@ -287,7 +289,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -311,7 +312,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
                   SoundEffect.play(PresetSound.sweep);
                 }
               },
-              altitudeHande: this.terrain,
+              altitudeHande: this.terrain(),
             },
             this.isAltitudeIndicate
               ? {
@@ -409,8 +410,8 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
               action: () => {
                 this.mode = TerrainViewState.FLOOR;
                 if (this.depth * this.width === 0) {
-                  this.terrain.width = this.width <= 0 ? 1 : this.width;
-                  this.terrain.depth = this.depth <= 0 ? 1 : this.depth;
+                  this.terrain().width = this.width <= 0 ? 1 : this.width;
+                  this.terrain().depth = this.depth <= 0 ? 1 : this.depth;
                 }
               },
             }
@@ -454,24 +455,24 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
         {
           name: '地形設定を編集',
           action: () => {
-            this.showDetail(this.terrain);
+            this.showDetail(this.terrain());
           },
         },
         {
           name: 'コピーを作る',
           action: () => {
-            const cloneObject = this.terrain.clone();
+            const cloneObject = this.terrain().clone();
             cloneObject.location.x += this.gridSize;
             cloneObject.location.y += this.gridSize;
             cloneObject.isLocked = false;
-            if (this.terrain.parent) this.terrain.parent.appendChild(cloneObject);
+            if (this.terrain().parent) this.terrain().parent.appendChild(cloneObject);
             SoundEffect.play(PresetSound.blockPut);
           },
         },
         {
           name: '削除する',
           action: () => {
-            this.terrain.destroy();
+            this.terrain().destroy();
             SoundEffect.play(PresetSound.sweep);
           },
         },
@@ -565,16 +566,16 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
     gridType: GridType = GridType.SQUARE,
     gridColor: string = '#000000e6'
   ) {
-    const render = new GridLineRender(this.gridCanvas.nativeElement);
+    const render = new GridLineRender(this.gridCanvas().nativeElement);
 
-    const leftPx = this.terrain.location.x - width / 2;
-    const topPx = this.terrain.location.y - height / 2;
+    const leftPx = this.terrain().location.x - width / 2;
+    const topPx = this.terrain().location.y - height / 2;
 
     render.render(width, height, gridSize, gridType, gridColor, true, topPx, leftPx);
     let opacity: number = 0.0;
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
-      if (this.terrain.isGrid) {
+      if (this.terrain().isGrid) {
         if (this.roomGridDispAlways) {
           opacity = 1.0;
         }
@@ -582,7 +583,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
           opacity = 1.0;
         }
       }
-      this.gridCanvas.nativeElement.style.opacity = opacity + '';
+      this.gridCanvas().nativeElement.style.opacity = opacity + '';
     }, 0);
   }
 }
