@@ -6,8 +6,8 @@ import {
   Component,
   ElementRef,
   inject,
-  Input,
-  ViewChild,
+  input,
+  viewChild,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -27,11 +27,11 @@ export class CardStackListImageComponent implements AfterViewInit, AfterViewChec
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
 
-  @Input() isTilteTop = true;
-  @Input() dispByMouse = false;
-  @Input() cardStackidentifier: string = '';
+  readonly isTilteTop = input(true);
+  readonly dispByMouse = input(false);
+  readonly cardStackidentifier = input('');
 
-  @ViewChild('cardArea', { read: ElementRef }) private cardArea: ElementRef;
+  readonly cardArea = viewChild<ElementRef>('cardArea');
   private _cardAreaWidth = 0;
   //  get chatTab(): ChatTab { return this.objectStore.get<ChatTab>(this.chatTabidentifier); }
 
@@ -86,12 +86,12 @@ export class CardStackListImageComponent implements AfterViewInit, AfterViewChec
 
   //立ち絵表示幅取得
   ngAfterViewInit() {
-    this._cardAreaWidth = this.cardArea.nativeElement.offsetWidth;
+    this._cardAreaWidth = this.cardArea()!.nativeElement.offsetWidth;
     this.changeDetectionRef.detectChanges();
   }
 
   ngAfterViewChecked() {
-    this._cardAreaWidth = this.cardArea.nativeElement.offsetWidth;
+    this._cardAreaWidth = this.cardArea()!.nativeElement.offsetWidth;
     this.changeDetectionRef.detectChanges();
   }
 

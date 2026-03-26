@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Card } from '@axe/domain/card/card';
@@ -22,7 +22,7 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @Input() cardStack: CardStack | null = null;
+  cardStack: CardStack | null = null;
 
   owner: string = Network.peerContext.userId;
 

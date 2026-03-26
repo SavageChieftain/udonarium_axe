@@ -33,7 +33,7 @@ describe('CardStackComponent', () => {
 
     it('nameゲッターがnetworkVersionを参照していること', () => {
       const cardStack = CardStack.create('テストスタック');
-      component.cardStack = cardStack;
+      fixture.componentRef.setInput('cardStack', cardStack);
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const original = objectChangeService.networkVersion;
       const spy = vi.fn(() => original());

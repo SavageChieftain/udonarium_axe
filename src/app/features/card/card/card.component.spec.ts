@@ -28,7 +28,7 @@ describe('CardComponent', () => {
   describe('signal-driven CD', () => {
     it('nameゲッターがnetworkVersionを参照していること', () => {
       const card = Card.create('テストカード', 'front', 'back');
-      component.card = card;
+      fixture.componentRef.setInput('card', card);
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const original = objectChangeService.networkVersion;
       const spy = vi.fn(() => original());
