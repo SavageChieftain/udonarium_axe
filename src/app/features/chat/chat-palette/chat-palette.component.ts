@@ -5,10 +5,9 @@ import {
   effect,
   ElementRef,
   inject,
-  Input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -47,12 +46,12 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('root', { static: true }) rootElementRef: ElementRef<HTMLElement>;
-  @ViewChild('chatInput', { static: true }) chatInputComponent: ChatInputComponent;
-  @ViewChild('chatPalette') chatPaletteElementRef: ElementRef<HTMLSelectElement>;
-  @ViewChild('completeSelect') completeSelectRef: ElementRef<HTMLSelectElement>;
-  @ViewChild('editText') editTextRef: ElementRef<HTMLTextAreaElement>;
-  @Input() character: GameCharacter = null!;
+  readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
+  readonly chatInputComponent = viewChild.required<ChatInputComponent>('chatInput');
+  readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
+  readonly completeSelectRef = viewChild<ElementRef<HTMLSelectElement>>('completeSelect');
+  readonly editTextRef = viewChild<ElementRef<HTMLTextAreaElement>>('editText');
+  character: GameCharacter = null!;
 
   get palette(): ChatPalette {
     return this.character.chatPalette;
@@ -142,7 +141,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   resizeChatInput() {
-    this.chatInputComponent.kickCalcFitHeight();
+    this.chatInputComponent().kickCalcFitHeight();
   }
 
   chatTabSwitchRelative(direction: number) {
@@ -164,7 +163,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   autoCompleteSwitchRelative(direction: number) {
-    const selectObj = this.completeSelectRef?.nativeElement;
+    const selectObj = this.completeSelectRef()?.nativeElement;
     if (!selectObj) {
       return;
     }
@@ -183,7 +182,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   autoCompleteDoRelative(index: number) {
-    const selectObj = this.completeSelectRef?.nativeElement;
+    const selectObj = this.completeSelectRef()?.nativeElement;
     if (!selectObj || index != selectObj.selectedIndex) return;
     this.selectAutoComplete(this.text, selectObj.value);
   }
@@ -191,7 +190,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   selectPalette(line: string) {
     const multiLine = line.replace(/\\n/g, '\n');
     this.text = multiLine;
-    const selectObj = this.completeSelectRef?.nativeElement;
+    const selectObj = this.completeSelectRef()?.nativeElement;
     if (selectObj) {
       selectObj.selectedIndex = -1;
     }
@@ -199,7 +198,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   selectAutoComplete(text: string, selectText: string) {
-    const selectObj = this.completeSelectRef?.nativeElement;
+    const selectObj = this.completeSelectRef()?.nativeElement;
     if (!selectObj) return;
     const lineNo = this.palette.paletteMatchLine(text, selectObj.selectedIndex);
     this.japmIndex(lineNo);
@@ -223,7 +222,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     if (this.doubleClickTimer && this.text === multiLine) {
       clearTimeout(this.doubleClickTimer);
       this.doubleClickTimer = null!;
-      this.chatInputComponent.sendChat(null!);
+      this.chatInputComponent().sendChat(null!);
     } else {
       this.text = multiLine;
       this.doubleClickTimer = setTimeout(() => {
@@ -311,19 +310,20 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   resetPaletteSelect() {
-    if (!this.chatPaletteElementRef.nativeElement) return;
-    this.chatPaletteElementRef.nativeElement.selectedIndex = -1;
+    const el = this.chatPaletteElementRef()?.nativeElement;
+    if (!el) return;
+    el.selectedIndex = -1;
   }
 
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
     if (this.isEdit) {
-      const selectEl = this.chatPaletteElementRef?.nativeElement;
+      const selectEl = this.chatPaletteElementRef()?.nativeElement;
       this.editPalette = this.palette.value + '';
       const selectTop = selectEl?.scrollTop ?? 0;
       const selectHeight = selectEl?.scrollHeight ?? 1;
       setTimeout(() => {
-        const textEl = this.editTextRef?.nativeElement;
+        const textEl = this.editTextRef()?.nativeElement;
         if (textEl) {
           textEl.scrollTop = (selectTop * textEl.scrollHeight) / selectHeight;
         }
@@ -334,7 +334,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   moveTest() {
-    const textEl = this.editTextRef?.nativeElement;
+    const textEl = this.editTextRef()?.nativeElement;
     if (!textEl) return;
     textEl.focus();
     setTimeout(() => {
@@ -343,7 +343,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   japmIndex(lineNo: number) {
-    const select = this.chatPaletteElementRef?.nativeElement;
+    const select = this.chatPaletteElementRef()?.nativeElement;
     if (select) {
       select.scrollTop = select.scrollHeight;
       select.options[lineNo].selected = false;
@@ -352,7 +352,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   indexBtn() {
-    const panel: HTMLElement = this.rootElementRef.nativeElement;
+    const panel: HTMLElement = this.rootElementRef().nativeElement;
     const panelBox = panel.getBoundingClientRect();
 
     const position = this.pointerDeviceService.pointers[0];

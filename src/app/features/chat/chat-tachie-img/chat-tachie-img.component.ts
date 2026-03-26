@@ -7,10 +7,10 @@ import {
   Component,
   ElementRef,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -39,16 +39,16 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   private imageStorage = inject(ImageStorage);
   private objectChange = inject(ObjectChangeService);
 
-  @Input() chatTabidentifier: string = '';
-  @Input() isTilteTop = false;
-  @Input() dispByMouse = false;
+  readonly chatTabidentifier = input('');
+  readonly isTilteTop = input(false);
+  readonly dispByMouse = input(false);
 
-  @ViewChild('tachieArea', { read: ElementRef }) private tachieArea: ElementRef;
+  private readonly tachieArea = viewChild.required<ElementRef>('tachieArea');
   private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
-    this.objectChange.versionOf(this.chatTabidentifier)();
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
+    this.objectChange.versionOf(this.chatTabidentifier())();
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier());
   }
 
   get tachieY_Pos(): number {
@@ -69,8 +69,8 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
 
   get dispFlag(): boolean {
     if (!this.chatTabList) return false;
-    if (this.isTilteTop && !this.chatTabList.isTachieInWindow) return true;
-    if (!this.isTilteTop && this.chatTabList.isTachieInWindow) return true;
+    if (this.isTilteTop() && !this.chatTabList.isTachieInWindow) return true;
+    if (!this.isTilteTop() && this.chatTabList.isTachieInWindow) return true;
     return false;
   }
 
@@ -79,7 +79,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
     if (this.chatTabList.isKeepTachieOutWindow) {
       return this.dispFlag;
     } else {
-      return this.dispFlag && this.dispByMouse;
+      return this.dispFlag && this.dispByMouse();
     }
   }
 
@@ -138,12 +138,12 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
 
   //立ち絵表示幅取得
   ngAfterViewInit() {
-    this._tachieAreaWidth = this.tachieArea.nativeElement.offsetWidth;
+    this._tachieAreaWidth = this.tachieArea().nativeElement.offsetWidth;
     this.changeDetectionRef.detectChanges();
   }
 
   ngAfterViewChecked() {
-    this._tachieAreaWidth = this.tachieArea.nativeElement.offsetWidth;
+    this._tachieAreaWidth = this.tachieArea().nativeElement.offsetWidth;
     this.changeDetectionRef.detectChanges();
   }
 

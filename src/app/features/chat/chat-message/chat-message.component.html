@@ -1,6 +1,6 @@
 <div class="container">
   <div [class.chat-slide-in]="animeState === 'active'" [class.chat-fade-in]="animeState !== 'active'">
-    @if (!chatSimpleDispFlag) {
+    @if (!chatSimpleDispFlag()) {
       <div
         class="message"
         [ngClass]="{
@@ -39,7 +39,7 @@
         </div>
       </div>
     }
-    @if (chatSimpleDispFlag) {
+    @if (chatSimpleDispFlag()) {
       <div
         class="message-small"
         [ngClass]="{
@@ -52,10 +52,10 @@
           <span class="title">
             <font class="msg-name">{{ chatMessage.name }}</font
             >：
-            @if (simpleDispFlagUserId) {
+            @if (simpleDispFlagUserId()) {
               <font class="tip msg-from">{{ chatMessage.from }}</font>
             }
-            @if (simpleDispFlagTime) {
+            @if (simpleDispFlagTime()) {
               <font class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'H:mm' }}</font>
             }
             <font class="text msg-text">

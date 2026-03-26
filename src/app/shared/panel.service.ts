@@ -19,7 +19,7 @@ export interface PanelOption {
 }
 
 interface UIPanelInstance {
-  content: ViewContainerRef;
+  content: () => ViewContainerRef;
 }
 
 @Injectable()
@@ -52,7 +52,7 @@ export class PanelService {
       index: parentViewContainerRef.length,
       injector,
     });
-    const bodyComponentRef: ComponentRef<T> = panelComponentRef.instance.content.createComponent(childComponent);
+    const bodyComponentRef: ComponentRef<T> = panelComponentRef.instance.content().createComponent(childComponent);
 
     const childPanelService: PanelService = panelComponentRef.injector.get(PanelService);
 

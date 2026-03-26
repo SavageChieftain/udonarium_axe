@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, viewChild, ViewContainerRef } from '@angular/core';
 import { ModalService } from '@axe/shared/modal.service';
 
 @Component({
@@ -14,7 +14,7 @@ export class ModalComponent {
     return this.modalService.title;
   }
 
-  @ViewChild('content', { read: ViewContainerRef, static: true }) content: ViewContainerRef;
+  readonly content = viewChild.required('content', { read: ViewContainerRef });
 
   clickBackground(event: MouseEvent) {
     if (event.target === event.currentTarget) this.resolve();

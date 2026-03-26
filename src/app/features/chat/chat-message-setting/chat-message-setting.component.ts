@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -21,8 +21,8 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   private objectStore = inject(ObjectStore);
   private uiSignalService = inject(UiSignalService);
 
-  @Input() isAllowedEmpty: boolean = false;
-  @Input() tabletopObject: GameCharacter = null!;
+  isAllowedEmpty: boolean = false;
+  tabletopObject: GameCharacter = null!;
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

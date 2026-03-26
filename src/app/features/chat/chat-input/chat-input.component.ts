@@ -4,15 +4,15 @@ import {
   Component,
   DestroyRef,
   DoCheck,
+  effect,
   ElementRef,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  Output,
+  output,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -56,15 +56,16 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
 
-  @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
+  readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
-  @Input() onlyCharacters: boolean = false;
-  @Input() chatTabidentifier: string = '';
-  @Input() autoCompleteIndex: number = -1;
+  readonly onlyCharacters = input(false);
+  readonly chatTabidentifier = input('');
+  readonly autoCompleteIndex = input(-1);
 
-  @Input('gameType') _gameType: string = '';
-  @Output() gameTypeChange = new EventEmitter<string>();
+  readonly gameTypeInput = input('', { alias: 'gameType' });
+  readonly gameTypeChange = output<string>();
 
+  private _gameType: string = '';
   private _isGameTypeByUser = 0;
   get gameType(): string {
     if (this._gameType == 'DiceBot' && this._isGameTypeByUser == 0) {
@@ -80,8 +81,9 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.gameTypeChange.emit(gameType);
   }
 
-  @Input('sendFrom') _sendFrom: string = this.myPeer ? this.myPeer.identifier : '';
-  @Output() sendFromChange = new EventEmitter<string>();
+  readonly sendFromInput = input('', { alias: 'sendFrom' });
+  readonly sendFromChange = output<string>();
+  private _sendFrom: string = this.myPeer ? this.myPeer.identifier : '';
   get sendFrom(): string {
     return this._sendFrom;
   }
@@ -90,8 +92,9 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.sendFromChange.emit(sendFrom);
   }
 
-  @Input('sendTo') _sendTo: string = '';
-  @Output() sendToChange = new EventEmitter<string>();
+  readonly sendToInput = input('', { alias: 'sendTo' });
+  readonly sendToChange = output<string>();
+  private _sendTo: string = '';
   get sendTo(): string {
     return this._sendTo;
   }
@@ -100,10 +103,11 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.sendToChange.emit(sendTo);
   }
 
-  @Input('autoCompleteListLen') _autoCompleteListLen: number = -1;
+  readonly autoCompleteListLen = input(-1);
 
-  @Input('text') _text: string = '';
-  @Output() textChange = new EventEmitter<string>();
+  readonly textInput = input('', { alias: 'text' });
+  readonly textChange = output<string>();
+  private _text: string = '';
   get text(): string {
     return this._text;
   }
@@ -112,7 +116,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.textChange.emit(text);
   }
 
-  @Output() chat = new EventEmitter<{
+  readonly chat = output<{
     text: string;
     gameSystem: GameSystemClass;
     sendFrom: string;
@@ -121,11 +125,26 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     messColor: string;
   }>();
 
-  @Output() tabSwitch = new EventEmitter<number>();
+  readonly tabSwitch = output<number>();
 
-  @Output() autoCompleteSwitch = new EventEmitter<number>();
+  readonly autoCompleteSwitch = output<number>();
 
-  @Output() autoCompleteDo = new EventEmitter<number>();
+  readonly autoCompleteDo = output<number>();
+
+  constructor() {
+    effect(() => {
+      this._gameType = this.gameTypeInput();
+    });
+    effect(() => {
+      this._sendFrom = this.sendFromInput();
+    });
+    effect(() => {
+      this._sendTo = this.sendToInput();
+    });
+    effect(() => {
+      this._text = this.textInput();
+    });
+  }
 
   get config(): Config {
     return this.objectStore.get<Config>('Config');
@@ -332,7 +351,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   private calcFitHeightInterval: NodeJS.Timeout = null!;
   ngOnInit(): void {
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.tabIdentifier !== this.chatTabidentifier) return;
+      if (event.tabIdentifier !== this.chatTabidentifier()) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       const peerCursor = this.objectStore.getObjects<PeerCursor>(PeerCursor).find((obj) => obj.userId === message.from);
       const sendFrom = peerCursor ? peerCursor.peerId : '?';
@@ -349,7 +368,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       if (event.identifier !== this.sendFrom) return;
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
       if (gameCharacter && !this.allowsChat(gameCharacter)) {
-        if (0 < this.gameCharacters.length && this.onlyCharacters) {
+        if (0 < this.gameCharacters.length && this.onlyCharacters()) {
           this.sendFrom = this.gameCharacters[0].identifier;
         } else {
           this.sendFrom = this.myPeer.identifier;
@@ -365,7 +384,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     });
 
     this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier) return;
+      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) return;
       if (!this.writingPeers.has(event.sendFrom)) {
         this.writingPeers.set(
           event.sendFrom,
@@ -414,7 +433,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
           if (peer) sendTo = peer.peerId;
         }
       }
-      callWritingAMessage(this.chatTabidentifier, sendTo);
+      callWritingAMessage(this.chatTabidentifier(), sendTo);
       this.writingEventInterval = setTimeout(() => {
         this.writingEventInterval = null!;
       }, 200);
@@ -451,7 +470,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   selectAutoComplete(event: Event, direction: number) {
-    if (this._autoCompleteListLen > 1) {
+    if (this.autoCompleteListLen() > 1) {
       if (event) event.preventDefault();
     }
     this.autoCompleteSwitch.emit(direction);
@@ -468,8 +487,8 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     if (!this.text.length) return;
     if (event && (event as KeyboardEvent).keyCode !== 13) return;
 
-    if (this.autoCompleteIndex >= 0) {
-      this.autoCompleteDo.emit(this.autoCompleteIndex);
+    if (this.autoCompleteIndex() >= 0) {
+      this.autoCompleteDo.emit(this.autoCompleteIndex());
       return;
     }
 
@@ -513,7 +532,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   calcFitHeight() {
-    const textArea: HTMLTextAreaElement = this.textAreaElementRef.nativeElement;
+    const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
     textArea.style.height = '';
     if (textArea.scrollHeight >= textArea.offsetHeight) {
       textArea.style.height = textArea.scrollHeight + 'px';

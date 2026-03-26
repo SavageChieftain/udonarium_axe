@@ -24,7 +24,7 @@ describe('ChatTachieImageComponent', () => {
 
     const chatTabList = ChatTabList.instance;
     const chatTab = chatTabList.chatTabs[0] ?? chatTabList.addChatTab('テスト');
-    component.chatTabidentifier = chatTab.identifier;
+    fixture.componentRef.setInput('chatTabidentifier', chatTab.identifier);
   });
 
   it('should create', () => {
@@ -48,7 +48,7 @@ describe('ChatTachieImageComponent', () => {
 
       void component.chatTab;
 
-      expect(spy).toHaveBeenCalledWith(component.chatTabidentifier);
+      expect(spy).toHaveBeenCalledWith(component.chatTabidentifier());
     });
   });
 });

@@ -1,6 +1,6 @@
 <div
   class="component"
-  [ngClass]="{ 'submenu-panel': isSubmenu, 'is-max-limit': !isSubmenu, 'pointer-events-none': isPointerDragging }"
+  [ngClass]="{ 'submenu-panel': isSubmenu(), 'is-max-limit': !isSubmenu(), 'pointer-events-none': isPointerDragging }"
   (mouseleave)="hideSubMenu()"
   #root
 >
@@ -36,7 +36,7 @@
     <div style="flex-grow: 1">
       @if (altitudeHande) {
         <div>
-          <div class="title" [style.color]="titleColor" [style.font-weight]="titleBold ? 'bolder' : 'normal'">
+          <div class="title" [style.color]="titleColor()" [style.font-weight]="titleBold() ? 'bolder' : 'normal'">
             @if (altitudeHande) {
               <span style="font-size: small">
                 (高度

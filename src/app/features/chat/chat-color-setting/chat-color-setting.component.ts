@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ModalService } from '@axe/shared/modal.service';
@@ -16,8 +16,8 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
   private modalService = inject(ModalService);
   private objectChange = inject(ObjectChangeService);
 
-  @Input() isAllowedEmpty: boolean = false;
-  @Input() tabletopObject: GameCharacter = null!;
+  isAllowedEmpty: boolean = false;
+  tabletopObject: GameCharacter = null!;
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

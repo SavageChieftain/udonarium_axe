@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  EventEmitter,
-  inject,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -35,11 +24,11 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
 
-  @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
+  readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
-  @Input('autoCompleteListLen') _autoCompleteListLen: number = -1;
+  _autoCompleteListLen: number = -1;
 
-  @Input('text') _text: string = '';
+  _text: string = '';
   get text(): string {
     return this._text;
   }
@@ -47,14 +36,14 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
     this._text = text;
   }
 
-  @Output() chat = new EventEmitter<{
+  chat!: {
     text: string;
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
     tachieNum: number;
     messColor: string;
-  }>();
+  };
 
   chatMessage!: ChatMessage;
 
@@ -92,13 +81,13 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
       this.calcFitHeightInterval = setTimeout(() => {
         this.calcFitHeightInterval = null!;
         this.calcFitHeight();
-        this.textAreaElementRef.nativeElement.focus();
+        this.textAreaElementRef().nativeElement.focus();
       }, 0);
     }
   }
 
   calcFitHeight() {
-    const textArea: HTMLTextAreaElement = this.textAreaElementRef.nativeElement;
+    const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
     textArea.style.height = '';
     if (textArea.scrollHeight >= textArea.offsetHeight) {
       textArea.style.height = textArea.scrollHeight + 'px';

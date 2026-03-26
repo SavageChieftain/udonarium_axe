@@ -2,12 +2,13 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
   ViewContainerRef,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -39,46 +40,65 @@ export class UIPanelComponent implements OnInit, OnDestroy {
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
 
-  @ViewChild('draggablePanel', { static: true })
-  draggablePanel!: ElementRef<HTMLElement>;
-  @ViewChild('scrollablePanel', { static: true })
-  scrollablePanel!: ElementRef<HTMLDivElement>;
-  @ViewChild('titleBar', { static: true }) titleBar: ElementRef<HTMLDivElement>;
-  @ViewChild('content', { read: ViewContainerRef, static: true })
-  content!: ViewContainerRef;
+  readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
+  readonly scrollablePanel = viewChild.required<ElementRef<HTMLDivElement>>('scrollablePanel');
+  readonly titleBar = viewChild.required<ElementRef<HTMLDivElement>>('titleBar');
+  readonly content = viewChild.required('content', { read: ViewContainerRef });
 
-  @Input() set title(title: string) {
-    this.panelService.title = title;
-  }
-  @Input() set left(left: number) {
-    this.panelService.left = left;
-  }
-  @Input() set top(top: number) {
-    this.panelService.top = top;
-  }
-  @Input() set width(width: number) {
-    this.panelService.width = width;
-  }
-  @Input() set height(height: number) {
-    this.panelService.height = height;
-  }
+  readonly titleInput = input('', { alias: 'title' });
+  readonly leftInput = input(0, { alias: 'left' });
+  readonly topInput = input(0, { alias: 'top' });
+  readonly widthInput = input(100, { alias: 'width' });
+  readonly heightInput = input(100, { alias: 'height' });
+  readonly showTitleButtons = input(true);
 
-  @Input() showTitleButtons: boolean = true;
+  constructor() {
+    effect(() => {
+      this.panelService.title = this.titleInput();
+    });
+    effect(() => {
+      this.panelService.left = this.leftInput();
+    });
+    effect(() => {
+      this.panelService.top = this.topInput();
+    });
+    effect(() => {
+      this.panelService.width = this.widthInput();
+    });
+    effect(() => {
+      this.panelService.height = this.heightInput();
+    });
+  }
 
   get title(): string {
     return this.panelService.title;
   }
+  set title(title: string) {
+    this.panelService.title = title;
+  }
   get left() {
     return this.panelService.left;
+  }
+  set left(left: number) {
+    this.panelService.left = left;
   }
   get top() {
     return this.panelService.top;
   }
+  set top(top: number) {
+    this.panelService.top = top;
+  }
   get width() {
     return this.panelService.width;
   }
+  set width(width: number) {
+    this.panelService.width = width;
+  }
   get height() {
     return this.panelService.height;
+  }
+  set height(height: number) {
+    this.panelService.height = height;
   }
 
   private preLeft: number = 0;
@@ -101,7 +121,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.panelService.scrollablePanel = this.scrollablePanel.nativeElement;
+    this.panelService.scrollablePanel = this.scrollablePanel().nativeElement;
     this.timerCheckWindowSize = setInterval(() => {
       this.chkeWindowMinSize();
     }, 500);
@@ -115,7 +135,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
     if (!cutIn) return;
     if (!cutIn.videoId) return;
 
-    const panel = this.draggablePanel.nativeElement;
+    const panel = this.draggablePanel().nativeElement;
 
     const nowW = parseInt(panel.style.width);
     const nowH = parseInt(panel.style.height);
@@ -155,8 +175,8 @@ export class UIPanelComponent implements OnInit, OnDestroy {
       }
     }
 
-    const body = this.scrollablePanel.nativeElement;
-    const panel = this.draggablePanel.nativeElement;
+    const body = this.scrollablePanel().nativeElement;
+    const panel = this.draggablePanel().nativeElement;
     if (this.isMinimized) {
       this.isMinimized = false;
       body.style.display = null!;
@@ -166,14 +186,14 @@ export class UIPanelComponent implements OnInit, OnDestroy {
 
       this.isMinimized = true;
       body.style.display = 'none';
-      this.height = this.titleBar.nativeElement.offsetHeight;
+      this.height = this.titleBar().nativeElement.offsetHeight;
     }
   }
 
   toggleFullScreen() {
     if (this.isMinimized) return;
 
-    const panel = this.draggablePanel.nativeElement;
+    const panel = this.draggablePanel().nativeElement;
     if (
       panel.offsetLeft <= 0 &&
       panel.offsetTop <= 0 &&

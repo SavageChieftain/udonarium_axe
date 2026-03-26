@@ -1,5 +1,5 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, input, OnInit } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -26,11 +26,14 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   private objectStore = inject(ObjectStore);
   private objectChange = inject(ObjectChangeService);
 
-  @Input() chatMessage: ChatMessage;
+  protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
+  get chatMessage(): ChatMessage {
+    return this.chatMessageInput();
+  }
 
-  @Input() simpleDispFlagTime: boolean = false;
-  @Input() simpleDispFlagUserId: boolean = false;
-  @Input() chatSimpleDispFlag: boolean = false;
+  readonly simpleDispFlagTime = input(false);
+  readonly simpleDispFlagUserId = input(false);
+  readonly chatSimpleDispFlag = input(false);
 
   imageFile: ImageFile = ImageFile.Empty;
   animeState: string = 'inactive';

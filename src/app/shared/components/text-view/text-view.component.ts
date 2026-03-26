@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
 
@@ -12,8 +12,8 @@ export class TextViewComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
-  @Input() text: string = '';
-  @Input() title: string = '';
+  text: string = '';
+  title: string = '';
 
   ngOnInit() {
     queueMicrotask(() => {

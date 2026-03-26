@@ -30,7 +30,7 @@ describe('ChatMessageComponent', () => {
       const objectChange = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChange, 'versionOf');
       const mockMessage = { identifier: 'test-msg-id' } as ChatMessage;
-      component.chatMessage = mockMessage;
+      fixture.componentRef.setInput('chatMessage', mockMessage);
 
       component.escapeHtmlAndRuby('テスト');
 
@@ -38,7 +38,7 @@ describe('ChatMessageComponent', () => {
     });
 
     it('chatMessageがundefinedでもエラーにならないこと', () => {
-      component.chatMessage = undefined as unknown as ChatMessage;
+      fixture.componentRef.setInput('chatMessage', undefined as unknown as ChatMessage);
       expect(() => component.escapeHtmlAndRuby('テスト')).not.toThrow();
     });
   });

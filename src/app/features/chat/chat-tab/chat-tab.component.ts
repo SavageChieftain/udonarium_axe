@@ -6,15 +6,13 @@ import {
   DestroyRef,
   effect,
   ElementRef,
-  EventEmitter,
   inject,
-  Input,
-  OnChanges,
+  input,
   OnDestroy,
   OnInit,
-  Output,
+  output,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -41,7 +39,7 @@ const isiOS =
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChatMessageComponent],
 })
-export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, AfterViewChecked {
+export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
   private renderVersion = signal(0);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
@@ -53,6 +51,14 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     effect(() => {
       this.uiSignalService.chatRedrawVersion();
       setTimeout(() => this.redraw(), 0);
+    });
+    effect(() => {
+      this.chatTabInput();
+      if (this.panelService?.scrollablePanel) {
+        this.resetMessages();
+      } else {
+        queueMicrotask(() => this.resetMessages());
+      }
     });
   }
 
@@ -122,8 +128,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
 
   private needUpdate = true;
 
-  @ViewChild('logContainer', { static: true }) logContainerRef: ElementRef<HTMLDivElement>;
-  @ViewChild('messageContainer', { static: true }) messageContainerRef: ElementRef<HTMLDivElement>;
+  readonly logContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('logContainer');
+  readonly messageContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('messageContainer');
 
   private topElm: HTMLElement = null!;
   private bottomElm: HTMLElement = null!;
@@ -195,12 +201,15 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   private callbackOnScroll: () => void = () => this.onScroll();
   private callbackOnScrollToBottom: () => void = () => this.resetMessages();
 
-  @Input() chatTab: ChatTab;
+  readonly chatTabInput = input<ChatTab>(null!, { alias: 'chatTab' });
+  get chatTab(): ChatTab {
+    return this.chatTabInput();
+  }
   get chatTabList(): ChatTabList {
     return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
-  @Output() addMessage: EventEmitter<null> = new EventEmitter();
+  readonly addMessage = output<void>();
 
   ngOnInit() {
     const messages: ChatMessage[] = [];
@@ -263,14 +272,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
     if (this.addMessageEventTimer) clearTimeout(this.addMessageEventTimer);
     this.addMessageEventTimer = null!;
-  }
-
-  ngOnChanges() {
-    if (this.panelService?.scrollablePanel) {
-      this.resetMessages();
-    } else {
-      queueMicrotask(() => this.resetMessages());
-    }
   }
 
   ngAfterViewChecked() {
@@ -337,8 +338,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
   private adjustScrollPosition() {
     if (!this.topElm || !this.bottomElm) return;
 
-    const hasTopElm = this.logContainerRef.nativeElement.contains(this.topElm);
-    const hasBotomElm = this.logContainerRef.nativeElement.contains(this.bottomElm);
+    const hasTopElm = this.logContainerRef().nativeElement.contains(this.topElm);
+    const hasBotomElm = this.logContainerRef().nativeElement.contains(this.bottomElm);
 
     const { hasTopBlank, hasBotomBlank } = this.checkBlank(hasTopElm, hasBotomElm);
 
@@ -370,8 +371,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
       this.panelService.scrollablePanel.scrollTop -= diff;
     }
 
-    const logBox: ClientRect = this.logContainerRef.nativeElement.getBoundingClientRect();
-    const messageBox: ClientRect = this.messageContainerRef.nativeElement.getBoundingClientRect();
+    const logBox: ClientRect = this.logContainerRef().nativeElement.getBoundingClientRect();
+    const messageBox: ClientRect = this.messageContainerRef().nativeElement.getBoundingClientRect();
 
     const messageBoxTop = messageBox.top - logBox.top;
     const messageBoxBottom = messageBoxTop + messageBox.height;
@@ -407,10 +408,10 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, OnCha
     this.scrollEventShortTimer.stop();
     this.scrollEventLongTimer.stop();
 
-    const chatMessageElements = this.messageContainerRef.nativeElement.querySelectorAll<HTMLElement>('chat-message');
+    const chatMessageElements = this.messageContainerRef().nativeElement.querySelectorAll<HTMLElement>('chat-message');
 
-    const messageBoxTop = this.messageContainerRef.nativeElement.offsetTop;
-    const messageBoxBottom = messageBoxTop + this.messageContainerRef.nativeElement.clientHeight;
+    const messageBoxTop = this.messageContainerRef().nativeElement.offsetTop;
+    const messageBoxBottom = messageBoxTop + this.messageContainerRef().nativeElement.clientHeight;
 
     const preTopIndex = this.topIndex;
     const preBottomIndex = this.bottomIndex;

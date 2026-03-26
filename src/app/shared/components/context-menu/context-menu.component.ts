@@ -4,12 +4,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  HostListener,
   inject,
-  Input,
+  input,
   OnDestroy,
-  OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -22,21 +20,28 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
   templateUrl: './context-menu.component.html',
   styleUrls: ['./context-menu.component.css'],
   imports: [NgClass, FormsModule, NgTemplateOutlet],
+  host: { '(contextmenu)': 'onContextMenu($event)' },
 })
-export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ContextMenuComponent implements OnDestroy, AfterViewInit {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private uiSignalService = inject(UiSignalService);
 
-  @ViewChild('root', { static: true }) rootElementRef!: ElementRef<HTMLElement>;
+  readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
-  @Input() title: string = '';
-  @Input() titleColor: string = '';
-  @Input() titleBold: boolean = false;
-  @Input() actions: ContextMenuAction[] = [];
+  readonly isSubmenu = input(false);
+  protected readonly titleInput = input('', { alias: 'title' });
+  readonly titleColor = input('');
+  readonly titleBold = input(false);
+  protected readonly actionsInput = input<ContextMenuAction[]>([], { alias: 'actions' });
 
-  @Input() isSubmenu: boolean = false;
+  get title(): string {
+    return this.isSubmenu() ? this.titleInput() : this.contextMenuService.title;
+  }
+  get actions(): ContextMenuAction[] {
+    return this.isSubmenu() ? this.actionsInput() : this.contextMenuService.actions;
+  }
 
   parentMenu: ContextMenuAction | undefined;
   subMenu: ContextMenuAction[] | undefined;
@@ -56,15 +61,8 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return null;
   }
 
-  ngOnInit() {
-    if (!this.isSubmenu) {
-      this.title = this.contextMenuService.title;
-      this.actions = this.contextMenuService.actions;
-    }
-  }
-
   ngAfterViewInit() {
-    if (!this.isSubmenu) {
+    if (!this.isSubmenu()) {
       this.adjustPositionRoot();
       document.addEventListener('touchstart', this.callbackOnOutsideClick, true);
       document.addEventListener('mousedown', this.callbackOnOutsideClick, true);
@@ -81,12 +79,11 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onOutsideClick(event: Event) {
-    if (this.rootElementRef.nativeElement.contains(event.target as Node) === false) {
+    if (this.rootElementRef().nativeElement.contains(event.target as Node) === false) {
       this.close();
     }
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -95,7 +92,7 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   indexMenuPosion() {
     if (this.title != 'インデックス') return;
 
-    const panel: HTMLElement = this.rootElementRef.nativeElement;
+    const panel: HTMLElement = this.rootElementRef().nativeElement;
     const panelBox = panel.getBoundingClientRect();
 
     const w = panelBox.right - panelBox.left;
@@ -106,7 +103,7 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private adjustPositionRoot() {
-    const panel: HTMLElement = this.rootElementRef.nativeElement;
+    const panel: HTMLElement = this.rootElementRef().nativeElement;
 
     panel.style.left = this.contextMenuService.position.x + 'px';
     panel.style.top = this.contextMenuService.position.y + 'px';
@@ -136,7 +133,7 @@ export class ContextMenuComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private adjustPositionSub() {
     const parent: HTMLElement = this.elementRef.nativeElement.parentElement!;
-    const submenu: HTMLElement = this.rootElementRef.nativeElement;
+    const submenu: HTMLElement = this.rootElementRef().nativeElement;
 
     const parentBox = parent.getBoundingClientRect();
     const submenuBox = submenu.getBoundingClientRect();

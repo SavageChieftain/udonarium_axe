@@ -6,9 +6,9 @@ import {
   Component,
   ElementRef,
   inject,
-  Input,
+  input,
   OnDestroy,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -35,12 +35,12 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
   private objectStore = inject(ObjectStore);
   private uiSignalService = inject(UiSignalService);
 
-  @Input() chatTabidentifier: string = '';
-  @ViewChild('tachieArea', { read: ElementRef }) private tachieArea: ElementRef;
+  readonly chatTabidentifier = input('');
+  private readonly tachieArea = viewChild<ElementRef>('tachieArea');
   private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier());
   }
 
   get chatTabList(): ChatTabList {

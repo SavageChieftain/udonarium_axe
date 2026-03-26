@@ -80,7 +80,7 @@ export class ModalService {
         index: parentViewContainerRef.length,
         injector,
       });
-      (panelComponentRef.instance as { content: ViewContainerRef }).content.createComponent(childComponent);
+      (panelComponentRef.instance as { content: () => ViewContainerRef }).content().createComponent(childComponent);
 
       panelComponentRef.onDestroy(() => {
         this.count--;

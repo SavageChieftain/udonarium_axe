@@ -7,12 +7,11 @@ import {
   DestroyRef,
   effect,
   ElementRef,
-  HostListener,
   inject,
-  Input,
+  input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
@@ -40,6 +39,11 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
   styleUrls: ['./text-note.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, FormsModule, SafePipe],
+  host: {
+    '(dragstart)': 'onDragstart($event)',
+    '(mousedown)': 'onMouseDown($event)',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
 export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   private contextMenuService = inject(ContextMenuService);
@@ -56,72 +60,72 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor() {
     effect(() => {
       const req = this.uiSignalService.noteResizeRequest();
-      if (!req || !this.textNote) return;
-      if (this.textNote.identifier === req.identifier) {
+      if (!req || !this.textNote()) return;
+      if (this.textNote().identifier === req.identifier) {
         this.calcFitHeight();
       }
     });
   }
 
-  @ViewChild('textArea', { static: true }) textAreaElementRef: ElementRef;
+  readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
-  @Input() textNote: TextNote = null!;
-  @Input() is3D: boolean = false;
+  readonly textNote = input<TextNote>(null!);
+  readonly is3D = input(false);
 
   get title(): string {
-    this.objectChange.versionOf(this.textNote.identifier)();
-    return this.textNote.title;
+    this.objectChange.versionOf(this.textNote().identifier)();
+    return this.textNote().title;
   }
   get isLock(): boolean {
-    return this.textNote.isLock;
+    return this.textNote().isLock;
   }
   set isLock(isLock: boolean) {
-    this.textNote.isLock = isLock;
+    this.textNote().isLock = isLock;
   }
 
   oldText: string = '';
   oldFontSize: number = 9;
   get text(): string {
-    if (this.oldText != this.textNote.text) {
+    if (this.oldText != this.textNote().text) {
       this.calcFitHeightIfNeeded();
     }
-    this.oldText = this.textNote.text;
-    return this.textNote.text;
+    this.oldText = this.textNote().text;
+    return this.textNote().text;
   }
   set text(text: string) {
     this.calcFitHeightIfNeeded();
-    this.textNote.text = text;
+    this.textNote().text = text;
     this.oldText = text;
   }
   get fontSize(): number {
-    if (this.oldFontSize != this.textNote.fontSize) {
+    if (this.oldFontSize != this.textNote().fontSize) {
       this.calcFitHeightIfNeeded();
     }
-    this.oldFontSize = this.textNote.fontSize;
-    return this.textNote.fontSize;
+    this.oldFontSize = this.textNote().fontSize;
+    return this.textNote().fontSize;
   }
   get imageFile(): ImageFile {
     this.objectChange.fileVersion();
-    return this.textNote.imageFile;
+    return this.textNote().imageFile;
   }
   get rotate(): number {
-    return this.textNote.rotate;
+    return this.textNote().rotate;
   }
   set rotate(rotate: number) {
-    this.textNote.rotate = rotate;
+    this.textNote().rotate = rotate;
   }
   get height(): number {
-    return this.adjustMinBounds(this.textNote.height);
+    return this.adjustMinBounds(this.textNote().height);
   }
   get width(): number {
-    return this.adjustMinBounds(this.textNote.width);
+    return this.adjustMinBounds(this.textNote().width);
   }
 
   get altitude(): number {
-    return this.textNote.altitude;
+    return this.textNote().altitude;
   }
   set altitude(altitude: number) {
-    this.textNote.altitude = altitude;
+    this.textNote().altitude = altitude;
   }
 
   get textNoteAltitude(): number {
@@ -134,21 +138,21 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get isUpright(): boolean {
-    return this.textNote.isUpright;
+    return this.textNote().isUpright;
   }
   set isUpright(isUpright: boolean) {
-    this.textNote.isUpright = isUpright;
+    this.textNote().isUpright = isUpright;
   }
 
   get isAltitudeIndicate(): boolean {
-    return this.textNote.isAltitudeIndicate;
+    return this.textNote().isAltitudeIndicate;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.textNote.isAltitudeIndicate = isAltitudeIndicate;
+    this.textNote().isAltitudeIndicate = isAltitudeIndicate;
   }
 
   get isSelected(): boolean {
-    return document.activeElement === this.textAreaElementRef.nativeElement;
+    return document.activeElement === this.textAreaElementRef().nativeElement;
   }
 
   private callbackOnMouseUp = (e: MouseEvent) => this.onMouseUp(e);
@@ -198,12 +202,12 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     this.movableOption = {
-      tabletopObject: this.textNote,
+      tabletopObject: this.textNote(),
       transformCssOffset: 'translateZ(0.15px)',
       colideLayers: ['terrain'],
     };
     this.rotableOption = {
-      tabletopObject: this.textNote,
+      tabletopObject: this.textNote(),
     };
   }
 
@@ -217,17 +221,15 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this._fallTimeout) clearTimeout(this._fallTimeout);
   }
 
-  @HostListener('dragstart', ['$event'])
   onDragstart(e: DragEvent) {
     e.stopPropagation();
     e.preventDefault();
   }
 
-  @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
     if (this.isSelected) return;
     e.preventDefault();
-    this.textNote.toTopmost();
+    this.textNote().toTopmost();
 
     // TODO:もっと良い方法考える
     if (e.button === 2) {
@@ -243,7 +245,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!selection!.isCollapsed) selection!.removeAllRanges();
 
       //        if( e.target.id != 'scroll'){
-      this.textAreaElementRef.nativeElement.focus();
+      this.textAreaElementRef().nativeElement.focus();
       //        }
     }
     this.removeMouseEventListeners();
@@ -264,7 +266,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  @HostListener('contextmenu', ['$event'])
   onContextMenu(e: MouseEvent) {
     this.removeMouseEventListeners();
     if (this.isSelected) return;
@@ -288,7 +289,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
                   SoundEffect.play(PresetSound.sweep);
                 }
               },
-              altitudeHande: this.textNote,
+              altitudeHande: this.textNote(),
             },
             this.isAltitudeIndicate
               ? {
@@ -347,13 +348,13 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
         {
           name: 'メモを編集',
           action: () => {
-            this.showDetail(this.textNote);
+            this.showDetail(this.textNote());
           },
         },
         {
           name: 'コピーを作る',
           action: () => {
-            const cloneObject = this.textNote.clone();
+            const cloneObject = this.textNote().clone();
             cloneObject.location.x += this.gridSize;
             cloneObject.location.y += this.gridSize;
             cloneObject.toTopmost();
@@ -363,7 +364,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
         {
           name: '削除する',
           action: () => {
-            this.textNote.destroy();
+            this.textNote().destroy();
             SoundEffect.play(PresetSound.sweep);
           },
         },
@@ -392,13 +393,13 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   oldOffsetHeight = 0;
 
   calcFitHeight() {
-    const textArea: HTMLTextAreaElement = this.textAreaElementRef.nativeElement;
+    const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
 
     //    if( ( this.oldScrollHeight == 0 ) && ( this.oldOffsetHeight == 0)){
     //      textArea.style.height = '0';
     //    }
     textArea.style.height = '0';
-    if (!this.textNote.limitHeight) {
+    if (!this.textNote().limitHeight) {
       if (textArea.scrollHeight > textArea.offsetHeight) {
         textArea.style.height = textArea.scrollHeight + 'px';
         this.oldScrollHeight = textArea.scrollHeight;

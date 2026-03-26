@@ -46,24 +46,28 @@ describe('ChatTabComponent', () => {
 
       const chatTab = new ChatTab();
       chatTab.initialize();
-      component.chatTab = chatTab;
 
       const spy = vi.spyOn(component, 'resetMessages' as never);
-      component.ngOnChanges();
+      fixture.componentRef.setInput('chatTab', chatTab);
+      fixture.detectChanges();
 
       expect(spy).toHaveBeenCalled();
     });
 
     it('scrollablePanelがnullの場合はresetMessagesがマイクロタスクで呼ばれること', async () => {
       const panelService = TestBed.inject(PanelService);
+      const mockPanel = document.createElement('div');
+      panelService.scrollablePanel = mockPanel as unknown as HTMLDivElement;
+      fixture.detectChanges();
+
       panelService.scrollablePanel = null!;
 
       const chatTab = new ChatTab();
       chatTab.initialize();
-      component.chatTab = chatTab;
 
       const spy = vi.spyOn(component, 'resetMessages' as never);
-      component.ngOnChanges();
+      fixture.componentRef.setInput('chatTab', chatTab);
+      fixture.detectChanges();
 
       expect(spy).not.toHaveBeenCalled();
       await new Promise<void>((resolve) => queueMicrotask(resolve));
