@@ -20,7 +20,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/shared/text-note';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { GameObjectInventoryService } from '@axe/features/inventory/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';

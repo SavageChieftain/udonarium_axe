@@ -20,7 +20,7 @@ import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
+import { TabletopService } from '@axe/shared/tabletop.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';

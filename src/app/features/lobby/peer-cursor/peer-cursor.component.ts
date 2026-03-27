@@ -20,8 +20,8 @@ import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { callCursorMove, callHeartBeat } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
-import { BatchService } from '@axe/features/inventory/batch.service';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { BatchService } from '@axe/shared/batch.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 

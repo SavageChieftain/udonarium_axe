@@ -4,7 +4,7 @@ import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
+import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';

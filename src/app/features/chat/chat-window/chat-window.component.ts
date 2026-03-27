@@ -20,7 +20,7 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { AlarmMenuComponent } from '@axe/features/alarm/alarm-menu/alarm-menu.component';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
 import { ChatTachieComponent } from '@axe/features/chat/chat-tachie/chat-tachie.component';

@@ -21,7 +21,7 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
 import { ChatInputComponent as ChatInputComponent_1 } from '@axe/features/chat/chat-input/chat-input.component';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';

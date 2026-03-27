@@ -20,7 +20,7 @@ import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/domain/domain
 import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
+import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';

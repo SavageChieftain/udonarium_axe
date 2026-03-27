@@ -15,7 +15,7 @@ import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
 import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/features/chat/chat-tachie-img/chat-tachie-img.component';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';

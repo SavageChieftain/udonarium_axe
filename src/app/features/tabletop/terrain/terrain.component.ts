@@ -25,10 +25,10 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { GameObjectInventoryService } from '@axe/features/inventory/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
+import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';

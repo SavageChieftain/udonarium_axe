@@ -8,7 +8,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
-import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
+import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';

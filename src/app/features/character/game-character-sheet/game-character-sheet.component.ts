@@ -25,7 +25,7 @@ import { RangeArea } from '@axe/domain/tabletop/range';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
-import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
+import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';

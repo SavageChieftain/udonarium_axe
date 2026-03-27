@@ -11,7 +11,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/Jukebox';
-import { FileSelecterComponent } from '@axe/features/file/file-selecter/file-selecter.component';
+import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.component';
 import { OpenUrlComponent } from '@axe/shared/components/open-url/open-url.component';
 import { ModalService } from '@axe/shared/modal.service';

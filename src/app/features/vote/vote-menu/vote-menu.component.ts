@@ -6,7 +6,7 @@ import { SaveDataService } from '@axe/core/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/shared/vote';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
