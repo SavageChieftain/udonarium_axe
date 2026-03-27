@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { localDispatch } from '@axe/core/network/network-messaging';
 import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
-import { Subject } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from './object-change.service';
 
@@ -99,6 +100,42 @@ describe('ObjectChangeService', () => {
     (service as unknown as { _networkOpen$: Subject<NetworkPeerEvent> })._networkOpen$.next({ peerId: 'my-peer' });
     const event = await promise;
     expect(event.peerId).toBe('my-peer');
+  });
+
+  it('DELETE_GAME_OBJECT を受信すると objectDeleted$ に変換される', async () => {
+    const promise = firstValueFrom(service.objectDeleted$);
+
+    localDispatch('DELETE_GAME_OBJECT', { identifier: 'network-del-id', aliasName: 'character' }, 'remote-peer-id');
+
+    await expect(promise).resolves.toEqual({
+      identifier: 'network-del-id',
+      aliasName: 'character',
+      isSendFromSelf: false,
+    });
+  });
+
+  it('CURSOR_MOVE を受信すると cursorMove$ に変換される', async () => {
+    const promise = firstValueFrom(service.cursorMove$);
+
+    localDispatch('CURSOR_MOVE', [10, 20, 30], 'remote-peer-id');
+
+    await expect(promise).resolves.toEqual({
+      x: 10,
+      y: 20,
+      z: 30,
+      sendFrom: 'remote-peer-id',
+    });
+  });
+
+  it('NETWORK_ERROR を受信すると networkError$ に変換される', async () => {
+    const promise = firstValueFrom(service.networkError$);
+
+    localDispatch('NETWORK_ERROR', { errorType: 'disconnect', errorMessage: 'connection lost' });
+
+    await expect(promise).resolves.toEqual({
+      errorType: 'disconnect',
+      errorMessage: 'connection lost',
+    });
   });
 
   describe('versionOf()', () => {
