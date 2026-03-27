@@ -5,8 +5,8 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { BatchService } from '@axe/shared/batch.service';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
+import { BatchService } from '@axe/shared/ui/batch.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
