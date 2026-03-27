@@ -11,18 +11,15 @@ import {
   OnDestroy,
   OnInit,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
@@ -30,14 +27,18 @@ import { callWritingAMessage } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { BatchService } from '@axe/shared/batch.service';
-import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
+
+import { ChatInputDiceBotHelper } from './chat-input-dicebot';
+import { allowsChat } from './chat-input-helpers';
+import { ChatInputHistory } from './chat-input-history';
+import { WritingPeerManager } from './chat-input-writing';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +56,10 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
+
+  private chatHistory = new ChatInputHistory();
+  private writingManager = new WritingPeerManager();
+  private dicebotHelper = new ChatInputDiceBotHelper();
 
   readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
@@ -168,8 +173,6 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   get isDirect(): boolean {
     return this.sendTo != null && this.sendTo.length ? true : false;
   }
-  gameHelp: string = '';
-  loadDiceName: string = '';
 
   colorSelectNo_ = 0;
 
@@ -196,34 +199,12 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
-  get colorSelectorBoxBorder_0() {
-    if (0 == this.colorSelectNo) return '3px';
-    return '1px';
+  colorSelectorBoxBorder(n: number): string {
+    return n === this.colorSelectNo ? '3px' : '1px';
   }
 
-  get colorSelectorBoxBorder_1() {
-    if (1 == this.colorSelectNo) return '3px';
-    return '1px';
-  }
-
-  get colorSelectorBoxBorder_2() {
-    if (2 == this.colorSelectNo) return '3px';
-    return '1px';
-  }
-
-  get colorSelectorRadius_0() {
-    if (0 == this.colorSelectNo) return '9px';
-    return '0px';
-  }
-
-  get colorSelectorRadius_1() {
-    if (1 == this.colorSelectNo) return '9px';
-    return '0px';
-  }
-
-  get colorSelectorRadius_2() {
-    if (2 == this.colorSelectNo) return '9px';
-    return '0px';
+  colorSelectorRadius(n: number): string {
+    return n === this.colorSelectNo ? '9px' : '0px';
   }
 
   charactorChatColor(num: number) {
@@ -245,33 +226,9 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
-  get charactorChatColor_0() {
-    return this.charactorChatColor(0);
-  }
-
-  get charactorChatColor_1() {
-    return this.charactorChatColor(1);
-  }
-
-  get charactorChatColor_2() {
-    return this.charactorChatColor(2);
-  }
-
   playerChatColor(num: number) {
     this.objectChange.versionOf(this.myPeer.identifier)();
     return this.myPeer.chatColorCode[num];
-  }
-
-  get playerChatColor_0() {
-    return this.playerChatColor(0);
-  }
-
-  get playerChatColor_1() {
-    return this.playerChatColor(1);
-  }
-
-  get playerChatColor_2() {
-    return this.playerChatColor(2);
   }
 
   setColorNum(num: number) {
@@ -321,15 +278,14 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       this.shouldUpdateCharacterList = false;
       this._gameCharacters = this.objectStore
         .getObjects<GameCharacter>(GameCharacter)
-        .filter((character) => this.allowsChat(character));
+        .filter((character) => allowsChat(character, this.myPeer.peerId));
     }
     return this._gameCharacters;
   }
 
   private writingEventInterval: NodeJS.Timeout = null!;
   private previousWritingLength: number = 0;
-  writingPeers: Map<string, ResettableTimeout> = new Map();
-  readonly writingPeerNames = signal<string[]>([]);
+  readonly writingPeerNames = this.writingManager.names;
 
   private _diceBotInfosSnapshot: typeof DiceBot.diceBotInfos = [];
   get diceBotInfos() {
@@ -355,11 +311,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       const peerCursor = this.objectStore.getObjects<PeerCursor>(PeerCursor).find((obj) => obj.userId === message.from);
       const sendFrom = peerCursor ? peerCursor.peerId : '?';
-      if (this.writingPeers.has(sendFrom)) {
-        this.writingPeers.get(sendFrom)!.stop();
-        this.writingPeers.delete(sendFrom);
-        this.updateWritingPeerNames();
-      }
+      this.writingManager.remove(sendFrom);
     });
 
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
@@ -367,7 +319,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       this.shouldUpdateCharacterList = true;
       if (event.identifier !== this.sendFrom) return;
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
-      if (gameCharacter && !this.allowsChat(gameCharacter)) {
+      if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId)) {
         if (0 < this.gameCharacters.length && this.onlyCharacters()) {
           this.sendFrom = this.gameCharacters[0].identifier;
         } else {
@@ -385,16 +337,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
 
     this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) return;
-      if (!this.writingPeers.has(event.sendFrom)) {
-        this.writingPeers.set(
-          event.sendFrom,
-          new ResettableTimeout(() => {
-            this.writingPeers.delete(event.sendFrom);
-            this.updateWritingPeerNames();
-          }, 2000)
-        );
-      }
-      this.writingPeers.get(event.sendFrom)!.reset();
+      this.writingManager.add(event.sendFrom);
     });
   }
 
@@ -408,19 +351,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       clearTimeout(this.calcFitHeightInterval);
       this.calcFitHeightInterval = null!;
     }
-    for (const [, timeout] of this.writingPeers) {
-      timeout.stop();
-    }
-    this.writingPeers.clear();
-  }
-
-  private updateWritingPeerNames() {
-    this.writingPeerNames.set(
-      Array.from(this.writingPeers.keys()).map((peerId) => {
-        const peer = PeerCursor.findByPeerId(peerId);
-        return peer ? peer.name : '';
-      })
-    );
+    this.writingManager.destroy();
   }
 
   onInput() {
@@ -442,29 +373,9 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.calcFitHeight();
   }
 
-  private history: string[] = [];
-  private currentHistoryIndex: number = -1;
-  private static MAX_HISTORY_NUM = 1000;
-
   moveHistory(event: Event, direction: number) {
     if (event) event.preventDefault();
-
-    if (direction < 0 && this.currentHistoryIndex < 0) {
-      this.currentHistoryIndex = this.history.length - 1;
-    } else if (direction > 0 && this.currentHistoryIndex >= this.history.length - 1) {
-      this.currentHistoryIndex = -1;
-    } else {
-      this.currentHistoryIndex = this.currentHistoryIndex + direction;
-    }
-
-    let histText: string;
-    if (this.currentHistoryIndex < 0) {
-      histText = '';
-    } else {
-      histText = this.history[this.currentHistoryIndex];
-    }
-
-    this.text = histText;
+    this.text = this.chatHistory.navigate(direction);
     this.previousWritingLength = this.text.length;
     this.kickCalcFitHeight();
   }
@@ -494,11 +405,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
 
     if (!this.sendFrom.length) this.sendFrom = this.myPeer.identifier;
 
-    if (this.history.length >= ChatInputComponent.MAX_HISTORY_NUM) {
-      this.history.shift();
-    }
-    this.history.push(this.text);
-    this.currentHistoryIndex = -1;
+    this.chatHistory.push(this.text);
 
     const message = {
       text: this.text,
@@ -539,61 +446,20 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
+  get gameHelp(): string {
+    return this.dicebotHelper.gameHelp;
+  }
+
   loadDiceBot(gameType: string) {
-    DiceBot.getHelpMessage(gameType).then(() => {});
+    this.dicebotHelper.load(gameType);
   }
 
   isGameTypeInList(): boolean {
-    if (this.diceBotInfos.length === 0) return true;
-    return this.diceBotInfos.some((info) => info.id === this.gameType);
+    return this.dicebotHelper.isGameTypeInList(this.gameType, this.diceBotInfos);
   }
 
   showDicebotHelp() {
-    DiceBot.getHelpMessage(this.gameType).then((help) => {
-      this.gameHelp = help;
-
-      let gameName: string = 'ダイスボット';
-      for (const diceBotInfo of DiceBot.diceBotInfos) {
-        if (diceBotInfo.id === this.gameType) {
-          gameName = 'ダイスボット<' + diceBotInfo.name + '＞';
-        }
-      }
-      gameName += 'の説明';
-
-      const coordinate = this.pointerDeviceService.pointers[0];
-      const option: PanelOption = {
-        left: coordinate.x,
-        top: coordinate.y,
-        width: 600,
-        height: 500,
-      };
-      const textView = this.panelService.open(TextViewComponent, option);
-      textView.title = gameName;
-      textView.text =
-        '【ダイスボット】チャットにダイス用の文字を入力するとダイスロールが可能\n' +
-        '入力例）２ｄ６＋１　攻撃！\n' +
-        '出力例）2d6+1　攻撃！\n' +
-        '　　　　  diceBot: (2d6) → 7\n' +
-        '上記のようにダイス文字の後ろに空白を入れて発言する事も可能。\n' +
-        '以下、使用例\n' +
-        '　3D6+1>=9 ：3d6+1で目標値9以上かの判定\n' +
-        '　1D100<=50 ：D100で50％目標の下方ロールの例\n' +
-        '　3U6[5] ：3d6のダイス目が5以上の場合に振り足しして合計する(上方無限)\n' +
-        '　3B6 ：3d6のダイス目をバラバラのまま出力する（合計しない）\n' +
-        '　10B6>=4 ：10d6を振り4以上のダイス目の個数を数える\n' +
-        '　2R6[>3]>=5 ：2D6のダイス目が3より大きい場合に振り足して、5以上のダイス目の個数を数える\n' +
-        '　(8/2)D(4+6)<=(5*3)：個数・ダイス・達成値には四則演算も使用可能\n' +
-        '　c(10-4*3/2+2)：c(計算式）で計算だけの実行も可能\n' +
-        '　choice[a,b,c]：列挙した要素から一つを選択表示。ランダム攻撃対象決定などに\n' +
-        '　S3d6 ： 各コマンドの先頭に「S」を付けると他人結果の見えないシークレットロール\n' +
-        '　3d6/2 ： ダイス出目を割り算（端数処理はゲームシステム依存）。切り上げは /2C、四捨五入は /2R、切り捨ては /2F\n' +
-        '　D66 ： D66ダイス。順序はゲームに依存。D66N：そのまま、D66A：昇順、D66D：降順\n' +
-        '\n' +
-        '詳細は下記URLのコマンドガイドを参照\n' +
-        'https://docs.bcdice.org/\n' +
-        '===================================\n' +
-        this.gameHelp;
-    });
+    this.dicebotHelper.showHelp(this.gameType);
   }
 
   shoeColorSetting() {
@@ -623,26 +489,6 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
       component.tabletopObject = null!;
-    }
-  }
-
-  private allowsChat(gameCharacter: GameCharacter): boolean {
-    switch (gameCharacter.location.name) {
-      case 'table':
-        return !gameCharacter.nonTalkFlag;
-      case this.myPeer.peerId:
-        if (gameCharacter.nonTalkFlag) return false;
-        return true;
-      case 'graveyard':
-        return false;
-      default:
-        if (gameCharacter.nonTalkFlag) return false;
-        for (const conn of Network.peerContexts) {
-          if (conn.isOpen && gameCharacter.location.name === conn.peerId) {
-            return false;
-          }
-        }
-        return true;
     }
   }
 }
