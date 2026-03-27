@@ -13,6 +13,18 @@ import { emitDiceTableMessage, emitResourceEditMessage, emitSendMessage } from '
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+import {
+  calcChatTimestamp,
+  emitChatMessageEvents,
+  findImageIdentifierByName,
+  parseTachieCommand,
+  resolveChatMessageTag,
+  resolveImagePos,
+  resolveMessageColor,
+  resolveTachieIndex,
+  stripTachieCommand,
+} from './chat-message-helpers';
+
 const HOURS = 60 * 60 * 1000;
 
 @Injectable()
@@ -21,15 +33,13 @@ export class ChatMessageService {
   private imageStorage = inject(ImageStorage);
   private chatTabList = inject(ChatTabList);
 
-  private intervalTimer: NodeJS.Timeout = null!;
+  private intervalTimer: NodeJS.Timeout | null = null;
   private timeOffset: number = Date.now();
   private performanceOffset: number = performance.now();
 
   private ntpApiUrls: string[] = ['https://worldtimeapi.org/api/ip'];
 
   gameType: string = 'DiceBot';
-
-  constructor() {}
 
   get chatTabs(): ChatTab[] {
     return this.chatTabList.chatTabs;
@@ -79,12 +89,7 @@ export class ChatMessageService {
 
   // システムメッセージ専用
   sendSystemMessageOnePlayer(chatTab: ChatTab, text: string, sendTo: string, color?: string): ChatMessage {
-    let _color;
-    if (!color) {
-      _color = '#006633';
-    } else {
-      _color = color;
-    }
+    const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
       from: this.findId(sendTo),
       to: this.findId(sendTo),
@@ -94,7 +99,7 @@ export class ChatMessageService {
       tag: 'DiceBot to-pl-system-message',
       text: text,
       imagePos: -1,
-      messColor: _color,
+      messColor: messageColor,
       sendFrom: undefined,
     };
     return chatTab.addMessage(chatMessage);
@@ -123,31 +128,11 @@ export class ChatMessageService {
     color?: string,
     messageTargetContext?: ChatMessageTargetContext[]
   ): ChatMessage {
-    let imgIndex: number;
-    if (tachieNum != null && tachieNum > 0) {
-      imgIndex = tachieNum;
-    } else {
-      imgIndex = 0;
-    }
-
-    let _color;
-    if (!color) {
-      _color = '#000000';
-    } else {
-      _color = color;
-    }
+    const imgIndex = resolveTachieIndex(tachieNum);
+    const messageColor = resolveMessageColor(color, '#000000');
 
     const dicebot = this.objectStore.get<DiceBot>('DiceBot');
-    let chatMessageTag: string;
-    if (gameSystem == null) {
-      chatMessageTag = '';
-    } else if (dicebot.checkSecretDiceCommand(gameSystem, text)) {
-      chatMessageTag = `${gameSystem.ID} secret`;
-    } else if (dicebot.checkSecretEditCommand(text)) {
-      chatMessageTag = `${gameSystem.ID} secret`;
-    } else {
-      chatMessageTag = gameSystem.ID;
-    }
+    const chatMessageTag = resolveChatMessageTag(gameSystem, text, dicebot);
 
     const chatMessage: ChatMessageContext = {
       from: Network.peerContext.userId,
@@ -158,83 +143,59 @@ export class ChatMessageService {
       tag: chatMessageTag,
       text: text,
       imagePos: this.findImagePos(sendFrom),
-      messColor: _color,
+      messColor: messageColor,
       sendFrom: sendFrom,
     };
 
     this.setLastControlInfoToPeer(sendFrom, this.findImageIdentifier(sendFrom, imgIndex), imgIndex, sendTo);
 
-    // 立ち絵置き換え
-    const chkMessage = ' ' + text;
-
-    const matchesArray = chkMessage.match(/\s[@＠](\S+)\s*$/i);
-    if (matchesArray) {
-      const matchHide = matchesArray[1].match(/^[hHｈＨ][iIｉＩ][dDｄＤ][eEｅＥ]$/);
-      const matchNum = matchesArray[1].match(/(\d+)$/);
-
-      if (matchHide) {
-        // 非表示コマンド
-        chatMessage.imageIdentifier = '';
-        chatMessage.text = text.replace(/([@＠]\S+\s*)$/i, '');
-      } else if (matchNum) {
-        // インデックス指定
-        const num: number = parseInt(matchNum[1]);
-        const newIdentifier = this.findImageIdentifier(sendFrom, num);
-        if (newIdentifier) {
-          chatMessage.imageIdentifier = newIdentifier;
-          chatMessage.text = text.replace(/([@＠]\S+\s*)$/i, '');
-          const obj = this.objectStore.get(sendFrom);
-          if (obj instanceof GameCharacter) {
-            obj.selectedTachieNum = parseInt(matchNum[1]);
-          }
-        }
-      } else {
-        const tachieName = matchesArray[1];
-        const newIdentifier = this.findImageIdentifierName(sendFrom, tachieName);
-        if (newIdentifier) {
-          chatMessage.imageIdentifier = newIdentifier;
-          chatMessage.text = text.replace(/([@＠]\S+\s*)$/i, '');
-          const obj = this.objectStore.get(sendFrom);
-          if (obj instanceof GameCharacter) {
-            obj.selectedTachieNum = this._ImageIndex;
-          }
-        }
-      }
-    }
+    this.applyTachieCommand(chatMessage, text, sendFrom);
     const chat = chatTab.addMessage(chatMessage);
 
-    this.triggerMessageEvents(chatTab, chat, messageTargetContext ?? undefined);
+    const eventPlan = emitChatMessageEvents(messageTargetContext ?? undefined);
+    for (const target of eventPlan.sendTargets) {
+      emitSendMessage({
+        messageIdentifier: chat.identifier,
+        messageTrget: target,
+      });
+    }
+    emitDiceTableMessage({ messageIdentifier: chat.identifier });
+    emitResourceEditMessage({
+      messageIdentifier: chat.identifier,
+      messageTargetContext: eventPlan.resourceEditTargetContext,
+    });
 
     return chat;
   }
 
-  private triggerMessageEvents(
-    chatTab: ChatTab,
-    chat: ChatMessage,
-    messageTargetContext?: ChatMessageTargetContext[]
-  ): void {
-    if (messageTargetContext && messageTargetContext.length >= 1) {
-      for (const context of messageTargetContext) {
-        emitSendMessage({
-          messageIdentifier: chat.identifier,
-          messageTrget: context,
-        });
-      }
-    } else {
-      emitSendMessage({
-        messageIdentifier: chat.identifier,
-        messageTrget: null,
-      });
+  private applyTachieCommand(chatMessage: ChatMessageContext, text: string, sendFrom: string): void {
+    const command = parseTachieCommand(text);
+    if (command.type === 'none') return;
+
+    if (command.type === 'hide') {
+      chatMessage.imageIdentifier = '';
+      chatMessage.text = stripTachieCommand(text);
+      return;
     }
 
-    emitDiceTableMessage({
-      messageIdentifier: chat.identifier,
-    });
+    if (command.type === 'index') {
+      const newIdentifier = this.findImageIdentifier(sendFrom, command.index);
+      if (!newIdentifier) return;
 
-    emitResourceEditMessage({
-      messageIdentifier: chat.identifier,
-      messageTargetContext: messageTargetContext ?? null,
-    });
+      chatMessage.imageIdentifier = newIdentifier;
+      chatMessage.text = stripTachieCommand(text);
+      const obj = this.objectStore.get(sendFrom);
+      if (obj instanceof GameCharacter) obj.selectedTachieNum = command.index;
+      return;
+    }
+
+    const found = this.findImageIdentifierName(sendFrom, command.name);
+    if (!found.identifier) return;
+
+    chatMessage.imageIdentifier = found.identifier;
+    chatMessage.text = stripTachieCommand(text);
+    const obj = this.objectStore.get(sendFrom);
+    if (obj instanceof GameCharacter) obj.selectedTachieNum = found.index;
   }
 
   private findId(identifier: string): string {
@@ -244,7 +205,7 @@ export class ChatMessageService {
     } else if (object instanceof PeerCursor) {
       return object.userId;
     }
-    return null!;
+    return '';
   }
 
   private findObjectName(identifier: string): string {
@@ -285,39 +246,23 @@ export class ChatMessageService {
     }
   }
 
-  private _ImageIndex = 0;
-  private findImageIdentifierName(sendFrom: string, name: string): string {
-    // 完全一致
+  private findImageIdentifierName(sendFrom: string, name: string): { identifier: string; index: number } {
     const object = this.objectStore.get(sendFrom);
-    this._ImageIndex = 0;
     if (object instanceof GameCharacter) {
       const data: DataElement = object.imageDataElement;
+      const entries: { label: string; identifier: string }[] = [];
       for (const child of data.children) {
         if (child instanceof DataElement) {
-          if (child.getAttribute('currentValue') == name) {
-            const img = this.imageStorage.get(<string>child.value);
-            if (img) {
-              return img.identifier;
-            }
-          }
+          const img = this.imageStorage.get(<string>child.value);
+          entries.push({
+            label: child.getAttribute('currentValue'),
+            identifier: img ? img.identifier : '',
+          });
         }
-        this._ImageIndex++;
       }
-      // 部分前方一致
-      this._ImageIndex = 0;
-      for (const child of data.children) {
-        if (child instanceof DataElement) {
-          if (child.getAttribute('currentValue').indexOf(name) == 0) {
-            const img = this.imageStorage.get(<string>child.value);
-            if (img) {
-              return img.identifier;
-            }
-          }
-        }
-        this._ImageIndex++;
-      }
+      return findImageIdentifierByName(entries, name);
     }
-    return '';
+    return { identifier: '', index: 0 };
   }
 
   private findImageIdentifier(sendFrom: string, index: number): string {
@@ -341,10 +286,7 @@ export class ChatMessageService {
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       const element = object.detailDataElement.getFirstElementByName('POS');
-      if (element)
-        if (0 <= <number>element.currentValue && <number>element.currentValue <= 11)
-          return <number>element.currentValue;
-      return 0;
+      return resolveImagePos(element ? <number>element.currentValue : undefined);
     }
     return -1;
   }
@@ -352,6 +294,6 @@ export class ChatMessageService {
   private calcTimeStamp(chatTab: ChatTab): number {
     const now = this.getTime();
     const latest = chatTab.latestTimeStamp;
-    return now <= latest ? latest + 1 : now;
+    return calcChatTimestamp(now, latest);
   }
 }
