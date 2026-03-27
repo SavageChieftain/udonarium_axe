@@ -35,6 +35,7 @@ import { UiSignalService } from '@axe/shared/ui-signal.service';
 import { xor } from 'lodash';
 
 import { buildGameTableMaskContextMenu } from './game-table-mask-context-menu';
+import { buildMaskCss, buildScratchingGridInfos } from './game-table-mask-helpers';
 
 @Component({
   selector: 'game-table-mask',
@@ -168,52 +169,29 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   }
 
   get masksCss(): string {
-    if (!this.isPreviewMode && this.isNonScratched) return '';
-    const masks: string[] = [];
-    const scratchedSet: Set<string> = new Set(this.scratchedGrids.split(/,/g));
-    const scratchingSet: Set<string> = this._currentScratchingSet
-      ? this._currentScratchingSet
-      : new Set(this.scratchingGrids.split(/,/g));
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
-        const gridStr = `${x}:${y}`;
-        if (this.isPreviewMode) {
-          if (scratchedSet.has(gridStr) && !scratchingSet.has(gridStr)) continue;
-          if (scratchingSet.has(gridStr) && !scratchedSet.has(gridStr)) continue;
-        } else {
-          if (scratchedSet.has(gridStr)) continue;
-        }
-        masks.push(
-          `radial-gradient(#000, #000) ${x * this.gridSize - 1}px ${y * this.gridSize - 1}px / ${this.gridSize + 2}px ${this.gridSize + 2}px no-repeat`
-        );
-      }
-    }
-    return masks.length ? masks.join(',') : 'radial-gradient(#000, #000) 0px 0px / 0px 0px no-repeat';
+    return buildMaskCss({
+      currentScratchingSet: this._currentScratchingSet,
+      gridSize: this.gridSize,
+      height: this.height,
+      isNonScratched: this.isNonScratched,
+      isPreviewMode: this.isPreviewMode,
+      scratchedGrids: this.scratchedGrids,
+      scratchingGrids: this.scratchingGrids,
+      width: this.width,
+    });
   }
 
   get scratchingGridInfos(): { x: number; y: number; state: string }[] {
-    const ret: { x: number; y: number; state: string }[] = [];
-    if (!this.gameTableMask() || (this.isNonScratching && this.isNonScratched)) return ret;
-    const scratchingGridSet: Set<string> = this._currentScratchingSet
-      ? this._currentScratchingSet
-      : new Set(this.scratchingGrids.split(/,/g));
-    const scratchedGridSet: Set<string> = new Set(this.scratchedGrids.split(/,/g));
-    for (let x = 0; x < Math.ceil(this.width); x++) {
-      for (let y = 0; y < Math.ceil(this.height); y++) {
-        const gridStr = `${x}:${y}`;
-        if (scratchingGridSet.has(gridStr) || scratchedGridSet.has(gridStr))
-          ret.push({
-            x: x,
-            y: y,
-            state: !scratchingGridSet.has(gridStr)
-              ? 'scrached'
-              : !scratchedGridSet.has(gridStr)
-                ? 'scraching'
-                : 'restore',
-          });
-      }
-    }
-    return ret;
+    return buildScratchingGridInfos({
+      currentScratchingSet: this._currentScratchingSet,
+      hasGameTableMask: !!this.gameTableMask(),
+      height: this.height,
+      isNonScratched: this.isNonScratched,
+      isNonScratching: this.isNonScratching,
+      scratchedGrids: this.scratchedGrids,
+      scratchingGrids: this.scratchingGrids,
+      width: this.width,
+    });
   }
 
   get operateOpacity(): number {
