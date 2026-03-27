@@ -178,16 +178,22 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
 
   chkKomaSize(height: number) {
     const character = <GameCharacter>this.tabletopObject;
-    if (height < 50) height = 50;
-    if (height > 750) height = 750;
-    character.komaImageHeight = height;
+    character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
+    this.pointerDeviceService.isDragging = false;
   }
 
   chkDiceKomaSize(height: number) {
     const character = <DiceSymbol>this.tabletopObject;
-    if (height < 50) height = 50;
-    if (height > 750) height = 750;
-    character.komaImageHeight = height;
+    character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
+    this.pointerDeviceService.isDragging = false;
+  }
+
+  private normalizeKomaImageHeight(height: number, currentValue: number): number {
+    const numericHeight = Number(height);
+    if (!Number.isFinite(numericHeight)) return currentValue;
+    if (numericHeight < 50) return 50;
+    if (750 < numericHeight) return 750;
+    return numericHeight;
   }
 
   chkPopWidth(width: number) {
