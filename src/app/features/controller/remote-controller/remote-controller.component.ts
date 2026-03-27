@@ -16,11 +16,10 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { ControllerInputComponent } from '@axe/features/controller/controller-input/controller-input.component';
 import { ControllerInputComponent as ControllerInputComponent_1 } from '@axe/features/controller/controller-input/controller-input.component';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
-import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
@@ -28,11 +27,13 @@ import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
-class RemoteControllerSelect {
-  name!: string;
-  nowOrMax!: string;
-  dispName!: string;
-}
+import {
+  addBuffRound,
+  parseBuffInput,
+  RemoteControllerSelect,
+  sendDecBuffRoundMessage,
+  sendDeleteZeroRoundBuffMessage,
+} from './remote-controller-buff';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,7 +46,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private inventoryService = inject(GameObjectInventoryService);
-  private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
@@ -363,30 +363,14 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   remoteDecBuffRound(checkedOnly: boolean) {
-    let text = '';
-    const gameCharacters = this.getTargetCharacters(checkedOnly);
-    if (gameCharacters.length <= 0) {
-      return;
-    }
-    if (!this.chatTab) {
-      return;
-    }
-
-    if (gameCharacters.length > 0) {
-      for (const object of gameCharacters) {
-        object.buffs.decreaseRound();
-        text = text + '[' + object.name + ']';
-      }
-      const mess = 'バフのRを減少 ' + text;
-      this.chatMessageService.sendMessage(
-        this.chatTab,
-        mess,
-        this._gameSystem,
-        this.sendFrom,
-        '',
-        this.controllerInputComponent().tachieNum
-      );
-    }
+    sendDecBuffRoundMessage(
+      this.chatTab,
+      this.chatMessageService,
+      this._gameSystem,
+      this.sendFrom,
+      this.controllerInputComponent().tachieNum,
+      this.getTargetCharacters(checkedOnly)
+    );
   }
 
   decBuffRoundSelect() {
@@ -398,23 +382,14 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   remoteBuffDeleteZeroRound(checkedOnly: boolean) {
-    let text = '';
-    const gameCharacters = this.getTargetCharacters(checkedOnly);
-    if (gameCharacters.length > 0) {
-      for (const object of gameCharacters) {
-        object.buffs.deleteZeroRound();
-        text = text + '[' + object.name + ']';
-      }
-      const mess = '0R以下のバフを消去 ' + text;
-      this.chatMessageService.sendMessage(
-        this.chatTab,
-        mess,
-        this._gameSystem,
-        this.sendFrom,
-        '',
-        this.controllerInputComponent().tachieNum
-      );
-    }
+    sendDeleteZeroRoundBuffMessage(
+      this.chatTab,
+      this.chatMessageService,
+      this._gameSystem,
+      this.sendFrom,
+      this.controllerInputComponent().tachieNum,
+      this.getTargetCharacters(checkedOnly)
+    );
   }
 
   deleteZeroRoundBuffSelect() {
@@ -425,15 +400,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     this.remoteBuffDeleteZeroRound(false);
   }
 
-  remoteAddBuffRound(gameCharacters: GameCharacter[], name: string, info: string, round: number) {
-    if (gameCharacters.length <= 0) {
-      return;
-    }
-    for (const character of gameCharacters) {
-      character.buffs.addRound(name, info, round);
-    }
-  }
-
   sendChat(value: {
     text: string;
     gameSystem: GameSystemClass;
@@ -442,58 +408,29 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     tachieNum: number;
     messColor: string;
   }) {
-    let text = '';
+    const parsed = parseBuffInput(value.text);
+    if (!parsed) return;
     const gameCharacters = this.getTargetCharacters(true);
-
-    const splittext: string[] = value.text.split(/\s+/);
-    let round: number;
-    let sub = '';
-    let bufftext: string;
-
-    if (splittext.length == 0) {
-      return;
-    }
-    if (splittext[0] == '') {
-      return;
-    }
-
-    const buffname = splittext[0];
-    bufftext = splittext[0];
-    if (splittext.length > 1) {
-      sub = splittext[1];
-      bufftext = bufftext + '/' + splittext[1];
-    }
-    if (splittext.length > 2) {
-      round = parseInt(splittext[2]);
-      if (Number.isNaN(round)) {
-        round = 3;
-      }
-    } else {
-      round = 3;
-    }
-    bufftext = bufftext + '/' + round + 'R';
-
-    if (gameCharacters.length > 0) {
-      for (const object of gameCharacters) {
-        text = text + '[' + object.name + ']';
-      }
-
-      this.remoteAddBuffRound(gameCharacters, buffname, sub, round);
-
-      const mess = 'バフを付与 ' + bufftext + ' > ' + text;
-      this.chatMessageService.sendMessage(
-        this.chatTab,
-        mess,
-        this._gameSystem,
-        this.sendFrom,
-        '',
-        value.tachieNum,
-        value.messColor
-      );
-      this.errorMessageBuff = '';
-    } else {
+    if (gameCharacters.length <= 0) {
       this.errorMessageBuff = '対象が未選択です';
+      return;
     }
+    let text = '';
+    for (const object of gameCharacters) {
+      text += '[' + object.name + ']';
+    }
+    addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
+    const mess = 'バフを付与 ' + parsed.bufftext + ' > ' + text;
+    this.chatMessageService.sendMessage(
+      this.chatTab,
+      mess,
+      this._gameSystem,
+      this.sendFrom,
+      '',
+      value.tachieNum,
+      value.messColor
+    );
+    this.errorMessageBuff = '';
   }
 
   remoteChangeValue() {

@@ -1,0 +1,62 @@
+import { ChatMessageContext } from '@axe/domain/chat/chat-message';
+
+export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
+  {
+    from: 'System',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル',
+    text: 'サーバーを使用しないTRPGオンセツールです。参加者同士で接続し、コマや画像ファイルなどを同期します。',
+  },
+  {
+    from: 'System',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル',
+    text: '全てのデータが各参加者のブラウザ内にあるため、ルームの状態を次回に持ち越したい場合は、必ず「保存」を実行してセーブデータ（zip）を生成してください。保存したzipの読み込みはブラウザ画面へのファイルドロップで行えます。',
+  },
+  {
+    from: 'System',
+    to: '???',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル > プレイヤー',
+    text: 'ダイレクトメッセージ（秘密会話）はセーブデータに記録されません。',
+  },
+  {
+    from: 'System',
+    to: '???',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル > プレイヤー',
+    text: 'また、過去のダイレクトメッセージはあなたのIDが更新されると同じルーム内であっても見えなくなります。注意してください。',
+  },
+  {
+    from: 'System',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル',
+    text: '動作推奨環境はデスクトップChromeです。今のところ、スマホからだと上手く操作できません。',
+  },
+  {
+    from: 'System',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル',
+    text: 'リリィ追加機能：チャット簡易表示機能は最初のチャット入力を入力すると使用可能になります。',
+  },
+  {
+    from: 'System',
+    timestamp: 0,
+    imageIdentifier: '',
+    tag: '',
+    name: 'チュートリアル',
+    text: 'チュートリアルは以上です。このチュートリアルは最初のチャットを入力すると非表示になります。',
+  },
+];

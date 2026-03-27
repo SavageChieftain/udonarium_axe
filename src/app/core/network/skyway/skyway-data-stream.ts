@@ -18,6 +18,7 @@ import {
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'eventemitter3';
 
+import { ChunkBuffer, DataChank } from './skyway-chunk-buffer';
 import { SkyWayFacade } from './skyway-facade';
 
 interface Ping {
@@ -25,26 +26,11 @@ interface Ping {
   ping: number;
 }
 
-interface DataChank {
-  id: string;
-  data: Uint8Array;
-  index: number;
-  total: number;
-}
-
-interface ReceivedChank {
-  id: string;
-  chanks: Uint8Array[];
-  length: number;
-  byteLength: number;
-  createdAt: number;
-}
-
 export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   readonly peer: PeerContext;
 
   private chunkSize = 15.5 * 1024;
-  private receivedMap: Map<string, ReceivedChank> = new Map();
+  private chunkBuffer = new ChunkBuffer();
 
   private stats!: WebRTCStats;
 
@@ -161,7 +147,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.peer.isOpen = false;
     this.stopMonitoring();
     this.removeAllListeners();
-    this.receivedMap.clear();
+    this.chunkBuffer.clear();
 
     this.onStreamAdded?.removeListener();
     this.onStreamPublished?.removeListener();
@@ -465,17 +451,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     }
   }
 
-  private static readonly CHUNK_TTL_MS = 30000;
-
-  private evictStaleChunks() {
-    const now = performance.now();
-    for (const [id, received] of this.receivedMap) {
-      if (now - received.createdAt > SkyWayDataStream.CHUNK_TTL_MS) {
-        this.receivedMap.delete(id);
-      }
-    }
-  }
-
   private onData(data: ArrayBuffer) {
     this.timestamp = performance.now();
     const decoded: unknown = MessagePack.decode(new Uint8Array(data));
@@ -492,37 +467,9 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       return;
     }
 
-    let received = this.receivedMap.get(chank.id);
-    if (received == null) {
-      this.evictStaleChunks();
-      received = {
-        id: chank.id,
-        chanks: new Array(chank.total),
-        length: 0,
-        byteLength: 0,
-        createdAt: performance.now(),
-      };
-      this.receivedMap.set(chank.id, received);
-    }
+    const assembled = this.chunkBuffer.add(chank);
+    if (assembled === null) return;
 
-    if (received.chanks[chank.index] != null) return;
-
-    received.length++;
-    received.byteLength += chank.data.byteLength;
-    received.chanks[chank.index] = chank.data;
-
-    if (received.length < chank.total) return;
-    this.receivedMap.delete(chank.id);
-
-    const uint8Array = new Uint8Array(received.byteLength);
-
-    let pos = 0;
-    for (const c of received.chanks) {
-      uint8Array.set(c, pos);
-      pos += c.byteLength;
-    }
-
-    const decodedChank = MessagePack.decode(uint8Array);
-    this.emit('data', decodedChank);
+    this.emit('data', MessagePack.decode(assembled));
   }
 }
