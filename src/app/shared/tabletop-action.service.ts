@@ -17,6 +17,13 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { ContextMenuAction } from '@axe/shared/context-menu.service';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import {
+  getDiceMenuItems,
+  getRangeMenuItems,
+  getTrumpCardCodes,
+  TERRAIN_TEXTURE_PATH,
+  TRUMP_BACK_IMAGE_PATH,
+} from '@axe/shared/tabletop-action-helpers';
 import { initAprilDiceImages } from '@axe/shared/tabletop-default-dice';
 import {
   makeDefaultTable as _makeDefaultTable,
@@ -68,7 +75,7 @@ export class TabletopActionService {
   }
 
   createTerrain(position: PointerCoordinate): Terrain | undefined {
-    const url: string = './assets/images/tex.jpg';
+    const url = TERRAIN_TEXTURE_PATH;
     let image: ImageFile = this.imageStorage.get(url);
     //本家PR #92より
     //    if (!image) image = this.imageStorage.add(url);
@@ -152,7 +159,7 @@ export class TabletopActionService {
     cardStack.location.y = position.y - 25;
     cardStack.posZ = position.z;
 
-    const back: string = './assets/images/trump/z02.gif';
+    const back = TRUMP_BACK_IMAGE_PATH;
     //本家PR #92より
     //    if (!this.imageStorage.get(back)) {
     //      this.imageStorage.add(back);
@@ -162,19 +169,7 @@ export class TabletopActionService {
       ImageTag.create(image.identifier).tag = 'トランプ';
     }
     //
-    const suits: string[] = ['c', 'd', 'h', 's'];
-    const trumps: string[] = [];
-
-    for (const suit of suits) {
-      for (let i = 1; i <= 13; i++) {
-        trumps.push(suit + ('00' + i).slice(-2));
-      }
-    }
-
-    trumps.push('x01');
-    trumps.push('x02');
-
-    for (const trump of trumps) {
+    for (const trump of getTrumpCardCodes()) {
       const url: string = './assets/images/trump/' + trump + '.gif';
       if (!this.imageStorage.get(url)) {
         //本家PR #92より
@@ -265,18 +260,9 @@ export class TabletopActionService {
   }
 
   private getCreateDiceSymbolMenu(position: PointerCoordinate): ContextMenuAction {
-    const dices: { menuName: string; diceName: string; type: DiceType; imagePathPrefix: string }[] = [
-      { menuName: 'D4', diceName: 'D4', type: DiceType.D4, imagePathPrefix: '4_dice' },
-      { menuName: 'D6', diceName: 'D6', type: DiceType.D6, imagePathPrefix: '6_dice' },
-      { menuName: 'D8', diceName: 'D8', type: DiceType.D8, imagePathPrefix: '8_dice' },
-      { menuName: 'D10', diceName: 'D10', type: DiceType.D10, imagePathPrefix: '10_dice' },
-      { menuName: 'D10 (00-90)', diceName: 'D10', type: DiceType.D10_10TIMES, imagePathPrefix: '100_dice' },
-      { menuName: 'D12', diceName: 'D12', type: DiceType.D12, imagePathPrefix: '12_dice' },
-      { menuName: 'D20', diceName: 'D20', type: DiceType.D20, imagePathPrefix: '20_dice' },
-    ];
     const subMenus: ContextMenuAction[] = [];
 
-    dices.forEach((item) => {
+    getDiceMenuItems().forEach((item) => {
       subMenus.push({
         name: item.menuName,
         action: () => {
@@ -289,16 +275,9 @@ export class TabletopActionService {
   }
 
   private getCreateRangeMenu(position: PointerCoordinate): ContextMenuAction {
-    const dices: { menuName: string; typeName: string }[] = [
-      { menuName: 'コーン', typeName: 'CORN' },
-      { menuName: '直線', typeName: 'LINE' },
-      { menuName: '円', typeName: 'CIRCLE' },
-      { menuName: '正方形', typeName: 'SQUARE' },
-      { menuName: 'ダイヤ', typeName: 'DIAMOND' },
-    ];
     const subMenus: ContextMenuAction[] = [];
 
-    dices.forEach((item) => {
+    getRangeMenuItems().forEach((item) => {
       subMenus.push({
         name: item.menuName,
         action: () => {
