@@ -146,7 +146,8 @@ export class AudioPlayer {
 
   private static evictCacheIfNeeded() {
     while (AudioPlayer.cacheMap.size > AudioPlayer.MAX_CACHE_SIZE) {
-      const oldestKey = AudioPlayer.cacheMap.keys().next().value!;
+      const oldestKey = AudioPlayer.cacheMap.keys().next().value;
+      if (typeof oldestKey !== 'string') break;
       AudioPlayer.removeCache(oldestKey);
     }
   }
@@ -163,8 +164,9 @@ export class AudioPlayer {
     let url = this.audio.url;
 
     if (this.audio.state === AudioState.URL) {
-      if (AudioPlayer.cacheMap.has(this.audio.identifier)) {
-        url = AudioPlayer.cacheMap.get(this.audio.identifier)!.url;
+      const cache = AudioPlayer.cacheMap.get(this.audio.identifier);
+      if (cache) {
+        url = cache.url;
       } else {
         AudioPlayer.createCacheAsync(this.audio);
       }
@@ -224,11 +226,12 @@ export class AudioPlayer {
     try {
       let blob: Blob | undefined = audio.blob ?? undefined;
       if (audio.state === AudioState.URL) {
-        if (AudioPlayer.cacheMap.has(audio.identifier)) {
-          blob = AudioPlayer.cacheMap.get(audio.identifier)!.blob;
+        const cache = AudioPlayer.cacheMap.get(audio.identifier);
+        if (cache) {
+          blob = cache.blob;
         } else {
-          const cache = await AudioPlayer.createCacheAsync(audio);
-          blob = cache?.blob ?? undefined;
+          const createdCache = await AudioPlayer.createCacheAsync(audio);
+          blob = createdCache?.blob ?? undefined;
         }
       }
       if (!blob) return null;
@@ -272,7 +275,8 @@ export class AudioPlayer {
     }
 
     if (AudioPlayer.cacheMap.has(audio.identifier)) {
-      return AudioPlayer.cacheMap.get(audio.identifier)!;
+      const existingCache = AudioPlayer.cacheMap.get(audio.identifier);
+      if (existingCache) return existingCache;
     }
 
     const url = URL.createObjectURL(blob);

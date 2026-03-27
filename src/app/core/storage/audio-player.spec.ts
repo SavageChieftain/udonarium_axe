@@ -373,6 +373,21 @@ describe('AudioPlayer', () => {
       expect(spy).toHaveBeenCalledWith(af);
     });
 
+    it('AudioState.URL で壊れたキャッシュ値(undefined)があっても例外を投げず元URLで再生できる', () => {
+      const player = new AudioPlayer();
+      const af = makeAudioFile({ url: 'http://example.com/broken.mp3', identifier: 'broken-cache' });
+      const brokenCacheMap = audioPlayerPrivate.cacheMap as unknown as Map<
+        string,
+        { url: string; blob: Blob } | undefined
+      >;
+      type WithCreateCacheAsync = { createCacheAsync: (audio: AudioFile) => Promise<null> };
+      vi.spyOn(AudioPlayer as unknown as WithCreateCacheAsync, 'createCacheAsync').mockResolvedValue(null);
+      brokenCacheMap.set('broken-cache', undefined);
+
+      expect(() => player.play(af)).not.toThrow();
+      expect(audioElmMock.src).toBe('http://example.com/broken.mp3');
+    });
+
     it('play() は volumeType AUDITION で auditionNode に接続する', () => {
       const player = new AudioPlayer();
       player.volumeType = VolumeType.AUDITION;
