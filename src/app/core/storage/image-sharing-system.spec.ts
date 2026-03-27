@@ -25,7 +25,7 @@ describe('ImageSharingSystem', () => {
   });
 
   describe('makeSendUpdateImages', () => {
-    it('blob が欠損した image でも例外を投げずに処理できる', () => {
+    it('blob が欠損した image は送信対象に含めない', () => {
       const imageLike = {
         identifier: 'broken-image',
         name: 'broken-image',
@@ -39,9 +39,12 @@ describe('ImageSharingSystem', () => {
 
       const catalog: CatalogItem[] = [{ identifier: 'broken-image', state: ImageState.COMPLETE }];
 
-      expect(() =>
-        (ImageSharingSystem.instance as unknown as ImageSharingSystemPrivate).makeSendUpdateImages(catalog, 1024)
-      ).not.toThrow();
+      const result = (ImageSharingSystem.instance as unknown as ImageSharingSystemPrivate).makeSendUpdateImages(
+        catalog,
+        1024
+      );
+
+      expect(result).toEqual([]);
     });
   });
 });
