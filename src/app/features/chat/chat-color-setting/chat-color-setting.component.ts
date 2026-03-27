@@ -2,8 +2,8 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy } 
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   selector: 'chat-color-setting',

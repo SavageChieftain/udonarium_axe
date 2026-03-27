@@ -45,9 +45,9 @@ import { TextNoteComponent } from '@axe/shared/components/text-note/text-note.co
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TabletopService } from '@axe/shared/tabletop.service';
 import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';

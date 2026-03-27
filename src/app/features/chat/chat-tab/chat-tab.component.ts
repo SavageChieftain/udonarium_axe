@@ -22,8 +22,8 @@ import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
 import { SAMPLE_CHAT_MESSAGES } from './chat-tab-sample-messages';

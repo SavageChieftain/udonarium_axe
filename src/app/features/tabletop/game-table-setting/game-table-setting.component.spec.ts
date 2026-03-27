@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { GameTableSettingComponent } from './game-table-setting.component';

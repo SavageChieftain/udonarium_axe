@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RangeArea } from '@axe/domain/tabletop/range';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 

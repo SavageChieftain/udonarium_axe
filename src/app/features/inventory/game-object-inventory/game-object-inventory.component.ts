@@ -25,10 +25,10 @@ import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palet
 import { RemoteControllerComponent } from '@axe/features/controller/remote-controller/remote-controller.component';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   selector: 'game-object-inventory',

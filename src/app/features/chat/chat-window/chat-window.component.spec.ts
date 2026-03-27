@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/object-change.service';
+import { ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { Subject } from 'rxjs';
 

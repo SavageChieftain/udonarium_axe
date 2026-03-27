@@ -24,8 +24,8 @@ import { ChatInputComponent as ChatInputComponent_1 } from '@axe/features/chat/c
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 

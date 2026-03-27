@@ -10,10 +10,10 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { filter } from 'rxjs';
 
 @Component({

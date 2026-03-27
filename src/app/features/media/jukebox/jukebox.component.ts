@@ -12,8 +12,8 @@ import { Jukebox } from '@axe/domain/media/Jukebox';
 import { Config } from '@axe/domain/peer/config';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { debounceTime, merge } from 'rxjs';
 
 @Component({

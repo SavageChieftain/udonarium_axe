@@ -20,9 +20,9 @@ import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/Jukebox';
 import { Config } from '@axe/domain/peer/config';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -7,8 +7,8 @@ import { GameCharacterSheetComponent } from '@axe/features/character/game-charac
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 
 @Component({

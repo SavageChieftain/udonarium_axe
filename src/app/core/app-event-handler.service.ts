@@ -11,8 +11,8 @@ import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Injectable({ providedIn: 'root' })
 export class AppEventHandlerService {

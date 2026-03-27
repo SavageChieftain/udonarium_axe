@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { ChatTachieImageComponent } from './chat-tachie-img.component';

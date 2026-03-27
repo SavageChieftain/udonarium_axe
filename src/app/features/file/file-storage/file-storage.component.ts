@@ -5,9 +5,9 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { emitSelectFile } from '@axe/domain/domain-events';
 import { ImageTag } from '@axe/domain/media/image-tag';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe'; //本家PR #92より
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   selector: 'file-storage',

@@ -3,7 +3,7 @@ import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 

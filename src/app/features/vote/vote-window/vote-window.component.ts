@@ -15,9 +15,9 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/shared/vote';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -27,10 +27,10 @@ import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
 @Component({

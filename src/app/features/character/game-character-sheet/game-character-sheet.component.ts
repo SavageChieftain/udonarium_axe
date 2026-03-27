@@ -27,9 +27,9 @@ import { GameDataElementComponent } from '@axe/features/character/game-data-elem
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { ModalService } from '@axe/shared/modal.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
 @Component({

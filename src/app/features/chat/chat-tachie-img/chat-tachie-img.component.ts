@@ -19,9 +19,9 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
