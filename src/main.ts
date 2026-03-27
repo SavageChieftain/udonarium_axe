@@ -11,12 +11,12 @@ import { Logger } from '@axe/core/logger';
 import { LoggerService } from '@axe/core/logger.service';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ServiceLocator } from '@axe/core/service-locator';
-import { ChatMessageService } from '@axe/features/chat/chat-message.service';
-import { GameObjectInventoryService } from '@axe/features/inventory/game-object-inventory.service';
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
+import { ChatMessageService } from '@axe/shared/chat-message.service';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
+import { TabletopService } from '@axe/shared/tabletop.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 
 import { AppComponent } from './app/app.component';
