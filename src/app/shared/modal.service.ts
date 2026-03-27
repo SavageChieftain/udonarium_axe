@@ -2,23 +2,23 @@ import { ComponentRef, Injectable, Injector, signal, ViewContainerRef } from '@a
 
 class ModalContext {
   constructor(
-    private _resolve: (value: unknown) => void,
-    private _reject: (reason?: unknown) => void,
+    private _resolve: ((value: unknown) => void) | null,
+    private _reject: ((reason?: unknown) => void) | null,
     public option?: unknown
   ) {}
   resolve(value: unknown) {
-    this._resolve(value);
-    this._resolve = null!;
+    this._resolve?.(value);
+    this._resolve = null;
   }
   reject(reason?: unknown) {
-    this._reject(reason);
-    this._reject = null!;
+    this._reject?.(reason);
+    this._reject = null;
   }
 }
 
 @Injectable()
 export class ModalService {
-  private modalContext: ModalContext = null!;
+  private modalContext: ModalContext | null = null;
   private count = 0;
 
   private readonly _title = signal('無名のモーダル');
@@ -33,7 +33,7 @@ export class ModalService {
   static defaultParentViewContainerRef: ViewContainerRef;
   static ModalComponentClass: { new (...args: unknown[]): unknown } = null!;
   get option(): unknown {
-    return this.modalContext ? this.modalContext.option : null!;
+    return this.modalContext?.option;
   }
 
   get isShow(): boolean {
@@ -55,7 +55,6 @@ export class ModalService {
         if (panelComponentRef) {
           panelComponentRef.destroy();
           resolve(val);
-          this.count--;
         }
       };
 
@@ -63,7 +62,6 @@ export class ModalService {
         if (panelComponentRef) {
           panelComponentRef.destroy();
           reject(reason);
-          this.count--;
         }
       };
 
@@ -93,14 +91,14 @@ export class ModalService {
   resolve(value?: unknown) {
     if (this.modalContext) {
       this.modalContext.resolve(value);
-      this.modalContext = null!;
+      this.modalContext = null;
     }
   }
 
   reject(reason?: unknown) {
     if (this.modalContext) {
       this.modalContext.reject(reason);
-      this.modalContext = null!;
+      this.modalContext = null;
     }
   }
 }
