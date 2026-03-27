@@ -1,6 +1,10 @@
 import { Transform } from './transform';
 
 describe('Transform', () => {
+  type TransformPrivateApi = {
+    getPosition: (node: HTMLElement) => { x: number; y: number };
+  };
+
   describe('constructor', () => {
     it('HTMLElementを渡してインスタンスを作成できる', () => {
       const el = document.createElement('div');
@@ -62,6 +66,31 @@ describe('Transform', () => {
       expect(point).toHaveProperty('y');
       document.body.removeChild(el1);
       document.body.removeChild(el2);
+    });
+  });
+
+  describe('getPosition', () => {
+    it('parentElement が null のノードでも例外なく座標計算できる', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const transform = new Transform(host) as unknown as TransformPrivateApi;
+
+      const offsetParent = {
+        clientLeft: 5,
+        clientTop: 7,
+      } as HTMLElement;
+
+      const detached = {
+        offsetLeft: 11,
+        offsetTop: 13,
+        offsetParent,
+        parentElement: null,
+      } as unknown as HTMLElement;
+
+      expect(() => transform.getPosition(detached)).not.toThrow();
+      expect(transform.getPosition(detached)).toEqual({ x: 5, y: 7 });
+
+      document.body.removeChild(host);
     });
   });
 });

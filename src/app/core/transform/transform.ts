@@ -150,19 +150,20 @@ export class Transform {
 
   private getPosition(node: HTMLElement): IPoint2D {
     const ret: IPoint2D = { x: 0, y: 0 };
+    const parent = node.parentElement;
     ret.x = !node.offsetParent
       ? node.offsetLeft
-      : node.parentElement === node.offsetParent
+      : parent === node.offsetParent
         ? node.offsetLeft
-        : node.parentElement!.offsetParent === node.offsetParent
-          ? node.offsetLeft - node.parentElement!.offsetLeft
+        : parent && parent.offsetParent === node.offsetParent
+          ? node.offsetLeft - parent.offsetLeft
           : 0;
     ret.y = !node.offsetParent
       ? node.offsetTop
-      : node.parentElement === node.offsetParent
+      : parent === node.offsetParent
         ? node.offsetTop
-        : node.parentElement!.offsetParent === node.offsetParent
-          ? node.offsetTop - node.parentElement!.offsetTop
+        : parent && parent.offsetParent === node.offsetParent
+          ? node.offsetTop - parent.offsetTop
           : 0;
 
     ret.x += node.offsetParent ? node.offsetParent.clientLeft : 0;
