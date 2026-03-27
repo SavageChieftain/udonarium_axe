@@ -14,13 +14,16 @@ export interface PanelOption {
   width?: number;
   height?: number;
 
-  isCutIn?: boolean; //この方式でよいか検討のこと
+  // Container-level behavior for the ui-panel shell.
+  isCutIn?: boolean;
   cutInIdentifier?: string;
 }
 
 interface UIPanelInstance {
   content: () => ViewContainerRef;
 }
+
+type PanelServiceAssignableKey = 'title' | 'top' | 'left' | 'width' | 'height' | 'isCutIn' | 'cutInIdentifier';
 
 @Injectable()
 export class PanelService {
@@ -33,7 +36,7 @@ export class PanelService {
   top: number = 0;
   width: number = 100;
   height: number = 100;
-  isCutIn: boolean = false; //この方式でよいか検討のこと
+  isCutIn: boolean = false;
   cutInIdentifier: string = '';
   chatTab: ChatTab = null!;
   cardStack: CardStack = null!;
@@ -57,28 +60,41 @@ export class PanelService {
     const childPanelService: PanelService = panelComponentRef.injector.get(PanelService);
 
     childPanelService.panelComponentRef = panelComponentRef;
-    if (option) {
-      if (option.title) childPanelService.title = option.title;
-      if (option.top) childPanelService.top = option.top;
-      if (option.left) childPanelService.left = option.left;
-      if (option.width) childPanelService.width = option.width;
-      if (option.height) childPanelService.height = option.height;
-      if (option.isCutIn) {
-        childPanelService.isCutIn = option.isCutIn; //この方式でよいか検討のこと
-      }
-      if (option.cutInIdentifier) {
-        childPanelService.cutInIdentifier = option.cutInIdentifier; //この方式でよいか検討のこと
-      }
-
-      //      if (option.chatTab){
-      //         childPanelService.chatTab = option.chatTab;  //この方式でよいか検討のこと
-      //      }
-    }
+    if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null!;
     });
 
     return <T>bodyComponentRef.instance;
+  }
+
+  private applyPanelOption(
+    panelComponentRef: ComponentRef<UIPanelInstance>,
+    childPanelService: PanelService,
+    option: PanelOption
+  ) {
+    const withInput = ['title', 'top', 'left', 'width', 'height'] as const;
+    for (const key of withInput) {
+      const value = option[key];
+      if (value === undefined) continue;
+      this.setPanelServiceValue(childPanelService, key, value);
+      panelComponentRef.setInput(key, value);
+    }
+
+    const serviceOnly = ['isCutIn', 'cutInIdentifier'] as const;
+    for (const key of serviceOnly) {
+      const value = option[key];
+      if (value === undefined) continue;
+      this.setPanelServiceValue(childPanelService, key, value);
+    }
+  }
+
+  private setPanelServiceValue<K extends PanelServiceAssignableKey>(
+    panelService: PanelService,
+    key: K,
+    value: PanelService[K]
+  ) {
+    panelService[key] = value;
   }
 
   close() {
