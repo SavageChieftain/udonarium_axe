@@ -20,19 +20,21 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
+import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 import { xor } from 'lodash';
+
+import { buildGameTableMaskContextMenu } from './game-table-mask-context-menu';
 
 @Component({
   selector: 'game-table-mask',
@@ -398,146 +400,31 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const menuPosition = this.pointerDeviceService.pointers[0];
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
-    const menuArray = [];
-    menuArray.push(
-      {
-        name: '高度設定',
-        action: undefined,
-        subActions: [
-          {
-            name: '高度を0にする',
-            action: () => {
-              if (this.altitude != 0) {
-                this.altitude = 0;
-                SoundEffect.play(PresetSound.sweep);
-              }
-            },
-            altitudeHande: this.gameTableMask()!,
-          },
-          this.isAltitudeIndicate
-            ? {
-                name: '☑ 高度の表示',
-                action: () => {
-                  this.isAltitudeIndicate = false;
-                  SoundEffect.play(PresetSound.sweep);
-                  this.inventoryService.notifyInventoryUpdate();
-                },
-              }
-            : {
-                name: '☐ 高度の表示',
-                action: () => {
-                  this.isAltitudeIndicate = true;
-                  SoundEffect.play(PresetSound.sweep);
-                  this.inventoryService.notifyInventoryUpdate();
-                },
-              },
-        ],
-      },
-      ContextMenuSeparator,
-      this.isLock
-        ? {
-            name: '固定解除',
-            action: () => {
-              this.isLock = false;
-              this.dispLockMark = true;
-              SoundEffect.play(PresetSound.unlock);
-            },
-          }
-        : {
-            name: '固定する',
-            action: () => {
-              this.isLock = true;
-              SoundEffect.play(PresetSound.lock);
-            },
-          }
-    );
-    if (this.isLock) {
-      menuArray.push(
-        this.dispLockMark
-          ? {
-              name: '固定マーク消去',
-              action: () => {
-                this.dispLockMark = false;
-                SoundEffect.play(PresetSound.lock);
-              },
-            }
-          : {
-              name: '固定マーク表示',
-              action: () => {
-                this.dispLockMark = true;
-                SoundEffect.play(PresetSound.lock);
-              },
-            }
-      );
-    }
-    if (!this.gameTableMask()!.isMine) {
-      menuArray.push({
-        name: 'スクラッチ開始',
-        action: () => {
-          if (this.gameTableMask()!.owner != '') {
-            this.isPreview = false;
-            clearTimeout(this._scratchingTimerId);
-            this._currentScratchingSet = null!;
-          }
-          //            this.isPreview = true;
-          SoundEffect.play(PresetSound.cardDraw);
-          this.gameTableMask()!.owner = Network.peerContext.userId;
-          this._scratchingGridX = -1;
-          this._scratchingGridY = -1;
-          SoundEffect.play(PresetSound.lock);
-        },
-      });
-    } else {
-      menuArray.push({
-        name: 'スクラッチ確定',
-        action: () => {
-          this.scratchDone();
+    const menuArray = buildGameTableMaskContextMenu({
+      mask: this.gameTableMask()!,
+      gridSize: this.gridSize,
+      objectPosition,
+      inventoryService: this.inventoryService,
+      tabletopActionService: this.tabletopActionService,
+      onStartScratch: () => {
+        if (this.gameTableMask()!.owner != '') {
           this.isPreview = false;
-          this.gameTableMask()!.owner = '';
-        },
-      });
-    }
-    if (this.gameTableMask()!.isMine) {
-      menuArray.push({
-        name: 'スクラッチキャンセル',
-        action: () => {
-          //              this.isScratch = false;
-          SoundEffect.play(PresetSound.cardDraw);
-          this.gameTableMask()!.owner = '';
-        },
-      });
-    }
-
-    menuArray.push(ContextMenuSeparator);
-    menuArray.push({
-      name: 'マスクを編集',
-      action: () => {
-        this.showDetail(this.gameTableMask()!);
+          clearTimeout(this._scratchingTimerId);
+          this._currentScratchingSet = null!;
+        }
+        this.gameTableMask()!.owner = Network.peerContext.userId;
+        this._scratchingGridX = -1;
+        this._scratchingGridY = -1;
       },
-    });
-    menuArray.push({
-      name: 'コピーを作る',
-      action: () => {
-        const cloneObject = this.gameTableMask()!.clone();
-        cloneObject.location.x += this.gridSize;
-        cloneObject.location.y += this.gridSize;
-        cloneObject.isLock = false;
-        if (this.gameTableMask()!.parent) this.gameTableMask()!.parent.appendChild(cloneObject);
-        SoundEffect.play(PresetSound.cardPut);
+      onFinishScratch: () => {
+        this.scratchDone();
+        this.isPreview = false;
+        this.gameTableMask()!.owner = '';
       },
-    });
-    menuArray.push({
-      name: '削除する',
-      action: () => {
-        this.gameTableMask()!.destroy();
-        SoundEffect.play(PresetSound.sweep);
+      onCancelScratch: () => {
+        this.gameTableMask()!.owner = '';
       },
-    });
-    menuArray.push(ContextMenuSeparator);
-    menuArray.push({
-      name: 'オブジェクト作成',
-      action: undefined,
-      subActions: this.tabletopActionService.makeDefaultContextMenuActions(objectPosition),
+      onEdit: (m) => this.showDetail(m),
     });
     this.contextMenuService.open(menuPosition, menuArray, this.name);
   }

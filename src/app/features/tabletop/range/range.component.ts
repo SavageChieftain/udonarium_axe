@@ -23,22 +23,23 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
-import { TabletopService } from '@axe/shared/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
+import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
+import { buildRangeContextMenu } from './range-context-menu';
 import {
   ClipAreaCorn,
   ClipAreaDiamond,
@@ -352,110 +353,16 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const menuPosition = this.pointerDeviceService.pointers[0];
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
-
-    const menuArray = [];
-
-    menuArray.push({
-      name: '高度設定',
-      action: undefined,
-      subActions: [
-        {
-          name: '高度を0にする',
-          action: () => {
-            if (this.altitude != 0) {
-              this.altitude = 0;
-              SoundEffect.play(PresetSound.sweep);
-            }
-          },
-          altitudeHande: this.range(),
-        },
-        this.isAltitudeIndicate
-          ? {
-              name: '☑ 高度の表示',
-              action: () => {
-                this.isAltitudeIndicate = false;
-                SoundEffect.play(PresetSound.sweep);
-                this.inventoryService.notifyInventoryUpdate();
-              },
-            }
-          : {
-              name: '☐ 高度の表示',
-              action: () => {
-                this.isAltitudeIndicate = true;
-                SoundEffect.play(PresetSound.sweep);
-                this.inventoryService.notifyInventoryUpdate();
-              },
-            },
-      ],
-    });
-
-    menuArray.push(
-      this.isLock
-        ? {
-            name: '固定解除',
-            action: () => {
-              this.isLock = false;
-              SoundEffect.play(PresetSound.unlock);
-            },
-          }
-        : {
-            name: '固定する',
-            action: () => {
-              this.isLock = true;
-              SoundEffect.play(PresetSound.lock);
-            },
-          }
+    const menuArray = buildRangeContextMenu(
+      this.range()!,
+      this.gridSize,
+      objectPosition,
+      this.objectStore,
+      this.inventoryService,
+      this.tabletopActionService,
+      () => this.dockingWindowOpen(),
+      (r) => this.showDetail(r)
     );
-    if (this.range().type == 'CIRCLE' || this.range().type == 'SQUARE' || this.range().type == 'DIAMOND') {
-      menuArray.push(
-        this.objectStore.get(this.range().followingCharctorIdentifier) != null
-          ? {
-              name: '追従を解除',
-              action: () => {
-                SoundEffect.play(PresetSound.unlock);
-                this.range().followingCharctorIdentifier = null!;
-              },
-            }
-          : {
-              name: 'キャラクターに追従',
-              action: () => {
-                this.dockingWindowOpen();
-              },
-            }
-      );
-    }
-    menuArray.push(ContextMenuSeparator);
-    menuArray.push({
-      name: '射程範囲を編集',
-      action: () => {
-        this.showDetail(this.range());
-      },
-    });
-    menuArray.push({
-      name: 'コピーを作る',
-      action: () => {
-        const cloneObject = this.range().clone();
-        cloneObject.location.x += this.gridSize;
-        cloneObject.location.y += this.gridSize;
-        cloneObject.isLock = false;
-        if (this.range().parent) this.range().parent.appendChild(cloneObject);
-        SoundEffect.play(PresetSound.cardPut);
-      },
-    });
-    menuArray.push({
-      name: '削除する',
-      action: () => {
-        this.range().destroy();
-        SoundEffect.play(PresetSound.sweep);
-      },
-    });
-    menuArray.push(ContextMenuSeparator);
-    menuArray.push({
-      name: 'オブジェクト作成',
-      action: undefined,
-      subActions: this.tabletopActionService.makeDefaultContextMenuActions(objectPosition),
-    });
-
     this.contextMenuService.open(menuPosition, menuArray, this.name);
   }
 

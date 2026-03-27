@@ -25,21 +25,23 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { TabletopService } from '@axe/shared/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
+import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
+
+import { buildTerrainContextMenu } from './terrain-context-menu';
 
 @Component({
   selector: 'terrain',
@@ -297,194 +299,15 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const menuPosition = this.pointerDeviceService.pointers[0];
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
-    this.contextMenuService.open(
-      menuPosition,
-      [
-        {
-          name: '高度設定',
-          action: undefined,
-          subActions: [
-            {
-              name: '高度を0にする',
-              action: () => {
-                if (this.altitude != 0) {
-                  this.altitude = 0;
-                  SoundEffect.play(PresetSound.sweep);
-                }
-              },
-              altitudeHande: this.terrain(),
-            },
-            this.isAltitudeIndicate
-              ? {
-                  name: '☑ 高度の表示',
-                  action: () => {
-                    this.isAltitudeIndicate = false;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                }
-              : {
-                  name: '☐ 高度の表示',
-                  action: () => {
-                    this.isAltitudeIndicate = true;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                },
-            this.isDropShadow
-              ? {
-                  name: '☑ 影の表示',
-                  action: () => {
-                    this.isDropShadow = false;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                }
-              : {
-                  name: '☐ 影の表示',
-                  action: () => {
-                    this.isDropShadow = true;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                },
-          ],
-        },
-        ContextMenuSeparator,
-        this.isLocked
-          ? {
-              name: '固定解除',
-              action: () => {
-                this.isLocked = false;
-                SoundEffect.play(PresetSound.unlock);
-              },
-            }
-          : {
-              name: '固定する',
-              action: () => {
-                this.isLocked = true;
-                SoundEffect.play(PresetSound.lock);
-              },
-            },
-        ContextMenuSeparator,
-        {
-          name: '傾斜',
-          action: undefined,
-          subActions: [
-            {
-              name: `${this.slopeDirection == SlopeDirection.NONE ? '◉' : '○'} なし`,
-              action: () => {
-                this.slopeDirection = SlopeDirection.NONE;
-              },
-            },
-            ContextMenuSeparator,
-            {
-              name: `${this.slopeDirection == SlopeDirection.TOP ? '◉' : '○'} 上（北）`,
-              action: () => {
-                this.slopeDirection = SlopeDirection.TOP;
-              },
-            },
-            {
-              name: `${this.slopeDirection == SlopeDirection.BOTTOM ? '◉' : '○'} 下（南）`,
-              action: () => {
-                this.slopeDirection = SlopeDirection.BOTTOM;
-              },
-            },
-            {
-              name: `${this.slopeDirection == SlopeDirection.LEFT ? '◉' : '○'} 左（西）`,
-              action: () => {
-                this.slopeDirection = SlopeDirection.LEFT;
-              },
-            },
-            {
-              name: `${this.slopeDirection == SlopeDirection.RIGHT ? '◉' : '○'} 右（東）`,
-              action: () => {
-                this.slopeDirection = SlopeDirection.RIGHT;
-              },
-            },
-          ],
-        },
-        this.hasWall
-          ? {
-              name: '壁を非表示',
-              action: () => {
-                this.mode = TerrainViewState.FLOOR;
-                if (this.depth * this.width === 0) {
-                  this.terrain().width = this.width <= 0 ? 1 : this.width;
-                  this.terrain().depth = this.depth <= 0 ? 1 : this.depth;
-                }
-              },
-            }
-          : {
-              name: '壁を表示',
-              action: () => {
-                this.mode = TerrainViewState.ALL;
-              },
-            },
-        this.isSurfaceShading
-          ? {
-              name: '壁に陰影を付けない',
-              action: () => {
-                this.isSurfaceShading = false;
-                SoundEffect.play(PresetSound.sweep);
-              },
-            }
-          : {
-              name: '壁に陰影を付ける',
-              action: () => {
-                this.isSurfaceShading = true;
-                SoundEffect.play(PresetSound.sweep);
-              },
-            },
-        this.isDropShadow
-          ? {
-              name: '影を非表示',
-              action: () => {
-                this.isDropShadow = false;
-                SoundEffect.play(PresetSound.sweep);
-              },
-            }
-          : {
-              name: '影を表示',
-              action: () => {
-                this.isDropShadow = true;
-                SoundEffect.play(PresetSound.sweep);
-              },
-            },
-        ContextMenuSeparator,
-        {
-          name: '地形設定を編集',
-          action: () => {
-            this.showDetail(this.terrain());
-          },
-        },
-        {
-          name: 'コピーを作る',
-          action: () => {
-            const cloneObject = this.terrain().clone();
-            cloneObject.location.x += this.gridSize;
-            cloneObject.location.y += this.gridSize;
-            cloneObject.isLocked = false;
-            if (this.terrain().parent) this.terrain().parent.appendChild(cloneObject);
-            SoundEffect.play(PresetSound.blockPut);
-          },
-        },
-        {
-          name: '削除する',
-          action: () => {
-            this.terrain().destroy();
-            SoundEffect.play(PresetSound.sweep);
-          },
-        },
-        ContextMenuSeparator,
-        {
-          name: 'オブジェクト作成',
-          action: undefined,
-          subActions: this.tabletopActionService.makeDefaultContextMenuActions(objectPosition),
-        },
-      ],
-      this.name
+    const menuArray = buildTerrainContextMenu(
+      this.terrain()!,
+      this.gridSize,
+      objectPosition,
+      this.inventoryService,
+      this.tabletopActionService,
+      (t) => this.showDetail(t)
     );
+    this.contextMenuService.open(menuPosition, menuArray, this.name);
   }
 
   onMove() {
