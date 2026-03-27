@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
-import { PeerMenuComponent } from './peer-menu.component';
+import { isReconnectDebugModeByQuery, PeerMenuComponent } from './peer-menu.component';
 
 describe('PeerMenuComponent', () => {
   let component: PeerMenuComponent;
@@ -30,5 +30,18 @@ describe('PeerMenuComponent', () => {
 
   it('myTimeがsignalであること', () => {
     expect(typeof component.myTime).toBe('function');
+  });
+
+  it('debugReconnect=1 のときデバッグモードが有効になること', () => {
+    expect(isReconnectDebugModeByQuery('?debugReconnect=1')).toBe(true);
+  });
+
+  it('debugReconnect=true のときデバッグモードが有効になること', () => {
+    expect(isReconnectDebugModeByQuery('?debugReconnect=true')).toBe(true);
+  });
+
+  it('debugReconnect が未指定または0のとき無効になること', () => {
+    expect(isReconnectDebugModeByQuery('')).toBe(false);
+    expect(isReconnectDebugModeByQuery('?debugReconnect=0')).toBe(false);
   });
 });
