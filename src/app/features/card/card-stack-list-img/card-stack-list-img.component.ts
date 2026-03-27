@@ -12,7 +12,7 @@ import {
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { PanelService } from '@axe/shared/panel.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

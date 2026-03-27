@@ -7,9 +7,9 @@ import { callShuffleCardStack } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   selector: 'card-stack-list',

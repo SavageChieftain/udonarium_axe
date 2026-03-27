@@ -7,7 +7,7 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { BatchService } from '@axe/shared/batch.service';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { PanelService } from '@axe/shared/panel.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({

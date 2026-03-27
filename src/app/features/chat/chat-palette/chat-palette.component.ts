@@ -23,10 +23,10 @@ import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.com
 import { ChatInputComponent as ChatInputComponent_1 } from '@axe/features/chat/chat-input/chat-input.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
-import { ContextMenuService } from '@axe/shared/context-menu.service';
-import { PanelService } from '@axe/shared/panel.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({

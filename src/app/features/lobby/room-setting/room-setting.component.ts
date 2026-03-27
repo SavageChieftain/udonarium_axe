@@ -3,8 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelService } from '@axe/shared/panel.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

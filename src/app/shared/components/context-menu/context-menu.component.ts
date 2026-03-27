@@ -12,8 +12,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { ContextMenuAction, ContextMenuService } from '@axe/shared/context-menu.service';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { ContextMenuAction, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'context-menu',

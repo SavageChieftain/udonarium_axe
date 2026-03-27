@@ -27,8 +27,8 @@ import { DiceTableSettingComponent } from '@axe/features/dice/dice-table-setting
 import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({

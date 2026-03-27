@@ -7,9 +7,9 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PasswordCheckComponent } from '@axe/features/lobby/password-check/password-check.component';
 import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelService } from '@axe/shared/panel.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 import { merge, take } from 'rxjs';
 
 @Component({

@@ -18,7 +18,7 @@ import { CardStackListImageComponent as CardStackListImageComponent_1 } from '@a
 import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/features/chat/chat-tachie-img/chat-tachie-img.component';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { ResizableDirective } from '@axe/shared/directives/resizable.directive';
-import { PanelService } from '@axe/shared/panel.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

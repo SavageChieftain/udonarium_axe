@@ -26,11 +26,11 @@ import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

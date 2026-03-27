@@ -5,9 +5,9 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({

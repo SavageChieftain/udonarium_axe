@@ -27,9 +27,9 @@ import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-set
 import { ContextMenuComponent } from '@axe/shared/components/context-menu/context-menu.component';
 import { ModalComponent } from '@axe/shared/components/modal/modal.component';
 import { UIPanelComponent } from '@axe/shared/components/ui-panel/ui-panel.component';
-import { ContextMenuService } from '@axe/shared/context-menu.service';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

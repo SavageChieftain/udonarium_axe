@@ -2,8 +2,8 @@ import { AfterViewInit, ComponentRef, Directive, inject, input, OnDestroy, ViewC
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
-import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 

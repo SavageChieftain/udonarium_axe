@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { RemoteControllerComponent } from './remote-controller.component';

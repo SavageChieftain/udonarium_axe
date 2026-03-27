@@ -14,9 +14,9 @@ import { Jukebox } from '@axe/domain/media/Jukebox';
 import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { OpenUrlComponent } from '@axe/shared/components/open-url/open-url.component';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

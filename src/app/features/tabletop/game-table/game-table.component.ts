@@ -42,15 +42,15 @@ import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-set
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/shared/components/text-note/text-note.component';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
-import { ModalService } from '@axe/shared/modal.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 import { GridLineRender } from './grid-line-render';
 import { TableMouseGesture, TableMouseGestureEvent } from './table-mouse-gesture';

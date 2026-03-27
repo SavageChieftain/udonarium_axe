@@ -7,10 +7,10 @@ import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/chat-message-fix.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   selector: 'chat-message',

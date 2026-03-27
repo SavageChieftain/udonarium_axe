@@ -26,20 +26,20 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 import { buildTerrainContextMenu } from './terrain-context-menu';
 

@@ -23,12 +23,12 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
 import { RemoteControllerComponent } from '@axe/features/controller/remote-controller/remote-controller.component';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
 @Component({
   selector: 'game-object-inventory',

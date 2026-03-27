@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalService } from '@axe/shared/modal.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
 
 import { PasswordCheckComponent } from './password-check.component';
 

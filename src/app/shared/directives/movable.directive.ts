@@ -15,8 +15,8 @@ import { PointerCoordinate, PointerDeviceService } from '@axe/core/pointer-devic
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { BatchService } from '@axe/shared/batch.service';
-import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
 import { InputHandler } from './input-handler';
 import {

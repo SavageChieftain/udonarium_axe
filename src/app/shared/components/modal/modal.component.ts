@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, viewChild, ViewContainerRef } from '@angular/core';
-import { ModalService } from '@axe/shared/modal.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
 
 @Component({
   selector: 'modal',

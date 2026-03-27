@@ -10,10 +10,10 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 import { interval } from 'rxjs';
 
 @Component({

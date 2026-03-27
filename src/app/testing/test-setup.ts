@@ -16,10 +16,10 @@ Logger.setLevel(LogLevel.NONE);
 import { AppConfigService } from '@axe/core/app-config.service';
 import { LoggerService } from '@axe/core/logger.service';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { ContextMenuService } from '@axe/shared/context-menu.service';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelService } from '@axe/shared/panel.service';
 import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
 
 // src/app 以下の全 HTML/CSS ファイルをファイル名でインデックス化
 const srcAppDir = resolve(process.cwd(), 'src/app');

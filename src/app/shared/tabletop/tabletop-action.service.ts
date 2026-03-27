@@ -15,8 +15,6 @@ import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-ma
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
-import { ContextMenuAction } from '@axe/shared/context-menu.service';
-import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import {
   getDiceMenuItems,
   getRangeMenuItems,
@@ -29,6 +27,8 @@ import {
   makeDefaultTable as _makeDefaultTable,
   makeDefaultTabletopObjects as _makeDefaultTabletopObjects,
 } from '@axe/shared/tabletop/tabletop-default-setup';
+import { ContextMenuAction } from '@axe/shared/ui/context-menu.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
 @Injectable({
   providedIn: 'root',

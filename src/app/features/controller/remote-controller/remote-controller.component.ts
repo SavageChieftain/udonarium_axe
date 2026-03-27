@@ -19,11 +19,11 @@ import { GameCharacterBuffViewComponent } from '@axe/features/character/game-cha
 import { ControllerInputComponent } from '@axe/features/controller/controller-input/controller-input.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { UiSignalService } from '@axe/shared/ui-signal.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 import {

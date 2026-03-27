@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 const DICEBOT_INTRO =
   '【ダイスボット】チャットにダイス用の文字を入力するとダイスロールが可能\n' +

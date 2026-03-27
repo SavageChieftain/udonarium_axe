@@ -2,7 +2,7 @@ import { Network } from '@axe/core/index';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { callShuffleCardStack } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/context-menu.service';
+import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
 export function buildCardStackContextMenu(
   cardStack: CardStack,

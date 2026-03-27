@@ -10,9 +10,9 @@ import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-w
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
-import { ModalService } from '@axe/shared/modal.service';
-import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 @Injectable({ providedIn: 'root' })
 export class AppEventHandlerService {
