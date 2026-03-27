@@ -25,7 +25,7 @@ import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/cha
 import { ChatTachieComponent } from '@axe/features/chat/chat-tachie/chat-tachie.component';
 import { DiceTableSettingComponent } from '@axe/features/dice/dice-table-setting/dice-table-setting.component';
 import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';

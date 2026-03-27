@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { PanelService } from '@axe/shared/panel.service';
 
 @Component({

@@ -17,7 +17,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
 import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/features/chat/chat-tachie-img/chat-tachie-img.component';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 

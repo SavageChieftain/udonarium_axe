@@ -15,7 +15,7 @@ Logger.setLevel(LogLevel.NONE);
 // 非 providedIn:'root' なサービス — 全テストで自動提供する
 import { AppConfigService } from '@axe/core/app-config.service';
 import { LoggerService } from '@axe/core/logger.service';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';

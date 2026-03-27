@@ -21,7 +21,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { callCursorMove, callHeartBeat } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { BatchService } from '@axe/shared/batch.service';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 

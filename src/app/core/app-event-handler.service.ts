@@ -8,7 +8,7 @@ import { Vote } from '@axe/domain/shared/vote';
 import { AlarmWindowComponent } from '@axe/features/alarm/alarm-window/alarm-window.component';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
-import { ChatMessageService } from '@axe/shared/chat-message.service';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
