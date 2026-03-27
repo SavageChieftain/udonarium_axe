@@ -12,7 +12,7 @@ import { LoggerService } from '@axe/core/logger.service';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
 import { ServiceLocator } from '@axe/core/service-locator';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
