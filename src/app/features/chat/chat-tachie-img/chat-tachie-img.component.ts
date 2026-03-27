@@ -13,7 +13,6 @@ import {
   viewChild,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/pointer-device.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -274,90 +273,65 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
     }
   }
 
+  private imageFileUrlAt(position: number): string {
+    const chatTab = this.chatTab;
+    if (!chatTab?.imageIdentifier) return '';
+
+    const imageIdentifier = chatTab.imageIdentifier[position];
+    if (!imageIdentifier) return '';
+
+    const image = this.imageStorage.get(imageIdentifier);
+    return image ? image.url : '';
+  }
+
   //この実装は後でどうにかしたい
   get imageFileUrl_00(): string {
     this.objectChange.fileVersion();
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[0]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(0);
   }
 
   get imageFileUrl_01(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[1]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(1);
   }
 
   get imageFileUrl_02(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[2]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(2);
   }
 
   get imageFileUrl_03(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[3]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(3);
   }
 
   get imageFileUrl_04(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[4]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(4);
   }
 
   get imageFileUrl_05(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[5]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(5);
   }
 
   get imageFileUrl_06(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[6]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(6);
   }
 
   get imageFileUrl_07(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[7]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(7);
   }
 
   get imageFileUrl_08(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[8]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(8);
   }
 
   get imageFileUrl_09(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[9]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(9);
   }
 
   get imageFileUrl_10(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[10]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(10);
   }
 
   get imageFileUrl_11(): string {
-    if (!this.chatTab.imageIdentifier) return '';
-    const image: ImageFile = this.imageStorage.get(this.chatTab.imageIdentifier[11]);
-    if (image) return image.url;
-    return '';
+    return this.imageFileUrlAt(11);
   }
 
   tachieClick(pos: number) {

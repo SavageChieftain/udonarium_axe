@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export interface PointerCoordinate {
   x: number;
@@ -20,6 +20,10 @@ export class PointerDeviceService {
   private callbackOnPointerMove = (e: MouseEvent | TouchEvent) => this.onPointerMove(e);
   private callbackOnPointerUp = (e: MouseEvent | TouchEvent) => this.onPointerUp(e);
   private callbackOnContextMenu = (e: MouseEvent) => this.onContextMenu(e);
+  private callbackOnWindowBlur = () => this.resetDraggingState();
+  private callbackOnVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') this.resetDraggingState();
+  };
 
   private _isAllowedToOpenContextMenu: boolean = false;
   get isAllowedToOpenContextMenu(): boolean {
@@ -41,13 +45,13 @@ export class PointerDeviceService {
     return this.primaryPointer.y;
   }
 
-  private _isDragging: boolean = false; // todo
+  private _isDragging = signal(false);
   get isDragging(): boolean {
-    return this._isDragging;
+    return this._isDragging();
   }
   set isDragging(isDragging: boolean) {
-    if (isDragging === this._isDragging) return;
-    this._isDragging = isDragging;
+    if (isDragging === this._isDragging()) return;
+    this._isDragging.set(isDragging);
   }
 
   initialize() {
@@ -77,10 +81,14 @@ export class PointerDeviceService {
   }
 
   private onPointerUp(e: MouseEvent | TouchEvent) {
+    this.resetDraggingState();
     this.onPointerMove(e);
   }
 
   private onMouseMove(e: MouseEvent) {
+    if (this.isDragging && e.buttons === 0) {
+      this.resetDraggingState();
+    }
     const mosuePointer: PointerData = { x: e.pageX, y: e.pageY, z: 0, identifier: MOUSE_IDENTIFIER };
     if (this.isSyntheticEvent(mosuePointer)) return;
     if (this._isAllowedToOpenContextMenu) this.preventContextMenuIfNeeded(mosuePointer);
@@ -103,7 +111,12 @@ export class PointerDeviceService {
 
   private onContextMenu(e: MouseEvent | TouchEvent) {
     this._isAllowedToOpenContextMenu = true;
+    this.resetDraggingState();
     this.onPointerUp(e);
+  }
+
+  private resetDraggingState() {
+    this.isDragging = false;
   }
 
   private preventContextMenuIfNeeded(pointer: PointerCoordinate, threshold: number = 3) {
@@ -130,6 +143,8 @@ export class PointerDeviceService {
     document.body.addEventListener('touchcancel', this.callbackOnPointerUp, true);
     document.body.addEventListener('drop', this.callbackOnPointerUp, true);
     document.body.addEventListener('contextmenu', this.callbackOnContextMenu, true);
+    window.addEventListener('blur', this.callbackOnWindowBlur, true);
+    document.addEventListener('visibilitychange', this.callbackOnVisibilityChange, true);
   }
 
   private removeEventListeners() {
@@ -142,5 +157,7 @@ export class PointerDeviceService {
     document.body.removeEventListener('touchcancel', this.callbackOnPointerUp, true);
     document.body.removeEventListener('drop', this.callbackOnPointerUp, true);
     document.body.removeEventListener('contextmenu', this.callbackOnContextMenu, true);
+    window.removeEventListener('blur', this.callbackOnWindowBlur, true);
+    document.removeEventListener('visibilitychange', this.callbackOnVisibilityChange, true);
   }
 }
