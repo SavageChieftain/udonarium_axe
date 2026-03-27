@@ -1,0 +1,53 @@
+import { toHalfWidth } from '@axe/core/util/string-util';
+import { DataElement } from '@axe/domain/data/data-element';
+import { SortOrder } from '@axe/domain/data/data-summary-setting';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+
+export function toSortableValue(dataElement: DataElement): number | string {
+  const value = dataElement.isNumberResource ? dataElement.currentValue : dataElement.value;
+  const resultStr = toHalfWidth((value + '').trim());
+  const resultNum = +resultStr;
+  return Number.isNaN(resultNum) ? resultStr : resultNum;
+}
+
+export function sortObjectsByTags(
+  objects: TabletopObject[],
+  sortTag: string,
+  sortOrder: SortOrder,
+  sortTag2nd: string,
+  sortOrder2nd: SortOrder
+): TabletopObject[] {
+  const primaryTag = sortTag.length ? sortTag.trim() : '';
+  const secondaryTag = sortTag2nd.length ? sortTag2nd.trim() : '';
+  const primaryOrder = sortOrder === SortOrder.ASC ? -1 : 1;
+  const secondaryOrder = sortOrder2nd === SortOrder.ASC ? -1 : 1;
+
+  if (primaryTag.length < 1) return objects;
+
+  objects.sort((a, b) => {
+    const aElm = a.rootDataElement?.getFirstElementByName(primaryTag);
+    const bElm = b.rootDataElement?.getFirstElementByName(primaryTag);
+    if (!aElm && !bElm) return 0;
+    if (!bElm) return -1;
+    if (!aElm) return 1;
+
+    const aValue = toSortableValue(aElm);
+    const bValue = toSortableValue(bElm);
+    if (aValue < bValue) return primaryOrder;
+    if (aValue > bValue) return primaryOrder * -1;
+
+    const aElm2nd = a.rootDataElement?.getFirstElementByName(secondaryTag);
+    const bElm2nd = b.rootDataElement?.getFirstElementByName(secondaryTag);
+    if (!aElm2nd && !bElm2nd) return 0;
+    if (!bElm2nd) return -1;
+    if (!aElm2nd) return 1;
+
+    const aValue2nd = toSortableValue(aElm2nd);
+    const bValue2nd = toSortableValue(bElm2nd);
+    if (aValue2nd < bValue2nd) return secondaryOrder;
+    if (aValue2nd > bValue2nd) return secondaryOrder * -1;
+    return 0;
+  });
+
+  return objects;
+}
