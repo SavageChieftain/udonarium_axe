@@ -27,8 +27,13 @@ import { PanelService } from '@axe/shared/panel.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
 import { SAMPLE_CHAT_MESSAGES } from './chat-tab-sample-messages';
-
-type ScrollPosition = { top: number; bottom: number; clientHeight: number; scrollHeight: number };
+import {
+  calcIndexRange,
+  calcMaxElementHeight,
+  findDisplayableTopIndex,
+  getBoundedScrollPosition,
+  ScrollPosition,
+} from './chat-tab-scroll-helpers';
 
 const ua = window.navigator.userAgent.toLowerCase();
 const isiOS =
@@ -110,17 +115,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
         0 < this._chatMessages.length ? this._chatMessages[this._chatMessages.length - 1].timestamp : 0;
     }
     return this._chatMessages;
-  }
-
-  private chatMessagesDisplayableTopIndex(chatMessages: ChatMessage[], dispLength: number): number {
-    const len = chatMessages.length;
-    let count = 0;
-    let i = len - 1;
-    for (; i >= 0; i--) {
-      if (chatMessages[i].isDisplayable) count++;
-      if (count >= dispLength) return i;
-    }
-    return i;
   }
 
   get minScrollHeight(): number {
@@ -234,7 +228,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     if (!this.chatTab || !this.panelService?.scrollablePanel) return;
     const lastIndex = this.chatTab.chatMessages.length - 1;
     //    this.topIndex = lastIndex - Math.floor(this.panelService.scrollablePanel.clientHeight / this.minMessageHeight);
-    this.topIndex = this.chatMessagesDisplayableTopIndex(
+    this.topIndex = findDisplayableTopIndex(
       this.chatTab.chatMessages,
       Math.floor(this.panelService.scrollablePanel.clientHeight / this.minMessageHeight) + 1
     );
@@ -269,13 +263,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
   }
 
   private getScrollPosition(): ScrollPosition {
-    let top = this.panelService.scrollablePanel.scrollTop;
-    const clientHeight = this.panelService.scrollablePanel.clientHeight;
-    const scrollHeight = this.panelService.scrollablePanel.scrollHeight;
-    if (top < 0) top = 0;
-    if (scrollHeight - clientHeight < top) top = scrollHeight - clientHeight;
-    const bottom = top + clientHeight;
-    return { top, bottom, clientHeight, scrollHeight };
+    return getBoundedScrollPosition(this.panelService.scrollablePanel);
   }
 
   private adjustScrollPosition() {
@@ -292,7 +280,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
       setZeroTimeout(() => this.lazyScrollUpdate());
     }
   }
-
   private checkBlank(hasTopElm: boolean, hasBotomElm: boolean) {
     let hasTopBlank = !hasTopElm;
     let hasBotomBlank = !hasBotomElm;
@@ -379,14 +366,22 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     const scrollWideBottom = scrollPosition.bottom + (!isNormalUpdate && hasBotomBlank ? 100 : 1200);
 
     this.markForReadIfNeeded();
-    this.calcItemIndexRange(
+    const maxHeight = calcMaxElementHeight(chatMessageElements, this.minMessageHeight);
+    const range = calcIndexRange({
+      topIndex: this.topIndex,
+      bottomIndex: this.bottomIndex,
+      chatMessagesLength: this.chatTab.chatMessages.length,
+      minMessageHeight: this.minMessageHeight,
+      maxHeight,
       messageBoxTop,
       messageBoxBottom,
       scrollWideTop,
       scrollWideBottom,
       scrollPosition,
-      chatMessageElements
-    );
+      isIOS: isiOS,
+    });
+    this.topIndex = range.topIndex;
+    this.bottomIndex = range.bottomIndex;
 
     const isChangedIndex = this.topIndex != preTopIndex || this.bottomIndex != preBottomIndex;
     if (!isChangedIndex) return;
@@ -409,48 +404,5 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
   redraw() {
     // 強制的に再描画させる
     this.renderVersion.update((v) => v + 1);
-  }
-
-  private calcElementMaxHeight(chatMessageElements: NodeListOf<HTMLElement>): number {
-    let maxHeight = this.minMessageHeight;
-    for (let i = chatMessageElements.length - 1; 0 <= i; i--) {
-      const height = chatMessageElements[i].clientHeight;
-      if (maxHeight < height) maxHeight = height;
-    }
-    return maxHeight;
-  }
-
-  private calcItemIndexRange(
-    messageBoxTop: number,
-    messageBoxBottom: number,
-    scrollWideTop: number,
-    scrollWideBottom: number,
-    scrollPosition: ScrollPosition,
-    chatMessageElements: NodeListOf<HTMLElement>
-  ) {
-    if (scrollWideTop >= messageBoxBottom || messageBoxTop >= scrollWideBottom) {
-      const lastIndex = this.chatTab.chatMessages.length - 1;
-      const scrollBottomHeight = scrollPosition.scrollHeight - scrollPosition.top - scrollPosition.clientHeight;
-
-      this.bottomIndex = lastIndex - Math.floor(scrollBottomHeight / this.minMessageHeight);
-      this.topIndex = this.bottomIndex - Math.floor(scrollPosition.clientHeight / this.minMessageHeight);
-
-      this.bottomIndex += 1;
-      this.topIndex -= 1;
-    } else {
-      const maxHeight = this.calcElementMaxHeight(chatMessageElements);
-      if (scrollWideTop < messageBoxTop) {
-        this.topIndex -= Math.floor((messageBoxTop - scrollWideTop) / maxHeight) + 1;
-      } else if (scrollWideTop > messageBoxTop) {
-        if (!isiOS) this.topIndex += Math.floor((scrollWideTop - messageBoxTop) / maxHeight);
-      }
-
-      if (messageBoxBottom > scrollWideBottom) {
-        if (!isiOS) this.bottomIndex -= Math.floor((messageBoxBottom - scrollWideBottom) / maxHeight);
-      } else if (messageBoxBottom < scrollWideBottom) {
-        this.bottomIndex += Math.floor((scrollWideBottom - messageBoxBottom) / maxHeight) + 1;
-      }
-    }
-    this.adjustIndex();
   }
 }
