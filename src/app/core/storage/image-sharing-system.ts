@@ -274,9 +274,9 @@ export class ImageSharingSystem {
       } else if (item.state === ImageState.NULL) {
         context.thumbnail.blob = image.thumbnail.blob; //
         context.thumbnail.type = image.thumbnail.type;
-      } else {
+      } else if (image.blob) {
         context.blob = image.blob; //
-        context.type = image.blob!.type;
+        context.type = image.blob.type;
       }
 
       const size = context.blob ? context.blob.size : context.thumbnail.blob ? context.thumbnail.blob.size : 100;
