@@ -19,6 +19,23 @@ import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 
 import { InputHandler } from './input-handler';
+import {
+  applyPointerEvents,
+  calcSnapNum,
+  collectCollidableElements,
+  registerLayer,
+  setLayerCollidable,
+  shouldTransitionTo,
+  toTransformCss,
+  unregisterLayer,
+} from './movable-helpers';
+import {
+  handleContextMenu,
+  handleInputEnd,
+  handleInputMove,
+  handleInputStart,
+  MovableInteractionContext,
+} from './movable-interaction';
 
 export interface MovableOption {
   readonly tabletopObject?: TabletopObject;
@@ -62,24 +79,8 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   private _posX: number = 0;
   private _posY: number = 0;
   private _posZ: number = 0;
-  /*
-  get posX(): number { return this._posX; }
-  set posX(posX: number) { this._posX = posX; this.setUpdateTimer(); }
-  get posY(): number { return this._posY; }
-  set posY(posY: number) { this._posY = posY; this.setUpdateTimer(); }
-  get posZ(): number { return this._posZ; }
-  set posZ(posZ: number) { this._posZ = posZ; this.setUpdateTimer(); }
-*/
 
   private mathFloor: boolean = true;
-  /*
-  get posX(): number { return this._posX; }
-  set posX(posX: number) { this._posX = Math.floor(posX); this.setUpdateTimer(); }
-  get posY(): number { return this._posY; }
-  set posY(posY: number) { this._posY = Math.floor(posY); this.setUpdateTimer(); }
-  get posZ(): number { return this._posZ; }
-  set posZ(posZ: number) { this._posZ = Math.floor(posZ); this.setUpdateTimer(); }
-*/
 
   get posX(): number {
     return this._posX;
@@ -103,19 +104,20 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.setUpdateTimer();
   }
 
-  private pointerOffset2d: PointerCoordinate = { x: 0, y: 0, z: 0 };
-  private pointerStart3d: PointerCoordinate = { x: 0, y: 0, z: 0 };
+  pointerOffset2d: PointerCoordinate = { x: 0, y: 0, z: 0 };
+  pointerStart3d: PointerCoordinate = { x: 0, y: 0, z: 0 };
 
-  private targetStartRect!: DOMRect;
+  targetStartRect!: DOMRect;
 
-  private height: number = 0;
-  private width: number = 0;
-  private ratio: number = 1.0;
+  height: number = 0;
+  width: number = 0;
+  ratio: number = 1.0;
 
   private updateTimer: NodeJS.Timeout = null!;
   private collidableElements: HTMLElement[] = [];
-  private input: InputHandler = null!;
-  private get isGridSnap(): boolean {
+  input: InputHandler = null!;
+
+  get isGridSnap(): boolean {
     return this.tableSelecter.gridSnap;
   }
 
@@ -172,9 +174,9 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
         this.setPosition(this.tabletopObject);
       }, this);
     });
+
     if (this.layerName.length < 1 && this.tabletopObject) this.layerName = this.tabletopObject.aliasName;
     this.register();
-    this.findCollidableElements();
     this.setPosition(this.tabletopObject);
   }
 
@@ -207,114 +209,19 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.callSelectedEvent();
     if (this.collidableElements.length < 1) this.findCollidableElements(); // 稀にcollidableElementsの取得に失敗している
 
-    if ((this.isDisable() && !this.isScratcOwner()) || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
-      return this.cancel();
-    this.onstart.emit(e as PointerEvent);
-
-    this.setPointerEvents(false);
-    this.setAnimatedTransition(false);
-    this.setCollidableLayer(true);
-
-    this.width = this.nativeElement.clientWidth;
-    this.height = this.nativeElement.clientHeight;
-
-    const target3d = {
-      x: this.posX + this.width / 2,
-      y: this.posY + this.height / 2,
-      z: this.posZ,
-    };
-    const target2d = this.coordinateService.convertToGlobal(target3d, this.coordinateService.tabletopOriginElement);
-
-    this.setPointerEvents(true);
-
-    this.pointerOffset2d.x = target2d.x - this.input.pointer.x;
-    this.pointerOffset2d.y = target2d.y - this.input.pointer.y;
-    this.pointerOffset2d.z = target2d.z - this.input.pointer.z;
-
-    this.pointerStart3d.x = target3d.x;
-    this.pointerStart3d.y = target3d.y;
-    this.pointerStart3d.z = target3d.z;
-
-    this.targetStartRect = this.nativeElement.getBoundingClientRect();
-
-    if (this.isScratcOwner()) {
-      this.scratchObjectPosition(true);
-    }
-
-    this.ratio = 1.0;
+    handleInputStart(this as unknown as MovableInteractionContext, e);
   }
 
   onInputMove(e: MouseEvent | TouchEvent) {
-    if (this.input.isGrabbing && !this.pointerDeviceService.isDragging) {
-      return this.cancel(); // todo
-    }
-
-    if ((this.isDisable() && !this.isScratcOwner()) || !this.input.isGrabbing) return this.cancel();
-
-    if (e.cancelable) e.preventDefault();
-
-    if (!this.input.isDragging) this.setPointerEvents(false);
-
-    const pointer2d = {
-      x: this.input.pointer.x + this.pointerOffset2d.x * this.ratio,
-      y: this.input.pointer.y + this.pointerOffset2d.y * this.ratio,
-      z: 0,
-    };
-
-    pointer2d.x = Math.min(window.innerWidth - 0.1, Math.max(pointer2d.x, 0.1));
-    pointer2d.y = Math.min(window.innerHeight - 0.1, Math.max(pointer2d.y, 0.1));
-
-    const element = document.elementFromPoint(pointer2d.x, pointer2d.y) as HTMLElement;
-    if (element == null) return;
-
-    const pointer3d = this.coordinateService.calcTabletopLocalCoordinate(pointer2d, element);
-    pointer3d.x -= this.width / 2;
-    pointer3d.y -= this.height / 2;
-
-    if (this.posX === pointer3d.x && this.posY === pointer3d.y && this.posZ === pointer3d.z) return;
-
-    if (!this.input.isDragging) this.ondragstart.emit(e as PointerEvent);
-    this.ondrag.emit(e as PointerEvent);
-
-    const targetRect = this.nativeElement.getBoundingClientRect();
-    const ratio = targetRect.width / this.targetStartRect.width;
-    if (ratio < this.ratio) {
-      this.ratio += (ratio - this.ratio) * 0.1;
-    }
-
-    if (!this.isScratcOwner()) {
-      //スクラッチマスク用の処理スキップ
-      this.posX = pointer3d.x;
-      this.posY = pointer3d.y;
-      this.posZ = pointer3d.z;
-    } else {
-      this.scratchObjectPosition(false);
-    }
+    handleInputMove(this as unknown as MovableInteractionContext, e);
   }
 
   onInputEnd(e: MouseEvent | TouchEvent) {
-    if (this.isDisable()) return this.cancel();
-    if (this.input.isDragging) this.ondragend.emit(e as PointerEvent);
-    if (this.isGridSnap && this.input.isDragging && !this.isScratcOwner()) this.snapToGrid();
-    this.cancel();
-    this.onend.emit(e as PointerEvent);
+    handleInputEnd(this as unknown as MovableInteractionContext, e);
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
-    if (this.isDisable()) return this.cancel();
-    if (e.cancelable) e.preventDefault();
-
-    if (this.isGridSnap && this.input.isDragging) this.snapToGrid();
-
-    const needsDispatch = this.input.isGrabbing && e.isTrusted;
-    this.cancel();
-
-    if (needsDispatch) {
-      // ロングプレスによるタッチ操作でコンテキストメニューを開く場合、イベントを適切なDOMに伝搬させる
-      e.stopPropagation();
-      const ev = new MouseEvent(e.type, e);
-      this.nativeElement.dispatchEvent(ev);
-    }
+    handleContextMenu(this as unknown as MovableInteractionContext, e);
   }
 
   private callSelectedEvent() {
@@ -323,28 +230,12 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   snapToGrid(gridSize: number = 25) {
-    this.posX = this.calcSnapNum(this.posX, gridSize);
-    this.posY = this.calcSnapNum(this.posY, gridSize);
-  }
-
-  private calcSnapNum(num: number, interval: number): number {
-    if (interval <= 0) return num;
-    num = num < 0 ? num - interval / 2 : num + interval / 2;
-    return num - (num % interval);
+    this.posX = calcSnapNum(this.posX, gridSize);
+    this.posY = calcSnapNum(this.posY, gridSize);
   }
 
   private setPosition(object: TabletopObject) {
     if (!object?.location) return;
-    /*
-    this._posX = object.location.x;
-    this._posY = object.location.y;
-    this._posZ = object.posZ;
-
-
-    this._posX = Math.floor(object.location.x);
-    this._posY = Math.floor(object.location.y);
-    this._posZ = Math.floor(object.posZ);
-*/
     this._posX = this.mathFloor ? Math.floor(object.location.x) : object.location.x;
     this._posY = this.mathFloor ? Math.floor(object.location.y) : object.location.y;
     this._posZ = this.mathFloor ? Math.floor(object.posZ * 8) / 8 : object.posZ;
@@ -365,45 +256,19 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   private findCollidableElements() {
-    this.collidableElements = [];
-    if (getComputedStyle(this.nativeElement).pointerEvents !== 'none') {
-      this.collidableElements = [this.nativeElement];
-      return;
-    }
-    this.findNestedCollidableElements(this.nativeElement);
+    this.collidableElements = collectCollidableElements(this.nativeElement);
   }
 
-  private findNestedCollidableElements(element: HTMLElement) {
-    // TODO:不完全
-    const children = element.children;
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      if (!(child instanceof HTMLElement)) continue;
-      if (getComputedStyle(child).pointerEvents !== 'none') {
-        this.collidableElements.push(child);
-      }
-    }
-    if (this.collidableElements.length < 1) {
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-        if (!(child instanceof HTMLElement)) continue;
-        this.findNestedCollidableElements(child);
-      }
-    }
+  setPointerEvents(isEnable: boolean) {
+    applyPointerEvents(this.collidableElements, isEnable);
   }
 
-  private setPointerEvents(isEnable: boolean) {
-    const css = isEnable ? 'auto' : 'none';
-    this.collidableElements.forEach((element) => (element.style.pointerEvents = css));
-  }
-
-  private setAnimatedTransition(isEnable: boolean) {
+  setAnimatedTransition(isEnable: boolean) {
     this.nativeElement.style.transition = isEnable ? 'transform 132ms linear' : '';
   }
 
   private shouldTransition(object: TabletopObject): boolean {
-    if (!object?.location) return false;
-    return object.location.x !== this.posX || object.location.y !== this.posY || object.posZ !== this.posZ;
+    return shouldTransitionTo(object, this.posX, this.posY, this.posZ);
   }
 
   private stopTransition() {
@@ -411,35 +276,18 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   }
 
   private updateTransformCss() {
-    const css = 'translate3d(' + this.posX + 'px,' + this.posY + 'px,' + this.posZ + 'px) ' + this.transformCssOffset;
-    this.nativeElement.style.transform = css;
+    this.nativeElement.style.transform = toTransformCss(this.posX, this.posY, this.posZ, this.transformCssOffset);
   }
 
-  private setCollidableLayer(isCollidable: boolean) {
-    // todo
-    let isEnable = isCollidable;
-    for (const layerName in MovableDirective.layerHash) {
-      if (-1 < this.colideLayers.indexOf(layerName)) {
-        isEnable = this.input?.isGrabbing ? isCollidable : true;
-      } else {
-        isEnable = !isCollidable;
-      }
-      MovableDirective.layerHash[layerName].forEach((movable) => {
-        if (movable === this || movable.input?.isGrabbing) return;
-        movable.setPointerEvents(isEnable);
-      });
-    }
+  setCollidableLayer(isCollidable: boolean) {
+    setLayerCollidable(MovableDirective.layerHash, this.colideLayers, this, !!this.input?.isGrabbing, isCollidable);
   }
 
   private register() {
-    if (!(this.layerName in MovableDirective.layerHash)) MovableDirective.layerHash[this.layerName] = [];
-    const index = MovableDirective.layerHash[this.layerName].indexOf(this);
-    if (index < 0) MovableDirective.layerHash[this.layerName].push(this);
+    registerLayer(MovableDirective.layerHash, this.layerName, this);
   }
 
   private unregister() {
-    if (!(this.layerName in MovableDirective.layerHash)) return;
-    const index = MovableDirective.layerHash[this.layerName].indexOf(this);
-    if (-1 < index) MovableDirective.layerHash[this.layerName].splice(index, 1);
+    unregisterLayer(MovableDirective.layerHash, this.layerName, this);
   }
 }
