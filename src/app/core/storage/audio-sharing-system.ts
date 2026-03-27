@@ -161,10 +161,10 @@ export class AudioSharingSystem {
 
     if (audio.state === AudioState.URL) {
       context.url = audio.url;
-    } else {
-      const buf = await FileReaderUtil.readAsArrayBufferAsync(audio.blob!);
+    } else if (audio.blob) {
+      const buf = await FileReaderUtil.readAsArrayBufferAsync(audio.blob);
       context.blob = new Uint8Array(buf) as unknown as Blob;
-      context.type = audio.blob!.type;
+      context.type = audio.blob.type;
     }
 
     task.onfinish = () => {

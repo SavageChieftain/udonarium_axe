@@ -22,6 +22,7 @@ type AudioSharingSystemPrivateInstance = {
   subscription?: { unsubscribe: () => void };
   sendTaskMap: Map<string, unknown>;
   receiveTaskMap: Map<string, unknown>;
+  startSendTask: (audio: AudioFile, sendTo: string) => Promise<void>;
 };
 
 type AudioSharingSystemPrivateStatic = {
@@ -411,6 +412,19 @@ describe('AudioSharingSystem', () => {
       (task as unknown as { onfinish: () => void }).onfinish();
       expect(asAudioSharingPrivate(AudioSharingSystem.instance).sendTaskMap.has('finish-audio')).toBe(false);
       expect(AudioStorageMock.synchronize).toHaveBeenCalled();
+    });
+
+    it('URL でも blob でもない異常 audio を送っても startSendTask は例外を投げない', async () => {
+      const audio = makeAudioFile({ identifier: 'broken-send' });
+      const task = makeTask({ identifier: 'broken-send', sendTo: 'peer-r' });
+      BufferSharingTaskMock.createSendTask.mockReturnValue(task);
+
+      await expect(
+        asAudioSharingPrivate(AudioSharingSystem.instance).startSendTask(audio, 'peer-r')
+      ).resolves.toBeUndefined();
+      expect(task.start).toHaveBeenCalledWith(
+        expect.objectContaining({ identifier: 'broken-send', blob: null, type: '', url: '' })
+      );
     });
   });
 
