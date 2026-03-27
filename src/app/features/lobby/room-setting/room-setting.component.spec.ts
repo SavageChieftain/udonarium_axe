@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { RoomSettingComponent } from './room-setting.component';
 
@@ -8,7 +11,8 @@ describe('RoomSettingComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [RoomSettingComponent],
+      imports: [RoomSettingComponent, PanelDragTestHostComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 
@@ -19,5 +23,13 @@ describe('RoomSettingComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+    await expectPanelDragRecovery(RoomSettingComponent, {
+      beforeOpen: () => {
+        PeerCursor.createMyCursor();
+      },
+    });
   });
 });

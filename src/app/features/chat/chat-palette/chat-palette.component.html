@@ -58,7 +58,7 @@
           (input)="selectAutoComplete(text, $any($event.target).value)"
           (click)="selectAutoComplete(text, $any($event.target).value)"
         >
-          @for (palette of autoCompleteList(); track palette) {
+          @for (palette of autoCompleteList(); track $index) {
             <option value="{{ palette }}">{{ palette }}</option>
           }
         </select>
@@ -76,7 +76,7 @@
       #chatPalette
     >
       @if (palette) {
-        @for (palette of palette.getPalette(); track palette) {
+        @for (palette of palette.getPalette(); track $index) {
           <option value="{{ palette }}">{{ palette }}</option>
         }
       }

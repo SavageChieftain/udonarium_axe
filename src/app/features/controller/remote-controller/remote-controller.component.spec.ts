@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { RemoteControllerComponent } from './remote-controller.component';
@@ -12,8 +15,9 @@ describe('RemoteControllerComponent', () => {
   const createdChars: GameCharacter[] = [];
 
   beforeEach(async () => {
+    PeerCursor.createMyCursor();
     TestBed.configureTestingModule({
-      imports: [RemoteControllerComponent],
+      imports: [RemoteControllerComponent, PanelDragTestHostComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
@@ -38,6 +42,19 @@ describe('RemoteControllerComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+    await expectPanelDragRecovery(RemoteControllerComponent, {
+      beforeOpen: () => {
+        if (ChatTabList.instance.chatTabs.length < 1) {
+          ChatTabList.instance.addChatTab('テストタブ');
+        }
+      },
+      initialize: (opened) => {
+        opened.character = createChar('テスト');
+      },
+    });
   });
 
   describe('targetBlockClick', () => {

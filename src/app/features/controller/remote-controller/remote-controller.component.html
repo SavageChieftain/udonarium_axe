@@ -156,10 +156,10 @@
       @if (errorMessageController.length > 0) {
         <div>{{ errorMessageController }}</div>
       }
-      @if (character.rootDataElement) {
+      @if (character?.rootDataElement) {
         <div>
           <div class="controller">
-            @for (data of character.detailDataElement.children; track data) {
+            @for (data of character?.detailDataElement?.children ?? []; track data) {
               @for (dataElm of data.children; track dataElm) {
                 @if (dataElm && this.dataTags.includes($any(dataElm).name)) {
                   @switch ($any(dataElm).attributes['type']) {

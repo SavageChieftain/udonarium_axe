@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImageFile } from '@axe/core/storage/image-file';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { GameCharacterGeneratorComponent } from './game-character-generator.component';
@@ -10,7 +11,7 @@ describe('GameCharacterGeneratorComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [GameCharacterGeneratorComponent],
+      imports: [GameCharacterGeneratorComponent, PanelDragTestHostComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
@@ -28,5 +29,9 @@ describe('GameCharacterGeneratorComponent', () => {
     const image = component.tableBackgroundImage();
     expect(image).toBeInstanceOf(ImageFile);
     expect(image.identifier).toBe('null');
+  });
+
+  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+    await expectPanelDragRecovery(GameCharacterGeneratorComponent);
   });
 });

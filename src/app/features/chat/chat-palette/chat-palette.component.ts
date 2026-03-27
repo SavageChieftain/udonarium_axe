@@ -5,6 +5,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   OnDestroy,
   OnInit,
   viewChild,
@@ -45,16 +46,17 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   private uiSignalService = inject(UiSignalService);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
+  private injector = inject(Injector);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
   readonly chatInputComponent = viewChild.required<ChatInputComponent>('chatInput');
   readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
   readonly completeSelectRef = viewChild<ElementRef<HTMLSelectElement>>('completeSelect');
   readonly editTextRef = viewChild<ElementRef<HTMLTextAreaElement>>('editText');
-  character: GameCharacter = null!;
+  character: GameCharacter | null = null;
 
   get palette(): ChatPalette {
-    return this.character.chatPalette;
+    return this.character?.chatPalette ?? null!;
   }
 
   private _gameType: string = '';
@@ -68,11 +70,11 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
   set gameType(gameType: string) {
     this._gameType = gameType;
-    if (this.character.chatPalette) this.character.chatPalette.dicebot = gameType;
+    if (this.character?.chatPalette) this.character.chatPalette.dicebot = gameType;
   }
 
   get sendFrom(): string {
-    return this.character.identifier;
+    return this.character?.identifier ?? '';
   }
   set sendFrom(sendFrom: string) {
     this.onSelectedCharacter(sendFrom);
@@ -103,22 +105,25 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     queueMicrotask(() => this.updatePanelTitle());
-    this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
-    this.gameType = this.character.chatPalette ? this.character.chatPalette.dicebot : '';
+    this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
+    this.gameType = this.character?.chatPalette ? this.character.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
       if (this.chatTabidentifier === e.identifier) {
-        this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
+        this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
       }
     });
-    effect(() => {
-      const req = this.uiSignalService.jumpIndexRequest();
-      if (!req || this._timeId != req.targetId) return;
-      this.japmIndex(req.lineNo);
-    });
+    effect(
+      () => {
+        const req = this.uiSignalService.jumpIndexRequest();
+        if (!req || this._timeId != req.targetId) return;
+        this.japmIndex(req.lineNo);
+      },
+      { injector: this.injector }
+    );
   }
 
   ngOnDestroy() {
@@ -126,7 +131,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   updatePanelTitle() {
-    this.panelService.title = this.character.name + ' のチャットパレット';
+    this.panelService.title = this.character ? this.character.name + ' のチャットパレット' : 'チャットパレット';
   }
 
   onSelectedCharacter(identifier: string) {
@@ -251,11 +256,13 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     tachieNum: number;
     messColor: string;
   }) {
-    if (this.chatTab) {
+    const character = this.character;
+    const palette = this.palette;
+    if (this.chatTab && character && palette) {
       let outtext = '';
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
-      if (this.palette.checkTargetCharactor(value.text)) {
+      if (palette.checkTargetCharactor(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {
@@ -273,7 +280,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 
-          outtext += this.palette.evaluate(str2, this.character.rootDataElement, object);
+          outtext += palette.evaluate(str2, character.rootDataElement, object);
           outtext += ' [' + object.name + ']';
           first = false;
 
@@ -281,12 +288,12 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
             text: '',
             object: null,
           };
-          targetContext.text = this.palette.evaluate(str2, this.character.rootDataElement, object);
+          targetContext.text = palette.evaluate(str2, character.rootDataElement, object);
           targetContext.object = object;
           messageTargetContext.push(targetContext);
         }
       } else {
-        outtext = this.palette.evaluate(value.text, this.character.rootDataElement);
+        outtext = palette.evaluate(value.text, character.rootDataElement);
         const targetContext: ChatMessageTargetContext = {
           text: '',
           object: null,

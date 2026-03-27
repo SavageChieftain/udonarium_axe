@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { isReconnectDebugModeByLocation, isReconnectDebugModeByQuery, PeerMenuComponent } from './peer-menu.component';
@@ -9,7 +11,7 @@ describe('PeerMenuComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [PeerMenuComponent],
+      imports: [PeerMenuComponent, PanelDragTestHostComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
@@ -30,6 +32,14 @@ describe('PeerMenuComponent', () => {
 
   it('myTimeがsignalであること', () => {
     expect(typeof component.myTime).toBe('function');
+  });
+
+  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+    await expectPanelDragRecovery(PeerMenuComponent, {
+      beforeOpen: () => {
+        PeerCursor.createMyCursor();
+      },
+    });
   });
 
   it('debugReconnect=1 のときデバッグモードが有効になること', () => {

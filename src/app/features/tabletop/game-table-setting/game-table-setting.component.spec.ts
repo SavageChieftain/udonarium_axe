@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { GameTableSettingComponent } from './game-table-setting.component';
@@ -11,7 +12,7 @@ describe('GameTableSettingComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [GameTableSettingComponent],
+      imports: [GameTableSettingComponent, PanelDragTestHostComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
@@ -87,5 +88,9 @@ describe('GameTableSettingComponent', () => {
       void component.tableDistanceviewImage;
       expect(spy).toHaveBeenCalledWith(table.identifier);
     });
+  });
+
+  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+    await expectPanelDragRecovery(GameTableSettingComponent);
   });
 });

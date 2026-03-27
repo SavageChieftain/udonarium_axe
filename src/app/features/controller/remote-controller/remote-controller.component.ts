@@ -60,7 +60,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   private destroyRef = inject(DestroyRef);
 
   get palette(): ChatPalette {
-    return this.character.remoteController;
+    return this.character?.remoteController ?? null!;
   }
 
   private _gameSystem!: GameSystemClass;
@@ -71,14 +71,14 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   set gameType(gameType: string) {
     DiceBot.loadGameSystemAsync(gameType).then((gameSystem) => {
       this._gameSystem = gameSystem;
-      if (this.character.remoteController) {
+      if (this.character?.remoteController) {
         this.character.remoteController.dicebot = gameSystem.ID;
       }
     });
   }
 
   get sendFrom(): string {
-    return this.character.identifier;
+    return this.character?.identifier ?? '';
   }
   set sendFrom(sendFrom: string) {
     this.onSelectedCharacter(sendFrom);
@@ -135,7 +135,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
   readonly controllerInputComponent = viewChild.required<ControllerInputComponent>('controllerInput');
   readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
-  character!: GameCharacter;
+  character: GameCharacter | null = null;
   errorMessageBuff = '';
   errorMessageController = '';
 
@@ -211,14 +211,14 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
   ngOnInit() {
     queueMicrotask(() => this.updatePanelTitle());
-    this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
-    this.gameType = this.character.remoteController ? this.character.remoteController.dicebot : '';
+    this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
+    this.gameType = this.character?.remoteController ? this.character.remoteController.dicebot : '';
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
       if (this.chatTabidentifier === e.identifier) {
-        this.chatTabidentifier = this.chatMessageService.chatTabs ? this.chatMessageService.chatTabs[0].identifier : '';
+        this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
       }
     });
 
@@ -238,7 +238,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   updatePanelTitle() {
-    this.panelService.title = this.character.name + ' のリモコン';
+    this.panelService.title = this.character ? this.character.name + ' のリモコン' : 'リモコン';
   }
 
   onSelectedCharacter(identifier: string) {

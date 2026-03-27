@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { FileStorageComponent } from './file-storage.component';
@@ -9,7 +10,7 @@ describe('FileStorageComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [FileStorageComponent],
+      imports: [FileStorageComponent, PanelDragTestHostComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
@@ -21,6 +22,10 @@ describe('FileStorageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+    await expectPanelDragRecovery(FileStorageComponent);
   });
 
   describe('checkedFiles による選択状態管理', () => {
