@@ -90,16 +90,30 @@ function makeAudioElm(): AudioElmMock {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+type AudioPlayerPrivateStatic = {
+  _audioContext: unknown;
+  _masterGainNode: unknown;
+  _auditionGainNode: unknown;
+  cacheMap: Map<string, { url: string; blob: Blob }>;
+  MAX_CACHE_SIZE: number;
+  evictCacheIfNeeded: () => void;
+  createCacheAsync: (audio: AudioFile) => Promise<{ url: string; blob: Blob } | null>;
+};
+
+type AudioPlayerPrivateInstance = {
+  _audioElm?: unknown;
+};
+
+const audioPlayerPrivate = AudioPlayer as unknown as AudioPlayerPrivateStatic;
+const asAudioPlayerPrivate = (player: AudioPlayer): AudioPlayerPrivateInstance =>
+  player as unknown as AudioPlayerPrivateInstance;
+
 function resetStaticState() {
   // プライベート静的フィールドをリセットしてテスト間の干渉を防ぐ
-  // @ts-expect-error accessing private
-  AudioPlayer._audioContext = undefined;
-  // @ts-expect-error accessing private
-  AudioPlayer._masterGainNode = undefined;
-  // @ts-expect-error accessing private
-  AudioPlayer._auditionGainNode = undefined;
-  // @ts-expect-error accessing private
-  AudioPlayer.cacheMap.clear();
+  audioPlayerPrivate._audioContext = undefined;
+  audioPlayerPrivate._masterGainNode = undefined;
+  audioPlayerPrivate._auditionGainNode = undefined;
+  audioPlayerPrivate.cacheMap.clear();
 }
 
 function makeAudioFile(opts: { blob?: Blob | null; url?: string; identifier?: string } = {}): AudioFile {
@@ -267,8 +281,7 @@ describe('AudioPlayer', () => {
       player.volume = 0.5;
       expect(player.volume).toBe(0.5);
       // まだ要素は生成されていない（_audioElm は undefined のまま）
-      // @ts-expect-error accessing private
-      expect(player._audioElm).toBeUndefined();
+      expect(asAudioPlayerPrivate(player)._audioElm).toBeUndefined();
     });
 
     it('要素生成後はセットが audioElm にも反映される', () => {
@@ -292,8 +305,7 @@ describe('AudioPlayer', () => {
       player.loop = true;
       expect(player.loop).toBe(true);
       // まだ要素は生成されていない（_audioElm は undefined のまま）
-      // @ts-expect-error accessing private
-      expect(player._audioElm).toBeUndefined();
+      expect(asAudioPlayerPrivate(player)._audioElm).toBeUndefined();
     });
 
     it('要素生成後はセットが audioElm にも反映される', () => {
@@ -347,8 +359,7 @@ describe('AudioPlayer', () => {
     it('AudioState.URL でキャッシュがあれば cachedUrl を使う', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ url: 'http://example.com/a.mp3', identifier: 'cached' });
-      // @ts-expect-error accessing private
-      AudioPlayer.cacheMap.set('cached', { url: 'blob:cached-url', blob: new Blob() });
+      audioPlayerPrivate.cacheMap.set('cached', { url: 'blob:cached-url', blob: new Blob() });
       player.play(af);
       expect(audioElmMock.src).toBe('blob:cached-url');
     });
@@ -409,8 +420,7 @@ describe('AudioPlayer', () => {
       const player = new AudioPlayer();
       expect(() => player.pause()).not.toThrow();
       // まだ要素は生成されていない
-      // @ts-expect-error accessing private
-      expect(player._audioElm).toBeUndefined();
+      expect(asAudioPlayerPrivate(player)._audioElm).toBeUndefined();
     });
 
     it('要素生成後は audioElm.pause() を呼ぶ', () => {
@@ -501,8 +511,7 @@ describe('AudioPlayer', () => {
     it('AudioState.URL でキャッシュがあれば fetch しない', async () => {
       const blob = new Blob(['cached']);
       const af = makeAudioFile({ url: 'http://example.com/c.mp3', identifier: 'sp4' });
-      // @ts-expect-error accessing private
-      AudioPlayer.cacheMap.set('sp4', { url: 'blob:cached', blob });
+      audioPlayerPrivate.cacheMap.set('sp4', { url: 'blob:cached', blob });
 
       AudioPlayer.play(af);
       await vi.waitFor(() => {
@@ -595,8 +604,7 @@ describe('AudioPlayer', () => {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      // @ts-expect-error accessing private
-      const result = await AudioPlayer.createCacheAsync(af);
+      const result = await audioPlayerPrivate.createCacheAsync(af);
       expect(result).toBeNull();
       expect(errorSpy).toHaveBeenCalled();
     });
@@ -605,8 +613,7 @@ describe('AudioPlayer', () => {
       const af = makeAudioFile({ identifier: 'gb2' }); // url='', blob=null
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      // @ts-expect-error accessing private
-      const result = await AudioPlayer.createCacheAsync(af);
+      const result = await audioPlayerPrivate.createCacheAsync(af);
       expect(result).toBeNull();
       expect(errorSpy).toHaveBeenCalled();
     });
@@ -615,8 +622,7 @@ describe('AudioPlayer', () => {
       const blob = new Blob(['data']);
       const af = makeAudioFile({ blob, identifier: 'gb3' });
 
-      // @ts-expect-error accessing private
-      const result = await AudioPlayer.createCacheAsync(af);
+      const result = await audioPlayerPrivate.createCacheAsync(af);
       expect(result).not.toBeNull();
       expect(result?.blob).toBe(blob);
       expect(global.fetch).not.toHaveBeenCalled();
@@ -626,11 +632,9 @@ describe('AudioPlayer', () => {
       const blob = new Blob(['data']);
       const af = makeAudioFile({ blob, identifier: 'gb4' });
       const existingCache = { url: 'blob:existing', blob: new Blob(['existing']) };
-      // @ts-expect-error accessing private
-      AudioPlayer.cacheMap.set('gb4', existingCache);
+      audioPlayerPrivate.cacheMap.set('gb4', existingCache);
 
-      // @ts-expect-error accessing private
-      const result = await AudioPlayer.createCacheAsync(af);
+      const result = await audioPlayerPrivate.createCacheAsync(af);
       expect(result).toBe(existingCache);
     });
 
@@ -638,23 +642,19 @@ describe('AudioPlayer', () => {
       const blob = new Blob(['data']);
       const af = makeAudioFile({ blob, identifier: 'gb5' });
 
-      // @ts-expect-error accessing private
-      await AudioPlayer.createCacheAsync(af);
-      // @ts-expect-error accessing private
-      expect(AudioPlayer.cacheMap.has('gb5')).toBe(true);
+      await audioPlayerPrivate.createCacheAsync(af);
+      expect(audioPlayerPrivate.cacheMap.has('gb5')).toBe(true);
     });
   });
 
   describe('removeCache()', () => {
     it('指定identifierのキャッシュを削除しURLを解放する', () => {
       const cache = { url: 'blob:test-url', blob: new Blob(['data']) };
-      // @ts-expect-error accessing private
-      AudioPlayer.cacheMap.set('remove-test', cache);
+      audioPlayerPrivate.cacheMap.set('remove-test', cache);
 
       AudioPlayer.removeCache('remove-test');
 
-      // @ts-expect-error accessing private
-      expect(AudioPlayer.cacheMap.has('remove-test')).toBe(false);
+      expect(audioPlayerPrivate.cacheMap.has('remove-test')).toBe(false);
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
 
@@ -667,15 +667,12 @@ describe('AudioPlayer', () => {
     it('全てのキャッシュを削除しURLを解放する', () => {
       const cache1 = { url: 'blob:url-1', blob: new Blob(['data1']) };
       const cache2 = { url: 'blob:url-2', blob: new Blob(['data2']) };
-      // @ts-expect-error accessing private
-      AudioPlayer.cacheMap.set('clear-1', cache1);
-      // @ts-expect-error accessing private
-      AudioPlayer.cacheMap.set('clear-2', cache2);
+      audioPlayerPrivate.cacheMap.set('clear-1', cache1);
+      audioPlayerPrivate.cacheMap.set('clear-2', cache2);
 
       AudioPlayer.clearAllCache();
 
-      // @ts-expect-error accessing private
-      expect(AudioPlayer.cacheMap.size).toBe(0);
+      expect(audioPlayerPrivate.cacheMap.size).toBe(0);
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:url-1');
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:url-2');
     });
@@ -683,27 +680,21 @@ describe('AudioPlayer', () => {
 
   describe('cache eviction', () => {
     it('キャッシュがMAX_CACHE_SIZEを超えた時に古いエントリを削除する', async () => {
-      // @ts-expect-error accessing private static
-      const maxSize = AudioPlayer.MAX_CACHE_SIZE;
+      const maxSize = audioPlayerPrivate.MAX_CACHE_SIZE;
 
       // Fill cache to max
       for (let i = 0; i < maxSize + 5; i++) {
         const cache = { url: `blob:url-${i}`, blob: new Blob([`data-${i}`]) };
-        // @ts-expect-error accessing private
-        AudioPlayer.cacheMap.set(`evict-${i}`, cache);
+        audioPlayerPrivate.cacheMap.set(`evict-${i}`, cache);
       }
 
-      // @ts-expect-error accessing private
-      AudioPlayer.evictCacheIfNeeded();
+      audioPlayerPrivate.evictCacheIfNeeded();
 
-      // @ts-expect-error accessing private
-      expect(AudioPlayer.cacheMap.size).toBe(maxSize);
+      expect(audioPlayerPrivate.cacheMap.size).toBe(maxSize);
       // Oldest entries should be removed
-      // @ts-expect-error accessing private
-      expect(AudioPlayer.cacheMap.has('evict-0')).toBe(false);
+      expect(audioPlayerPrivate.cacheMap.has('evict-0')).toBe(false);
       // Newest entries should remain
-      // @ts-expect-error accessing private
-      expect(AudioPlayer.cacheMap.has(`evict-${maxSize + 4}`)).toBe(true);
+      expect(audioPlayerPrivate.cacheMap.has(`evict-${maxSize + 4}`)).toBe(true);
     });
   });
 });

@@ -5,6 +5,14 @@ import { GameObject } from './game-object';
 import { objectAdded$, objectRemoved$ } from './object-event-extension';
 import { ObjectStore } from './object-store';
 
+type ObjectStorePrivate = {
+  aliasNameMap: Map<string, Map<string, GameObject> | undefined>;
+  garbageMap: Map<string, number>;
+  garbageCollectionInterval: NodeJS.Timeout | null;
+};
+
+const asPrivate = (store: ObjectStore): ObjectStorePrivate => store as unknown as ObjectStorePrivate;
+
 describe('ObjectStore', () => {
   let store: ObjectStore;
   let sendSpy: ReturnType<typeof vi.spyOn>;
@@ -25,12 +33,10 @@ describe('ObjectStore', () => {
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     // Cancel any pending garbageCollectionInterval to prevent leaking timers
-    // @ts-expect-error accessing private
-    if (store.garbageCollectionInterval != null) {
-      // @ts-expect-error accessing private
-      clearTimeout(store.garbageCollectionInterval);
-      // @ts-expect-error accessing private
-      store.garbageCollectionInterval = null;
+    const privateStore = asPrivate(store);
+    if (privateStore.garbageCollectionInterval != null) {
+      clearTimeout(privateStore.garbageCollectionInterval);
+      privateStore.garbageCollectionInterval = null;
     }
     vi.clearAllMocks();
   });
@@ -97,16 +103,15 @@ describe('ObjectStore', () => {
     });
 
     it('should recover when aliasNameMap entry is unexpectedly undefined', () => {
+      const privateStore = asPrivate(store);
       try {
-        // @ts-expect-error accessing private for robustness test
-        store.aliasNameMap.set(GameObject.aliasName, undefined);
+        privateStore.aliasNameMap.set(GameObject.aliasName, undefined);
         const obj = new GameObject('test-id-6-robust');
 
         expect(() => store.add(obj, false)).not.toThrow();
         expect(store.get('test-id-6-robust')).toBe(obj);
       } finally {
-        // @ts-expect-error accessing private for robustness test
-        store.aliasNameMap.delete(GameObject.aliasName);
+        privateStore.aliasNameMap.delete(GameObject.aliasName);
       }
     });
   });
@@ -175,15 +180,14 @@ describe('ObjectStore', () => {
     });
 
     it('should return empty array when aliasName map value is unexpectedly undefined', () => {
+      const privateStore = asPrivate(store);
       try {
-        // @ts-expect-error accessing private for robustness test
-        store.aliasNameMap.set(GameObject.aliasName, undefined);
+        privateStore.aliasNameMap.set(GameObject.aliasName, undefined);
 
         expect(() => store.getObjects(GameObject.aliasName)).not.toThrow();
         expect(store.getObjects(GameObject.aliasName)).toEqual([]);
       } finally {
-        // @ts-expect-error accessing private for robustness test
-        store.aliasNameMap.delete(GameObject.aliasName);
+        privateStore.aliasNameMap.delete(GameObject.aliasName);
       }
     });
   });
@@ -411,8 +415,8 @@ describe('ObjectStore', () => {
       vi.useFakeTimers();
       try {
         // Directly populate the garbageMap beyond 100000 entries
-        // @ts-expect-error accessing private
-        const garbageMap: Map<string, number> = store.garbageMap;
+        const privateStore = asPrivate(store);
+        const garbageMap = privateStore.garbageMap;
         const oldTimestamp = performance.now() - 11 * 60 * 1000; // 11 minutes ago
         for (let i = 0; i < 100002; i++) {
           garbageMap.set(`gc-test-${i}`, oldTimestamp);

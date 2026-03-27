@@ -17,6 +17,7 @@ describe('PeerCursorComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PeerCursorComponent);
     component = fixture.componentInstance;
+    vi.spyOn(component, 'ngOnDestroy').mockImplementation(() => undefined);
   });
 
   it('should create', () => {

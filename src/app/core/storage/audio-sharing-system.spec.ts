@@ -18,6 +18,20 @@ const BufferSharingTaskMock = BufferSharingTask as unknown as {
   createReceiveTask: ReturnType<typeof vi.fn>;
 };
 
+type AudioSharingSystemPrivateInstance = {
+  subscription?: { unsubscribe: () => void };
+  sendTaskMap: Map<string, unknown>;
+  receiveTaskMap: Map<string, unknown>;
+};
+
+type AudioSharingSystemPrivateStatic = {
+  _instance?: AudioSharingSystemPrivateInstance;
+};
+
+const audioSharingStatic = AudioSharingSystem as unknown as AudioSharingSystemPrivateStatic;
+const asAudioSharingPrivate = (instance: AudioSharingSystem): AudioSharingSystemPrivateInstance =>
+  instance as unknown as AudioSharingSystemPrivateInstance;
+
 function makeAudioFile(
   opts: { blob?: Blob | null; url?: string; identifier?: string; state?: AudioState } = {}
 ): AudioFile {
@@ -61,11 +75,9 @@ describe('AudioSharingSystem', () => {
 
   beforeEach(() => {
     // 前のインスタンスのサブスクリプションをクリーンアップ（real networkMessage$ を使うため）
-    // @ts-expect-error accessing private
-    AudioSharingSystem._instance?.subscription?.unsubscribe();
+    audioSharingStatic._instance?.subscription?.unsubscribe();
     // シングルトンをリセット
-    // @ts-expect-error accessing private
-    AudioSharingSystem._instance = undefined;
+    audioSharingStatic._instance = undefined;
 
     vi.clearAllMocks();
 
@@ -85,8 +97,7 @@ describe('AudioSharingSystem', () => {
   });
 
   afterEach(() => {
-    // @ts-expect-error accessing private
-    AudioSharingSystem._instance?.subscription?.unsubscribe();
+    audioSharingStatic._instance?.subscription?.unsubscribe();
     vi.restoreAllMocks();
   });
 
@@ -163,8 +174,7 @@ describe('AudioSharingSystem', () => {
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'in-progress' });
       BufferSharingTaskMock.createReceiveTask.mockReturnValue(task);
-      // @ts-expect-error accessing private
-      AudioSharingSystem.instance.receiveTaskMap.set('in-progress', task);
+      asAudioSharingPrivate(AudioSharingSystem.instance).receiveTaskMap.set('in-progress', task);
       emit('SYNCHRONIZE_AUDIO_LIST', [{ identifier: 'in-progress', state: audio.state }]);
       expect(sendSpy).not.toHaveBeenCalled();
     });
@@ -194,8 +204,7 @@ describe('AudioSharingSystem', () => {
       });
       const instance = AudioSharingSystem.instance;
       for (let i = 0; i < 4; i++) {
-        // @ts-expect-error accessing private
-        instance.receiveTaskMap.set(`fill-${i}`, makeTask({ identifier: `fill-${i}` }));
+        asAudioSharingPrivate(instance).receiveTaskMap.set(`fill-${i}`, makeTask({ identifier: `fill-${i}` }));
       }
       emit('SYNCHRONIZE_AUDIO_LIST', [{ identifier: 'limit', state: AudioState.NULL }]);
       expect(sendSpy).not.toHaveBeenCalled();
@@ -238,8 +247,7 @@ describe('AudioSharingSystem', () => {
       const audio = makeAudioFile({ identifier: 'exist-send', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       const existingTask = makeTask({ identifier: 'exist-send', sendTo: 'peer-r' });
-      // @ts-expect-error accessing private
-      AudioSharingSystem.instance.sendTaskMap.set('exist-send', existingTask);
+      asAudioSharingPrivate(AudioSharingSystem.instance).sendTaskMap.set('exist-send', existingTask);
 
       emit('REQUEST_AUDIO_RESOURE', {
         identifiers: [{ identifier: 'exist-send', state: AudioState.NULL }],
@@ -296,8 +304,10 @@ describe('AudioSharingSystem', () => {
       AudioStorageMock.get.mockReturnValue(audio);
       const instance = AudioSharingSystem.instance;
       for (let i = 0; i < 2; i++) {
-        // @ts-expect-error accessing private
-        instance.sendTaskMap.set(`fill-${i}`, makeTask({ identifier: `fill-${i}`, sendTo: `peer-fill-${i}` }));
+        asAudioSharingPrivate(instance).sendTaskMap.set(
+          `fill-${i}`,
+          makeTask({ identifier: `fill-${i}`, sendTo: `peer-fill-${i}` })
+        );
       }
       emit('REQUEST_AUDIO_RESOURE', {
         identifiers: [{ identifier: 'limited', state: AudioState.NULL }],
@@ -336,8 +346,7 @@ describe('AudioSharingSystem', () => {
 
     it('既に receiveTask がある場合は CANCEL_TASK_ を送る', () => {
       const instance = AudioSharingSystem.instance;
-      // @ts-expect-error accessing private
-      instance.receiveTaskMap.set('cancel-id', makeTask({ identifier: 'cancel-id' }));
+      asAudioSharingPrivate(instance).receiveTaskMap.set('cancel-id', makeTask({ identifier: 'cancel-id' }));
       emit('START_AUDIO_TRANSMISSION', { fileIdentifier: 'cancel-id' });
       expect(sendSpy).toHaveBeenCalledWith(
         expect.objectContaining({ eventName: 'CANCEL_TASK_cancel-id', data: null }),
@@ -400,8 +409,7 @@ describe('AudioSharingSystem', () => {
 
       await vi.waitFor(() => expect(task.start).toHaveBeenCalled());
       (task as unknown as { onfinish: () => void }).onfinish();
-      // @ts-expect-error accessing private
-      expect(AudioSharingSystem.instance.sendTaskMap.has('finish-audio')).toBe(false);
+      expect(asAudioSharingPrivate(AudioSharingSystem.instance).sendTaskMap.has('finish-audio')).toBe(false);
       expect(AudioStorageMock.synchronize).toHaveBeenCalled();
     });
   });
@@ -445,8 +453,7 @@ describe('AudioSharingSystem', () => {
       const fakeContext: AudioFileContext = { identifier: 'fin-id', name: 'fin', blob: null, type: '', url: '' };
       onfinish(task, fakeContext);
 
-      // @ts-expect-error accessing private
-      expect(AudioSharingSystem.instance.receiveTaskMap.has('fin-id')).toBe(false);
+      expect(asAudioSharingPrivate(AudioSharingSystem.instance).receiveTaskMap.has('fin-id')).toBe(false);
       // localDispatch が UPDATE_AUDIO_RESOURE を発行 → SUT が add する
       expect(AudioStorageMock.add).toHaveBeenCalledWith(expect.objectContaining({ identifier: 'fin-id' }));
       expect(AudioStorageMock.synchronize).toHaveBeenCalled();
