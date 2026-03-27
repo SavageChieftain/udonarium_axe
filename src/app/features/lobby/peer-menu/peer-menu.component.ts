@@ -24,6 +24,14 @@ export function isReconnectDebugModeByQuery(search?: string, key: string = RECON
   return value === '1' || value?.toLowerCase() === 'true';
 }
 
+export function isReconnectDebugModeByLocation(locationLike: Pick<Location, 'search' | 'hash'>): boolean {
+  const searchQuery = locationLike.search ?? '';
+  const hash = locationLike.hash ?? '';
+  const hashQueryStart = hash.indexOf('?');
+  const hashQuery = hashQueryStart >= 0 ? hash.slice(hashQueryStart) : '';
+  return isReconnectDebugModeByQuery(searchQuery) || isReconnectDebugModeByQuery(hashQuery);
+}
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'peer-menu',
@@ -93,8 +101,12 @@ export class PeerMenuComponent implements OnInit {
     });
   }
 
+  get isReconnectDebugMode(): boolean {
+    return isReconnectDebugModeByLocation(window.location);
+  }
+
   get shouldShowReconnectButton(): boolean {
-    return this.networkService.peerIds.length > 1 || isReconnectDebugModeByQuery(window.location.search);
+    return this.networkService.peerIds.length > 1 || this.isReconnectDebugMode;
   }
 
   togglePasswordVisibility() {
