@@ -4,8 +4,8 @@ import {
   getDiceMenuItems,
   getRangeMenuItems,
   getTrumpCardCodes,
-  TRUMP_BACK_IMAGE_PATH,
   TERRAIN_TEXTURE_PATH,
+  TRUMP_BACK_IMAGE_PATH,
 } from './tabletop-action-helpers';
 
 describe('tabletop-action-helpers', () => {

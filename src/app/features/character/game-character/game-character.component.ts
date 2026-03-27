@@ -24,13 +24,13 @@ import { GameCharacterSheetComponent } from '@axe/features/character/game-charac
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
 import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
 import { RemoteControllerComponent } from '@axe/features/controller/remote-controller/remote-controller.component';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';

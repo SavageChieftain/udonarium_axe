@@ -40,8 +40,6 @@ import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/g
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
-import { TabletopService } from '@axe/shared/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/shared/components/text-note/text-note.component';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/context-menu.service';
@@ -50,6 +48,8 @@ import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
+import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
 import { GridLineRender } from './grid-line-render';
