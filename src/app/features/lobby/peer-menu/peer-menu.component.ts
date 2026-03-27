@@ -16,22 +16,6 @@ import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { interval } from 'rxjs';
 
-export const RECONNECT_DEBUG_QUERY_KEY = 'debugReconnect';
-
-export function isReconnectDebugModeByQuery(search?: string, key: string = RECONNECT_DEBUG_QUERY_KEY): boolean {
-  const query = search ?? '';
-  const value = new URLSearchParams(query).get(key);
-  return value === '1' || value?.toLowerCase() === 'true';
-}
-
-export function isReconnectDebugModeByLocation(locationLike: Pick<Location, 'search' | 'hash'>): boolean {
-  const searchQuery = locationLike.search ?? '';
-  const hash = locationLike.hash ?? '';
-  const hashQueryStart = hash.indexOf('?');
-  const hashQuery = hashQueryStart >= 0 ? hash.slice(hashQueryStart) : '';
-  return isReconnectDebugModeByQuery(searchQuery) || isReconnectDebugModeByQuery(hashQuery);
-}
-
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'peer-menu',
@@ -101,12 +85,8 @@ export class PeerMenuComponent implements OnInit {
     });
   }
 
-  get isReconnectDebugMode(): boolean {
-    return isReconnectDebugModeByLocation(window.location);
-  }
-
   get shouldShowReconnectButton(): boolean {
-    return this.networkService.peerIds.length > 1 || this.isReconnectDebugMode;
+    return this.networkService.peerIds.length > 1;
   }
 
   togglePasswordVisibility() {

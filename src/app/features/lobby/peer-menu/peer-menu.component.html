@@ -122,11 +122,6 @@
     <input class="is-caret" [(ngModel)]="targetUserId" placeholder="接続したい相手のID" name="targetUserId" />
     <button (click)="connectPeer()" [disabled]="!networkService.isOpen">プライベート接続</button><br />
   }
-  @if (!networkService.peerContext.isRoom && isReconnectDebugMode) {
-    <button (click)="showReConnect()" class="danger">
-      <span>再接続</span>
-    </button>
-  }
   @if (networkService.peerIds.length <= 1) {
     <button (click)="showLobby()" [disabled]="!networkService.isOpen">ロビー（ルーム一覧）を表示</button>
   }
