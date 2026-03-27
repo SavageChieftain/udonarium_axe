@@ -13,7 +13,7 @@ import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { interval } from 'rxjs';
 
 @Component({

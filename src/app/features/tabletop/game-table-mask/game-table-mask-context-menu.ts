@@ -3,7 +3,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/context-menu.service';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 
 export interface MaskMenuParams {
   mask: GameTableMask;

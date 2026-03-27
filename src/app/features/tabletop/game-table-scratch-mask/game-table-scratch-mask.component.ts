@@ -9,7 +9,7 @@ import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 
 @Component({
   selector: 'game-table-scratch-mask',

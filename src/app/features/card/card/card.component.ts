@@ -30,7 +30,7 @@ import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 
 @Component({
   selector: 'card',

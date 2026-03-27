@@ -37,8 +37,8 @@ import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop-action.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { UiSignalService } from '@axe/shared/ui-signal.service';
 
 import { buildTerrainContextMenu } from './terrain-context-menu';

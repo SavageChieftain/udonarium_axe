@@ -23,12 +23,12 @@ import {
   getTrumpCardCodes,
   TERRAIN_TEXTURE_PATH,
   TRUMP_BACK_IMAGE_PATH,
-} from '@axe/shared/tabletop-action-helpers';
-import { initAprilDiceImages } from '@axe/shared/tabletop-default-dice';
+} from '@axe/shared/tabletop/tabletop-action-helpers';
+import { initAprilDiceImages } from '@axe/shared/tabletop/tabletop-default-dice';
 import {
   makeDefaultTable as _makeDefaultTable,
   makeDefaultTabletopObjects as _makeDefaultTabletopObjects,
-} from '@axe/shared/tabletop-default-setup';
+} from '@axe/shared/tabletop/tabletop-default-setup';
 
 @Injectable({
   providedIn: 'root',

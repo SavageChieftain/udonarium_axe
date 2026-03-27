@@ -16,7 +16,7 @@ import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
-import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 
 import { AppComponent } from './app/app.component';

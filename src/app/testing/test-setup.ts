@@ -19,7 +19,7 @@ import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { PanelService } from '@axe/shared/panel.service';
-import { TabletopService } from '@axe/shared/tabletop.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 
 // src/app 以下の全 HTML/CSS ファイルをファイル名でインデックス化
 const srcAppDir = resolve(process.cwd(), 'src/app');
