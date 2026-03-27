@@ -1,7 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PeerContext } from '@axe/core/network/peer-context';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
-import { ReConnectComponent } from './re-connect.component';
+import {
+  createExpectedPeerIdSet,
+  isReconnectCompleted,
+  ReConnectComponent,
+  resolveReconnectUserId,
+} from './re-connect.component';
 
 describe('ReConnectComponent', () => {
   let component: ReConnectComponent;
@@ -21,5 +27,31 @@ describe('ReConnectComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('再接続時は保持済みuserIdを優先すること', () => {
+    expect(resolveReconnectUserId('persisted-user', 'current-user')).toBe('persisted-user');
+  });
+
+  it('保持済みがない場合は現在のuserIdを使うこと', () => {
+    expect(resolveReconnectUserId('', 'current-user')).toBe('current-user');
+  });
+
+  it('期待ピア一覧から自分自身を除外すること', () => {
+    const peerContexts = [PeerContext.parse('self-peer'), PeerContext.parse('peer-a'), PeerContext.parse('peer-b')];
+
+    const expected = createExpectedPeerIdSet(peerContexts, 'self-peer');
+
+    expect(expected.has('self-peer')).toBe(false);
+    expect(expected.has('peer-a')).toBe(true);
+    expect(expected.has('peer-b')).toBe(true);
+  });
+
+  it('期待ピアが全て観測されたときのみ再接続完了と判定すること', () => {
+    const expected = new Set(['peer-a', 'peer-b']);
+
+    expect(isReconnectCompleted(expected, new Set())).toBe(false);
+    expect(isReconnectCompleted(expected, new Set(['peer-a']))).toBe(false);
+    expect(isReconnectCompleted(expected, new Set(['peer-a', 'peer-b']))).toBe(true);
   });
 });

@@ -17,6 +17,24 @@ import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { merge, take } from 'rxjs';
 
+export function resolveReconnectUserId(previousUserId: string, currentUserId: string): string {
+  if (previousUserId?.length) return previousUserId;
+  if (currentUserId?.length) return currentUserId;
+  return PeerContext.generateId();
+}
+
+export function createExpectedPeerIdSet(peerContexts: PeerContext[], selfPeerId: string): Set<string> {
+  return new Set(peerContexts.map((context) => context.peerId).filter((peerId) => peerId !== selfPeerId));
+}
+
+export function isReconnectCompleted(expectedPeerIds: Set<string>, observedPeerIds: Set<string>): boolean {
+  if (expectedPeerIds.size < 1) return true;
+  for (const peerId of expectedPeerIds) {
+    if (!observedPeerIds.has(peerId)) return false;
+  }
+  return true;
+}
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 're-connect',
@@ -39,6 +57,7 @@ export class ReConnectComponent implements OnInit {
   networkService = Network;
   roomName = '';
   roomId = '';
+  reconnectUserId = '';
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -56,6 +75,7 @@ export class ReConnectComponent implements OnInit {
 
   ngOnInit() {
     queueMicrotask(() => this.changeTitle());
+    this.reconnectUserId = this.networkService.peerContext.userId;
     if (this.networkService.peerContext.isRoom) {
       this.roomName = this.networkService.peerContext.roomName;
       this.roomId = this.networkService.peerContext.roomId;
@@ -70,6 +90,7 @@ export class ReConnectComponent implements OnInit {
   }
 
   reConnect() {
+    this.reconnectUserId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
     this.disConnect();
     this.deleteObject();
 
@@ -130,27 +151,46 @@ export class ReConnectComponent implements OnInit {
 
     if (!(await context.verifyPassword(password))) return;
 
-    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
+    const userId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
+    this.reconnectUserId = userId;
     Network.open(userId, context.roomId, context.roomName, password);
     PeerCursor.myCursor.peerId = Network.peerId;
 
-    const triedPeer: string[] = [];
+    const expectedPeerIds = createExpectedPeerIdSet(peerContexts, this.networkService.peerId);
+    const observedPeerIds: Set<string> = new Set();
     this.objectChange.networkOpen$.pipe(take(1)).subscribe(() => {
       Logger.info('[Network] ピア接続開始');
       this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }
-      merge(this.objectChange.peerConnect$, this.objectChange.peerDisconnect$)
+      const timeoutTimer = setTimeout(() => {
+        Logger.warn('[Network] 再接続の完了待機がタイムアウトしました');
+        this.resetNetwork();
+        this.closeIfConnected();
+      }, 5000);
+
+      const subscription = merge(this.objectChange.peerConnect$, this.objectChange.peerDisconnect$)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((event) => {
-          triedPeer.push(event.peerId);
-          Logger.info(`[Network] 接続結果 (${triedPeer.length}/${peerContexts.length})`, event.peerId);
-          if (peerContexts.length <= triedPeer.length) {
+          if (expectedPeerIds.has(event.peerId)) {
+            observedPeerIds.add(event.peerId);
+          }
+          Logger.info(`[Network] 接続結果 (${observedPeerIds.size}/${expectedPeerIds.size})`, event.peerId);
+          if (isReconnectCompleted(expectedPeerIds, observedPeerIds)) {
+            clearTimeout(timeoutTimer);
+            subscription.unsubscribe();
             this.resetNetwork();
             this.closeIfConnected();
           }
         });
+
+      if (isReconnectCompleted(expectedPeerIds, observedPeerIds)) {
+        clearTimeout(timeoutTimer);
+        subscription.unsubscribe();
+        this.resetNetwork();
+        this.closeIfConnected();
+      }
     });
   }
 
@@ -160,7 +200,9 @@ export class ReConnectComponent implements OnInit {
 
   private resetNetwork() {
     if (Network.peerContexts.length < 1) {
-      Network.open();
+      const userId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
+      this.reconnectUserId = userId;
+      Network.open(userId);
       PeerCursor.myCursor.peerId = Network.peerId;
     }
   }
@@ -171,8 +213,9 @@ export class ReConnectComponent implements OnInit {
 
   disConnect() {
     Logger.info(`[Network] 切断実行 (接続数: ${this.networkService.peerIds.length})`);
-    this.networkService.open();
-    this.networkService.open();
+    for (const peerContext of [...this.networkService.peerContexts]) {
+      this.networkService.disconnect(peerContext);
+    }
   }
 
   deleteObject() {
