@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -53,5 +54,43 @@ describe('ReConnectComponent', () => {
     expect(isReconnectCompleted(expected, new Set())).toBe(false);
     expect(isReconnectCompleted(expected, new Set(['peer-a']))).toBe(false);
     expect(isReconnectCompleted(expected, new Set(['peer-a', 'peer-b']))).toBe(true);
+  });
+
+  it('forceCleanup 無効時は deleteObject を実行しないこと', () => {
+    component.networkService = {
+      peerContext: { userId: 'current-user' },
+    } as unknown as typeof Network;
+    component.roomId = 'room-id';
+    component.roomName = 'room-name';
+    component.rooms = [{ alias: 'room-idroom-name', roomName: 'room-name', peerContexts: [] }];
+    component.forceCleanup = false;
+
+    const disconnectSpy = vi.spyOn(component, 'disConnect').mockImplementation(() => undefined);
+    const deleteSpy = vi.spyOn(component, 'deleteObject').mockImplementation(() => undefined);
+    const connectSpy = vi.spyOn(component, 'connect').mockResolvedValue(undefined);
+
+    component.reConnect();
+
+    expect(disconnectSpy).toHaveBeenCalledOnce();
+    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(connectSpy).toHaveBeenCalledOnce();
+  });
+
+  it('forceCleanup 有効時は deleteObject を実行すること', () => {
+    component.networkService = {
+      peerContext: { userId: 'current-user' },
+    } as unknown as typeof Network;
+    component.roomId = 'room-id';
+    component.roomName = 'room-name';
+    component.rooms = [{ alias: 'room-idroom-name', roomName: 'room-name', peerContexts: [] }];
+    component.forceCleanup = true;
+
+    vi.spyOn(component, 'disConnect').mockImplementation(() => undefined);
+    const deleteSpy = vi.spyOn(component, 'deleteObject').mockImplementation(() => undefined);
+    vi.spyOn(component, 'connect').mockResolvedValue(undefined);
+
+    component.reConnect();
+
+    expect(deleteSpy).toHaveBeenCalledOnce();
   });
 });

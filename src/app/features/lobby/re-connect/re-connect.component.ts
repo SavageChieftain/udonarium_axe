@@ -50,9 +50,7 @@ export class ReConnectComponent implements OnInit {
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
-  isReloading: boolean = false;
-
-  isDisconnect: boolean = false;
+  forceCleanup: boolean = false;
 
   networkService = Network;
   roomName = '';
@@ -61,16 +59,6 @@ export class ReConnectComponent implements OnInit {
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
-  }
-
-  get currentRoom(): string {
-    return Network.peerContext.roomId;
-  }
-  get peerId(): string {
-    return Network.peerId;
-  }
-  get isConnected(): boolean {
-    return Network.peerIds.length <= 1 ? false : true;
   }
 
   ngOnInit() {
@@ -92,18 +80,15 @@ export class ReConnectComponent implements OnInit {
   reConnect() {
     this.reconnectUserId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
     this.disConnect();
-    this.deleteObject();
-
-    this.isDisconnect = true;
-  }
-
-  reConnect2() {
-    if (!this.isDisconnect) return;
+    if (this.forceCleanup) {
+      Logger.warn('[Network] 強制クリーンアップを有効にして再接続を実行します');
+      this.deleteObject();
+    }
 
     for (const room of this.rooms) {
       if (room.alias == this.roomId + this.roomName) {
+        Logger.info(`[Network] 再接続処理を開始 (room: ${this.roomName})`);
         this.connect(room.peerContexts);
-        Logger.info(`[Network] 再接続成功 (room: ${this.roomName})`);
         return;
       }
     }
@@ -111,7 +96,6 @@ export class ReConnectComponent implements OnInit {
   }
 
   async reload() {
-    this.isReloading = true;
     this.rooms = [];
     const peersOfroom: { [room: string]: PeerContext[] } = {};
     const peerIds = await Network.listAllPeers();
@@ -137,7 +121,6 @@ export class ReConnectComponent implements OnInit {
       if (a.alias > b.alias) return 1;
       return 0;
     });
-    this.isReloading = false;
   }
 
   async connect(peerContexts: PeerContext[]) {
@@ -192,10 +175,6 @@ export class ReConnectComponent implements OnInit {
         this.closeIfConnected();
       }
     });
-  }
-
-  cancel() {
-    this.modalService.resolve();
   }
 
   private resetNetwork() {
