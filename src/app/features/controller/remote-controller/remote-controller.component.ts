@@ -33,6 +33,13 @@ import {
   sendDecBuffRoundMessage,
   sendDeleteZeroRoundBuffMessage,
 } from './remote-controller-buff';
+import {
+  getGameObjects,
+  getInventory,
+  getInventoryTags,
+  getTabTitle,
+  getTargetCharacters,
+} from './remote-controller-helpers';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -285,54 +292,22 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   ngAfterViewInit() {}
 
   getTabTitle(inventoryType: string) {
-    switch (inventoryType) {
-      case 'table':
-        return 'テーブル';
-      case Network.peerId:
-        return '個人';
-      case 'graveyard':
-        return '墓場';
-      default:
-        return '共有';
-    }
+    return getTabTitle(inventoryType);
   }
 
   getInventory(inventoryType: string) {
-    switch (inventoryType) {
-      case 'table':
-        return this.inventoryService.tableInventory;
-      case Network.peerId:
-        return this.inventoryService.privateInventory;
-      case 'graveyard':
-        return this.inventoryService.graveyardInventory;
-      default:
-        return this.inventoryService.commonInventory;
-    }
+    return getInventory(inventoryType, this.inventoryService);
   }
 
   getGameObjects(inventoryType: string): TabletopObject[] {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('character')();
-    switch (inventoryType) {
-      case 'table': {
-        const tableCharacterList_dest = [];
-        const tableCharacterList_scr = this.inventoryService.tableInventory.tabletopObjects;
-        for (const character of tableCharacterList_scr) {
-          const character_: GameCharacter = character as GameCharacter;
-          if (!character_.hideInventory) {
-            tableCharacterList_dest.push(character as TabletopObject);
-          }
-        }
-        return tableCharacterList_dest;
-      }
-      default:
-        return [];
-    }
+    return getGameObjects(inventoryType, this.inventoryService);
   }
 
   getInventoryTags(gameObject: GameCharacter): DataElement[] {
-    return this.getInventory(gameObject.location.name).dataElementMap.get(gameObject.identifier) ?? [];
+    return getInventoryTags(gameObject, this.inventoryService);
   }
 
   toggleEdit() {
@@ -345,20 +320,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   getTargetCharacters(checkedOnly: boolean): GameCharacter[] {
-    const gameCharacters = [];
     const objectList = this.getGameObjects(this.selectTab);
-    for (const object of objectList) {
-      if (object instanceof GameCharacter) {
-        if (object.hideInventory) {
-          continue;
-        } // 非表示対象の除外のため
-
-        if (object.targeted || !checkedOnly) {
-          gameCharacters.push(object);
-        }
-      }
-    }
-    return gameCharacters;
+    return getTargetCharacters(objectList, checkedOnly);
   }
 
   remoteDecBuffRound(checkedOnly: boolean) {

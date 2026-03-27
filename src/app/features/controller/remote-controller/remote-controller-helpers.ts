@@ -1,0 +1,100 @@
+import { Network } from '@axe/core/index';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement } from '@axe/domain/data/data-element';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { ObjectInventory } from '@axe/shared/object-inventory';
+
+export interface RemoteControllerInventoryContext {
+  tableInventory: ObjectInventory;
+  commonInventory: ObjectInventory;
+  privateInventory: ObjectInventory;
+  graveyardInventory: ObjectInventory;
+}
+
+/**
+ * タブ種別に対応する日本語表示名を返す
+ */
+export function getTabTitle(inventoryType: string): string {
+  switch (inventoryType) {
+    case 'table':
+      return 'テーブル';
+    case Network.peerId:
+      return '個人';
+    case 'graveyard':
+      return '墓場';
+    default:
+      return '共有';
+  }
+}
+
+/**
+ * 指定されたタイプに応じたインベントリを取得
+ */
+export function getInventory(
+  inventoryType: string,
+  inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
+): ObjectInventory {
+  switch (inventoryType) {
+    case 'table':
+      return inventoryService.tableInventory;
+    case Network.peerId:
+      return inventoryService.privateInventory;
+    case 'graveyard':
+      return inventoryService.graveyardInventory;
+    default:
+      return inventoryService.commonInventory;
+  }
+}
+
+/**
+ * ゲームキャラクターのインベントリタグを取得
+ */
+export function getInventoryTags(
+  gameCharacter: GameCharacter,
+  inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
+): DataElement[] {
+  const inventory = getInventory(gameCharacter.location.name, inventoryService);
+  return inventory.dataElementMap.get(gameCharacter.identifier) ?? [];
+}
+
+/**
+ * テーブルタイプのゲームオブジェクトリストを取得（hideInventoryフィルター適用）
+ */
+export function getGameObjects(
+  inventoryType: string,
+  inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
+): TabletopObject[] {
+  if (inventoryType !== 'table') {
+    return [];
+  }
+
+  const tableCharacterList: TabletopObject[] = [];
+  const tableCharacterList_scr = inventoryService.tableInventory.tabletopObjects;
+  for (const character of tableCharacterList_scr) {
+    const character_ = character as GameCharacter;
+    if (!character_.hideInventory) {
+      tableCharacterList.push(character as TabletopObject);
+    }
+  }
+  return tableCharacterList;
+}
+
+/**
+ * 対象キャラクターを取得（checkedOnly=trueならtargeted=trueのみ）
+ * hideInventoryのキャラクターは除外
+ */
+export function getTargetCharacters(objectList: TabletopObject[], checkedOnly: boolean): GameCharacter[] {
+  const gameCharacters: GameCharacter[] = [];
+  for (const object of objectList) {
+    // objectListは既にGameCharacterでフィルター済みと仮定（getGameObjects() の呼び出し元）
+    const gameChar = object as GameCharacter;
+    if (gameChar.hideInventory) {
+      continue; // 非表示対象の除外
+    }
+    if (gameChar.targeted || !checkedOnly) {
+      gameCharacters.push(gameChar);
+    }
+  }
+  return gameCharacters;
+}
