@@ -95,6 +95,20 @@ describe('ObjectStore', () => {
 
       expect(store.update).not.toHaveBeenCalled();
     });
+
+    it('should recover when aliasNameMap entry is unexpectedly undefined', () => {
+      try {
+        // @ts-expect-error accessing private for robustness test
+        store.aliasNameMap.set(GameObject.aliasName, undefined);
+        const obj = new GameObject('test-id-6-robust');
+
+        expect(() => store.add(obj, false)).not.toThrow();
+        expect(store.get('test-id-6-robust')).toBe(obj);
+      } finally {
+        // @ts-expect-error accessing private for robustness test
+        store.aliasNameMap.delete(GameObject.aliasName);
+      }
+    });
   });
 
   describe('get()', () => {
@@ -158,6 +172,19 @@ describe('ObjectStore', () => {
       expect(objects.length).toBe(2);
       expect(objects).toContain(obj1);
       expect(objects).toContain(obj2);
+    });
+
+    it('should return empty array when aliasName map value is unexpectedly undefined', () => {
+      try {
+        // @ts-expect-error accessing private for robustness test
+        store.aliasNameMap.set(GameObject.aliasName, undefined);
+
+        expect(() => store.getObjects(GameObject.aliasName)).not.toThrow();
+        expect(store.getObjects(GameObject.aliasName)).toEqual([]);
+      } finally {
+        // @ts-expect-error accessing private for robustness test
+        store.aliasNameMap.delete(GameObject.aliasName);
+      }
     });
   });
 

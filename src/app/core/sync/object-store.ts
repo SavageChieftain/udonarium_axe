@@ -34,10 +34,12 @@ export class ObjectStore {
   add(object: GameObject, shouldBroadcast: boolean = true): GameObject {
     if (this.get(object.identifier) != null || this.isDeleted(object.identifier)) return null!;
     this.identifierMap.set(object.identifier, object);
-    const objectsMap = this.aliasNameMap.has(object.aliasName)
-      ? this.aliasNameMap.get(object.aliasName)
-      : this.aliasNameMap.set(object.aliasName, new Map()).get(object.aliasName);
-    objectsMap!.set(object.identifier, object);
+    let objectsMap = this.aliasNameMap.get(object.aliasName);
+    if (!objectsMap) {
+      objectsMap = new Map();
+      this.aliasNameMap.set(object.aliasName, objectsMap);
+    }
+    objectsMap.set(object.identifier, object);
     object.onStoreAdded();
     if (shouldBroadcast) this.update(object.toContext());
     objectAdded$.next({ identifier: object.identifier, aliasName: object.aliasName });
@@ -105,7 +107,8 @@ export class ObjectStore {
       aliasName = arg.aliasName ?? '';
     }
 
-    return this.aliasNameMap.has(aliasName) ? <T[]>Array.from(this.aliasNameMap.get(aliasName)!.values()) : [];
+    const objectsMap = this.aliasNameMap.get(aliasName);
+    return objectsMap ? <T[]>Array.from(objectsMap.values()) : [];
   }
 
   update(identifier: string): void;
