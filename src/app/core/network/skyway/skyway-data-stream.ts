@@ -194,7 +194,12 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   private async initializeSubscription() {
     //
     const member = this.member;
-    const publication = member!.publications.find(
+    if (!member) {
+      Logger.warn(`[SkyWay] メンバーが見つかりません: ${this.peer.peerId}`);
+      return;
+    }
+
+    const publication = member.publications.find(
       (publication) => publication.contentType === 'data' && publication.metadata === 'udonarium-data-stream'
     );
 

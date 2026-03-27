@@ -1,14 +1,3 @@
-vi.mock('@skyway-sdk/core', () => ({
-  isRemoteMember: () => false,
-  LocalDataStream: class {},
-  P2PConnection: class {},
-  Publication: class {},
-  RemoteDataStream: class {},
-  RemoteMember: class {},
-  Subscription: class {},
-  TransportConnectionState: {},
-}));
-
 import { SkyWayDataStream } from './skyway-data-stream';
 
 describe('SkyWayDataStream', () => {
@@ -19,5 +8,22 @@ describe('SkyWayDataStream', () => {
   it('EventEmitterを継承している', () => {
     expect(SkyWayDataStream.prototype).toHaveProperty('emit');
     expect(SkyWayDataStream.prototype).toHaveProperty('on');
+  });
+
+  it('member が未解決でも initializeSubscription は例外を投げない', async () => {
+    const stream = SkyWayDataStream.createSubscription(
+      {
+        room: undefined,
+      } as never,
+      {
+        peerId: 'peer-a',
+        userId: 'user-a',
+        password: '',
+      } as never
+    );
+
+    await expect(
+      (stream as unknown as { initializeSubscription: () => Promise<void> }).initializeSubscription()
+    ).resolves.toBeUndefined();
   });
 });
