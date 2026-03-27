@@ -40,4 +40,17 @@ describe('FileArchiver', () => {
       await FileArchiver.instance.load([]);
     });
   });
+
+  describe('onDrop', () => {
+    it('dataTransfer がない drop イベントでも例外を投げない', () => {
+      const event = {
+        preventDefault: vi.fn(),
+        dataTransfer: null,
+      } as unknown as DragEvent;
+
+      expect(() =>
+        (FileArchiver.instance as unknown as { onDrop: (event: DragEvent) => void }).onDrop(event)
+      ).not.toThrow();
+    });
+  });
 });

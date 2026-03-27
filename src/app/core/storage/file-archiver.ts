@@ -79,7 +79,8 @@ export class FileArchiver {
 
     this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName != '');
 
-    const files = event.dataTransfer!.files;
+    const files = event.dataTransfer?.files;
+    if (!files) return;
     this.load(files);
   }
 
