@@ -22,7 +22,7 @@ import { MarkDown } from '@axe/domain/data/mark-down';
 import { TextNote } from '@axe/domain/shared/text-note'; //
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';

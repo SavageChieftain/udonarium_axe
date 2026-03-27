@@ -3,7 +3,7 @@ import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
-import { ObjectInventory } from '@axe/shared/object-inventory';
+import { ObjectInventory } from '@axe/shared/inventory/object-inventory';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 

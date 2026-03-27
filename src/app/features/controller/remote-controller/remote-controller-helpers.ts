@@ -2,8 +2,8 @@ import { Network } from '@axe/core/index';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
-import { ObjectInventory } from '@axe/shared/object-inventory';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
+import { ObjectInventory } from '@axe/shared/inventory/object-inventory';
 
 export interface RemoteControllerInventoryContext {
   tableInventory: ObjectInventory;

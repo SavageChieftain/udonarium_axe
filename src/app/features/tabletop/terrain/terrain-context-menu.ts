@@ -2,7 +2,7 @@ import { PointerCoordinate } from '@axe/core/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/context-menu.service';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 
 export function buildTerrainContextMenu(

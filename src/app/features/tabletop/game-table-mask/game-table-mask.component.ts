@@ -24,7 +24,7 @@ import { ContextMenuService } from '@axe/shared/context-menu.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { ModalService } from '@axe/shared/modal.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';

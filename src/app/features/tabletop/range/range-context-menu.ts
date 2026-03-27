@@ -3,7 +3,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/context-menu.service';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/shared/tabletop-action.service';
 
 export function buildRangeContextMenu(

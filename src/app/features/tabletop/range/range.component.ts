@@ -31,7 +31,7 @@ import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
-import { GameObjectInventoryService } from '@axe/shared/game-object-inventory.service';
+import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/panel.service';
 import { SelectionSignalService } from '@axe/shared/selection-signal.service';
