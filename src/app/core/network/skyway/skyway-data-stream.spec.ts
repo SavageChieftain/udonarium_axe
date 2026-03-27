@@ -26,4 +26,31 @@ describe('SkyWayDataStream', () => {
       (stream as unknown as { initializeSubscription: () => Promise<void> }).initializeSubscription()
     ).resolves.toBeUndefined();
   });
+
+  it('publication 側で member 未解決なら getPeerConnection は undefined を返す', () => {
+    const getConnection = vi.fn(() => ({}) as RTCPeerConnection);
+
+    const stream = SkyWayDataStream.createPublication(
+      {
+        room: undefined,
+        peer: { peerId: 'local-peer' },
+      } as never,
+      {
+        peerId: 'peer-a',
+        userId: 'user-a',
+        password: '',
+      } as never
+    );
+
+    (stream as unknown as { subscription: unknown }).subscription = {
+      publication: {
+        stream: {
+          _getRTCPeerConnection: getConnection,
+        },
+      },
+    };
+
+    expect(stream.getPeerConnection()).toBeUndefined();
+    expect(getConnection).not.toHaveBeenCalled();
+  });
 });

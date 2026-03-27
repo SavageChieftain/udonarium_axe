@@ -386,9 +386,9 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
   getPeerConnection(): RTCPeerConnection | undefined {
     if (this.isPublication) {
-      return (this.subscription?.publication as Publication<LocalDataStream>)?.stream?._getRTCPeerConnection(
-        this.member!
-      );
+      const member = this.member;
+      if (!member) return;
+      return (this.subscription?.publication as Publication<LocalDataStream>)?.stream?._getRTCPeerConnection(member);
     } else {
       return this.subscription?.stream?._getRTCPeerConnection();
     }
