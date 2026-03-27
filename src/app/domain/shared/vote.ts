@@ -25,6 +25,9 @@ export class Vote extends GameObject {
   voteAnswerByPeerId(peerId: string): number {
     const peer = PeerCursor.findByPeerId(peerId);
     if (peer) {
+      if (peer.isDisConnect) {
+        return -2; // 切断中は棄権扱い
+      }
       if (peer.voteId == this.voteId) {
         return peer.voteAnswer;
       } else {
@@ -50,6 +53,7 @@ export class Vote extends GameObject {
     this.chairId = chairId;
     this.choices = choices;
     this.voteTitle = voteTitle;
+    this.isFinish = false;
     this.voteId++;
 
     this.targetPeerId = targetPeerId;
@@ -79,7 +83,9 @@ export class Vote extends GameObject {
   }
 
   chkFinishVote() {
+    if (this.isFinish) return;
     if (this.chairId == PeerCursor.myCursor.peerId && this.votedTotalNum() == this.targetPeerId.length) {
+      this.isFinish = true;
       let text_: string;
       if (this.isRollCall) {
         text_ = `点呼終了(${this.votedTotalNum()}/${this.targetPeerId.length})`;

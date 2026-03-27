@@ -71,6 +71,13 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
         this.panelService.close();
       }
     });
+
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.identifier !== this.vote.identifier) return;
+      if (this.timestamp !== this.vote.initTimeStamp) return;
+      if (!this.vote.isFinish) return;
+      this.panelService.close();
+    });
   }
 
   ngAfterViewInit() {}

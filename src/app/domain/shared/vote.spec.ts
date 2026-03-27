@@ -99,6 +99,14 @@ describe('Vote', () => {
       vote.makeVote('c', '点呼', ['p1'], [], true);
       expect(vote.isRollCall).toBe(true);
     });
+
+    it('新規開始時に isFinish が false に戻る', () => {
+      vote.isFinish = true;
+
+      vote.makeVote('c', '再点呼', ['p1'], ['準備完了'], true);
+
+      expect(vote.isFinish).toBe(false);
+    });
   });
 
   describe('voteAnswerByPeerId()', () => {
@@ -117,6 +125,16 @@ describe('Vote', () => {
       vote.voteId = 5;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 5, voteAnswer: 2 } as unknown as PeerCursor);
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(2);
+    });
+
+    it('peerが切断中なら-2(棄権扱い)', () => {
+      vote.voteId = 5;
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
+        voteId: 0,
+        voteAnswer: -1,
+        isDisConnect: true,
+      } as unknown as PeerCursor);
+      expect(vote.voteAnswerByPeerId('peer-1')).toBe(-2);
     });
 
     it('peerの棄権(-2)も正しく返す', () => {
@@ -417,6 +435,52 @@ describe('Vote', () => {
       vi.advanceTimersByTime(10);
 
       expect(finishEvents).toHaveLength(0);
+      sub.unsubscribe();
+      vi.useRealTimers();
+    });
+
+    it('切断中の対象者は棄権扱いとなりFINISH_VOTEがトリガーされる', () => {
+      vi.useFakeTimers();
+      vote.chairId = 'my-peer-id';
+      vote.targetPeerId = ['peer-1'];
+      vote.voteId = 1;
+      vote.choices = ['準備完了'];
+      vote.isRollCall = true;
+
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
+        voteId: 0,
+        voteAnswer: -1,
+        isDisConnect: true,
+      } as unknown as PeerCursor);
+      const finishEvents: domainEvents.FinishVoteEvent[] = [];
+      const sub = domainEvents.finishVote$.subscribe((e) => finishEvents.push(e));
+
+      vote.chkFinishVote();
+      vi.advanceTimersByTime(10);
+
+      expect(finishEvents).toHaveLength(1);
+      sub.unsubscribe();
+      vi.useRealTimers();
+    });
+
+    it('一度完了した投票ではFINISH_VOTEを重複発火しない', () => {
+      vi.useFakeTimers();
+      vote.chairId = 'my-peer-id';
+      vote.targetPeerId = ['peer-1'];
+      vote.voteId = 1;
+      vote.choices = ['準備完了'];
+      vote.isRollCall = true;
+
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 1, voteAnswer: 0 } as unknown as PeerCursor);
+      const finishEvents: domainEvents.FinishVoteEvent[] = [];
+      const sub = domainEvents.finishVote$.subscribe((e) => finishEvents.push(e));
+
+      vote.chkFinishVote();
+      vi.advanceTimersByTime(10);
+      vote.chkFinishVote();
+      vi.advanceTimersByTime(10);
+
+      expect(finishEvents).toHaveLength(1);
       sub.unsubscribe();
       vi.useRealTimers();
     });
