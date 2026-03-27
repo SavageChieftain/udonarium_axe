@@ -30,7 +30,7 @@ export class PanelService {
   /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static UIPanelComponentClass: { new (...args: unknown[]): UIPanelInstance } = null!;
-  private panelComponentRef!: ComponentRef<UIPanelInstance>;
+  private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
   title: string = '無名のパネル';
   left: number = 0;
   top: number = 0;
@@ -62,7 +62,7 @@ export class PanelService {
     childPanelService.panelComponentRef = panelComponentRef;
     if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
     panelComponentRef.onDestroy(() => {
-      childPanelService.panelComponentRef = null!;
+      childPanelService.panelComponentRef = null;
     });
 
     return <T>bodyComponentRef.instance;
@@ -100,7 +100,7 @@ export class PanelService {
   close() {
     if (this.panelComponentRef) {
       this.panelComponentRef.destroy();
-      this.panelComponentRef = null!;
+      this.panelComponentRef = null;
     }
   }
 }

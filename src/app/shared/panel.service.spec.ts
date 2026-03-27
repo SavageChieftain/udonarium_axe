@@ -50,6 +50,11 @@ function setupOpenMocks(initialChildState?: Partial<PanelService>) {
 }
 
 describe('PanelService', () => {
+  it('初期状態では isShow=false であること', () => {
+    const { service } = setupOpenMocks();
+    expect(service.isShow).toBe(false);
+  });
+
   it('open: option の 0 / false / 空文字を正しく適用する', () => {
     const { service, childPanelService, parentViewContainerRef, setInput, bodyInstance } = setupOpenMocks({
       title: 'old-title',
@@ -121,5 +126,15 @@ describe('PanelService', () => {
 
     runDestroyCallback();
     expect(childPanelService.isShow).toBe(false);
+  });
+
+  it('close: panel 未生成でも例外を投げず、複数回呼べること', () => {
+    const { service, childPanelService, parentViewContainerRef, destroy } = setupOpenMocks();
+
+    expect(() => service.close()).not.toThrow();
+    service.open(DummyBodyComponent, undefined, parentViewContainerRef);
+    childPanelService.close();
+    expect(() => childPanelService.close()).not.toThrow();
+    expect(destroy).toHaveBeenCalledTimes(1);
   });
 });
