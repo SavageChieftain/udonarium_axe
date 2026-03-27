@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DataElement } from '@axe/domain/data/data-element';
 
 import { MarkDown } from './mark-down';
 
@@ -110,6 +111,13 @@ describe('MarkDown', () => {
       markDown.changeMarkDownCheckBox('any_mark_00000000', 100);
       markDown.changeMarkDownCheckBox('any_mark_00000000', 100);
       // 2回目は何もしない（タイムスタンプが同じなので）
+    });
+
+    it('チェックボックス記法がないテキストでも例外を投げない', () => {
+      const data = DataElement.create('memo', 'plain text');
+
+      expect(() => markDown.changeMarkDownCheckBox(`${data.identifier}_mark_00000000`, 1)).not.toThrow();
+      expect(data.value).toBe('plain text');
     });
   });
 });

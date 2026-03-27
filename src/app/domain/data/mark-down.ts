@@ -32,7 +32,9 @@ export class MarkDown extends GameObject {
     const splitText = objectValue.split(/[[［][xXｘＸ]?[\]］]/g);
     const matchText = objectValue.match(/[[［][xXｘＸ]?[\]］]/g);
 
-    let changeText = matchText![clickIndex];
+    if (!matchText || clickIndex < 0 || matchText.length <= clickIndex) return;
+
+    let changeText = matchText[clickIndex];
 
     if (changeText.match(/[[［][xXｘＸ][\]］]/)) {
       changeText = '[]';
@@ -42,9 +44,9 @@ export class MarkDown extends GameObject {
 
     let newText = '';
     let i;
-    for (i = 0; i < matchText!.length; i++) {
+    for (i = 0; i < matchText.length; i++) {
       if (i != clickIndex) {
-        newText += splitText[i] + matchText![i];
+        newText += splitText[i] + matchText[i];
       } else {
         newText += splitText[i] + changeText;
       }
