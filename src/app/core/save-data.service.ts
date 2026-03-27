@@ -45,13 +45,8 @@ export class SaveDataService {
 
     const images: ImageFile[] = [...this.searchImageFiles(roomXml), ...this.searchImageFiles(chatXml)];
     for (const image of images) {
-      if (image.state === ImageState.COMPLETE) {
-        files.push(
-          new File([image.blob!], image.identifier + '.' + MimeType.extension(image.blob!.type), {
-            type: image.blob!.type,
-          })
-        );
-      }
+      const file = this.createImageArchiveFile(image);
+      if (file) files.push(file);
     }
 
     const imageTagXml = this.convertToXml(ImageTagList.create(images));
@@ -79,13 +74,8 @@ export class SaveDataService {
     files.push(new File([xml], 'data.xml', { type: 'text/plain' }));
     const images: ImageFile[] = this.searchImageFiles(xml);
     for (const image of images) {
-      if (image.state === ImageState.COMPLETE) {
-        files.push(
-          new File([image.blob!], image.identifier + '.' + MimeType.extension(image.blob!.type), {
-            type: image.blob!.type,
-          })
-        );
-      }
+      const file = this.createImageArchiveFile(image);
+      if (file) files.push(file);
     }
 
     const imageTagXml = this.convertToXml(ImageTagList.create(images));
@@ -101,6 +91,17 @@ export class SaveDataService {
       if (percent <= progresPercent) return;
       progresPercent = percent;
       updateCallback?.(progresPercent);
+    });
+  }
+
+  private createImageArchiveFile(image: ImageFile): File | null {
+    if (image.state !== ImageState.COMPLETE) return null;
+
+    const blob = image.blob;
+    if (!blob) return null;
+
+    return new File([blob], image.identifier + '.' + MimeType.extension(blob.type), {
+      type: blob.type,
     });
   }
 
