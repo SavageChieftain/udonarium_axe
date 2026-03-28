@@ -22,7 +22,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
 
   private callbackOnResize = () => this.adjustPosition();
 
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
   private startPosition: PointerCoordinate = { x: 0, y: 0, z: 0 };
   private startPointer: PointerCoordinate = { x: 0, y: 0, z: 0 };
   private prevTrans: PointerCoordinate = { x: 0, y: 0, z: 0 };
@@ -58,6 +58,8 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
 
   private onInputStart(e: MouseEvent | TouchEvent) {
     if ((e as MouseEvent).button === 1 || (e as MouseEvent).button === 2) return this.cancel();
+    if (!this.input) return this.cancel();
+
     this.setForeground();
     this.startPosition = this.calcElementPosition(this.elementRef.nativeElement);
 
@@ -76,10 +78,13 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private onInputMove(e: MouseEvent | TouchEvent) {
+    const input = this.input;
+    if (!input) return this.cancel();
+
     const trans = {
-      x: this.input.pointer.x - this.startPointer.x,
-      y: this.input.pointer.y - this.startPointer.y,
-      z: this.input.pointer.z - this.startPointer.z,
+      x: input.pointer.x - this.startPointer.x,
+      y: input.pointer.y - this.startPointer.y,
+      z: input.pointer.z - this.startPointer.z,
     };
 
     const diff = {
@@ -107,9 +112,9 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private onInputEnd(e: MouseEvent | TouchEvent) {
-    this.elementRef.nativeElement.style.opacity = null!;
-    this.elementRef.nativeElement.style.willChange = null!;
-    if (this.input.isDragging && e.cancelable) {
+    this.elementRef.nativeElement.style.opacity = '';
+    this.elementRef.nativeElement.style.willChange = '';
+    if (this.input?.isDragging && e.cancelable) {
       this.preventClickIfNeeded(e);
       e.preventDefault();
     }
@@ -122,6 +127,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
 
   private preventClickIfNeeded(e: MouseEvent | TouchEvent) {
     if ((e as TouchEvent).touches != null) return;
+    if (!this.input) return;
 
     const diffX = this.input.pointer.x - this.startPointer.x;
     const diffY = this.input.pointer.y - this.startPointer.y;
@@ -181,9 +187,9 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   private calcCorrectionPosition(diff: PointerCoordinate = { x: 0, y: 0, z: 0 }): PointerCoordinate {
     const correction: PointerCoordinate = { x: 0, y: 0, z: 0 };
     const box = this.elementRef.nativeElement.getBoundingClientRect();
-    const bounds = this.elementRef.nativeElement.ownerDocument
-      .querySelector(this.boundsSelector())!
-      .getBoundingClientRect();
+    const boundsElm = this.elementRef.nativeElement.ownerDocument.querySelector(this.boundsSelector());
+    if (!boundsElm) return correction;
+    const bounds = boundsElm.getBoundingClientRect();
     if (this.allowOverHalf()) {
       const boxWidth = box.right - box.left;
       const boxHeight = box.bottom - box.top;
@@ -218,9 +224,10 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
 
   private calcElementPosition(target: HTMLElement): PointerCoordinate {
     const css: CSSStyleDeclaration = window.getComputedStyle(target);
+    const parentElm = target.parentElement;
     return {
-      x: CSSNumber.relation(css.left, target.parentElement!.offsetWidth, target.parentElement!.offsetWidth * 0.5),
-      y: CSSNumber.relation(css.top, target.parentElement!.offsetHeight, target.parentElement!.offsetHeight * 0.5),
+      x: CSSNumber.relation(css.left, parentElm?.offsetWidth ?? 0, (parentElm?.offsetWidth ?? 0) * 0.5),
+      y: CSSNumber.relation(css.top, parentElm?.offsetHeight ?? 0, (parentElm?.offsetHeight ?? 0) * 0.5),
       z: 0,
     };
   }
