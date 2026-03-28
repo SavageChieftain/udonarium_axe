@@ -60,5 +60,20 @@ describe('DiceTableSettingComponent', () => {
         const _palette = component.diceTablePalette;
       }).not.toThrow();
     });
+
+    it('selectedTable が null の状態で toggleEditMode() を呼んでも例外を出さないこと', () => {
+      component.selectedTable = null;
+
+      expect(() => component.toggleEditMode()).not.toThrow();
+    });
+
+    it('selectedTable が null の状態で toggleEditMode() を2回呼んでも例外を出さないこと', () => {
+      component.selectedTable = null;
+
+      expect(() => {
+        component.toggleEditMode();
+        component.toggleEditMode();
+      }).not.toThrow();
+    });
   });
 });

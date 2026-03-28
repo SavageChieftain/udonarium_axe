@@ -163,10 +163,13 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
+    const table = this.selectedTable;
+    if (!table) return;
+
     if (this.isEdit) {
-      this.editPalette = this.selectedTable!.diceTablePalette.value + '';
+      this.editPalette = table.diceTablePalette.value + '';
     } else {
-      this.selectedTable!.diceTablePalette.setPalette(this.editPalette);
+      table.diceTablePalette.setPalette(this.editPalette);
     }
   }
 }
