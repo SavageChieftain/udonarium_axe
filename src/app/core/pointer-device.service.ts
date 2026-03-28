@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, untracked } from '@angular/core';
 
 export interface PointerCoordinate {
   x: number;
@@ -50,7 +50,8 @@ export class PointerDeviceService {
     return this._isDragging();
   }
   set isDragging(isDragging: boolean) {
-    if (isDragging === this._isDragging()) return;
+    const currentDragging = untracked(() => this._isDragging());
+    if (isDragging === currentDragging) return;
     this._isDragging.set(isDragging);
   }
 

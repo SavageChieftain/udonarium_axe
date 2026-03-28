@@ -1,3 +1,4 @@
+import { ApplicationRef, effect, Injector, signal } from '@angular/core';
 import { inject, TestBed } from '@angular/core/testing';
 
 import { PointerDeviceService } from './pointer-device.service';
@@ -48,5 +49,34 @@ describe('PointerDeviceService', () => {
     document.dispatchEvent(new Event('visibilitychange'));
 
     expect(service.isDragging).toBe(false);
+  });
+
+  it('effect 内 setter 実行で isDragging 依存を追加しないこと', () => {
+    const appRef = TestBed.inject(ApplicationRef);
+    const injector = TestBed.inject(Injector);
+    const trigger = signal(0);
+    let runCount = 0;
+
+    const effectRef = effect(
+      () => {
+        trigger();
+        service.isDragging = false;
+        runCount++;
+      },
+      { injector }
+    );
+
+    appRef.tick();
+    expect(runCount).toBe(1);
+
+    service.isDragging = true;
+    appRef.tick();
+    expect(runCount).toBe(1);
+
+    trigger.set(1);
+    appRef.tick();
+    expect(runCount).toBe(2);
+
+    effectRef.destroy();
   });
 });
