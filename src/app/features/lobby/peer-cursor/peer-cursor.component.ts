@@ -59,9 +59,9 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private cursorElement: HTMLElement = null!;
   private opacityElement: HTMLElement = null!;
-  private fadeOutTimer: ResettableTimeout | null = null!;
-  private updateInterval: NodeJS.Timeout = null!;
-  private timestampInterval: NodeJS.Timeout = null!;
+  private fadeOutTimer: ResettableTimeout | null = null;
+  private updateInterval: NodeJS.Timeout | null = null;
+  private timestampInterval: NodeJS.Timeout | null = null;
   private timestampIntervalEnable = false;
 
   private callcack: (e: Event) => void = (e) => this.onMouseMove(e);
@@ -146,7 +146,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       if (this.cursor().isDisConnect) {
         setTimeout(() => {
-          this.timestampInterval = null!;
+          this.timestampInterval = null;
           const text = 'あなたと' + this.cursor().userId + '[' + this.cursor().name + '] さんの接続を確認しました。';
           if (sysTab) {
             this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
@@ -175,7 +175,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.timestampIntervalEnable) return;
     if (!this.timestampInterval) {
       this.timestampInterval = setTimeout(() => {
-        this.timestampInterval = null!;
+        this.timestampInterval = null;
 
         if (PeerCursor.myCursor.peerId == this.cursor().peerId) {
           const peerlength = this.networkService.peerContexts.length;
@@ -191,7 +191,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
             }
 
             const peerCursor = PeerCursor.findByPeerId(id);
-            const diffDown = peerCursor ? peerCursor.timeDiffDown : null!;
+            const diffDown = peerCursor ? peerCursor.timeDiffDown : null;
 
             callHeartBeat([timestanmp, id, diffDown, this.secdCounter]);
             this.indexCounter++;
@@ -232,11 +232,11 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.updateInterval) {
       clearTimeout(this.updateInterval);
-      this.updateInterval = null!;
+      this.updateInterval = null;
     }
     if (this.timestampInterval) {
       clearTimeout(this.timestampInterval);
-      this.timestampInterval = null!;
+      this.timestampInterval = null;
     }
     this.timestampIntervalEnable = false;
   }
@@ -250,7 +250,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     this._target = e.target as HTMLElement;
     if (!this.updateInterval) {
       this.updateInterval = setTimeout(() => {
-        this.updateInterval = null!;
+        this.updateInterval = null;
         this.calcLocalCoordinate(this._x, this._y, this._target);
       }, this.delayMs);
     }

@@ -23,4 +23,10 @@ describe('PeerCursorComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('ngOnDestroy を直接呼び出してもエラーにならないこと（タイマー未設定時）', () => {
+    // タイマーフィールドが null の状態で ngOnDestroy を呼んでも安全であることを確認
+    vi.mocked(component.ngOnDestroy).mockRestore();
+    expect(() => component.ngOnDestroy()).not.toThrow();
+  });
 });
