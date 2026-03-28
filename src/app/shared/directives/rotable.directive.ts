@@ -38,7 +38,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  protected tabletopObject!: RotableTabletopObject;
+  protected tabletopObject: RotableTabletopObject | null = null;
 
   private transformCssOffset: string = '';
   private grabbingSelecter: string = '.rotate-grab';
@@ -78,7 +78,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   }
 
   private rotateOffset: number = 0;
-  private updateTimer: NodeJS.Timeout = null!;
+  private updateTimer: ReturnType<typeof setTimeout> | null = null;
   private grabbingElement: HTMLElement | null = null;
   private input: InputHandler | null = null;
 
@@ -128,11 +128,12 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
 
     if (this.tabletopObject) {
       this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        const tabletopObject = this.tabletopObject;
         if (
-          !this.tabletopObject ||
+          !tabletopObject ||
           (event.isSendFromSelf && this.input?.isGrabbing) ||
-          event.identifier !== this.tabletopObject.identifier ||
-          !this.shouldTransition(this.tabletopObject)
+          event.identifier !== tabletopObject.identifier ||
+          !this.shouldTransition(tabletopObject)
         )
           return;
         this.batchService.add(() => {
@@ -142,7 +143,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
             this.setAnimatedTransition(true);
           }
           this.stopTransition();
-          this.setRotate(this.tabletopObject);
+          this.setRotate(tabletopObject);
         }, this);
       });
       this.setRotate(this.tabletopObject);
@@ -153,7 +154,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
 
   cancel() {
     this.input?.cancel();
-    this.grabbingElement = null!;
+    this.grabbingElement = null;
     this.setAnimatedTransition(true);
   }
 
@@ -161,14 +162,15 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
     this.grabbingElement = e.target as HTMLElement;
     if (this.isDisable() || !this.isAllowedToRotate || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
       return this.cancel();
+    const input = this.input;
+    const grabbingElement = this.grabbingElement;
+    const parentElement = this.nativeElement.parentElement;
+    if (!input || !grabbingElement || !parentElement) return this.cancel();
+
     e.stopPropagation();
     this.onstart.emit(e as PointerEvent);
 
-    const pointer = this.coordinateService.convertLocalToLocal(
-      this.input!.pointer,
-      this.grabbingElement!,
-      this.nativeElement.parentElement!
-    );
+    const pointer = this.coordinateService.convertLocalToLocal(input.pointer, grabbingElement, parentElement);
     this.rotateOffset = this.calcRotate(pointer, this.rotate);
     this.setAnimatedTransition(false);
   }
@@ -179,13 +181,14 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
     }
     if (this.isDisable() || !this.input?.isGrabbing) return this.cancel();
 
+    const input = this.input;
+    const grabbingElement = this.grabbingElement;
+    const parentElement = this.nativeElement.parentElement;
+    if (!input || !grabbingElement || !parentElement) return this.cancel();
+
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
-    const pointer3d = this.coordinateService.convertLocalToLocal(
-      this.input!.pointer,
-      this.grabbingElement!,
-      this.nativeElement.parentElement!
-    );
+    const pointer3d = this.coordinateService.convertLocalToLocal(input.pointer, grabbingElement, parentElement);
     const angle = this.calcRotate(pointer3d, this.rotateOffset);
 
     if (!this.input?.isDragging) this.ondragstart.emit(e as PointerEvent);
@@ -233,7 +236,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
       this.updateTimer = setTimeout(() => {
         this.valueChange.emit(this.rotate);
         if (this.tabletopObject) this.tabletopObject.rotate = this.rotate;
-        this.updateTimer = null!;
+        this.updateTimer = null;
       }, 66);
     }
     this.updateTransformCss();
