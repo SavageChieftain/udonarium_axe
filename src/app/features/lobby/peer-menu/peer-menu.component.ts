@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
-import { PeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -30,7 +29,6 @@ export class PeerMenuComponent implements OnInit {
   private objectStore = inject(ObjectStore);
   private tableSelecter = inject(TableSelecter);
   private destroyRef = inject(DestroyRef);
-  targetUserId = '';
   networkService = Network;
   gameRoomService = this.objectStore;
   help: string = '';
@@ -53,17 +51,6 @@ export class PeerMenuComponent implements OnInit {
       if (!this.myPeer || !value) return;
       this.myPeer.imageIdentifier = value;
     });
-  }
-
-  async connectPeer() {
-    const targetUserId = this.targetUserId;
-    this.targetUserId = '';
-    if (targetUserId.length < 1) return;
-    this.help = '';
-    const context = await PeerContext.create(targetUserId);
-    if (context.isRoom) return;
-    this.objectStore.clearDeleteHistory();
-    Network.connect(context);
   }
 
   showLobby() {

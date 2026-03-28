@@ -118,10 +118,6 @@
   </div>
 }
 <div>
-  @if (!networkService.peerContext.isRoom) {
-    <input class="is-caret" [(ngModel)]="targetUserId" placeholder="接続したい相手のID" name="targetUserId" />
-    <button (click)="connectPeer()" [disabled]="!networkService.isOpen">プライベート接続</button><br />
-  }
   @if (networkService.peerIds.length <= 1) {
     <button (click)="showLobby()" [disabled]="!networkService.isOpen">ロビー（ルーム一覧）を表示</button>
   }
@@ -129,19 +125,14 @@
 <div>
   <span style="font-size: 12px">{{ help }}</span>
 </div>
-@if (!networkService.peerContext.isRoom) {
-  @if (networkService.peerContexts.length < 1) {
-    <div style="font-size: 12px">※プライベート接続を使用する場合は、お互いのIDをユドナリウム外で共有してください。</div>
-  }
-  @if (networkService.peerContexts.length < 1) {
-    <div style="font-size: 12px">※一人で動作確認を行いたい場合はブラウザを2つ開くと良いと思います。</div>
-  }
-}
 @if (networkService.peerContext.isRoom) {
-  <div style="font-size: 12px">※ルーム機能を利用している時はプライベート接続を利用できません。</div>
+  <div style="font-size: 12px">※SkyWay(2023)ではルーム接続のみ利用できます。</div>
   <div style="font-size: 12px">
     <font color="#FF5555"
       >※接続情報のメッセージを出すタブの変更は<br />チャットウィンドウのタブ設定から行ってください。</font
     >
   </div>
+}
+@if (!networkService.peerContext.isRoom && networkService.peerContexts.length < 1) {
+  <div style="font-size: 12px">※一人で動作確認を行いたい場合はブラウザを2つ開くと良いと思います。</div>
 }

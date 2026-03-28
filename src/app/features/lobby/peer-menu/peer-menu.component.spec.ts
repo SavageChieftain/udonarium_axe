@@ -41,4 +41,12 @@ describe('PeerMenuComponent', () => {
       },
     });
   });
+
+  it('プライベート接続UIを表示しないこと', () => {
+    PeerCursor.createMyCursor();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('プライベート接続');
+  });
 });
