@@ -125,14 +125,3 @@
 <div>
   <span style="font-size: 12px">{{ help }}</span>
 </div>
-@if (networkService.peerContext.isRoom) {
-  <div style="font-size: 12px">※SkyWay(2023)ではルーム接続のみ利用できます。</div>
-  <div style="font-size: 12px">
-    <font color="#FF5555"
-      >※接続情報のメッセージを出すタブの変更は<br />チャットウィンドウのタブ設定から行ってください。</font
-    >
-  </div>
-}
-@if (!networkService.peerContext.isRoom && networkService.peerContexts.length < 1) {
-  <div style="font-size: 12px">※一人で動作確認を行いたい場合はブラウザを2つ開くと良いと思います。</div>
-}
