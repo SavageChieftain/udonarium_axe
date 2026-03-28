@@ -83,34 +83,45 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   readonly gameTableMask = input<GameTableMask | null>(null!);
 
   get dispLockMark(): boolean {
-    return this.gameTableMask()!.dispLockMark;
+    const mask = this.gameTableMask();
+    return mask?.dispLockMark ?? false;
   }
   set dispLockMark(disp: boolean) {
-    this.gameTableMask()!.dispLockMark = disp;
+    const mask = this.gameTableMask();
+    if (mask) mask.dispLockMark = disp;
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.gameTableMask()!.identifier)();
-    return this.gameTableMask()!.name;
+    const mask = this.gameTableMask();
+    if (!mask) return '';
+    this.objectChange.versionOf(mask.identifier)();
+    return mask.name;
   }
   get width(): number {
-    return this.adjustMinBounds(this.gameTableMask()!.width);
+    const mask = this.gameTableMask();
+    return this.adjustMinBounds(mask?.width ?? 0);
   }
   get height(): number {
-    return this.adjustMinBounds(this.gameTableMask()!.height);
+    const mask = this.gameTableMask();
+    return this.adjustMinBounds(mask?.height ?? 0);
   }
   get opacity(): number {
-    return this.gameTableMask()!.opacity;
+    const mask = this.gameTableMask();
+    return mask?.opacity ?? 0;
   }
   get imageFile(): ImageFile {
+    const mask = this.gameTableMask();
     this.objectChange.fileVersion();
-    return this.gameTableMask()!.imageFile;
+    if (!mask) throw new Error('gameTableMask is not set');
+    return mask.imageFile;
   }
   get isLock(): boolean {
-    return this.gameTableMask()!.isLock;
+    const mask = this.gameTableMask();
+    return mask?.isLock ?? false;
   }
   set isLock(isLock: boolean) {
-    this.gameTableMask()!.isLock = isLock;
+    const mask = this.gameTableMask();
+    if (mask) mask.isLock = isLock;
   }
 
   get blendType(): number {
@@ -118,28 +129,34 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   }
 
   get color(): string {
-    return this.gameTableMask()!.color;
+    const mask = this.gameTableMask();
+    return mask?.color ?? '';
   }
   set color(color: string) {
-    this.gameTableMask()!.color = color;
+    const mask = this.gameTableMask();
+    if (mask) mask.color = color;
   }
   get bgcolor(): string {
-    return this.gameTableMask()!.bgcolor;
+    const mask = this.gameTableMask();
+    return mask?.bgcolor ?? '';
   }
   set bgcolor(bgcolor: string) {
-    this.gameTableMask()!.bgcolor = bgcolor;
+    const mask = this.gameTableMask();
+    if (mask) mask.bgcolor = bgcolor;
   }
 
   get isPreview(): boolean {
-    return this.gameTableMask()!.isPreview;
+    const mask = this.gameTableMask();
+    return mask?.isPreview ?? false;
   }
   set isPreview(isPreview: boolean) {
-    this.gameTableMask()!.isPreview = isPreview;
+    const mask = this.gameTableMask();
+    if (mask) mask.isPreview = isPreview;
   }
   get isPreviewMode(): boolean {
-    if (!this.gameTableMask()!) return false;
-    return this.isPreview && this.gameTableMask()!.isMine;
-    return false;
+    const mask = this.gameTableMask();
+    if (!mask) return false;
+    return mask.isPreview && mask.isMine;
   }
 
   get gameTableMaskAltitude(): number {
@@ -147,25 +164,31 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   }
 
   get scratchedGrids() {
-    return this.gameTableMask()!.scratchedGrids;
+    const mask = this.gameTableMask();
+    return mask?.scratchedGrids ?? '';
   }
   set scratchedGrids(scratchedGrids: string) {
-    this.gameTableMask()!.scratchedGrids = scratchedGrids;
+    const mask = this.gameTableMask();
+    if (mask) mask.scratchedGrids = scratchedGrids;
   }
 
   get scratchingGrids() {
-    return this.gameTableMask()!.scratchingGrids;
+    const mask = this.gameTableMask();
+    return mask?.scratchingGrids ?? '';
   }
   set scratchingGrids(scratchingGrids: string) {
-    this.gameTableMask()!.scratchingGrids = scratchingGrids;
+    const mask = this.gameTableMask();
+    if (mask) mask.scratchingGrids = scratchingGrids;
   }
 
   get isNonScratched(): boolean {
-    return !this.gameTableMask()!.scratchedGrids;
+    const mask = this.gameTableMask();
+    return !mask?.scratchedGrids;
   }
 
   get isNonScratching(): boolean {
-    return !(this.gameTableMask()!.scratchingGrids || this._currentScratchingSet);
+    const mask = this.gameTableMask();
+    return !(mask?.scratchingGrids || this._currentScratchingSet);
   }
 
   get masksCss(): string {
@@ -195,22 +218,27 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   }
 
   get operateOpacity(): number {
-    const ret = this.opacity * (this.gameTableMask()!.isMine ? 0.6 : 1);
+    const mask = this.gameTableMask();
+    const ret = (mask?.opacity ?? 0) * (mask?.isMine ? 0.6 : 1);
     return ret < 0.4 && this.isScratching ? 0.4 : ret;
   }
 
   get altitude(): number {
-    return this.gameTableMask()!.altitude;
+    const mask = this.gameTableMask();
+    return mask?.altitude ?? 0;
   }
   set altitude(altitude: number) {
-    this.gameTableMask()!.altitude = altitude;
+    const mask = this.gameTableMask();
+    if (mask) mask.altitude = altitude;
   }
 
   get isAltitudeIndicate(): boolean {
-    return this.gameTableMask()!.isAltitudeIndicate;
+    const mask = this.gameTableMask();
+    return mask?.isAltitudeIndicate ?? false;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.gameTableMask()!.isAltitudeIndicate = isAltitudeIndicate;
+    const mask = this.gameTableMask();
+    if (mask) mask.isAltitudeIndicate = isAltitudeIndicate;
   }
 
   //  get isGMMode(): boolean { return this.gameTableMask()!.isGMMode; }
@@ -218,20 +246,25 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     return 90 < Math.abs(this.viewRotateZ()) % 360 && Math.abs(this.viewRotateZ()) % 360 < 270;
   }
   get isScratching(): boolean {
-    return !!this.gameTableMask()!.owner;
+    const mask = this.gameTableMask();
+    return !!mask?.owner;
   }
 
   get hasOwner(): boolean {
-    return this.gameTableMask()!.hasOwner;
+    const mask = this.gameTableMask();
+    return mask?.hasOwner ?? false;
   }
   get ownerIsOnline(): boolean {
-    return this.gameTableMask()!.ownerIsOnline;
+    const mask = this.gameTableMask();
+    return mask?.ownerIsOnline ?? false;
   }
   get ownerName(): string {
-    return this.gameTableMask()!.ownerName;
+    const mask = this.gameTableMask();
+    return mask?.ownerName ?? '';
   }
   get ownerColor(): string {
-    return this.gameTableMask()!.ownerColor;
+    const mask = this.gameTableMask();
+    return mask?.ownerColor ?? '';
   }
 
   panelId: string = '';
@@ -242,7 +275,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
 
   movableOption: MovableOption = {};
 
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
 
   ngAfterViewInit() {
     this.input = new InputHandler(this.elementRef.nativeElement);
@@ -261,19 +294,25 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {
-    if (!this.isScratching || !this.gameTableMask()!.isMine) {
-      this.input.cancel();
+    const mask = this.gameTableMask();
+    if (!mask) return;
+
+    if (!this.isScratching || !mask.isMine) {
+      if (this.input) this.input.cancel();
     } else if (!window.PointerEvent && (e as MouseEvent).button < 2 && (e as MouseEvent).buttons < 2) {
       this.scratching(true);
     }
     // TODO:もっと良い方法考える
-    if ((this.isLock && !this.isScratching) || (this.isScratching && !this.gameTableMask()!.isMine)) {
+    if ((this.isLock && !this.isScratching) || (this.isScratching && !mask.isMine)) {
       this.selectionSignalService.notifyDragLocked();
     }
   }
 
   onInputStartPointer(e: PointerEvent) {
-    if (!this.isScratching || !this.gameTableMask()!.isMine) {
+    const mask = this.gameTableMask();
+    if (!mask) return;
+
+    if (!this.isScratching || !mask.isMine) {
       //this.input.cancel();
     } else if (e.button < 2 && e.buttons < 2) {
       this.scratching(true, { offsetX: e.offsetX, offsetY: e.offsetY });
@@ -283,23 +322,26 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   private _scratchingGridX = -1;
   private _scratchingGridY = -1;
   onInputMove(_e: MouseEvent | TouchEvent) {
-    if (!window.PointerEvent && this.isScratching && this.gameTableMask()!.isMine && this.input.isDragging) {
+    const mask = this.gameTableMask();
+    if (!window.PointerEvent && mask && this.isScratching && mask.isMine && this.input?.isDragging) {
       this.scratching(false);
     }
   }
 
   onInputMovePointer(e: PointerEvent) {
-    if (this.isScratching && this.gameTableMask()!.isMine && this.input.isDragging && e.buttons < 2) {
+    const mask = this.gameTableMask();
+    if (mask && this.isScratching && mask.isMine && this.input?.isDragging && e.buttons < 2) {
       this.scratching(false, { offsetX: e.offsetX, offsetY: e.offsetY });
     }
     e.stopPropagation();
     e.preventDefault();
   }
 
-  private _currentScratchingSet: Set<string> = null!;
-  private _scratchingTimerId!: ReturnType<typeof setTimeout> | undefined;
+  private _currentScratchingSet: Set<string> | null = null;
+  private _scratchingTimerId: ReturnType<typeof setTimeout> | undefined;
   scratching(isStart: boolean, position: { offsetX: number; offsetY: number } | null = null) {
-    if (!this.gameTableMask()!.isMine) return;
+    const mask = this.gameTableMask();
+    if (!mask || !mask.isMine) return;
     // とりあえず、本当は周辺を表示したい。
     const tableSelecter = this.tableSelecter;
 
@@ -310,7 +352,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
         bottom: 0,
         left: 0,
       };
-    //viewTable.gridHeight = this.gameTableMask()!.posZ + this.gameTableMask()!.altitude * this.gridSize + 0.5;
+    //viewTable.gridHeight = mask.posZ + mask.altitude * this.gridSize + 0.5;
     let offsetX;
     let offsetY;
     if (position) {
@@ -321,15 +363,10 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
         this.pointerDeviceService.pointers[0],
         this.elementRef.nativeElement
       );
-      offsetX = scratchingPosition.x - this.gameTableMask()!.location.x;
-      offsetY = scratchingPosition.y - this.gameTableMask()!.location.y;
+      offsetX = scratchingPosition.x - mask.location.x;
+      offsetY = scratchingPosition.y - mask.location.y;
     }
-    if (
-      offsetX < 0 ||
-      this.gameTableMask()!.width * this.gridSize <= offsetX ||
-      offsetY < 0 ||
-      this.gameTableMask()!.height * this.gridSize <= offsetY
-    )
+    if (offsetX < 0 || mask.width * this.gridSize <= offsetX || offsetY < 0 || mask.height * this.gridSize <= offsetY)
       return;
     const gridX = Math.floor(offsetX / this.gridSize);
     const gridY = Math.floor(offsetY / this.gridSize);
@@ -346,15 +383,20 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     }
     clearTimeout(this._scratchingTimerId);
     this._scratchingTimerId = setTimeout(() => {
-      this.scratchingGrids = Array.from(this._currentScratchingSet)
-        .filter((grid) => grid && /^\d+:\d+$/.test(grid))
-        .sort()
-        .join(',');
-      this._currentScratchingSet = null!;
+      if (this._currentScratchingSet) {
+        this.scratchingGrids = Array.from(this._currentScratchingSet)
+          .filter((grid) => grid && /^\d+:\d+$/.test(grid))
+          .sort()
+          .join(',');
+      }
+      this._currentScratchingSet = null;
     }, 250);
   }
 
   scratched() {
+    const mask = this.gameTableMask();
+    if (!mask) return;
+
     const currentScratchedAry: string[] = this.scratchedGrids ? this.scratchedGrids.split(/,/g) : [];
     if (this._currentScratchingSet) {
       clearTimeout(this._scratchingTimerId);
@@ -362,7 +404,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
         .filter((grid) => grid && /^\d+:\d+$/.test(grid))
         .sort()
         .join(',');
-      this._currentScratchingSet = null!;
+      this._currentScratchingSet = null;
     }
     const currentScratchingAry: string[] = this.scratchingGrids.split(/,/g);
     this.scratchedGrids = xor(currentScratchedAry, currentScratchingAry)
@@ -375,32 +417,35 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     e.stopPropagation();
     e.preventDefault();
 
+    const mask = this.gameTableMask();
+    if (!mask) return;
+
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const menuPosition = this.pointerDeviceService.pointers[0];
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
     const menuArray = buildGameTableMaskContextMenu({
-      mask: this.gameTableMask()!,
+      mask: mask,
       gridSize: this.gridSize,
       objectPosition,
       inventoryService: this.inventoryService,
       tabletopActionService: this.tabletopActionService,
       onStartScratch: () => {
-        if (this.gameTableMask()!.owner != '') {
+        if (mask.owner != '') {
           this.isPreview = false;
           clearTimeout(this._scratchingTimerId);
-          this._currentScratchingSet = null!;
+          this._currentScratchingSet = null;
         }
-        this.gameTableMask()!.owner = Network.peerContext.userId;
+        mask.owner = Network.peerContext.userId;
         this._scratchingGridX = -1;
         this._scratchingGridY = -1;
       },
       onFinishScratch: () => {
         this.scratchDone();
         this.isPreview = false;
-        this.gameTableMask()!.owner = '';
+        mask.owner = '';
       },
       onCancelScratch: () => {
-        this.gameTableMask()!.owner = '';
+        mask.owner = '';
       },
       onEdit: (m) => this.showDetail(m),
     });
@@ -420,15 +465,16 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!this.gameTableMask()!.isMine) return false;
+    const mask = this.gameTableMask();
+    if (!mask || !mask.isMine) return false;
     this.scratched();
-    this.gameTableMask()!.owner = '';
+    mask.owner = '';
     this.scratchingGrids = '';
     this.isPreview = false;
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.cardPut);
-    //    this.chatMessageService.sendOperationLog(`${ this.gameTableMask()!.name == '' ? '(無名のマップマスク)' : this.gameTableMask()!.name } のスクラッチを終了した`);
+    //    this.chatMessageService.sendOperationLog(`${ mask.name == '' ? '(無名のマップマスク)' : mask.name } のスクラッチを終了した`);
     return false;
   }
 
@@ -437,14 +483,15 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!this.gameTableMask()!.isMine && this.ownerIsOnline) return false;
-    this.gameTableMask()!.owner = '';
+    const mask = this.gameTableMask();
+    if (mask && !mask.isMine && this.ownerIsOnline) return false;
+    if (mask) mask.owner = '';
     this.scratchingGrids = '';
     this.isPreview = false;
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.unlock);
-    //    this.chatMessageService.sendOperationLog(`${ this.gameTableMask()!.name == '' ? '(無名のマップマスク)' : this.gameTableMask()!.name } のスクラッチを終了した`);
+    //    this.chatMessageService.sendOperationLog(`${ mask?.name == '' ? '(無名のマップマスク)' : mask?.name } のスクラッチを終了した`);
     return false;
   }
 

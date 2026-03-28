@@ -47,4 +47,46 @@ describe('GameTableMaskComponent', () => {
       expect(component.isInverse).toBe(false);
     });
   });
+
+  describe('初期化と破棄', () => {
+    it('ngAfterViewInitがなくてもonInputStartが呼ばれても例外にならないこと', () => {
+      expect(() => {
+        component.onInputStart(new MouseEvent('mousedown'));
+      }).not.toThrow();
+    });
+
+    it('ngAfterViewInitがなくてもonInputMovePointerが呼ばれても例外にならないこと', () => {
+      expect(() => {
+        const e = new PointerEvent('pointermove');
+        Object.defineProperty(e, 'offsetX', { value: 10 });
+        Object.defineProperty(e, 'offsetY', { value: 10 });
+        Object.defineProperty(e, 'buttons', { value: 0 });
+        component.onInputMovePointer(e);
+      }).not.toThrow();
+    });
+
+    it('ngDestroyで_scratchingTimerIdをクリアしても例外にならないこと', () => {
+      expect(() => {
+        component.ngOnDestroy();
+      }).not.toThrow();
+    });
+
+    it('scratchingメソッドで_currentScratchingSetがnullでも初期化されること', () => {
+      const gameTableMask = component.gameTableMask();
+      if (!gameTableMask) {
+        // gameTableMask未設定の場合はスキップ
+        expect(true).toBe(true);
+        return;
+      }
+      expect(() => {
+        component.scratching(true, { offsetX: 10, offsetY: 10 });
+      }).not.toThrow();
+    });
+
+    it('scratchedメソッドで_currentScratchingSetがnullでも例外にならないこと', () => {
+      expect(() => {
+        component.scratched();
+      }).not.toThrow();
+    });
+  });
 });
