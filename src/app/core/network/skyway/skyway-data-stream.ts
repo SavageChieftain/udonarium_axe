@@ -181,10 +181,13 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     //
     this.onConnectionStateChanged?.removeListener();
-    this.onConnectionStateChanged = this.skyWay.publication.onConnectionStateChanged.add((event) => {
-      if (event.remoteMember.name !== this.peer.peerId) return;
-      this.onStateChanged(event.state);
-    });
+    const pub = this.skyWay.publication;
+    if (pub) {
+      this.onConnectionStateChanged = pub.onConnectionStateChanged.add((event) => {
+        if (event.remoteMember.name !== this.peer.peerId) return;
+        this.onStateChanged(event.state);
+      });
+    }
 
     //
     this.subscription = subscription;
@@ -206,23 +209,28 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     //
     if (!publication) {
       this.onStreamPublished?.removeListener();
-      this.onStreamPublished = this.skyWay.room.onStreamPublished.add((event) => {
-        const isMatch =
-          event.publication.contentType === 'data' &&
-          event.publication.metadata === 'udonarium-data-stream' &&
-          event.publication.publisher.name === this.peer.peerId;
-        if (!isMatch) return;
+      const room = this.skyWay.room;
+      if (room) {
+        this.onStreamPublished = room.onStreamPublished.add((event) => {
+          const isMatch =
+            event.publication.contentType === 'data' &&
+            event.publication.metadata === 'udonarium-data-stream' &&
+            event.publication.publisher.name === this.peer.peerId;
+          if (!isMatch) return;
 
-        this.onStreamPublished?.removeListener();
-        this.initializeSubscription();
-      });
+          this.onStreamPublished?.removeListener();
+          this.initializeSubscription();
+        });
+      }
       return;
     }
 
     //
     this.refresh();
     try {
-      const { subscription } = await this.skyWay.roomPerson.subscribe<RemoteDataStream>(publication.id);
+      const roomPerson = this.skyWay.roomPerson;
+      if (!roomPerson) return;
+      const { subscription } = await roomPerson.subscribe<RemoteDataStream>(publication.id);
 
       //
       this.onConnectionStateChanged?.removeListener();
@@ -277,7 +285,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     const publication = member?.publications.find((publication) => publication.metadata === 'udonarium-data-stream');
 
     const dataChannel = this.isPublication
-      ? p2pconnection?.sender.datachannels[this.skyWay.publication?.id]
+      ? p2pconnection?.sender.datachannels[this.skyWay.publication?.id ?? '']
       : (p2pconnection?.receiver.streams[publication?.id ?? ''] as RemoteDataStream)?._datachannel;
 
     // 接続状況確認

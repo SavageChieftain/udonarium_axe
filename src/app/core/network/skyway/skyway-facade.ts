@@ -18,13 +18,13 @@ import { SkyWayBackend } from './skyway-backend';
 
 export class SkyWayFacade {
   url = '';
-  context!: SkyWayContext;
-  private lobby!: Channel;
-  private lobbyPerson!: LocalPerson;
-  room!: Channel;
-  roomPerson!: LocalPerson;
+  context: SkyWayContext | null = null;
+  private lobby: Channel | null = null;
+  private lobbyPerson: LocalPerson | null = null;
+  room: Channel | null = null;
+  roomPerson: LocalPerson | null = null;
 
-  publication!: Publication<LocalDataStream>;
+  publication: Publication<LocalDataStream> | null = null;
 
   peer: PeerContext = PeerContext.parse('???');
   get isOpen(): boolean {
@@ -32,11 +32,12 @@ export class SkyWayFacade {
   }
   private isDestroyed = false;
 
-  onOpen!: (peer: IPeerContext) => void;
-  onClose!: (peer: IPeerContext) => void;
-  onFatalError!: (peer: IPeerContext, errorType: string, errorMessage: string, errorObject: unknown) => void;
-  onSubscribed!: (peer: IPeerContext, subscription: Subscription) => void;
-  onRoomRestore!: (peer: IPeerContext) => void;
+  onOpen: ((peer: IPeerContext) => void) | null = null;
+  onClose: ((peer: IPeerContext) => void) | null = null;
+  onFatalError: ((peer: IPeerContext, errorType: string, errorMessage: string, errorObject: unknown) => void) | null =
+    null;
+  onSubscribed: ((peer: IPeerContext, subscription: Subscription) => void) | null = null;
+  onRoomRestore: ((peer: IPeerContext) => void) | null = null;
 
   async open(peer: IPeerContext) {
     if (this.isOpen) await this.close();
@@ -97,11 +98,11 @@ export class SkyWayFacade {
     if (this.isDestroyed || !this.context || this.context.disposed) return;
     try {
       // left 状態の person をクリアして新規参加できるようにする
-      if (this.roomPerson?.state === 'left') this.roomPerson = null!;
-      if (this.lobbyPerson?.state === 'left') this.lobbyPerson = null!;
+      if (this.roomPerson?.state === 'left') this.roomPerson = null;
+      if (this.lobbyPerson?.state === 'left') this.lobbyPerson = null;
       if (this.publication) {
         this.publication.onSubscribed.removeAllListeners();
-        this.publication = null!;
+        this.publication = null;
       }
       await this.joinRoomPerson();
       await this.createRoomDataStream();
@@ -181,17 +182,19 @@ export class SkyWayFacade {
     }
 
     let min = 9999;
-    let joinLobby: Channel = null!;
+    let joinLobbyOrNull: Channel | null = null;
     lobbys.forEach((lobby) => {
       if (min <= lobby.members.length) return;
       min = lobby.members.length;
-      joinLobby = lobby;
+      joinLobbyOrNull = lobby;
     });
 
     lobbys.forEach((lobby) => {
-      if (lobby !== joinLobby) lobby.dispose();
+      if (lobby !== joinLobbyOrNull) lobby.dispose();
     });
 
+    if (!joinLobbyOrNull) return;
+    const joinLobby: Channel = joinLobbyOrNull;
     joinLobby.onClosed.add(() => {
       AppLogger.warn('[SkyWay] ロビーチャンネルが閉じられました');
       this.joinLobby();
@@ -291,7 +294,7 @@ export class SkyWayFacade {
 
   private async disposeContext() {
     const context = this.context;
-    this.context = null!;
+    this.context = null;
     if (!context) return;
     context.dispose();
   }
@@ -303,7 +306,7 @@ export class SkyWayFacade {
 
   private async leaveLobbyChannel() {
     const lobby = this.lobby;
-    this.lobby = null!;
+    this.lobby = null;
 
     if (!lobby) return;
     lobby.onClosed.removeAllListeners();
@@ -312,7 +315,7 @@ export class SkyWayFacade {
 
   private async leaveLobbyPerson() {
     const lobbyPerson = this.lobbyPerson;
-    this.lobbyPerson = null!;
+    this.lobbyPerson = null;
 
     if (!lobbyPerson || lobbyPerson.state === 'left') return;
     lobbyPerson.onLeft.removeAllListeners();
@@ -328,7 +331,7 @@ export class SkyWayFacade {
 
   private async leaveRoomChannel() {
     const room = this.room;
-    this.room = null!;
+    this.room = null;
 
     if (!room) return;
     room.onMemberJoined.removeAllListeners();
@@ -341,7 +344,7 @@ export class SkyWayFacade {
 
   private async leaveRoomPerson() {
     const roomPerson = this.roomPerson;
-    this.roomPerson = null!;
+    this.roomPerson = null;
 
     if (!roomPerson || roomPerson.state === 'left') return;
     roomPerson.onLeft.removeAllListeners();
@@ -351,7 +354,7 @@ export class SkyWayFacade {
 
   private async closeRoomDataStream() {
     const publication = this.publication;
-    this.publication = null!;
+    this.publication = null;
 
     if (!publication) return;
     publication.onSubscribed.removeAllListeners();
@@ -361,13 +364,15 @@ export class SkyWayFacade {
   async listAllPeers(): Promise<string[]> {
     if (this.isDestroyed || !this.isOpen) return [];
 
+    if (!this.context) return [];
+    const context = this.context;
     const lobbys: Channel[] = [];
     for (const lobbyName of this.getLobbyNames()) {
       const level = Logger.level;
       Logger.level = 'disable';
       try {
         const lobby =
-          this.lobby?.name === lobbyName ? this.lobby : await SkyWayChannel.Find(this.context, { name: lobbyName });
+          this.lobby?.name === lobbyName ? this.lobby : await SkyWayChannel.Find(context, { name: lobbyName });
         lobbys.push(lobby);
       } catch (error) {
         if (error instanceof SkyWayError) {

@@ -45,3 +45,20 @@ describe('SkyWayFacade', () => {
     });
   });
 });
+
+describe('フィールドが null で初期化されること', () => {
+  it('context が null で初期化される', () => {
+    const facade = new SkyWayFacade();
+    expect(facade.context).toBeNull();
+  });
+
+  it('onOpen が null で初期化される', () => {
+    const facade = new SkyWayFacade();
+    expect(facade.onOpen).toBeNull();
+  });
+
+  it('onClose が null で初期化される', () => {
+    const facade = new SkyWayFacade();
+    expect(facade.onClose).toBeNull();
+  });
+});
