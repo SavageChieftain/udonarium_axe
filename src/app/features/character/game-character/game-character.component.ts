@@ -68,9 +68,10 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   constructor() {
     effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
-      if (!highlight || !this.gameCharacter()) return;
-      if (this.gameCharacter()!.identifier !== highlight.identifier) return;
-      if (this.gameCharacter()!.location.name != 'table') return;
+      const char = this.gameCharacter();
+      if (!highlight || !char) return;
+      if (char.identifier !== highlight.identifier) return;
+      if (char.location.name != 'table') return;
 
       // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
       if (this.highlightTimer != null) return;
@@ -83,68 +84,85 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 
       // アニメーション開始処理タイマー
       this.highlightTimer = setTimeout(() => {
-        this.highlightTimer = null!;
+        this.highlightTimer = undefined;
         this.rootElementRef().nativeElement.classList.add('focused');
       }, 0);
 
       // アニメーション終了処理タイマー
       this.unhighlightTimer = setTimeout(() => {
-        this.unhighlightTimer = null!;
+        this.unhighlightTimer = undefined;
         this.rootElementRef().nativeElement.classList.remove('focused');
       }, 1010);
     });
   }
 
-  readonly gameCharacter = input<GameCharacter | null>(null!);
+  readonly gameCharacter = input<GameCharacter | null>(null);
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
   get isLock(): boolean {
-    return this.gameCharacter()!.isLock;
+    const char = this.gameCharacter();
+    return char?.isLock ?? false;
   }
   set isLock(isLock: boolean) {
-    this.gameCharacter()!.isLock = isLock;
+    const char = this.gameCharacter();
+    if (char) char.isLock = isLock;
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.gameCharacter()!.identifier)();
-    return this.gameCharacter()!.name;
+    const char = this.gameCharacter();
+    if (!char) return '';
+    this.objectChange.versionOf(char.identifier)();
+    return char.name;
   }
   get size(): number {
-    return this.adjustMinBounds(this.gameCharacter()!.size);
+    const char = this.gameCharacter();
+    return this.adjustMinBounds(char?.size ?? 0);
   }
   get altitude(): number {
-    return this.gameCharacter()!.altitude;
+    const char = this.gameCharacter();
+    return char?.altitude ?? 0;
   }
   set altitude(altitude: number) {
-    this.gameCharacter()!.altitude = altitude;
+    const char = this.gameCharacter();
+    if (char) char.altitude = altitude;
   }
   get imageFile(): ImageFile {
     this.objectChange.fileVersion();
-    return this.gameCharacter()!.imageFile;
+    const char = this.gameCharacter();
+    if (!char) throw new Error('gameCharacter is not set');
+    return char.imageFile;
   }
   get rotate(): number {
-    return this.gameCharacter()!.rotate;
+    const char = this.gameCharacter();
+    return char?.rotate ?? 0;
   }
   set rotate(rotate: number) {
-    this.gameCharacter()!.rotate = rotate;
+    const char = this.gameCharacter();
+    if (char) char.rotate = rotate;
   }
   get roll(): number {
-    return this.gameCharacter()!.roll;
+    const char = this.gameCharacter();
+    return char?.roll ?? 0;
   }
   set roll(roll: number) {
-    this.gameCharacter()!.roll = roll;
+    const char = this.gameCharacter();
+    if (char) char.roll = roll;
   }
   get isDropShadow(): boolean {
-    return this.gameCharacter()!.isDropShadow;
+    const char = this.gameCharacter();
+    return char?.isDropShadow ?? false;
   }
   set isDropShadow(isDropShadow: boolean) {
-    this.gameCharacter()!.isDropShadow = isDropShadow;
+    const char = this.gameCharacter();
+    if (char) char.isDropShadow = isDropShadow;
   }
   get isAltitudeIndicate(): boolean {
-    return this.gameCharacter()!.isAltitudeIndicate;
+    const char = this.gameCharacter();
+    return char?.isAltitudeIndicate ?? false;
   }
   set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.gameCharacter()!.isAltitudeIndicate = isAltitudeIndicate;
+    const char = this.gameCharacter();
+    if (char) char.isAltitudeIndicate = isAltitudeIndicate;
   }
 
   protected foldingBuff: boolean = false;
@@ -156,15 +174,17 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   movableOption: MovableOption = {};
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
 
   rotableOption: RotableOption = {};
 
-  private highlightTimer: ReturnType<typeof setTimeout> = null!;
-  private unhighlightTimer: ReturnType<typeof setTimeout> = null!;
+  private highlightTimer: ReturnType<typeof setTimeout> | undefined;
+  private unhighlightTimer: ReturnType<typeof setTimeout> | undefined;
 
   get elevation(): number {
-    return +((this.gameCharacter()!.posZ + this.altitude * this.gridSize) / this.gridSize).toFixed(1);
+    const char = this.gameCharacter();
+    if (!char) return 0;
+    return +((char.posZ + this.altitude * this.gridSize) / this.gridSize).toFixed(1);
   }
 
   get chatBubbleAltitude(): number {
@@ -183,19 +203,21 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnInit() {
+    const char = this.gameCharacter();
+    if (!char) return;
     this.movableOption = {
-      tabletopObject: this.gameCharacter()!,
+      tabletopObject: char,
       transformCssOffset: 'translateZ(1.0px)',
       colideLayers: ['terrain'],
     };
     this.rotableOption = {
-      tabletopObject: this.gameCharacter()!,
+      tabletopObject: char,
     };
   }
 
   ngAfterViewInit() {
     this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
+    if (this.input) this.input.onStart = (e) => this.onInputStart(e);
   }
 
   ngOnDestroy() {
@@ -210,7 +232,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   onInputStart(_e: MouseEvent | TouchEvent) {
-    this.input.cancel();
+    if (this.input) this.input.cancel();
 
     // TODO:もっと良い方法考える
     if (this.isLock) {
@@ -221,6 +243,9 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   onContextMenu(e: Event) {
     e.stopPropagation();
     e.preventDefault();
+
+    const char = this.gameCharacter();
+    if (!char) return;
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
@@ -240,7 +265,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
                   SoundEffect.play(PresetSound.sweep);
                 }
               },
-              altitudeHande: this.gameCharacter()!,
+              altitudeHande: char,
             },
             this.isAltitudeIndicate
               ? {
@@ -282,46 +307,46 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
         {
           name: '詳細を表示',
           action: () => {
-            this.showDetail(this.gameCharacter()!);
+            this.showDetail(char);
           },
         },
         {
           name: 'チャットパレットを表示',
           action: () => {
-            this.showChatPalette(this.gameCharacter()!);
+            this.showChatPalette(char);
           },
         },
         {
           name: 'リモコンを表示',
           action: () => {
-            this.showRemoteController(this.gameCharacter()!);
+            this.showRemoteController(char);
           },
         },
         {
           name: 'バフ編集',
           action: () => {
-            this.showBuffEdit(this.gameCharacter()!);
+            this.showBuffEdit(char);
           },
         },
         ContextMenuSeparator,
         {
           name: '共有イベントリに移動',
           action: () => {
-            this.gameCharacter()!.setLocation('common');
+            char.setLocation('common');
             SoundEffect.play(PresetSound.piecePut);
           },
         },
         {
           name: '個人イベントリに移動',
           action: () => {
-            this.gameCharacter()!.setLocation(Network.peerId);
+            char.setLocation(Network.peerId);
             SoundEffect.play(PresetSound.piecePut);
           },
         },
         {
           name: '墓場に移動',
           action: () => {
-            this.gameCharacter()!.setLocation('graveyard');
+            char.setLocation('graveyard');
             SoundEffect.play(PresetSound.sweep);
           },
         },
@@ -345,7 +370,7 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
         {
           name: 'コピーを作る',
           action: () => {
-            const cloneObject = this.gameCharacter()!.clone();
+            const cloneObject = char.clone();
             cloneObject.location.x += this.gridSize;
             cloneObject.location.y += this.gridSize;
             cloneObject.update();
@@ -375,7 +400,8 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
     //キーに対応した処理
 
     if (key_alt) {
-      this.gameCharacter()!.targeted = this.gameCharacter()!.targeted ? false : true;
+      const char = this.gameCharacter();
+      if (char) char.targeted = char.targeted ? false : true;
     }
 
     if (key_shift && key_alt) {
@@ -450,7 +476,8 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   get buffNum(): number {
-    const children = this.gameCharacter()?.buffDataElement?.children;
+    const char = this.gameCharacter();
+    const children = char?.buffDataElement?.children;
     if (!children || children.length === 0) {
       return 0;
     }

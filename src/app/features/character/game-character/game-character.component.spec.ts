@@ -48,4 +48,58 @@ describe('GameCharacterComponent', () => {
   it('isTargetedがcomputed signalであること', () => {
     expect(typeof component.isTargeted).toBe('function');
   });
+
+  describe('初期化と破棄', () => {
+    it('gameCharacterが設定されていなくてもgetterが例外を投げないこと', () => {
+      expect(() => {
+        const name = component.name;
+        expect(name).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it('gameCharacterが設定されていなくてもisLockの取得が例外を投げないこと', () => {
+      expect(() => {
+        const isLock = component.isLock;
+        expect(isLock).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it('gameCharacterが設定されていなくてもisLockの設定が例外を投げないこと', () => {
+      expect(() => {
+        component.isLock = true;
+      }).not.toThrow();
+    });
+
+    it('gameCharacterが設定されていなくてもsizeが例外を投げないこと', () => {
+      expect(() => {
+        const size = component.size;
+        expect(size).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it('gameCharacterが設定されていなくてもaltitudeの取得が例外を投げないこと', () => {
+      expect(() => {
+        const altitude = component.altitude;
+        expect(altitude).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it('gameCharacterが設定されていなくてもaltitudeの設定が例外を投げないこと', () => {
+      expect(() => {
+        component.altitude = 5;
+      }).not.toThrow();
+    });
+
+    it('ngAfterViewInitで例外が発生しないこと', () => {
+      expect(() => {
+        component.ngAfterViewInit();
+      }).not.toThrow();
+    });
+
+    it('ngOnDestroyでタイマーをクリアしても例外が発生しないこと', () => {
+      expect(() => {
+        component.ngOnDestroy();
+      }).not.toThrow();
+    });
+  });
 });
