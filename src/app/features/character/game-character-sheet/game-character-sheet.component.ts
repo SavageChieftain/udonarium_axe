@@ -83,21 +83,24 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   }
 
   addDataElement() {
-    if (this.tabletopObject!.detailDataElement) {
+    const obj = this.tabletopObject;
+    if (obj?.detailDataElement) {
       const title = DataElement.create('見出し', '', {});
       const tag = DataElement.create('タグ', '', {});
       title.appendChild(tag);
-      this.tabletopObject!.detailDataElement.appendChild(title);
+      obj.detailDataElement.appendChild(title);
     }
   }
 
   clone() {
-    const cloneObject = this.tabletopObject!.clone();
+    const obj = this.tabletopObject;
+    if (!obj) return;
+    const cloneObject = obj.clone();
     cloneObject.location.x += 50;
     cloneObject.location.y += 50;
-    if (this.tabletopObject!.parent) this.tabletopObject!.parent.appendChild(cloneObject);
+    if (obj.parent) obj.parent.appendChild(cloneObject);
     cloneObject.update();
-    switch (this.tabletopObject!.aliasName) {
+    switch (obj.aliasName) {
       case 'terrain':
         SoundEffect.play(PresetSound.blockPut);
         (cloneObject as unknown as { isLocked: boolean }).isLocked = false;
@@ -141,6 +144,8 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   }
 
   showImportImages() {
+    const obj = this.tabletopObject;
+    if (!obj) return;
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       left: coordinate.x - 250,
@@ -148,9 +153,9 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
       width: 350,
       height: 250,
     };
-    option.title = (<GameCharacter>this.tabletopObject!).name + 'への画像複製';
+    option.title = (<GameCharacter>obj).name + 'への画像複製';
     const component = this.panelService.open<ImportCharacterImgComponent>(ImportCharacterImgComponent, option);
-    component.tabletopObject = <GameCharacter>this.tabletopObject;
+    component.tabletopObject = <GameCharacter>obj;
   }
 
   clickRangeOffSetX() {
@@ -171,8 +176,10 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
 
   clickLimitHeight() {
     //高さが更新されない場合があるので雑だがこの方法で処理する
+    const obj = this.tabletopObject;
+    if (!obj) return;
     setTimeout(() => {
-      this.uiSignalService.requestNoteResize(this.tabletopObject!.identifier);
+      this.uiSignalService.requestNoteResize(obj.identifier);
     }, 100);
   }
 
@@ -210,13 +217,14 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     character.overViewMaxHeight = maxHeight;
   }
   async saveToXML() {
-    if (!this.tabletopObject || this.isSaveing) return;
+    const obj = this.tabletopObject;
+    if (!obj || this.isSaveing) return;
     this.isSaveing = true;
     this.progresPercent = 0;
-    const element = this.tabletopObject!.commonDataElement.getFirstElementByName('name');
+    const element = obj.commonDataElement.getFirstElementByName('name');
     const objectName: string = element ? <string>element.value : '';
 
-    await this.saveDataService.saveGameObjectAsync(this.tabletopObject!, 'xml_' + objectName, (percent) => {
+    await this.saveDataService.saveGameObjectAsync(obj, 'xml_' + objectName, (percent) => {
       this.progresPercent = percent;
     });
 
@@ -227,41 +235,42 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   }
 
   setLocation(locationName: string) {
-    this.tabletopObject!.setLocation(locationName);
+    this.tabletopObject?.setLocation(locationName);
   }
 
   openModal(name: string = '', isAllowedEmpty: boolean = false) {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: isAllowedEmpty }).then((value) => {
-      if (!this.tabletopObject || !this.tabletopObject!.imageDataElement || !value) return;
-      const element = this.tabletopObject!.imageDataElement.getFirstElementByName(name);
+      const obj = this.tabletopObject;
+      if (!obj || !obj.imageDataElement || !value) return;
+      const element = obj.imageDataElement.getFirstElementByName(name);
       if (!element) return;
       element.value = value;
     });
   }
 
   changeMaskFillColor(event: string) {
-    if (this.tabletopObject!) {
+    if (this.tabletopObject) {
       const mask: GameTableScratchMask = <GameTableScratchMask>this.tabletopObject;
       mask.color = event;
     }
   }
 
   changeMaskChangeColor(event: string) {
-    if (this.tabletopObject!) {
+    if (this.tabletopObject) {
       const mask: GameTableScratchMask = <GameTableScratchMask>this.tabletopObject;
       mask.changeColor = event;
     }
   }
 
   changeGridColor(event: string) {
-    if (this.tabletopObject!) {
+    if (this.tabletopObject) {
       const range: RangeArea = <RangeArea>this.tabletopObject;
       range.gridColor = event;
     }
   }
 
   changeRangeColor(event: string) {
-    if (this.tabletopObject!) {
+    if (this.tabletopObject) {
       const range: RangeArea = <RangeArea>this.tabletopObject;
       range.rangeColor = event;
     }
