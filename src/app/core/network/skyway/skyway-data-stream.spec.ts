@@ -54,3 +54,17 @@ describe('SkyWayDataStream', () => {
     expect(getConnection).not.toHaveBeenCalled();
   });
 });
+
+it('プライベートフィールドが null で初期化されること', () => {
+  const stream = SkyWayDataStream.createSubscription(
+    { room: undefined } as never,
+    { peerId: 'peer-a', userId: 'user-a', password: '' } as never
+  );
+  const s = stream as unknown as Record<string, unknown>;
+  expect(s['subscription']).toBeNull();
+  expect(s['dataChannel']).toBeNull();
+  expect(s['stats']).toBeNull();
+  expect(s['onStreamAdded']).toBeNull();
+  expect(s['onStreamPublished']).toBeNull();
+  expect(s['onConnectionStateChanged']).toBeNull();
+});
