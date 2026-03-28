@@ -1,91 +1,83 @@
 # Udonarium Axe — Copilot Instructions
 
-Udonarium Axe はブラウザベースの TRPG オンラインセッション支援ツール。WebRTC（SkyWay SDK）によるP2P通信でサーバレスにオブジェクト同期を行う。
-
-## アーキテクチャ
-
-### 4層構造（`src/app/`）
-
-| レイヤー     | パス        | 説明                                                                                                                  | 依存ルール                                  |
-| ------------ | ----------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **core**     | `core/`     | インフラ層: network/, storage/, sync/, transform/, util/, app-wide services                                           | 他レイヤーをimportしない                    |
-| **domain**   | `domain/`   | ドメインモデル: character/, chat/, tabletop/, card/, dice/, media/, peer/, data/, shared/                             | Angular無依存。`@SyncObject`/`@SyncVar`のみ |
-| **features** | `features/` | UI機能単位: chat/, tabletop/, character/, card/, dice/, media/, lobby/, inventory/, vote/, alarm/, controller/, file/ | core, domain, shared に依存可               |
-| **shared**   | `shared/`   | 横断UI: components/, directives/, pipes/, services                                                                    | core, domain に依存可                       |
-
-### パスエイリアス
-
-- `@axe/*` → `./src/app/*`（tsconfig.json）
+Udonarium Axe はブラウザベースの TRPG オンラインセッション支援ツール。
+WebRTC（SkyWay SDK）によるP2P通信でサーバレスにオブジェクト同期を行う。
 
 ## 技術スタック
 
-- **Angular 21** — Zoneless (`provideZonelessChangeDetection()`)、OnPush 97%
-- **Signals** — signal/computed/effect/toSignal/input + `versionOf()`/`collectionOf()` per-identifier signal API
-- **テスト** — Vitest 4.1.0 + happy-dom
-- **E2E** — Playwright
-- **Lint** — ESLint (flat config)
-- **コミット** — Conventional Commits (`@commitlint/config-conventional`) + lefthook (pre-commit: lint + test, pre-push: build)
+- **Angular 21** — Zoneless (`provideZonelessChangeDetection()`)、OnPush
+- **Signals** — signal/computed/effect/toSignal/input + `versionOf()`/`collectionOf()`
+- **テスト** — Vitest + happy-dom（デュアルランナー）
 - **P2P** — `@skyway-sdk/core` + `@msgpack/msgpack` v3
+- **コミット** — Conventional Commits + lefthook
 
-## テスト環境
+## コードスタイル
 
-### デュアルランナー
+- **TypeScript**: `strict: true`, `target: ES2022`
+- **インデント**: スペース2、シングルクォート
+- **import順序**: `simple-import-sort` プラグインで自動整列（`npm run lint -- --fix`）
+- **未使用import**: `unused-imports` プラグインでエラー
+- **整形**: Prettier（`npm run format`）
+- **コンポーネントprefix**: `app`
 
-| ランナー          | コマンド               | ビルドツール                           |
-| ----------------- | ---------------------- | -------------------------------------- |
-| Angular builder   | `npm test` (`ng test`) | `@angular/build:unit-test` + ESBuild   |
-| Standalone vitest | `npx vitest run`       | `@analogjs/vite-plugin-angular` + Vite |
+## 開発コマンド
 
-**両方のランナーでテストが通過する必要がある。**
+**主な開発コマンド**
 
-### ESBuild 環境のモック制約
+### 開発サーバーの起動
 
-Angular builder の `@angular/build:unit-test` はESBuildでモジュールをバンドルするため、ESMモジュールの`export`が **non-configurable** になる。
+- `npm start`: 開発サーバーを起動します。コード変更を監視し、ブラウザを自動でリロードします。
 
-**使用不可:**
+### プロダクションビルド
 
-- `vi.spyOn(moduleNamespace, 'exportedFunc')` — `TypeError: Cannot redefine property`
-- `vi.mock(path, factory)` — ファクトリは実行されるがモジュールは置換されない
-- `vi.mock('./relative/path')` — 相対importのモックは明示的に拒否される
+- `npm run build`: プロダクションビルドを実行します。最適化されたコードが生成されます。
 
-**使用可能:**
+### テスト
 
-- `vi.spyOn(classInstance, 'method')` — クラスインスタンスのプロパティは configurable
-- `vi.spyOn(ClassName, 'staticMethod')` — static メソッドも configurable
-- Observable の subscribe で検証
-- シングルトンインスタンスのメソッドスパイ
+- `npm test`: ユニットテストを実行します。Angular builder と ESBuild を使用しています。
+- `npx vitest run`: ユニットテストを実行します。Vite を使用しています。
+- `npm run e2e`: Playwright を使用したE2Eテストを実行します。
 
-## 変更検知パターン
+## Lint とフォーマット
 
-### Zoneless 環境
+- `npm run lint`: ESLint を実行します。コードの品質をチェックします。
+- `npm run format`: Prettier を実行します。コードを自動で整形します。
 
-- P2P受信時の更新: `scheduleAngularTick()` が `ApplicationRef.tick()` でグローバルCDをトリガー
-- コンポーネントの再描画: getter 内で `versionOf(id)()`/`collectionOf(aliasName)()` を読み取り、signal の dirty 通知で自動再描画
-- `markForCheck()` は使用しない（0箇所）
-- `detectChanges()` はDOM計測用途のみ許容
+## アーキテクチャ（4層構造）
 
-### Per-Identifier Signal API（ObjectChangeService）
+### core
+
+- `@axe/core` — インフラ層（network, storage, sync等）。他レイヤーをimportしない。
+
+### domain
+
+- `@axe/domain` — ドメインモデル（character, chat, tabletop等）。Angular無依存。`@SyncObject`/`@SyncVar`のみ利用。
+
+### features
+
+- `@axe/features` — UI機能単位（chat, tabletop, character等）。core, domain, sharedに依存可。
+
+### shared
+
+- `@axe/shared` — 横断UI（components, directives, pipes等）。core, domainに依存可。
+
+## コンポーネントパターン
 
 ```typescript
-// オブジェクト変更の追跡（自身 + 子孫の変更で increment）
-this.objectChange.versionOf(this.gameCharacter.identifier)();
-
-// コレクション変更の追跡（add/remove で increment）
-this.objectChange.collectionOf(GameCharacter.aliasName)();
+@Component({
+  selector: 'app-xxx',
+  templateUrl: './xxx.component.html',
+  styleUrls: ['./xxx.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
 ```
+
+- テンプレート・スタイルは外部ファイル分離（CSS、SCSSではない）
+- 変更検知は `OnPush` + Signals で駆動
+- `markForCheck()` は使用しない。`detectChanges()` はDOM計測用途のみ
 
 ## ドメインモデルの制約
 
 - `@SyncObject` クラス群は Angular DI 外（`ObjectFactory` が `new` で生成）
-- DI アクセスには `ServiceLocator.get<T>(token)` ブリッジを使用（`main.ts` で初期化）
-- **ドメインモデルが直接DIサービスを呼ぶ箇所を増やさないこと** — サービス側からモデルを操作する方向にする
-
-## シリアライズの注意
-
-- `@msgpack/msgpack` v3 は `ArrayBuffer` を正しくシリアライズできない（encode → decode で `{}` になる）
-- P2Pでバイナリ送信時は `new Uint8Array(buf)` でラップ必須
-
-## 未着手作業（Phase 8 — オプション）
-
-- `ObjectSerializer` に `toJson()` / `fromJson()` を追加し、`convertToXml` → `convertToJson` に置換
-- `parseXml()` は残し、旧フォーマットの読み込みのみサポート（後方互換）
+- DI アクセスには `ServiceLocator.get<T>(token)` ブリッジを使用
+- **ドメインモデルが直接DIサービスを呼ぶ箇所を増やさないこと** — サービス側からモデルを操作する
