@@ -22,4 +22,19 @@ describe('GameTableScratchMaskComponent', () => {
   it('should be defined', () => {
     expect(component).toBeTruthy();
   });
+
+  it('gameTableScratchMask が null の場合でもゲッターがエラーをスローしないこと', () => {
+    fixture.componentRef.setInput('gameTableScratchMask', null);
+    expect(() => {
+      const _name = component.name;
+      const _width = component.width;
+      const _height = component.height;
+      const _isLock = component.isLock;
+      const _color = component.color;
+      const _isMine = component.isMine;
+      const _posX = component.posX;
+      const _posY = component.posY;
+      const _posZ = component.posZ;
+    }).not.toThrow();
+  });
 });

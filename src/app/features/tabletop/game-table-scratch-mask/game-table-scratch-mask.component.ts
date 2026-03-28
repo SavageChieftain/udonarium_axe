@@ -43,38 +43,44 @@ export class GameTableScratchMaskComponent implements OnInit, OnDestroy {
   }
 
   get name(): string {
-    this.objectChange.versionOf(this.gameTableScratchMask()!.identifier)();
-    return this.gameTableScratchMask()!.name;
+    const mask = this.gameTableScratchMask();
+    if (!mask) return '';
+    this.objectChange.versionOf(mask.identifier)();
+    return mask.name;
   }
   get width(): number {
-    return Math.max(1, this.gameTableScratchMask()!.width);
+    const mask = this.gameTableScratchMask();
+    return mask ? Math.max(1, mask.width) : 1;
   }
   get height(): number {
-    return Math.max(1, this.gameTableScratchMask()!.height);
+    const mask = this.gameTableScratchMask();
+    return mask ? Math.max(1, mask.height) : 1;
   }
   get isLock(): boolean {
-    return this.gameTableScratchMask()!.isLock;
+    return this.gameTableScratchMask()?.isLock ?? false;
   }
   get color(): string {
-    return this.gameTableScratchMask()!.color;
+    return this.gameTableScratchMask()?.color ?? '';
   }
   get isMine(): boolean {
-    return this.gameTableScratchMask()!.isMine;
+    return this.gameTableScratchMask()?.isMine ?? false;
   }
 
   get posX(): number {
-    return this.gameTableScratchMask()!.location.x;
+    return this.gameTableScratchMask()?.location.x ?? 0;
   }
   get posY(): number {
-    return this.gameTableScratchMask()!.location.y;
+    return this.gameTableScratchMask()?.location.y ?? 0;
   }
   get posZ(): number {
-    return this.gameTableScratchMask()!.posZ;
+    return this.gameTableScratchMask()?.posZ ?? 0;
   }
 
   ngOnInit() {
+    const mask = this.gameTableScratchMask();
+    if (!mask) return;
     this.movableOption = {
-      tabletopObject: this.gameTableScratchMask()!,
+      tabletopObject: mask,
       colideLayers: ['terrain'],
     };
   }
@@ -103,7 +109,7 @@ export class GameTableScratchMaskComponent implements OnInit, OnDestroy {
     actions.push({
       name: '削除する',
       action: () => {
-        this.gameTableScratchMask()!.destroy();
+        this.gameTableScratchMask()?.destroy();
         SoundEffect.play(PresetSound.sweep);
       },
     });
@@ -112,12 +118,14 @@ export class GameTableScratchMaskComponent implements OnInit, OnDestroy {
   }
 
   lock() {
-    this.gameTableScratchMask()!.isLock = true;
+    const mask = this.gameTableScratchMask();
+    if (mask) mask.isLock = true;
     SoundEffect.play(PresetSound.lock);
   }
 
   unlock() {
-    this.gameTableScratchMask()!.isLock = false;
+    const mask = this.gameTableScratchMask();
+    if (mask) mask.isLock = false;
     SoundEffect.play(PresetSound.unlock);
   }
 
