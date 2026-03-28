@@ -14,14 +14,14 @@ interface ChankData {
 
 export class BufferSharingTask<T> {
   readonly identifier: string;
-  readonly sendTo: string;
+  readonly sendTo: string | undefined;
 
-  private data!: T;
-  private uint8Array!: Uint8Array;
+  private data: T | null = null;
+  private uint8Array: Uint8Array | null = null;
   private chanks: Uint8Array[] = [];
   private chankSize: number = 32 * 1024;
   private chankReceiveCount: number = 0;
-  private sendChankTimer!: number;
+  private sendChankTimer: number | null = null;
 
   private sentChankIndex = 0;
   private bufferingChankRange: number = 4;
@@ -30,19 +30,19 @@ export class BufferSharingTask<T> {
   private startTime = 0;
   private isCanceled = false;
 
-  private onstart!: () => void;
-  onprogress: (task: BufferSharingTask<T>, loded: number, total: number) => void;
-  onfinish: (task: BufferSharingTask<T>, data: T) => void;
-  ontimeout: (task: BufferSharingTask<T>) => void;
-  oncancel: (task: BufferSharingTask<T>) => void;
+  private onstart: (() => void) | null = null;
+  onprogress: ((task: BufferSharingTask<T>, loded: number, total: number) => void) | null = null;
+  onfinish: ((task: BufferSharingTask<T>, data: T) => void) | null = null;
+  ontimeout: ((task: BufferSharingTask<T>) => void) | null = null;
+  oncancel: ((task: BufferSharingTask<T>) => void) | null = null;
 
-  private timeoutTimer!: ResettableTimeout;
+  private timeoutTimer: ResettableTimeout | null = null;
   private subscription = new Subscription();
 
   private constructor(identifier: string, sendTo?: string, data?: T) {
     this.identifier = identifier;
-    this.sendTo = sendTo!;
-    this.data = data!;
+    this.sendTo = sendTo;
+    if (data !== undefined) this.data = data;
   }
 
   static createSendTask<T>(identifier: string, sendTo: string, data?: T): BufferSharingTask<T> {
@@ -62,9 +62,9 @@ export class BufferSharingTask<T> {
       Logger.warn('[BufferTask] タスクは再利用できません');
       return;
     }
-    this.data = data!;
+    if (data !== undefined) this.data = data;
     this.onstart();
-    this.onstart = null!;
+    this.onstart = null;
   }
 
   private progress(loded: number, total: number) {
@@ -74,7 +74,7 @@ export class BufferSharingTask<T> {
   private finish() {
     if (this.isCanceled) return;
     this.isCanceled = true;
-    if (this.onfinish) this.onfinish(this, this.data);
+    if (this.onfinish) this.onfinish(this, this.data as T);
     this.dispose();
   }
 
@@ -82,7 +82,7 @@ export class BufferSharingTask<T> {
     if (this.isCanceled) return;
     this.isCanceled = true;
     if (this.ontimeout) this.ontimeout(this);
-    if (this.onfinish) this.onfinish(this, this.data);
+    if (this.onfinish) this.onfinish(this, this.data as T);
     this.dispose();
   }
 
@@ -96,7 +96,7 @@ export class BufferSharingTask<T> {
     if (this.isCanceled) return;
     this.isCanceled = true;
     if (this.oncancel) this.oncancel(this);
-    if (this.onfinish) this.onfinish(this, this.data);
+    if (this.onfinish) this.onfinish(this, this.data as T);
     this.dispose();
   }
 
@@ -105,13 +105,13 @@ export class BufferSharingTask<T> {
     this.subscription = new Subscription();
     if (this.sendChankTimer) clearZeroTimeout(this.sendChankTimer);
     if (this.timeoutTimer) this.timeoutTimer.clear();
-    this.sendChankTimer = null!;
-    this.timeoutTimer = null!;
-    this.onprogress = this.onfinish = this.ontimeout = this.oncancel = null!;
+    this.sendChankTimer = null;
+    this.timeoutTimer = null;
+    this.onprogress = this.onfinish = this.ontimeout = this.oncancel = null;
   }
 
   private initializeSend() {
-    this.uint8Array = MessagePack.encode(this.data);
+    this.uint8Array = MessagePack.encode(this.data as T);
     const total = Math.ceil(this.uint8Array.byteLength / this.chankSize);
     this.chanks = new Array(total);
     this.subscription.add(
@@ -148,13 +148,16 @@ export class BufferSharingTask<T> {
   }
 
   private sendChank(index: number) {
-    const chank = this.uint8Array.slice(index * this.chankSize, (index + 1) * this.chankSize);
+    const uint8Array = this.uint8Array;
+    if (!uint8Array) return;
+
+    const chank = uint8Array.slice(index * this.chankSize, (index + 1) * this.chankSize);
     const data = { index: index, length: this.chanks.length, chank: chank };
     networkSend(`FILE_SEND_CHANK_${this.identifier}`, data, this.sendTo);
     this.sentChankIndex = index;
-    this.sendChankTimer = null!;
+    this.sendChankTimer = null;
     if (this.chanks.length <= index + 1) {
-      this.outputTransferRate(this.uint8Array.byteLength);
+      this.outputTransferRate(uint8Array.byteLength);
       setZeroTimeout(() => this.finish());
     } else if (this.completedChankIndex + this.bufferingChankRange <= index) {
       this.resetTimeout();

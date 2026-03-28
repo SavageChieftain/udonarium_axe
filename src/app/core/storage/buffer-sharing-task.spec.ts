@@ -33,6 +33,16 @@ describe('BufferSharingTask', () => {
       expect(task).toBeDefined();
       expect(task.identifier).toBe('recv-id');
     });
+
+    it('nullableフィールドが null で初期化される', () => {
+      const task = BufferSharingTask.createReceiveTask('recv-id');
+      const internal = task as unknown as Record<string, unknown>;
+
+      expect(internal['data']).toBeNull();
+      expect(internal['uint8Array']).toBeNull();
+      expect(internal['sendChankTimer']).toBeNull();
+      expect(internal['timeoutTimer']).toBeNull();
+    });
   });
 
   describe('cancel', () => {
