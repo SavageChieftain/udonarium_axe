@@ -27,4 +27,38 @@ describe('DiceTableSettingComponent', () => {
   it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
     await expectPanelDragRecovery(DiceTableSettingComponent);
   });
+
+  describe('初期化と破棄', () => {
+    it('selectedTable が null の状態で gameType getter が "" を返すこと', () => {
+      component.selectedTable = null;
+      expect(component.gameType).toBe('');
+    });
+
+    it('selectedTable が null の状態で tableName getter が "" を返すこと', () => {
+      component.selectedTable = null;
+      expect(component.tableName).toBe('');
+    });
+
+    it('selectedTable が null の状態で tableDice getter が "" を返すこと', () => {
+      component.selectedTable = null;
+      expect(component.tableDice).toBe('');
+    });
+
+    it('selectedTable が null の状態で tableCommand getter が "" を返すこと', () => {
+      component.selectedTable = null;
+      expect(component.tableCommand).toBe('');
+    });
+
+    it('selectedTable が null の状態で tableText getter が "" を返すこと', () => {
+      component.selectedTable = null;
+      expect(component.tableText).toBe('');
+    });
+
+    it('selectedTable が null の状態で diceTablePalette が null! を返さず安全に処理されること', () => {
+      component.selectedTable = null;
+      expect(() => {
+        const _palette = component.diceTablePalette;
+      }).not.toThrow();
+    });
+  });
 });

@@ -24,11 +24,13 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   _gameType: string = '';
   get gameType(): string {
-    return this.isEditable ? this.selectedTable!.diceTablePalette.dicebot : '';
+    const table = this.selectedTable;
+    return this.isEditable && table ? table.diceTablePalette.dicebot : '';
   }
   set gameType(gameType: string) {
-    if (this.isEditable) {
-      this.selectedTable!.diceTablePalette.dicebot = gameType;
+    const table = this.selectedTable;
+    if (this.isEditable && table) {
+      table.diceTablePalette.dicebot = gameType;
       this._gameType = gameType;
     }
   }
@@ -42,40 +44,51 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get tableName(): string {
-    return this.isEditable ? this.selectedTable!.name : '';
+    const table = this.selectedTable;
+    return this.isEditable && table ? table.name : '';
   }
   set tableName(tableName: string) {
-    if (this.isEditable) this.selectedTable!.name = tableName;
+    const table = this.selectedTable;
+    if (this.isEditable && table) table.name = tableName;
   }
 
   get tableDice(): string {
-    return this.isEditable ? this.selectedTable!.dice : '';
+    const table = this.selectedTable;
+    return this.isEditable && table ? table.dice : '';
   }
   set tableDice(tableDice: string) {
-    if (this.isEditable) this.selectedTable!.dice = tableDice;
+    const table = this.selectedTable;
+    if (this.isEditable && table) table.dice = tableDice;
   }
 
   get tableCommand(): string {
-    return this.isEditable ? this.selectedTable!.command : '';
+    const table = this.selectedTable;
+    return this.isEditable && table ? table.command : '';
   }
   set tableCommand(tableCommand: string) {
-    if (this.isEditable) this.selectedTable!.command = tableCommand;
+    const table = this.selectedTable;
+    if (this.isEditable && table) table.command = tableCommand;
   }
 
   get tableText(): string {
-    return this.isEditable ? this.selectedTable!.text : '';
+    const table = this.selectedTable;
+    return this.isEditable && table ? table.text : '';
   }
   set tableText(tableText: string) {
-    if (this.isEditable) this.selectedTable!.text = tableText + '';
+    const table = this.selectedTable;
+    if (this.isEditable && table) table.text = tableText + '';
   }
 
   get diceTablePalette(): DiceTablePalette {
-    if (!this.isEditable) return null!;
+    const table = this.selectedTable;
+    if (!this.isEditable || !table) {
+      return Object.create(DiceTablePalette.prototype) as DiceTablePalette;
+    }
 
-    for (const child of this.selectedTable!.children) {
+    for (const child of table.children) {
       if (child instanceof DiceTablePalette) return child;
     }
-    return null!;
+    return Object.create(DiceTablePalette.prototype) as DiceTablePalette;
   }
 
   isEdit: boolean = false;
