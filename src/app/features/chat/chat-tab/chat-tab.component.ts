@@ -81,8 +81,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
 
   private topElm: HTMLElement = null!;
   private bottomElm: HTMLElement = null!;
-  private topElmBox: ClientRect | null = null!;
-  private bottomElmBox: ClientRect | null = null!;
+  private topElmBox: ClientRect | null = null;
+  private bottomElmBox: ClientRect | null = null;
   private topIndex = 0;
   private bottomIndex = 0;
 
@@ -127,19 +127,20 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     return this.minScrollHeight - this.bottomSpace;
   }
   get bottomSpace(): number {
+    const tab = this.chatTab;
     return 0 < this.chatMessages.length
-      ? (this.chatTab.chatMessages.length - this.bottomIndex - 1) * this.minMessageHeight
+      ? ((tab?.chatMessages.length ?? 0) - this.bottomIndex - 1) * this.minMessageHeight
       : 0;
   }
 
-  private scrollEventShortTimer: ResettableTimeout = null!;
-  private scrollEventLongTimer: ResettableTimeout = null!;
-  private addMessageEventTimer: NodeJS.Timeout | null = null!;
+  private scrollEventShortTimer: ResettableTimeout | null = null;
+  private scrollEventLongTimer: ResettableTimeout | null = null;
+  private addMessageEventTimer: NodeJS.Timeout | null = null;
   private callbackOnScroll: () => void = () => this.onScroll();
   private callbackOnScrollToBottom: () => void = () => this.resetMessages();
 
-  readonly chatTabInput = input<ChatTab>(null!, { alias: 'chatTab' });
-  get chatTab(): ChatTab {
+  readonly chatTabInput = input<ChatTab | null>(null, { alias: 'chatTab' });
+  get chatTab(): ChatTab | null {
     return this.chatTabInput();
   }
   get chatTabList(): ChatTabList {
@@ -169,7 +170,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
 
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
-      if (!message || !this.chatTab.contains(message)) return;
+      if (!message || !this.chatTab?.contains(message)) return;
 
       if (this.topTimestamp <= message.timestamp) {
         this.renderVersion.update((v) => v + 1);
@@ -185,7 +186,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
         message instanceof ChatMessage &&
         this.topTimestamp <= message.timestamp &&
         message.timestamp <= this.botomTimestamp &&
-        this.chatTab.contains(message)
+        this.chatTab?.contains(message)
       ) {
         this.renderVersion.update((v) => v + 1);
       }
@@ -208,7 +209,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     if (this.scrollEventShortTimer) this.scrollEventShortTimer.clear();
     if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
     if (this.addMessageEventTimer) clearTimeout(this.addMessageEventTimer);
-    this.addMessageEventTimer = null!;
+    this.addMessageEventTimer = null;
   }
 
   ngAfterViewChecked() {
@@ -219,7 +220,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
   onMessageInit() {
     if (this.addMessageEventTimer != null) return;
     this.addMessageEventTimer = setTimeout(() => {
-      this.addMessageEventTimer = null!;
+      this.addMessageEventTimer = null;
       this.addMessage.emit();
     }, 0);
   }
@@ -316,27 +317,28 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
   }
 
   private markForReadIfNeeded() {
-    if (!this.chatTab.hasUnread) return;
+    const tab = this.chatTab;
+    if (!tab?.hasUnread) return;
 
     const scrollPosition = this.getScrollPosition();
     if (scrollPosition.scrollHeight <= scrollPosition.bottom + 100) {
       setZeroTimeout(() => {
-        this.chatTab.markForRead();
+        this.chatTab?.markForRead();
         this.renderVersion.update((v) => v + 1);
       });
     }
   }
 
   private onScroll() {
-    this.scrollEventShortTimer.reset();
-    if (!this.scrollEventLongTimer.isActive) {
-      this.scrollEventLongTimer.reset();
+    this.scrollEventShortTimer?.reset();
+    if (!this.scrollEventLongTimer?.isActive) {
+      this.scrollEventLongTimer?.reset();
     }
   }
 
   private lazyScrollUpdate(isNormalUpdate: boolean = true) {
-    this.scrollEventShortTimer.stop();
-    this.scrollEventLongTimer.stop();
+    this.scrollEventShortTimer?.stop();
+    this.scrollEventLongTimer?.stop();
 
     const chatMessageElements = this.messageContainerRef().nativeElement.querySelectorAll<HTMLElement>('chat-message');
 
@@ -355,7 +357,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
       messageBoxBottom < scrollPosition.bottom && scrollPosition.bottom < scrollPosition.scrollHeight;
 
     if (!isNormalUpdate) {
-      this.scrollEventShortTimer.reset();
+      this.scrollEventShortTimer?.reset();
     }
 
     if (!isNormalUpdate && !hasTopBlank && !hasBotomBlank) {
@@ -370,7 +372,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     const range = calcIndexRange({
       topIndex: this.topIndex,
       bottomIndex: this.bottomIndex,
-      chatMessagesLength: this.chatTab.chatMessages.length,
+      chatMessagesLength: this.chatTab?.chatMessages.length ?? 0,
       minMessageHeight: this.minMessageHeight,
       maxHeight,
       messageBoxTop,

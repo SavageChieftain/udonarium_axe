@@ -79,4 +79,11 @@ describe('ChatTabComponent', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((component as any).changeDetector).toBeUndefined();
   });
+
+  it('chatTab が null の場合でも chatMessages getter がエラーをスローしないこと', () => {
+    fixture.componentRef.setInput('chatTab', null);
+    expect(() => {
+      const _msgs = component.chatMessages;
+    }).not.toThrow();
+  });
 });
