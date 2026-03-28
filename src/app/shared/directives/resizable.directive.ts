@@ -173,9 +173,10 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
   private calcCorrectionPosition(diff: BoxSize = { left: 0, top: 0, width: 0, height: 0 }): BoxSize {
     const correction: BoxSize = { left: 0, top: 0, width: 0, height: 0 };
     const box = this.elementRef.nativeElement.getBoundingClientRect();
-    const bounds = this.elementRef.nativeElement.ownerDocument
-      .querySelector(this.boundsSelector())!
-      .getBoundingClientRect();
+    const boundsElement = this.elementRef.nativeElement.ownerDocument.querySelector(this.boundsSelector());
+    if (!boundsElement) return correction;
+
+    const bounds = boundsElement.getBoundingClientRect();
 
     if (bounds.right < box.right + diff.left + diff.width) {
       correction.width += bounds.right - (box.right + diff.left + diff.width);
@@ -198,15 +199,13 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
 
   private calcElementPosition(target: HTMLElement): BoxSize {
     const css: CSSStyleDeclaration = window.getComputedStyle(target);
+    const parentWidth = target.parentElement?.offsetWidth ?? 0;
+    const parentHeight = target.parentElement?.offsetHeight ?? 0;
     return {
-      left: CSSNumber.relation(css.left, target.parentElement!.offsetWidth, target.parentElement!.offsetWidth * 0.5),
-      top: CSSNumber.relation(css.top, target.parentElement!.offsetHeight, target.parentElement!.offsetHeight * 0.5),
-      width: CSSNumber.relation(css.width, target.parentElement!.offsetWidth, target.parentElement!.offsetWidth * 0.5),
-      height: CSSNumber.relation(
-        css.height,
-        target.parentElement!.offsetHeight,
-        target.parentElement!.offsetHeight * 0.5
-      ),
+      left: CSSNumber.relation(css.left, parentWidth, parentWidth * 0.5),
+      top: CSSNumber.relation(css.top, parentHeight, parentHeight * 0.5),
+      width: CSSNumber.relation(css.width, parentWidth, parentWidth * 0.5),
+      height: CSSNumber.relation(css.height, parentHeight, parentHeight * 0.5),
     };
   }
 
