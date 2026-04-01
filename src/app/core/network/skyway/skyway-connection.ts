@@ -67,7 +67,7 @@ export class SkyWayConnection implements Connection {
   }
 
   open(userId: string, roomId: string, roomName: string, password: string): void {
-    PeerContext.create(userId, roomId, roomName, password).then((peer) => this.openSkyWay(peer));
+    PeerContext.createRoom(userId, roomId, roomName, password).then((peer) => this.openSkyWay(peer));
   }
 
   close() {
@@ -349,6 +349,6 @@ export class SkyWayConnection implements Connection {
   }
 
   private async makeFriendPeer(userId: string): Promise<PeerContext> {
-    return PeerContext.create(userId, this.peer.roomId, this.peer.roomName, this.peer.password);
+    return PeerContext.createRoom(userId, this.peer.roomId, this.peer.roomName, this.peer.password);
   }
 }

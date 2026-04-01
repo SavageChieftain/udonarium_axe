@@ -45,7 +45,7 @@ export class RoomSettingComponent implements OnInit, OnDestroy {
 
   async calcPeerId(roomName: string, password: string) {
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
-    const context = await PeerContext.create(userId, PeerContext.generateId('***'), roomName, password);
+    const context = await PeerContext.createRoom(userId, PeerContext.generateId('***'), roomName, password);
     this.validateLength = context.peerId.length < 64;
     this.myPeer.reConnectPass = password;
   }
