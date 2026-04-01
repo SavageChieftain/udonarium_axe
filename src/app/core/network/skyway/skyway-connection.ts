@@ -129,8 +129,7 @@ export class SkyWayConnection implements Connection {
       return false;
     }
 
-    if (peerId && peerId.length && peerId !== this.peerId) return true;
-    return false;
+    return true;
   }
 
   disconnect(peer: IPeerContext): boolean {
@@ -157,9 +156,9 @@ export class SkyWayConnection implements Connection {
     this.bandwidthUsage += byteLength;
     this.outboundQueue = this.outboundQueue.then(
       () =>
-        new Promise<void>((resolve, _reject) => {
+        new Promise<void>((resolve) => {
           setZeroTimeout(async () => {
-            if (1 * 1024 < container.data.byteLength && Array.isArray(data) && 1 < data.length) {
+            if (1024 < container.data.byteLength && Array.isArray(data) && 1 < data.length) {
               const compressed = await compressAsync(container.data);
               if (compressed.byteLength < container.data.byteLength) {
                 container.data = compressed;
@@ -251,7 +250,6 @@ export class SkyWayConnection implements Connection {
     };
 
     await this.skyWay.open(peer);
-    return;
   }
 
   private connectStream(stream: SkyWayDataStream) {
@@ -274,9 +272,6 @@ export class SkyWayConnection implements Connection {
     });
     stream.on('error', () => {
       this.disconnectStream(stream);
-    });
-    stream.on('stats', async () => {
-      // not implemented
     });
 
     stream.connect();
@@ -303,7 +298,7 @@ export class SkyWayConnection implements Connection {
     this.bandwidthUsage += byteLength;
     this.inboundQueue = this.inboundQueue.then(
       () =>
-        new Promise<void>((resolve, _reject) => {
+        new Promise<void>((resolve) => {
           setZeroTimeout(async () => {
             if (!this.callback.onData) return;
             const data = container.isCompressed ? await decompressAsync(container.data) : container.data;
