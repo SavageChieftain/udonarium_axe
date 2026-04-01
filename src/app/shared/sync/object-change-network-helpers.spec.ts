@@ -1,6 +1,4 @@
 import { localDispatch, networkMessage$ } from '@axe/core/network/network-messaging';
-import { firstValueFrom, Subject } from 'rxjs';
-
 import {
   completeSubjects,
   createObjectChangeNetworkBindings,
@@ -13,7 +11,8 @@ import {
   type ObjectDeleteEvent,
   subscribeNetworkBindings,
   type WritingMessageEvent,
-} from './object-change-network-helpers';
+} from '@axe/shared/sync/object-change-network-helpers';
+import { firstValueFrom, Subject } from 'rxjs';
 
 describe('object-change-network-helpers', () => {
   it('ObjectChangeService 用の network binding 定義を生成する', () => {

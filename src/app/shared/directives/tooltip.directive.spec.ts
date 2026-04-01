@@ -1,4 +1,4 @@
-import { TooltipDirective } from './tooltip.directive';
+import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 
 describe('TooltipDirective', () => {
   it('should be defined', () => {

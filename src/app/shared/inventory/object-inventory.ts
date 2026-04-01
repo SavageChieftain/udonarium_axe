@@ -3,8 +3,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-
-import { sortObjectsByTags } from './game-object-inventory-helpers';
+import { sortObjectsByTags } from '@axe/shared/inventory/game-object-inventory-helpers';
 
 type ObjectIdentifier = string;
 

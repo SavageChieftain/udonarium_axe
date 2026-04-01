@@ -1,8 +1,7 @@
 import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
-
-import { HandleType, ResizeHandler } from './resize-handler';
+import { HandleType, ResizeHandler } from '@axe/shared/directives/resize-handler';
 
 interface BoxSize {
   left: number;

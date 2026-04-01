@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ContextMenuComponent } from './context-menu.component';
+import { ContextMenuComponent } from '@axe/shared/components/context-menu/context-menu.component';
 
 describe('ContextMenuComponent', () => {
   let component: ContextMenuComponent;

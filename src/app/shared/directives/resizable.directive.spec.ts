@@ -1,4 +1,4 @@
-import { ResizableDirective } from './resizable.directive';
+import { ResizableDirective } from '@axe/shared/directives/resizable.directive';
 
 describe('ResizableDirective', () => {
   it('should be defined', () => {

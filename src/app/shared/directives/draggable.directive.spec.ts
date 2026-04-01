@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { vi } from 'vitest';
-
-import { DraggableDirective } from './draggable.directive';
 
 @Component({
   selector: 'test-host',

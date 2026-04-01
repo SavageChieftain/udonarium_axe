@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { vi } from 'vitest';
-
-import { RotableDirective } from './rotable.directive';
 
 @Component({
   selector: 'test-host',

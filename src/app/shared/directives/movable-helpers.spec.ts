@@ -1,12 +1,11 @@
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-
 import {
   applyPointerEvents,
   calcSnapNum,
   collectCollidableElements,
   shouldTransitionTo,
   toTransformCss,
-} from './movable-helpers';
+} from '@axe/shared/directives/movable-helpers';
 
 describe('movable-helpers', () => {
   describe('calcSnapNum', () => {

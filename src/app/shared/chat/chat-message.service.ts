@@ -11,8 +11,6 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { emitDiceTableMessage, emitResourceEditMessage, emitSendMessage } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import GameSystemClass from 'bcdice/lib/game_system';
-
 import {
   calcChatTimestamp,
   emitChatMessageEvents,
@@ -23,7 +21,8 @@ import {
   resolveMessageColor,
   resolveTachieIndex,
   stripTachieCommand,
-} from './chat-message-helpers';
+} from '@axe/shared/chat/chat-message-helpers';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 const HOURS = 60 * 60 * 1000;
 

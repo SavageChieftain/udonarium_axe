@@ -1,10 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
+import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/sync/object-change.service';
 import { firstValueFrom } from 'rxjs';
 import { Subject } from 'rxjs';
-
-import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from './object-change.service';
 
 describe('ObjectChangeService', () => {
   let service: ObjectChangeService;

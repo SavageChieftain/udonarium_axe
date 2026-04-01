@@ -1,7 +1,6 @@
 import { inject, TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { ChatMessageService } from './chat-message.service';
 
 describe('ChatMessageService', () => {
   beforeEach(() => {

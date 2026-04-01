@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-
-import { UiSignalService } from './ui-signal.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 describe('UiSignalService', () => {
   let service: UiSignalService;

@@ -1,7 +1,6 @@
 import { inject, TestBed } from '@angular/core/testing';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { TabletopService } from './tabletop.service';
 
 describe('TabletopService', () => {
   beforeEach(() => {

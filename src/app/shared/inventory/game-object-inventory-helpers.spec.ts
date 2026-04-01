@@ -1,6 +1,5 @@
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
-
-import { sortObjectsByTags, toSortableValue } from './game-object-inventory-helpers';
+import { sortObjectsByTags, toSortableValue } from '@axe/shared/inventory/game-object-inventory-helpers';
 
 function createObject(name: string, hp: string | number, dex: string | number) {
   return {

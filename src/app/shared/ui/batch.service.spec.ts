@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-
-import { BatchService } from './batch.service';
+import { BatchService } from '@axe/shared/ui/batch.service';
 
 // setZeroTimeout は MessageChannel ベースで fake timer では発火しない。
 // setInterval(66) は fake timer で制御できるので、それを使ってテストする。

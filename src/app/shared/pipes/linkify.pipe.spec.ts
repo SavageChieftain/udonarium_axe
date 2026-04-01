@@ -1,4 +1,4 @@
-import { LinkifyPipe } from './linkify.pipe';
+import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 
 describe('LinkifyPipe', () => {
   let pipe: LinkifyPipe;

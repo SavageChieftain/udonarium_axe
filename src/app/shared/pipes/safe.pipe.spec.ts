@@ -1,4 +1,4 @@
-import { SafePipe } from './safe.pipe';
+import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
 describe('SafePipe', () => {
   it('should be defined', () => {

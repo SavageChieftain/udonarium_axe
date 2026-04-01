@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { TextViewComponent } from './text-view.component';
+import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
 
 describe('TextViewComponent', () => {
   let component: TextViewComponent;

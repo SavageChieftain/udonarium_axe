@@ -1,7 +1,6 @@
 import { Injector, ViewContainerRef } from '@angular/core';
 import { inject, TestBed } from '@angular/core/testing';
-
-import { ModalService } from './modal.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
 
 describe('ModalService', () => {
   beforeEach(() => {

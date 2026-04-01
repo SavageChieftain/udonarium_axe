@@ -5,9 +5,8 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
+import { ObjectInventory } from '@axe/shared/inventory/object-inventory';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-
-import { ObjectInventory } from './object-inventory';
 
 type ObjectIdentifier = string;
 type LocationName = string;

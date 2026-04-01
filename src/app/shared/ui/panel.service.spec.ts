@@ -1,6 +1,5 @@
 import { ComponentRef, ViewContainerRef } from '@angular/core';
-
-import { PanelOption, PanelService } from './panel.service';
+import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 class DummyBodyComponent {}
 

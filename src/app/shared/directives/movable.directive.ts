@@ -14,11 +14,7 @@ import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { BatchService } from '@axe/shared/ui/batch.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-
-import { InputHandler } from './input-handler';
+import { InputHandler } from '@axe/shared/directives/input-handler';
 import {
   applyPointerEvents,
   calcSnapNum,
@@ -28,14 +24,17 @@ import {
   shouldTransitionTo,
   toTransformCss,
   unregisterLayer,
-} from './movable-helpers';
+} from '@axe/shared/directives/movable-helpers';
 import {
   handleContextMenu,
   handleInputEnd,
   handleInputMove,
   handleInputStart,
   MovableInteractionContext,
-} from './movable-interaction';
+} from '@axe/shared/directives/movable-interaction';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { BatchService } from '@axe/shared/ui/batch.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
 export interface MovableOption {
   readonly tabletopObject?: TabletopObject;

@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-
-import { SelectionSignalService } from './selection-signal.service';
+import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
 describe('SelectionSignalService', () => {
   let service: SelectionSignalService;

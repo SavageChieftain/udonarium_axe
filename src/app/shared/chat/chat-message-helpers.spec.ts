@@ -1,6 +1,4 @@
 import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
-import GameSystemClass from 'bcdice/lib/game_system';
-
 import {
   calcChatTimestamp,
   emitChatMessageEvents,
@@ -11,7 +9,8 @@ import {
   resolveMessageColor,
   resolveTachieIndex,
   stripTachieCommand,
-} from './chat-message-helpers';
+} from '@axe/shared/chat/chat-message-helpers';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 describe('chat-message-helpers', () => {
   describe('resolveTachieIndex', () => {

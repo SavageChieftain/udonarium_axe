@@ -14,10 +14,9 @@ import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { InputHandler } from '@axe/shared/directives/input-handler';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { BatchService } from '@axe/shared/ui/batch.service';
-
-import { InputHandler } from './input-handler';
 
 export interface RotableTabletopObject extends TabletopObject {
   rotate: number;

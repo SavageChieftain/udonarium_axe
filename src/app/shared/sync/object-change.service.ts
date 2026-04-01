@@ -19,8 +19,6 @@ import {
   stopCutInByBgm$,
   xmlLoaded$,
 } from '@axe/domain/domain-events';
-import { debounceTime, merge, Subject, Subscription } from 'rxjs';
-
 import {
   completeSubjects,
   createObjectChangeNetworkBindings,
@@ -33,18 +31,9 @@ import {
   type ObjectDeleteEvent,
   subscribeNetworkBindings,
   type WritingMessageEvent,
-} from './object-change-network-helpers';
+} from '@axe/shared/sync/object-change-network-helpers';
+import { debounceTime, merge, Subject, Subscription } from 'rxjs';
 
-export type {
-  CursorMoveEvent,
-  FileSyncEvent,
-  HeartBeatEvent,
-  IdentifierEvent,
-  NetworkErrorEvent,
-  NetworkPeerEvent,
-  ObjectDeleteEvent,
-  WritingMessageEvent,
-} from './object-change-network-helpers';
 export type {
   AlarmPopEvent,
   AlarmTimeUpEvent,
@@ -56,6 +45,16 @@ export type {
   MessageAddedEvent,
   XmlLoadedEvent,
 } from '@axe/domain/domain-events';
+export type {
+  CursorMoveEvent,
+  FileSyncEvent,
+  HeartBeatEvent,
+  IdentifierEvent,
+  NetworkErrorEvent,
+  NetworkPeerEvent,
+  ObjectDeleteEvent,
+  WritingMessageEvent,
+} from '@axe/shared/sync/object-change-network-helpers';
 
 @Injectable({
   providedIn: 'root',

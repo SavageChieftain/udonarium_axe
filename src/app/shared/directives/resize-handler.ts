@@ -1,4 +1,4 @@
-import { InputHandler } from './input-handler';
+import { InputHandler } from '@axe/shared/directives/input-handler';
 
 export enum HandleType {
   N = 'n',

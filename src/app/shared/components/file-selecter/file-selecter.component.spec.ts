@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { FileSelecterComponent } from './file-selecter.component';
 
 describe('FileSelecterComponent', () => {
   let component: FileSelecterComponent;
