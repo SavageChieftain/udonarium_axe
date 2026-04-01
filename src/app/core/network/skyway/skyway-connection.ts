@@ -22,7 +22,7 @@ interface DataContainer {
 
 export class SkyWayConnection implements Connection {
   private get userIds(): string[] {
-    return [...this.peers.map((peer) => peer.userId).filter((userId) => 0 < userId.length), this.peer.userId];
+    return [...this.peers.map((peer) => peer.userId).filter((userId) => userId.length > 0), this.peer.userId];
   }
 
   get peerId(): string {
@@ -156,7 +156,7 @@ export class SkyWayConnection implements Connection {
       () =>
         new Promise<void>((resolve) => {
           setZeroTimeout(async () => {
-            if (1024 < container.data.byteLength && Array.isArray(data) && 1 < data.length) {
+            if (container.data.byteLength > 1024 && Array.isArray(data) && data.length > 1) {
               const compressed = await compressAsync(container.data);
               if (compressed.byteLength < container.data.byteLength) {
                 container.data = compressed;
@@ -331,9 +331,9 @@ export class SkyWayConnection implements Connection {
     let needsNotifyUserList = false;
     for (const userId of userIds) {
       const peer = await this.makeFriendPeer(userId);
-      const stream = this.streams.find(peer.peerId);
-      if (stream && stream.peer.userId !== userId) {
-        stream.peer.userId = userId;
+      const existingStream = this.streams.find(peer.peerId);
+      if (existingStream && existingStream.peer.userId !== userId) {
+        existingStream.peer.userId = userId;
         needsNotifyUserList = true;
       }
     }
