@@ -6,7 +6,7 @@ export interface WebRTCConnection {
 }
 
 export class WebRTCStatsMonitor {
-  private static updateWebRTCStatsTimer: ResettableTimeout = null!;
+  private static updateWebRTCStatsTimer: ResettableTimeout | null = null;
   private static monitoringConnections: Set<WebRTCConnection> = new Set();
 
   private constructor() {}
@@ -21,37 +21,29 @@ export class WebRTCStatsMonitor {
     this.monitoringConnections.delete(connection);
   }
 
-  static resetAllTimestamps(): void {
-    for (const connection of this.monitoringConnections) {
-      if ('resetTimestamp' in connection && typeof connection.resetTimestamp === 'function') {
-        connection.resetTimestamp();
-      }
-    }
-  }
-
   private static restart() {
-    if (this.updateWebRTCStatsTimer == null) {
-      this.updateWebRTCStatsTimer = new ResettableTimeout(() => this.doMonitoringAsync(), this.calcIntervalTime());
+    const intervalMs = Math.min(2000 + 1000 * this.monitoringConnections.size, 8000);
+    if (this.updateWebRTCStatsTimer === null) {
+      this.updateWebRTCStatsTimer = new ResettableTimeout(() => this.doMonitoringAsync(), intervalMs);
     } else if (!this.updateWebRTCStatsTimer.isActive) {
-      this.updateWebRTCStatsTimer.reset(this.calcIntervalTime());
+      this.updateWebRTCStatsTimer.reset(intervalMs);
     }
-  }
-
-  private static calcIntervalTime(): number {
-    const ms = 2000 + 1000 * this.monitoringConnections.size;
-    return Math.min(ms, 8000);
   }
 
   private static async doMonitoringAsync() {
+    const toRemove: WebRTCConnection[] = [];
     for (const connection of this.monitoringConnections) {
       if (connection.open) {
         await connection.updateStatsAsync();
       } else {
-        this.remove(connection);
+        toRemove.push(connection);
       }
     }
+    for (const connection of toRemove) {
+      this.remove(connection);
+    }
     if (this.monitoringConnections.size === 0) {
-      this.updateWebRTCStatsTimer = null!;
+      this.updateWebRTCStatsTimer = null;
       return;
     }
     this.restart();
