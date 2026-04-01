@@ -129,6 +129,8 @@
           style="width: 3em; font-size: 1.2em"
           size="1"
           type="number"
+          name="remote-number"
+          name="remote-number"
           [(ngModel)]="this.remoteNumber"
           placeholder="Value"
         />
@@ -275,10 +277,19 @@
                           class="input tag-value is-caret"
                           [style]="'color:' + dataElm.nowValueColor + ';'"
                           size="1"
+                          name="data-current-value"
+                          name="data-current-value"
                           [(ngModel)]="dataElm.currentValue"
                           placeholder=""
                         />
-                        <input class="input tag-value is-caret" size="1" [(ngModel)]="dataElm.value" placeholder="" />
+                        <input
+                          class="input tag-value is-caret"
+                          size="1"
+                          name="data-value"
+                          name="data-value"
+                          [(ngModel)]="dataElm.value"
+                          placeholder=""
+                        />
                       </div>
                     </div>
                   </div>
@@ -308,7 +319,14 @@
                 <div style="display: inline-block">
                   <div class="tag-value-box">
                     <div class="hidden-spacer" style="font-weight: bold">{{ dataElm.value }}</div>
-                    <input class="input tag-value is-caret" size="1" [(ngModel)]="dataElm.value" placeholder="" />
+                    <input
+                      class="input tag-value is-caret"
+                      size="1"
+                      name="data-value"
+                      name="data-value"
+                      [(ngModel)]="dataElm.value"
+                      placeholder=""
+                    />
                   </div>
                 </div>
               </div>

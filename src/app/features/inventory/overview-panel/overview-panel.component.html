@@ -97,7 +97,13 @@
     >
       <div style="position: relative; width: 100%">
         <div class="is-fill">
-          <textarea class="textarea is-caret" [(ngModel)]="note.text" spellcheck="false"></textarea>
+          <textarea
+            class="textarea is-caret"
+            name="note-text"
+            name="note-text"
+            [(ngModel)]="note.text"
+            spellcheck="false"
+          ></textarea>
         </div>
         <div class="textarea-spacer">{{ note.text }}</div>
       </div>
@@ -276,6 +282,8 @@
             <div class="is-fill">
               <textarea
                 class="textarea"
+                name="data-value"
+                name="data-value"
                 [(ngModel)]="dataElm.value"
                 spellcheck="false"
                 (focus)="textFocus(dataElm.myIdentifer)"
@@ -326,6 +334,8 @@
               type="number"
               [style]="'color:' + dataElm.nowValueColor + ';'"
               size="1"
+              name="data-current-value"
+              name="data-current-value"
               [(ngModel)]="dataElm.currentValue"
             />
           </div>
@@ -343,6 +353,8 @@
             "
             min="0"
             max="{{ dataElm.value }}"
+            name="data-current-value"
+            name="data-current-value"
             [(ngModel)]="dataElm.currentValue"
           />
         </div>
@@ -351,7 +363,7 @@
         <div class="tag">{{ dataElm.name }}</div>
         <div class="value">
           <div class="hidden-spacer">{{ dataElm.value }}</div>
-          <input class="input is-caret" size="1" [(ngModel)]="dataElm.value" />
+          <input class="input is-caret" size="1" name="data-value" name="data-value" [(ngModel)]="dataElm.value" />
         </div>
       }
     }

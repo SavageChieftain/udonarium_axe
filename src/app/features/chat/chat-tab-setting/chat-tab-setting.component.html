@@ -7,6 +7,8 @@
       style="width: 10em"
       size="10"
       (change)="onChangeSelectTab($any($event.target).value)"
+      name="chat-tab-select"
+      name="chat-tab-select"
       [ngModel]="selectedTab?.identifier"
     >
       @for (chatTab of chatTabs; track chatTab) {
@@ -22,13 +24,24 @@
     @if (!isEmpty && selectedTab) {
       <div>
         タブ名 :
-        <input class="is-caret" [(ngModel)]="tabName" placeholder="Name" [attr.disabled]="!isEditable ? '' : null" />
+        <input
+          name="tab-name"
+          class="is-caret"
+          [(ngModel)]="tabName"
+          placeholder="Name"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
       </div>
       <hr />
       <div>
         @if (!isDeleted) {
           <div style="padding-left: 45px">
-            タブ削除を有効にする<input type="checkbox" value="allowDeleteTab" [(ngModel)]="allowDeleteTab" />
+            タブ削除を有効にする<input
+              name="allow-delete-tab"
+              type="checkbox"
+              value="allowDeleteTab"
+              [(ngModel)]="allowDeleteTab"
+            />
           </div>
           <button (click)="upTabIndex()">↑</button>
           <button (click)="downTabIndex()">↓</button>
@@ -60,12 +73,17 @@
           <button (click)="saveAllLog()" style="width: 9em">全タブログ保存</button
           ><span style="font-size: 12px">時系列順にまとめて保存</span><br />
           <span>にわとりさん風の形式にする</span
-          ><input type="checkbox" value="modeCocLog" [(ngModel)]="modeCocLog" /><br />
+          ><input name="mode-coc-log" type="checkbox" value="modeCocLog" [(ngModel)]="modeCocLog" /><br />
         }
         <hr />
         <br /><br />
         @if (!isDeleted) {
-          ログの消去機能を有効にする<input type="checkbox" value="allowDeleteLog" [(ngModel)]="allowDeleteLog" /><br />
+          ログの消去機能を有効にする<input
+            name="allow-delete-log"
+            type="checkbox"
+            value="allowDeleteLog"
+            [(ngModel)]="allowDeleteLog"
+          /><br />
           <button
             class="danger"
             (click)="deleteLog()"

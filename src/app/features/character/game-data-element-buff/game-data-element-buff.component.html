@@ -15,6 +15,8 @@
                   class="is-caret"
                   style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 0.9rem"
                   size="1"
+                  name="data-elm-name"
+                  name="data-elm-name"
                   [(ngModel)]="name"
                   placeholder="Value"
                 />
@@ -27,6 +29,8 @@
                 style="width: 100%"
                 size="1"
                 type="string"
+                name="data-current-value"
+                name="data-current-value"
                 [(ngModel)]="currentValue"
                 placeholder="Value"
               />
@@ -38,6 +42,8 @@
                 style="width: 3em"
                 size="1"
                 type="number"
+                name="data-value"
+                name="data-value"
                 [(ngModel)]="value"
                 placeholder="Value"
               />
@@ -52,7 +58,9 @@
                 <div class="inputLock">{{ gameDataElement().name }}</div>
                 <!--
                 <input style="width:100%; min-width:10px; font-family: Cambria, Georgia; font-size: 1.0rem; font-weight: bold;"
-                  size="1" [(ngModel)]="name" placeholder="Value" />
+                  size="1" name="data-elm-name"
+name="data-elm-name"
+[(ngModel)]="name" placeholder="Value" />
                 -->
               }
             </div>
@@ -67,7 +75,9 @@
             <div class="inputLock">{{ gameDataElement().name }}</div>
             <!--
             <input style="width:100%; min-width:10px; font-family: Cambria, Georgia; font-size: 1.0rem; font-weight: bold;"
-              size="1" [(ngModel)]="name" placeholder="Value" />
+              size="1" name="data-elm-name"
+name="data-elm-name"
+[(ngModel)]="name" placeholder="Value" />
             -->
           }
         </div>

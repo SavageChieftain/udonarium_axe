@@ -7,6 +7,8 @@
       style="width: 10em"
       size="10"
       (change)="selectGameTable($any($event.target).value)"
+      name="game-table-select"
+      name="game-table-select"
       [ngModel]="selectedTable?.identifier"
     >
       @for (gameTable of getGameTables(); track gameTable) {
@@ -39,7 +41,13 @@
       </div>
       <div>
         Name :
-        <input class="is-caret" [(ngModel)]="tableName" placeholder="Name" [attr.disabled]="!isEditable ? '' : null" />
+        <input
+          name="table-name"
+          class="is-caret"
+          [(ngModel)]="tableName"
+          placeholder="Name"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
       </div>
       <div>
         <input
@@ -53,6 +61,8 @@
         Width :
         <input
           class="is-caret"
+          name="table-width"
+          name="table-width"
           [(ngModel)]="tableWidth"
           type="number"
           min="{{ minSize }}"
@@ -73,6 +83,8 @@
         Height :
         <input
           class="is-caret"
+          name="table-height"
+          name="table-height"
           [(ngModel)]="tableHeight"
           type="number"
           min="{{ minSize }}"

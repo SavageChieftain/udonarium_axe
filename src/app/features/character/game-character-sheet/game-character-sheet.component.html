@@ -45,6 +45,7 @@
               "
               min="50"
               max="750"
+              name="koma-image-height-range"
               [(ngModel)]="tabletopObject.komaImageHeight"
               [disabled]="!tabletopObject.specifyKomaImageFlag"
             />
@@ -76,10 +77,12 @@
             "
             min="250"
             max="1000"
+            name="overview-width-range"
             [(ngModel)]="tabletopObject.overViewWidth"
           />
           <input
             class="is-caret"
+            name="overview-width-range"
             [(ngModel)]="tabletopObject.overViewWidth"
             type="number"
             min="250"
@@ -99,10 +102,12 @@
             "
             min="250"
             max="1000"
+            name="overview-height-range"
             [(ngModel)]="tabletopObject.overViewMaxHeight"
           />
           <input
             class="is-caret"
+            name="overview-height-range"
             [(ngModel)]="tabletopObject.overViewMaxHeight"
             type="number"
             min="250"
@@ -126,10 +131,12 @@
             "
             min="250"
             max="1000"
+            name="overview-width-range"
             [(ngModel)]="tabletopObject.overViewWidth"
           />
           <input
             class="is-caret"
+            name="overview-width-range"
             [(ngModel)]="tabletopObject.overViewWidth"
             type="number"
             min="250"
@@ -149,10 +156,12 @@
             "
             min="250"
             max="1000"
+            name="overview-height-range"
             [(ngModel)]="tabletopObject.overViewMaxHeight"
           />
           <input
             class="is-caret"
+            name="overview-height-range"
             [(ngModel)]="tabletopObject.overViewMaxHeight"
             type="number"
             min="250"
@@ -181,7 +190,11 @@
     }
     @if (tabletopObject.aliasName === 'character') {
       @if (tabletopObject) {
-        <select (change)="setLocation($any($event.target).value)" [ngModel]="tabletopObject.location.name">
+        <select
+          (change)="setLocation($any($event.target).value)"
+          name="location"
+          [ngModel]="tabletopObject.location.name"
+        >
           <option value="table">テーブル</option>
           <option value="common">共有インベントリ</option>
           <option value="{{ networkService.peerId }}">個人インベントリ</option>
@@ -220,10 +233,12 @@
               "
               min="270"
               max="1000"
+              name="overview-width-range"
               [(ngModel)]="tabletopObject.overViewWidth"
             />
             <input
               class="is-caret"
+              name="overview-width-range"
               [(ngModel)]="tabletopObject.overViewWidth"
               type="number"
               style="width: 12em"
@@ -244,10 +259,12 @@
               "
               min="250"
               max="1000"
+              name="overview-height-range"
               [(ngModel)]="tabletopObject.overViewMaxHeight"
             />
             <input
               class="is-caret"
+              name="overview-height-range"
               [(ngModel)]="tabletopObject.overViewMaxHeight"
               type="number"
               style="width: 12em"
@@ -278,6 +295,7 @@
               "
               min="50"
               max="750"
+              name="koma-image-height-range"
               [(ngModel)]="tabletopObject.komaImageHeight"
               [disabled]="!tabletopObject.specifyKomaImageFlag"
             />
@@ -319,10 +337,12 @@
             "
             min="250"
             max="1000"
+            name="overview-width-range"
             [(ngModel)]="tabletopObject.overViewWidth"
           />
           <input
             class="is-caret"
+            name="overview-width-range"
             [(ngModel)]="tabletopObject.overViewWidth"
             type="number"
             min="250"
@@ -342,10 +362,12 @@
             "
             min="250"
             max="1000"
+            name="overview-height-range"
             [(ngModel)]="tabletopObject.overViewMaxHeight"
           />
           <input
             class="is-caret"
+            name="overview-height-range"
             [(ngModel)]="tabletopObject.overViewMaxHeight"
             type="number"
             min="250"

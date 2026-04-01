@@ -24,6 +24,8 @@
           #altitudeSlider
           class="altitude"
           title="{{ altitudeHande.altitude }}"
+          name="altitude"
+          name="altitude"
           [(ngModel)]="altitudeHande.altitude"
           type="range"
           max="12"
@@ -41,6 +43,7 @@
               <span style="font-size: small">
                 (高度
                 <input
+                  name="altitude-number"
                   type="number"
                   step="0.1"
                   style="font-size: small; width: 3.6em; text-align: right"

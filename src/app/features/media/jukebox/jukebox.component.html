@@ -1,8 +1,11 @@
-<div>試聴音量：<input [(ngModel)]="auditionVolume" type="range" min="0" max="1" step="0.01" /></div>
-<div>BGM音量：<input [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" /></div>
+<div>
+  試聴音量：<input name="audition-volume" [(ngModel)]="auditionVolume" type="range" min="0" max="1" step="0.01" />
+</div>
+<div>BGM音量：<input name="bgm-volume" [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" /></div>
 <hr />
 <div>
   全体音量：<input
+    name="room-volume"
     [(ngModel)]="roomVolume"
     type="range"
     min="0"
@@ -15,6 +18,8 @@
       type="checkbox"
       id="roomVolumeChange"
       value="roomVolumeChange"
+      name="room-volume-change"
+      name="room-volume-change"
       [(ngModel)]="roomVolumeChange"
   /></font>
 </div>

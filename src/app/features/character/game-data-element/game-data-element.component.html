@@ -4,7 +4,12 @@
       <div class="table-cell table-cell_solid">
         @if (!isImage()) {
           <ng-container *ngTemplateOutlet="editButtons"></ng-container>
-          <select (change)="setElementType($any($event.target).value)" [ngModel]="gameDataElement().type">
+          <select
+            (change)="setElementType($any($event.target).value)"
+            name="data-elm-type"
+            name="data-elm-type"
+            [ngModel]="gameDataElement().type"
+          >
             <option value="">通常</option>
             <option value="numberResource">リソース</option>
             <option value="note">ノート</option>
@@ -37,6 +42,8 @@
             class="is-caret"
             style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 0.9rem"
             size="1"
+            name="data-elm-name"
+            name="data-elm-name"
             [(ngModel)]="name"
             placeholder="Value"
           />
@@ -54,6 +61,8 @@
                 currentValue +
                 ';' | safe: 'style'
             "
+            name="data-current-value"
+            name="data-current-value"
             [(ngModel)]="currentValue"
             type="range"
             min="0"
@@ -65,11 +74,22 @@
             style="width: 5em; text-align: right"
             size="1"
             type="number"
+            name="data-current-value"
+            name="data-current-value"
             [(ngModel)]="currentValue"
             placeholder="Value"
           />
           /
-          <input class="is-caret" style="width: 5em" size="1" type="number" [(ngModel)]="value" placeholder="Value" />
+          <input
+            class="is-caret"
+            style="width: 5em"
+            size="1"
+            type="number"
+            name="data-value"
+            name="data-value"
+            [(ngModel)]="value"
+            placeholder="Value"
+          />
         }
         @case ('note') {
           <span [hidden]="!isUrlText(value)" style="font-size: 0.8em">
@@ -80,11 +100,15 @@
             />
           </span>
           <!--
-            <textarea style="width:100%; height:5em; min-width:50px; resize: none; font-size: 0.8em;" [(ngModel)]="value" placeholder="Note"></textarea>
+            <textarea style="width:100%; height:5em; min-width:50px; resize: none; font-size: 0.8em;" name="data-value"
+ name="data-value"
+ [(ngModel)]="value" placeholder="Note"></textarea>
             -->
           <textarea
             class="textarea-url is-caret"
             style="width: 100%; height: 5em; min-width: 50px; resize: none; font-size: 0.8em"
+            name="data-value"
+            name="data-value"
             [(ngModel)]="value"
             placeholder="Note"
             [hidden]="!isEditUrl(gameDataElement().myIdentifer + '_elm') && isUrlText(gameDataElement().value)"
@@ -114,6 +138,8 @@
           <textarea
             class="textarea-markdown is-caret"
             style="width: 100%; height: 5em; min-width: 50px; resize: none; font-size: 0.8em"
+            name="data-value"
+            name="data-value"
             [(ngModel)]="value"
             placeholder="Note"
             [hidden]="!isEditMarkDown(gameDataElement().myIdentifer + '_elm')"
@@ -148,6 +174,8 @@
               class="is-caret"
               style="width: 100%; min-width: 10px"
               size="1"
+              name="data-value"
+              name="data-value"
               [(ngModel)]="value"
               placeholder="Value"
             />
@@ -165,6 +193,8 @@
                   class="is-caret"
                   style="width: 100%; min-width: 10px"
                   size="1"
+                  name="data-current-value"
+                  name="data-current-value"
                   [(ngModel)]="currentValue"
                   placeholder="立ち絵名"
                 />
@@ -202,6 +232,8 @@
             class="is-caret"
             style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 1rem; font-weight: bold"
             size="1"
+            name="data-elm-name"
+            name="data-elm-name"
             [(ngModel)]="name"
             placeholder="Value"
           />
