@@ -50,9 +50,6 @@ export class AppEventHandlerService {
     this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       this.openCutInPanel(event.cutIn as CutIn);
     });
-    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (!event.cutIn) return;
-    });
   }
 
   private subscribeChangeDetection(): void {
@@ -112,35 +109,33 @@ export class AppEventHandlerService {
 
   private openVotePanel(): void {
     const vote = this.objectStore.get<Vote>('Vote');
-    if (!vote!.chkToMe()) return;
+    if (!vote?.chkToMe()) return;
 
-    const option: PanelOption = { left: 0, top: 0, width: 450, height: 400 };
-    option.title = '点呼/投票';
-
-    let marginW = (window.innerWidth - option.width!) / 2;
-    let marginH = (window.innerHeight - option.height!) / 2;
-    if (marginW < 0) marginW = 0;
-    if (marginH < 0) marginH = 0;
-    option.left = marginW;
-    option.top = marginH;
+    const width = 450;
+    const height = 400;
+    const option: PanelOption = {
+      title: '点呼/投票',
+      width,
+      height,
+      left: Math.max(0, (window.innerWidth - width) / 2),
+      top: Math.max(0, (window.innerHeight - height) / 2),
+    };
     this.panelService.open(VoteWindowComponent, option);
   }
 
   private openAlarmPanel(title: string, time: string): void {
-    const winH = 100;
     const winW = 200;
-    const option: PanelOption = { width: winW, height: winH, left: 300, top: 100 };
-    option.title = 'アラーム ' + title;
+    const winH = 100;
+    const marginW = Math.max(0, window.innerWidth - winW);
+    const marginH = Math.max(0, window.innerHeight - winH - 25);
 
-    let marginW = window.innerWidth - winW;
-    let marginH = window.innerHeight - winH - 25;
-    if (marginW < 0) marginW = 0;
-    if (marginH < 0) marginH = 0;
-
-    option.width = winW;
-    option.height = winH + 25;
-    option.left = marginW * 0.5;
-    option.top = marginH * 0.5;
+    const option: PanelOption = {
+      title: 'アラーム ' + title,
+      width: winW,
+      height: winH + 25,
+      left: marginW * 0.5,
+      top: marginH * 0.5,
+    };
 
     const component = this.panelService.open(AlarmWindowComponent, option);
     component.title = title;
@@ -149,23 +144,18 @@ export class AppEventHandlerService {
 
   private openCutInPanel(cutIn: CutIn): void {
     if (!cutIn) return;
-    const option: PanelOption = { width: 200, height: 100, left: 300, top: 100 };
-    option.title = 'カットイン : ' + cutIn.name;
+    const marginW = Math.max(0, window.innerWidth - cutIn.width);
+    const marginH = Math.max(0, window.innerHeight - cutIn.height - 25);
 
-    const cutinW = cutIn.width;
-    const cutinH = cutIn.height;
-
-    let marginW = window.innerWidth - cutinW;
-    let marginH = window.innerHeight - cutinH - 25;
-    if (marginW < 0) marginW = 0;
-    if (marginH < 0) marginH = 0;
-
-    option.width = cutinW;
-    option.height = cutinH + 25;
-    option.left = (marginW * cutIn.x_pos) / 100;
-    option.top = (marginH * cutIn.y_pos) / 100;
-    option.isCutIn = true;
-    option.cutInIdentifier = cutIn.identifier;
+    const option: PanelOption = {
+      title: 'カットイン : ' + cutIn.name,
+      width: cutIn.width,
+      height: cutIn.height + 25,
+      left: (marginW * cutIn.x_pos) / 100,
+      top: (marginH * cutIn.y_pos) / 100,
+      isCutIn: true,
+      cutInIdentifier: cutIn.identifier,
+    };
 
     const component = this.panelService.open(CutInWindowComponent, option);
     component.cutIn = cutIn;
