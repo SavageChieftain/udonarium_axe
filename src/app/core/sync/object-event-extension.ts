@@ -37,7 +37,7 @@ let isBatching = false;
 export function markForChanged(object: GameObject, sendFrom: string = Network.peerId) {
   if (!object) return;
   objectBatches.set(object.identifier, {
-    object: object,
+    object,
     originFrom: sendFrom,
   });
   if (object instanceof ObjectNode) markForChildrenChanged(object.parent);
@@ -45,7 +45,7 @@ export function markForChanged(object: GameObject, sendFrom: string = Network.pe
   startBatching();
 }
 
-export function markForChildrenChanged(node: ObjectNode) {
+export function markForChildrenChanged(node: ObjectNode | null) {
   let current = node;
   while (current) {
     nodeBatches.add(current.identifier);
@@ -65,18 +65,17 @@ function startBatching() {
 
 const triggerEvent = () => {
   isBatching = false;
-  const objects = Array.from(objectBatches.values());
-  const nodes = Array.from(nodeBatches.values());
+  const objects = [...objectBatches.values()];
+  const nodes = [...nodeBatches];
   objectBatches.clear();
   nodeBatches.clear();
 
   for (const data of objects) {
-    const context = {
+    objectChanged$.next({
       aliasName: data.object.aliasName,
       identifier: data.object.identifier,
-    };
-    const isSendFromSelf = data.originFrom === Network.peerId;
-    objectChanged$.next({ ...context, isSendFromSelf });
+      isSendFromSelf: data.originFrom === Network.peerId,
+    });
   }
 
   for (const identifier of nodes) {
