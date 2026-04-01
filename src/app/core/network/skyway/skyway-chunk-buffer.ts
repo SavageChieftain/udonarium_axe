@@ -6,7 +6,6 @@ export interface DataChunk {
 }
 
 interface ReceivedChunk {
-  id: string;
   chunks: Uint8Array[];
   length: number;
   byteLength: number;
@@ -27,7 +26,6 @@ export class ChunkBuffer {
     if (received == null) {
       this.evictStale();
       received = {
-        id: chunk.id,
         chunks: new Array(chunk.total),
         length: 0,
         byteLength: 0,
