@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -22,6 +23,7 @@ import { TextNote } from '@axe/domain/shared/text-note';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
@@ -60,6 +62,13 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     | GameTableScratchMask
     | null = null;
   isEdit: boolean = false;
+
+  get imageFile(): ImageFile {
+    const obj = this.tabletopObject as TabletopObject | null;
+    if (!obj) return ImageFile.Empty;
+    this.objectChange.versionOf(obj.identifier)();
+    return obj.imageFile;
+  }
 
   networkService = Network;
 
