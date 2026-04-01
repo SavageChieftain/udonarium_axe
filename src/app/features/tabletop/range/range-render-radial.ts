@@ -1,7 +1,6 @@
 import { ClipAreaCorn, RangeRenderSetting } from './range-render-types';
 import {
   calcGridOffsets,
-  chkInCircle,
   chkOuterProduct,
   fillSquare,
   generateCalcGridPositionFunc,
@@ -35,12 +34,15 @@ export function renderCircle(
     context.fill();
   } else {
     makeBrush(context, gridSize, setting.gridColor);
+    const adjX = gridOffX + gridSize / 2 - offSetX_px;
+    const adjY = gridOffY + gridSize / 2 - offSetY_px;
+    const radiusSq = (setting.range * gridSize) ** 2;
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
         const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
-        const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-        if (chkInCircle(setting.range * gridSize, gcx, gcy)) {
+        const gcx = gx + adjX;
+        const gcy = gy + adjY;
+        if (radiusSq >= gcx * gcx + gcy * gcy) {
           fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
@@ -106,32 +108,34 @@ export function renderCorn(
   const clip09y_ = -clip02y_;
 
   const rad = (Math.PI / 180) * setting.degree;
+  const cosRad = Math.cos(rad);
+  const sinRad = Math.sin(rad);
   const cx = cx_;
   const cy = cy_;
-  const p1x = p1x_ * Math.cos(rad) - p1y_ * Math.sin(rad);
-  const p1y = p1x_ * Math.sin(rad) + p1y_ * Math.cos(rad);
-  const p2x = p2x_ * Math.cos(rad) - p2y_ * Math.sin(rad);
-  const p2y = p2x_ * Math.sin(rad) + p2y_ * Math.cos(rad);
+  const p1x = p1x_ * cosRad - p1y_ * sinRad;
+  const p1y = p1x_ * sinRad + p1y_ * cosRad;
+  const p2x = p2x_ * cosRad - p2y_ * sinRad;
+  const p2y = p2x_ * sinRad + p2y_ * cosRad;
 
   const clip: ClipAreaCorn = {
-    clip01x: clip01x_ * Math.cos(rad) - clip01y_ * Math.sin(rad), // 根本始点
-    clip01y: clip01x_ * Math.sin(rad) + clip01y_ * Math.cos(rad),
-    clip02x: clip02x_ * Math.cos(rad) - clip02y_ * Math.sin(rad),
-    clip02y: clip02x_ * Math.sin(rad) + clip02y_ * Math.cos(rad),
-    clip03x: clip03x_ * Math.cos(rad) - clip03y_ * Math.sin(rad),
-    clip03y: clip03x_ * Math.sin(rad) + clip03y_ * Math.cos(rad),
-    clip04x: clip04x_ * Math.cos(rad) - clip04y_ * Math.sin(rad),
-    clip04y: clip04x_ * Math.sin(rad) + clip04y_ * Math.cos(rad),
-    clip05x: clip05x_ * Math.cos(rad) - clip05y_ * Math.sin(rad), // 先端部
-    clip05y: clip05x_ * Math.sin(rad) + clip05y_ * Math.cos(rad),
-    clip06x: clip06x_ * Math.cos(rad) - clip06y_ * Math.sin(rad), // 折り返し
-    clip06y: clip06x_ * Math.sin(rad) + clip06y_ * Math.cos(rad),
-    clip07x: clip07x_ * Math.cos(rad) - clip07y_ * Math.sin(rad),
-    clip07y: clip07x_ * Math.sin(rad) + clip07y_ * Math.cos(rad),
-    clip08x: clip08x_ * Math.cos(rad) - clip08y_ * Math.sin(rad),
-    clip08y: clip08x_ * Math.sin(rad) + clip08y_ * Math.cos(rad),
-    clip09x: clip09x_ * Math.cos(rad) - clip09y_ * Math.sin(rad),
-    clip09y: clip09x_ * Math.sin(rad) + clip09y_ * Math.cos(rad),
+    clip01x: clip01x_ * cosRad - clip01y_ * sinRad, // 根本始点
+    clip01y: clip01x_ * sinRad + clip01y_ * cosRad,
+    clip02x: clip02x_ * cosRad - clip02y_ * sinRad,
+    clip02y: clip02x_ * sinRad + clip02y_ * cosRad,
+    clip03x: clip03x_ * cosRad - clip03y_ * sinRad,
+    clip03y: clip03x_ * sinRad + clip03y_ * cosRad,
+    clip04x: clip04x_ * cosRad - clip04y_ * sinRad,
+    clip04y: clip04x_ * sinRad + clip04y_ * cosRad,
+    clip05x: clip05x_ * cosRad - clip05y_ * sinRad, // 先端部
+    clip05y: clip05x_ * sinRad + clip05y_ * cosRad,
+    clip06x: clip06x_ * cosRad - clip06y_ * sinRad, // 折り返し
+    clip06y: clip06x_ * sinRad + clip06y_ * cosRad,
+    clip07x: clip07x_ * cosRad - clip07y_ * sinRad,
+    clip07y: clip07x_ * sinRad + clip07y_ * cosRad,
+    clip08x: clip08x_ * cosRad - clip08y_ * sinRad,
+    clip08y: clip08x_ * sinRad + clip08y_ * cosRad,
+    clip09x: clip09x_ * cosRad - clip09y_ * sinRad,
+    clip09y: clip09x_ * sinRad + clip09y_ * cosRad,
   };
 
   const calcGridPosition = generateCalcGridPositionFunc(
@@ -153,11 +157,13 @@ export function renderCorn(
     context.fill();
   } else {
     makeBrush(context, gridSize, setting.gridColor);
+    const adjX = gridOffX + gridSize / 2 - offSetX_px;
+    const adjY = gridOffY + gridSize / 2 - offSetY_px;
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
         const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
-        const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
+        const gcx = gx + adjX;
+        const gcy = gy + adjY;
         if (
           chkOuterProduct(cx, cy, p1x, p1y, gcx, gcy) &&
           chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&

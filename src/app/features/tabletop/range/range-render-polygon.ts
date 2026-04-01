@@ -77,11 +77,13 @@ export function renderLine(
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
   } else {
+    const adjX = gridOffX + gridSize / 2 - offSetX_px;
+    const adjY = gridOffY + gridSize / 2 - offSetY_px;
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
         const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
-        const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
+        const gcx = gx + adjX;
+        const gcy = gy + adjY;
         if (
           chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
           chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
@@ -166,17 +168,15 @@ export function renderSquare(
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
   } else {
+    const adjX = gridOffX + gridSize / 2 - offSetX_px;
+    const adjY = gridOffY + gridSize / 2 - offSetY_px;
+    const halfRange = setting.range * gridSize;
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
         const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
-        const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-        if (
-          chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
-          chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
-          chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
-          chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
-        ) {
+        const gcx = gx + adjX;
+        const gcy = gy + adjY;
+        if (gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange) {
           fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
@@ -260,17 +260,15 @@ export function renderDiamond(
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
   } else {
+    const adjX = gridOffX + gridSize / 2 - offSetX_px;
+    const adjY = gridOffY + gridSize / 2 - offSetY_px;
+    const halfRange = setting.range * gridSize;
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
         const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
-        const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
-        if (
-          chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
-          chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
-          chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
-          chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
-        ) {
+        const gcx = gx + adjX;
+        const gcy = gy + adjY;
+        if (Math.abs(gcx) + Math.abs(gcy) <= halfRange) {
           fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
