@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { decodeEntityReference, encodeEntityReference, xml2element } from '@axe/core/util/xml-util';
 
 import { Attributes } from './attributes';

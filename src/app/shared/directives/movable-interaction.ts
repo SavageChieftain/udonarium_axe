@@ -1,5 +1,5 @@
-import { CoordinateService } from '@axe/core/coordinate.service';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 
 export interface MovableInteractionContext {
   isGridSnap: boolean;

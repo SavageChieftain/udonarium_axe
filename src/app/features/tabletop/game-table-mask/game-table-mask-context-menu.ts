@@ -1,4 +1,4 @@
-import { PointerCoordinate } from '@axe/core/pointer-device.service';
+import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';

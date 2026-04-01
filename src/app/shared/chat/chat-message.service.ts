@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Network } from '@axe/core/index';
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';

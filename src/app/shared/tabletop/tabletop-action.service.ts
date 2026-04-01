@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { PointerCoordinate } from '@axe/core/pointer-device.service';
+import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { Card } from '@axe/domain/card/card';

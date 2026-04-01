@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
 
 import { Connection, ConnectionCallback } from './connection';

@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { SyncObject } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';

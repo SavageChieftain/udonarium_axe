@@ -12,9 +12,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CoordinateService } from '@axe/core/coordinate.service';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { Network } from '@axe/core/index';
-import { PointerCoordinate } from '@axe/core/pointer-device.service';
+import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';

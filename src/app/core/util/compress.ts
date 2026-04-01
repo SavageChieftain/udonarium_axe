@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 
 export async function compressAsync(data: Uint8Array, _chunkSize?: number): Promise<Uint8Array> {
   try {

@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 //
 import { FormsModule } from '@angular/forms';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
-import { SaveDataService } from '@axe/core/save-data.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageFile } from '@axe/core/storage/image-file';

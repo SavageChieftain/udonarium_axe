@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { AppConfigService } from '@axe/core/app-config.service';
+import { AppConfigService } from '@axe/core/app/app-config.service';
 import { initializeNetworkMessaging } from '@axe/core/network/network-messaging';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioSharingSystem } from '@axe/core/storage/audio-sharing-system';
 import { AudioStorage } from '@axe/core/storage/audio-storage';

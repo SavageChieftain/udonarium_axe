@@ -12,7 +12,7 @@ import {
   OnInit,
   viewChild,
 } from '@angular/core';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';

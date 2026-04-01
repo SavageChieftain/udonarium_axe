@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';

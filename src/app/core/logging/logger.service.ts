@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Logger, LogLevel } from '@axe/core/logger';
+import { Logger, LogLevel } from '@axe/core/logging/logger';
 
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
-export { LogLevel } from '@axe/core/logger';
+export { LogLevel } from '@axe/core/logging/logger';
 
 @Injectable()
 export class LoggerService {

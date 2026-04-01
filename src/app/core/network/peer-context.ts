@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { sha256 } from '@axe/core/util/crypto-util';
 import base from 'base-x';
 import lzbase62 from 'lzbase62';

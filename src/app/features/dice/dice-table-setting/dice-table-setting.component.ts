@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SaveDataService } from '@axe/core/save-data.service';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceTablePalette } from '@axe/domain/chat/chat-palette';
 import { DiceBot } from '@axe/domain/dice/dice-bot';

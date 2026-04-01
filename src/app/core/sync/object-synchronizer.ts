@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import { Subscription } from 'rxjs';

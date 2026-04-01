@@ -8,9 +8,9 @@ import {
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
-import { AppEventHandlerService } from '@axe/core/app-event-handler.service';
+import { AppEventHandlerService } from '@axe/core/app/app-event-handler.service';
 import { Network } from '@axe/core/network/network';
-import { SaveDataService } from '@axe/core/save-data.service';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ReloadCheck } from '@axe/domain/shared/reload-check';

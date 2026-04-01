@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { AppConfigService } from '@axe/core/app-config.service';
+import { AppConfigService } from '@axe/core/app/app-config.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { Jukebox } from '@axe/domain/media/Jukebox';

@@ -1,5 +1,5 @@
 import { Network } from '@axe/core/index';
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { xml2element } from '@axe/core/util/xml-util';
 import { emitFileLoaded, emitXmlLoaded } from '@axe/domain/domain-events';

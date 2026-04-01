@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { ContextMenuAction, ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';

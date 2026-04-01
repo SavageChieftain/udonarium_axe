@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from '@axe/core/logger';
+import { Logger, LogLevel } from '@axe/core/logging/logger';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 

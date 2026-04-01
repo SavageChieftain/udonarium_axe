@@ -1,4 +1,4 @@
-import { Logger } from '../logger';
+import { Logger } from '@axe/core/logging/logger';
 import { CSSNumber } from './css-number';
 import { IPoint2D, IPoint3D } from './transform';
 

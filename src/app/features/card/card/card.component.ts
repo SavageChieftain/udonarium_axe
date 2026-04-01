@@ -10,9 +10,9 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { ImageService } from '@axe/core/image.service';
+import { ImageService } from '@axe/core/storage/image.service';
 import { Network } from '@axe/core/index';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card, CardState } from '@axe/domain/card/card';

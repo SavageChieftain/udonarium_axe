@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 
 export class PromiseQueue {
   private queue: Promise<unknown> = Promise.resolve();

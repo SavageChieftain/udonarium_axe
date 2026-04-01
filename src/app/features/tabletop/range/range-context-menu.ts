@@ -1,4 +1,4 @@
-import { PointerCoordinate } from '@axe/core/pointer-device.service';
+import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { RangeArea } from '@axe/domain/tabletop/range';

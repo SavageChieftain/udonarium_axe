@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 import { UIPanelComponent } from './ui-panel.component';

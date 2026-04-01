@@ -11,7 +11,7 @@ import {
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CardStackListImageComponent as CardStackListImageComponent_1 } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';

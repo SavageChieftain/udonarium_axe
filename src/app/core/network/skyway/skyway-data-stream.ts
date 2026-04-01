@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
 import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
 import { CandidateType, WebRTCStats } from '@axe/core/network/webrtc/webrtc-stats';

@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import * as MessagePack from '@axe/core/util/message-pack';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';

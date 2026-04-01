@@ -1,4 +1,4 @@
-import { Logger as AppLogger } from '@axe/core/logger';
+import { Logger as AppLogger } from '@axe/core/logging/logger';
 import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
 import { sha256Base64Url } from '@axe/core/util/crypto-util';
 import {

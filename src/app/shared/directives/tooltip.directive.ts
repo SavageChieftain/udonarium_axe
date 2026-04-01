@@ -1,5 +1,5 @@
 import { AfterViewInit, ComponentRef, Directive, inject, input, OnDestroy, ViewContainerRef } from '@angular/core';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';

@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ImageService } from '@axe/core/image.service';
-import { SaveDataService } from '@axe/core/save-data.service';
+import { ImageService } from '@axe/core/storage/image.service';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';

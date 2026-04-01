@@ -1,4 +1,4 @@
-import { Logger } from '@axe/core/logger';
+import { Logger } from '@axe/core/logging/logger';
 import { AudioFile, AudioState } from '@axe/core/storage/audio-file';
 import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 

@@ -5,7 +5,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
-import { Logger, LogLevel } from '@axe/core/logger';
+import { Logger, LogLevel } from '@axe/core/logging/logger';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 
@@ -13,8 +13,8 @@ import { basename, join, resolve } from 'path';
 Logger.setLevel(LogLevel.NONE);
 
 // 非 providedIn:'root' なサービス — 全テストで自動提供する
-import { AppConfigService } from '@axe/core/app-config.service';
-import { LoggerService } from '@axe/core/logger.service';
+import { AppConfigService } from '@axe/core/app/app-config.service';
+import { LoggerService } from '@axe/core/logging/logger.service';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';

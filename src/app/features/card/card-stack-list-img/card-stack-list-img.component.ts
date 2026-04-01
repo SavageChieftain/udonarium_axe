@@ -9,7 +9,7 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { PanelService } from '@axe/shared/ui/panel.service';

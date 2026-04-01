@@ -10,8 +10,8 @@ import {
   output,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CoordinateService } from '@axe/core/coordinate.service';
-import { PointerCoordinate, PointerDeviceService } from '@axe/core/pointer-device.service';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
+import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';

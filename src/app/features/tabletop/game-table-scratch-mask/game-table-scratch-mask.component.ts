@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, OnDestroy, OnInit } from '@angular/core';
-import { CoordinateService } from '@axe/core/coordinate.service';
-import { PointerDeviceService } from '@axe/core/pointer-device.service';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
