@@ -59,14 +59,11 @@ export class SkyWayConnection implements Connection {
   }
 
   openStandby(userId?: string): void {
-    const peer$ = PeerContext.create(userId ?? PeerContext.generateId());
-    peer$.then((peer) => this.openSkyWay(peer));
+    PeerContext.create(userId ?? PeerContext.generateId()).then((peer) => this.openSkyWay(peer));
   }
 
   open(userId: string, roomId: string, roomName: string, password: string): void {
-    PeerContext.create(userId, roomId, roomName, password).then((peer) => {
-      this.openSkyWay(peer);
-    });
+    PeerContext.create(userId, roomId, roomName, password).then((peer) => this.openSkyWay(peer));
   }
 
   close() {
@@ -212,7 +209,7 @@ export class SkyWayConnection implements Connection {
       if (this.callback.onClose) this.callback.onClose(this.peer);
     };
 
-    this.skyWay.onFatalError = (peer, errorType, errorMessage, errorObject) => {
+    this.skyWay.onFatalError = (_peer, errorType, errorMessage, errorObject) => {
       Logger.error('[SkyWay] 致命的エラー', errorObject);
       if (this.peer.isOpen) {
         this.close();
@@ -234,9 +231,9 @@ export class SkyWayConnection implements Connection {
 
     this.skyWay.onRoomRestore = (_peer) => {
       for (const peerId of this.trustedPeerIds) {
-        const peer = PeerContext.parse(peerId);
-        this.disconnect(peer);
-        this.connect(peer);
+        const restoredPeer = PeerContext.parse(peerId);
+        this.disconnect(restoredPeer);
+        this.connect(restoredPeer);
       }
     };
 
@@ -244,7 +241,7 @@ export class SkyWayConnection implements Connection {
   }
 
   private connectStream(stream: SkyWayDataStream) {
-    if (this.streams.add(stream) == null) return;
+    if (this.streams.add(stream) === null) return;
 
     this.trustedPeerIds.delete(stream.peer.peerId);
     this.maybeUnavailablePeerIds.add(stream.peer.peerId);
