@@ -16,8 +16,7 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
   get peers(): PeerContext[] {
     if (this.needsRefreshPeers) {
       this.needsRefreshPeers = false;
-      this._peers = this.streams.map((stream) => stream.peer);
-      this._peers.sort((a, b) => a.peerId.localeCompare(b.peerId));
+      this._peers = this.streams.map((stream) => stream.peer).sort((a, b) => a.peerId.localeCompare(b.peerId));
     }
     return this._peers;
   }
@@ -46,7 +45,9 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
           existStream.removeAllListeners();
           existStream.disconnect();
           this.remove(existStream);
-          return this.add(stream);
+          this.streams.push(stream);
+          this.refresh();
+          return stream;
         }
       }
       return null;
