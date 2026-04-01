@@ -24,12 +24,10 @@ export class WebRTCStats {
   constructor(private peerConnection: RTCPeerConnection) {}
 
   async updateAsync() {
-    let stats: RTCStatsReport = null!;
-    try {
-      stats = await this.peerConnection.getStats();
-    } catch (error) {
+    const stats = await this.peerConnection.getStats().catch((error) => {
       Logger.warn('[WebRTC] 統計情報の取得に失敗', error);
-    }
+      return null;
+    });
 
     if (stats == null) {
       this.candidateType = CandidateType.UNKNOWN;
@@ -40,48 +38,36 @@ export class WebRTCStats {
     const localCandidates: RtcCandidateStat[] = [];
     const remoteCandidates: RtcCandidateStat[] = [];
 
-    const succeededLocalCandidateIds = new Set<string>();
-    const succeededRemoteCandidateIds = new Set<string>();
-    const usedLocalCandidates: RtcCandidateStat[] = [];
-    const usedRemoteCandidates: RtcCandidateStat[] = [];
-
     stats.forEach((stat) => {
       if (stat.type.includes('candidate-pair')) {
         candidatePairs.push(stat as RtcCandidatePairStat);
-      }
-      if (stat.type.includes('local-candidate')) {
+      } else if (stat.type.includes('local-candidate')) {
         localCandidates.push(stat as RtcCandidateStat);
-      }
-      if (stat.type.includes('remote-candidate')) {
+      } else if (stat.type.includes('remote-candidate')) {
         remoteCandidates.push(stat as RtcCandidateStat);
       }
     });
 
-    candidatePairs.forEach((candidatePair) => {
-      if (candidatePair.state === 'succeeded') {
-        succeededLocalCandidateIds.add(candidatePair.localCandidateId);
-        succeededRemoteCandidateIds.add(candidatePair.remoteCandidateId);
+    const succeededLocalIds = new Set<string>();
+    const succeededRemoteIds = new Set<string>();
+    for (const pair of candidatePairs) {
+      if (pair.state === 'succeeded') {
+        succeededLocalIds.add(pair.localCandidateId);
+        succeededRemoteIds.add(pair.remoteCandidateId);
       }
-    });
+    }
 
-    localCandidates.forEach((candidate) => {
-      if (succeededLocalCandidateIds.has(candidate.id)) {
-        usedLocalCandidates.push(candidate);
-      }
-    });
+    const usedCandidates: RtcCandidateStat[] = [
+      ...localCandidates.filter((c) => succeededLocalIds.has(c.id)),
+      ...remoteCandidates.filter((c) => succeededRemoteIds.has(c.id)),
+    ];
 
-    remoteCandidates.forEach((candidate) => {
-      if (succeededRemoteCandidateIds.has(candidate.id)) {
-        usedRemoteCandidates.push(candidate);
-      }
-    });
-
-    let candidateType = CandidateType.UNKNOWN;
     const types: CandidateType[] = Object.values(CandidateType);
-    [...usedLocalCandidates, ...usedRemoteCandidates].forEach((candidate) => {
+    let candidateType = CandidateType.UNKNOWN;
+    for (const candidate of usedCandidates) {
       const index = types.indexOf(candidate.candidateType);
       if (types.indexOf(candidateType) < index) candidateType = types[index];
-    });
+    }
     this.candidateType = candidateType;
   }
 }
