@@ -71,7 +71,7 @@ export class GameObject {
 
   clone(): this {
     const xmlString = this.toXml();
-    return ObjectSerializer.instance.parseXml(xmlString) as this;
+    return ObjectSerializer.instance.parseXml(xmlString)! as this;
   }
 
   toContext(): ObjectContext {

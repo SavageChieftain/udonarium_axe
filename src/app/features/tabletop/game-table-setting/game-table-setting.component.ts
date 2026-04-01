@@ -231,7 +231,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
 
   restore() {
     if (this.selectedTable && this.selectedTableXml) {
-      const restoreTable = this.objectSerializer.parseXml(this.selectedTableXml);
+      const restoreTable = this.objectSerializer.parseXml(this.selectedTableXml)!;
       this.selectGameTable(restoreTable.identifier);
       this.selectedTableXml = '';
     }

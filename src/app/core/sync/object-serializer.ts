@@ -49,75 +49,49 @@ export class ObjectSerializer {
   static toAttributes(syncData: object): Attributes {
     const attributes: Attributes = {};
     for (const syncVar in syncData) {
-      const item = (syncData as Record<string, unknown>)[syncVar];
-      const key = syncVar;
-      const childAttr = ObjectSerializer.make2Attributes(item, key);
-      for (const name in childAttr) {
-        attributes[name] = childAttr[name];
-      }
+      Object.assign(
+        attributes,
+        ObjectSerializer.make2Attributes((syncData as Record<string, unknown>)[syncVar], syncVar)
+      );
     }
     return attributes;
   }
 
   private static make2Attributes(item: unknown, key: string): Attributes {
-    const attributes: Attributes = {};
     if (Array.isArray(item)) {
-      const arrayAttributes = ObjectSerializer.array2attributes(item, key);
-      for (const name in arrayAttributes) {
-        attributes[name] = arrayAttributes[name];
-      }
+      return ObjectSerializer.array2attributes(item, key);
     } else if (item != null && typeof item === 'object') {
-      const objAttributes = ObjectSerializer.object2attributes(item as Record<string, unknown>, key);
-      for (const name in objAttributes) {
-        attributes[name] = objAttributes[name];
-      }
+      return ObjectSerializer.object2attributes(item as Record<string, unknown>, key);
     } else {
-      attributes[key] = item as string | number;
+      return { [key]: item as string | number };
     }
-    return attributes;
   }
 
   private static object2attributes(obj: Record<string, unknown>, rootKey: string): Attributes {
     const attributes: Attributes = {};
     for (const objKey in obj) {
-      const item = obj[objKey];
-      const key = `${rootKey}.${objKey}`;
-      const childAttr = ObjectSerializer.make2Attributes(item, key);
-      for (const name in childAttr) {
-        attributes[name] = childAttr[name];
-      }
+      Object.assign(attributes, ObjectSerializer.make2Attributes(obj[objKey], `${rootKey}.${objKey}`));
     }
     return attributes;
   }
 
   private static array2attributes(array: Array<unknown>, rootKey: string): Attributes {
     const attributes: Attributes = {};
-    const length = array.length;
-    for (let i = 0; i < length; i++) {
-      const item = array[i];
-      const key = `${rootKey}.${i}`;
-      const childAttr = ObjectSerializer.make2Attributes(item, key);
-      for (const name in childAttr) {
-        attributes[name] = childAttr[name];
-      }
+    for (let i = 0; i < array.length; i++) {
+      Object.assign(attributes, ObjectSerializer.make2Attributes(array[i], `${rootKey}.${i}`));
     }
     return attributes;
   }
 
-  parseXml(xml: string | Element): GameObject {
-    let xmlElement: Element | null;
-    if (typeof xml === 'string') {
-      xmlElement = xml2element(xml);
-    } else {
-      xmlElement = xml;
-    }
+  parseXml(xml: string | Element): GameObject | null {
+    const xmlElement = typeof xml === 'string' ? xml2element(xml) : xml;
     if (!xmlElement) {
       Logger.error('[ObjectSerializer] xmlElementが空です');
-      return null as unknown as GameObject;
+      return null;
     }
 
     const gameObject: GameObject | null = ObjectFactory.instance.create(xmlElement.tagName);
-    if (!gameObject) return null as unknown as GameObject;
+    if (!gameObject) return null;
 
     if ('parseAttributes' in gameObject) {
       (<XmlAttributes>gameObject).parseAttributes(xmlElement.attributes);
@@ -134,7 +108,7 @@ export class ObjectSerializer {
     return gameObject;
   }
 
-  static parseAttributes(syncData: object, attributes: NamedNodeMap): object {
+  static parseAttributes(syncData: object, attributes: NamedNodeMap): void {
     const length = attributes.length;
     for (let i = 0; i < length; i++) {
       let value = attributes[i].value;
@@ -150,7 +124,7 @@ export class ObjectSerializer {
         continue;
       }
 
-      if (1 < split.length) {
+      if (split.length > 1) {
         ({ obj, key } = ObjectSerializer.attributes2object(split, obj, key));
         if (key == null) continue;
       }
@@ -161,7 +135,6 @@ export class ObjectSerializer {
       }
       (obj as Record<string, unknown>)[key as string] = value;
     }
-    return syncData;
   }
 
   private static attributes2object(split: string[], obj: Record<string, unknown> | unknown[], key: string | number) {
@@ -190,9 +163,5 @@ export class ObjectSerializer {
       }
     }
     return { obj, key };
-  }
-
-  private static parseInnerXml(_element: Element): GameObject {
-    return null as unknown as GameObject;
   }
 }

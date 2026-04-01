@@ -73,7 +73,7 @@ describe('ObjectSerializer', () => {
       const xml = serializer.toXml(element);
 
       const parsed = serializer.parseXml(xml);
-      expect(parsed.aliasName).toBe(element.aliasName);
+      expect(parsed?.aliasName).toBe(element.aliasName);
     });
 
     it('不正なXMLでnullを返す', () => {
