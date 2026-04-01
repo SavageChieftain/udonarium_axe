@@ -100,22 +100,29 @@ export class AppInitializationService {
       return file.identifier;
     };
 
-    PresetSound.dicePick = addHidden('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3');
-    PresetSound.dicePut = addHidden('./assets/sounds/soundeffect-lab/book-stack1.mp3');
-    PresetSound.diceRoll1 = addHidden('./assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3');
-    PresetSound.diceRoll2 = addHidden('./assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3');
-    PresetSound.cardDraw = addHidden('./assets/sounds/soundeffect-lab/card-turn-over1.mp3');
-    PresetSound.cardPick = addHidden('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3');
-    PresetSound.cardPut = addHidden('./assets/sounds/soundeffect-lab/book-stack1.mp3');
-    PresetSound.cardShuffle = addHidden('./assets/sounds/soundeffect-lab/card-open1.mp3');
-    PresetSound.piecePick = addHidden('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3');
-    PresetSound.piecePut = addHidden('./assets/sounds/soundeffect-lab/book-stack1.mp3');
-    PresetSound.blockPick = addHidden('./assets/sounds/tm2/tm2_pon002.wav');
-    PresetSound.blockPut = addHidden('./assets/sounds/tm2/tm2_pon002.wav');
-    PresetSound.lock = addHidden('./assets/sounds/tm2/tm2_switch001.wav');
-    PresetSound.unlock = addHidden('./assets/sounds/tm2/tm2_switch001.wav');
-    PresetSound.sweep = addHidden('./assets/sounds/tm2/tm2_swing003.wav');
-    PresetSound.alarm = addHidden('./assets/sounds/alarm/alarm.mp3');
+    type SoundKey = Exclude<keyof typeof PresetSound, 'prototype'>;
+    const soundMap: Record<SoundKey, string> = {
+      dicePick: './assets/sounds/soundeffect-lab/shoulder-touch1.mp3',
+      dicePut: './assets/sounds/soundeffect-lab/book-stack1.mp3',
+      diceRoll1: './assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3',
+      diceRoll2: './assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3',
+      cardDraw: './assets/sounds/soundeffect-lab/card-turn-over1.mp3',
+      cardPick: './assets/sounds/soundeffect-lab/shoulder-touch1.mp3',
+      cardPut: './assets/sounds/soundeffect-lab/book-stack1.mp3',
+      cardShuffle: './assets/sounds/soundeffect-lab/card-open1.mp3',
+      piecePick: './assets/sounds/soundeffect-lab/shoulder-touch1.mp3',
+      piecePut: './assets/sounds/soundeffect-lab/book-stack1.mp3',
+      blockPick: './assets/sounds/tm2/tm2_pon002.wav',
+      blockPut: './assets/sounds/tm2/tm2_pon002.wav',
+      lock: './assets/sounds/tm2/tm2_switch001.wav',
+      unlock: './assets/sounds/tm2/tm2_switch001.wav',
+      sweep: './assets/sounds/tm2/tm2_swing003.wav',
+      alarm: './assets/sounds/alarm/alarm.mp3',
+    };
+
+    for (const key of Object.keys(soundMap) as SoundKey[]) {
+      PresetSound[key] = addHidden(soundMap[key]);
+    }
   }
 
   private initializePeerCursor(): void {
