@@ -51,7 +51,7 @@ export class ResourceEditProcessor {
 
     for (const oneMessageTargetContext of messageTargetContext) {
       const text = ` ${oneMessageTargetContext.text}`;
-      const isMatch = text.match(/(\s[sSｓＳ][tTｔＴ]?[:：&＆])/i) ? true : false;
+      const isMatch = !!text.match(/(\s[sSｓＳ][tTｔＴ]?[:：&＆])/i);
       if (isMatch) {
         isSecret = true;
       }
@@ -120,7 +120,7 @@ export class ResourceEditProcessor {
 
     for (const res of resourceByCharacter) {
       const oneText = res.resourceCommand;
-      const targeted = oneText.match(/^t:/i) ? true : false;
+      const targeted = !!oneText.match(/^t:/i);
       let obj: GameCharacter;
       if (targeted) {
         const object = res.object;
@@ -171,7 +171,7 @@ export class ResourceEditProcessor {
     const repBuffCommandList: BuffEdit[] = [];
     for (const buff of buffByCharacter) {
       const oneText = buff.buffCommand;
-      const targeted = oneText.match(/^t&/i) ? true : false;
+      const targeted = !!oneText.match(/^t&/i);
       if (targeted) {
         const object = buff.object;
         const replaceText = oneText.replace('＆', '&').replace(/＋$/, '+').replace(/－$/, '-');

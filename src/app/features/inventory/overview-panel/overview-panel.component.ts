@@ -57,7 +57,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
     return this.tabletopObject && this.tabletopObject.imageFile ? this.tabletopObject.imageFile.url : '';
   }
   get hasImage(): boolean {
-    return 0 < this.imageUrl.length;
+    return this.imageUrl.length > 0;
   }
 
   get inventoryDataElms(): DataElement[] {
@@ -69,7 +69,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
       : [];
   }
   get hasDataElms(): boolean {
-    return 0 < this.dataElms.length;
+    return this.dataElms.length > 0;
   }
 
   get rangeElms(): DataElement[] {
@@ -78,7 +78,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
       : [];
   }
   get hasRangeElms(): boolean {
-    return 0 < this.rangeElms.length;
+    return this.rangeElms.length > 0;
   }
 
   get newLineString(): string {

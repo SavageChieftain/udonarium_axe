@@ -8,7 +8,7 @@ type BatchTask = () => void;
 })
 export class BatchService {
   private batchTask: Map<unknown, BatchTask> = new Map();
-  private batchTaskTimer: NodeJS.Timeout = null!;
+  private batchTaskTimer: NodeJS.Timeout | null = null;
 
   add(task: BatchTask, key: unknown = {}) {
     this.batchTask.set(key, task);
@@ -20,14 +20,14 @@ export class BatchService {
   }
 
   private startTimer() {
-    if (this.batchTaskTimer != null) return;
+    if (this.batchTaskTimer !== null) return;
     setZeroTimeout(() => this.execBatch());
     this.batchTaskTimer = setInterval(() => {
-      if (0 < this.batchTask.size) {
+      if (this.batchTask.size > 0) {
         this.execBatch();
       } else {
-        clearInterval(this.batchTaskTimer);
-        this.batchTaskTimer = null!;
+        clearInterval(this.batchTaskTimer!);
+        this.batchTaskTimer = null;
       }
     }, 66);
   }

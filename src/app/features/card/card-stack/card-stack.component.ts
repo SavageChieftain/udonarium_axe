@@ -119,7 +119,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly animeState = signal<'active' | 'inactive'>('inactive');
   private readonly cardsVersion = signal(0);
 
-  private iconHiddenTimer: NodeJS.Timeout = null!;
+  private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
   gridSize: number = 50;
@@ -127,10 +127,10 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   movableOption: MovableOption = {};
   rotableOption: RotableOption = {};
 
-  private doubleClickTimer: NodeJS.Timeout = null!;
+  private doubleClickTimer: NodeJS.Timeout | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
   ngOnInit() {
     this.objectChange.shuffleCardStack$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.cardStack().identifier) {
@@ -157,8 +157,8 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    clearTimeout(this.doubleClickTimer);
-    clearTimeout(this.iconHiddenTimer);
+    clearTimeout(this.doubleClickTimer ?? undefined);
+    clearTimeout(this.iconHiddenTimer ?? undefined);
     if (this.input) this.input.destroy();
   }
 
@@ -195,27 +195,27 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.doubleClickTimer) {
       this.stopDoubleClickTimer();
       this.doubleClickTimer = setTimeout(() => this.stopDoubleClickTimer(), (e as TouchEvent).touches ? 500 : 300);
-      this.doubleClickPoint = this.input.pointer;
+      this.doubleClickPoint = this.input!.pointer;
       return;
     }
 
     if ((e as TouchEvent).touches) {
-      this.input.onEnd = () => this.onDoubleClick();
+      this.input!.onEnd = () => this.onDoubleClick();
     } else {
       this.onDoubleClick();
     }
   }
 
   stopDoubleClickTimer() {
-    clearTimeout(this.doubleClickTimer);
-    this.doubleClickTimer = null!;
-    this.input.onEnd = null!;
+    clearTimeout(this.doubleClickTimer ?? undefined);
+    this.doubleClickTimer = null;
+    if (this.input) this.input.onEnd = null;
   }
 
   onDoubleClick() {
     this.stopDoubleClickTimer();
     const distance =
-      (this.doubleClickPoint.x - this.input.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input.pointer.y) ** 2;
+      (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
     if (distance < 10 ** 2) {
       if (this.drawCard() != null) {
         SoundEffect.play(PresetSound.cardDraw);
@@ -378,9 +378,9 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private startIconHiddenTimer() {
-    clearTimeout(this.iconHiddenTimer);
+    clearTimeout(this.iconHiddenTimer ?? undefined);
     this.iconHiddenTimer = setTimeout(() => {
-      this.iconHiddenTimer = null!;
+      this.iconHiddenTimer = null;
       this.isIconHidden.set(false);
     }, 300);
     this.isIconHidden.set(true);

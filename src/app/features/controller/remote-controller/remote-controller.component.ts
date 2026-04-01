@@ -199,12 +199,13 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
 
   charListChange(charName: string, checked: boolean) {
     if (checked) {
-      if (this.charList.indexOf(charName) < 0) {
+      if (!this.charList.includes(charName)) {
         this.charList.push(charName);
       }
     } else {
-      if (this.charList.indexOf(charName) > -1) {
-        this.charList.splice(this.charList.indexOf(charName), 1);
+      const index = this.charList.indexOf(charName);
+      if (index >= 0) {
+        this.charList.splice(index, 1);
       }
     }
   }

@@ -77,7 +77,7 @@ export function findImageIdentifierByName(entries: ImageNameEntry[], name: strin
   }
 
   for (let i = 0; i < entries.length; i++) {
-    if (entries[i].label.indexOf(name) === 0) {
+    if (entries[i].label.startsWith(name)) {
       return { identifier: entries[i].identifier, index: i };
     }
   }
@@ -91,7 +91,7 @@ export function calcChatTimestamp(now: number, latest: number): number {
 
 export function resolveImagePos(pos: number | undefined): number {
   if (pos == null) return 0;
-  return 0 <= pos && pos <= 11 ? pos : 0;
+  return pos >= 0 && pos <= 11 ? pos : 0;
 }
 
 export function emitChatMessageEvents(messageTargetContext?: ChatMessageTargetContext[]): ChatEventPlan {

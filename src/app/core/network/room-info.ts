@@ -34,13 +34,7 @@ export class RoomInfo implements IRoomInfo {
   }
 
   static listFrom(peerIds: string[]) {
-    const peers = peerIds
-      .map((peerId) => PeerContext.parse(peerId))
-      .sort((a, b) => {
-        if (a.peerId > b.peerId) return 1;
-        if (a.peerId < b.peerId) return -1;
-        return 0;
-      });
+    const peers = peerIds.map((peerId) => PeerContext.parse(peerId)).sort((a, b) => a.peerId.localeCompare(b.peerId));
 
     const roomMap: Map<string, RoomInfo> = new Map();
     for (const peer of peers) {
@@ -52,13 +46,9 @@ export class RoomInfo implements IRoomInfo {
       }
     }
 
-    if (roomMap.size < 1) return [];
+    if (roomMap.size === 0) return [];
 
-    const rooms = Array.from(roomMap.values()).sort((a, b) => {
-      if (a.id + a.name < b.id + b.name) return -1;
-      if (a.id + a.name > b.id + b.name) return 1;
-      return 0;
-    });
+    const rooms = Array.from(roomMap.values()).sort((a, b) => (a.id + a.name).localeCompare(b.id + b.name));
     return rooms;
   }
 }

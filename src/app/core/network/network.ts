@@ -84,12 +84,12 @@ export class Network {
   }
 
   private config: Record<string, unknown> = {};
-  private connectionClassPromise!: Promise<ConnectionClass>;
+  private connectionClassPromise: Promise<ConnectionClass> | null = null;
   private connectionClass!: ConnectionClass;
-  private connection!: Connection;
+  private connection: Connection | null = null;
 
   private queue: Set<QueueItem> = new Set();
-  private sendInterval: number = null!;
+  private sendInterval: number | null = null;
   private sendCallback = () => {
     this.sendQueue();
   };
@@ -125,7 +125,7 @@ export class Network {
       Logger.warn('[Network] 既に接続済みです');
       this.close();
     }
-    this.openAsync(() => this.connection.open(userId, roomId, roomName, password));
+    this.openAsync(() => this.connection!.open(userId, roomId, roomName, password));
   }
 
   openStandby(userId?: string): void {
@@ -133,7 +133,7 @@ export class Network {
       Logger.warn('[Network] 既に接続済みです');
       this.close();
     }
-    this.openAsync(() => this.connection.openStandby(userId));
+    this.openAsync(() => this.connection!.openStandby(userId));
   }
 
   private async openAsync(connectFn: () => void) {
@@ -156,8 +156,8 @@ export class Network {
 
   private close() {
     if (this.connection) this.connection.close();
-    this.connection = null!;
-    this.connectionClassPromise = null!;
+    this.connection = null;
+    this.connectionClassPromise = null;
     window.removeEventListener('unload', this.callbackUnload, false);
     window.removeEventListener('pagehide', this.callbackPageHide);
     window.removeEventListener('beforeunload', this.callbackBeforeUnload);
@@ -173,12 +173,11 @@ export class Network {
     if (!this.connection) return;
     if (this.connection.disconnect(peer)) {
       Logger.debug('[Network] disconnect', peer.peerId);
-      this.disconnect(peer);
     }
   }
 
   send(data: unknown, sendTo?: string) {
-    this.queue.add({ data: data, sendTo: sendTo });
+    this.queue.add({ data, sendTo });
     if (this.sendInterval === null) {
       this.sendInterval = setZeroTimeout(this.sendCallback);
     }
@@ -216,10 +215,10 @@ export class Network {
       this.callback.onData(this.peer, echocast);
     }
 
-    if (0 < this.queue.size) {
+    if (this.queue.size > 0) {
       this.sendInterval = setZeroTimeout(this.sendCallback);
     } else {
-      this.sendInterval = null!;
+      this.sendInterval = null;
     }
   }
 
@@ -254,7 +253,7 @@ export class Network {
       if (this.callback.onError) this.callback.onError(peer, errorType, errorMessage, errorObject);
     };
 
-    if (0 < this.queue.size && this.sendInterval === null) this.sendInterval = setZeroTimeout(this.sendCallback);
+    if (this.queue.size > 0 && this.sendInterval === null) this.sendInterval = setZeroTimeout(this.sendCallback);
 
     return connection;
   }

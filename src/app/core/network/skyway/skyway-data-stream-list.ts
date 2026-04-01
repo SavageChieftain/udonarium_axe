@@ -24,11 +24,7 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
     if (this.needsRefreshPeers) {
       this.needsRefreshPeers = false;
       this._peers = this.streams.map((stream) => stream.peer);
-      this._peers.sort((a, b) => {
-        if (a.peerId > b.peerId) return 1;
-        if (a.peerId < b.peerId) return -1;
-        return 0;
-      });
+      this._peers.sort((a, b) => a.peerId.localeCompare(b.peerId));
     }
     return this._peers;
   }
@@ -42,11 +38,7 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
       for (const stream of this.streams) {
         if (stream.open) peerIds.push(stream.peer.peerId);
       }
-      peerIds.sort((a, b) => {
-        if (a > b) return 1;
-        if (a < b) return -1;
-        return 0;
-      });
+      peerIds.sort((a, b) => a.localeCompare(b));
       this._peerIds = peerIds;
     }
     return this._peerIds;
@@ -80,7 +72,7 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
       this.streams.splice(index, 1);
       this.refresh();
     }
-    return 0 <= index ? stream : null!;
+    return index >= 0 ? stream : null!;
   }
 
   find(peerId: string): SkyWayDataStream {

@@ -21,10 +21,10 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
   private callbackOnMouseLeave = (e: Event) => this.onMouseLeave(e as MouseEvent);
   private callbackOnMouseDown = (e: Event) => this.onMouseDown(e as MouseEvent);
 
-  private openTooltipTimer!: NodeJS.Timeout;
-  private closeTooltipTimer!: NodeJS.Timeout;
+  private openTooltipTimer: NodeJS.Timeout | null = null;
+  private closeTooltipTimer: NodeJS.Timeout | null = null;
 
-  private tooltipComponentRef!: ComponentRef<OverviewPanelComponent>;
+  private tooltipComponentRef: ComponentRef<OverviewPanelComponent> | null = null;
   private deleteSub?: Subscription;
 
   ngAfterViewInit() {
@@ -63,10 +63,10 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
     const pointerY = this.pointerDeviceService.pointerY;
 
     this.openTooltipTimer = setTimeout(() => {
-      this.openTooltipTimer = null!;
+      this.openTooltipTimer = null;
       const magnitude =
         (pointerX - this.pointerDeviceService.pointerX) ** 2 + (pointerY - this.pointerDeviceService.pointerY) ** 2;
-      if (4 < magnitude) {
+      if (magnitude > 4) {
         this.startOpenTimer();
       } else {
         this.open();
@@ -76,7 +76,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
 
   private startCloseTimer() {
     this.closeTooltipTimer = setTimeout(() => {
-      this.closeTooltipTimer = null!;
+      this.closeTooltipTimer = null;
       if (
         this.tooltipComponentRef &&
         this.tooltipComponentRef.location.nativeElement.contains(document.activeElement)
@@ -91,7 +91,7 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
   private clearTimer() {
     if (this.closeTooltipTimer) clearTimeout(this.closeTooltipTimer);
     if (this.openTooltipTimer) clearTimeout(this.openTooltipTimer);
-    this.closeTooltipTimer = this.openTooltipTimer = null!;
+    this.closeTooltipTimer = this.openTooltipTimer = null;
   }
 
   private open() {
@@ -120,11 +120,12 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
       .subscribe(() => this.closeAll());
 
     this.tooltipComponentRef.onDestroy(() => {
-      this.removeEventListeners(this.tooltipComponentRef.location.nativeElement);
+      const ref = this.tooltipComponentRef;
+      this.tooltipComponentRef = null;
+      if (ref) this.removeEventListeners(ref.location.nativeElement);
       document.body.removeEventListener('touchstart', this.callbackOnMouseDown, true);
       document.body.removeEventListener('mousedown', this.callbackOnMouseDown, true);
       this.clearTimer();
-      this.tooltipComponentRef = null!;
       this.deleteSub?.unsubscribe();
     });
     TooltipDirective.activeTooltips.push(this.tooltipComponentRef);
@@ -133,10 +134,10 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
   private close() {
     if (!this.tooltipComponentRef) return;
     const index = TooltipDirective.activeTooltips.indexOf(this.tooltipComponentRef);
-    if (0 <= index) TooltipDirective.activeTooltips.splice(index, 1);
+    if (index >= 0) TooltipDirective.activeTooltips.splice(index, 1);
 
     this.tooltipComponentRef.destroy();
-    this.tooltipComponentRef = null!;
+    this.tooltipComponentRef = null;
   }
 
   private closeAll() {

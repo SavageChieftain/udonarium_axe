@@ -112,7 +112,7 @@ export class AppComponent implements AfterViewInit {
     this.progresPercent.set(0);
 
     const roomName =
-      Network.peerContext && 0 < Network.peerContext.roomName.length ? Network.peerContext.roomName : 'ルームデータ';
+      Network.peerContext && Network.peerContext.roomName.length > 0 ? Network.peerContext.roomName : 'ルームデータ';
     await this.saveDataService.saveRoomAsync(roomName, (percent) => {
       this.progresPercent.set(percent);
     });

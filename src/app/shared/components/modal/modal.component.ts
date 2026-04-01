@@ -21,7 +21,7 @@ export class ModalComponent {
   }
 
   resolve() {
-    this.modalService.resolve(null!);
+    this.modalService.resolve(null);
   }
 
   reject() {

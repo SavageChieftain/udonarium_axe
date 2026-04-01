@@ -36,8 +36,7 @@ import {
 } from './chat-tab-scroll-helpers';
 
 const ua = window.navigator.userAgent.toLowerCase();
-const isiOS =
-  ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1 || (ua.indexOf('macintosh') > -1 && 'ontouchend' in document);
+const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);
 
 @Component({
   selector: 'chat-tab',

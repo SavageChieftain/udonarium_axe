@@ -46,11 +46,8 @@
           {{ findPeerName(target) }}
         </div>
         <div class="image-box">
-          @if (findPeerImage(target)) {
-            <div
-              class="image cover"
-              [style.background-image]="'url(' + findPeerImage(target).url + ')' | safe: 'style'"
-            ></div>
+          @if (findPeerImage(target); as peerImage) {
+            <div class="image cover" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
           }
         </div>
       </div>
@@ -64,11 +61,8 @@
           }
         </div>
         <div class="image-box">
-          @if (findPeerLastControlImage(target)) {
-            <div
-              class="image cover"
-              [style.background-image]="'url(' + findPeerLastControlImage(target).url + ')' | safe: 'style'"
-            ></div>
+          @if (findPeerLastControlImage(target); as lastImage) {
+            <div class="image cover" [style.background-image]="'url(' + lastImage.url + ')' | safe: 'style'"></div>
           }
           @if (!findPeerLastControlImage(target)) {
             <div class="image cover" [style.background-image]=""></div>

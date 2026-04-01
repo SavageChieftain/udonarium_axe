@@ -101,7 +101,7 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get isSelected(): boolean {
-    return this.selectedTable ? true : false;
+    return this.selectedTable !== null;
   }
 
   get isDeleted(): boolean {

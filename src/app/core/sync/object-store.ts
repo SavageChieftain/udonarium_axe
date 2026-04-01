@@ -23,8 +23,8 @@ export class ObjectStore {
   private garbageMap: Map<ObjectIdentifier, TimeStamp> = new Map();
 
   private queueMap: Map<ObjectIdentifier, ObjectContext> = new Map();
-  private updateInterval: number = null!;
-  private garbageCollectionInterval: NodeJS.Timeout = null!;
+  private updateInterval: number | null = null;
+  private garbageCollectionInterval: NodeJS.Timeout | null = null;
   private updateCallback = () => {
     this.updateQueue();
   };
@@ -114,7 +114,7 @@ export class ObjectStore {
   update(identifier: string): void;
   update(context: ObjectContext): void;
   update(arg: string | ObjectContext) {
-    let context: ObjectContext = null!;
+    let context: ObjectContext | null = null;
     if (typeof arg === 'string') {
       const object: GameObject = this.get(arg);
       if (object) context = object.toContext();
@@ -139,7 +139,7 @@ export class ObjectStore {
 
   private updateQueue() {
     this.queueMap.clear();
-    this.updateInterval = null!;
+    this.updateInterval = null;
   }
 
   isDeleted(identifier: string) {
@@ -165,7 +165,7 @@ export class ObjectStore {
     if (typeof arg === 'number') {
       if (this.garbageCollectionInterval === null) {
         this.garbageCollectionInterval = setTimeout(() => {
-          this.garbageCollectionInterval = null!;
+          this.garbageCollectionInterval = null;
         }, 1000);
         this._garbageCollection(arg);
       }
@@ -178,7 +178,7 @@ export class ObjectStore {
     const nowDate = performance.now();
 
     let checkLength = this.garbageMap.size - 100000;
-    if (checkLength < 1) return;
+    if (checkLength <= 0) return;
 
     const entries = this.garbageMap.entries();
     while (checkLength > 0) {

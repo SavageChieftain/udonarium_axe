@@ -66,7 +66,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get sendTo(): string[] {
     if (this._to !== this.to) {
       this._to = this.to;
-      this._sendTo = this.to != null && 0 < this.to.trim().length ? this.to.trim().split(/\s+/) : [];
+      this._sendTo = this.to != null && this.to.trim().length > 0 ? this.to.trim().split(/\s+/) : [];
     }
     return this._sendTo;
   }
@@ -75,7 +75,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get tags(): string[] {
     if (this._tag !== this.tag) {
       this._tag = this.tag;
-      this._tags = this.tag != null && 0 < this.tag.trim().length ? this.tag.trim().split(/\s+/) : [];
+      this._tags = this.tag != null && this.tag.trim().length > 0 ? this.tag.trim().split(/\s+/) : [];
     }
     return this._tags;
   }
@@ -86,7 +86,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.minorIndex + this.timestamp;
   }
   get isDirect(): boolean {
-    return 0 < this.sendTo.length ? true : false;
+    return this.sendTo.length > 0;
   }
   get isSendFromSelf(): boolean {
     return this.isSentBy(Network.peerContext.userId);
@@ -98,7 +98,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.isRelatedTo(Network.peerContext.userId);
   }
   isRelatedTo(userId: string): boolean {
-    return -1 < this.sendTo.indexOf(userId) || this.isSentBy(userId) ? true : false;
+    return this.sendTo.includes(userId) || this.isSentBy(userId);
   }
   get isDisplayable(): boolean {
     return this.isDirect ? this.isRelatedToMe : true;
@@ -107,20 +107,20 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.isDirect ? this.isRelatedTo(userId) : true;
   }
   get isSystem(): boolean {
-    return -1 < this.tags.indexOf('system') ? true : false;
+    return this.tags.includes('system');
   }
   get isDicebot(): boolean {
-    return this.isSystem && this.from === 'System-BCDice' ? true : false;
+    return this.isSystem && this.from === 'System-BCDice';
   }
   get isSecret(): boolean {
-    return -1 < this.tags.indexOf('secret') ? true : false;
+    return this.tags.includes('secret');
   }
   get chatTabList(): ChatTabList {
     return ObjectStore.instance.get<ChatTabList>('ChatTabList');
   }
 
   get isSystemToPL(): boolean {
-    return -1 < this.tags.indexOf('to-pl-system-message') ? true : false;
+    return this.tags.includes('to-pl-system-message');
   }
   get changeable(): boolean {
     return this.isChangeableBy(Network.peerContext.userId);

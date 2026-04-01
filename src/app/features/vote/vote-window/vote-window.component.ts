@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/shared/vote';
@@ -97,19 +98,19 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     return peerCursor ? peerCursor.lastControlCharacterName : '';
   }
 
-  findPeerImage(peerId: string) {
+  findPeerImage(peerId: string): ImageFile | null {
     const peerCursor = PeerCursor.findByPeerId(peerId);
-    return peerCursor ? peerCursor.image : null!;
+    return peerCursor ? peerCursor.image : null;
   }
 
-  findPeerLastControlImage(peerId: string) {
+  findPeerLastControlImage(peerId: string): ImageFile | null {
     const peerCursor = PeerCursor.findByPeerId(peerId);
-    return peerCursor ? peerCursor.lastControlImage : null!;
+    return peerCursor ? peerCursor.lastControlImage : null;
   }
 
   ngOnDestroy() {
     if (this.vote && !this.isMyVoteEnd() && this.timestamp == this.vote.initTimeStamp) {
-      this.vote.voting(null!, PeerCursor.myCursor.peerId);
+      this.vote.voting(null, PeerCursor.myCursor.peerId);
       let text = this.vote.isRollCall ? '点呼：' : '投票：';
       text += '棄権しました' + '(' + this.vote.votedTotalNum() + '/' + this.answerList.length + ')';
       this.chatMessageService.sendSystemMessageLastSendCharactor(text);

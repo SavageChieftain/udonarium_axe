@@ -53,10 +53,10 @@ export class TableTouchGesture {
   private readonly onPointerUpBound = (ev: PointerEvent) => this.onPointerUp(ev);
   private readonly onPointerCancelBound = (ev: PointerEvent) => this.onPointerCancel(ev);
 
-  onstart: Callback = null!;
-  onend: Callback = null!;
-  ongesture: OnGestureCallback | null = null!;
-  ontransform: OnTransformCallback | null = null!;
+  onstart: Callback | null = null;
+  onend: Callback | null = null;
+  ongesture: OnGestureCallback | null = null;
+  ontransform: OnTransformCallback | null = null;
   constructor(readonly targetElement: Element) {
     this.originalTouchAction = (this.targetElement as HTMLElement).style.touchAction;
     this.initializeGesture();
@@ -296,9 +296,7 @@ export class TableTouchGesture {
 
     const ua = window.navigator.userAgent.toLowerCase();
     const isiOS =
-      ua.indexOf('iphone') > -1 ||
-      ua.indexOf('ipad') > -1 ||
-      (ua.indexOf('macintosh') > -1 && 'ontouchend' in document);
+      ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);
     if (!isiOS) return;
 
     this.longPressTarget = ev.target;

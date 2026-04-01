@@ -88,19 +88,19 @@ describe('XmlUtil', () => {
     it('有効なXMLをパースしてElementを返す', () => {
       const element = xml2element('<root><child>text</child></root>');
       expect(element).toBeTruthy();
-      expect(element.tagName).toBe('root');
+      expect(element!.tagName).toBe('root');
     });
 
     it('属性付きXMLをパースする', () => {
       const element = xml2element('<item name="test" value="123" />');
       expect(element).toBeTruthy();
-      expect(element.getAttribute('name')).toBe('test');
-      expect(element.getAttribute('value')).toBe('123');
+      expect(element!.getAttribute('name')).toBe('test');
+      expect(element!.getAttribute('value')).toBe('123');
     });
 
     it('子要素を持つXMLをパースする', () => {
       const element = xml2element('<parent><child1/><child2/></parent>');
-      expect(element.children.length).toBe(2);
+      expect(element!.children.length).toBe(2);
     });
 
     it('不正なXMLはnullを返す', () => {
@@ -111,33 +111,33 @@ describe('XmlUtil', () => {
     it('制御文字がサニタイズされる', () => {
       const element = xml2element('<root>\x00\x01text</root>');
       expect(element).toBeTruthy();
-      expect(element.textContent).toBe('text');
+      expect(element!.textContent).toBe('text');
     });
 
     it('VT・FFがサニタイズされる', () => {
       const element = xml2element('<root>\x0B\x0Ctext</root>');
       expect(element).toBeTruthy();
-      expect(element.textContent).toBe('text');
+      expect(element!.textContent).toBe('text');
     });
 
     it('タブ・改行・CRは保持される', () => {
       const element = xml2element('<root>\t\n\rtext</root>');
       expect(element).toBeTruthy();
-      expect(element.textContent).toContain('text');
-      expect(element.textContent).toContain('\t');
-      expect(element.textContent).toContain('\n');
+      expect(element!.textContent).toContain('text');
+      expect(element!.textContent).toContain('\t');
+      expect(element!.textContent).toContain('\n');
     });
 
     it('非文字(U+FFFE, U+FFFF)がサニタイズされる', () => {
       const element = xml2element('<root>\uFFFE\uFFFFtext</root>');
       expect(element).toBeTruthy();
-      expect(element.textContent).toBe('text');
+      expect(element!.textContent).toBe('text');
     });
 
     it('正常なサロゲートペア(絵文字)は保持される', () => {
       const element = xml2element('<root>\uD83D\uDE00</root>');
       expect(element).toBeTruthy();
-      expect(element.textContent).toBe('\uD83D\uDE00');
+      expect(element!.textContent).toBe('\uD83D\uDE00');
     });
 
     it('空文字列はnullを返す', () => {

@@ -31,14 +31,14 @@ export class ContextMenuService {
   /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static ContextMenuComponentClass: { new (...args: unknown[]): unknown } = null!;
-  private panelComponentRef!: ComponentRef<unknown>;
+  private panelComponentRef: ComponentRef<unknown> | null = null;
 
   title: string = '';
   actions: ContextMenuAction[] = [];
   position: ContextMenuPoint = { x: 0, y: 0 };
 
   get isShow(): boolean {
-    return this.panelComponentRef ? true : false;
+    return this.panelComponentRef !== null;
   }
 
   open(
@@ -72,14 +72,14 @@ export class ContextMenuService {
     childPanelService.title = title != null ? title : '';
 
     panelComponentRef.onDestroy(() => {
-      childPanelService.panelComponentRef = null!;
+      childPanelService.panelComponentRef = null;
     });
   }
 
   close() {
     if (this.panelComponentRef) {
       this.panelComponentRef.destroy();
-      this.panelComponentRef = null!;
+      this.panelComponentRef = null;
     }
   }
 }

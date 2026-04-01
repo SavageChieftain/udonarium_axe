@@ -173,7 +173,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
         this._transition = false;
       }, 132);
     } else {
-      this._transitionTimeout = null!;
+      this._transitionTimeout = null;
     }
   }
   private _fallTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -189,7 +189,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
         this._fall = false;
       }, 132);
     } else {
-      this._fallTimeout = null!;
+      this._fallTimeout = null;
     }
   }
 

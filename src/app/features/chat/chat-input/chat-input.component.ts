@@ -171,7 +171,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   get isDirect(): boolean {
-    return this.sendTo != null && this.sendTo.length ? true : false;
+    return this.sendTo != null && this.sendTo.length > 0;
   }
 
   colorSelectNo_ = 0;

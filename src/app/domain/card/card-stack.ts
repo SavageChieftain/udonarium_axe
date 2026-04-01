@@ -32,7 +32,7 @@ export class CardStack extends TabletopObject {
     return object ? object.name : '';
   }
   get hasOwner(): boolean {
-    return 0 < this.owner.length;
+    return this.owner.length > 0;
   }
 
   private get cardRoot(): ObjectNode {
@@ -80,7 +80,7 @@ export class CardStack extends TabletopObject {
     const card = this.topCard ? this.cardRoot.removeChild(this.topCard) : null!;
     if (card) {
       card.rotate += this.rotate;
-      if (360 < card.rotate) card.rotate -= 360;
+      if (card.rotate > 360) card.rotate -= 360;
       this.setSamePositionFor(card);
       card.toTopmost();
     }
@@ -93,7 +93,7 @@ export class CardStack extends TabletopObject {
       this.cardRoot.removeChild(card);
       card.rotate += this.rotate;
       this.setSamePositionFor(card);
-      if (360 < card.rotate) card.rotate -= 360;
+      if (card.rotate > 360) card.rotate -= 360;
     }
     return cards;
   }
@@ -145,7 +145,7 @@ export class CardStack extends TabletopObject {
     card.owner = '';
     card.zindex = 0;
     let delta = Math.abs(card.rotate - this.rotate);
-    if (180 < delta) delta = 360 - delta;
+    if (delta > 180) delta = 360 - delta;
     card.rotate = delta <= 90 ? 0 : 180;
     this.setSamePositionFor(card);
     return this.cardRoot.insertBefore(card, this.topCard);
@@ -156,7 +156,7 @@ export class CardStack extends TabletopObject {
     card.owner = '';
     card.zindex = 0;
     let delta = Math.abs(card.rotate - this.rotate);
-    if (180 < delta) delta = 360 - delta;
+    if (delta > 180) delta = 360 - delta;
     card.rotate = delta <= 90 ? 0 : 180;
     this.setSamePositionFor(card);
     return this.cardRoot.appendChild(card);

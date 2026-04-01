@@ -21,8 +21,8 @@ export class AppEventHandlerService {
   private readonly chatMessageService = inject(ChatMessageService);
 
   readonly renderVersion = signal(0);
-  private immediateUpdateTimer: number = null!;
-  private lazyUpdateTimer: number = null!;
+  private immediateUpdateTimer: number | null = null;
+  private lazyUpdateTimer: number | null = null;
 
   initialize(): void {
     this.subscribeAlarmAndVote();
@@ -187,20 +187,20 @@ export class AppEventHandlerService {
     if (isImmediate) {
       if (this.immediateUpdateTimer !== null) return;
       this.immediateUpdateTimer = requestAnimationFrame(() => {
-        this.immediateUpdateTimer = null!;
+        this.immediateUpdateTimer = null;
         if (this.lazyUpdateTimer !== null) {
           cancelAnimationFrame(this.lazyUpdateTimer);
-          this.lazyUpdateTimer = null!;
+          this.lazyUpdateTimer = null;
         }
         this.renderVersion.update((v) => v + 1);
       });
     } else {
       if (this.lazyUpdateTimer !== null) return;
       this.lazyUpdateTimer = requestAnimationFrame(() => {
-        this.lazyUpdateTimer = null!;
+        this.lazyUpdateTimer = null;
         if (this.immediateUpdateTimer !== null) {
           cancelAnimationFrame(this.immediateUpdateTimer);
-          this.immediateUpdateTimer = null!;
+          this.immediateUpdateTimer = null;
         }
         this.renderVersion.update((v) => v + 1);
       });

@@ -114,7 +114,7 @@ export class SaveDataService {
     });
   }
   private searchImageFiles(xml: string): ImageFile[] {
-    const xmlElement: Element = xml2element(xml);
+    const xmlElement: Element | null = xml2element(xml);
 
     const files: ImageFile[] = [];
     if (!xmlElement) return files;

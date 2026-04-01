@@ -1,19 +1,19 @@
 <div>
-  @if (isValid) {
+  @if (urlObj) {
     <div class="url">
       {{ urlObj.protocol }}//<span [ngClass]="{ outer: isOuter }">{{ urlObj.host }}</span
       >{{ urlObj.pathname }}<span class="opt">{{ urlObj.search }}{{ urlObj.hash }}</span>
     </div>
   }
-  @if (!isValid) {
+  @if (!urlObj) {
     <div class="url">{{ url }}</div>
   }
   <hr />
   <div class="help">
-    @if (isValid) {
+    @if (urlObj) {
       <div>このURLを開きますか？（別ウィンドウで開きます、ポップアップを許可してください）</div>
     }
-    @if (!isValid) {
+    @if (!urlObj) {
       <div>⚠️URLが不正です。</div>
     }
   </div>

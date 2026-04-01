@@ -104,7 +104,7 @@ export function chkOuterProduct(
   const bx = pchkx - p1x;
   const by = pchky - p1y;
   const calc = ax * by - ay * bx;
-  return calc >= -0.01 ? true : false; // 丸め誤差対策で少し許容範囲を広くする
+  return calc >= -0.01; // 丸め誤差対策で少し許容範囲を広くする
 }
 
 export function chkInCircle(radius: number, pchkx: number, pchky: number): boolean {

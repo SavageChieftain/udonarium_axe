@@ -67,10 +67,10 @@ export class Terrain extends TabletopObject {
   }
 
   get hasWall(): boolean {
-    return this.mode & TerrainViewState.WALL ? true : false;
+    return (this.mode & TerrainViewState.WALL) !== 0;
   }
   get hasFloor(): boolean {
-    return this.mode & TerrainViewState.FLOOR ? true : false;
+    return (this.mode & TerrainViewState.FLOOR) !== 0;
   }
 
   static create(

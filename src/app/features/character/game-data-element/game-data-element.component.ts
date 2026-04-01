@@ -71,7 +71,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
     this.setUpdateTimer();
   }
 
-  private updateTimer: NodeJS.Timeout = null!;
+  private updateTimer: NodeJS.Timeout | null = null;
   ngOnInit() {
     if (this.gameDataElement()) this.setValues(this.gameDataElement());
 
@@ -137,7 +137,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   upElement() {
     const parentElement = this.gameDataElement().parent;
     const index: number = parentElement.children.indexOf(this.gameDataElement());
-    if (0 < index) {
+    if (index > 0) {
       const prevElement = parentElement.children[index - 1];
       parentElement.insertBefore(this.gameDataElement(), prevElement);
     }
@@ -147,8 +147,11 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
     const parentElement = this.gameDataElement().parent;
     const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index < parentElement.children.length - 1) {
-      const nextElement = index < parentElement.children.length - 2 ? parentElement.children[index + 2] : null!;
-      parentElement.insertBefore(this.gameDataElement(), nextElement);
+      if (index < parentElement.children.length - 2) {
+        parentElement.insertBefore(this.gameDataElement(), parentElement.children[index + 2]);
+      } else {
+        parentElement.appendChild(this.gameDataElement());
+      }
     }
   }
 
@@ -163,13 +166,13 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   }
 
   private setUpdateTimer() {
-    clearTimeout(this.updateTimer);
+    clearTimeout(this.updateTimer ?? undefined);
     this.updateTimer = setTimeout(() => {
       if (this.gameDataElement().name !== this.name) this.gameDataElement().name = this.name;
       if (this.gameDataElement().currentValue !== this.currentValue)
         this.gameDataElement().currentValue = this.currentValue;
       if (this.gameDataElement().value !== this.value) this.gameDataElement().value = this.value;
-      this.updateTimer = null!;
+      this.updateTimer = null;
     }, 66);
   }
 

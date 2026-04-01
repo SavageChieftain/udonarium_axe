@@ -106,11 +106,9 @@ export class TabletopActionService {
 
   createDiceSymbol(position: PointerCoordinate, name: string, diceType: DiceType, imagePathPrefix: string): DiceSymbol {
     const diceSymbol = DiceSymbol.create(name, diceType, 1);
-    let image: ImageFile = null!;
-
     diceSymbol.faces.forEach((face) => {
       const url: string = `./assets/images/dice/${imagePathPrefix}/${imagePathPrefix}[${face}].png`;
-      image = this.imageStorage.get(url);
+      let image: ImageFile = this.imageStorage.get(url);
       if (!image) {
         image = this.imageStorage.add(url);
       }

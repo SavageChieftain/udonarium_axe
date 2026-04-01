@@ -116,7 +116,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
       setTimeout(() => {
         this.gameTable().nativeElement.style.transition = '0.2s ease-out';
         setTimeout(() => {
-          this.gameTable().nativeElement.style.transition = null!;
+          this.gameTable().nativeElement.style.transition = '';
         }, 100);
         // 座標変換
         const centerX = this.gridCanvas().nativeElement.clientWidth / 2;
@@ -196,8 +196,8 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   private viewRotateY: number = 0;
   private viewRotateZ: number = 10;
 
-  private mouseGesture: TableMouseGesture = null!;
-  private touchGesture: TableTouchGesture = null!;
+  private mouseGesture: TableMouseGesture | null = null;
+  private touchGesture: TableTouchGesture | null = null;
   get characters(): GameCharacter[] {
     this.objectChangeService.collectionOf('character')();
     return this.tabletopService.characters;
@@ -295,7 +295,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onTableTouchStart() {
-    this.mouseGesture.cancel();
+    this.mouseGesture?.cancel();
   }
 
   onTableTouchEnd() {
@@ -385,7 +385,7 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   cancelInput() {
-    this.mouseGesture.cancel();
+    this.mouseGesture?.cancel();
     this.isTableTransformMode = true;
     this.pointerDeviceService.isDragging = false;
     let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;

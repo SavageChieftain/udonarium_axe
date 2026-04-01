@@ -99,7 +99,7 @@ export class PointerDeviceService {
 
   private onTouchMove(e: TouchEvent) {
     const length = e.touches.length;
-    if (length < 1) return;
+    if (length === 0) return;
     this.pointers = [];
     for (let i = 0; i < length; i++) {
       const touch = e.touches[i];

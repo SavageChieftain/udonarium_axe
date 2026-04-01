@@ -42,9 +42,9 @@ export class TableMouseGesture {
   private callbackOnWheel = (e: WheelEvent) => this.onWheel(e);
   private callbackOnKeydown = (e: KeyboardEvent) => this.onKeydown(e);
 
-  onstart: Callback = null!;
-  onend: Callback = null!;
-  ontransform: OnTransformCallback | null = null!;
+  onstart: Callback | null = null;
+  onend: Callback | null = null;
+  ontransform: OnTransformCallback | null = null;
   constructor(readonly targetElement: HTMLElement) {
     this.initialize();
   }

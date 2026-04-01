@@ -80,7 +80,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
 
   //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
-  readonly gameTableMask = input<GameTableMask | null>(null!);
+  readonly gameTableMask = input<GameTableMask | null>(null);
 
   get dispLockMark(): boolean {
     const mask = this.gameTableMask();
@@ -243,7 +243,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
 
   //  get isGMMode(): boolean { return this.gameTableMask()!.isGMMode; }
   get isInverse(): boolean {
-    return 90 < Math.abs(this.viewRotateZ()) % 360 && Math.abs(this.viewRotateZ()) % 360 < 270;
+    return Math.abs(this.viewRotateZ()) % 360 > 90 && Math.abs(this.viewRotateZ()) % 360 < 270;
   }
   get isScratching(): boolean {
     const mask = this.gameTableMask();

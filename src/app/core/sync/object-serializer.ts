@@ -105,7 +105,7 @@ export class ObjectSerializer {
   }
 
   parseXml(xml: string | Element): GameObject {
-    let xmlElement: Element;
+    let xmlElement: Element | null;
     if (typeof xml === 'string') {
       xmlElement = xml2element(xml);
     } else {

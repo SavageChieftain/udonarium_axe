@@ -50,7 +50,7 @@ export class WebRTCStatsMonitor {
         this.remove(connection);
       }
     }
-    if (this.monitoringConnections.size < 1) {
+    if (this.monitoringConnections.size === 0) {
       this.updateWebRTCStatsTimer = null!;
       return;
     }

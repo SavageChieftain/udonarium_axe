@@ -68,7 +68,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
 
     const isHandle = this.isHandleElement(e.target as HTMLElement);
     const isUnhandle = this.isUnhandleElement(e.target as HTMLElement);
-    const isScrollable = (e as TouchEvent).touches != null ? this.isScrollableElement(e.target as HTMLElement) : false;
+    const isScrollable = 'touches' in e ? this.isScrollableElement(e.target as HTMLElement) : false;
 
     if (!isHandle || isUnhandle || isScrollable) {
       this.cancel();
@@ -98,7 +98,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
     trans.y += correction.y;
     trans.z += correction.z;
 
-    if (0 < trans.x ** 2 + trans.y ** 2 + trans.z ** 2) {
+    if (trans.x ** 2 + trans.y ** 2 + trans.z ** 2 > 0) {
       this.elementRef.nativeElement.style.opacity = this.opacity() + '';
     }
 
@@ -126,7 +126,7 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private preventClickIfNeeded(e: MouseEvent | TouchEvent) {
-    if ((e as TouchEvent).touches != null) return;
+    if ('touches' in e) return;
     if (!this.input) return;
 
     const diffX = this.input.pointer.x - this.startPointer.x;
@@ -153,12 +153,12 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   }
 
   private isHandleElement(target: HTMLElement): boolean {
-    if (this.handleSelector().length < 1) return true;
+    if (this.handleSelector().length === 0) return true;
     return this.isContainsElement(target, this.handleSelector());
   }
 
   private isUnhandleElement(target: HTMLElement): boolean {
-    if (this.unhandleSelector().length < 1) return false;
+    if (this.unhandleSelector().length === 0) return false;
     return this.isContainsElement(target, this.unhandleSelector());
   }
 
@@ -177,8 +177,8 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
     const positionType = ['fixed', 'sticky', '-webkit-sticky'];
     while (node && boundsElm !== node && this.elementRef.nativeElement !== node) {
       const css: CSSStyleDeclaration = window.getComputedStyle(node);
-      if (0 <= overflowType.indexOf(css.overflowY) && node.offsetHeight < node.scrollHeight) return true;
-      if (0 <= positionType.indexOf(css.position)) return false;
+      if (overflowType.includes(css.overflowY) && node.offsetHeight < node.scrollHeight) return true;
+      if (positionType.includes(css.position)) return false;
       node = node.parentElement as HTMLElement | null;
     }
     return false;

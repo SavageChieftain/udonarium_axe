@@ -255,12 +255,12 @@ export class CutInListComponent implements OnInit, OnDestroy {
     return file ? file : ImageFile.Empty;
   }
 
-  private lazyUpdateTimer: NodeJS.Timeout = null!;
+  private lazyUpdateTimer: NodeJS.Timeout | null = null;
   selectedCutIn: CutIn | null = null;
   isYouTubeCutIn = false;
 
   get isSelected(): boolean {
-    return this.selectedCutIn ? true : false;
+    return this.selectedCutIn !== null;
   }
   get isEditable(): boolean {
     return !this.isEmpty && this.isSelected;
@@ -288,7 +288,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
 
   selectCutIn(identifier: string) {
     this.selectedCutIn = this.objectStore.get<CutIn>(identifier);
-    this.isYouTubeCutIn = this.selectedCutIn?.videoId ? true : false;
+    this.isYouTubeCutIn = !!this.selectedCutIn?.videoId;
   }
 
   getCutIns(): CutIn[] {
@@ -354,7 +354,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
     if (!this.isSelected) return false;
 
     const audio = this.audioStorage.get(this.cutInAudioIdentifier);
-    return audio ? true : false;
+    return audio !== null;
   }
 
   stoppreviewCutIn() {
@@ -399,7 +399,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
 
   changeYouTubeInfo() {
     if (!this.selectedCutIn) return;
-    const isVideo = this.selectedCutIn.videoId ? true : false;
+    const isVideo = !!this.selectedCutIn.videoId;
     if ((!this.isYouTubeCutIn && isVideo) || (this.isYouTubeCutIn && !isVideo)) {
       this.setDefaultControl(isVideo);
     }

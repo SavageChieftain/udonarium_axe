@@ -42,7 +42,7 @@ export class PanelService {
   cardStack: CardStack = null!;
   scrollablePanel: HTMLDivElement = null!;
   get isShow(): boolean {
-    return this.panelComponentRef ? true : false;
+    return this.panelComponentRef !== null;
   }
 
   open<T>(childComponent: Type<T>, option?: PanelOption, parentViewContainerRef?: ViewContainerRef): T {

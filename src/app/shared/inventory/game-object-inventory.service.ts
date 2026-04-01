@@ -121,7 +121,7 @@ export class GameObjectInventoryService {
         if (this.sortTag === object.name || this.sortTag2nd === object.name) {
           this.refreshSort();
         }
-        if (0 < object.children.length) {
+        if (object.children.length > 0) {
           this.refreshDataElements();
           this.refreshSort();
         }

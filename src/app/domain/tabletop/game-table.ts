@@ -32,7 +32,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridType: GridType = GridType.SQUARE;
   @SyncVar() gridColor: string = '#000000e6';
 
-  gridClipRect: { top: number; right: number; bottom: number; left: number } = null!;
+  gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {
     const terrains: Terrain[] = [];
     this.children.forEach((object) => {

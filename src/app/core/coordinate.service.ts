@@ -47,6 +47,6 @@ export class CoordinateService {
     } else {
       coordinate = this.convertLocalToLocal(coordinate, target, this.tabletopOriginElement);
     }
-    return { x: coordinate.x, y: coordinate.y, z: 0 < coordinate.z ? coordinate.z : 0 };
+    return { x: coordinate.x, y: coordinate.y, z: Math.max(0, coordinate.z) };
   }
 }

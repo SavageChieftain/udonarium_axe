@@ -93,7 +93,7 @@ export class GameTableScratchMask extends TabletopObject {
   }
 
   get hasOwner(): boolean {
-    return 0 < this.owner.length;
+    return this.owner.length > 0;
   }
   get isMine(): boolean {
     return this.isOwnedBy(Network.peerContext.userId);

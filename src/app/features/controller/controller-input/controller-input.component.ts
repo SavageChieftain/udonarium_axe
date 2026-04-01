@@ -72,7 +72,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   }
 
   get isDirect(): boolean {
-    return this.sendTo() != null && this.sendTo().length ? true : false;
+    return this.sendTo() != null && this.sendTo().length > 0;
   }
 
   get colorSelectNo(): number {

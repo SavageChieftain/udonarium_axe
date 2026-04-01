@@ -59,7 +59,7 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
     return this.objectStore.getObjects(PeerCursor);
   }
 
-  private calcFitHeightInterval: NodeJS.Timeout = null!;
+  private calcFitHeightInterval: NodeJS.Timeout | null = null;
 
   ngOnInit(): void {
     this.kickCalcFitHeight();
@@ -79,7 +79,7 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
   kickCalcFitHeight() {
     if (this.calcFitHeightInterval == null) {
       this.calcFitHeightInterval = setTimeout(() => {
-        this.calcFitHeightInterval = null!;
+        this.calcFitHeightInterval = null;
         this.calcFitHeight();
         this.textAreaElementRef().nativeElement.focus();
       }, 0);

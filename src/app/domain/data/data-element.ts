@@ -43,7 +43,7 @@ export class DataElement extends ObjectNode {
     identifier: string = ''
   ): DataElement {
     let dataElement: DataElement;
-    if (identifier && 0 < identifier.length) {
+    if (identifier && identifier.length > 0) {
       dataElement = new DataElement(identifier);
     } else {
       dataElement = new DataElement();

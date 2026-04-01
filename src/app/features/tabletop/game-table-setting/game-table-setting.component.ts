@@ -129,7 +129,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
   set tableGridShow(tableGridShow: boolean) {
     this.tableSelecter.gridShow = tableGridShow;
-    if (tableGridShow) this.tableSelecter.viewTable.gridClipRect = null!;
+    if (tableGridShow) this.tableSelecter.viewTable.gridClipRect = null;
     triggerUpdateGameObject(this.tableSelecter.toContext()); // 自分にだけイベントを発行してグリッド更新を誘発
   }
 

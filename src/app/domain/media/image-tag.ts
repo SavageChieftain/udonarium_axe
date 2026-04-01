@@ -11,7 +11,7 @@ export class ImageTag extends ObjectNode {
   @SyncVar() tag: string = '';
 
   containsWords(words: string[]): boolean {
-    return words.every((word) => this.tag.indexOf(word) >= 0);
+    return words.every((word) => this.tag.includes(word));
   }
 
   static searchImages(searchWords: string[]): ImageFile[] {

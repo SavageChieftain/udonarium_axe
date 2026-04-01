@@ -40,7 +40,7 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
 
   constructor() {
     const option = this.modalService.option as Record<string, unknown>;
-    this.isAllowedEmpty = option && option.isAllowedEmpty ? true : false;
+    this.isAllowedEmpty = !!option?.isAllowedEmpty;
   }
 
   chatColorCode(num: number) {

@@ -199,7 +199,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     const numericHeight = Number(height);
     if (!Number.isFinite(numericHeight)) return currentValue;
     if (numericHeight < 50) return 50;
-    if (750 < numericHeight) return 750;
+    if (numericHeight > 750) return 750;
     return numericHeight;
   }
 

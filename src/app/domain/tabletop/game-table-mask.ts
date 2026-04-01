@@ -61,7 +61,7 @@ export class GameTableMask extends TabletopObject {
   }
 
   get hasOwner(): boolean {
-    return 0 < this.owner.length;
+    return this.owner.length > 0;
   }
   get ownerIsOnline(): boolean {
     return this.isOwnerOnline(Network.peerContext, Network.peerContexts);

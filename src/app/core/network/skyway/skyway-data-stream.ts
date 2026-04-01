@@ -78,7 +78,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   isPublication = false;
   private isCanceled = false;
   private isRejected = false;
-  private isOpend = false;
+  private isOpened = false;
 
   private state: TransportConnectionState = 'new';
   private subscription: Subscription<RemoteDataStream> | null = null;
@@ -131,7 +131,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
   disconnect() {
     this.isCanceled = true;
-    if (this.isOpend) {
+    if (this.isOpened) {
       this.dispose();
     } else {
       this.refresh();
@@ -262,7 +262,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       case 'connecting':
         break;
       case 'connected':
-        if (this.state == 'reconnecting') this.peer.isOpen = false;
+        if (this.state === 'reconnecting') this.peer.isOpen = false;
         break;
       case 'reconnecting':
         break;
@@ -327,7 +327,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     if (isOpen !== this.peer.isOpen) {
       this.peer.isOpen = isOpen;
       if (isOpen) {
-        this.isOpend = true;
+        this.isOpened = true;
         this.state = 'connected';
         this.emit('open');
       } else {
@@ -388,7 +388,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       }
       break;
     }
-    this.isQueuing = 0 < this.sendQueue.size;
+    this.isQueuing = this.sendQueue.size > 0;
     if (this.isQueuing) setZeroTimeout(this.execQueue);
   };
 
@@ -469,13 +469,13 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     const decoded: unknown = MessagePack.decode(new Uint8Array(data));
 
     const ping: Ping = decoded as Ping;
-    if (ping.ping != null) {
+    if (ping.ping !== undefined) {
       this.receivePing(ping);
       return;
     }
 
     const chunk: DataChunk = decoded as DataChunk;
-    if (chunk.id == null) {
+    if (chunk.id === undefined) {
       this.emit('data', decoded);
       return;
     }

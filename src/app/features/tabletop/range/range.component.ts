@@ -299,7 +299,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   movableOption: MovableOption = {};
   rotableOption: RotableOption = {};
 
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
   ngOnInit() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
@@ -338,7 +338,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onInputStart(_e: MouseEvent | TouchEvent) {
-    this.input.cancel();
+    this.input?.cancel();
 
     // TODO:もっと良い方法考える
     if (this.isLock) {
@@ -426,7 +426,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
       offSetY: this.range().offSetY,
       fillOutLine: this.range().fillOutLine,
       gridType: this.currentTable.gridType,
-      isDocking: this.objectStore.get(this.range().followingCharctorIdentifier) ? true : false,
+      isDocking: this.objectStore.get(this.range().followingCharctorIdentifier) !== null,
     };
 
     switch (this.range().type) {

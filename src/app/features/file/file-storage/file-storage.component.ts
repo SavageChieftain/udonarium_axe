@@ -75,12 +75,12 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
     return imageFileList;
   }
 
-  selectedFile: ImageFile = null!;
+  selectedFile: ImageFile | null = null;
   get isSelected(): boolean {
-    return this.selectedFile != null;
+    return this.selectedFile !== null;
   }
-  get selectedImageTag(): ImageTag {
-    if (!this.isSelected) return null!;
+  get selectedImageTag(): ImageTag | null {
+    if (!this.isSelected || this.selectedFile === null) return null;
     const imageTag = ImageTag.get(this.selectedFile.identifier);
     return imageTag ? imageTag : ImageTag.create(this.selectedFile.identifier);
   }

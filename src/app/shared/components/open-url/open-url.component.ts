@@ -17,7 +17,7 @@ export class OpenUrlComponent implements OnInit, OnDestroy {
   url: string = '';
   title: string = '';
   subTitle: string = '';
-  urlObj!: URL;
+  urlObj: URL | null = null;
 
   constructor() {
     const modalService = this.modalService;
@@ -26,7 +26,7 @@ export class OpenUrlComponent implements OnInit, OnDestroy {
     this.url = option.url ? (option.url as string) : '';
     this.title = option.title ? (option.title as string) : '';
     this.subTitle = option.subTitle ? (option.subTitle as string) : '';
-    this.urlObj = this.isValid ? new URL(this.url) : null!;
+    this.urlObj = this.isValid ? new URL(this.url) : null;
   }
 
   get isValid(): boolean {
@@ -34,8 +34,8 @@ export class OpenUrlComponent implements OnInit, OnDestroy {
   }
 
   get isOuter(): boolean {
-    if (!this.isValid) return false;
-    return window.location.origin != this.urlObj.origin;
+    if (!this.isValid || this.urlObj === null) return false;
+    return window.location.origin !== this.urlObj.origin;
   }
 
   ngOnInit() {

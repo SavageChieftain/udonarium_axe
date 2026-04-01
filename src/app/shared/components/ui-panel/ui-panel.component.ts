@@ -179,7 +179,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
     const panel = this.draggablePanel().nativeElement;
     if (this.isMinimized) {
       this.isMinimized = false;
-      body.style.display = null!;
+      body.style.display = '';
       this.height = this.preHeight;
     } else {
       this.preHeight = panel.offsetHeight;
@@ -240,14 +240,14 @@ export class UIPanelComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.timerCheckWindowSize) {
       clearInterval(this.timerCheckWindowSize);
-      this.timerCheckWindowSize = null!;
+      this.timerCheckWindowSize = null;
     }
   }
 
   close() {
     if (this.timerCheckWindowSize) {
       clearInterval(this.timerCheckWindowSize);
-      this.timerCheckWindowSize = null!;
+      this.timerCheckWindowSize = null;
     }
     if (this.panelService) this.panelService.close();
   }

@@ -40,10 +40,10 @@ export class PeerContext implements IPeerContext {
   };
 
   get isRoom(): boolean {
-    return 0 < this.roomId.length;
+    return this.roomId.length > 0;
   }
   get hasPassword(): boolean {
-    return 0 < this.password.length + this.digestPassword.length;
+    return this.password.length + this.digestPassword.length > 0;
   }
 
   private constructor(peerId: string) {
@@ -91,7 +91,7 @@ export class PeerContext implements IPeerContext {
       return true;
     }
 
-    if (this.password.length < 1) {
+    if (this.password.length === 0) {
       Logger.error('[PeerContext] パスワードが未設定です');
       return false;
     }
@@ -158,11 +158,11 @@ async function calcDigestPassword(
   password: string
 ): Promise<string> {
   if (roomId == null || password == null) return '';
-  return 0 < password.length ? calcDigest(digestUserId + roomId + roomName + password, 7) : '';
+  return password.length > 0 ? calcDigest(digestUserId + roomId + roomName + password, 7) : '';
 }
 
 async function calcChecksumedRoomId(roomId: string, roomName: string, password: string): Promise<string> {
-  if (password.length < 1) return roomId;
+  if (password.length === 0) return roomId;
   const salt = roomId.slice(0, 2);
   return salt + (await calcDigest(salt + roomName + password, 1));
 }

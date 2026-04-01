@@ -46,13 +46,13 @@ export class WebRTCStats {
     const usedRemoteCandidates: RtcCandidateStat[] = [];
 
     stats.forEach((stat) => {
-      if (0 <= stat.type.indexOf('candidate-pair')) {
+      if (stat.type.includes('candidate-pair')) {
         candidatePairs.push(stat as RtcCandidatePairStat);
       }
-      if (0 <= stat.type.indexOf('local-candidate')) {
+      if (stat.type.includes('local-candidate')) {
         localCandidates.push(stat as RtcCandidateStat);
       }
-      if (0 <= stat.type.indexOf('remote-candidate')) {
+      if (stat.type.includes('remote-candidate')) {
         remoteCandidates.push(stat as RtcCandidateStat);
       }
     });

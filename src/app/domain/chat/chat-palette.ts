@@ -87,7 +87,7 @@ export class ChatPalette extends ObjectNode {
     const palettes = palettString.split('\n');
 
     for (const line of palettes) {
-      if (line.indexOf(text) >= 0) {
+      if (line.includes(text)) {
         matchList.push(line);
       }
     }
@@ -101,8 +101,8 @@ export class ChatPalette extends ObjectNode {
     const palettes = palettString.split('\n');
 
     for (const line of palettes) {
-      if (line.indexOf(text) >= 0) {
-        if (matchCount == nth) {
+      if (line.includes(text)) {
+        if (matchCount === nth) {
           return lineNo;
         }
         matchCount++;
@@ -128,7 +128,7 @@ export class ChatPalette extends ObjectNode {
   }
 
   checkTargetCharactor(text: string): boolean {
-    let istarget = text.match(/[tTｔＴ][{｛]\s*([^{}｛｝]+)\s*[}｝]/g) ? true : false;
+    let istarget = !!text.match(/[tTｔＴ][{｛]\s*([^{}｛｝]+)\s*[}｝]/g);
 
     if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
       istarget = true;

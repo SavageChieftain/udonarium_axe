@@ -30,7 +30,7 @@ export class FileArchiver {
   }
 
   private maxImageSize = 2 * MEGA_BYTE;
-  private maxAudioeSize = 10 * MEGA_BYTE;
+  private maxAudioSize = 10 * MEGA_BYTE;
 
   private callbackOnDragEnter: ((this: HTMLElement, e: DragEvent) => void) | null = null;
   private callbackOnDragOver: ((this: HTMLElement, e: DragEvent) => void) | null = null;
@@ -58,9 +58,11 @@ export class FileArchiver {
   }
 
   private removeEventListeners() {
-    document.body.removeEventListener('dragenter', this.callbackOnDragEnter! as EventListener, false);
-    document.body.removeEventListener('dragover', this.callbackOnDragOver! as EventListener, false);
-    document.body.removeEventListener('drop', this.callbackOnDrop! as EventListener, false);
+    if (this.callbackOnDragEnter)
+      document.body.removeEventListener('dragenter', this.callbackOnDragEnter as EventListener, false);
+    if (this.callbackOnDragOver)
+      document.body.removeEventListener('dragover', this.callbackOnDragOver as EventListener, false);
+    if (this.callbackOnDrop) document.body.removeEventListener('drop', this.callbackOnDrop as EventListener, false);
     this.callbackOnDragEnter = null;
     this.callbackOnDragOver = null;
     this.callbackOnDrop = null;
@@ -77,7 +79,7 @@ export class FileArchiver {
   private onDrop(event: DragEvent) {
     event.preventDefault();
 
-    this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName != '');
+    this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName !== '');
 
     const files = event.dataTransfer?.files;
     if (!files) return;
@@ -100,9 +102,9 @@ export class FileArchiver {
   }
 
   private async handleImage(file: File) {
-    if (file.type.indexOf('image/') < 0) return;
+    if (!file.type.startsWith('image/')) return;
     if (!this.reloadCheck.isLoadOk()) return;
-    if (this.maxImageSize < file.size) {
+    if (file.size > this.maxImageSize) {
       Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       return;
     }
@@ -110,8 +112,8 @@ export class FileArchiver {
   }
 
   private async handleAudio(file: File) {
-    if (file.type.indexOf('audio/') < 0) return;
-    if (this.maxAudioeSize < file.size) {
+    if (!file.type.startsWith('audio/')) return;
+    if (file.size > this.maxAudioSize) {
       Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       return;
     }
@@ -119,17 +121,17 @@ export class FileArchiver {
   }
 
   private async handleText(file: File): Promise<void> {
-    if (file.type.indexOf('text/') < 0) return;
+    if (!file.type.startsWith('text/')) return;
 
     let isLoadOk = true;
     // data.xmlはここでは通過させ後段で中身が部屋データ更新だった場合更新確認をする
-    if (file.name == 'config.xml' || file.name == 'imagetag.xml' || file.name == 'summary.xml') {
+    if (file.name === 'config.xml' || file.name === 'imagetag.xml' || file.name === 'summary.xml') {
       isLoadOk = this.reloadCheck.isLoadOk();
     }
 
     if (isLoadOk) {
       try {
-        const xmlElement: Element = xml2element(await FileReaderUtil.readAsTextAsync(file));
+        const xmlElement: Element | null = xml2element(await FileReaderUtil.readAsTextAsync(file));
         if (xmlElement) emitXmlLoaded({ xmlElement: xmlElement });
       } catch (reason) {
         Logger.warn('[FileArchiver] XML読み込みエラー', reason);
@@ -138,7 +140,7 @@ export class FileArchiver {
   }
 
   private async handleZip(file: File) {
-    if (!(0 <= file.type.indexOf('application/') || file.type.length < 1)) return;
+    if (!file.type.includes('application/') && file.type.length > 0) return;
     let zip = new JSZip();
     try {
       zip = await zip.loadAsync(file);
@@ -188,10 +190,5 @@ export class FileArchiver {
 }
 
 function toArrayOfFileList(fileList: FileList): File[] {
-  const files: File[] = [];
-  const length = fileList.length;
-  for (let i = 0; i < length; i++) {
-    files.push(fileList[i]);
-  }
-  return files;
+  return Array.from(fileList);
 }

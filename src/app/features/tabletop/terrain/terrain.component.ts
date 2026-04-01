@@ -232,7 +232,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   math = Math;
   slopeDirectionState = SlopeDirection;
 
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   ngOnInit() {
@@ -283,7 +283,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onInputStart(_e: MouseEvent | TouchEvent) {
-    this.input.cancel();
+    this.input?.cancel();
 
     // TODO:もっと良い方法考える
     if (this.isLocked) {

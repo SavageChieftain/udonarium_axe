@@ -99,7 +99,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return this._unreadLength;
   }
   get hasUnread(): boolean {
-    return 0 < this.unreadLength;
+    return this.unreadLength > 0;
   }
 
   get latestTimeStamp(): number {
@@ -111,7 +111,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
   onChildAdded(child: ObjectNode) {
     super.onChildAdded(child);
     if (child.parent === this && child instanceof ChatMessage && child.isDisplayable) {
-      if (this.children.length == 1) {
+      if (this.children.length === 1) {
         // ログデリート時
         this._unreadLength = 1;
         this._displayableMessageNum = 1;
@@ -151,7 +151,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
           continue;
         } // 秘話時に立絵の更新をかけない
         this.pos_num = (message as Record<string, unknown>)[key] as number;
-        if (0 <= this.pos_num && this.pos_num < this.imageIdentifier.length) {
+        if (this.pos_num >= 0 && this.pos_num < this.imageIdentifier.length) {
           const oldpos = this.getImageCharactorPos(message.name ?? '');
           if (oldpos >= 0) {
             // 同名キャラの古い位置を消去
@@ -180,7 +180,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     }
     chat.initialize();
 
-    if (0 > chat.tags.indexOf('secret')) {
+    if (!chat.tags.includes('secret')) {
       this.cutInLauncher.chatActivateCutIn(chat.text, message.to ?? ''); // カットイン末尾発動
     }
 

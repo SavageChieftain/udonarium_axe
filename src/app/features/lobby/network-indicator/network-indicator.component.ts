@@ -22,7 +22,7 @@ export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
   private elementRef = inject(ElementRef);
   private objectChange = inject(ObjectChangeService);
 
-  private timer: NodeJS.Timeout = null!;
+  private timer: NodeJS.Timeout | null = null;
   private needRepeat = false;
 
   ngAfterViewInit() {
@@ -31,7 +31,7 @@ export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
         this.timer = setTimeout(repeatFunc, 650);
         this.needRepeat = false;
       } else {
-        this.timer = null!;
+        this.timer = null;
         this.elementRef.nativeElement.style.display = 'none';
       }
     };
@@ -50,7 +50,7 @@ export class NetworkIndicatorComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.timer) {
       clearTimeout(this.timer);
-      this.timer = null!;
+      this.timer = null;
     }
   }
 }

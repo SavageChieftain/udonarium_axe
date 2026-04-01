@@ -25,7 +25,7 @@ export class CutInLauncher extends GameObject {
 
   isCutInBgmUploaded(audioIdentifier: string) {
     const audio = AudioStorage.instance.get(audioIdentifier);
-    return audio ? true : false;
+    return audio !== null;
   }
 
   chatActivateCutIn(text: string, sendTo: string) {

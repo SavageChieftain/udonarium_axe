@@ -1,21 +1,21 @@
 import { Logger } from '@axe/core/logger';
 import { decodeXML, escapeUTF8 } from 'entities';
 
-export function xml2element(xml: string): HTMLElement {
+export function xml2element(xml: string): HTMLElement | null {
   const domParser: DOMParser = new DOMParser();
-  let xmlDocument: Document = null!;
+  let xmlDocument: Document | null = null;
   try {
     xml = sanitizeXml(xml);
     xmlDocument = domParser.parseFromString(xml, 'application/xml');
     const parsererror = xmlDocument.getElementsByTagName('parsererror');
     if (parsererror.length) {
       Logger.error('[XML] パース失敗', xmlDocument.documentElement);
-      xmlDocument = null!;
+      xmlDocument = null;
     }
   } catch (error) {
     Logger.error('[XML] パースエラー', error);
   }
-  return xmlDocument ? xmlDocument.documentElement : null!;
+  return xmlDocument ? xmlDocument.documentElement : null;
 }
 
 export function encodeEntityReference(string: string): string {

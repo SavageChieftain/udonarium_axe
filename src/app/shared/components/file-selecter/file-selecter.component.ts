@@ -32,7 +32,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this._searchWord !== this.searchWord) {
       this._searchWord = this.searchWord;
       this._searchWords =
-        this.searchWord != null && 0 < this.searchWord.trim().length ? this.searchWord.trim().split(/\s+/) : [];
+        this.searchWord != null && this.searchWord.trim().length > 0 ? this.searchWord.trim().split(/\s+/) : [];
     }
     return this._searchWords;
   }
@@ -80,12 +80,12 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
     return imageFileList;
   }
 
-  selectedFile: ImageFile = null!;
+  selectedFile: ImageFile | null = null;
   get isSelected(): boolean {
-    return this.selectedFile != null;
+    return this.selectedFile !== null;
   }
-  get selectedImageTag(): ImageTag {
-    if (!this.isSelected) return null!;
+  get selectedImageTag(): ImageTag | null {
+    if (!this.isSelected || this.selectedFile === null) return null;
     const imageTag = ImageTag.get(this.selectedFile.identifier);
     return imageTag ? imageTag : ImageTag.create(this.selectedFile.identifier);
   }
@@ -123,12 +123,13 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!imageTag) ImageTag.create(fileName);
 
     if (checked) {
-      if (this.identifierList.indexOf(fileName) < 0) {
+      if (!this.identifierList.includes(fileName)) {
         this.identifierList.push(fileName);
       }
     } else {
-      if (this.identifierList.indexOf(fileName) > -1) {
-        this.identifierList.splice(this.identifierList.indexOf(fileName), 1);
+      const index = this.identifierList.indexOf(fileName);
+      if (index >= 0) {
+        this.identifierList.splice(index, 1);
       }
     }
   }
@@ -139,7 +140,7 @@ export class FileSelecterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {
     const option = this.modalService.option as Record<string, unknown>;
-    this.isAllowedEmpty = option && option.isAllowedEmpty ? true : false;
+    this.isAllowedEmpty = !!option?.isAllowedEmpty;
   }
 
   ngOnInit() {

@@ -175,7 +175,7 @@ export class ContextMenuComponent implements OnDestroy, AfterViewInit {
   showSubMenu(action: ContextMenuAction) {
     this.hideSubMenu();
     clearTimeout(this.showSubMenuTimer);
-    if (action.subActions == null || action.subActions.length < 1) return;
+    if (action.subActions == null || action.subActions.length === 0) return;
     this.showSubMenuTimer = setTimeout(() => {
       this.parentMenu = action;
       this.subMenu = action.subActions ?? [];

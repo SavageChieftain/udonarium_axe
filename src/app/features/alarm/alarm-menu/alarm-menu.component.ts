@@ -3,6 +3,7 @@ import { afterNextRender, ChangeDetectionStrategy, Component, inject, OnDestroy,
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { SaveDataService } from '@axe/core/save-data.service';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Alarm } from '@axe/domain/shared/alarm';
@@ -152,14 +153,14 @@ export class AlarmMenuComponent implements OnInit, OnDestroy {
     return peerCursor ? peerCursor.lastControlCharacterName : '';
   }
 
-  findPeerImage(peerId: string) {
+  findPeerImage(peerId: string): ImageFile | null {
     const peerCursor = PeerCursor.findByPeerId(peerId);
-    return peerCursor ? peerCursor.image : null!;
+    return peerCursor ? peerCursor.image : null;
   }
 
-  findPeerLastControlImage(peerId: string) {
+  findPeerLastControlImage(peerId: string): ImageFile | null {
     const peerCursor = PeerCursor.findByPeerId(peerId);
-    return peerCursor ? peerCursor.lastControlImage : null!;
+    return peerCursor ? peerCursor.lastControlImage : null;
   }
 
   ngOnDestroy() {}
