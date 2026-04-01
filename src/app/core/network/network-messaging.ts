@@ -1,6 +1,6 @@
 import { ApplicationRef } from '@angular/core';
-import { Logger } from '@axe/core/logging/logger';
 import { ServiceLocator } from '@axe/core/di/service-locator';
+import { Logger } from '@axe/core/logging/logger';
 import { Observable, Subject } from 'rxjs';
 
 import { Network } from './network';

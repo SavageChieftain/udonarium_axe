@@ -24,7 +24,8 @@ export function renderCircle(
     setting.centerX,
     setting.centerY,
     setting.areaWidth,
-    setting.areaHeight
+    setting.areaHeight,
+    gridSize
   );
 
   if (setting.fillOutLine) {
@@ -36,7 +37,7 @@ export function renderCircle(
     makeBrush(context, gridSize, setting.gridColor);
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h, gridSize);
+        const { gx, gy } = calcGridPosition(w, h);
         const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
         const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
         if (chkInCircle(setting.range * gridSize, gcx, gcy)) {
@@ -138,7 +139,8 @@ export function renderCorn(
     setting.centerX,
     setting.centerY,
     setting.areaWidth,
-    setting.areaHeight
+    setting.areaHeight,
+    gridSize
   );
 
   if (setting.fillOutLine) {
@@ -153,7 +155,7 @@ export function renderCorn(
     makeBrush(context, gridSize, setting.gridColor);
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h, gridSize);
+        const { gx, gy } = calcGridPosition(w, h);
         const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
         const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
         if (

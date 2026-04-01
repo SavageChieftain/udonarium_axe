@@ -63,7 +63,8 @@ export function renderLine(
     setting.centerX,
     setting.centerY,
     setting.areaWidth,
-    setting.areaHeight
+    setting.areaHeight,
+    gridSize
   );
   makeBrush(context, gridSize, setting.gridColor);
 
@@ -78,7 +79,7 @@ export function renderLine(
   } else {
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h, gridSize);
+        const { gx, gy } = calcGridPosition(w, h);
         const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
         const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
         if (
@@ -151,7 +152,8 @@ export function renderSquare(
     setting.centerX,
     setting.centerY,
     setting.areaWidth,
-    setting.areaHeight
+    setting.areaHeight,
+    gridSize
   );
   makeBrush(context, gridSize, setting.gridColor);
 
@@ -166,7 +168,7 @@ export function renderSquare(
   } else {
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h, gridSize);
+        const { gx, gy } = calcGridPosition(w, h);
         const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
         const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
         if (
@@ -244,7 +246,8 @@ export function renderDiamond(
     setting.centerX,
     setting.centerY,
     setting.areaWidth,
-    setting.areaHeight
+    setting.areaHeight,
+    gridSize
   );
   makeBrush(context, gridSize, setting.gridColor);
 
@@ -259,7 +262,7 @@ export function renderDiamond(
   } else {
     for (let h = 0; h <= setting.areaHeight + 1; h++) {
       for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h, gridSize);
+        const { gx, gy } = calcGridPosition(w, h);
         const gcx = gx + gridOffX + gridSize / 2 - offSetX_px;
         const gcy = gy + gridOffY + gridSize / 2 - offSetY_px;
         if (

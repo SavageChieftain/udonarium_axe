@@ -1,6 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 
-import { RangeRenderSetting, StrokeGridFunc } from './range-render-types';
+import { GridPosition, RangeRenderSetting, StrokeGridFunc } from './range-render-types';
 
 export interface GridOffsets {
   gridSize: number;
@@ -39,37 +39,47 @@ export function calcGridOffsets(setting: RangeRenderSetting): GridOffsets {
   return { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px };
 }
 
+// ホットループ内でのオブジェクト生成を避けるための共有結果バッファ（シングルスレッドなので安全）
+const _gridPos: GridPosition = { gx: 0, gy: 0 };
+
 export function generateCalcGridPositionFunc(
   gridType: GridType,
   centerX: number,
   centerY: number,
   areaWidth: number,
-  areaHeight: number
+  areaHeight: number,
+  gridSize: number
 ): StrokeGridFunc {
   switch (gridType) {
-    case GridType.HEX_VERTICAL: // ヘクス縦揃え
-      return (w, h, gridSize) => {
-        const isHalfSlideXLine = centerX % (gridSize * 2) < gridSize ? 1 : 0;
-        const idAreaWidthMulti4 = areaWidth % 4 == 0 ? 1 : 0;
-        if ((w + isHalfSlideXLine + idAreaWidthMulti4) % 2 === 1) {
-          return { gx: w * gridSize, gy: h * gridSize };
-        } else {
-          return { gx: w * gridSize, gy: h * gridSize + gridSize / 2 };
-        }
+    case GridType.HEX_VERTICAL: {
+      // ヘクス縦揃え
+      // ループ不変定数をクロージャ生成時に一度だけ計算する
+      const isHalfSlideXLine = centerX % (gridSize * 2) < gridSize ? 1 : 0;
+      const idAreaWidthMulti4 = areaWidth % 4 === 0 ? 1 : 0;
+      const parity = isHalfSlideXLine + idAreaWidthMulti4;
+      return (w, h) => {
+        _gridPos.gx = w * gridSize;
+        _gridPos.gy = (w + parity) % 2 === 1 ? h * gridSize : h * gridSize + gridSize / 2;
+        return _gridPos;
       };
-    case GridType.HEX_HORIZONTAL: // ヘクス横揃え(どどんとふ互換)
-      return (w, h, gridSize) => {
-        const isHalfSlideYLine = centerY % (gridSize * 2) < gridSize ? 1 : 0;
-        const idAreaHeightMulti4 = areaHeight % 4 == 0 ? 1 : 0;
-        if ((h + isHalfSlideYLine + idAreaHeightMulti4) % 2 === 1) {
-          return { gx: w * gridSize, gy: h * gridSize };
-        } else {
-          return { gx: w * gridSize + gridSize / 2, gy: h * gridSize };
-        }
+    }
+    case GridType.HEX_HORIZONTAL: {
+      // ヘクス横揃え(どどんとふ互換)
+      // ループ不変定数をクロージャ生成時に一度だけ計算する
+      const isHalfSlideYLine = centerY % (gridSize * 2) < gridSize ? 1 : 0;
+      const idAreaHeightMulti4 = areaHeight % 4 === 0 ? 1 : 0;
+      const parity = isHalfSlideYLine + idAreaHeightMulti4;
+      return (w, h) => {
+        _gridPos.gx = (h + parity) % 2 === 1 ? w * gridSize : w * gridSize + gridSize / 2;
+        _gridPos.gy = h * gridSize;
+        return _gridPos;
       };
+    }
     default: // スクエア(default)
-      return (w, h, gridSize) => {
-        return { gx: w * gridSize, gy: h * gridSize };
+      return (w, h) => {
+        _gridPos.gx = w * gridSize;
+        _gridPos.gy = h * gridSize;
+        return _gridPos;
       };
   }
 }
@@ -112,6 +122,5 @@ export function chkInCircle(radius: number, pchkx: number, pchky: number): boole
 }
 
 export function fillSquare(context: CanvasRenderingContext2D, gx: number, gy: number, gridSize: number): void {
-  context.beginPath();
   context.fillRect(gx, gy, gridSize, gridSize);
 }

@@ -1,5 +1,5 @@
 export type GridPosition = { gx: number; gy: number };
-export type StrokeGridFunc = (w: number, h: number, gridSize: number) => GridPosition;
+export type StrokeGridFunc = (w: number, h: number) => GridPosition;
 
 export interface RangeRenderSetting {
   areaWidth: number;

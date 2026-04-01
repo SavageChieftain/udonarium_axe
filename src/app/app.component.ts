@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { AppEventHandlerService } from '@axe/core/app/app-event-handler.service';
 import { Network } from '@axe/core/network/network';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ReloadCheck } from '@axe/domain/shared/reload-check';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
