@@ -16,7 +16,8 @@
     "target": "ES2022",
     "module": "es2020",
     "paths": {
-      "@axe/*": ["./src/app/*"]
+      "@axe/*": ["./src/app/*"],
+      "@env/*": ["./src/environments/*"]
     },
     "useDefineForClassFields": false,
     "types": ["node", "vitest/globals"]

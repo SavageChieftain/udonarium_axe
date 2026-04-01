@@ -24,6 +24,17 @@ export default defineConfig([
       '@angular-eslint/no-output-rename': 'off',
       'no-irregular-whitespace': ['error', { skipStrings: true, skipTemplates: true, skipComments: true }],
       '@typescript-eslint/no-unused-vars': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^\\.',
+              message: '相対パスインポートは禁止です。パスエイリアス（@axe/...）を使用してください。',
+            },
+          ],
+        },
+      ],
       'unused-imports/no-unused-imports': 'warn',
       'unused-imports/no-unused-vars': [
         'error',

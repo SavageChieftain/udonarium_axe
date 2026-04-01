@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@axe': resolve(__dirname, 'src/app'),
+      '@env': resolve(__dirname, 'src/environments'),
     },
   },
   test: {

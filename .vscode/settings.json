@@ -22,9 +22,9 @@
   // === TypeScript ===
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
-  "js/ts.preferences.importModuleSpecifier": "relative",
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
   // === Angular ===
-  "angular.enable.strictTemplates": true,
+  "angular.forceStrictTemplates": true,
   // === ファイル設定 ===
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
