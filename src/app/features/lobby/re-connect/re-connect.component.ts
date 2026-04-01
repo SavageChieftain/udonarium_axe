@@ -24,7 +24,11 @@ export function resolveReconnectUserId(previousUserId: string, currentUserId: st
 }
 
 export function createExpectedPeerIdSet(peerContexts: PeerContext[], selfPeerId: string): Set<string> {
-  return new Set(peerContexts.map((context) => context.peerId).filter((peerId) => peerId !== selfPeerId));
+  const set = new Set<string>();
+  for (const ctx of peerContexts) {
+    if (ctx.peerId !== selfPeerId) set.add(ctx.peerId);
+  }
+  return set;
 }
 
 export function isReconnectCompleted(expectedPeerIds: Set<string>, observedPeerIds: Set<string>): boolean {

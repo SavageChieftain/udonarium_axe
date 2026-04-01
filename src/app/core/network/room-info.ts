@@ -48,7 +48,10 @@ export class RoomInfo implements IRoomInfo {
 
     if (roomMap.size === 0) return [];
 
-    const rooms = Array.from(roomMap.values()).sort((a, b) => (a.id + a.name).localeCompare(b.id + b.name));
+    const rooms = Array.from(roomMap.values())
+      .map((r) => [r, r.id + r.name] as const)
+      .sort(([, a], [, b]) => a.localeCompare(b))
+      .map(([r]) => r);
     return rooms;
   }
 }

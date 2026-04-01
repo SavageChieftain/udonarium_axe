@@ -18,11 +18,12 @@ export class ImageTagList extends ObjectNode implements InnerXml {
   }
 
   innerXml(): string {
-    return Array.from(new Set(this.identifiers))
-      .map((identifier) => ImageTag.get(identifier))
-      .filter((imageTag) => imageTag)
-      .map((imageTag) => imageTag.toXml())
-      .join('');
+    const parts: string[] = [];
+    for (const identifier of new Set(this.identifiers)) {
+      const tag = ImageTag.get(identifier);
+      if (tag) parts.push(tag.toXml());
+    }
+    return parts.join('');
   }
 
   static create(images: ImageFile[]): ImageTagList {

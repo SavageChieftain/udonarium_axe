@@ -3,25 +3,21 @@ import type { ChatTab } from './chat-tab';
 
 type MessageFormatter = (tabName: string, message: ChatMessage) => string;
 
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  "'": '&#x27;',
+  '`': '&#x60;',
+  '"': '&quot;',
+  '<': '&lt;',
+  '>': '&gt;',
+};
+
 export class ChatLogExporter {
   static escapeHtml(value: unknown): string {
     if (typeof value !== 'string') {
       return String(value);
     }
-    const escaped = value.replace(/[&'`"<>]/g, (match) => {
-      return (
-        (
-          {
-            '&': '&amp;',
-            "'": '&#x27;',
-            '`': '&#x60;',
-            '"': '&quot;',
-            '<': '&lt;',
-            '>': '&gt;',
-          } as Record<string, string>
-        )[match] ?? match
-      );
-    });
+    const escaped = value.replace(/[&'`"<>]/g, (match) => HTML_ESCAPE_MAP[match] ?? match);
     return escaped.replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\s/g, ' ');
   }
 
@@ -92,12 +88,12 @@ export class ChatLogExporter {
   </head>
   <body>
 `;
-    let main = '';
+    const parts: string[] = [];
     for (const mess of tab.chatMessages) {
       if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
-      main += ChatLogExporter.formatMessageStandard(true, '', mess, userId);
+      parts.push(ChatLogExporter.formatMessageStandard(true, '', mess, userId));
     }
-    return head + main + '\n  </body>\n</html>';
+    return head + parts.join('') + '\n  </body>\n</html>';
   }
 
   static exportTabHtmlCoc(tab: ChatTab, userId?: string): string {
@@ -112,12 +108,12 @@ export class ChatLogExporter {
   <body>
 
 `;
-    let main = '';
+    const parts: string[] = [];
     for (const mess of tab.chatMessages) {
       if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
-      main += ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId);
+      parts.push(ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId));
     }
-    return head + main + '  </body>\n</html>';
+    return head + parts.join('') + '  </body>\n</html>';
   }
 
   static exportAllTabsHtml(tabs: ChatTab[], showTime: number | boolean, userId?: string): string {
@@ -171,7 +167,7 @@ export class ChatLogExporter {
     if (!tabs || tabs.length === 0) return '';
     const tabNum = tabs.length;
     const indexList = new Array<number>(tabNum).fill(0);
-    let main = '';
+    const parts: string[] = [];
 
     while (true) {
       let fastTabIndex = -1;
@@ -189,10 +185,10 @@ export class ChatLogExporter {
 
       const message = tabs[fastTabIndex].chatMessages[indexList[fastTabIndex]];
       if (ChatLogExporter.isVisibleMessage(message, userId)) {
-        main += formatter(tabs[fastTabIndex].name, message);
+        parts.push(formatter(tabs[fastTabIndex].name, message));
       }
       indexList[fastTabIndex]++;
     }
-    return main;
+    return parts.join('');
   }
 }

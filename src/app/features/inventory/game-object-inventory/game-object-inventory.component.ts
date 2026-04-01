@@ -30,6 +30,8 @@ import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@ax
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
+const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
+
 @Component({
   selector: 'game-object-inventory',
   templateUrl: './game-object-inventory.component.html',
@@ -405,7 +407,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
     if (!(e.target instanceof HTMLElement)) {
       return;
     }
-    if (new Set(['input', 'button']).has(e.target.tagName.toLowerCase())) {
+    if (FOCUS_BLOCKED_TAGS.has(e.target.tagName.toLowerCase())) {
       return;
     }
     if (gameObject.location.name != 'table') {

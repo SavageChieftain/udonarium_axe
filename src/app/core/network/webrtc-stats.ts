@@ -40,8 +40,8 @@ export class WebRTCStats {
     const localCandidates: RtcCandidateStat[] = [];
     const remoteCandidates: RtcCandidateStat[] = [];
 
-    const succeededLocalCandidateIds: string[] = [];
-    const succeededRemoteCandidateIds: string[] = [];
+    const succeededLocalCandidateIds = new Set<string>();
+    const succeededRemoteCandidateIds = new Set<string>();
     const usedLocalCandidates: RtcCandidateStat[] = [];
     const usedRemoteCandidates: RtcCandidateStat[] = [];
 
@@ -59,19 +59,19 @@ export class WebRTCStats {
 
     candidatePairs.forEach((candidatePair) => {
       if (candidatePair.state === 'succeeded') {
-        succeededLocalCandidateIds.push(candidatePair.localCandidateId);
-        succeededRemoteCandidateIds.push(candidatePair.remoteCandidateId);
+        succeededLocalCandidateIds.add(candidatePair.localCandidateId);
+        succeededRemoteCandidateIds.add(candidatePair.remoteCandidateId);
       }
     });
 
     localCandidates.forEach((candidate) => {
-      if (succeededLocalCandidateIds.includes(candidate.id)) {
+      if (succeededLocalCandidateIds.has(candidate.id)) {
         usedLocalCandidates.push(candidate);
       }
     });
 
     remoteCandidates.forEach((candidate) => {
-      if (succeededRemoteCandidateIds.includes(candidate.id)) {
+      if (succeededRemoteCandidateIds.has(candidate.id)) {
         usedRemoteCandidates.push(candidate);
       }
     });

@@ -16,6 +16,7 @@ export interface InnerXml extends GameObject {
 }
 
 const objectPropertyKeys = Object.getOwnPropertyNames(Object.prototype);
+const objectPropertyKeySet = new Set(objectPropertyKeys);
 
 export class ObjectSerializer {
   private static _instance: ObjectSerializer;
@@ -144,7 +145,7 @@ export class ObjectSerializer {
       let key: string | number | null = split[0];
       let obj: Record<string, unknown> | Array<unknown> = syncData as Record<string, unknown>;
 
-      const pollutionKey = split.find((splitKey) => objectPropertyKeys.includes(splitKey));
+      const pollutionKey = split.find((splitKey) => objectPropertyKeySet.has(splitKey));
       if (pollutionKey != null) {
         Logger.debug(`[ObjectSerializer] 無効なキーをスキップ (${pollutionKey})`);
         continue;

@@ -10,8 +10,8 @@ import {
   input,
   OnDestroy,
 } from '@angular/core';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { Network } from '@axe/core/index';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -51,6 +51,7 @@ import { buildMaskCss, buildScratchingGridInfos } from './game-table-mask-helper
   },
 })
 export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
+  private static readonly GRID_PATTERN = /^\d+:\d+$/;
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -288,6 +289,14 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     clearTimeout(this._scratchingTimerId);
   }
 
+  private buildScratchingGrids(set: Set<string>): string {
+    const grids: string[] = [];
+    for (const g of set) {
+      if (g && GameTableMaskComponent.GRID_PATTERN.test(g)) grids.push(g);
+    }
+    return grids.sort().join(',');
+  }
+
   onDragstart(e: Event) {
     e.stopPropagation();
     e.preventDefault();
@@ -384,10 +393,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     clearTimeout(this._scratchingTimerId);
     this._scratchingTimerId = setTimeout(() => {
       if (this._currentScratchingSet) {
-        this.scratchingGrids = Array.from(this._currentScratchingSet)
-          .filter((grid) => grid && /^\d+:\d+$/.test(grid))
-          .sort()
-          .join(',');
+        this.scratchingGrids = this.buildScratchingGrids(this._currentScratchingSet);
       }
       this._currentScratchingSet = null;
     }, 250);
@@ -400,15 +406,12 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
     const currentScratchedAry: string[] = this.scratchedGrids ? this.scratchedGrids.split(/,/g) : [];
     if (this._currentScratchingSet) {
       clearTimeout(this._scratchingTimerId);
-      this.scratchingGrids = Array.from(this._currentScratchingSet)
-        .filter((grid) => grid && /^\d+:\d+$/.test(grid))
-        .sort()
-        .join(',');
+      this.scratchingGrids = this.buildScratchingGrids(this._currentScratchingSet);
       this._currentScratchingSet = null;
     }
     const currentScratchingAry: string[] = this.scratchingGrids.split(/,/g);
     this.scratchedGrids = xor(currentScratchedAry, currentScratchingAry)
-      .filter((grid) => grid && /^\d+:\d+$/.test(grid))
+      .filter((grid) => grid && GameTableMaskComponent.GRID_PATTERN.test(grid))
       .sort()
       .join(',');
   }

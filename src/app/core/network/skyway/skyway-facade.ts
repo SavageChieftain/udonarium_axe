@@ -419,14 +419,15 @@ export class SkyWayFacade {
     }
 
     for (const wildcard of wildcards) {
-      [...Array(maxLobbySize)].map((value, index) => names.add(wildcard.replace('*', `${index + 1}`)));
+      for (let i = 1; i <= maxLobbySize; i++) {
+        names.add(wildcard.replace('*', `${i}`));
+      }
     }
 
-    const sorted = Array.from(names).sort((a, b) => {
-      const aIndex = a.replace(/\d+/g, (m) => m.padStart(10, '0'));
-      const bIndex = b.replace(/\d+/g, (m) => m.padStart(10, '0'));
-      return aIndex < bIndex ? -1 : aIndex > bIndex ? 1 : 0;
-    });
+    const sorted = Array.from(names)
+      .map((n) => [n, n.replace(/\d+/g, (m) => m.padStart(10, '0'))] as const)
+      .sort(([, a], [, b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([n]) => n);
 
     return sorted;
   }

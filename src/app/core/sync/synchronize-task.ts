@@ -96,11 +96,13 @@ export class SynchronizeTask {
   }
 
   private timeout() {
-    if (this.ontimeout)
-      this.ontimeout(
-        this,
-        Array.from(this.requestMap.values()).filter((request) => 0 <= request.ttl)
-      );
+    if (this.ontimeout) {
+      const remained: SynchronizeRequest[] = [];
+      for (const request of this.requestMap.values()) {
+        if (0 <= request.ttl) remained.push(request);
+      }
+      this.ontimeout(this, remained);
+    }
     this.finish();
   }
 

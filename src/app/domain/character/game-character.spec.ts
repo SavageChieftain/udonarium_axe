@@ -59,4 +59,24 @@ describe('GameCharacter', () => {
       expect(character.imageFile.url).toBe('');
     });
   });
+
+  // ----------------------------------------------------------------
+  // buffs (キャッシュ)
+  // ----------------------------------------------------------------
+  describe('buffs', () => {
+    it('createDataElements後に複数回呼び出しても同一インスタンスを返す', () => {
+      character.createDataElements();
+      expect(character.buffs).toBe(character.buffs);
+    });
+  });
+
+  // ----------------------------------------------------------------
+  // status (キャッシュ)
+  // ----------------------------------------------------------------
+  describe('status', () => {
+    it('createDataElements後に複数回呼び出しても同一インスタンスを返す', () => {
+      character.createDataElements();
+      expect(character.status).toBe(character.status);
+    });
+  });
 });

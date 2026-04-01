@@ -123,12 +123,15 @@ export class GameCharacter extends TabletopObject {
     return null!;
   }
 
+  private _buffs: BuffManager | null = null;
+  private _status: StatusAccessor | null = null;
+
   get buffs(): BuffManager {
-    return new BuffManager(this.buffDataElement);
+    return (this._buffs ??= new BuffManager(this.buffDataElement));
   }
 
   get status(): StatusAccessor {
-    return new StatusAccessor(this.detailDataElement, () => this.name);
+    return (this._status ??= new StatusAccessor(this.detailDataElement, () => this.name));
   }
 
   public override createDataElements(): void {

@@ -123,7 +123,7 @@ export class DiceBot extends GameObject {
     let beforeIsT = false;
     let tCommand = false;
     let deleteCommand = false;
-    let str2 = '';
+    const chars: string[] = [];
     for (let i = 0; i < str.length; i++) {
       const chktext: string = str[i];
 
@@ -132,7 +132,7 @@ export class DiceBot extends GameObject {
         beforeIsT = true;
         deleteCommand = false;
         tCommand = false;
-        str2 = str2 + str[i];
+        chars.push(str[i]);
         continue;
       }
 
@@ -141,7 +141,7 @@ export class DiceBot extends GameObject {
         beforeIsT = false;
         deleteCommand = false;
         tCommand = true;
-        str2 = str2 + str[i];
+        chars.push(str[i]);
         continue;
       }
 
@@ -158,7 +158,7 @@ export class DiceBot extends GameObject {
         beforeIsT = false;
         deleteCommand = false;
         tCommand = false;
-        str2 = str2 + str[i];
+        chars.push(str[i]);
         continue;
       } else {
         beforeIsSpace = false;
@@ -168,9 +168,9 @@ export class DiceBot extends GameObject {
         continue;
       }
 
-      str2 = str2 + str[i];
+      chars.push(str[i]);
     }
-    return str2;
+    return chars.join('');
   }
 
   // リソース操作コマンドでs付きがあるか判定

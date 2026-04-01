@@ -50,12 +50,12 @@ export function sendDecBuffRoundMessage(
   gameCharacters: GameCharacter[]
 ): void {
   if (gameCharacters.length <= 0 || !chatTab) return;
-  let text = '';
+  const parts: string[] = [];
   for (const object of gameCharacters) {
     object.buffs.decreaseRound();
-    text += '[' + object.name + ']';
+    parts.push(`[${object.name}]`);
   }
-  svc.sendMessage(chatTab, 'バフのRを減少 ' + text, gameSystem, sendFrom, '', tachieNum);
+  svc.sendMessage(chatTab, 'バフのRを減少 ' + parts.join(''), gameSystem, sendFrom, '', tachieNum);
 }
 
 export function sendDeleteZeroRoundBuffMessage(
@@ -67,10 +67,10 @@ export function sendDeleteZeroRoundBuffMessage(
   gameCharacters: GameCharacter[]
 ): void {
   if (gameCharacters.length <= 0) return;
-  let text = '';
+  const parts: string[] = [];
   for (const object of gameCharacters) {
     object.buffs.deleteZeroRound();
-    text += '[' + object.name + ']';
+    parts.push(`[${object.name}]`);
   }
-  svc.sendMessage(chatTab, '0R以下のバフを消去 ' + text, gameSystem, sendFrom, '', tachieNum);
+  svc.sendMessage(chatTab, '0R以下のバフを消去 ' + parts.join(''), gameSystem, sendFrom, '', tachieNum);
 }

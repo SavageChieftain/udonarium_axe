@@ -378,10 +378,11 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       this.errorMessageBuff = '対象が未選択です';
       return;
     }
-    let text = '';
+    const parts: string[] = [];
     for (const object of gameCharacters) {
-      text += '[' + object.name + ']';
+      parts.push(`[${object.name}]`);
     }
+    const text = parts.join('');
     addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
     const mess = 'バフを付与 ' + parsed.bufftext + ' > ' + text;
     this.chatMessageService.sendMessage(
@@ -397,18 +398,21 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   remoteChangeValue() {
-    let text = '';
     const gameCharacters = this.getTargetCharacters(true);
     if (this.remoteControllerSelect.name == '') {
       this.errorMessageController = '変更項目が未選択です';
       return;
     }
+    const parts: string[] = [];
+    const name = this.remoteControllerSelect.name;
+    const nowOrMax = this.remoteControllerSelect.nowOrMax;
+    const addValue = this.remoteNumber;
     for (const object of gameCharacters) {
-      const name = this.remoteControllerSelect.name;
-      const nowOrMax = this.remoteControllerSelect.nowOrMax;
-      const addValue = this.remoteNumber;
-      text += object.status.changeValue(name, nowOrMax, addValue, this.recoveryLimitFlagMin, this.recoveryLimitFlag);
+      parts.push(
+        object.status.changeValue(name, nowOrMax, addValue, this.recoveryLimitFlagMin, this.recoveryLimitFlag)
+      );
     }
+    const text = parts.join('');
     if (text != '') {
       let hugou = '+';
       if (this.remoteNumber < 0) {
