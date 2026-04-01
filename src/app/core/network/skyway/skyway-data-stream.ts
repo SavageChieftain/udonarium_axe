@@ -255,21 +255,12 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   private onStateChanged(state: TransportConnectionState) {
-    switch (state) {
-      case 'new':
-        break;
-      case 'connecting':
-        break;
-      case 'connected':
-        if (this.state === 'reconnecting') this.peer.isOpen = false;
-        break;
-      case 'reconnecting':
-        break;
-      case 'disconnected':
-        this.subscription = null;
-        this.emit('close');
-        return;
+    if (state === 'disconnected') {
+      this.subscription = null;
+      this.emit('close');
+      return;
     }
+    if (state === 'connected' && this.state === 'reconnecting') this.peer.isOpen = false;
     this.refresh();
     this.state = state;
   }
@@ -359,11 +350,9 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     const id = generateUuid();
 
-    let sliceData: Uint8Array;
-    let chunk: DataChunk;
     for (let sliceIndex = 0; sliceIndex < total; sliceIndex++) {
-      sliceData = encodedData.slice(sliceIndex * this.chunkSize, (sliceIndex + 1) * this.chunkSize);
-      chunk = { id: id, data: sliceData, index: sliceIndex, total: total };
+      const sliceData = encodedData.slice(sliceIndex * this.chunkSize, (sliceIndex + 1) * this.chunkSize);
+      const chunk: DataChunk = { id, data: sliceData, index: sliceIndex, total };
       this.addSendQueue(MessagePack.encode(chunk));
     }
   }
@@ -424,21 +413,14 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.peer.session.ping = ping;
     this.peer.session.speed = pingRate * healthRate;
 
-    switch (this.candidateType) {
-      case CandidateType.HOST:
-        this.peer.session.grade = PeerSessionGrade.HIGH;
-        break;
-      case CandidateType.SRFLX:
-      case CandidateType.PRFLX:
-        this.peer.session.grade = PeerSessionGrade.MIDDLE;
-        break;
-      case CandidateType.RELAY:
-        this.peer.session.grade = PeerSessionGrade.LOW;
-        break;
-      default:
-        this.peer.session.grade = PeerSessionGrade.UNSPECIFIED;
-        break;
-    }
+    const gradeByCandidate: Record<CandidateType, PeerSessionGrade> = {
+      [CandidateType.HOST]: PeerSessionGrade.HIGH,
+      [CandidateType.SRFLX]: PeerSessionGrade.MIDDLE,
+      [CandidateType.PRFLX]: PeerSessionGrade.MIDDLE,
+      [CandidateType.RELAY]: PeerSessionGrade.LOW,
+      [CandidateType.UNKNOWN]: PeerSessionGrade.UNSPECIFIED,
+    };
+    this.peer.session.grade = gradeByCandidate[this.candidateType];
     this.peer.session.description = this.candidateType;
 
     this.emit('stats', this.stats);
