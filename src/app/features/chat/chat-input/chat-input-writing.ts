@@ -15,6 +15,7 @@ export class WritingPeerManager {
           this.updateNames();
         }, 2000)
       );
+      this.updateNames();
     }
     this.peers.get(peerId)!.reset();
   }
