@@ -2,7 +2,7 @@
   <div class="sticky-top-left is-caret">
     <div class="flex-container is-caret">
       <div class="is-caret" style="flex-grow: 0">
-        <form>
+        <form name="remote-controller-chat-tab">
           <div class="chat-tab">
             @for (chatTab of chatMessageService.chatTabs; track chatTab) {
               <label>
@@ -52,7 +52,7 @@
                 (click)="clickPalette($any($event.target).value)"
                 #chatPalette
               >
-                <form>
+                <form name="remote-controller-buff">
                   @if (!buffHideIsChk) {
                     <textarea
                       class="controller-input is-caret"

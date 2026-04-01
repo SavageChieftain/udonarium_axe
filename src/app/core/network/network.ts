@@ -94,23 +94,19 @@ export class Network {
     this.sendQueue();
   };
 
-  private callbackUnload: () => void = () => {
+  private callbackPageHide: (e: PageTransitionEvent) => void = (e: PageTransitionEvent) => {
     if (this.connection?.leaveImmediately) {
       this.connection.leaveImmediately();
     }
-    this.close();
-  };
-
-  private callbackPageHide: (e: PageTransitionEvent) => void = () => {
-    // pagehideはunloadより信頼性が高く、WebSocketがまだ生きている可能性が高い
-    if (this.connection?.leaveImmediately) {
-      this.connection.leaveImmediately();
+    // bfcacheに退避しない場合（タブ閉じ・ページ遷移）のみ接続を破棄する
+    if (!e.persisted) {
+      this.close();
     }
   };
 
   private callbackBeforeUnload: (e: BeforeUnloadEvent) => void = (e: BeforeUnloadEvent) => {
     // beforeunloadではleaveせず、確認ダイアログだけ表示する
-    // 実際のleaveはunload/pagehideで行う（leaveImmediately + close）
+    // 実際のleaveはpagehideで行う（leaveImmediately + close）
     e.preventDefault();
   };
 
@@ -149,7 +145,6 @@ export class Network {
     this.connection = this.initializeConnection();
     connectFn();
 
-    window.addEventListener('unload', this.callbackUnload, false);
     window.addEventListener('pagehide', this.callbackPageHide);
     window.addEventListener('beforeunload', this.callbackBeforeUnload);
   }
@@ -158,7 +153,6 @@ export class Network {
     if (this.connection) this.connection.close();
     this.connection = null;
     this.connectionClassPromise = null;
-    window.removeEventListener('unload', this.callbackUnload, false);
     window.removeEventListener('pagehide', this.callbackPageHide);
     window.removeEventListener('beforeunload', this.callbackBeforeUnload);
     Logger.debug('[Network] close');
