@@ -1,4 +1,4 @@
-import { clearZeroTimeout, setZeroTimeout } from './zero-timeout';
+import { clearZeroTimeout, setZeroTimeout, waitZeroTimeout } from './zero-timeout';
 
 describe('zero-timeout', () => {
   describe('setZeroTimeout()', () => {
@@ -51,6 +51,23 @@ describe('zero-timeout', () => {
 
     it('存在しないIDをクリアしてもエラーにならない', () => {
       expect(() => clearZeroTimeout(999999)).not.toThrow();
+    });
+  });
+
+  describe('waitZeroTimeout()', () => {
+    it('Promiseを返す', () => {
+      expect(waitZeroTimeout()).toBeInstanceOf(Promise);
+    });
+
+    it('非同期でresolveされる', async () => {
+      let resolved = false;
+      waitZeroTimeout().then(() => {
+        resolved = true;
+      });
+
+      expect(resolved).toBe(false);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(resolved).toBe(true);
     });
   });
 });

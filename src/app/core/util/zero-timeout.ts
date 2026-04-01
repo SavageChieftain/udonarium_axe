@@ -16,6 +16,10 @@ export function clearZeroTimeout(id: number) {
   timeouts.delete(id);
 }
 
+export function waitZeroTimeout(): Promise<void> {
+  return new Promise<void>((resolve) => setZeroTimeout(resolve));
+}
+
 channel.port1.onmessage = function (ev) {
   const fn = timeouts.get(ev.data);
   timeouts.delete(ev.data);

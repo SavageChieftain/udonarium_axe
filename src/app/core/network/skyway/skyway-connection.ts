@@ -5,7 +5,7 @@ import { IRoomInfo, RoomInfo } from '@axe/core/network/room-info';
 import { diff } from '@axe/core/util/array-util';
 import { compressAsync, decompressAsync } from '@axe/core/util/compress';
 import * as MessagePack from '@axe/core/util/message-pack';
-import { setZeroTimeout } from '@axe/core/util/zero-timeout';
+import { waitZeroTimeout } from '@axe/core/util/zero-timeout';
 
 import { SkyWayDataStream } from './skyway-data-stream';
 import { SkyWayDataStreamList } from './skyway-data-stream-list';
@@ -140,27 +140,22 @@ export class SkyWayConnection implements Connection {
 
     const byteLength = container.data.byteLength;
     this.bandwidthUsage += byteLength;
-    this.outboundQueue = this.outboundQueue.then(
-      () =>
-        new Promise<void>((resolve) => {
-          setZeroTimeout(async () => {
-            if (container.data.byteLength > 1024 && Array.isArray(data) && data.length > 1) {
-              const compressed = await compressAsync(container.data);
-              if (compressed.byteLength < container.data.byteLength) {
-                container.data = compressed;
-                container.isCompressed = true;
-              }
-            }
-            if (sendTo) {
-              this.sendUnicast(container, sendTo);
-            } else {
-              this.sendBroadcast(container);
-            }
-            this.bandwidthUsage -= byteLength;
-            resolve();
-          });
-        })
-    );
+    this.outboundQueue = this.outboundQueue.then(async () => {
+      await waitZeroTimeout();
+      if (container.data.byteLength > 1024 && Array.isArray(data) && data.length > 1) {
+        const compressed = await compressAsync(container.data);
+        if (compressed.byteLength < container.data.byteLength) {
+          container.data = compressed;
+          container.isCompressed = true;
+        }
+      }
+      if (sendTo) {
+        this.sendUnicast(container, sendTo);
+      } else {
+        this.sendBroadcast(container);
+      }
+      this.bandwidthUsage -= byteLength;
+    });
   }
 
   private sendUnicast(container: DataContainer, sendTo: string) {
@@ -284,18 +279,13 @@ export class SkyWayConnection implements Connection {
     if (!this.callback.onData) return;
     const byteLength = container.data.byteLength;
     this.bandwidthUsage += byteLength;
-    this.inboundQueue = this.inboundQueue.then(
-      () =>
-        new Promise<void>((resolve) => {
-          setZeroTimeout(async () => {
-            if (!this.callback.onData) return;
-            const data = container.isCompressed ? await decompressAsync(container.data) : container.data;
-            this.callback.onData(stream.peer, MessagePack.decode(data) as unknown[]);
-            this.bandwidthUsage -= byteLength;
-            resolve();
-          });
-        })
-    );
+    this.inboundQueue = this.inboundQueue.then(async () => {
+      await waitZeroTimeout();
+      if (!this.callback.onData) return;
+      const data = container.isCompressed ? await decompressAsync(container.data) : container.data;
+      this.callback.onData(stream.peer, MessagePack.decode(data) as unknown[]);
+      this.bandwidthUsage -= byteLength;
+    });
   }
 
   private onRelay(stream: SkyWayDataStream, container: DataContainer) {
