@@ -532,3 +532,390 @@ test.describe('チャットでダイスロール', () => {
     await expect(page.locator('.log').getByText(/2D6/)).toBeVisible({ timeout: 10000 });
   });
 });
+
+test.describe('コンテキストメニューからの追加オブジェクト作成', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('game-table')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('トランプの山札を作成できること', async ({ page }) => {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('トランプの山札を作成').click();
+    await expect(page.locator('card-stack').first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('ダイスシンボル（D6）を作成できること', async ({ page }) => {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    // 「ダイスを作成」はサブメニュー
+    await menu.getByText('ダイスを作成').hover();
+    await expect(menu.getByText('D6')).toBeVisible({ timeout: 3000 });
+    await menu.getByText('D6').click();
+    await expect(page.locator('dice-symbol').first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('射程範囲（円）を作成できること', async ({ page }) => {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    // 「射程範囲を作成」はサブメニュー
+    await menu.getByText('射程範囲を作成').hover();
+    await expect(menu.getByText('円')).toBeVisible({ timeout: 3000 });
+    await menu.getByText('円').click();
+    await expect(page.locator('range').first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('コンテキストメニューに射程範囲の種類が揃っていること', async ({ page }) => {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('射程範囲を作成').hover();
+    for (const name of ['コーン', '直線', '円', '正方形', 'ダイヤ']) {
+      await expect(menu.getByText(name)).toBeVisible({ timeout: 3000 });
+    }
+  });
+});
+
+test.describe('キャラクターシート操作', () => {
+  async function createCharacter(page: Page) {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('キャラクターを作成').click();
+    await expect(page.locator('game-character').first()).toBeVisible({ timeout: 5000 });
+  }
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('game-table')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('キャラクターを右クリック→詳細を表示するとシートが開くこと', async ({ page }) => {
+    await createCharacter(page);
+    const character = page.locator('game-character').first();
+    await character.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('詳細を表示').click();
+    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('キャラクターシートに「編集切り替え」ボタンがあること', async ({ page }) => {
+    await createCharacter(page);
+    const character = page.locator('game-character').first();
+    await character.click({ button: 'right' });
+    await page.locator('context-menu').getByText('詳細を表示').click();
+    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('game-character-sheet').getByRole('button', { name: '編集切り替え' })).toBeVisible();
+  });
+
+  test('キャラクターのコピーを作れること', async ({ page }) => {
+    await createCharacter(page);
+    const initialCount = await page.locator('game-character').count();
+    const character = page.locator('game-character').first();
+    await character.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('コピーを作る').click();
+    await expect(page.locator('game-character')).toHaveCount(initialCount + 1, { timeout: 5000 });
+  });
+
+  test('キャラクターを墓場に移動するとインベントリの墓場タブに現れること', async ({ page }) => {
+    await createCharacter(page);
+    const character = page.locator('game-character').first();
+    await character.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('墓場に移動').click();
+    // インベントリを開いて墓場タブを確認
+    await page.getByText('インベントリ').click();
+    await expect(page.locator('input[name="tab"]')).toHaveCount(3, { timeout: 5000 });
+    const graveyardTab = page.locator('input[name="tab"]').nth(2);
+    await graveyardTab.check({ force: true });
+    const objects = page.locator('game-object-inventory .box');
+    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+  });
+});
+
+test.describe('ダイスシンボル操作', () => {
+  async function createDiceSymbol(page: Page) {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('ダイスを作成').hover();
+    await expect(menu.getByText('D6')).toBeVisible({ timeout: 3000 });
+    await menu.getByText('D6').click();
+    await expect(page.locator('dice-symbol').first()).toBeVisible({ timeout: 5000 });
+  }
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('game-table')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('作成したダイスを右クリックするとコンテキストメニューが表示されること', async ({ page }) => {
+    await createDiceSymbol(page);
+    const dice = page.locator('dice-symbol').first();
+    await dice.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.getByText('ダイスを振る')).toBeVisible();
+  });
+
+  test('ダイスを振るとチャットログに結果が表示されること', async ({ page }) => {
+    await createDiceSymbol(page);
+    const dice = page.locator('dice-symbol').first();
+    await dice.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('ダイスを振る').click();
+    // ダイスロール結果がチャットログに表示される
+    await expect(page.locator('.log').getByText(/D6/i)).toBeVisible({ timeout: 10000 });
+  });
+
+  test('ダイスの詳細を表示できること', async ({ page }) => {
+    await createDiceSymbol(page);
+    const dice = page.locator('dice-symbol').first();
+    await dice.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('詳細を表示').click();
+    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
+  });
+});
+
+test.describe('チャットタブ設定パネル', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('textarea.chat-input')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('タブ設定ボタンをクリックするとパネルが開くこと', async ({ page }) => {
+    await page.getByRole('button', { name: /タブ設定/ }).click();
+    await expect(page.locator('app-chat-tab-setting')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('タブ設定パネルにタブ名入力フィールドがあること', async ({ page }) => {
+    await page.getByRole('button', { name: /タブ設定/ }).click();
+    await expect(page.locator('app-chat-tab-setting')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('input[name="tab-name"]')).toBeVisible();
+  });
+
+  test('タブ名を変更できること', async ({ page }) => {
+    await page.getByRole('button', { name: /タブ設定/ }).click();
+    await expect(page.locator('app-chat-tab-setting')).toBeVisible({ timeout: 5000 });
+    const tabNameInput = page.locator('input[name="tab-name"]');
+    await tabNameInput.fill('カスタムタブ名');
+    await expect(tabNameInput).toHaveValue('カスタムタブ名');
+    // チャットウィンドウのタブラベルが更新されること
+    await expect(page.locator('chat-window').getByText('カスタムタブ名')).toBeVisible({ timeout: 3000 });
+  });
+
+  test('新しいタブを追加できること', async ({ page }) => {
+    await page.getByRole('button', { name: /タブ設定/ }).click();
+    await expect(page.locator('app-chat-tab-setting')).toBeVisible({ timeout: 5000 });
+    const initialTabCount = await page.locator('input[name="chat-tab"]').count();
+    await page
+      .locator('app-chat-tab-setting')
+      .getByRole('button', { name: /新しいタブ/ })
+      .click();
+    await expect(page.locator('input[name="chat-tab"]')).toHaveCount(initialTabCount + 1, { timeout: 3000 });
+  });
+});
+
+test.describe('点呼ウィンドウ', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('textarea.chat-input')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('点呼ボタンをクリックするとウィンドウが開くこと', async ({ page }) => {
+    await page.getByRole('button', { name: /点呼/ }).click();
+    await expect(page.locator('app-vote-menu')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('点呼ウィンドウに「自分を含める」チェックボックスがあること', async ({ page }) => {
+    await page.getByRole('button', { name: /点呼/ }).click();
+    await expect(page.locator('app-vote-menu')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('input[name="includSelf"]')).toBeVisible();
+    await expect(page.locator('app-vote-menu').getByText('自分を含める')).toBeVisible();
+  });
+
+  test('自分しか部屋にいない場合はその旨が表示されること', async ({ page }) => {
+    await page.getByRole('button', { name: /点呼/ }).click();
+    await expect(page.locator('app-vote-menu')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('app-vote-menu').getByText('自分しか部屋にいません')).toBeVisible();
+  });
+});
+
+test.describe('ゲームテーブルのズーム操作', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('game-table')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('マウスホイールでゲームテーブルがズームインすること', async ({ page }) => {
+    const table = page.locator('#app-table-layer');
+    // ホイールイベント前のtransformを取得
+    const initialTransform = await table.evaluate((el) => (el as HTMLElement).style.transform);
+    // ゲームテーブル中央にホイールアップ（ズームイン）
+    await table.dispatchEvent('wheel', { deltaY: -200, ctrlKey: false });
+    await page.waitForTimeout(300);
+    const afterTransform = await table.evaluate((el) => (el as HTMLElement).style.transform);
+    // スケールが変化していること（transformが変わる）
+    expect(afterTransform).not.toBe(initialTransform);
+  });
+
+  test('マウスホイールで縮小・拡大を繰り返してもクラッシュしないこと', async ({ page }) => {
+    const table = page.locator('#app-table-layer');
+    for (let i = 0; i < 5; i++) {
+      await table.dispatchEvent('wheel', { deltaY: -200 });
+    }
+    for (let i = 0; i < 5; i++) {
+      await table.dispatchEvent('wheel', { deltaY: 200 });
+    }
+    // クラッシュしないことを確認
+    await expect(page.locator('game-table')).toBeVisible();
+  });
+});
+
+test.describe('インベントリのコンテキストメニュー', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('game-table')).toBeVisible({ timeout: 15000 });
+    // キャラクターを作成
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('キャラクターを作成').click();
+    await expect(page.locator('game-character').first()).toBeVisible({ timeout: 5000 });
+    // インベントリを開く
+    await page.getByText('インベントリ').click();
+    await expect(page.locator('input[name="tab"]')).toHaveCount(3, { timeout: 5000 });
+  });
+
+  test('インベントリのオブジェクトを右クリックするとコンテキストメニューが表示されること', async ({ page }) => {
+    const objects = page.locator('game-object-inventory .box');
+    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+    await objects.first().click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+  });
+
+  test('インベントリのコンテキストメニューに「詳細を表示」があること', async ({ page }) => {
+    const objects = page.locator('game-object-inventory .box');
+    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+    await objects.first().click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.getByText('詳細を表示')).toBeVisible();
+  });
+
+  test('インベントリの「詳細を表示」でシートが開くこと', async ({ page }) => {
+    const objects = page.locator('game-object-inventory .box');
+    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+    await objects.first().click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('詳細を表示').click();
+    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('インベントリのコンテキストメニューに移動項目があること', async ({ page }) => {
+    const objects = page.locator('game-object-inventory .box');
+    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+    await objects.first().click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.getByText('テーブルに移動')).toBeVisible();
+    await expect(menu.getByText('墓場に移動')).toBeVisible();
+  });
+});
+
+test.describe('チャットのキャラクター送信元', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('textarea.chat-input')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('ダイスボット選択のng-selectが存在すること', async ({ page }) => {
+    // gameTypeのng-selectが存在すること（`chat-input`内）
+    const chatInput = page.locator('chat-input');
+    // ng-selectコンポーネントが複数ある（送信元、送信先、ダイスボット）
+    await expect(chatInput.locator('ng-select')).toHaveCount(3);
+  });
+});
+
+test.describe('ダイス表設定パネル', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('textarea.chat-input')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('ダイス表設定ボタンをクリックするとパネルが開くこと', async ({ page }) => {
+    await page.getByRole('button', { name: /ダイス表設定/ }).click();
+    await expect(page.locator('dice-table-setting')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('ダイス表設定パネルに「新しい表を作る」ボタンがあること', async ({ page }) => {
+    await page.getByRole('button', { name: /ダイス表設定/ }).click();
+    await expect(page.locator('dice-table-setting')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('dice-table-setting').getByRole('button', { name: '新しい表を作る' })).toBeVisible();
+  });
+
+  test('ダイス表を新規作成できること', async ({ page }) => {
+    await page.getByRole('button', { name: /ダイス表設定/ }).click();
+    await expect(page.locator('dice-table-setting')).toBeVisible({ timeout: 5000 });
+    const tableSelect = page.locator('dice-table-setting select');
+    const initialCount = await tableSelect.locator('option').count();
+    await page.locator('dice-table-setting').getByRole('button', { name: '新しい表を作る' }).click();
+    await expect(tableSelect.locator('option')).toHaveCount(initialCount + 1, { timeout: 5000 });
+  });
+});
+
+test.describe('キャラクターのチャットパレット', () => {
+  async function createCharacter(page: Page) {
+    const table = page.locator('#app-table-layer');
+    await table.click({ button: 'right', position: { x: 400, y: 300 } });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('キャラクターを作成').click();
+    await expect(page.locator('game-character').first()).toBeVisible({ timeout: 5000 });
+  }
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('game-table')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('チャットパレットを表示できること', async ({ page }) => {
+    await createCharacter(page);
+    const character = page.locator('game-character').first();
+    await character.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('チャットパレットを表示').click();
+    await expect(page.locator('chat-palette')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('リモコンを表示できること', async ({ page }) => {
+    await createCharacter(page);
+    const character = page.locator('game-character').first();
+    await character.click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu).toBeVisible({ timeout: 3000 });
+    await menu.getByText('リモコンを表示').click();
+    await expect(page.locator('remote-controller')).toBeVisible({ timeout: 5000 });
+  });
+});
