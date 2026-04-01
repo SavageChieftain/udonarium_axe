@@ -52,10 +52,10 @@ export class SkyWayFacade {
 
       this.peer.isOpen = true;
 
-      if (this.onOpen) this.onOpen(this.peer);
+      this.onOpen?.(this.peer);
     } catch (err) {
       AppLogger.error('[SkyWay] open失敗', err);
-      if (this.onFatalError) this.onFatalError(this.peer, (err as Error).name, (err as Error).message, err as Error);
+      this.onFatalError?.(this.peer, (err as Error).name, (err as Error).message, err as Error);
     }
   }
 
@@ -124,7 +124,7 @@ export class SkyWayFacade {
     const authToken = await backend.createSkyWayAuthToken(channelName, this.peer.peerId);
     if (authToken.length < 1) {
       const message = `APIバックエンド< ${backend.url} >にアクセスできませんでした。SkyWayの認証トークンを発行するサーバが必要です。`;
-      if (this.onFatalError) this.onFatalError(this.peer, 'server-error', message, new Error(message));
+      this.onFatalError?.(this.peer, 'server-error', message, new Error(message));
       return;
     }
 
@@ -134,7 +134,7 @@ export class SkyWayFacade {
       const authToken = await backend.createSkyWayAuthToken(channelName, this.peer.peerId);
       if (authToken.length < 1) {
         const message = `APIバックエンド< ${backend.url} >にアクセスできませんでした。`;
-        if (this.onFatalError) this.onFatalError(this.peer, 'server-error', message, new Error(message));
+        this.onFatalError?.(this.peer, 'server-error', message, new Error(message));
         return;
       }
       context.updateAuthToken(authToken);
@@ -144,19 +144,19 @@ export class SkyWayFacade {
       AppLogger.error('[SkyWay] トークン有効期限切れ');
       if (this.isOpen) {
         this.close();
-        if (this.onClose) this.onClose(this.peer);
+        this.onClose?.(this.peer);
       }
       const message = 'SkyWayの認証トークンの有効期限が切れました。';
-      if (this.onFatalError) this.onFatalError(this.peer, 'token-expired', message, new Error(message));
+      this.onFatalError?.(this.peer, 'token-expired', message, new Error(message));
     });
 
     context.onFatalError.add((err) => {
       AppLogger.error('[SkyWay] 致命的エラー', err);
       if (this.isOpen) {
         this.close();
-        if (this.onClose) this.onClose(this.peer);
+        this.onClose?.(this.peer);
       }
-      if (this.onFatalError) this.onFatalError(this.peer, err.name, err.message, err);
+      this.onFatalError?.(this.peer, err.name, err.message, err);
     });
 
     this.context = context;
@@ -180,20 +180,16 @@ export class SkyWayFacade {
       if (lobby.members.length < 300) break;
     }
 
-    let min = 9999;
-    let joinLobbyOrNull: Channel | null = null;
-    lobbys.forEach((lobby) => {
-      if (min <= lobby.members.length) return;
-      min = lobby.members.length;
-      joinLobbyOrNull = lobby;
-    });
+    const joinLobby = lobbys.reduce<Channel | null>(
+      (best, lobby) => (best === null || lobby.members.length < best.members.length ? lobby : best),
+      null
+    );
 
     lobbys.forEach((lobby) => {
-      if (lobby !== joinLobbyOrNull) lobby.dispose();
+      if (lobby !== joinLobby) lobby.dispose();
     });
 
-    if (!joinLobbyOrNull) return;
-    const joinLobby: Channel = joinLobbyOrNull;
+    if (!joinLobby) return;
     joinLobby.onClosed.add(() => {
       AppLogger.warn('[SkyWay] ロビーチャンネルが閉じられました');
       this.joinLobby();
@@ -240,7 +236,7 @@ export class SkyWayFacade {
       AppLogger.warn('[SkyWay] ルームチャンネルが閉じられました');
       await this.joinRoom();
       AppLogger.info('[SkyWay] ルーム復旧完了');
-      if (this.onRoomRestore) this.onRoomRestore(this.peer);
+      this.onRoomRestore?.(this.peer);
     });
 
     this.room = room;
@@ -259,9 +255,9 @@ export class SkyWayFacade {
       AppLogger.error('[SkyWay] ルーム致命的エラー', err);
       if (this.isOpen) {
         this.close();
-        if (this.onClose) this.onClose(this.peer);
+        this.onClose?.(this.peer);
       }
-      if (this.onFatalError) this.onFatalError(this.peer, err.name, err.message, err);
+      this.onFatalError?.(this.peer, err.name, err.message, err);
     });
 
     this.roomPerson = roomPerson;
@@ -277,7 +273,7 @@ export class SkyWayFacade {
 
     publication.onSubscribed.add((event) => {
       const peerId = event.subscription.subscriber.name;
-      if (peerId == null) {
+      if (peerId === null || peerId === undefined) {
         this.roomPerson?.unsubscribe(event.subscription).catch((error) => {
           AppLogger.warn('[SkyWay] サブスクリプション解除失敗', error);
         });
@@ -285,7 +281,7 @@ export class SkyWayFacade {
       }
 
       const peer = PeerContext.parse(peerId);
-      if (this.onSubscribed) this.onSubscribed(peer, event.subscription);
+      this.onSubscribed?.(peer, event.subscription);
     });
 
     this.publication = publication;
@@ -375,7 +371,7 @@ export class SkyWayFacade {
         lobbys.push(lobby);
       } catch (error) {
         if (error instanceof SkyWayError) {
-          if (error.name != 'channelNotFound') AppLogger.error('[SkyWay] ピア一覧取得エラー', error);
+          if (error.name !== 'channelNotFound') AppLogger.error('[SkyWay] ピア一覧取得エラー', error);
         } else {
           AppLogger.error('[SkyWay] ピア一覧取得エラー', error);
         }
