@@ -159,18 +159,18 @@ export class Matrix3D {
     let qz = z + this.m33;
     let qw = w + this.m34;
 
-    if (w == 0) w = 0.0001;
+    if (w === 0) w = 0.0001;
     x /= w;
     y /= w;
     z /= w;
 
-    if (qw == 0) qw = 0.0001;
+    if (qw === 0) qw = 0.0001;
     qx /= qw;
     qy /= qw;
     qz /= qw;
 
     const wz = qz - z;
-    if (wz == 0) {
+    if (wz === 0) {
       ret.x = x;
       ret.y = y;
       ret.z = z;
@@ -195,7 +195,7 @@ export class Matrix3D {
     let x = point.x * this.m11 + point.y * this.m21 + z * this.m31 + this.m41;
     let y = point.x * this.m12 + point.y * this.m22 + z * this.m32 + this.m42;
 
-    if (w == 0) w = 0.0001;
+    if (w === 0) w = 0.0001;
 
     x /= w;
     y /= w;
@@ -248,7 +248,7 @@ export class Matrix3D {
     } else {
       position = { x: args[0], y: args[1], z: args[2], w: 1 };
     }
-    return this.append(Matrix3D.makePosition(position, Matrix3D.MATRIX3D));
+    return this.append(Matrix3D.makePosition(position, Matrix3D._scratch));
   }
 
   static makePerspective(perspective: number, ret = new Matrix3D()): Matrix3D {
@@ -259,7 +259,7 @@ export class Matrix3D {
 
   appendPerspective(perspective: number): Matrix3D {
     if (!perspective) return this;
-    return this.append(Matrix3D.makePerspective(perspective, Matrix3D.MATRIX3D));
+    return this.append(Matrix3D.makePerspective(perspective, Matrix3D._scratch));
   }
 
   /**
@@ -269,7 +269,6 @@ export class Matrix3D {
    */
   invert(target?: Matrix3D): Matrix3D {
     target = target || this;
-    const data: number[] = [];
 
     const n11 = this.m11,
       n12 = this.m12,
@@ -288,38 +287,51 @@ export class Matrix3D {
       n43 = this.m43,
       n44 = this.m44;
 
-    data[0] = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
-    data[1] = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
-    data[2] = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
-    data[3] = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+    const t0 =
+      n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
+    const t1 =
+      n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
+    const t2 =
+      n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
+    const t3 =
+      n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
 
-    const det = n11 * data[0] + n21 * data[1] + n31 * data[2] + n41 * data[3];
-    if (det == 0) {
+    const det = n11 * t0 + n21 * t1 + n31 * t2 + n41 * t3;
+    if (det === 0) {
       Logger.warn('[Matrix3D] 行列の逆行列が計算不可 (det=0)');
       return this;
     }
 
-    data[4] = n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44;
-    data[5] = n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44;
-    data[6] = n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44;
-    data[7] = n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34;
-    data[8] = n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44;
-    data[9] = n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44;
-    data[10] =
-      n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44;
-    data[11] =
-      n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34;
-    data[12] =
-      n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43;
-    data[13] =
-      n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43;
-    data[14] =
-      n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43;
-    data[15] =
-      n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33;
+    const s = 1 / det;
+    target.m11 = t0 * s;
+    target.m12 = t1 * s;
+    target.m13 = t2 * s;
+    target.m14 = t3 * s;
+    target.m21 =
+      (n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44) * s;
+    target.m22 =
+      (n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44) * s;
+    target.m23 =
+      (n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44) * s;
+    target.m24 =
+      (n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34) * s;
+    target.m31 =
+      (n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44) * s;
+    target.m32 =
+      (n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44) * s;
+    target.m33 =
+      (n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44) * s;
+    target.m34 =
+      (n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34) * s;
+    target.m41 =
+      (n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43) * s;
+    target.m42 =
+      (n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43) * s;
+    target.m43 =
+      (n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43) * s;
+    target.m44 =
+      (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * s;
 
-    target.setData(data);
-    target.scalar(1 / det);
     return target;
   }
 
@@ -333,9 +345,9 @@ export class Matrix3D {
   appendCSS(cssString: string, force2D: boolean = false): Matrix3D {
     if (!cssString || cssString == 'none') return this;
     if (force2D && cssString.indexOf('matrix3d') >= 0) {
-      return this.append(Matrix3D.MATRIX3D.setCSS(cssString).flatten());
+      return this.append(Matrix3D._scratch.setCSS(cssString).flatten());
     }
-    return this.append(Matrix3D.MATRIX3D.setCSS(cssString));
+    return this.append(Matrix3D._scratch.setCSS(cssString));
   }
 
   flatten(): Matrix3D {
@@ -389,40 +401,13 @@ export class Matrix3D {
   }
 
   public toString(fractionalDigits: number = 3): string {
-    return (
-      'm11=' +
-      this.m11.toFixed(fractionalDigits) +
-      '\tm21=' +
-      this.m21.toFixed(fractionalDigits) +
-      '\tm31=' +
-      this.m31.toFixed(fractionalDigits) +
-      '\tm41=' +
-      this.m41.toFixed(fractionalDigits) +
-      '\nm12=' +
-      this.m12.toFixed(fractionalDigits) +
-      '\tm22=' +
-      this.m22.toFixed(fractionalDigits) +
-      '\tm32=' +
-      this.m32.toFixed(fractionalDigits) +
-      '\tm42=' +
-      this.m42.toFixed(fractionalDigits) +
-      '\nm13=' +
-      this.m13.toFixed(fractionalDigits) +
-      '\tm23=' +
-      this.m23.toFixed(fractionalDigits) +
-      '\tm33=' +
-      this.m33.toFixed(fractionalDigits) +
-      '\tm43=' +
-      this.m43.toFixed(fractionalDigits) +
-      '\nm14=' +
-      this.m14.toFixed(fractionalDigits) +
-      '\tm24=' +
-      this.m24.toFixed(fractionalDigits) +
-      '\tm34=' +
-      this.m34.toFixed(fractionalDigits) +
-      '\tm44=' +
-      this.m44.toFixed(fractionalDigits)
-    );
+    const f = (v: number) => v.toFixed(fractionalDigits);
+    return [
+      `m11=${f(this.m11)}\tm21=${f(this.m21)}\tm31=${f(this.m31)}\tm41=${f(this.m41)}`,
+      `m12=${f(this.m12)}\tm22=${f(this.m22)}\tm32=${f(this.m32)}\tm42=${f(this.m42)}`,
+      `m13=${f(this.m13)}\tm23=${f(this.m23)}\tm33=${f(this.m33)}\tm43=${f(this.m43)}`,
+      `m14=${f(this.m14)}\tm24=${f(this.m24)}\tm34=${f(this.m34)}\tm44=${f(this.m44)}`,
+    ].join('\n');
   }
-  private static MATRIX3D = new Matrix3D();
+  private static _scratch = new Matrix3D();
 }

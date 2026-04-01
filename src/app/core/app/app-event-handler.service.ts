@@ -57,22 +57,22 @@ export class AppEventHandlerService {
 
   private subscribeChangeDetection(): void {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.lazyMarkForCheck(event.isSendFromSelf);
+      this.scheduleRender(event.isSendFromSelf);
     });
     this.objectChange.localObjectUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(true);
+      this.scheduleRender(true);
     });
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      this.lazyMarkForCheck(event.isSendFromSelf);
+      this.scheduleRender(event.isSendFromSelf);
     });
     this.objectChange.audioSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
+      this.scheduleRender(false);
     });
     this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
+      this.scheduleRender(false);
     });
     this.objectChange.fileLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
+      this.scheduleRender(false);
     });
   }
 
@@ -103,10 +103,10 @@ export class AppEventHandlerService {
     });
     this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.chatMessageService.calibrateTimeOffset();
-      this.lazyMarkForCheck(true);
+      this.scheduleRender(true);
     });
     this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.lazyMarkForCheck(false);
+      this.scheduleRender(false);
     });
   }
 
@@ -183,7 +183,7 @@ export class AppEventHandlerService {
     }
   }
 
-  private lazyMarkForCheck(isImmediate: boolean): void {
+  private scheduleRender(isImmediate: boolean): void {
     if (isImmediate) {
       if (this.immediateUpdateTimer !== null) return;
       this.immediateUpdateTimer = requestAnimationFrame(() => {
