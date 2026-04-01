@@ -88,6 +88,22 @@ export class ChatMessageService {
   }
 
   // システムメッセージ専用
+  sendSystemMessage(text: string, color?: string): ChatMessage {
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
+    const sysTab = chatTabList.systemMessageTab;
+    const messageColor = resolveMessageColor(color, '#006633');
+    const chatMessage: ChatMessageContext = {
+      name: 'システムメッセージ',
+      imageIdentifier: '',
+      timestamp: this.calcTimeStamp(sysTab),
+      tag: 'system-message',
+      text,
+      imagePos: -1,
+      messColor: messageColor,
+    };
+    return sysTab.addMessage(chatMessage);
+  }
+
   sendSystemMessageOnePlayer(chatTab: ChatTab, text: string, sendTo: string, color?: string): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {

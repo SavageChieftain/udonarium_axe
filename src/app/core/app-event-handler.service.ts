@@ -94,11 +94,11 @@ export class AppEventHandlerService {
       const noReconnectErrorTypes = ['server-error'];
 
       const userMessage = this.resolveNetworkErrorMessage(errorType, errorMessage);
-      this.chatMessageService.sendSystemMessageLastSendCharactor(userMessage);
+      this.chatMessageService.sendSystemMessage(userMessage);
 
       if (noReconnectErrorTypes.includes(errorType)) return;
 
-      this.chatMessageService.sendSystemMessageLastSendCharactor('再接続を試みます...');
+      this.chatMessageService.sendSystemMessage('再接続を試みます...');
       Network.openStandby();
     });
     this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
