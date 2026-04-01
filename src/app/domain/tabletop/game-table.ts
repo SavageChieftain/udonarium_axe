@@ -1,10 +1,9 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { emitSelectGameTable } from '@axe/domain/domain-events';
-
-import { GameTableMask } from './game-table-mask';
-import { GameTableScratchMask } from './game-table-scratch-mask';
-import { Terrain } from './terrain';
+import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
+import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { Terrain } from '@axe/domain/tabletop/terrain';
 
 export enum GridType {
   NONE = -1,

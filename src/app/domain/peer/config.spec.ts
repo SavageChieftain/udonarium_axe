@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { Config } from './config';
+import { Config } from '@axe/domain/peer/config';
 
 describe('Config', () => {
   let store: ObjectStore;

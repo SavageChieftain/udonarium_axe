@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
-
-import { MarkDown } from './mark-down';
+import { MarkDown } from '@axe/domain/data/mark-down';
 
 describe('MarkDown', () => {
   let store: ObjectStore;

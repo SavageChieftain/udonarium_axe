@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { Card, CardState } from './card';
-import { CardStack } from './card-stack';
+import { Card, CardState } from '@axe/domain/card/card';
+import { CardStack } from '@axe/domain/card/card-stack';
 
 describe('CardStack', () => {
   let store: ObjectStore;

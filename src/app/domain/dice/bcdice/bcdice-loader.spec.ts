@@ -1,4 +1,4 @@
-import BCDiceLoader from './bcdice-loader';
+import BCDiceLoader from '@axe/domain/dice/bcdice/bcdice-loader';
 
 describe('BCDiceLoader', () => {
   it('StaticLoaderを継承している', () => {

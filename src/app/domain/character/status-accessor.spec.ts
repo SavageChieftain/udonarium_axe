@@ -1,7 +1,6 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-
-import { StatusAccessor } from './status-accessor';
 
 describe('StatusAccessor', () => {
   let store: ObjectStore;

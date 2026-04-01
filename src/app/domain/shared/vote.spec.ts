@@ -2,9 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { Vote } from '@axe/domain/shared/vote';
 import { Subscription } from 'rxjs';
-
-import { Vote } from './vote';
 
 describe('Vote', () => {
   let store: ObjectStore;

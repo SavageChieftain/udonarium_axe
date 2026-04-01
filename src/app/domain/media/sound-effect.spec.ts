@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { PresetSound, SoundEffect } from './sound-effect';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 
 describe('PresetSound', () => {
   it('dicePick が空文字列で初期化される', () => {

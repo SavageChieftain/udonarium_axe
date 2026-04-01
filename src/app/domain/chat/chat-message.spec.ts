@@ -2,8 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { ChatMessage } from './chat-message';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
 
 describe('ChatMessage', () => {
   let store: ObjectStore;

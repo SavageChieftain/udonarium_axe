@@ -2,9 +2,8 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { emitSelectGameTable, selectGameTable$ } from '@axe/domain/domain-events';
+import { GameTable } from '@axe/domain/tabletop/game-table';
 import { Subscription } from 'rxjs';
-
-import { GameTable } from './game-table';
 
 @SyncObject('TableSelecter')
 export class TableSelecter extends GameObject {

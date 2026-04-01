@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { TableSelecter } from './table-selecter';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
 describe('TableSelecter', () => {
   let store: ObjectStore;

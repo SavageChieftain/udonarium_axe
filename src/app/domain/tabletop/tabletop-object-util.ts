@@ -1,6 +1,5 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { TabletopObject } from './tabletop-object';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 type AliasName = string;
 

@@ -1,6 +1,6 @@
-import { ChatLogExporter } from './chat-log-exporter';
-import type { ChatMessage } from './chat-message';
-import type { ChatTab } from './chat-tab';
+import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
+import type { ChatMessage } from '@axe/domain/chat/chat-message';
+import type { ChatTab } from '@axe/domain/chat/chat-tab';
 
 function createMockMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
   return {

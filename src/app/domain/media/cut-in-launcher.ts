@@ -4,9 +4,8 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { emitStartCutIn, emitStopCutIn, emitStopCutInByBgm } from '@axe/domain/domain-events';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { Jukebox } from '@axe/domain/media/Jukebox';
-
-import { CutIn } from './cut-in';
 
 @SyncObject('cut-in-launcher')
 export class CutInLauncher extends GameObject {

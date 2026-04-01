@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { TextNote } from './text-note';
+import { TextNote } from '@axe/domain/shared/text-note';
 
 describe('TextNote', () => {
   let store: ObjectStore;

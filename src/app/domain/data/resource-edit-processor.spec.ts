@@ -1,7 +1,6 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-
-import { ResourceEdit, ResourceEditProcessor } from './resource-edit-processor';
+import { ResourceEdit, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
 
 describe('ResourceEditProcessor', () => {
   let store: ObjectStore;

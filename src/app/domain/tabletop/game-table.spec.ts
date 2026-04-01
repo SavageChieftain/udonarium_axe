@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { FilterType, GameTable, GridType } from './game-table';
+import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 
 describe('GameTable', () => {
   let store: ObjectStore;

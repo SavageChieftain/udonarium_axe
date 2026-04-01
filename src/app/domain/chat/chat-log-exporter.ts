@@ -1,5 +1,5 @@
-import type { ChatMessage } from './chat-message';
-import type { ChatTab } from './chat-tab';
+import type { ChatMessage } from '@axe/domain/chat/chat-message';
+import type { ChatTab } from '@axe/domain/chat/chat-tab';
 
 type MessageFormatter = (tabName: string, message: ChatMessage) => string;
 

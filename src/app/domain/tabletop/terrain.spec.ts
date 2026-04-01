@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { SlopeDirection, Terrain, TerrainViewState } from './terrain';
+import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 
 describe('Terrain', () => {
   let store: ObjectStore;

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { ImageTag } from './image-tag';
+import { ImageTag } from '@axe/domain/media/image-tag';
 
 describe('ImageTag', () => {
   let store: ObjectStore;

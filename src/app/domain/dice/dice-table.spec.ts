@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceTablePalette } from '@axe/domain/chat/chat-palette';
-
-import { DiceTable } from './dice-table';
+import { DiceTable } from '@axe/domain/dice/dice-table';
 
 describe('DiceTable', () => {
   let store: ObjectStore;

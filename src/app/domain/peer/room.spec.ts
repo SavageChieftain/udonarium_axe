@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { Room } from './room';
+import { Room } from '@axe/domain/peer/room';
 
 describe('Room', () => {
   let store: ObjectStore;

@@ -2,8 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { Card, CardState } from './card';
+import { Card, CardState } from '@axe/domain/card/card';
 
 describe('Card', () => {
   let store: ObjectStore;

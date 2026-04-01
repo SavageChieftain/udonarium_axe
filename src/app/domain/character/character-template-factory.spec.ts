@@ -1,8 +1,7 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElementType } from '@axe/domain/data/data-element';
-
-import { CharacterTemplateFactory } from './character-template-factory';
-import { GameCharacter } from './game-character';
 
 describe('CharacterTemplateFactory', () => {
   let store: ObjectStore;

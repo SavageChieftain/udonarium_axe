@@ -3,14 +3,13 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { generateUuid } from '@axe/core/util/uuid';
+import { BuffManager } from '@axe/domain/character/buff-manager';
+import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
+import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { BuffPalette, ChatPalette } from '@axe/domain/chat/chat-palette';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/shared/constants';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-
-import { BuffManager } from './buff-manager';
-import { CharacterTemplateFactory } from './character-template-factory';
-import { StatusAccessor } from './status-accessor';
 
 @SyncObject('character')
 export class GameCharacter extends TabletopObject {

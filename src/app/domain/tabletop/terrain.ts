@@ -1,8 +1,7 @@
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement } from '@axe/domain/data/data-element';
-
-import { TabletopObject } from './tabletop-object';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export enum TerrainViewState {
   NULL = 0,

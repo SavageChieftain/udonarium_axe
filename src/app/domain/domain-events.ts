@@ -1,8 +1,7 @@
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
-
-import { ChatMessageTargetContext } from './chat/chat-message';
 
 // --- Event interfaces ---
 

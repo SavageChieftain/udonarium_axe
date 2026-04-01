@@ -1,13 +1,12 @@
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import { Card } from '@axe/domain/card/card';
 import { DataElement } from '@axe/domain/data/data-element';
 import { emitCardStackDecreased } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
-
-import { Card } from './card';
 
 @SyncObject('card-stack')
 export class CardStack extends TabletopObject {

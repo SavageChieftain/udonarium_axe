@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { CutIn } from './cut-in';
+import { CutIn } from '@axe/domain/media/cut-in';
 
 describe('CutIn', () => {
   let store: ObjectStore;

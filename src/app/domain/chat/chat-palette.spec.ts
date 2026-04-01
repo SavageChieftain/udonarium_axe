@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { BuffPalette, ChatPalette, DiceTablePalette } from './chat-palette';
+import { BuffPalette, ChatPalette, DiceTablePalette } from '@axe/domain/chat/chat-palette';
 
 describe('ChatPalette', () => {
   let store: ObjectStore;

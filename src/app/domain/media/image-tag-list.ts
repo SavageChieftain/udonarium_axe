@@ -4,8 +4,7 @@ import { SyncObject } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { InnerXml } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { ImageTag } from './image-tag';
+import { ImageTag } from '@axe/domain/media/image-tag';
 
 @SyncObject('image-tag-list')
 export class ImageTagList extends ObjectNode implements InnerXml {

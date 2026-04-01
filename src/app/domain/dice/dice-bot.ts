@@ -7,6 +7,7 @@ import { toHalfWidth } from '@axe/core/util/string-util';
 import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
+import { DiceTable } from '@axe/domain/dice/dice-table';
 import {
   diceTableMessage$,
   DiceTableMessageEvent,
@@ -21,8 +22,6 @@ import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
 import GameSystemClass from 'bcdice/lib/game_system';
 import StaticLoader from 'bcdice/lib/loader/static_loader';
 import { Subscription } from 'rxjs';
-
-import { DiceTable } from './dice-table';
 
 @SyncObject('dice-bot')
 export class DiceBot extends GameObject {

@@ -3,8 +3,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { generateUuid } from '@axe/core/util/uuid';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-
-import { TabletopObject } from './tabletop-object';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('range')
 export class RangeArea extends TabletopObject {

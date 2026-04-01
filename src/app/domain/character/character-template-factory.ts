@@ -1,7 +1,6 @@
+import type { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-
-import type { GameCharacter } from './game-character';
 
 export class CharacterTemplateFactory {
   static createDefault(character: GameCharacter, name: string, size: number, imageIdentifier: string): void {

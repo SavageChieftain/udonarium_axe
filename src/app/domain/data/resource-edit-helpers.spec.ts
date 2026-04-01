@@ -1,5 +1,4 @@
 import { GameCharacter } from '@axe/domain/character/game-character';
-
 import {
   applyBuffEdit,
   applyResourceEdit,
@@ -9,7 +8,7 @@ import {
   createDefaultResourceEdit,
   parseResourceEditOption,
   type ResourceEdit,
-} from './resource-edit-helpers';
+} from '@axe/domain/data/resource-edit-helpers';
 
 describe('resource-edit-helpers', () => {
   describe('parseResourceEditOption', () => {

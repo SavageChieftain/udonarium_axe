@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { ChatTab } from './chat-tab';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 
 describe('ChatTab', () => {
   let store: ObjectStore;

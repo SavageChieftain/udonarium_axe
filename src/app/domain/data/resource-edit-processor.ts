@@ -3,9 +3,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import GameSystemClass from 'bcdice/lib/game_system';
-
 import {
   applyBuffEdit,
   applyResourceEdit,
@@ -16,7 +13,9 @@ import {
   parseResourceEditOption,
   type ResourceEdit,
   type ResourceEditOption,
-} from './resource-edit-helpers';
+} from '@axe/domain/data/resource-edit-helpers';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 interface DiceRollResult {
   id: string | null;

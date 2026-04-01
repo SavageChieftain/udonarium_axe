@@ -1,7 +1,6 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { BuffManager } from '@axe/domain/character/buff-manager';
 import { DataElement } from '@axe/domain/data/data-element';
-
-import { BuffManager } from './buff-manager';
 
 describe('BuffManager', () => {
   let store: ObjectStore;

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { DataElement, DataElementType } from './data-element';
+import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 
 describe('DataElement', () => {
   let store: ObjectStore;

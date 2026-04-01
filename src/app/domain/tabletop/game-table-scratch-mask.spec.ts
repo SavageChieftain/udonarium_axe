@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { GameTableScratchMask } from './game-table-scratch-mask';
+import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 
 describe('GameTableScratchMask', () => {
   let store: ObjectStore;

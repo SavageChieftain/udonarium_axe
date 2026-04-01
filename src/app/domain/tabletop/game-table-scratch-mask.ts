@@ -2,8 +2,7 @@ import { Network } from '@axe/core/index';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-
-import { TabletopObject } from './tabletop-object';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('table-scratch-mask')
 export class GameTableScratchMask extends TabletopObject {

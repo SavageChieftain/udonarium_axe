@@ -2,9 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-
-import { DiceSymbol, DiceType } from './dice-symbol';
 
 describe('DiceSymbol', () => {
   let store: ObjectStore;
