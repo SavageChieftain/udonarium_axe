@@ -2,11 +2,10 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
+import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { emitMessageAdded } from '@axe/domain/domain-events';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-
-import { ChatLogExporter } from './chat-log-exporter';
-import { ChatMessage, ChatMessageContext } from './chat-message';
 
 const TACHIE_SLOT_COUNT = 12;
 const DEFAULT_IMAGE_IDENTIFIERS: readonly string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
@@ -26,7 +25,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() count = 0;
   @SyncVar() imageIdentifierDummy = 'test'; // 通信開始ために使わなくても書かなきゃだめっぽい後日見直し
 
-  get cutInLauncher(): CutInLauncher {
+  get cutInLauncher(): CutInLauncher | null {
     return ObjectStore.instance.get<CutInLauncher>('CutInLauncher');
   }
 
@@ -181,7 +180,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     chat.initialize();
 
     if (!chat.tags.includes('secret')) {
-      this.cutInLauncher.chatActivateCutIn(chat.text, message.to ?? ''); // カットイン末尾発動
+      this.cutInLauncher?.chatActivateCutIn(chat.text, message.to ?? ''); // カットイン末尾発動
     }
 
     this.appendChild(chat);
