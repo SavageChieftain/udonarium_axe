@@ -9,9 +9,7 @@ import { AlarmWindowComponent } from '@axe/features/alarm/alarm-window/alarm-win
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { TextViewComponent } from '@axe/shared/components/text-view/text-view.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +18,6 @@ export class AppEventHandlerService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);
   private readonly panelService = inject(PanelService);
-  private readonly modalService = inject(ModalService);
   private readonly chatMessageService = inject(ChatMessageService);
 
   readonly renderVersion = signal(0);
@@ -88,24 +85,20 @@ export class AppEventHandlerService {
       PeerCursor.myCursor.peerId = Network.peerContext.peerId;
       PeerCursor.myCursor.userId = Network.peerContext.userId;
     });
-    this.objectChange.networkError$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (event) => {
-      const errorType = event.errorType;
-      const errorMessage = event.errorMessage;
+    this.objectChange.networkError$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const { errorType, errorMessage } = event;
 
       const quietErrorTypes = ['peer-unavailable'];
-      const reconnectErrorTypes = ['disconnected', 'socket-error', 'unavailable-id', 'authentication', 'server-error'];
-
       if (quietErrorTypes.includes(errorType)) return;
-      await this.modalService.open(TextViewComponent, {
-        title: 'ネットワークエラー',
-        text: errorMessage,
-      });
 
-      if (!reconnectErrorTypes.includes(errorType)) return;
-      await this.modalService.open(TextViewComponent, {
-        title: 'ネットワークエラー',
-        text: 'このウィンドウを閉じると再接続を試みます。',
-      });
+      const noReconnectErrorTypes = ['server-error'];
+
+      const userMessage = this.resolveNetworkErrorMessage(errorType, errorMessage);
+      this.chatMessageService.sendSystemMessageLastSendCharactor(userMessage);
+
+      if (noReconnectErrorTypes.includes(errorType)) return;
+
+      this.chatMessageService.sendSystemMessageLastSendCharactor('再接続を試みます...');
       Network.openStandby();
     });
     this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -177,6 +170,17 @@ export class AppEventHandlerService {
     const component = this.panelService.open(CutInWindowComponent, option);
     component.cutIn = cutIn;
     component.startCutIn();
+  }
+
+  private resolveNetworkErrorMessage(errorType: string, _errorMessage: string): string {
+    switch (errorType) {
+      case 'server-error':
+        return 'SkyWayのバックエンドサーバに接続できません。ネットワーク設定を確認してください。';
+      case 'token-expired':
+        return 'SkyWayの認証トークンが期限切れになりました。再接続します。';
+      default:
+        return `ネットワークエラーが発生しました。(${errorType})`;
+    }
   }
 
   private lazyMarkForCheck(isImmediate: boolean): void {
