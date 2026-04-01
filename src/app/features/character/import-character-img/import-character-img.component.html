@@ -3,7 +3,13 @@
     <div style="text-align: center">複製元＞</div>
   </div>
   <div class="table-cell">
-    <ng-select class="ud-select is-caret" style="width: 12em" [(ngModel)]="sendFrom" [clearable]="false">
+    <ng-select
+      name="send-from"
+      class="ud-select is-caret"
+      style="width: 12em"
+      [(ngModel)]="sendFrom"
+      [clearable]="false"
+    >
       @for (gameCharacter of gameCharacters; track gameCharacter) {
         <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }} </ng-option>
       }
