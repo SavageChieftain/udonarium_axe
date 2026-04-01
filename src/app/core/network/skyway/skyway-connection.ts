@@ -55,7 +55,7 @@ export class SkyWayConnection implements Connection {
   private readonly maybeUnavailablePeerIds: Set<string> = new Set();
 
   configure(config: Record<string, unknown>) {
-    this.skyWay.url = ((config?.backend as Record<string, unknown>)?.url as string) ?? '';
+    this.skyWay.url = ((config.backend as Record<string, unknown>)?.url as string) ?? '';
   }
 
   openStandby(userId?: string): void {
@@ -88,15 +88,6 @@ export class SkyWayConnection implements Connection {
   }
 
   async connect(peer: IPeerContext): Promise<boolean> {
-    if (!this.peer.isRoom) {
-      Logger.warn('[SkyWay] ルーム接続のみ可能');
-      const errorType = 'udonarium-unsupported';
-      const errorMessage =
-        '現在のユドナリウムでSkyWay(2023)を使用する場合、プライベート接続は利用できません。ルーム接続機能を利用してください。';
-      if (this.callback.onError) this.callback.onError(this.peer, errorType, errorMessage, {});
-      return false;
-    }
-
     if (!(await this.shouldConnect(peer.peerId))) {
       return false;
     }
@@ -122,7 +113,7 @@ export class SkyWayConnection implements Connection {
       return false;
     }
 
-    const roomMembers = this.skyWay?.room?.members?.map((m) => m.name) ?? [];
+    const roomMembers = this.skyWay.room?.members?.map((m) => m.name) ?? [];
     if (!roomMembers.includes(peerId)) {
       return false;
     }
@@ -230,8 +221,8 @@ export class SkyWayConnection implements Connection {
       if (this.callback.onError) this.callback.onError(this.peer, errorType, errorMessage, errorObject);
     };
 
-    this.skyWay.onSubscribed = async (peer, _subscription) => {
-      const stream = SkyWayDataStream.createPublication(this.skyWay, peer);
+    this.skyWay.onSubscribed = async (subscribedPeer, _subscription) => {
+      const stream = SkyWayDataStream.createPublication(this.skyWay, subscribedPeer);
 
       if (!(await this.peer.verifyPeer(stream.peer.peerId))) {
         Logger.warn(`[SkyWay] 不正なピアからの接続を拒否: ${stream.peer.peerId}`);
@@ -367,8 +358,6 @@ export class SkyWayConnection implements Connection {
   }
 
   private async makeFriendPeer(userId: string): Promise<PeerContext> {
-    return this.peer.isRoom
-      ? PeerContext.create(userId, this.peer.roomId, this.peer.roomName, this.peer.password)
-      : PeerContext.create(userId);
+    return PeerContext.create(userId, this.peer.roomId, this.peer.roomName, this.peer.password);
   }
 }
