@@ -1,4 +1,4 @@
-import * as MimeType from './mime-type';
+import * as MimeType from '@axe/core/storage/mime-type';
 
 describe('MimeType', () => {
   describe('type()', () => {

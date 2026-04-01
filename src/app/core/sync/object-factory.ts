@@ -1,6 +1,5 @@
 import { Logger } from '@axe/core/logging/logger';
-
-import { GameObject } from './game-object';
+import { GameObject } from '@axe/core/sync/game-object';
 
 export interface Type<T> {
   new (...args: never[]): T;

@@ -1,4 +1,4 @@
-import { Network } from './network';
+import { Network } from '@axe/core/network/network';
 
 describe('Network', () => {
   beforeEach(() => {

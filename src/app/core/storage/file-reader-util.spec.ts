@@ -1,4 +1,4 @@
-import * as FileReaderUtil from './file-reader-util';
+import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 
 describe('FileReaderUtil', () => {
   describe('readAsArrayBufferAsync', () => {

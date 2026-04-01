@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
-
-import { GameObject } from './game-object';
-import { ObjectSerializer } from './object-serializer';
-import { ObjectStore } from './object-store';
 
 describe('ObjectSerializer', () => {
   let store: ObjectStore;

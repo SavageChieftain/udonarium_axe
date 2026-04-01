@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from './logger';
+import { Logger, LogLevel } from '@axe/core/logging/logger';
 
 describe('Logger', () => {
   let debugSpy: ReturnType<typeof vi.spyOn>;

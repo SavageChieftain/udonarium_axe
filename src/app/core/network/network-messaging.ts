@@ -1,9 +1,8 @@
 import { ApplicationRef } from '@angular/core';
 import { ServiceLocator } from '@axe/core/di/service-locator';
 import { Logger } from '@axe/core/logging/logger';
+import { Network } from '@axe/core/network/network';
 import { Observable, Subject } from 'rxjs';
-
-import { Network } from './network';
 
 // --- Wire protocol (kept compatible with existing peers) ---
 export interface EventContext<T = unknown> {

@@ -1,4 +1,4 @@
-import { SynchronizeRequest, SynchronizeTask } from './synchronize-task';
+import { SynchronizeRequest, SynchronizeTask } from '@axe/core/sync/synchronize-task';
 
 describe('SynchronizeTask', () => {
   describe('create', () => {

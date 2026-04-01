@@ -1,4 +1,4 @@
-import { ResettableTimeout } from './resettable-timeout';
+import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 
 describe('ResettableTimeout', () => {
   beforeEach(() => {

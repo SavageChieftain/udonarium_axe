@@ -1,7 +1,6 @@
 import { networkSend } from '@axe/core/network/network-messaging';
+import { ImageContext, ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
-
-import { ImageContext, ImageFile, ImageState } from './image-file';
 
 export type CatalogItem = {
   readonly identifier: string;

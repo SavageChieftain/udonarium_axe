@@ -1,7 +1,7 @@
-import { defineSyncAttribute, defineSyncObject, defineSyncVariable } from './decorator-core';
-import { GameObject } from './game-object';
-import { Type } from './object-factory';
-import { ObjectNode } from './object-node';
+import { defineSyncAttribute, defineSyncObject, defineSyncVariable } from '@axe/core/sync/decorator-core';
+import { GameObject } from '@axe/core/sync/game-object';
+import { Type } from '@axe/core/sync/object-factory';
+import { ObjectNode } from '@axe/core/sync/object-node';
 
 export function SyncObject(alias: string) {
   return <T extends GameObject>(constructor: Type<T>) => {

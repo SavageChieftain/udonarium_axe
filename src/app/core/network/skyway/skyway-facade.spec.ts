@@ -1,4 +1,4 @@
-import { SkyWayFacade } from './skyway-facade';
+import { SkyWayFacade } from '@axe/core/network/skyway/skyway-facade';
 
 describe('SkyWayFacade', () => {
   it('クラスがエクスポートされている', () => {

@@ -1,4 +1,4 @@
-import { CSSNumber } from './css-number';
+import { CSSNumber } from '@axe/core/transform/css-number';
 
 describe('CSSNumber', () => {
   describe('parse()', () => {

@@ -1,5 +1,5 @@
-import { IPeerContext } from './peer-context';
-import { IRoomInfo } from './room-info';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { IRoomInfo } from '@axe/core/network/room-info';
 
 export class ConnectionCallback {
   onOpen!: (peer: IPeerContext) => void;

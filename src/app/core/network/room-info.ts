@@ -1,4 +1,4 @@
-import { IPeerContext, PeerContext } from './peer-context';
+import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
 
 export interface IRoomInfo {
   readonly id: string;

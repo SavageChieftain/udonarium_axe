@@ -1,4 +1,4 @@
-import { decodeEntityReference, encodeEntityReference, xml2element } from './xml-util';
+import { decodeEntityReference, encodeEntityReference, xml2element } from '@axe/core/util/xml-util';
 
 describe('XmlUtil', () => {
   describe('encodeEntityReference()', () => {

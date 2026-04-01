@@ -1,6 +1,6 @@
-import { ImageContext, ImageState } from './image-file';
-import { ImageSharingSystem } from './image-sharing-system';
-import { CatalogItem, ImageStorage } from './image-storage';
+import { ImageContext, ImageState } from '@axe/core/storage/image-file';
+import { ImageSharingSystem } from '@axe/core/storage/image-sharing-system';
+import { CatalogItem, ImageStorage } from '@axe/core/storage/image-storage';
 
 type ImageSharingSystemPrivate = {
   makeSendUpdateImages: (catalog: CatalogItem[], maxSize?: number) => ImageContext[];

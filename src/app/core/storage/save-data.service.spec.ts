@@ -1,8 +1,7 @@
 import { inject, TestBed } from '@angular/core/testing';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { SaveDataService } from './save-data.service';
 
 describe('SaveDataService', () => {
   type SaveDataServicePrivateApi = {

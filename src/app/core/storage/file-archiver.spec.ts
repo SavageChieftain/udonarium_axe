@@ -1,7 +1,6 @@
 import { Network } from '@axe/core/index';
+import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
-
-import { FileArchiver } from './file-archiver';
 
 describe('FileArchiver', () => {
   beforeEach(() => {

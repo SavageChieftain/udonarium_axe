@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
-
-import { ObjectStore } from './object-store';
 
 describe('GameObject', () => {
   let store: ObjectStore;

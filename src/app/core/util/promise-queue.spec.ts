@@ -1,4 +1,4 @@
-import { PromiseQueue } from './promise-queue';
+import { PromiseQueue } from '@axe/core/util/promise-queue';
 
 describe('PromiseQueue', () => {
   describe('constructor', () => {

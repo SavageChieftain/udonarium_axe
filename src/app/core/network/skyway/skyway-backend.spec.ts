@@ -1,6 +1,5 @@
+import { SkyWayBackend } from '@axe/core/network/skyway/skyway-backend';
 import { AuthToken, ChannelScope, nowInSec, SkyWayAuthToken, uuidV4 } from '@skyway-sdk/core';
-
-import { SkyWayBackend } from './skyway-backend';
 
 /**
  * SkyWayAuthTokenを生成するモック実装.

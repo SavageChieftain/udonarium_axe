@@ -1,9 +1,8 @@
 import { networkSend } from '@axe/core/network/network-messaging';
+import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
+import { objectAdded$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
+import { Type } from '@axe/core/sync/object-factory';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
-
-import { GameObject, ObjectContext } from './game-object';
-import { objectAdded$, objectRemoved$ } from './object-event-extension';
-import { Type } from './object-factory';
 
 type ObjectAliasName = string;
 type ObjectIdentifier = string;

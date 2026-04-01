@@ -1,5 +1,5 @@
-import { PeerContext } from './peer-context';
-import { RoomInfo } from './room-info';
+import { PeerContext } from '@axe/core/network/peer-context';
+import { RoomInfo } from '@axe/core/network/room-info';
 
 describe('RoomInfo', () => {
   describe('constructor', () => {

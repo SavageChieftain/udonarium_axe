@@ -1,4 +1,4 @@
-import { clearZeroTimeout, setZeroTimeout, waitZeroTimeout } from './zero-timeout';
+import { clearZeroTimeout, setZeroTimeout, waitZeroTimeout } from '@axe/core/util/zero-timeout';
 
 describe('zero-timeout', () => {
   describe('setZeroTimeout()', () => {

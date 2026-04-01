@@ -1,4 +1,4 @@
-import { CandidateType } from './webrtc-stats';
+import { CandidateType } from '@axe/core/network/webrtc-stats';
 
 describe('WebRTCStats', () => {
   describe('CandidateType enum', () => {

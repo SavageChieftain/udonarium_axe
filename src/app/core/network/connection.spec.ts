@@ -1,4 +1,4 @@
-import { ConnectionCallback } from './connection';
+import { ConnectionCallback } from '@axe/core/network/connection';
 
 describe('ConnectionCallback', () => {
   describe('constructor', () => {

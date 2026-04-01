@@ -1,16 +1,15 @@
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { localDispatch, NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { BufferSharingTask } from '@axe/core/storage/buffer-sharing-task';
+import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
+import { ImageContext, ImageFile, ImageState } from '@axe/core/storage/image-file';
+import { CatalogItem, ImageStorage } from '@axe/core/storage/image-storage';
+import * as MimeType from '@axe/core/storage/mime-type';
 import { generateUuid } from '@axe/core/util/uuid';
 import { xmlLoaded$ } from '@axe/domain/domain-events';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-
-import { BufferSharingTask } from './buffer-sharing-task';
-import * as FileReaderUtil from './file-reader-util';
-import { ImageContext, ImageFile, ImageState } from './image-file';
-import { CatalogItem, ImageStorage } from './image-storage';
-import * as MimeType from './mime-type';
 
 export class ImageSharingSystem {
   private static _instance: ImageSharingSystem;

@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
+import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Transform } from '@axe/core/transform/transform';
-
-import { PointerCoordinate, PointerDeviceService } from './pointer-device.service';
 
 @Injectable({
   providedIn: 'root',

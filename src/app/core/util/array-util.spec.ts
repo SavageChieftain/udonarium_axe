@@ -1,4 +1,4 @@
-import { diff } from './array-util';
+import { diff } from '@axe/core/util/array-util';
 
 describe('diff()', () => {
   it('should return empty diffs for identical arrays', () => {

@@ -1,4 +1,4 @@
-import { Transform } from './transform';
+import { Transform } from '@axe/core/transform/transform';
 
 describe('Transform', () => {
   type TransformPrivateApi = {

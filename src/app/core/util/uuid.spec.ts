@@ -1,4 +1,4 @@
-import { generateUuid } from './uuid';
+import { generateUuid } from '@axe/core/util/uuid';
 
 describe('generateUuid()', () => {
   it('文字列を返す', () => {

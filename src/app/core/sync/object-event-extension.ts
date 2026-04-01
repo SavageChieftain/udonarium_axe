@@ -1,9 +1,8 @@
 import { Network } from '@axe/core/network/network';
 import { localDispatch } from '@axe/core/network/network-messaging';
+import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectNode } from '@axe/core/sync/object-node';
 import { Subject } from 'rxjs';
-
-import { GameObject } from './game-object';
-import { ObjectNode } from './object-node';
 
 export interface ObjectChangeEvent {
   identifier: string;

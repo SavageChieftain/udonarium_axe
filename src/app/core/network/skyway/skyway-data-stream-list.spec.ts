@@ -1,5 +1,5 @@
-import { SkyWayDataStream } from './skyway-data-stream';
-import { SkyWayDataStreamList } from './skyway-data-stream-list';
+import { SkyWayDataStream } from '@axe/core/network/skyway/skyway-data-stream';
+import { SkyWayDataStreamList } from '@axe/core/network/skyway/skyway-data-stream-list';
 
 describe('SkyWayDataStreamList', () => {
   function createMockStream(peerId: string, open = true, sortKey = '') {

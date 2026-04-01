@@ -1,4 +1,4 @@
-import type { Attributes } from './attributes';
+import type { Attributes } from '@axe/core/sync/attributes';
 
 describe('Attributes', () => {
   it('type定義に準拠するオブジェクトを作成できる', () => {

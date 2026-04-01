@@ -1,4 +1,4 @@
-import { toHalfWidth } from './string-util';
+import { toHalfWidth } from '@axe/core/util/string-util';
 
 describe('StringUtil', () => {
   describe('toHalfWidth()', () => {

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { AppEventHandlerService } from '@axe/core/app/app-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { AppEventHandlerService } from './app-event-handler.service';
 
 describe('AppEventHandlerService', () => {
   let service: AppEventHandlerService;

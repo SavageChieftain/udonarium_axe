@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AppConfigService } from '@axe/core/app/app-config.service';
+import { AppInitializationService } from '@axe/core/app/app-initialization.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { Jukebox } from '@axe/domain/media/Jukebox';
@@ -9,8 +10,6 @@ import { Alarm } from '@axe/domain/shared/alarm';
 import { ReloadCheck } from '@axe/domain/shared/reload-check';
 import { Vote } from '@axe/domain/shared/vote';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { AppInitializationService } from './app-initialization.service';
 
 describe('AppInitializationService', () => {
   let service: AppInitializationService;

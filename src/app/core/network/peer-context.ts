@@ -1,9 +1,8 @@
 import { Logger } from '@axe/core/logging/logger';
+import { MutablePeerSessionState, PeerSessionGrade, PeerSessionState } from '@axe/core/network/peer-session-state';
 import { sha256 } from '@axe/core/util/crypto-util';
 import base from 'base-x';
 import lzbase62 from 'lzbase62';
-
-import { MutablePeerSessionState, PeerSessionGrade, PeerSessionState } from './peer-session-state';
 
 const Base62 = base('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
 const roomIdPattern = /^(\w{6})(\w{3})(\w*)-(\w*)/i;

@@ -1,4 +1,4 @@
-import { BufferSharingTask } from './buffer-sharing-task';
+import { BufferSharingTask } from '@axe/core/storage/buffer-sharing-task';
 
 const mocks = vi.hoisted(() => {
   const noop = { subscribe: () => ({ unsubscribe: () => {} }) };

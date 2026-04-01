@@ -1,8 +1,8 @@
-import { SyncObject, SyncVar } from './decorator';
-import { GameObject } from './game-object';
-import { ObjectFactory } from './object-factory';
-import { ObjectNode } from './object-node';
-import { ObjectStore } from './object-store';
+import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
+import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectFactory } from '@axe/core/sync/object-factory';
+import { ObjectNode } from '@axe/core/sync/object-node';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 describe('decorator', () => {
   let store: ObjectStore;

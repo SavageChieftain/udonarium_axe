@@ -1,4 +1,4 @@
-import { ImageFile, ImageState } from './image-file';
+import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 
 describe('ImageFile', () => {
   describe('ImageState enum', () => {

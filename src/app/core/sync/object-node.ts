@@ -1,11 +1,10 @@
 import { Logger } from '@axe/core/logging/logger';
+import { Attributes } from '@axe/core/sync/attributes';
+import { defineSyncObject as SyncObject, defineSyncVariable as SyncVar } from '@axe/core/sync/decorator-core';
+import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
+import { InnerXml, ObjectSerializer, XmlAttributes } from '@axe/core/sync/object-serializer';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { decodeEntityReference, encodeEntityReference } from '@axe/core/util/xml-util';
-
-import { Attributes } from './attributes';
-import { defineSyncObject as SyncObject, defineSyncVariable as SyncVar } from './decorator-core';
-import { GameObject, ObjectContext } from './game-object';
-import { InnerXml, ObjectSerializer, XmlAttributes } from './object-serializer';
-import { ObjectStore } from './object-store';
 
 @SyncObject('node')
 export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {

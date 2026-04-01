@@ -1,6 +1,6 @@
-import { GameObject } from './game-object';
-import { ObjectFactory, Type } from './object-factory';
-import { ObjectNode } from './object-node';
+import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectFactory, Type } from '@axe/core/sync/object-factory';
+import { ObjectNode } from '@axe/core/sync/object-node';
 
 export function defineSyncObject(alias: string) {
   return <T extends GameObject>(constructor: Type<T>) => {

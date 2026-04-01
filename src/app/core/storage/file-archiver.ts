@@ -1,16 +1,15 @@
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
+import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import * as MimeType from '@axe/core/storage/mime-type';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { xml2element } from '@axe/core/util/xml-util';
 import { emitFileLoaded, emitXmlLoaded } from '@axe/domain/domain-events';
 import { ReloadCheck } from '@axe/domain/shared/reload-check';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
-
-import { AudioStorage } from './audio-storage';
-import * as FileReaderUtil from './file-reader-util';
-import { ImageStorage } from './image-storage';
-import * as MimeType from './mime-type';
 
 type MetaData = { percent: number; currentFile: string };
 type UpdateCallback = (metadata: MetaData) => void;

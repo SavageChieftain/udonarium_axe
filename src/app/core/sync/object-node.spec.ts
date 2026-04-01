@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-
-import { ObjectNode } from './object-node';
-import { ObjectStore } from './object-store';
+import { ObjectNode } from '@axe/core/sync/object-node';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 describe('ObjectNode', () => {
   let store: ObjectStore;

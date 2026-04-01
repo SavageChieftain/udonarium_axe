@@ -1,4 +1,4 @@
-import { Matrix3D } from './matrix-3d';
+import { Matrix3D } from '@axe/core/transform/matrix-3d';
 
 describe('Matrix3D', () => {
   describe('constructor', () => {

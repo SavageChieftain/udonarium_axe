@@ -1,4 +1,4 @@
-import { SkyWayDataStream } from './skyway-data-stream';
+import { SkyWayDataStream } from '@axe/core/network/skyway/skyway-data-stream';
 
 describe('SkyWayDataStream', () => {
   it('クラスがエクスポートされている', () => {

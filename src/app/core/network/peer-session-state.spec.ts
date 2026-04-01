@@ -1,4 +1,4 @@
-import { PeerSessionGrade } from './peer-session-state';
+import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
 
 describe('PeerSessionState', () => {
   describe('PeerSessionGrade enum', () => {

@@ -1,4 +1,4 @@
-import { ObjectSynchronizer } from './object-synchronizer';
+import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 
 describe('ObjectSynchronizer', () => {
   describe('instance (singleton)', () => {

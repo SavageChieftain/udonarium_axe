@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-
-import { CoordinateService } from './coordinate.service';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
 
 describe('CoordinateService', () => {
   let service: CoordinateService;

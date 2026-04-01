@@ -5,9 +5,9 @@ import {
   objectAdded$,
   objectChanged$,
   objectRemoved$,
-} from './object-event-extension';
-import { ObjectNode } from './object-node';
-import { ObjectStore } from './object-store';
+} from '@axe/core/sync/object-event-extension';
+import { ObjectNode } from '@axe/core/sync/object-node';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 describe('object-event-extension', () => {
   let store: ObjectStore;

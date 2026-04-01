@@ -1,6 +1,5 @@
 import { inject, TestBed } from '@angular/core/testing';
-
-import { AppConfigService } from './app-config.service';
+import { AppConfigService } from '@axe/core/app/app-config.service';
 
 describe('AppConfigService', () => {
   beforeEach(() => {

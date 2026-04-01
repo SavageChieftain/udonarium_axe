@@ -1,4 +1,4 @@
-import * as MessagePack from './message-pack';
+import * as MessagePack from '@axe/core/util/message-pack';
 
 describe('MessagePack', () => {
   describe('encode()', () => {

@@ -1,4 +1,4 @@
-import { initializeNetworkMessaging, localDispatch, Network, networkMessage$, networkSend } from './index';
+import { initializeNetworkMessaging, localDispatch, Network, networkMessage$, networkSend } from '@axe/core/index';
 
 describe('system/index re-exports', () => {
   it('Networkシングルトンがエクスポートされている', () => {

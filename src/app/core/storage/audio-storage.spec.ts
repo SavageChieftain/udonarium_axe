@@ -1,5 +1,5 @@
-import { AudioFile } from './audio-file';
-import { AudioStorage } from './audio-storage';
+import { AudioFile } from '@axe/core/storage/audio-file';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 
 describe('AudioStorage', () => {
   let storage: AudioStorage;

@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/network/network';
-
-import { GameObject } from './game-object';
-import { objectAdded$, objectRemoved$ } from './object-event-extension';
-import { ObjectStore } from './object-store';
+import { GameObject } from '@axe/core/sync/game-object';
+import { objectAdded$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 type ObjectStorePrivate = {
   aliasNameMap: Map<string, Map<string, GameObject> | undefined>;

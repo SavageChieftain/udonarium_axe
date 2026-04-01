@@ -1,7 +1,6 @@
 import { Logger } from '@axe/core/logging/logger';
-
-import { CSSNumber } from './css-number';
-import { IPoint2D, IPoint3D } from './transform';
+import { CSSNumber } from '@axe/core/transform/css-number';
+import { IPoint2D, IPoint3D } from '@axe/core/transform/transform';
 
 export interface IMatrix3D {
   m11: number;

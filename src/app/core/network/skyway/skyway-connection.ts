@@ -2,14 +2,13 @@ import { Logger } from '@axe/core/logging/logger';
 import { Connection, ConnectionCallback } from '@axe/core/network/connection';
 import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
 import { IRoomInfo, RoomInfo } from '@axe/core/network/room-info';
+import { SkyWayDataStream } from '@axe/core/network/skyway/skyway-data-stream';
+import { SkyWayDataStreamList } from '@axe/core/network/skyway/skyway-data-stream-list';
+import { SkyWayFacade } from '@axe/core/network/skyway/skyway-facade';
 import { diff } from '@axe/core/util/array-util';
 import { compressAsync, decompressAsync } from '@axe/core/util/compress';
 import * as MessagePack from '@axe/core/util/message-pack';
 import { waitZeroTimeout } from '@axe/core/util/zero-timeout';
-
-import { SkyWayDataStream } from './skyway-data-stream';
-import { SkyWayDataStreamList } from './skyway-data-stream-list';
-import { SkyWayFacade } from './skyway-facade';
 
 type PeerId = string;
 

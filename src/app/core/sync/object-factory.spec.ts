@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-
-import { GameObject } from './game-object';
-import { ObjectFactory } from './object-factory';
-import { ObjectStore } from './object-store';
+import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectFactory } from '@axe/core/sync/object-factory';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 describe('ObjectFactory', () => {
   let factory: ObjectFactory;

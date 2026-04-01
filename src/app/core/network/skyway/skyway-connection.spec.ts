@@ -1,4 +1,4 @@
-import { SkyWayConnection } from './skyway-connection';
+import { SkyWayConnection } from '@axe/core/network/skyway/skyway-connection';
 
 describe('SkyWayConnection', () => {
   it('クラスがエクスポートされている', () => {

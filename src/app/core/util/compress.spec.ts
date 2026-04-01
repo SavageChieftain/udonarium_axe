@@ -1,4 +1,4 @@
-import { compressAsync, decompressAsync } from './compress';
+import { compressAsync, decompressAsync } from '@axe/core/util/compress';
 
 describe('compress', () => {
   describe('compressAsync()', () => {

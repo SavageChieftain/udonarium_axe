@@ -1,13 +1,12 @@
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { localDispatch, NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { AudioFile, AudioFileContext, AudioState } from '@axe/core/storage/audio-file';
+import { AudioStorage, CatalogItem } from '@axe/core/storage/audio-storage';
+import { BufferSharingTask } from '@axe/core/storage/buffer-sharing-task';
+import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-
-import { AudioFile, AudioFileContext, AudioState } from './audio-file';
-import { AudioStorage, CatalogItem } from './audio-storage';
-import { BufferSharingTask } from './buffer-sharing-task';
-import * as FileReaderUtil from './file-reader-util';
 
 export class AudioSharingSystem {
   private static _instance: AudioSharingSystem;

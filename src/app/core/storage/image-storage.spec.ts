@@ -1,5 +1,5 @@
-import { ImageFile } from './image-file';
-import { ImageStorage } from './image-storage';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 
 describe('ImageStorage', () => {
   let storage: ImageStorage;

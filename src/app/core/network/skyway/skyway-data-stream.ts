@@ -1,6 +1,8 @@
 import { Logger } from '@axe/core/logging/logger';
 import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
 import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
+import { ChunkBuffer, DataChunk } from '@axe/core/network/skyway/skyway-chunk-buffer';
+import { SkyWayFacade } from '@axe/core/network/skyway/skyway-facade';
 import { CandidateType, WebRTCStats } from '@axe/core/network/webrtc/webrtc-stats';
 import { WebRTCConnection, WebRTCStatsMonitor } from '@axe/core/network/webrtc/webrtc-stats-monitor';
 import * as MessagePack from '@axe/core/util/message-pack';
@@ -17,9 +19,6 @@ import {
   TransportConnectionState,
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'eventemitter3';
-
-import { ChunkBuffer, DataChunk } from './skyway-chunk-buffer';
-import { SkyWayFacade } from './skyway-facade';
 
 interface Ping {
   from: string;

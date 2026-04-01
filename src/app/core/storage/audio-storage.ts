@@ -1,7 +1,6 @@
 import { networkSend } from '@axe/core/network/network-messaging';
+import { AudioFile, AudioFileContext, AudioState } from '@axe/core/storage/audio-file';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
-
-import { AudioFile, AudioFileContext, AudioState } from './audio-file';
 
 export type CatalogItem = {
   readonly identifier: string;

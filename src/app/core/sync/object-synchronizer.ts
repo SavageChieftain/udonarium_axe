@@ -1,14 +1,13 @@
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
+import { markForChanged } from '@axe/core/sync/object-event-extension';
+import { ObjectFactory } from '@axe/core/sync/object-factory';
+import { CatalogItem, ObjectStore } from '@axe/core/sync/object-store';
+import { SynchronizeRequest, SynchronizeTask } from '@axe/core/sync/synchronize-task';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-
-import { GameObject, ObjectContext } from './game-object';
-import { markForChanged } from './object-event-extension';
-import { ObjectFactory } from './object-factory';
-import { CatalogItem, ObjectStore } from './object-store';
-import { SynchronizeRequest, SynchronizeTask } from './synchronize-task';
 
 type PeerId = string;
 type ObjectIdentifier = string;

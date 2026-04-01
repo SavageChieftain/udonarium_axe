@@ -1,5 +1,5 @@
-import { CSSNumber } from './css-number';
-import { Matrix3D } from './matrix-3d';
+import { CSSNumber } from '@axe/core/transform/css-number';
+import { Matrix3D } from '@axe/core/transform/matrix-3d';
 
 export interface IPoint2D {
   x: number;

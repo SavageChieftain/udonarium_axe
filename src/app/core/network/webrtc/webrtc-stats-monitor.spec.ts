@@ -1,4 +1,4 @@
-import { WebRTCConnection, WebRTCStatsMonitor } from './webrtc-stats-monitor';
+import { WebRTCConnection, WebRTCStatsMonitor } from '@axe/core/network/webrtc/webrtc-stats-monitor';
 
 describe('WebRTCStatsMonitor', () => {
   let mockConnection: WebRTCConnection;

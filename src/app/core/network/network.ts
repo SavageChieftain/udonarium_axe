@@ -1,9 +1,8 @@
 import { Logger } from '@axe/core/logging/logger';
+import { Connection, ConnectionCallback } from '@axe/core/network/connection';
+import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
+import { IRoomInfo } from '@axe/core/network/room-info';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
-
-import { Connection, ConnectionCallback } from './connection';
-import { IPeerContext, PeerContext } from './peer-context';
-import { IRoomInfo } from './room-info';
 
 type QueueItem = { data: unknown; sendTo: string | undefined };
 type ConnectionClass = new (...args: never[]) => Connection;

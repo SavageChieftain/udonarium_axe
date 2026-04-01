@@ -1,8 +1,7 @@
+import { ObjectFactory } from '@axe/core/sync/object-factory';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { generateUuid } from '@axe/core/util/uuid';
-
-import { ObjectFactory } from './object-factory';
-import { ObjectSerializer } from './object-serializer';
-import { ObjectStore } from './object-store';
 
 export interface ObjectContext {
   aliasName: string;

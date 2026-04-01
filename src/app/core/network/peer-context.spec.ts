@@ -1,5 +1,5 @@
-import { PeerContext } from './peer-context';
-import { PeerSessionGrade } from './peer-session-state';
+import { PeerContext } from '@axe/core/network/peer-context';
+import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
 
 describe('PeerContext', () => {
   describe('parse', () => {
