@@ -25,7 +25,7 @@ export class FileArchiver {
 
   networkService = Network;
   get reloadCheck(): ReloadCheck {
-    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck');
+    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck')!;
   }
 
   private maxImageSize = 2 * MEGA_BYTE;

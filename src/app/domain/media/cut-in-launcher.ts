@@ -19,7 +19,7 @@ export class CutInLauncher extends GameObject {
   reloadDummy = 5;
 
   get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox');
+    return ObjectStore.instance.get<Jukebox>('Jukebox')!;
   }
 
   isCutInBgmUploaded(audioIdentifier: string) {

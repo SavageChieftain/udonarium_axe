@@ -151,7 +151,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   get config(): Config {
-    return this.objectStore.get<Config>('Config');
+    return this.objectStore.get<Config>('Config')!;
   }
 
   get tachieNum(): number {
@@ -308,7 +308,9 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier()) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
-      const peerCursor = this.objectStore.getObjects<PeerCursor>(PeerCursor).find((obj) => obj.userId === message.from);
+      const peerCursor = this.objectStore
+        .getObjects<PeerCursor>(PeerCursor)
+        .find((obj) => obj.userId === message?.from);
       const sendFrom = peerCursor ? peerCursor.peerId : '?';
       this.writingManager.remove(sendFrom);
     });

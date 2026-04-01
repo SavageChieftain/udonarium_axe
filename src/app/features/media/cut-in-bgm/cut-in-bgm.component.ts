@@ -34,7 +34,7 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get jukebox(): Jukebox {
-    return this.objectStore.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox')!;
   }
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();

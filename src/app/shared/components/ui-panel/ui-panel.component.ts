@@ -170,7 +170,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
     const id = this.panelService.cutInIdentifier;
     if (id) {
       const cutIn = this.objectStore.get<CutIn>(id);
-      if (cutIn.videoId) {
+      if (cutIn?.videoId) {
         return;
       }
     }

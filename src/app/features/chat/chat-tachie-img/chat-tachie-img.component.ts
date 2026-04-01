@@ -47,7 +47,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
 
   get chatTab(): ChatTab {
     this.objectChange.versionOf(this.chatTabidentifier())();
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier());
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
   }
 
   get tachieY_Pos(): number {
@@ -63,7 +63,7 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
   get dispFlag(): boolean {

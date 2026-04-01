@@ -94,7 +94,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   get chatTab(): ChatTab {
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

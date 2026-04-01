@@ -346,7 +346,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   multiDelete() {
     const inGraveyard: Set<GameCharacter> = new Set();
     for (const gameObjectIdentifier of this.multiMoveTargets) {
-      const gameObject: GameCharacter = this.objectStore.get(gameObjectIdentifier);
+      const gameObject = this.objectStore.get<GameCharacter>(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter && gameObject.location.name == 'graveyard') {
         inGraveyard.add(gameObject);
       }

@@ -40,11 +40,11 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
   private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier());
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
   }
 
   get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
   get tachieAreaWidth(): number {

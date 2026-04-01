@@ -22,7 +22,7 @@ export class AlarmWindowComponent implements AfterViewInit, OnDestroy {
 
   private timestamp = 0;
   get alarm(): Alarm {
-    return this.objectStore.get<Alarm>('Alarm');
+    return this.objectStore.get<Alarm>('Alarm')!;
   }
 
   constructor() {

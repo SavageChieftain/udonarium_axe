@@ -290,7 +290,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get markdown(): MarkDown {
-    return this.objectStore.get<MarkDown>('markdwon');
+    return this.objectStore.get<MarkDown>('markdwon')!;
   }
 
   escapeHtmlMarkDown(text: string, baseId: string): SafeHtml {

@@ -36,7 +36,7 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private timestamp = 0;
   get vote(): Vote {
-    return this.objectStore.get<Vote>('Vote');
+    return this.objectStore.get<Vote>('Vote')!;
   }
   get answerList(): number[] {
     return this.vote.voteAnswer;

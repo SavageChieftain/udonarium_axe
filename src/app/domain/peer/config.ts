@@ -30,7 +30,7 @@ export class Config extends ObjectNode implements InnerXml {
   // ジュークボックスの個人用設定はjukebox側
   // 共通設定保存の都合でのため全体ボリュームはこちらにある
   get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox');
+    return ObjectStore.instance.get<Jukebox>('Jukebox')!;
   }
 
   get roomGridDispAlways(): boolean {

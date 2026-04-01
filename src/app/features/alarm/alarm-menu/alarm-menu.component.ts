@@ -43,7 +43,7 @@ export class AlarmMenuComponent implements OnInit, OnDestroy {
     return PeerCursor.myCursor;
   }
   get alarm(): Alarm {
-    return this.objectStore.get<Alarm>('Alarm');
+    return this.objectStore.get<Alarm>('Alarm')!;
   }
 
   constructor() {

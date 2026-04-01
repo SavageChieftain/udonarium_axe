@@ -39,7 +39,7 @@ export class VoteMenuComponent implements OnInit, OnDestroy, AfterViewInit {
     return PeerCursor.myCursor;
   }
   get vote(): Vote {
-    return this.objectStore.get<Vote>('Vote');
+    return this.objectStore.get<Vote>('Vote')!;
   }
 
   constructor() {}

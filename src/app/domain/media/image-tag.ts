@@ -23,7 +23,7 @@ export class ImageTag extends ObjectNode {
   }
 
   static get(imageIdentifier: string): ImageTag {
-    return ObjectStore.instance.get<ImageTag>(`imagetag_${imageIdentifier}`);
+    return ObjectStore.instance.get<ImageTag>(`imagetag_${imageIdentifier}`)!;
   }
 
   static create(imageIdentifier: string) {

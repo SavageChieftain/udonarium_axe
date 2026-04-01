@@ -68,13 +68,13 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get cutInLauncher(): CutInLauncher {
-    return this.objectStore.get<CutInLauncher>('CutInLauncher');
+    return this.objectStore.get<CutInLauncher>('CutInLauncher')!;
   }
   get jukebox(): Jukebox {
-    return this.objectStore.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox')!;
   }
   get config(): Config {
-    return this.objectStore.get<Config>('Config');
+    return this.objectStore.get<Config>('Config')!;
   }
 
   getCutIns(): CutIn[] {

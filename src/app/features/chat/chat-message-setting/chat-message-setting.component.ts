@@ -29,7 +29,7 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   }
 
   get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
   changeDispFlagTime() {

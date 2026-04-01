@@ -25,7 +25,7 @@ export class Room extends GameObject implements InnerXml {
   }
 
   get reloadCheck(): ReloadCheck {
-    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck');
+    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck')!;
   }
 
   innerXml(): string {

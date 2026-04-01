@@ -127,7 +127,7 @@ export class AppComponent implements AfterViewInit {
     const input = event.target as HTMLInputElement;
     const files = input.files;
     const reloadCheck = this.objectStore.get<ReloadCheck>('ReloadCheck');
-    reloadCheck.reloadCheckStart(Network.peerContext.roomName != '');
+    reloadCheck!.reloadCheckStart(Network.peerContext.roomName != '');
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
   }

@@ -143,7 +143,7 @@ export class PeerCursor extends GameObject {
   }
 
   get vote(): Vote {
-    return ObjectStore.instance.get<Vote>('Vote');
+    return ObjectStore.instance.get<Vote>('Vote')!;
   }
 
   static myCursor: PeerCursor = null!;
@@ -224,7 +224,7 @@ export class PeerCursor extends GameObject {
   private static find(map: Map<string, string>, key: string, isUserId: boolean): PeerCursor {
     const identifier = map.get(key);
     if (identifier != null && ObjectStore.instance.get(identifier))
-      return ObjectStore.instance.get<PeerCursor>(identifier);
+      return ObjectStore.instance.get<PeerCursor>(identifier)!;
     const cursors = ObjectStore.instance.getObjects<PeerCursor>(PeerCursor);
     for (const cursor of cursors) {
       const id = isUserId ? cursor.userId : cursor.peerId;

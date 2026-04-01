@@ -41,14 +41,14 @@ export class TableSelecter extends GameObject {
   }
 
   get viewTable(): GameTable {
-    let table: GameTable = ObjectStore.instance.get<GameTable>(this.viewTableIdentifier);
+    let table: GameTable | null = ObjectStore.instance.get<GameTable>(this.viewTableIdentifier);
     if (!table) {
-      table = ObjectStore.instance.getObjects<GameTable>(GameTable)[0];
+      table = ObjectStore.instance.getObjects<GameTable>(GameTable)[0] ?? null;
       if (table && (this.viewTableIdentifier.length < 1 || ObjectStore.instance.isDeleted(this.viewTableIdentifier))) {
         this.viewTableIdentifier = table.identifier;
         emitSelectGameTable({ identifier: table.identifier });
       }
     }
-    return table;
+    return table!;
   }
 }

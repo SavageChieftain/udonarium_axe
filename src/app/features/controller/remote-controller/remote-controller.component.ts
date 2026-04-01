@@ -88,7 +88,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get chatTab(): ChatTab {
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

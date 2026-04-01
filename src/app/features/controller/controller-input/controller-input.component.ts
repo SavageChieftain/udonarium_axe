@@ -274,7 +274,9 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
         return;
       }
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
-      const peerCursor = this.objectStore.getObjects<PeerCursor>(PeerCursor).find((obj) => obj.userId === message.from);
+      const peerCursor = this.objectStore
+        .getObjects<PeerCursor>(PeerCursor)
+        .find((obj) => obj.userId === message?.from);
       const sendFrom = peerCursor ? peerCursor.peerId : '?';
       if (this.writingPeers.has(sendFrom)) {
         this.writingPeers.get(sendFrom)!.stop();

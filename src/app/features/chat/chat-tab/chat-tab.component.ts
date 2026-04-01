@@ -142,7 +142,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     return this.chatTabInput();
   }
   get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
   readonly addMessage = output<void>();

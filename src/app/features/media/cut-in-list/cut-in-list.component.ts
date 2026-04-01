@@ -40,7 +40,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   _maxSizeHeight = 1200;
 
   get cutInLauncher(): CutInLauncher {
-    return this.objectStore.get<CutInLauncher>('CutInLauncher');
+    return this.objectStore.get<CutInLauncher>('CutInLauncher')!;
   }
 
   get cutInName(): string {
@@ -246,7 +246,7 @@ export class CutInListComponent implements OnInit, OnDestroy {
   }
 
   get jukebox(): Jukebox {
-    return this.objectStore.get<Jukebox>('Jukebox');
+    return this.objectStore.get<Jukebox>('Jukebox')!;
   }
 
   get cutInImage(): ImageFile {

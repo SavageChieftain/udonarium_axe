@@ -91,7 +91,7 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
   get chatTab(): ChatTab {
     this.objectChange.versionOf(this.chatTabidentifier)();
     this.objectChange.collectionOf('chat-tab')();
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier);
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
   }
   isAutoScroll: boolean = true;
   hasNewMessage = signal(false);

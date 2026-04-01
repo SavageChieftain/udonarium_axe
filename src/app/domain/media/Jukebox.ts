@@ -23,7 +23,7 @@ export class Jukebox extends GameObject {
   private audioUpdateSub: Subscription | null = null;
 
   get config(): Config {
-    return ObjectStore.instance.get<Config>('Config');
+    return ObjectStore.instance.get<Config>('Config')!;
   }
 
   private _volume = 0.5;

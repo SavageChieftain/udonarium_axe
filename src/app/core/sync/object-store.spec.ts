@@ -409,7 +409,7 @@ describe('ObjectStore', () => {
     });
   });
 
-  describe('_garbageCollection()', () => {
+  describe('scheduleGarbageCollection()', () => {
     it('should evict old entries from garbageMap when size exceeds 100000', () => {
       vi.useFakeTimers();
       try {

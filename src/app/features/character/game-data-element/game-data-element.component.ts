@@ -184,7 +184,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   }
 
   get markdown(): MarkDown {
-    return this.objectStore.get<MarkDown>('markdwon');
+    return this.objectStore.get<MarkDown>('markdwon')!;
   }
 
   escapeHtmlMarkDown(text: string | number, baseId: string): SafeHtml {

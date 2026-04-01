@@ -71,7 +71,7 @@ export class ObjectSynchronizer {
           if (ObjectStore.instance.isDeleted(msg.data)) {
             networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: msg.data }, msg.sendFrom);
           } else {
-            const object: GameObject = ObjectStore.instance.get(msg.data);
+            const object = ObjectStore.instance.get(msg.data);
             if (object) networkSend('UPDATE_GAME_OBJECT', object.toContext(), msg.sendFrom);
           }
         })
@@ -82,7 +82,7 @@ export class ObjectSynchronizer {
         .pipe(filter((msg): msg is NetworkMessage<ObjectContext> => msg.eventName === 'UPDATE_GAME_OBJECT'))
         .subscribe((msg) => {
           const context: ObjectContext = msg.data;
-          let object: GameObject = ObjectStore.instance.get(context.identifier);
+          let object: GameObject | null = ObjectStore.instance.get(context.identifier);
           if (object) {
             if (!msg.isSendFromSelf) object = this.updateObject(object, context);
             markForChanged(object, msg.sendFrom);

@@ -105,12 +105,14 @@ export class TabletopObject extends ObjectNode {
 
   protected getElement(name: string, from: DataElement = this.rootDataElement): DataElement {
     if (!from) return null!;
-    let element: DataElement = this._dataElements[name] ? ObjectStore.instance.get(this._dataElements[name]) : null!;
+    let element: DataElement | null = this._dataElements[name]
+      ? ObjectStore.instance.get(this._dataElements[name])
+      : null;
     if (!element || !from.contains(element)) {
       element = from.getFirstElementByName(name);
       this._dataElements[name] = element ? element.identifier : null!;
     }
-    return element;
+    return element!;
   }
 
   protected getCommonValue<T extends string | number>(elementName: string, defaultValue: T): T {

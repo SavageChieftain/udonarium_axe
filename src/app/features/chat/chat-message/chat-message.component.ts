@@ -39,7 +39,7 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   animeState: string = 'inactive';
 
   get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
   ngOnInit() {

@@ -54,7 +54,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.cursor().isMine;
   }
   get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
   private cursorElement: HTMLElement = null!;
@@ -127,7 +127,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     const elapsedTime = Date.now() - this.cursor().timestampReceive;
 
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
-    const sysTab = chatTabList.systemMessageTab;
+    const sysTab = chatTabList!.systemMessageTab;
 
     if (timeout <= elapsedTime) {
       if (!this.cursor().isDisConnect) {

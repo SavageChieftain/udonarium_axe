@@ -68,7 +68,7 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   get config(): Config {
-    return this.objectStore.get<Config>('Config');
+    return this.objectStore.get<Config>('Config')!;
   }
 
   minSize: number = 1;

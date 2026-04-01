@@ -112,7 +112,7 @@ export class AppEventHandlerService {
 
   private openVotePanel(): void {
     const vote = this.objectStore.get<Vote>('Vote');
-    if (!vote.chkToMe()) return;
+    if (!vote!.chkToMe()) return;
 
     const option: PanelOption = { left: 0, top: 0, width: 450, height: 400 };
     option.title = '点呼/投票';

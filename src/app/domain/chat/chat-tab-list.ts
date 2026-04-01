@@ -22,7 +22,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   }
 
   get reloadCheck(): ReloadCheck {
-    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck');
+    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck')!;
   }
 
   public tachieHeightValue = 200;
