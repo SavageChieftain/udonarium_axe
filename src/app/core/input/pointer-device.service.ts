@@ -30,10 +30,10 @@ export class PointerDeviceService {
     return this._isAllowedToOpenContextMenu;
   }
 
-  targetElement: HTMLElement;
+  targetElement: HTMLElement = document.body;
 
   pointers: PointerData[] = [{ x: 0, y: 0, z: 0, identifier: -1 }];
-  private startPostion: PointerData = this.pointers[0];
+  private startPosition: PointerData = this.pointers[0];
   private primaryPointer: PointerData = this.pointers[0];
   get pointer(): PointerCoordinate {
     return this.primaryPointer;
@@ -66,12 +66,9 @@ export class PointerDeviceService {
   private onPointerDown(e: MouseEvent | TouchEvent) {
     this.onPointerMove(e);
     this._isAllowedToOpenContextMenu = true;
-    this.startPostion = this.pointers[0];
+    this.startPosition = this.pointers[0];
   }
 
-  private onPointerMove(e: MouseEvent): void;
-  private onPointerMove(e: TouchEvent): void;
-  private onPointerMove(e: MouseEvent | TouchEvent): void;
   private onPointerMove(e: MouseEvent | TouchEvent): void {
     if ((e as TouchEvent).touches) {
       this.onTouchMove(e as TouchEvent);
@@ -90,11 +87,11 @@ export class PointerDeviceService {
     if (this.isDragging && e.buttons === 0) {
       this.resetDraggingState();
     }
-    const mosuePointer: PointerData = { x: e.pageX, y: e.pageY, z: 0, identifier: MOUSE_IDENTIFIER };
-    if (this.isSyntheticEvent(mosuePointer)) return;
-    if (this._isAllowedToOpenContextMenu) this.preventContextMenuIfNeeded(mosuePointer);
-    this.pointers = [mosuePointer];
-    this.primaryPointer = mosuePointer;
+    const mousePointer: PointerData = { x: e.pageX, y: e.pageY, z: 0, identifier: MOUSE_IDENTIFIER };
+    if (this.isSyntheticEvent(mousePointer)) return;
+    if (this._isAllowedToOpenContextMenu) this.preventContextMenuIfNeeded(mousePointer);
+    this.pointers = [mousePointer];
+    this.primaryPointer = mousePointer;
   }
 
   private onTouchMove(e: TouchEvent) {
@@ -121,7 +118,7 @@ export class PointerDeviceService {
   }
 
   private preventContextMenuIfNeeded(pointer: PointerCoordinate, threshold: number = 3) {
-    const distance = (pointer.x - this.startPostion.x) ** 2 + (pointer.y - this.startPostion.y) ** 2;
+    const distance = (pointer.x - this.startPosition.x) ** 2 + (pointer.y - this.startPosition.y) ** 2;
     if (threshold ** 2 < distance) this._isAllowedToOpenContextMenu = false;
   }
 
