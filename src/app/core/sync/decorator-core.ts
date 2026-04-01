@@ -8,6 +8,15 @@ export function defineSyncObject(alias: string) {
   };
 }
 
+function defineAccessor(target: object, key: string | symbol, getter: () => unknown, setter: (value: unknown) => void) {
+  Object.defineProperty(target, key, {
+    get: getter,
+    set: setter,
+    enumerable: true,
+    configurable: true,
+  });
+}
+
 export function defineSyncVariable(syncKey?: string | symbol) {
   return <T extends GameObject>(target: T, key: string | symbol) => {
     const dataKey = syncKey ?? key;
@@ -21,18 +30,13 @@ export function defineSyncVariable(syncKey?: string | symbol) {
       this.update();
     }
 
-    Object.defineProperty(target, key, {
-      get: getter,
-      set: setter,
-      enumerable: true,
-      configurable: true,
-    });
+    defineAccessor(target, key, getter, setter);
   };
 }
 
-export function defineSyncAttribute(syncKey?: string | symbol) {
+export function defineSyncAttribute(syncKey?: string) {
   return <T extends ObjectNode>(target: T, key: string | symbol) => {
-    const attrName = (syncKey ?? key) as string;
+    const attrName = syncKey ?? (key as string);
 
     function getter(this: { getAttribute(name: string): string }) {
       return this.getAttribute(attrName);
@@ -42,11 +46,6 @@ export function defineSyncAttribute(syncKey?: string | symbol) {
       this.setAttribute(attrName, value);
     }
 
-    Object.defineProperty(target, key, {
-      get: getter,
-      set: setter,
-      enumerable: true,
-      configurable: true,
-    });
+    defineAccessor(target, key, getter, setter as (value: unknown) => void);
   };
 }
