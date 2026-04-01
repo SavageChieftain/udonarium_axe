@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 test.describe('アプリケーション起動', () => {
   test('アプリが起動すること', async ({ page }) => {
