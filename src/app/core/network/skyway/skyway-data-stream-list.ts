@@ -8,13 +8,7 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
   }
 
   [Symbol.iterator]() {
-    const streams = [...this.streams];
-    let index = 0;
-    return {
-      next(): IteratorResult<SkyWayDataStream> {
-        return { value: streams[index++], done: streams.length + 1 <= index };
-      },
-    };
+    return [...this.streams][Symbol.iterator]();
   }
 
   private needsRefreshPeers = false;
@@ -33,24 +27,21 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
   get peerIds(): string[] {
     if (this.needsRefreshPeerIds) {
       this.needsRefreshPeerIds = false;
-      const peerIds: string[] = [];
-      for (const stream of this.streams) {
-        if (stream.open) peerIds.push(stream.peer.peerId);
-      }
-      peerIds.sort((a, b) => a.localeCompare(b));
-      this._peerIds = peerIds;
+      this._peerIds = this.streams
+        .filter((s) => s.open)
+        .map((s) => s.peer.peerId)
+        .sort((a, b) => a.localeCompare(b));
     }
     return this._peerIds;
   }
 
-  add(stream: SkyWayDataStream): SkyWayDataStream {
+  add(stream: SkyWayDataStream): SkyWayDataStream | null {
     const existStream = this.find(stream.peer.peerId);
     if (existStream) {
       if (existStream !== stream) {
         if (existStream.sortKey < stream.sortKey) {
           stream.removeAllListeners();
           stream.disconnect();
-          this.remove(stream);
         } else {
           existStream.removeAllListeners();
           existStream.disconnect();
@@ -58,24 +49,23 @@ export class SkyWayDataStreamList implements Iterable<SkyWayDataStream> {
           return this.add(stream);
         }
       }
-      return null!;
+      return null;
     }
     this.streams.push(stream);
     this.refresh();
     return stream;
   }
 
-  remove(stream: SkyWayDataStream): SkyWayDataStream {
+  remove(stream: SkyWayDataStream): SkyWayDataStream | null {
     const index = this.streams.indexOf(stream);
-    if (0 <= index) {
-      this.streams.splice(index, 1);
-      this.refresh();
-    }
-    return index >= 0 ? stream : null!;
+    if (index < 0) return null;
+    this.streams.splice(index, 1);
+    this.refresh();
+    return stream;
   }
 
-  find(peerId: string): SkyWayDataStream {
-    return this.streams.find((stream) => stream.peer.peerId === peerId)!;
+  find(peerId: string): SkyWayDataStream | undefined {
+    return this.streams.find((stream) => stream.peer.peerId === peerId);
   }
 
   refresh() {
