@@ -40,7 +40,7 @@ describe('BufferSharingTask', () => {
 
       expect(internal['data']).toBeNull();
       expect(internal['uint8Array']).toBeNull();
-      expect(internal['sendChankTimer']).toBeNull();
+      expect(internal['sendChunkTimer']).toBeNull();
       expect(internal['timeoutTimer']).toBeNull();
     });
   });

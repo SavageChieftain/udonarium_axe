@@ -18,7 +18,7 @@ import {
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'eventemitter3';
 
-import { ChunkBuffer, DataChank } from './skyway-chunk-buffer';
+import { ChunkBuffer, DataChunk } from './skyway-chunk-buffer';
 import { SkyWayFacade } from './skyway-facade';
 
 interface Ping {
@@ -361,11 +361,11 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     const id = generateUuid();
 
     let sliceData: Uint8Array;
-    let chank: DataChank;
+    let chunk: DataChunk;
     for (let sliceIndex = 0; sliceIndex < total; sliceIndex++) {
       sliceData = encodedData.slice(sliceIndex * this.chunkSize, (sliceIndex + 1) * this.chunkSize);
-      chank = { id: id, data: sliceData, index: sliceIndex, total: total };
-      this.addSendQueue(MessagePack.encode(chank));
+      chunk = { id: id, data: sliceData, index: sliceIndex, total: total };
+      this.addSendQueue(MessagePack.encode(chunk));
     }
   }
 
@@ -474,13 +474,13 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       return;
     }
 
-    const chank: DataChank = decoded as DataChank;
-    if (chank.id == null) {
+    const chunk: DataChunk = decoded as DataChunk;
+    if (chunk.id == null) {
       this.emit('data', decoded);
       return;
     }
 
-    const assembled = this.chunkBuffer.add(chank);
+    const assembled = this.chunkBuffer.add(chunk);
     if (assembled === null) return;
 
     this.emit('data', MessagePack.decode(assembled));

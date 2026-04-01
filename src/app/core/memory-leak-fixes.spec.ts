@@ -602,8 +602,8 @@ describe('SkyWay Facade リスナークリーンアップ修正', () => {
 describe('SkyWay DataStream receivedMap修正', () => {
   it('dispose時にreceivedMapがクリアされる', () => {
     const receivedMap = new Map();
-    receivedMap.set('chunk-1', { id: 'chunk-1', chanks: [], length: 0, byteLength: 0, createdAt: 0 });
-    receivedMap.set('chunk-2', { id: 'chunk-2', chanks: [], length: 0, byteLength: 0, createdAt: 0 });
+    receivedMap.set('chunk-1', { id: 'chunk-1', chunks: [], length: 0, byteLength: 0, createdAt: 0 });
+    receivedMap.set('chunk-2', { id: 'chunk-2', chunks: [], length: 0, byteLength: 0, createdAt: 0 });
 
     // disposeのreceivedMap.clear()ロジックをテスト
     receivedMap.clear();
@@ -615,14 +615,14 @@ describe('SkyWay DataStream receivedMap修正', () => {
     const CHUNK_TTL_MS = 30000;
     const receivedMap = new Map<
       string,
-      { id: string; chanks: Uint8Array[]; length: number; byteLength: number; createdAt: number }
+      { id: string; chunks: Uint8Array[]; length: number; byteLength: number; createdAt: number }
     >();
     const now = performance.now();
 
     // 古いエントリ（TTL超過）
     receivedMap.set('old-chunk', {
       id: 'old-chunk',
-      chanks: [],
+      chunks: [],
       length: 0,
       byteLength: 0,
       createdAt: now - CHUNK_TTL_MS - 1000,
@@ -631,7 +631,7 @@ describe('SkyWay DataStream receivedMap修正', () => {
     // 新しいエントリ（TTL内）
     receivedMap.set('new-chunk', {
       id: 'new-chunk',
-      chanks: [],
+      chunks: [],
       length: 0,
       byteLength: 0,
       createdAt: now - 1000,
@@ -652,13 +652,13 @@ describe('SkyWay DataStream receivedMap修正', () => {
     const CHUNK_TTL_MS = 30000;
     const receivedMap = new Map<
       string,
-      { id: string; chanks: Uint8Array[]; length: number; byteLength: number; createdAt: number }
+      { id: string; chunks: Uint8Array[]; length: number; byteLength: number; createdAt: number }
     >();
     const now = performance.now();
 
     receivedMap.set('fresh-chunk', {
       id: 'fresh-chunk',
-      chanks: [],
+      chunks: [],
       length: 0,
       byteLength: 0,
       createdAt: now - 100,
