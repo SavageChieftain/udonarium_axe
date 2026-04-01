@@ -181,7 +181,7 @@ export class ReConnectComponent implements OnInit {
     if (Network.peerContexts.length < 1) {
       const userId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
       this.reconnectUserId = userId;
-      Network.open(userId);
+      Network.openStandby(userId);
       PeerCursor.myCursor.peerId = Network.peerId;
     }
   }

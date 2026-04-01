@@ -19,7 +19,7 @@ export interface Connection {
   readonly bandwidthUsage: number;
 
   configure(config: Record<string, unknown>): void;
-  open(userId?: string): void;
+  openStandby(userId?: string): void;
   open(userId: string, roomId: string, roomName: string, password: string): void;
   close(): void;
   leaveImmediately?(): void;

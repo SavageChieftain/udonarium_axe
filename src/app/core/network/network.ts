@@ -45,10 +45,11 @@ export class Network {
   static configure(config: Record<string, unknown>) {
     Network.instance.configure(config);
   }
-  static open(userId?: string): void;
-  static open(userId: string, roomId: string, roomName: string, password: string): void;
-  static open(...args: string[]): void {
-    Network.instance.open(...(args as [string, string, string, string]));
+  static openStandby(userId?: string): void {
+    Network.instance.openStandby(userId);
+  }
+  static open(userId: string, roomId: string, roomName: string, password: string): void {
+    Network.instance.open(userId, roomId, roomName, password);
   }
 
   // --- Instance members ---
@@ -119,18 +120,23 @@ export class Network {
     this.config = config;
   }
 
-  open(userId?: string): void;
-  open(userId: string, roomId: string, roomName: string, password: string): void;
-  open(...args: string[]): void {
+  open(userId: string, roomId: string, roomName: string, password: string): void {
     if (this.connectionClassPromise != null) {
       Logger.warn('[Network] 既に接続済みです');
       this.close();
     }
-
-    this.openAsync(...args);
+    this.openAsync(() => this.connection.open(userId, roomId, roomName, password));
   }
 
-  private async openAsync(...args: string[]) {
+  openStandby(userId?: string): void {
+    if (this.connectionClassPromise != null) {
+      Logger.warn('[Network] 既に接続済みです');
+      this.close();
+    }
+    this.openAsync(() => this.connection.openStandby(userId));
+  }
+
+  private async openAsync(connectFn: () => void) {
     const promise = this.dynamicImport();
     this.connectionClassPromise = promise;
     this.connectionClass = await promise;
@@ -139,9 +145,9 @@ export class Network {
       return;
     }
 
-    Logger.debug('[Network] open', ...args);
+    Logger.debug('[Network] open');
     this.connection = this.initializeConnection();
-    this.connection.open(...args);
+    connectFn();
 
     window.addEventListener('unload', this.callbackUnload, false);
     window.addEventListener('pagehide', this.callbackPageHide);

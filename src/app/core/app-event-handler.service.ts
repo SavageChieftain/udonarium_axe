@@ -82,7 +82,7 @@ export class AppEventHandlerService {
   private subscribeNetwork(): void {
     this.objectChange.loadConfig$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       Network.configure(event.config as Record<string, unknown>);
-      Network.open();
+      Network.openStandby();
     });
     this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       PeerCursor.myCursor.peerId = Network.peerContext.peerId;
@@ -106,7 +106,7 @@ export class AppEventHandlerService {
         title: 'ネットワークエラー',
         text: 'このウィンドウを閉じると再接続を試みます。',
       });
-      Network.open();
+      Network.openStandby();
     });
     this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.chatMessageService.calibrateTimeOffset();

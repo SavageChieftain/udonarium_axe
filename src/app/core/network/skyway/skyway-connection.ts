@@ -58,19 +58,17 @@ export class SkyWayConnection implements Connection {
     this.skyWay.url = ((config?.backend as Record<string, unknown>)?.url as string) ?? '';
   }
 
-  open(userId?: string): void;
-  open(userId: string, roomId: string, roomName: string, password: string): void;
-  async open(...args: string[]): Promise<void> {
-    let peer: PeerContext;
-    if (args.length === 0) {
-      peer = await PeerContext.create(PeerContext.generateId());
-    } else if (args.length === 1) {
-      peer = await PeerContext.create(args[0]);
-    } else {
-      peer = await PeerContext.create(args[0], args[1], args[2], args[3]);
-    }
+  openStandby(userId?: string): void {
+    const peer$ = userId ? PeerContext.create(userId) : PeerContext.create(PeerContext.generateId());
     this.trustedPeerIds.clear();
-    this.openSkyWay(peer);
+    peer$.then((peer) => this.openSkyWay(peer));
+  }
+
+  open(userId: string, roomId: string, roomName: string, password: string): void {
+    PeerContext.create(userId, roomId, roomName, password).then((peer) => {
+      this.trustedPeerIds.clear();
+      this.openSkyWay(peer);
+    });
   }
 
   close() {
