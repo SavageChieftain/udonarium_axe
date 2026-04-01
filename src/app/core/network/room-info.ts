@@ -10,27 +10,19 @@ export interface IRoomInfo {
 }
 
 export class RoomInfo implements IRoomInfo {
-  id: string = '';
-  name: string = '';
   get hasPassword(): boolean {
     return this.peers.some((peer) => peer.hasPassword);
   }
-  peers: PeerContext[] = [];
 
-  constructor(id: string = '', name: string = '', peers: PeerContext[] = []) {
-    this.id = id;
-    this.name = name;
-    this.peers = peers;
-  }
+  constructor(
+    public id: string = '',
+    public name: string = '',
+    public peers: PeerContext[] = []
+  ) {}
 
   async filterByPassword(password: string): Promise<PeerContext[]> {
-    const results: PeerContext[] = [];
-    for (const peer of this.peers) {
-      if (await peer.verifyPassword(password)) {
-        results.push(peer);
-      }
-    }
-    return results;
+    const results = await Promise.all(this.peers.map((p) => p.verifyPassword(password).then((ok) => (ok ? p : null))));
+    return results.filter((p) => p !== null);
   }
 
   static listFrom(peerIds: string[]) {
@@ -48,10 +40,6 @@ export class RoomInfo implements IRoomInfo {
 
     if (roomMap.size === 0) return [];
 
-    const rooms = Array.from(roomMap.values())
-      .map((r) => [r, r.id + r.name] as const)
-      .sort(([, a], [, b]) => a.localeCompare(b))
-      .map(([r]) => r);
-    return rooms;
+    return Array.from(roomMap.values()).sort((a, b) => (a.id + a.name).localeCompare(b.id + b.name));
   }
 }
