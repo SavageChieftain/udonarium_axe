@@ -93,39 +93,29 @@ export class AppInitializationService {
 
   private initializeAudioPresets(): void {
     AudioPlayer.resumeAudioContext();
-    PresetSound.dicePick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.dicePut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.diceRoll1 = this.audioStorage.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3').identifier;
-    PresetSound.diceRoll2 = this.audioStorage.add('./assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3').identifier;
-    PresetSound.cardDraw = this.audioStorage.add('./assets/sounds/soundeffect-lab/card-turn-over1.mp3').identifier;
-    PresetSound.cardPick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.cardPut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.cardShuffle = this.audioStorage.add('./assets/sounds/soundeffect-lab/card-open1.mp3').identifier;
-    PresetSound.piecePick = this.audioStorage.add('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3').identifier;
-    PresetSound.piecePut = this.audioStorage.add('./assets/sounds/soundeffect-lab/book-stack1.mp3').identifier;
-    PresetSound.blockPick = this.audioStorage.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
-    PresetSound.blockPut = this.audioStorage.add('./assets/sounds/tm2/tm2_pon002.wav').identifier;
-    PresetSound.lock = this.audioStorage.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
-    PresetSound.unlock = this.audioStorage.add('./assets/sounds/tm2/tm2_switch001.wav').identifier;
-    PresetSound.sweep = this.audioStorage.add('./assets/sounds/tm2/tm2_swing003.wav').identifier;
-    PresetSound.alarm = this.audioStorage.add('./assets/sounds/alarm/alarm.mp3').identifier;
 
-    this.audioStorage.get(PresetSound.dicePick).isHidden = true;
-    this.audioStorage.get(PresetSound.dicePut).isHidden = true;
-    this.audioStorage.get(PresetSound.diceRoll1).isHidden = true;
-    this.audioStorage.get(PresetSound.diceRoll2).isHidden = true;
-    this.audioStorage.get(PresetSound.cardDraw).isHidden = true;
-    this.audioStorage.get(PresetSound.cardPick).isHidden = true;
-    this.audioStorage.get(PresetSound.cardPut).isHidden = true;
-    this.audioStorage.get(PresetSound.cardShuffle).isHidden = true;
-    this.audioStorage.get(PresetSound.piecePick).isHidden = true;
-    this.audioStorage.get(PresetSound.piecePut).isHidden = true;
-    this.audioStorage.get(PresetSound.blockPick).isHidden = true;
-    this.audioStorage.get(PresetSound.blockPut).isHidden = true;
-    this.audioStorage.get(PresetSound.lock).isHidden = true;
-    this.audioStorage.get(PresetSound.unlock).isHidden = true;
-    this.audioStorage.get(PresetSound.sweep).isHidden = true;
-    this.audioStorage.get(PresetSound.alarm).isHidden = true;
+    const addHidden = (path: string): string => {
+      const file = this.audioStorage.add(path);
+      file.isHidden = true;
+      return file.identifier;
+    };
+
+    PresetSound.dicePick = addHidden('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3');
+    PresetSound.dicePut = addHidden('./assets/sounds/soundeffect-lab/book-stack1.mp3');
+    PresetSound.diceRoll1 = addHidden('./assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3');
+    PresetSound.diceRoll2 = addHidden('./assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3');
+    PresetSound.cardDraw = addHidden('./assets/sounds/soundeffect-lab/card-turn-over1.mp3');
+    PresetSound.cardPick = addHidden('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3');
+    PresetSound.cardPut = addHidden('./assets/sounds/soundeffect-lab/book-stack1.mp3');
+    PresetSound.cardShuffle = addHidden('./assets/sounds/soundeffect-lab/card-open1.mp3');
+    PresetSound.piecePick = addHidden('./assets/sounds/soundeffect-lab/shoulder-touch1.mp3');
+    PresetSound.piecePut = addHidden('./assets/sounds/soundeffect-lab/book-stack1.mp3');
+    PresetSound.blockPick = addHidden('./assets/sounds/tm2/tm2_pon002.wav');
+    PresetSound.blockPut = addHidden('./assets/sounds/tm2/tm2_pon002.wav');
+    PresetSound.lock = addHidden('./assets/sounds/tm2/tm2_switch001.wav');
+    PresetSound.unlock = addHidden('./assets/sounds/tm2/tm2_switch001.wav');
+    PresetSound.sweep = addHidden('./assets/sounds/tm2/tm2_swing003.wav');
+    PresetSound.alarm = addHidden('./assets/sounds/alarm/alarm.mp3');
   }
 
   private initializePeerCursor(): void {
