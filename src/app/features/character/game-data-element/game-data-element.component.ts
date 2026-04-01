@@ -113,9 +113,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
 
   addImageElement() {
     this.gameDataElement().appendChild(DataElement.create('imageIdentifier', '', { type: 'image' }));
-    const root: DataElement = <DataElement>this.gameDataElement().parent;
-
-    this.updateKomaIconMaxValue(root);
+    this.updateKomaIconMaxValue(<DataElement>this.gameDataElement().parent!);
   }
 
   addElement() {
@@ -127,15 +125,15 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   }
 
   deleteImageElement() {
-    const root: DataElement = <DataElement>this.gameDataElement().parent.parent;
-    if (this.gameDataElement().parent.children[0] != this.gameDataElement()) {
+    const root: DataElement = <DataElement>this.gameDataElement().parent!.parent;
+    if (this.gameDataElement().parent!.children[0] != this.gameDataElement()) {
       this.gameDataElement().destroy();
       this.updateKomaIconMaxValue(root);
     }
   }
 
   upElement() {
-    const parentElement = this.gameDataElement().parent;
+    const parentElement = this.gameDataElement().parent!;
     const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index > 0) {
       const prevElement = parentElement.children[index - 1];
@@ -144,7 +142,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   }
 
   downElement() {
-    const parentElement = this.gameDataElement().parent;
+    const parentElement = this.gameDataElement().parent!;
     const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index < parentElement.children.length - 1) {
       if (index < parentElement.children.length - 2) {

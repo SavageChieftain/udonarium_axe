@@ -75,7 +75,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
       chatTab.name = tabName;
       chatTab.initialize();
     }
-    return this.appendChild(chatTab);
+    return this.appendChild(chatTab)!;
   }
 
   parseInnerXml(element: Element) {

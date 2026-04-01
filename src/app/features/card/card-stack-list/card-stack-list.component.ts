@@ -57,7 +57,7 @@ export class CardStackListComponent implements OnInit, OnDestroy {
 
   drawCard(card: Card) {
     if (!this.cardStack) return;
-    card.parent.removeChild(card);
+    card.parent?.removeChild(card);
     card.location.x = this.cardStack.location.x + 100 + Math.random() * 50;
     card.location.y = this.cardStack.location.y + 25 + Math.random() * 50;
     card.location.name = this.cardStack.location.name;
@@ -69,6 +69,7 @@ export class CardStackListComponent implements OnInit, OnDestroy {
 
   up(card: Card) {
     const parent = card.parent;
+    if (!parent) return;
     const index: number = parent.children.indexOf(card);
     if (0 < index) {
       const prev = parent.children[index - 1];
@@ -78,6 +79,7 @@ export class CardStackListComponent implements OnInit, OnDestroy {
 
   down(card: Card) {
     const parent = card.parent;
+    if (!parent) return;
     const index: number = parent.children.indexOf(card);
     if (index < parent.children.length - 1) {
       const next = parent.children[index + 1];

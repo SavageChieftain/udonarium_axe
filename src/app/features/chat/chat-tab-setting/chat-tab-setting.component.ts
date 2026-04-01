@@ -111,7 +111,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
     if (!this.selectedTab) {
       this.chatTabList.systemMessageTabIndex = 0;
     } else {
-      const parentElement = this.selectedTab.parent;
+      const parentElement = this.selectedTab.parent!;
       const index: number = parentElement.children.indexOf(this.selectedTab);
       this.chatTabList.systemMessageTabIndex = index;
     }
@@ -180,7 +180,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   delete() {
     if (!this.isEmpty && this.selectedTab) {
-      const parentElement = this.selectedTab.parent;
+      const parentElement = this.selectedTab.parent!;
       const index: number = parentElement.children.indexOf(this.selectedTab);
       this.selectedTabXml = this.selectedTab.toXml();
       this.selectedTab.destroy();
@@ -251,7 +251,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   upTabIndex() {
     if (!this.selectedTab) return;
-    const parentElement = this.selectedTab.parent;
+    const parentElement = this.selectedTab.parent!;
     const index: number = parentElement.children.indexOf(this.selectedTab);
     if (0 < index) {
       const prevElement = parentElement.children[index - 1];
@@ -267,7 +267,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
 
   downTabIndex() {
     if (!this.selectedTab) return;
-    const parentElement = this.selectedTab.parent;
+    const parentElement = this.selectedTab.parent!;
     const index: number = parentElement.children.indexOf(this.selectedTab);
     if (index < parentElement.children.length - 1) {
       const nextElement = parentElement.children[index + 1];

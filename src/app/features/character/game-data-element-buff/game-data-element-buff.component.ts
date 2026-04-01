@@ -77,7 +77,7 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy {
   }
 
   upElement() {
-    const parentElement = this.gameDataElement().parent;
+    const parentElement = this.gameDataElement().parent!;
     const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index > 0) {
       const prevElement = parentElement.children[index - 1];
@@ -86,7 +86,7 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy {
   }
 
   downElement() {
-    const parentElement = this.gameDataElement().parent;
+    const parentElement = this.gameDataElement().parent!;
     const index: number = parentElement.children.indexOf(this.gameDataElement());
     if (index < parentElement.children.length - 1) {
       const nextElement = parentElement.children[index + 1];

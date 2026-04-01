@@ -47,7 +47,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   targetInfo: ChatMessageTargetContext[];
 
   get tabIdentifier(): string {
-    return this.parent.identifier;
+    return this.parent?.identifier ?? '';
   }
   get text(): string {
     return this.value as string;

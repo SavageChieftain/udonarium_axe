@@ -173,6 +173,7 @@ export class GameCharacter extends TabletopObject {
       const tachies = this.detailDataElement.getElementsByName('立ち絵位置');
       if (tachies.length != 0) {
         const parentElement = tachies[0].parent;
+        if (!parentElement) return;
         const index: number = parentElement.children.indexOf(tachies[0]);
         if (index < parentElement.children.length - 1) {
           const nextElement = parentElement.children[index + 1];

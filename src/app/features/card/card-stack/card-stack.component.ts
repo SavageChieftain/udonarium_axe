@@ -266,7 +266,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dispatchCardDropEvent();
   }
 
-  private drawCard(): Card {
+  private drawCard(): Card | null {
     const card = this.cardStack().drawCard();
     if (card) {
       this.cardStack().update(); // todo
