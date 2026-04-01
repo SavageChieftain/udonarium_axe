@@ -12,21 +12,21 @@ export class CoordinateService {
 
   convertToLocal(pointer: PointerCoordinate, element: HTMLElement = document.body): PointerCoordinate {
     const transformer: Transform = new Transform(element);
-    const ray = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ? pointer.z : 0);
+    const ray = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
     transformer.clear();
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
   convertToGlobal(pointer: PointerCoordinate, element: HTMLElement = document.body): PointerCoordinate {
     const transformer: Transform = new Transform(element);
-    const ray = transformer.localToGlobal(pointer.x, pointer.y, pointer.z ? pointer.z : 0);
+    const ray = transformer.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
     transformer.clear();
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
   convertLocalToLocal(pointer: PointerCoordinate, from: HTMLElement, to: HTMLElement): PointerCoordinate {
     const transformer: Transform = new Transform(from);
-    const local = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ? pointer.z : 0);
+    const local = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
     const ray = transformer.localToLocal(local.x, local.y, 0, to);
     transformer.clear();
     return { x: ray.x, y: ray.y, z: ray.z };
@@ -40,12 +40,9 @@ export class CoordinateService {
     },
     target: HTMLElement = this.pointerDeviceService.targetElement
   ): PointerCoordinate {
-    if (target.contains(this.tabletopOriginElement)) {
-      coordinate = this.convertToLocal(coordinate, this.tabletopOriginElement);
-      coordinate.z = 0;
-    } else {
-      coordinate = this.convertLocalToLocal(coordinate, target, this.tabletopOriginElement);
-    }
-    return { x: coordinate.x, y: coordinate.y, z: Math.max(0, coordinate.z) };
+    const local = target.contains(this.tabletopOriginElement)
+      ? { ...this.convertToLocal(coordinate, this.tabletopOriginElement), z: 0 }
+      : this.convertLocalToLocal(coordinate, target, this.tabletopOriginElement);
+    return { x: local.x, y: local.y, z: Math.max(0, local.z) };
   }
 }
