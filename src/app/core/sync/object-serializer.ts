@@ -39,7 +39,7 @@ export class ObjectSerializer {
       attrStr += ` ${name}="${attribute}"`;
     }
     const innerXml = 'innerXml' in gameObject ? (gameObject as InnerXml).innerXml() : '';
-    return `<${tagName + attrStr}>${innerXml}</${tagName}>`;
+    return `<${tagName}${attrStr}>${innerXml}</${tagName}>`;
   }
 
   static toAttributes(syncData: object): Attributes {
@@ -73,8 +73,8 @@ export class ObjectSerializer {
 
   private static array2attributes(array: Array<unknown>, rootKey: string): Attributes {
     const attributes: Attributes = {};
-    for (let i = 0; i < array.length; i++) {
-      Object.assign(attributes, ObjectSerializer.make2Attributes(array[i], `${rootKey}.${i}`));
+    for (const [i, item] of array.entries()) {
+      Object.assign(attributes, ObjectSerializer.make2Attributes(item, `${rootKey}.${i}`));
     }
     return attributes;
   }
@@ -105,10 +105,10 @@ export class ObjectSerializer {
   }
 
   static parseAttributes(syncData: object, attributes: NamedNodeMap): void {
-    for (let i = 0; i < attributes.length; i++) {
-      const value = decodeEntityReference(attributes[i].value);
+    for (const { name, value: rawValue } of Array.from(attributes)) {
+      const value = decodeEntityReference(rawValue);
 
-      const split: string[] = attributes[i].name.split('.');
+      const split: string[] = name.split('.');
       let key: string | number | null = split[0];
       let obj: Record<string, unknown> | Array<unknown> = syncData as Record<string, unknown>;
 
@@ -132,14 +132,18 @@ export class ObjectSerializer {
     }
   }
 
-  private static attributes2object(split: string[], obj: Record<string, unknown> | unknown[], key: string | number) {
+  private static attributes2object(
+    split: string[],
+    obj: Record<string, unknown> | unknown[],
+    key: string | number
+  ): { obj: Record<string, unknown> | unknown[]; key: string | number | null } {
     // 階層構造の解析 foo.bar.0="abc" 等
     // 処理として実装こそしているが、xmlの仕様としては良くないので使用するべきではない.
     let parentObj: Record<string, unknown> | Array<unknown> | null = null;
 
     const length = split.length;
     for (let i = 0; i < length; i++) {
-      const index = parseInt(split[i]);
+      const index = parseInt(split[i], 10);
       if (parentObj && !Number.isNaN(index) && !Array.isArray(obj) && Object.keys(parentObj).length) {
         (parentObj as Record<string, unknown>)[key as string] = [];
         obj = (parentObj as Record<string, unknown>)[key as string] as unknown[];
