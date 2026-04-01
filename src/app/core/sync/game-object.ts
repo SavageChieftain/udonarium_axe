@@ -8,12 +8,12 @@ export interface ObjectContext {
   identifier: string;
   majorVersion: number;
   minorVersion: number;
-  syncData: object;
+  syncData: Record<string | symbol, unknown>;
 }
 
 export class GameObject {
   private context: ObjectContext = {
-    aliasName: (<typeof GameObject>this.constructor).aliasName,
+    aliasName: (this.constructor as typeof GameObject).aliasName,
     identifier: '',
     majorVersion: 0,
     minorVersion: 0,
@@ -61,7 +61,7 @@ export class GameObject {
     this.context.minorVersion = Math.random();
   }
 
-  apply(context: ObjectContext) {
+  apply(context: ObjectContext | null) {
     if (context !== null && this.identifier === context.identifier) {
       this.context.majorVersion = context.majorVersion;
       this.context.minorVersion = context.minorVersion;
@@ -71,7 +71,7 @@ export class GameObject {
 
   clone(): this {
     const xmlString = this.toXml();
-    return <this>ObjectSerializer.instance.parseXml(xmlString);
+    return ObjectSerializer.instance.parseXml(xmlString) as this;
   }
 
   toContext(): ObjectContext {
