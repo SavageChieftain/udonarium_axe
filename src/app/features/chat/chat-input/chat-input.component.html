@@ -33,11 +33,11 @@
         }
       </ng-select>
       <ng-select
+        name="game-type"
         class="ud-select is-caret"
         style="width: 15em; margin-left: 0.1em"
         (change)="loadDiceBot($event)"
         [(ngModel)]="gameType"
-        [ngModelOptions]="{ standalone: true }"
         [clearable]="false"
       >
         @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
@@ -132,7 +132,6 @@
             min="0"
             max="0"
             name="tachie-num"
-            name="tachie-num"
             [(ngModel)]="tachieNum"
           />
           0/0 立ち絵
@@ -146,7 +145,6 @@
             "
             min="0"
             max="{{ selectCharacterTachieNum - 1 }}"
-            name="tachie-num"
             name="tachie-num"
             [(ngModel)]="tachieNum"
           />
