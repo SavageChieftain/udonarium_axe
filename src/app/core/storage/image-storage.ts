@@ -24,7 +24,7 @@ export class ImageStorage {
     return images;
   }
 
-  private lazyTimer!: ResettableTimeout;
+  private lazyTimer: ResettableTimeout | null = null;
 
   private constructor() {}
 
@@ -34,17 +34,12 @@ export class ImageStorage {
     }
   }
 
-  async addAsync(file: File): Promise<ImageFile>;
-  async addAsync(blob: Blob): Promise<ImageFile>;
-  async addAsync(arg: File | Blob): Promise<ImageFile> {
+  async addAsync(arg: Blob): Promise<ImageFile> {
     const image: ImageFile = await ImageFile.createAsync(arg);
 
     return this._add(image);
   }
 
-  add(url: string): ImageFile;
-  add(image: ImageFile): ImageFile;
-  add(context: ImageContext): ImageFile;
   add(arg: string | ImageFile | ImageContext): ImageFile {
     let image: ImageFile;
     if (typeof arg === 'string') {
@@ -65,8 +60,6 @@ export class ImageStorage {
     return image;
   }
 
-  private update(image: ImageFile): boolean;
-  private update(image: ImageContext): boolean;
   private update(image: ImageFile | ImageContext): boolean {
     const updatingImage: ImageFile = this.imageHash[image.identifier];
     if (updatingImage) {
@@ -86,10 +79,8 @@ export class ImageStorage {
     return false;
   }
 
-  get(identifier: string): ImageFile {
-    const image: ImageFile = this.imageHash[identifier];
-    if (image) return image;
-    return null!;
+  get(identifier: string): ImageFile | null {
+    return this.imageHash[identifier] ?? null;
   }
 
   synchronize(peer?: string) {
@@ -99,7 +90,7 @@ export class ImageStorage {
   }
 
   lazySynchronize(ms: number, peer?: string) {
-    if (this.lazyTimer == null) this.lazyTimer = new ResettableTimeout(() => this.synchronize(peer), ms);
+    if (this.lazyTimer === null) this.lazyTimer = new ResettableTimeout(() => this.synchronize(peer), ms);
     this.lazyTimer.reset(ms);
   }
 

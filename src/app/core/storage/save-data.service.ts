@@ -119,7 +119,7 @@ export class SaveDataService {
     const files: ImageFile[] = [];
     if (!xmlElement) return files;
 
-    const images: { [identifier: string]: ImageFile } = {};
+    const images: { [identifier: string]: ImageFile | null } = {};
     let imageElements = xmlElement.ownerDocument.querySelectorAll('*[type="image"]');
 
     for (let i = 0; i < imageElements.length; i++) {

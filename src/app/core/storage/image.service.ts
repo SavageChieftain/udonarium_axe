@@ -12,17 +12,15 @@ export class ImageService {
 
   constructor() {}
 
-  getSkeletonOr(image: ImageFile): ImageFile;
-  getSkeletonOr(imageIdentifier: string): ImageFile;
-  getSkeletonOr(arg: ImageFile | string): ImageFile {
-    const image: ImageFile = arg instanceof ImageFile ? arg : this.imageStorage.get(arg);
+  getSkeletonOr(arg: ImageFile | string | null): ImageFile {
+    if (!arg) return skeletonImage;
+    const image = arg instanceof ImageFile ? arg : this.imageStorage.get(arg);
     return image && !image.isEmpty ? image : skeletonImage;
   }
 
-  getEmptyOr(image: ImageFile): ImageFile;
-  getEmptyOr(imageIdentifier: string): ImageFile;
-  getEmptyOr(arg: ImageFile | string): ImageFile {
-    const image: ImageFile = arg instanceof ImageFile ? arg : this.imageStorage.get(arg);
+  getEmptyOr(arg: ImageFile | string | null): ImageFile {
+    if (!arg) return ImageFile.Empty;
+    const image = arg instanceof ImageFile ? arg : this.imageStorage.get(arg);
     return image && !image.isEmpty ? image : ImageFile.Empty;
   }
 }

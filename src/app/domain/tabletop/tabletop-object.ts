@@ -60,7 +60,7 @@ export class TabletopObject extends ObjectNode {
     if (!this.imageDataElement) return this._imageFile;
     const imageIdElement: DataElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
     if (imageIdElement && this._imageFile.identifier !== imageIdElement.value) {
-      const file: ImageFile = ImageStorage.instance.get(imageIdElement.value as string);
+      const file = ImageStorage.instance.get(imageIdElement.value as string);
       this._imageFile = file ? file : ImageFile.Empty;
     }
     return this._imageFile;
@@ -135,14 +135,14 @@ export class TabletopObject extends ObjectNode {
     element.value = value;
   }
 
-  protected getImageFile(elementName: string) {
-    if (!this.imageDataElement) return null!;
+  protected getImageFile(elementName: string): ImageFile | null {
+    if (!this.imageDataElement) return null;
     const image = this.getElement(elementName, this.imageDataElement);
-    return image ? ImageStorage.instance.get(image.value as string) : null!;
+    return image ? ImageStorage.instance.get(image.value as string) : null;
   }
 
   protected setImageFile(elementName: string, imageFile: ImageFile) {
-    const image = imageFile ? this.getElement(elementName, this.imageDataElement) : null!;
+    const image = imageFile ? this.getElement(elementName, this.imageDataElement) : null;
     if (!image) return;
     image.value = imageFile.identifier;
   }

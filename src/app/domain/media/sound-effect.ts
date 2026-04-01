@@ -36,7 +36,8 @@ export class SoundEffect extends GameObject {
     super.onStoreAdded();
     this.subscription.add(
       soundEffect$.subscribe((identifier) => {
-        AudioPlayer.play(AudioStorage.instance.get(identifier), 0.5);
+        const audio = AudioStorage.instance.get(identifier);
+        if (audio) AudioPlayer.play(audio, 0.5);
       })
     );
     this.subscription.add(

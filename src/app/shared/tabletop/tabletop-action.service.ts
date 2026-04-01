@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -76,7 +75,7 @@ export class TabletopActionService {
 
   createTerrain(position: PointerCoordinate): Terrain | undefined {
     const url = TERRAIN_TEXTURE_PATH;
-    let image: ImageFile = this.imageStorage.get(url);
+    let image = this.imageStorage.get(url);
     //本家PR #92より
     //    if (!image) image = this.imageStorage.add(url);
     if (!image) {
@@ -108,7 +107,7 @@ export class TabletopActionService {
     const diceSymbol = DiceSymbol.create(name, diceType, 1);
     diceSymbol.faces.forEach((face) => {
       const url: string = `./assets/images/dice/${imagePathPrefix}/${imagePathPrefix}[${face}].png`;
-      let image: ImageFile = this.imageStorage.get(url);
+      let image = this.imageStorage.get(url);
       if (!image) {
         image = this.imageStorage.add(url);
       }

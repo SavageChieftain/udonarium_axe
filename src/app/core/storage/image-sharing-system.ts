@@ -55,7 +55,7 @@ export class ImageSharingSystem {
           const request: CatalogItem[] = [];
 
           for (const item of otherCatalog) {
-            let image: ImageFile = ImageStorage.instance.get(item.identifier);
+            let image = ImageStorage.instance.get(item.identifier);
             if (image === null) {
               image = ImageFile.createEmpty(item.identifier);
               ImageStorage.instance.add(image);
@@ -92,7 +92,7 @@ export class ImageSharingSystem {
           const randomRequest: CatalogItem[] = [];
 
           for (const item of request) {
-            const image: ImageFile = ImageStorage.instance.get(item.identifier);
+            const image = ImageStorage.instance.get(item.identifier);
             if (image && item.state < image.state)
               randomRequest.push({
                 identifier: item.identifier,
@@ -145,7 +145,7 @@ export class ImageSharingSystem {
         )
         .subscribe((msg) => {
           const identifier = msg.data.taskIdentifier;
-          const image: ImageFile = ImageStorage.instance.get(identifier);
+          const image = ImageStorage.instance.get(identifier);
           if (this.receiveTaskMap.has(identifier) || (image && ImageState.COMPLETE <= image.state)) {
             Logger.warn('[ImageSync] タスクキャンセル', identifier);
             networkSend(`CANCEL_TASK_${identifier}`, null, msg.sendFrom);
@@ -256,7 +256,7 @@ export class ImageSharingSystem {
 
     for (let i = 0; i < catalog.length; i++) {
       const item: { identifier: string; state: number } = catalog[i];
-      const image: ImageFile = ImageStorage.instance.get(item.identifier);
+      const image = ImageStorage.instance.get(item.identifier);
       if (!image) continue;
 
       const context: ImageContext = {

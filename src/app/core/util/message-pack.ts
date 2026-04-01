@@ -1,20 +1,9 @@
-import { Logger } from '@axe/core/logging/logger';
 import { decode as msgpackDecode, encode as msgpackEncode } from '@msgpack/msgpack';
 
 export function encode(object: unknown): Uint8Array {
-  try {
-    return msgpackEncode(object);
-  } catch (error) {
-    Logger.error('[MessagePack] エンコードエラー', error);
-  }
-  return null!;
+  return msgpackEncode(object);
 }
 
 export function decode(buffer: Uint8Array): unknown {
-  try {
-    return msgpackDecode(buffer);
-  } catch (error) {
-    Logger.error('[MessagePack] デコードエラー', error);
-  }
-  return null!;
+  return msgpackDecode(buffer);
 }

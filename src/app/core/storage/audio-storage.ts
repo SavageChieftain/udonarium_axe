@@ -14,7 +14,7 @@ export class AudioStorage {
     return AudioStorage._instance;
   }
 
-  private lazyTimer!: ResettableTimeout;
+  private lazyTimer: ResettableTimeout | null = null;
   private hash: { [identifier: string]: AudioFile } = {};
 
   get audios(): AudioFile[] {
@@ -33,17 +33,12 @@ export class AudioStorage {
     }
   }
 
-  async addAsync(file: File): Promise<AudioFile>;
-  async addAsync(blob: Blob): Promise<AudioFile>;
-  async addAsync(arg: File | Blob): Promise<AudioFile> {
+  async addAsync(arg: Blob): Promise<AudioFile> {
     const audio: AudioFile = await AudioFile.createAsync(arg);
 
     return this._add(audio);
   }
 
-  add(url: string): AudioFile;
-  add(audio: AudioFile): AudioFile;
-  add(context: AudioFileContext): AudioFile;
   add(arg: string | AudioFile | AudioFileContext): AudioFile {
     let audio: AudioFile;
     if (typeof arg === 'string') {
@@ -64,8 +59,6 @@ export class AudioStorage {
     return audio;
   }
 
-  private update(audio: AudioFile): boolean;
-  private update(audio: AudioFileContext): boolean;
   private update(audio: AudioFile | AudioFileContext): boolean {
     const updateAudio: AudioFile = this.hash[audio.identifier];
     if (updateAudio) {
@@ -85,10 +78,8 @@ export class AudioStorage {
     return false;
   }
 
-  get(identifier: string): AudioFile {
-    const audio: AudioFile = this.hash[identifier];
-    if (audio) return audio;
-    return null!;
+  get(identifier: string): AudioFile | null {
+    return this.hash[identifier] ?? null;
   }
 
   synchronize(peer?: string) {
@@ -97,7 +88,7 @@ export class AudioStorage {
   }
 
   lazySynchronize(ms: number, peer?: string) {
-    if (this.lazyTimer == null) this.lazyTimer = new ResettableTimeout(() => this.synchronize(peer), ms);
+    if (this.lazyTimer === null) this.lazyTimer = new ResettableTimeout(() => this.synchronize(peer), ms);
     this.lazyTimer.reset(ms);
   }
 

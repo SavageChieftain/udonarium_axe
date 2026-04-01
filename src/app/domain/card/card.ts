@@ -40,15 +40,15 @@ export class Card extends TabletopObject {
   set size(size: number) {
     this.setCommonValue('size', size);
   }
-  get frontImage(): ImageFile {
+  get frontImage(): ImageFile | null {
     return this.getImageFile('front');
   }
-  get backImage(): ImageFile {
+  get backImage(): ImageFile | null {
     return this.getImageFile('back');
   }
 
   get imageFile(): ImageFile {
-    return this.isVisible ? this.frontImage : this.backImage;
+    return this.isVisible ? (this.frontImage ?? ImageFile.Empty) : (this.backImage ?? ImageFile.Empty);
   }
 
   get ownerName(): string {

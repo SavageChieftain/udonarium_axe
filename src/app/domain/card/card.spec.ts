@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card, CardState } from '@axe/domain/card/card';
 
@@ -254,7 +255,7 @@ describe('Card', () => {
       card.state = CardState.FRONT;
 
       const image = card.imageFile;
-      expect(image).toBe(card.frontImage);
+      expect(image).toBe(card.frontImage ?? ImageFile.Empty);
     });
 
     it('should use back image when not visible', () => {
@@ -263,7 +264,7 @@ describe('Card', () => {
       card.owner = '';
 
       const image = card.imageFile;
-      expect(image).toBe(card.backImage);
+      expect(image).toBe(card.backImage ?? ImageFile.Empty);
     });
   });
 

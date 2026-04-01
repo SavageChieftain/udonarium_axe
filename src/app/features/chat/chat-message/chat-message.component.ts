@@ -43,7 +43,7 @@ export class ChatMessageComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    const file: ImageFile = this.chatMessage.image;
+    const file = this.chatMessage.image;
     if (file) this.imageFile = file;
     const time = this.chatMessageService.getTime();
     if (time - 10 * 1000 < this.chatMessage.timestamp) this.animeState = 'active';

@@ -169,11 +169,11 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
 
   get imageFile(): ImageFile {
     if (this.selectCharacterTachie) {
-      const imageFile: ImageFile = this.imageStorage.get(this.selectCharacterTachie.value as string);
+      const imageFile = this.imageStorage.get(this.selectCharacterTachie.value as string);
       return imageFile ? imageFile : ImageFile.Empty;
     }
     const object = this.objectStore.get(this.sendFrom());
-    let image: ImageFile = null!;
+    let image: ImageFile | null = null;
     if (object instanceof GameCharacter) {
       image = object.imageFile;
     } else if (object instanceof PeerCursor) {

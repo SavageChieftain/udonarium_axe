@@ -88,7 +88,7 @@ export class CutIn extends GameObject {
     }
   }
 
-  get audio(): AudioFile {
+  get audio(): AudioFile | null {
     return AudioStorage.instance.get(this.audioIdentifier);
   }
   private audioPlayer: AudioPlayer = new AudioPlayer();

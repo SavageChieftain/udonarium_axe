@@ -24,10 +24,10 @@ describe('compress', () => {
       expect(compressed).toBeInstanceOf(Uint8Array);
     });
 
-    it('chunkSizeを指定できる', async () => {
+    it('圧縮してUint8Arrayを返す（繰り返しデータ）', async () => {
       const data = new Uint8Array(1000);
       data.fill(66);
-      const compressed = await compressAsync(data, 256);
+      const compressed = await compressAsync(data);
       expect(compressed).toBeInstanceOf(Uint8Array);
     });
   });
@@ -40,11 +40,11 @@ describe('compress', () => {
       expect(decompressed).toEqual(original);
     });
 
-    it('chunkSizeを指定して解凍できる', async () => {
+    it('解凍して元データと一致する（繰り返しデータ）', async () => {
       const original = new Uint8Array(1000);
       original.fill(67);
       const compressed = await compressAsync(original);
-      const decompressed = await decompressAsync(compressed, 256);
+      const decompressed = await decompressAsync(compressed);
       expect(decompressed).toEqual(original);
     });
   });

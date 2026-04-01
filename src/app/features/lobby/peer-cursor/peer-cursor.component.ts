@@ -45,7 +45,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly cursor = input(PeerCursor.myCursor);
 
   get iconUrl(): string {
-    return this.cursor().image.url;
+    return this.cursor().image?.url ?? '';
   }
   get name(): string {
     return this.cursor().name;

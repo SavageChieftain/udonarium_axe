@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnDestro
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -88,7 +87,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   ngOnDestroy() {}
 
   get imageFileUrl(): string {
-    const image: ImageFile = this.imageStorage.get(<string>this.gameDataElement().value);
+    const image = this.imageStorage.get(<string>this.gameDataElement().value);
     if (image) return image.url;
     return '';
   }

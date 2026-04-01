@@ -121,11 +121,11 @@ export class ObjectSynchronizer {
     return object;
   }
 
-  private createObject(context: ObjectContext): GameObject {
+  private createObject(context: ObjectContext): GameObject | null {
     const newObject = ObjectFactory.instance.create(context.aliasName, context.identifier);
     if (!newObject) {
       Logger.warn(`[ObjectSync] 未知のオブジェクト: ${context.aliasName}`, context);
-      return null!;
+      return null;
     }
     ObjectStore.instance.add(newObject, false);
     newObject.apply(context);
@@ -171,6 +171,7 @@ export class ObjectSynchronizer {
 
   private runSynchronizeTask() {
     const targetPeerId = this.getTargetPeerId();
+    if (!targetPeerId) return;
     const requests: SynchronizeRequest[] = this.makeRequestList(targetPeerId);
 
     if (requests.length < 1) {
@@ -190,9 +191,9 @@ export class ObjectSynchronizer {
       this.synchronize();
     };
 
-    task.ontimeout = (task, remainedRequests) => {
+    task.ontimeout = (_task, remainedRequests) => {
       Logger.warn('[ObjectSync] 同期タイムアウト');
-      remainedRequests.forEach((request) => this.requestMap.set(request.identifier, request));
+      for (const request of remainedRequests) this.requestMap.set(request.identifier, request);
     };
   }
 
@@ -211,9 +212,9 @@ export class ObjectSynchronizer {
     return requests;
   }
 
-  private getTargetPeerId(): PeerId {
-    let min = 9999;
-    let selectPeerId: PeerId = null!;
+  private getTargetPeerId(): PeerId | null {
+    let min = Infinity;
+    let selectPeerId: PeerId | null = null;
     const peerContexts = Network.peerContexts;
 
     for (let i = peerContexts.length - 1; 0 <= i; i--) {

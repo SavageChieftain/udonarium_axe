@@ -61,7 +61,8 @@ export class Alarm extends GameObject {
         if (this.isSound) {
           const text_ = `アラーム(${this.alarmTime}秒)経過${this.targetText}${this.alarmTitle}`;
           emitAlarmTimeUp({ text: text_ });
-          AudioPlayer.play(AudioStorage.instance.get(PresetSound.alarm), 0.5);
+          const audio = AudioStorage.instance.get(PresetSound.alarm);
+          if (audio) AudioPlayer.play(audio, 0.5);
         }
         if (this.isPopUp) {
           emitAlarmPop({ title: this.alarmTitle, time: this.alarmTime });

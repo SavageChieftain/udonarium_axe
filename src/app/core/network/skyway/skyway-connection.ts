@@ -142,10 +142,14 @@ export class SkyWayConnection implements Connection {
     this.outboundQueue = this.outboundQueue.then(async () => {
       await waitZeroTimeout();
       if (container.data.byteLength > 1024 && Array.isArray(data) && data.length > 1) {
-        const compressed = await compressAsync(container.data);
-        if (compressed.byteLength < container.data.byteLength) {
-          container.data = compressed;
-          container.isCompressed = true;
+        try {
+          const compressed = await compressAsync(container.data);
+          if (compressed.byteLength < container.data.byteLength) {
+            container.data = compressed;
+            container.isCompressed = true;
+          }
+        } catch {
+          // 圧縮失敗時はそのまま送信
         }
       }
       if (sendTo) {

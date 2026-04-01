@@ -45,7 +45,7 @@ export class AudioSharingSystem {
           const otherCatalog: CatalogItem[] = msg.data;
           const request: CatalogItem[] = [];
           for (const item of otherCatalog) {
-            let audio: AudioFile = AudioStorage.instance.get(item.identifier);
+            let audio = AudioStorage.instance.get(item.identifier);
             if (audio === null) {
               audio = AudioFile.createEmpty(item.identifier);
               AudioStorage.instance.add(audio);
@@ -84,15 +84,15 @@ export class AudioSharingSystem {
 
           const request: CatalogItem[] = msg.data.identifiers;
           const randomRequest: CatalogItem[] = request.filter((item) => {
-            const audio: AudioFile = AudioStorage.instance.get(item.identifier);
+            const audio = AudioStorage.instance.get(item.identifier);
             return audio && item.state < audio.state;
           });
 
           if (!this.isLimitSendTask() && 0 < randomRequest.length && !this.existsSendTask(msg.data.receiver)) {
             const index = Math.floor(Math.random() * randomRequest.length);
             const item: { identifier: string; state: number } = randomRequest[index];
-            const audio: AudioFile = AudioStorage.instance.get(item.identifier);
-            this.startSendTask(audio, msg.data.receiver);
+            const audio = AudioStorage.instance.get(item.identifier);
+            if (audio) this.startSendTask(audio, msg.data.receiver);
           } else {
             // 中継
             const candidatePeers: string[] = msg.data.candidatePeers;
@@ -128,7 +128,7 @@ export class AudioSharingSystem {
         )
         .subscribe((msg) => {
           const identifier: string = msg.data.fileIdentifier;
-          const audio: AudioFile = AudioStorage.instance.get(identifier);
+          const audio = AudioStorage.instance.get(identifier);
           if (this.receiveTaskMap.has(identifier) || audio?.isReady) {
             Logger.warn('[AudioSync] タスクキャンセル', identifier);
             networkSend(`CANCEL_TASK_${identifier}`, null, msg.sendFrom);
@@ -175,7 +175,11 @@ export class AudioSharingSystem {
   }
 
   private startReceiveTask(identifier: string) {
-    const audio: AudioFile = AudioStorage.instance.get(identifier);
+    let audio = AudioStorage.instance.get(identifier);
+    if (!audio) {
+      audio = AudioFile.createEmpty(identifier);
+      AudioStorage.instance.add(audio);
+    }
     const task = BufferSharingTask.createReceiveTask<AudioFileContext>(identifier);
     this.receiveTaskMap.set(identifier, task);
 

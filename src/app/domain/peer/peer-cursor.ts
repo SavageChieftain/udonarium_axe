@@ -180,10 +180,10 @@ export class PeerCursor extends GameObject {
   get isMine(): boolean {
     return PeerCursor.myCursor && PeerCursor.myCursor === this;
   }
-  get image(): ImageFile {
+  get image(): ImageFile | null {
     return ImageStorage.instance.get(this.imageIdentifier);
   }
-  get lastControlImage(): ImageFile {
+  get lastControlImage(): ImageFile | null {
     return ImageStorage.instance.get(this.lastControlImageIdentifier);
   }
 

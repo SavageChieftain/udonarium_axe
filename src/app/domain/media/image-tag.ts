@@ -19,7 +19,7 @@ export class ImageTag extends ObjectNode {
       .getObjects<ImageTag>(ImageTag)
       .filter((tag) => tag.containsWords(searchWords))
       .map((tag) => ImageStorage.instance.get(tag.imageIdentifier))
-      .filter((image) => image);
+      .filter((image): image is ImageFile => image !== null);
   }
 
   static get(imageIdentifier: string): ImageTag {

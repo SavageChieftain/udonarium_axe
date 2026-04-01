@@ -61,7 +61,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   get imageFile(): ImageFile {
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      const image: ImageFile = this.imageStorage.get(<string>object.imageDataElement.children[0].value);
+      const image = this.imageStorage.get(<string>object.imageDataElement.children[0].value);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;

@@ -58,10 +58,10 @@ export class Terrain extends TabletopObject {
     this.setCommonValue('name', name);
   }
 
-  get wallImage(): ImageFile {
+  get wallImage(): ImageFile | null {
     return this.getImageFile('wall');
   }
-  get floorImage(): ImageFile {
+  get floorImage(): ImageFile | null {
     return this.getImageFile('floor');
   }
 

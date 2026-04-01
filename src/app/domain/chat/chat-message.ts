@@ -79,7 +79,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     }
     return this._tags;
   }
-  get image(): ImageFile {
+  get image(): ImageFile | null {
     return ImageStorage.instance.get(this.imageIdentifier);
   }
   get index(): number {

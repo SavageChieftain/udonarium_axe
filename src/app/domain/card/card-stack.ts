@@ -50,7 +50,7 @@ export class CardStack extends TabletopObject {
     return this.cards.length < 1;
   }
   get imageFile(): ImageFile {
-    return this.topCard ? this.topCard.imageFile : null!;
+    return this.topCard?.imageFile ?? ImageFile.Empty;
   }
 
   // ObjectNode Lifecycle

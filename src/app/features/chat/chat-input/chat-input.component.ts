@@ -256,12 +256,12 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
 
   get imageFile(): ImageFile {
     if (this.selectCharacterTachie) {
-      const image: ImageFile = this.imageStorage.get(<string>this.selectCharacterTachie.value);
+      const image = this.imageStorage.get(<string>this.selectCharacterTachie.value);
       return image ? image : ImageFile.Empty;
     }
 
     const object = this.objectStore.get(this.sendFrom);
-    let image: ImageFile = null!;
+    let image: ImageFile | null = null;
     if (object instanceof GameCharacter) {
       image = object.imageFile;
     } else if (object instanceof PeerCursor) {
