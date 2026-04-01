@@ -62,3 +62,39 @@ describe('フィールドが null で初期化されること', () => {
     expect(facade.onClose).toBeNull();
   });
 });
+
+describe('SkyWayFacade リスナークリーンアップ', () => {
+  it('leaveLobbyChannel が onClosed.removeAllListeners を呼ぶ', async () => {
+    const removeAllListenersSpy = vi.fn();
+    const disposeSpy = vi.fn();
+
+    const facade = new SkyWayFacade();
+    (facade as unknown as Record<string, unknown>).lobby = {
+      onClosed: { removeAllListeners: removeAllListenersSpy },
+      dispose: disposeSpy,
+    };
+
+    await (facade as unknown as { leaveLobbyChannel: () => Promise<void> }).leaveLobbyChannel();
+
+    expect(removeAllListenersSpy).toHaveBeenCalled();
+    expect(disposeSpy).toHaveBeenCalled();
+    expect((facade as unknown as Record<string, unknown>).lobby).toBeNull();
+  });
+
+  it('closeRoomDataStream が publication.onSubscribed.removeAllListeners を呼ぶ', async () => {
+    const removeAllListenersSpy = vi.fn();
+    const unpublishSpy = vi.fn();
+
+    const facade = new SkyWayFacade();
+    (facade as unknown as Record<string, unknown>).publication = {
+      onSubscribed: { removeAllListeners: removeAllListenersSpy },
+    };
+    (facade as unknown as Record<string, unknown>).roomPerson = { unpublish: unpublishSpy };
+
+    await (facade as unknown as { closeRoomDataStream: () => Promise<void> }).closeRoomDataStream();
+
+    expect(removeAllListenersSpy).toHaveBeenCalled();
+    expect(unpublishSpy).toHaveBeenCalled();
+    expect((facade as unknown as Record<string, unknown>).publication).toBeNull();
+  });
+});

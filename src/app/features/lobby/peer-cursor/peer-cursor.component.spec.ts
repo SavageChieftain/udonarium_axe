@@ -29,4 +29,33 @@ describe('PeerCursorComponent', () => {
     vi.mocked(component.ngOnDestroy).mockRestore();
     expect(() => component.ngOnDestroy()).not.toThrow();
   });
+
+  describe('ngOnDestroy', () => {
+    it('updateInterval が clearTimeout でクリアされ null になる', () => {
+      vi.mocked(component.ngOnDestroy).mockRestore();
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+      const priv = component as unknown as { updateInterval: NodeJS.Timeout | null };
+      priv.updateInterval = setTimeout(() => {}, 999_999);
+
+      component.ngOnDestroy();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      expect(priv.updateInterval).toBeNull();
+    });
+
+    it('timestampInterval が clearTimeout でクリアされ null になる', () => {
+      vi.mocked(component.ngOnDestroy).mockRestore();
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+      const priv = component as unknown as {
+        timestampInterval: NodeJS.Timeout | null;
+        timestampIntervalEnable: boolean;
+      };
+      priv.timestampInterval = setTimeout(() => {}, 999_999);
+
+      component.ngOnDestroy();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      expect(priv.timestampInterval).toBeNull();
+    });
+  });
 });

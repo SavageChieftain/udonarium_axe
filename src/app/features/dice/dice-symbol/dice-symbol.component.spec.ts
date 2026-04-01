@@ -47,4 +47,26 @@ describe('DiceSymbolComponent', () => {
       expect(component.isIconHidden()).toBe(false);
     });
   });
+
+  describe('ngOnDestroy', () => {
+    it('doubleClickTimer が clearTimeout でクリアされる', () => {
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+      const priv = component as unknown as { doubleClickTimer: NodeJS.Timeout | null };
+      priv.doubleClickTimer = setTimeout(() => {}, 999_999);
+
+      component.ngOnDestroy();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+    });
+
+    it('iconHiddenTimer が clearTimeout でクリアされる', () => {
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+      const priv = component as unknown as { iconHiddenTimer: NodeJS.Timeout | null };
+      priv.iconHiddenTimer = setTimeout(() => {}, 999_999);
+
+      component.ngOnDestroy();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+    });
+  });
 });
