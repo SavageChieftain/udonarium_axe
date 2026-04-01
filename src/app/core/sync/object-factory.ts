@@ -2,7 +2,7 @@ import { Logger } from '@axe/core/logging/logger';
 import { GameObject } from '@axe/core/sync/game-object';
 
 export interface Type<T> {
-  new (...args: never[]): T;
+  new (identifier?: string): T;
   aliasName?: string;
 }
 
@@ -19,7 +19,9 @@ export class ObjectFactory {
   private constructor() {}
 
   register<T extends GameObject>(constructor: Type<T>, alias?: string) {
-    if (!alias) alias = constructor.name ?? constructor.toString().match(/function\s*([^(]*)\(/)?.[1] ?? '';
+    if (!alias) {
+      alias = constructor.name || constructor.toString().match(/function\s*([^(]*)\(/)?.[1] || '';
+    }
     if (this.constructorMap.has(alias)) {
       Logger.error(`[ObjectFactory] alias が重複しています: ${alias}`);
       return;
@@ -32,16 +34,14 @@ export class ObjectFactory {
     this.aliasMap.set(constructor, alias);
   }
 
-  create<T extends GameObject>(alias: string, identifer?: string): T | null {
+  create<T extends GameObject>(alias: string, identifier?: string): T | null {
     const classConstructor = this.constructorMap.get(alias);
     if (!classConstructor) {
       Logger.error(`${alias}という名のGameObjectクラスは定義されていません`);
       return null;
     }
-    const gameObject: GameObject = new (classConstructor as unknown as new (identifier?: string) => GameObject)(
-      identifer
-    );
-    return gameObject as T;
+    const gameObject = new classConstructor(identifier) as T;
+    return gameObject;
   }
 
   getAlias<T extends GameObject>(constructor: Type<T>): string {
