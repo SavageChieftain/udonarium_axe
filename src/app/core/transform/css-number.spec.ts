@@ -36,6 +36,10 @@ describe('CSSNumber', () => {
       expect(CSSNumber.relation('30pt', 500)).toBe(30);
     });
 
+    it('pt単位は小数もパースする', () => {
+      expect(CSSNumber.relation('1.5pt', 500)).toBeCloseTo(1.5);
+    });
+
     it('%単位をrelativeSizeに基づいて計算する', () => {
       expect(CSSNumber.relation('50%', 200)).toBe(100);
     });

@@ -3,13 +3,14 @@ function relation(value: string | number | null | undefined, relativeSize: numbe
     return value;
   } else if (typeof value === 'string') {
     value = value.trim().toLowerCase();
-    if (value.indexOf('%') > 0) return (parse(value.replace('%', ''), defaultValue) / 100) * relativeSize;
-    else if (value.indexOf('px') > 0 || value.indexOf('pt') > 0) return parse(value.replace('px', ''), defaultValue);
-    else if (value.indexOf('vw') > 0) return (parse(value.replace('vw', ''), defaultValue) / 100) * window.innerWidth;
-    else if (value.indexOf('vh') > 0) return (parse(value.replace('vh', ''), defaultValue) / 100) * window.innerHeight;
-    else if (value.indexOf('vm') > 0)
+    if (value.endsWith('%')) return (parse(value.replace('%', ''), defaultValue) / 100) * relativeSize;
+    else if (value.endsWith('px')) return parse(value.replace('px', ''), defaultValue);
+    else if (value.endsWith('pt')) return parse(value.replace('pt', ''), defaultValue);
+    else if (value.endsWith('vw')) return (parse(value.replace('vw', ''), defaultValue) / 100) * window.innerWidth;
+    else if (value.endsWith('vh')) return (parse(value.replace('vh', ''), defaultValue) / 100) * window.innerHeight;
+    else if (value.endsWith('vm'))
       return (parse(value.replace('vm', ''), defaultValue) / 100) * Math.min(window.innerWidth, window.innerHeight);
-    else if (value.indexOf('em') > 0) return parse(value.replace('em', ''), defaultValue);
+    else if (value.endsWith('em')) return parse(value.replace('em', ''), defaultValue);
     else if (value === 'top' || value === 'left') return 0;
     else if (value === 'center' || value === 'middle') return relativeSize * 0.5;
     else if (value === 'bottom' || value === 'right') return relativeSize;
@@ -18,7 +19,7 @@ function relation(value: string | number | null | undefined, relativeSize: numbe
   return defaultValue;
 }
 
-function parse(value: unknown, defaultValue: number = 0): number {
+function parse(value: string | null | undefined, defaultValue: number = 0): number {
   const num = parseFloat(value as string);
   if (isNaN(num)) return defaultValue;
   return num;
