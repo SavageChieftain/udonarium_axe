@@ -21,12 +21,7 @@ interface DataContainer {
 
 export class SkyWayConnection implements Connection {
   private get userIds(): string[] {
-    const ids: string[] = [];
-    for (const peer of this.peers) {
-      if (peer.userId.length > 0) ids.push(peer.userId);
-    }
-    ids.push(this.peer.userId);
-    return ids;
+    return [...this.peers.filter((p) => p.userId.length > 0).map((p) => p.userId), this.peer.userId];
   }
 
   get peerId(): string {
@@ -130,7 +125,7 @@ export class SkyWayConnection implements Connection {
   }
 
   disconnectAll() {
-    for (const peer of this.peers) {
+    for (const peer of [...this.peers]) {
       this.disconnect(peer);
     }
   }
@@ -200,21 +195,21 @@ export class SkyWayConnection implements Connection {
     this.trustedPeerIds.clear();
 
     this.skyWay.onOpen = (_peer) => {
-      if (this.callback.onOpen) this.callback.onOpen(this.peer);
+      this.callback.onOpen?.(this.peer);
     };
 
     this.skyWay.onClose = (_peer) => {
       if (this.peer.isOpen) this.close();
-      if (this.callback.onClose) this.callback.onClose(this.peer);
+      this.callback.onClose?.(this.peer);
     };
 
     this.skyWay.onFatalError = (_peer, errorType, errorMessage, errorObject) => {
       Logger.error('[SkyWay] 致命的エラー', errorObject);
       if (this.peer.isOpen) {
         this.close();
-        if (this.callback.onClose) this.callback.onClose(this.peer);
+        this.callback.onClose?.(this.peer);
       }
-      if (this.callback.onError) this.callback.onError(this.peer, errorType, errorMessage, errorObject);
+      this.callback.onError?.(this.peer, errorType, errorMessage, errorObject);
     };
 
     this.skyWay.onSubscribed = async (subscribedPeer, _subscription) => {
@@ -252,7 +247,7 @@ export class SkyWayConnection implements Connection {
       this.trustedPeerIds.add(stream.peer.peerId);
       this.maybeUnavailablePeerIds.delete(stream.peer.peerId);
       this.notifyUserList();
-      if (this.callback.onConnect) this.callback.onConnect(stream.peer);
+      this.callback.onConnect?.(stream.peer);
     });
     stream.on('close', () => {
       this.disconnectStream(stream);
@@ -269,12 +264,14 @@ export class SkyWayConnection implements Connection {
     const closed = this.streams.remove(stream);
 
     this.relayingPeerIds.delete(stream.peer.peerId);
-    this.relayingPeerIds.forEach((peerIds) => {
-      const index = peerIds.indexOf(stream.peer.peerId);
-      if (index >= 0) peerIds.splice(index, 1);
-    });
+    for (const [key, peerIds] of this.relayingPeerIds) {
+      this.relayingPeerIds.set(
+        key,
+        peerIds.filter((id) => id !== stream.peer.peerId)
+      );
+    }
     this.notifyUserList();
-    if (closed && this.callback.onDisconnect) this.callback.onDisconnect(closed.peer);
+    if (closed) this.callback.onDisconnect?.(closed.peer);
   }
 
   private onData(stream: SkyWayDataStream, container: DataContainer) {
@@ -295,13 +292,13 @@ export class SkyWayConnection implements Connection {
   private onRelay(stream: SkyWayDataStream, container: DataContainer) {
     container.ttl--;
 
-    const relayingPeerIds: string[] = this.relayingPeerIds.get(stream.peer.peerId) ?? [];
+    const peerIdsToRelay: string[] = this.relayingPeerIds.get(stream.peer.peerId) ?? [];
 
     if (container.users && container.users.length > 0) {
       container.users = this.userIds;
     }
 
-    for (const peerId of relayingPeerIds) {
+    for (const peerId of peerIdsToRelay) {
       const conn = this.streams.find(peerId);
       if (conn && conn.open) {
         conn.send(container);
