@@ -1,14 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
-import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
 import {
   createExpectedPeerIdSet,
   isReconnectCompleted,
   ReConnectComponent,
   resolveReconnectUserId,
-} from './re-connect.component';
+} from '@axe/features/lobby/re-connect/re-connect.component';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ReConnectComponent', () => {
   let component: ReConnectComponent;

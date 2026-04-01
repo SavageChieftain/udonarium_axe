@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Card } from '@axe/domain/card/card';
+import { CardComponent } from '@axe/features/card/card/card.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { CardComponent } from './card.component';
 
 describe('CardComponent', () => {
   let component: CardComponent;

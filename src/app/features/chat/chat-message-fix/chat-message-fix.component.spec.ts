@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/chat-message-fix.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { ChatMessageFixComponent } from './chat-message-fix.component';
 
 describe('ChatMessageFixComponent', () => {
   let component: ChatMessageFixComponent;

@@ -21,6 +21,7 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
 import { CardStackListComponent } from '@axe/features/card/card-stack-list/card-stack-list.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { InputHandler } from '@axe/shared/directives/input-handler';
@@ -33,8 +34,6 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-
-import { buildCardStackContextMenu } from './card-stack-context-menu';
 
 @Component({
   selector: 'card-stack',

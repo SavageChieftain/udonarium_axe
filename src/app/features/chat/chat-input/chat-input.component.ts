@@ -27,6 +27,10 @@ import { callWritingAMessage } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
+import { ChatInputDiceBotHelper } from '@axe/features/chat/chat-input/chat-input-dicebot';
+import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
+import { ChatInputHistory } from '@axe/features/chat/chat-input/chat-input-history';
+import { WritingPeerManager } from '@axe/features/chat/chat-input/chat-input-writing';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -34,11 +38,6 @@ import { BatchService } from '@axe/shared/ui/batch.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
-
-import { ChatInputDiceBotHelper } from './chat-input-dicebot';
-import { allowsChat } from './chat-input-helpers';
-import { ChatInputHistory } from './chat-input-history';
-import { WritingPeerManager } from './chat-input-writing';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

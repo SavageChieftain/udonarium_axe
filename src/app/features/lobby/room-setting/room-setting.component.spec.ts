@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { RoomSettingComponent } from './room-setting.component';
 
 describe('RoomSettingComponent', () => {
   let component: RoomSettingComponent;

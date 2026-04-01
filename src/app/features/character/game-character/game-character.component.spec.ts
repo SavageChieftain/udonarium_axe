@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { GameCharacterComponent } from './game-character.component';
 
 describe('GameCharacterComponent', () => {
   let component: GameCharacterComponent;

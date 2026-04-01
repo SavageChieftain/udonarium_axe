@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RangeArea } from '@axe/domain/tabletop/range';
+import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { RangeComponent } from './range.component';
 
 describe('RangeComponent', () => {
   let component: RangeComponent;

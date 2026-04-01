@@ -1,11 +1,16 @@
-import { ClipAreaDiamond, ClipAreaLine, ClipAreaSquare, RangeRenderSetting } from './range-render-types';
+import {
+  ClipAreaDiamond,
+  ClipAreaLine,
+  ClipAreaSquare,
+  RangeRenderSetting,
+} from '@axe/features/tabletop/range/range-render-types';
 import {
   calcGridOffsets,
   chkOuterProduct,
   fillSquare,
   generateCalcGridPositionFunc,
   makeBrush,
-} from './range-render-util';
+} from '@axe/features/tabletop/range/range-render-util';
 
 export function renderLine(
   canvasElement: HTMLCanvasElement,

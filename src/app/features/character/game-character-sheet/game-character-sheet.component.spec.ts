@@ -2,9 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
+import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { GameCharacterSheetComponent } from './game-character-sheet.component';
 
 describe('GameCharacterSheetComponent', () => {
   let component: GameCharacterSheetComponent;

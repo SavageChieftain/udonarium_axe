@@ -26,6 +26,7 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
+import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -40,8 +41,6 @@ import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
-
-import { buildTerrainContextMenu } from './terrain-context-menu';
 
 @Component({
   selector: 'terrain',

@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { CutInListComponent } from './cut-in-list.component';
 
 describe('CutInListComponent', () => {
   let component: CutInListComponent;

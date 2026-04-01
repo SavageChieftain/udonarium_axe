@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { CutInBgmComponent } from './cut-in-bgm.component';
 
 describe('CutInBgmComponent', () => {
   let component: CutInBgmComponent;

@@ -1,12 +1,11 @@
 import { ChatMessage } from '@axe/domain/chat/chat-message';
-
 import {
   calcIndexRange,
   calcMaxElementHeight,
   findDisplayableTopIndex,
   getBoundedScrollPosition,
   ScrollPosition,
-} from './chat-tab-scroll-helpers';
+} from '@axe/features/chat/chat-tab/chat-tab-scroll-helpers';
 
 describe('chat-tab-scroll-helpers', () => {
   describe('findDisplayableTopIndex', () => {

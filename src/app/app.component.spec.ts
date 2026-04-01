@@ -1,4 +1,4 @@
-import { AppComponent } from './app.component';
+import { AppComponent } from '@axe/app.component';
 
 describe('AppComponent', () => {
   it('should be defined', () => {

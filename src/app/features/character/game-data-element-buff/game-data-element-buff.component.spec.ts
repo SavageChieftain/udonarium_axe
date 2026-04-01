@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { GameDataElementBuffComponent } from './game-data-element-buff.component';
+import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
 
 describe('GameDataElementBuffComponent', () => {
   let component: GameDataElementBuffComponent;

@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { GameCharacterBuffViewComponent } from './game-character-buff-view.component';
+import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 
 describe('GameCharacterBuffViewComponent', () => {
   let component: GameCharacterBuffViewComponent;

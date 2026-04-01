@@ -1,6 +1,5 @@
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-
-import { WritingPeerManager } from './chat-input-writing';
+import { WritingPeerManager } from '@axe/features/chat/chat-input/chat-input-writing';
 
 describe('WritingPeerManager', () => {
   let manager: WritingPeerManager;

@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { LobbyComponent } from './lobby.component';
 
 describe('LobbyComponent', () => {
   let component: LobbyComponent;

@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { FileStorageComponent } from './file-storage.component';
 
 describe('FileStorageComponent', () => {
   let component: FileStorageComponent;

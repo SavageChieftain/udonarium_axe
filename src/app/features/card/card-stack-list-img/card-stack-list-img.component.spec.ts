@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { CardStackListImageComponent } from './card-stack-list-img.component';
 
 describe('CardStackListImageComponent', () => {
   let component: CardStackListImageComponent;

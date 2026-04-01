@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { AlarmMenuComponent } from '@axe/features/alarm/alarm-menu/alarm-menu.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { AlarmMenuComponent } from './alarm-menu.component';
 
 describe('AlarmMenuComponent', () => {
   let component: AlarmMenuComponent;

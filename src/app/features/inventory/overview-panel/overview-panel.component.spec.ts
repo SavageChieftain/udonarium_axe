@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { OverviewPanelComponent } from './overview-panel.component';
 
 describe('OverviewPanelComponent', () => {
   let component: OverviewPanelComponent;

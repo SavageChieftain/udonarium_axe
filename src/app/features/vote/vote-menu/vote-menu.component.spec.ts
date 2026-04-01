@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { VoteMenuComponent } from './vote-menu.component';
 
 describe('VoteMenuComponent', () => {
   let component: VoteMenuComponent;

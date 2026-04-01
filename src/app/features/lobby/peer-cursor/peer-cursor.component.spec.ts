@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { PeerCursorComponent } from './peer-cursor.component';
 
 describe('PeerCursorComponent', () => {
   let component: PeerCursorComponent;

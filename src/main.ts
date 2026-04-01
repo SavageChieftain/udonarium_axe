@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { YouTubePlayerModule } from '@angular/youtube-player';
+import { AppComponent } from '@axe/app.component';
 import { AppConfigService } from '@axe/core/app/app-config.service';
 import { AppInitializationService } from '@axe/core/app/app-initialization.service';
 import { CLASS_SINGLETON_PROVIDERS } from '@axe/core/di/class-provider';
@@ -17,10 +18,8 @@ import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
+import { environment } from '@env/environment';
 import { NgSelectModule } from '@ng-select/ng-select';
-
-import { AppComponent } from './app/app.component';
-import { environment } from './environments/environment';
 
 if (environment.production) {
   enableProdMode();

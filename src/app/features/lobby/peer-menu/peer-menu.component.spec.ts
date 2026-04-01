@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { PeerMenuComponent } from './peer-menu.component';
 
 describe('PeerMenuComponent', () => {
   let component: PeerMenuComponent;

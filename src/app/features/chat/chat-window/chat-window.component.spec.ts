@@ -3,12 +3,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/sync/object-change.service';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { Subject } from 'rxjs';
-
-import { ChatWindowComponent } from './chat-window.component';
 
 describe('ChatWindowComponent', () => {
   let component: ChatWindowComponent;

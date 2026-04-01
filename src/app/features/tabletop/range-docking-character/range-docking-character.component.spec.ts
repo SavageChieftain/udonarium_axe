@@ -1,4 +1,4 @@
-import { RangeDockingCharacterComponent } from './range-docking-character.component';
+import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
 
 describe('RangeDockingCharacterComponent', () => {
   it('should be defined', () => {

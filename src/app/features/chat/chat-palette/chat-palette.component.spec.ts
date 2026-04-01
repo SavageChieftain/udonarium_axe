@@ -3,10 +3,9 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { ChatPaletteComponent } from './chat-palette.component';
 
 describe('ChatPaletteComponent', () => {
   let component: ChatPaletteComponent;

@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { GameTableMaskComponent } from './game-table-mask.component';
 
 describe('GameTableMaskComponent', () => {
   let component: GameTableMaskComponent;

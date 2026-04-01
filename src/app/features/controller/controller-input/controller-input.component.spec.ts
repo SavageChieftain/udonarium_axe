@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
+import { ControllerInputComponent } from '@axe/features/controller/controller-input/controller-input.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { ControllerInputComponent } from './controller-input.component';
 
 describe('ControllerInputComponent', () => {
   let component: ControllerInputComponent;

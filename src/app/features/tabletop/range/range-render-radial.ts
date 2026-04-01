@@ -1,11 +1,11 @@
-import { ClipAreaCorn, RangeRenderSetting } from './range-render-types';
+import { ClipAreaCorn, RangeRenderSetting } from '@axe/features/tabletop/range/range-render-types';
 import {
   calcGridOffsets,
   chkOuterProduct,
   fillSquare,
   generateCalcGridPositionFunc,
   makeBrush,
-} from './range-render-util';
+} from '@axe/features/tabletop/range/range-render-util';
 
 export function renderCircle(
   canvasElement: HTMLCanvasElement,

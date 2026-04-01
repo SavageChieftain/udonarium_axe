@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { GameDataElementComponent } from './game-data-element.component';
 
 describe('GameDataElementComponent', () => {
   let component: GameDataElementComponent;

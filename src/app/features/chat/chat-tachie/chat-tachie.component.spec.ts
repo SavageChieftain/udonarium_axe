@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatTachieComponent } from '@axe/features/chat/chat-tachie/chat-tachie.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { ChatTachieComponent } from './chat-tachie.component';
 
 describe('ChatTachieComponent', () => {
   let component: ChatTachieComponent;

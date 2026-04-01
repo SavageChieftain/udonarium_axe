@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { CutInWindowComponent } from './cut-in-window.component';
 
 describe('CutInWindowComponent', () => {
   let component: CutInWindowComponent;

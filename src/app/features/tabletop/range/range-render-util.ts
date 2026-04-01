@@ -1,6 +1,5 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-
-import { GridPosition, RangeRenderSetting, StrokeGridFunc } from './range-render-types';
+import { GridPosition, RangeRenderSetting, StrokeGridFunc } from '@axe/features/tabletop/range/range-render-types';
 
 export interface GridOffsets {
   gridSize: number;

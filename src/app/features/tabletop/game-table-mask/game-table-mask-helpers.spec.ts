@@ -1,6 +1,9 @@
+import {
+  buildMaskCss,
+  buildScratchingGridInfos,
+  type ScratchGridInfo,
+} from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { describe, expect, it } from 'vitest';
-
-import { buildMaskCss, buildScratchingGridInfos, type ScratchGridInfo } from './game-table-mask-helpers';
 
 describe('game-table-mask-helpers', () => {
   describe('buildMaskCss', () => {

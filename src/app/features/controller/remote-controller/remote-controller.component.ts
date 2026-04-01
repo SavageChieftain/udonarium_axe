@@ -17,6 +17,20 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { ControllerInputComponent } from '@axe/features/controller/controller-input/controller-input.component';
+import {
+  addBuffRound,
+  parseBuffInput,
+  RemoteControllerSelect,
+  sendDecBuffRoundMessage,
+  sendDeleteZeroRoundBuffMessage,
+} from '@axe/features/controller/remote-controller/remote-controller-buff';
+import {
+  getGameObjects,
+  getInventory,
+  getInventoryTags,
+  getTabTitle,
+  getTargetCharacters,
+} from '@axe/features/controller/remote-controller/remote-controller-helpers';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
@@ -25,21 +39,6 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
-
-import {
-  addBuffRound,
-  parseBuffInput,
-  RemoteControllerSelect,
-  sendDecBuffRoundMessage,
-  sendDeleteZeroRoundBuffMessage,
-} from './remote-controller-buff';
-import {
-  getGameObjects,
-  getInventory,
-  getInventoryTags,
-  getTabTitle,
-  getTargetCharacters,
-} from './remote-controller-helpers';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

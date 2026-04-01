@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { GameTableScratchMaskComponent } from './game-table-scratch-mask.component';
 
 describe('GameTableScratchMaskComponent', () => {
   let component: GameTableScratchMaskComponent;

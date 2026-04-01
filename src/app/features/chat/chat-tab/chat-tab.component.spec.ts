@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { ChatTabComponent } from './chat-tab.component';
 
 describe('ChatTabComponent', () => {
   let component: ChatTabComponent;

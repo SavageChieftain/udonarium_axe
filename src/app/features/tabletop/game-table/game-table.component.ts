@@ -36,6 +36,9 @@ import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.com
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
+import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
+import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
@@ -51,10 +54,6 @@ import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@ax
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
-
-import { GridLineRender } from './grid-line-render';
-import { TableMouseGesture, TableMouseGestureEvent } from './table-mouse-gesture';
-import { TableTouchGesture, TableTouchGestureEvent } from './table-touch-gesture';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

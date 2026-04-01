@@ -1,14 +1,14 @@
-export * from './range-render-types';
+export * from '@axe/features/tabletop/range/range-render-types';
 
-import { renderDiamond, renderLine, renderSquare } from './range-render-polygon';
-import { renderCircle, renderCorn } from './range-render-radial';
+import { renderDiamond, renderLine, renderSquare } from '@axe/features/tabletop/range/range-render-polygon';
+import { renderCircle, renderCorn } from '@axe/features/tabletop/range/range-render-radial';
 import type {
   ClipAreaCorn,
   ClipAreaDiamond,
   ClipAreaLine,
   ClipAreaSquare,
   RangeRenderSetting,
-} from './range-render-types';
+} from '@axe/features/tabletop/range/range-render-types';
 
 export class RangeRender {
   constructor(

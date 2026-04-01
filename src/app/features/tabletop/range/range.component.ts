@@ -23,6 +23,15 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
+import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
+import {
+  ClipAreaCorn,
+  ClipAreaDiamond,
+  ClipAreaLine,
+  ClipAreaSquare,
+  RangeRender,
+  RangeRenderSetting,
+} from '@axe/features/tabletop/range/range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -38,16 +47,6 @@ import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
-
-import { buildRangeContextMenu } from './range-context-menu';
-import {
-  ClipAreaCorn,
-  ClipAreaDiamond,
-  ClipAreaLine,
-  ClipAreaSquare,
-  RangeRender,
-  RangeRenderSetting,
-} from './range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 
 @Component({
   selector: 'range',

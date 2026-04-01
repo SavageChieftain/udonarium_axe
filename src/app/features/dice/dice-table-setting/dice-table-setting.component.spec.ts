@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DiceTableSettingComponent } from '@axe/features/dice/dice-table-setting/dice-table-setting.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { DiceTableSettingComponent } from './dice-table-setting.component';
 
 describe('DiceTableSettingComponent', () => {
   let component: DiceTableSettingComponent;

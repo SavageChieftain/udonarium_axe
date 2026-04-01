@@ -22,18 +22,17 @@ import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
-
-import { SAMPLE_CHAT_MESSAGES } from './chat-tab-sample-messages';
+import { SAMPLE_CHAT_MESSAGES } from '@axe/features/chat/chat-tab/chat-tab-sample-messages';
 import {
   calcIndexRange,
   calcMaxElementHeight,
   findDisplayableTopIndex,
   getBoundedScrollPosition,
   ScrollPosition,
-} from './chat-tab-scroll-helpers';
+} from '@axe/features/chat/chat-tab/chat-tab-scroll-helpers';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { PanelService } from '@axe/shared/ui/panel.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 const ua = window.navigator.userAgent.toLowerCase();
 const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);

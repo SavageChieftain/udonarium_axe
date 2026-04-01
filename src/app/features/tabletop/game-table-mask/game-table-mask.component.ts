@@ -20,6 +20,8 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
+import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
+import { buildMaskCss, buildScratchingGridInfos } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -33,9 +35,6 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { xor } from 'lodash';
-
-import { buildGameTableMaskContextMenu } from './game-table-mask-context-menu';
-import { buildMaskCss, buildScratchingGridInfos } from './game-table-mask-helpers';
 
 @Component({
   selector: 'game-table-mask',

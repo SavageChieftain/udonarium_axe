@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImageFile } from '@axe/core/storage/image-file';
+import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-
-import { GameCharacterGeneratorComponent } from './game-character-generator.component';
 
 describe('GameCharacterGeneratorComponent', () => {
   let component: GameCharacterGeneratorComponent;
