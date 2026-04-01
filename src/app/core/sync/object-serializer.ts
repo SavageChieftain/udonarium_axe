@@ -14,8 +14,7 @@ export interface InnerXml extends GameObject {
   parseInnerXml(element: Element): void;
 }
 
-const objectPropertyKeys = Object.getOwnPropertyNames(Object.prototype);
-const objectPropertyKeySet = new Set(objectPropertyKeys);
+const objectPropertyKeySet = new Set(Object.getOwnPropertyNames(Object.prototype));
 
 export class ObjectSerializer {
   private static _instance: ObjectSerializer;
@@ -27,10 +26,9 @@ export class ObjectSerializer {
   private constructor() {}
 
   toXml(gameObject: GameObject): string {
-    let xml = '';
     const attributes =
       'toAttributes' in gameObject
-        ? (<XmlAttributes>gameObject).toAttributes()
+        ? (gameObject as XmlAttributes).toAttributes()
         : ObjectSerializer.toAttributes(gameObject.toContext().syncData);
     const tagName = gameObject.aliasName;
 
@@ -40,10 +38,8 @@ export class ObjectSerializer {
       if (attribute == null) continue;
       attrStr += ` ${name}="${attribute}"`;
     }
-    xml += `<${tagName + attrStr}>`;
-    xml += 'innerXml' in gameObject ? (<InnerXml>gameObject).innerXml() : '';
-    xml += `</${tagName}>`;
-    return xml;
+    const innerXml = 'innerXml' in gameObject ? (gameObject as InnerXml).innerXml() : '';
+    return `<${tagName + attrStr}>${innerXml}</${tagName}>`;
   }
 
   static toAttributes(syncData: object): Attributes {
@@ -94,7 +90,7 @@ export class ObjectSerializer {
     if (!gameObject) return null;
 
     if ('parseAttributes' in gameObject) {
-      (<XmlAttributes>gameObject).parseAttributes(xmlElement.attributes);
+      (gameObject as XmlAttributes).parseAttributes(xmlElement.attributes);
     } else {
       const context: ObjectContext = gameObject.toContext();
       ObjectSerializer.parseAttributes(context.syncData, xmlElement.attributes);
@@ -103,16 +99,14 @@ export class ObjectSerializer {
 
     gameObject.initialize();
     if ('parseInnerXml' in gameObject) {
-      (<InnerXml>gameObject).parseInnerXml(xmlElement);
+      (gameObject as InnerXml).parseInnerXml(xmlElement);
     }
     return gameObject;
   }
 
   static parseAttributes(syncData: object, attributes: NamedNodeMap): void {
-    const length = attributes.length;
-    for (let i = 0; i < length; i++) {
-      let value = attributes[i].value;
-      value = decodeEntityReference(value);
+    for (let i = 0; i < attributes.length; i++) {
+      const value = decodeEntityReference(attributes[i].value);
 
       const split: string[] = attributes[i].name.split('.');
       let key: string | number | null = split[0];
@@ -131,9 +125,10 @@ export class ObjectSerializer {
 
       const type = typeof (obj as Record<string, unknown>)[key as string];
       if (type !== 'string' && (obj as Record<string, unknown>)[key as string] != null) {
-        value = JSON.parse(value);
+        (obj as Record<string, unknown>)[key as string] = JSON.parse(value);
+      } else {
+        (obj as Record<string, unknown>)[key as string] = value;
       }
-      (obj as Record<string, unknown>)[key as string] = value;
     }
   }
 
