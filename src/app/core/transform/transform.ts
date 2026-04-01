@@ -49,7 +49,7 @@ export class Transform {
       parentWidth = window.innerWidth;
       parentHeight = window.innerHeight;
     }
-    this.paddingLeft = CSSNumber.relation(style.paddingTop, parentWidth);
+    this.paddingLeft = CSSNumber.relation(style.paddingLeft, parentWidth);
     this.paddingTop = CSSNumber.relation(style.paddingTop, parentHeight);
     this.marginLeft = CSSNumber.relation(style.marginLeft, parentWidth);
     this.marginTop = CSSNumber.relation(style.marginTop, parentHeight);
@@ -129,14 +129,14 @@ export class Transform {
     matrix.appendPosition(position.x, position.y, 0);
 
     let perspective = 0;
+    let cachedParentStyle: CSSStyleDeclaration | null = null;
     if (node.parentElement) {
-      const parentStyle: CSSStyleDeclaration = window.getComputedStyle(node.parentElement);
-      perspective = CSSNumber.parse(parentStyle.perspective);
+      cachedParentStyle = window.getComputedStyle(node.parentElement);
+      perspective = CSSNumber.parse(cachedParentStyle.perspective);
     }
 
-    if (node.parentElement && perspective) {
-      const parentStyle: CSSStyleDeclaration = window.getComputedStyle(node.parentElement);
-      const perspectiveOrigin = parentStyle.perspectiveOrigin.split(' ');
+    if (node.parentElement && perspective && cachedParentStyle) {
+      const perspectiveOrigin = cachedParentStyle.perspectiveOrigin.split(' ');
       const perspectiveOriginX = CSSNumber.relation(perspectiveOrigin[0], element.parentElement!.offsetWidth);
       const perspectiveOriginY = CSSNumber.relation(perspectiveOrigin[1], element.parentElement!.offsetHeight);
 
@@ -148,44 +148,38 @@ export class Transform {
     return matrix;
   }
 
-  private getPosition(node: HTMLElement): IPoint2D {
-    const ret: IPoint2D = { x: 0, y: 0 };
+  private static getOffsetAxis(
+    node: HTMLElement,
+    nodeOffset: number,
+    parentOffset: number,
+    clientBorder: number
+  ): number {
     const parent = node.parentElement;
-    ret.x = !node.offsetParent
-      ? node.offsetLeft
+    const base = !node.offsetParent
+      ? nodeOffset
       : parent === node.offsetParent
-        ? node.offsetLeft
+        ? nodeOffset
         : parent && parent.offsetParent === node.offsetParent
-          ? node.offsetLeft - parent.offsetLeft
+          ? nodeOffset - parentOffset
           : 0;
-    ret.y = !node.offsetParent
-      ? node.offsetTop
-      : parent === node.offsetParent
-        ? node.offsetTop
-        : parent && parent.offsetParent === node.offsetParent
-          ? node.offsetTop - parent.offsetTop
-          : 0;
+    return base + (node.offsetParent ? clientBorder : 0);
+  }
 
-    ret.x += node.offsetParent ? node.offsetParent.clientLeft : 0;
-    ret.y += node.offsetParent ? node.offsetParent.clientTop : 0;
-    return ret;
+  private getPosition(node: HTMLElement): IPoint2D {
+    const parent = node.parentElement;
+    return {
+      x: Transform.getOffsetAxis(node, node.offsetLeft, parent?.offsetLeft ?? 0, node.offsetParent?.clientLeft ?? 0),
+      y: Transform.getOffsetAxis(node, node.offsetTop, parent?.offsetTop ?? 0, node.offsetParent?.clientTop ?? 0),
+    };
   }
 
   private fromBorderBox(point: IPoint3D): void {
-    point.x += this.paddingLeft;
-    point.y += this.paddingTop;
-    point.x -= this.marginLeft;
-    point.y -= this.marginTop;
-    point.x -= this.borderLeft;
-    point.y -= this.borderTop;
+    point.x += this.paddingLeft - this.marginLeft - this.borderLeft;
+    point.y += this.paddingTop - this.marginTop - this.borderTop;
   }
 
   private toBorderBox(point: IPoint3D): void {
-    point.x -= this.paddingLeft;
-    point.y -= this.paddingTop;
-    point.x += this.marginLeft;
-    point.y += this.marginTop;
-    point.x += this.borderLeft;
-    point.y += this.borderTop;
+    point.x -= this.paddingLeft - this.marginLeft - this.borderLeft;
+    point.y -= this.paddingTop - this.marginTop - this.borderTop;
   }
 }
