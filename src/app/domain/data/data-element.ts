@@ -78,7 +78,7 @@ export class DataElement extends ObjectNode {
     return children;
   }
 
-  getFirstElementByName(name: string): DataElement {
+  getFirstElementByName(name: string): DataElement | null {
     for (const child of this.children) {
       if (child instanceof DataElement) {
         if (child.getAttribute('name') === name) return child;
@@ -86,7 +86,7 @@ export class DataElement extends ObjectNode {
         if (match) return match;
       }
     }
-    return null!;
+    return null;
   }
 
   get myIdentifer() {

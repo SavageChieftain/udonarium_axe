@@ -59,25 +59,12 @@ export class SoundEffect extends GameObject {
     this.subscription.unsubscribe();
   }
 
-  play(identifier: string): void;
-  play(audio: AudioFile): void;
   play(arg: string | AudioFile): void {
-    if (typeof arg === 'string') {
-      SoundEffect.play(arg);
-    } else {
-      SoundEffect.play(arg);
-    }
+    SoundEffect.play(arg);
   }
 
-  static play(identifier: string): void;
-  static play(audio: AudioFile): void;
   static play(arg: string | AudioFile): void {
-    let identifier: string;
-    if (typeof arg === 'string') {
-      identifier = arg;
-    } else {
-      identifier = arg.identifier;
-    }
+    const identifier = typeof arg === 'string' ? arg : arg.identifier;
     SoundEffect._play(identifier);
   }
 

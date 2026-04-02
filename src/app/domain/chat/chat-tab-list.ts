@@ -17,8 +17,8 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this._systemMessageTabIndex;
   }
 
-  get systemMessageTab(): ChatTab {
-    return this.chatTabs.length > this.systemMessageTabIndex ? this.chatTabs[this.systemMessageTabIndex] : null!;
+  get systemMessageTab(): ChatTab | null {
+    return this.chatTabs.length > this.systemMessageTabIndex ? this.chatTabs[this.systemMessageTabIndex] : null;
   }
 
   get reloadCheck(): ReloadCheck {
@@ -62,17 +62,13 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this.simpleDispFlagUserId_;
   }
 
-  addChatTab(chatTab: ChatTab): ChatTab;
-  addChatTab(tabName: string, identifier?: string): ChatTab;
-  addChatTab(...args: [ChatTab] | [string, string?]): ChatTab {
+  addChatTab(arg: ChatTab | string, identifier?: string): ChatTab {
     let chatTab: ChatTab;
-    if (args[0] instanceof ChatTab) {
-      chatTab = args[0];
+    if (arg instanceof ChatTab) {
+      chatTab = arg;
     } else {
-      const tabName: string = args[0];
-      const identifier = args[1];
       chatTab = new ChatTab(identifier);
-      chatTab.name = tabName;
+      chatTab.name = arg;
       chatTab.initialize();
     }
     return this.appendChild(chatTab)!;

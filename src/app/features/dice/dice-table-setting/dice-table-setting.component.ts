@@ -25,12 +25,12 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   _gameType: string = '';
   get gameType(): string {
     const table = this.selectedTable;
-    return this.isEditable && table ? table.diceTablePalette.dicebot : '';
+    return this.isEditable && table ? (table.diceTablePalette?.dicebot ?? '') : '';
   }
   set gameType(gameType: string) {
     const table = this.selectedTable;
     if (this.isEditable && table) {
-      table.diceTablePalette.dicebot = gameType;
+      table.diceTablePalette!.dicebot = gameType;
       this._gameType = gameType;
     }
   }
@@ -167,9 +167,9 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
     if (!table) return;
 
     if (this.isEdit) {
-      this.editPalette = table.diceTablePalette.value + '';
+      this.editPalette = table.diceTablePalette!.value + '';
     } else {
-      table.diceTablePalette.setPalette(this.editPalette);
+      table.diceTablePalette!.setPalette(this.editPalette);
     }
   }
 }

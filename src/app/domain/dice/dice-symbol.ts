@@ -122,7 +122,7 @@ export class DiceSymbol extends TabletopObject {
 
     for (let i = 0; i < sided; i++) {
       const faceName = faceGeneratorFunc(i);
-      const identifier = identifierSuffix != null ? `${faceName}_${identifierSuffix}` : null!;
+      const identifier = identifierSuffix != null ? `${faceName}_${identifierSuffix}` : undefined;
       faces.push(DataElement.create(faceName, '', { type: 'image' }, identifier));
     }
 

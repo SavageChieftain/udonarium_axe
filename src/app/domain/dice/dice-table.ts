@@ -20,13 +20,13 @@ export class DiceTable extends ObjectNode {
 
   text: string = '';
 
-  get diceTablePalette(): DiceTablePalette {
+  get diceTablePalette(): DiceTablePalette | null {
     for (const child of this.children) {
       if (child instanceof DiceTablePalette) {
         return child;
       }
     }
-    return null!;
+    return null;
   }
 
   static create(): DiceTable {

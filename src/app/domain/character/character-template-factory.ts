@@ -11,7 +11,7 @@ export class CharacterTemplateFactory {
     const altitudeElement = DataElement.create('altitude', 0, {}, `altitude_${character.identifier}`);
 
     if (character.imageDataElement.getFirstElementByName('imageIdentifier')) {
-      character.imageDataElement.getFirstElementByName('imageIdentifier').value = imageIdentifier;
+      character.imageDataElement.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
     }
 
     const resourceElement = DataElement.create('リソース', '', {}, `リソース${character.identifier}`);
@@ -48,7 +48,7 @@ export class CharacterTemplateFactory {
     const altitudeElement = DataElement.create('altitude', 0, {}, `altitude_${character.identifier}`);
 
     if (character.imageDataElement.getFirstElementByName('imageIdentifier')) {
-      character.imageDataElement.getFirstElementByName('imageIdentifier').value = imageIdentifier;
+      character.imageDataElement.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
     }
 
     const resourceElement = DataElement.create('リソース', '', {}, `リソース${character.identifier}`);

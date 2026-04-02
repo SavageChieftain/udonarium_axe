@@ -129,7 +129,7 @@ describe('StatusAccessor', () => {
     it('テキスト型のデータを書き換えられる', () => {
       accessor.setText('器用度', '30');
       const el = detailDataElement.getFirstElementByName('器用度');
-      expect(el.value).toBe('30');
+      expect(el!.value).toBe('30');
     });
 
     it('存在しない名前ではfalseを返す', () => {

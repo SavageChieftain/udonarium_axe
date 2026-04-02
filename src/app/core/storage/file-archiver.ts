@@ -51,9 +51,9 @@ export class FileArchiver {
     this.callbackOnDragEnter = (e) => this.onDragEnter(e);
     this.callbackOnDragOver = (e) => this.onDragOver(e);
     this.callbackOnDrop = (e) => this.onDrop(e);
-    document.body.addEventListener('dragenter', this.callbackOnDragEnter! as EventListener, false);
-    document.body.addEventListener('dragover', this.callbackOnDragOver! as EventListener, false);
-    document.body.addEventListener('drop', this.callbackOnDrop! as EventListener, false);
+    document.body.addEventListener('dragenter', this.callbackOnDragEnter as EventListener, false);
+    document.body.addEventListener('dragover', this.callbackOnDragOver as EventListener, false);
+    document.body.addEventListener('drop', this.callbackOnDrop as EventListener, false);
   }
 
   private removeEventListeners() {
@@ -85,8 +85,6 @@ export class FileArchiver {
     this.load(files);
   }
 
-  async load(files: File[]): Promise<void>;
-  async load(files: FileList): Promise<void>;
   async load(files: File[] | FileList): Promise<void> {
     if (!files) return;
     const loadFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
@@ -163,8 +161,6 @@ export class FileArchiver {
     }
   }
 
-  async saveAsync(files: File[], zipName: string, updateCallback?: UpdateCallback): Promise<void>;
-  async saveAsync(files: FileList, zipName: string, updateCallback?: UpdateCallback): Promise<void>;
   async saveAsync(files: File[] | FileList, zipName: string, updateCallback?: UpdateCallback): Promise<void> {
     if (!files) return;
     const saveFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;

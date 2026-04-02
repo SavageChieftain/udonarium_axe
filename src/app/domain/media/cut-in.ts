@@ -138,17 +138,17 @@ export class CutIn extends GameObject {
     return ret.replace(/[<>/:\s\r\n]/g, '');
   }
 
-  get videoStart(): string {
-    if (!this.isVideoCutIn || !this.videoUrl || !this.videoId) return null!;
+  get videoStart(): string | null {
+    if (!this.isVideoCutIn || !this.videoUrl || !this.videoId) return null;
     const result = /[&?](?:start|t)=([\dhms]+)/i.exec(this.videoUrl);
     if (result && result[1]) {
       return this._sec(result[1]);
     }
-    return null!;
+    return null;
   }
 
-  private _sec(str: string): string {
-    if (!str) return null!;
+  private _sec(str: string): string | null {
+    if (!str) return null;
     let tmp: RegExpExecArray | null;
     if ((tmp = /^(\d+)$/.exec(str))) {
       return tmp[1];
@@ -159,7 +159,7 @@ export class CutIn extends GameObject {
       if (tmp[3]) sec += +tmp[3];
       return `${sec}`;
     }
-    return null!;
+    return null;
   }
 
   get playListId(): string {

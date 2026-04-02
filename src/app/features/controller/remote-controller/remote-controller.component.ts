@@ -306,7 +306,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     return getGameObjects(inventoryType, this.inventoryService);
   }
 
-  getInventoryTags(gameObject: GameCharacter): DataElement[] {
+  getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
     return getInventoryTags(gameObject, this.inventoryService);
   }
 

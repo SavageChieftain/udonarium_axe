@@ -28,29 +28,29 @@ export class StatusAccessor {
     return false;
   }
 
-  getType(name: string, nowOrMax: string): string {
+  getType(name: string, nowOrMax: string): string | null {
     const data = this.detailDataElement.getFirstElementByName(name);
-    if (!data) return null!;
+    if (!data) return null;
     if (data.type === DataElementType.NUMBER_RESOURCE) {
       if (nowOrMax === 'now') return 'currentValue';
       if (nowOrMax === 'max') return 'value';
     } else if (data.type === DataElementType.TEXT) {
       if (nowOrMax === 'now') return 'value';
     }
-    return null!;
+    return null;
   }
 
-  getTextType(name: string): string {
+  getTextType(name: string): string | null {
     const data = this.detailDataElement.getFirstElementByName(name);
-    if (!data) return null!;
+    if (!data) return null;
     return data.type === DataElementType.NUMBER_RESOURCE ? 'currentValue' : 'value';
   }
 
-  getValue(name: string, nowOrMax: string): number {
+  getValue(name: string, nowOrMax: string): number | null {
     const data = this.detailDataElement.getFirstElementByName(name);
-    if (!data) return null!;
+    if (!data) return null;
     const type = this.getType(name, nowOrMax);
-    if (type == null) return null!;
+    if (type == null) return null;
     const raw = type === 'value' ? (data.value as string) : (data.currentValue as string);
     return parseInt(raw);
   }
@@ -102,7 +102,7 @@ export class StatusAccessor {
     if (type === 'currentValue') {
       if (sum >= +data.value && limitMax) {
         maxRecoveryMess = '(最大)';
-        sum = this.getValue(name, 'max');
+        sum = this.getValue(name, 'max')!;
       }
       if (limitMin && sum <= 0) {
         maxRecoveryMess = '(最小)';

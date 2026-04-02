@@ -16,8 +16,8 @@ export interface ResourceEdit {
   isDiceRoll: boolean;
   calcAns: number;
   nowOrMax: string;
-  option: ResourceEditOption;
-  object: GameCharacter;
+  option: ResourceEditOption | null;
+  object: GameCharacter | null;
   targeted: boolean;
 }
 
@@ -64,8 +64,8 @@ export function createDefaultResourceEdit(): ResourceEdit {
     isDiceRoll: false,
     calcAns: 0,
     nowOrMax: 'now',
-    option: null!,
-    object: null!,
+    option: null,
+    object: null,
     targeted: false,
   };
 }
@@ -146,12 +146,13 @@ export function applyResourceEdit(edit: ResourceEdit, character: GameCharacter):
 
   const oldNum =
     nowOrMax === 'now' ? character.status.getValue(edit.target, 'now') : character.status.getValue(edit.target, 'max');
+  if (oldNum == null) return '';
 
   let newNum: number;
   if (edit.operator === '=') {
     newNum = edit.calcAns;
   } else {
-    const zeroLimit = edit.option.zeroLimit;
+    const zeroLimit = edit.option!.zeroLimit;
     if (zeroLimit && edit.operator === '+' && edit.calcAns < 0) {
       newNum = oldNum + 0;
       optionText = '(0制限)';
@@ -163,7 +164,7 @@ export function applyResourceEdit(edit: ResourceEdit, character: GameCharacter):
     }
   }
 
-  if (edit.option.limitMinMax && maxNum != null) {
+  if (edit.option!.limitMinMax && maxNum != null) {
     if (newNum > maxNum && nowOrMax === 'now') {
       newNum = maxNum;
       optionText = '(最大)';

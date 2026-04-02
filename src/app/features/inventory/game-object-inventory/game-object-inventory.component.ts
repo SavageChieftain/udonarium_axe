@@ -177,7 +177,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
     }
   }
 
-  getInventoryTags(gameObject: GameCharacter): DataElement[] {
+  getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
     return this.getInventory(gameObject.location.name).dataElementMap.get(gameObject.identifier) ?? [];
   }
 

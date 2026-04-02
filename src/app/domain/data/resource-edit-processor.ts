@@ -108,7 +108,7 @@ export class ResourceEditProcessor {
   }
 
   async resourceEditProcess(
-    sendFromObject: GameCharacter,
+    sendFromObject: GameCharacter | null,
     resourceByCharacter: ResourceByCharacter[],
     buffByCharacter: BuffByCharacter[],
     originalMessage: ChatMessage,
@@ -129,7 +129,7 @@ export class ResourceEditProcessor {
           try {
             const rollResult = await this.diceRollAsync(oneResourceEdit.command, gameSystem);
             if (!rollResult.result) {
-              return null!;
+              return;
             }
             const splitResult = rollResult.result.split(' ＞ ');
             oneResourceEdit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
@@ -152,7 +152,7 @@ export class ResourceEditProcessor {
             try {
               const rollResult = await this.diceRollAsync(oneResourceEdit.command, gameSystem);
               if (!rollResult.result) {
-                return null!;
+                return;
               }
               const splitResult = rollResult.result.split(' ＞ ');
               oneResourceEdit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
@@ -218,7 +218,7 @@ export class ResourceEditProcessor {
     let text = '';
     let isDiceRoll = false;
     for (const edit of allEditList) {
-      const character = edit.object;
+      const character = edit.object!;
       if (edit.targeted) {
         text += `[${character.name}] `;
       }
@@ -264,13 +264,13 @@ export class ResourceEditProcessor {
     }
   }
 
-  private messageSendGameCharacter(from: string): GameCharacter {
+  private messageSendGameCharacter(from: string): GameCharacter | null {
     const object = ObjectStore.instance.get<GameCharacter>(from);
     if (object instanceof GameCharacter) {
       return object;
     } else {
       Logger.debug('[DiceBot] 送信元がキャラクターではないため無視');
-      return null!;
+      return null;
     }
   }
 }

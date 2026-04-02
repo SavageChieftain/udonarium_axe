@@ -53,7 +53,7 @@ export function getInventory(
 export function getInventoryTags(
   gameCharacter: GameCharacter,
   inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
-): DataElement[] {
+): (DataElement | null)[] {
   const inventory = getInventory(gameCharacter.location.name, inventoryService);
   return inventory.dataElementMap.get(gameCharacter.identifier) ?? [];
 }

@@ -285,7 +285,7 @@ export class DiceBot extends GameObject {
       const rollText: string = regArray![3] != null ? regArray![3] : text;
       const finalResult: DiceRollResult = { id: null, result: '', isSecret: false };
       for (let i = 0; i < repeat && i < 32; i++) {
-        const gameSystem = await DiceBot.loadGameSystemAsync(rollTable.diceTablePalette.dicebot);
+        const gameSystem = await DiceBot.loadGameSystemAsync(rollTable.diceTablePalette!.dicebot);
         const rollResult = await DiceBot.diceRollAsync(rollText, gameSystem);
         if (rollResult.result.length < 1) {
           break;
@@ -301,7 +301,7 @@ export class DiceBot extends GameObject {
       const rolledDiceNum = finalResult.result.match(/\d+$/);
       let tableAns = 'ダイス目の番号が表にありません';
       if (rolledDiceNum) {
-        const tablePalette = rollTable.diceTablePalette.getPalette();
+        const tablePalette = rollTable.diceTablePalette!.getPalette();
         for (const i in tablePalette) {
           const splitOneTable = tablePalette[i].split(/[:：,，\s]/);
           if (splitOneTable[0] == rolledDiceNum[0]) {

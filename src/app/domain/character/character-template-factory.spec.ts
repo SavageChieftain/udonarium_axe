@@ -24,7 +24,7 @@ describe('CharacterTemplateFactory', () => {
       expect(character.size).toBe(2);
       const altitude = character.commonDataElement.getFirstElementByName('altitude');
       expect(altitude).toBeTruthy();
-      expect(altitude.value).toBe(0);
+      expect(altitude!.value).toBe(0);
     });
 
     it('HP/MPリソースが作成される', () => {
@@ -32,14 +32,14 @@ describe('CharacterTemplateFactory', () => {
 
       const hp = character.detailDataElement.getFirstElementByName('HP');
       expect(hp).toBeTruthy();
-      expect(hp.value).toBe(200);
-      expect(hp.currentValue).toBe('200');
-      expect(hp.type).toBe(DataElementType.NUMBER_RESOURCE);
+      expect(hp!.value).toBe(200);
+      expect(hp!.currentValue).toBe('200');
+      expect(hp!.type).toBe(DataElementType.NUMBER_RESOURCE);
 
       const mp = character.detailDataElement.getFirstElementByName('MP');
       expect(mp).toBeTruthy();
-      expect(mp.value).toBe(100);
-      expect(mp.currentValue).toBe('100');
+      expect(mp!.value).toBe(100);
+      expect(mp!.currentValue).toBe('100');
     });
 
     it('能力値が作成される', () => {
@@ -47,11 +47,11 @@ describe('CharacterTemplateFactory', () => {
 
       const dex = character.detailDataElement.getFirstElementByName('器用度');
       expect(dex).toBeTruthy();
-      expect(dex.value).toBe(24);
+      expect(dex!.value).toBe(24);
 
       const int = character.detailDataElement.getFirstElementByName('知力');
       expect(int).toBeTruthy();
-      expect(int.value).toBe(24);
+      expect(int!.value).toBe(24);
     });
 
     it('戦闘特技が作成される', () => {
@@ -59,7 +59,7 @@ describe('CharacterTemplateFactory', () => {
 
       const lv1 = character.detailDataElement.getFirstElementByName('Lv1');
       expect(lv1).toBeTruthy();
-      expect(lv1.value).toBe('全力攻撃');
+      expect(lv1!.value).toBe('全力攻撃');
     });
 
     it('chatPaletteが作成される', () => {
@@ -79,8 +79,8 @@ describe('CharacterTemplateFactory', () => {
 
       const ninjutsu = character.detailDataElement.getFirstElementByName('忍術');
       expect(ninjutsu).toBeTruthy();
-      expect(ninjutsu.type).toBe(DataElementType.MARKDOWN);
-      expect(ninjutsu.value).toContain('テーブル表');
+      expect(ninjutsu!.type).toBe(DataElementType.MARKDOWN);
+      expect(ninjutsu!.value).toContain('テーブル表');
     });
 
     it('ネクロニカ的パーツが作成される', () => {
@@ -91,7 +91,7 @@ describe('CharacterTemplateFactory', () => {
 
       const parts = character.detailDataElement.getFirstElementByName('ネクロニカ的パーツ');
       expect(parts).toBeTruthy();
-      expect(parts.type).toBe(DataElementType.MARKDOWN);
+      expect(parts!.type).toBe(DataElementType.MARKDOWN);
     });
 
     it('overViewWidthとoverViewMaxHeightがカスタム値に設定される', () => {

@@ -26,7 +26,7 @@ export class TabletopObject extends ObjectNode {
   }
 
   private _imageFile: ImageFile = ImageFile.Empty;
-  private _dataElements: { [name: string]: string } = {};
+  private _dataElements: { [name: string]: string | null } = {};
 
   // GameDataElement getter/setter
   get rootDataElement(): DataElement {
@@ -58,7 +58,7 @@ export class TabletopObject extends ObjectNode {
 
   get imageFile(): ImageFile {
     if (!this.imageDataElement) return this._imageFile;
-    const imageIdElement: DataElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
+    const imageIdElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
     if (imageIdElement && this._imageFile.identifier !== imageIdElement.value) {
       const file = ImageStorage.instance.get(imageIdElement.value as string);
       this._imageFile = file ? file : ImageFile.Empty;
@@ -110,7 +110,7 @@ export class TabletopObject extends ObjectNode {
       : null;
     if (!element || !from.contains(element)) {
       element = from.getFirstElementByName(name);
-      this._dataElements[name] = element ? element.identifier : null!;
+      this._dataElements[name] = element ? element.identifier : null;
     }
     return element!;
   }

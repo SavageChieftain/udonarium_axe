@@ -30,8 +30,8 @@ describe('BuffManager', () => {
 
       const added = container.getFirstElementByName('マッスルベアー');
       expect(added).toBeTruthy();
-      expect(added.value).toBe(3);
-      expect(added.currentValue).toBe('筋力+2');
+      expect(added!.value).toBe(3);
+      expect(added!.currentValue).toBe('筋力+2');
     });
 
     it('デフォルトではラウンド3・情報空文字で追加される', () => {
@@ -39,8 +39,8 @@ describe('BuffManager', () => {
 
       const added = container.getFirstElementByName('バフ名');
       expect(added).toBeTruthy();
-      expect(added.value).toBe(3);
-      expect(added.currentValue).toBe('');
+      expect(added!.value).toBe(3);
+      expect(added!.currentValue).toBe('');
     });
 
     it('同名バフが既に存在する場合は上書きされる', () => {
@@ -52,8 +52,8 @@ describe('BuffManager', () => {
       // 既存データの value/currentValue が上書き
       const data = buffDataElement.getFirstElementByName('猫目');
       expect(data).toBeTruthy();
-      expect(data.value).toBe(2);
-      expect(data.currentValue).toBe('B');
+      expect(data!.value).toBe(2);
+      expect(data!.currentValue).toBe('B');
     });
   });
 
@@ -90,8 +90,8 @@ describe('BuffManager', () => {
 
       const a = container.getFirstElementByName('バフA');
       const b = container.getFirstElementByName('バフB');
-      expect(parseInt(a.value as string)).toBe(4);
-      expect(parseInt(b.value as string)).toBe(2);
+      expect(parseInt(a!.value as string)).toBe(4);
+      expect(parseInt(b!.value as string)).toBe(2);
     });
 
     it('containerが無い場合でもエラーにならない', () => {
@@ -110,8 +110,8 @@ describe('BuffManager', () => {
 
       const a = container.getFirstElementByName('バフA');
       const b = container.getFirstElementByName('バフB');
-      expect(parseInt(a.value as string)).toBe(3);
-      expect(parseInt(b.value as string)).toBe(5);
+      expect(parseInt(a!.value as string)).toBe(3);
+      expect(parseInt(b!.value as string)).toBe(5);
     });
   });
 

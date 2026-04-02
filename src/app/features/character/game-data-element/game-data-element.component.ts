@@ -105,7 +105,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
     const image = root.getFirstElementByName('image');
     const icon = root.getElementsByName('ICON');
     if (icon) {
-      icon[0].value = image.children.length - 1;
+      icon[0].value = image!.children.length - 1;
       if (+icon[0].currentValue > +icon[0].value) icon[0].currentValue = icon[0].value;
     }
   }

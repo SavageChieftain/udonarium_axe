@@ -81,8 +81,8 @@ export class ObjectInventory {
     return this._tabletopObjects.length;
   }
 
-  private _dataElementMap: Map<ObjectIdentifier, DataElement[]> = new Map();
-  get dataElementMap(): Map<ObjectIdentifier, DataElement[]> {
+  private _dataElementMap: Map<ObjectIdentifier, (DataElement | null)[]> = new Map();
+  get dataElementMap(): Map<ObjectIdentifier, (DataElement | null)[]> {
     if (this.needsRefreshElements) {
       this._dataElementMap.clear();
       const caches = this.tabletopObjects;

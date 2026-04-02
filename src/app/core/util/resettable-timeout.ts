@@ -30,9 +30,6 @@ export class ResettableTimeout {
     this.isStopped = false;
   }
 
-  reset(): void;
-  reset(ms: number): void;
-  reset(callback: TimerCallback, ms: number): void;
   reset(callbackOrMs?: TimerCallback | number, ms?: number): void {
     if (typeof callbackOrMs === 'function') {
       this.callback = callbackOrMs;

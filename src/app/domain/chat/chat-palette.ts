@@ -39,7 +39,7 @@ export class ChatPalette extends ObjectNode {
     return this._paletteVariables;
   }
 
-  isPaletteIndex(line: string, no: number): PaletteIndex {
+  isPaletteIndex(line: string, no: number): PaletteIndex | null {
     const index: PaletteIndex = {
       name: '',
       line: 0,
@@ -60,7 +60,7 @@ export class ChatPalette extends ObjectNode {
       return index;
     }
 
-    return null!;
+    return null;
   }
 
   get paletteIndex(): PaletteIndex[] {
@@ -145,8 +145,6 @@ export class ChatPalette extends ObjectNode {
     return istarget;
   }
 
-  evaluate(line: PaletteLine, extendVariables?: DataElement): string;
-  evaluate(line: string, extendVariables?: DataElement, target?: GameCharacter): string;
   evaluate(line: PaletteLine | string, extendVariables?: DataElement, target?: GameCharacter): string {
     let evaluate: string;
     if (typeof line === 'string') {
@@ -172,7 +170,7 @@ export class ChatPalette extends ObjectNode {
         isContinue = true;
 
         if (match.match(/^[tTｔＴ].*/)) {
-          for (const variable of target!.chatPalette.paletteVariables) {
+          for (const variable of target!.chatPalette?.paletteVariables ?? []) {
             if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
           }
           if (target) {
@@ -228,9 +226,9 @@ export class ChatPalette extends ObjectNode {
     this.isAnalized = true;
   }
 
-  private parseVariable(palette: string): PaletteVariable {
+  private parseVariable(palette: string): PaletteVariable | null {
     const array = /^\s*[/／]{2}([^=＝{}｛｝\s]+)\s*[=＝]\s*(.+)\s*/gi.exec(palette);
-    if (!array) return null!;
+    if (!array) return null;
     const variable: PaletteVariable = {
       name: toHalfWidth(array[1]),
       value: array[2],

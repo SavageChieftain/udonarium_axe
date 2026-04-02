@@ -78,7 +78,7 @@ describe('ChatTabList', () => {
       ChatTabList.instance.addChatTab('メイン');
       ChatTabList.instance.addChatTab('サブ');
       ChatTabList.instance.systemMessageTabIndex = 1;
-      expect(ChatTabList.instance.systemMessageTab.name).toBe('サブ');
+      expect(ChatTabList.instance.systemMessageTab!.name).toBe('サブ');
     });
   });
 

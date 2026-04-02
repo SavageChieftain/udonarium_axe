@@ -89,7 +89,7 @@ export class ChatMessageService {
   // システムメッセージ専用
   sendSystemMessage(text: string, color?: string): ChatMessage {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
-    const sysTab = chatTabList!.systemMessageTab;
+    const sysTab = chatTabList!.systemMessageTab!;
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
       name: 'システムメッセージ',
@@ -123,14 +123,14 @@ export class ChatMessageService {
   // 最終発言キャラでシステム発言
   sendSystemMessageLastSendCharactor(text: string) {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
-    const sysTab = chatTabList!.systemMessageTab;
+    const sysTab = chatTabList!.systemMessageTab!;
     const sendFrom = PeerCursor.myCursor.lastControlSendFrom
       ? PeerCursor.myCursor.lastControlSendFrom
       : PeerCursor.myCursor.identifier;
     let imgIndex = PeerCursor.myCursor.lastControlImageIndex;
     const imageIdentifier = this.findImageIdentifier(sendFrom, imgIndex);
     if (imageIdentifier != PeerCursor.myCursor.lastControlImageIdentifier) imgIndex = 0;
-    this.sendMessage(sysTab, text, null, sendFrom, undefined, imgIndex, '#006633');
+    this.sendMessage(sysTab!, text, null, sendFrom, undefined, imgIndex, '#006633');
   }
 
   sendMessage(

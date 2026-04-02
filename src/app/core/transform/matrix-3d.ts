@@ -239,15 +239,8 @@ export class Matrix3D {
     return ret;
   }
 
-  appendPosition(position: IPoint3D): Matrix3D;
-  appendPosition(x: number, y: number, z: number): Matrix3D;
-  appendPosition(...args: [IPoint3D] | [number, number, number]): Matrix3D {
-    let position;
-    if (args.length === 1) {
-      position = args[0];
-    } else {
-      position = { x: args[0], y: args[1], z: args[2], w: 1 };
-    }
+  appendPosition(positionOrX: IPoint3D | number, y?: number, z?: number): Matrix3D {
+    const position = typeof positionOrX === 'number' ? { x: positionOrX, y: y!, z: z!, w: 1 } : positionOrX;
     return this.append(Matrix3D.makePosition(position, Matrix3D._scratch));
   }
 

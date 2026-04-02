@@ -54,8 +54,6 @@ export class ObjectStore {
     return object;
   }
 
-  delete(object: GameObject, shouldBroadcast?: boolean): GameObject | null;
-  delete(identifier: string, shouldBroadcast?: boolean): GameObject | null;
   delete(arg: GameObject | string, shouldBroadcast: boolean = true): GameObject | null {
     const identifier = typeof arg === 'string' ? arg : arg.identifier;
     const object = typeof arg === 'string' ? this.get(arg) : arg;
@@ -85,8 +83,6 @@ export class ObjectStore {
     return objectsMap ? (Array.from(objectsMap.values()) as T[]) : [];
   }
 
-  update(identifier: string): void;
-  update(context: ObjectContext): void;
   update(arg: string | ObjectContext) {
     let context: ObjectContext | null = null;
     if (typeof arg === 'string') {

@@ -60,8 +60,8 @@ describe('Card', () => {
 
       expect(frontElement).toBeTruthy();
       expect(backElement).toBeTruthy();
-      expect(frontElement.value).toBe('front.png');
-      expect(backElement.value).toBe('back.png');
+      expect(frontElement!.value).toBe('front.png');
+      expect(backElement!.value).toBe('back.png');
     });
   });
 

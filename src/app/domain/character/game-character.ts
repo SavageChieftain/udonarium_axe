@@ -70,10 +70,10 @@ export class GameCharacter extends TabletopObject {
     this._selectedTachieNum = num;
   }
 
-  private getIconNumElement(): DataElement {
-    if (!this.detailDataElement) return null!;
+  private getIconNumElement(): DataElement | null {
+    if (!this.detailDataElement) return null;
     const iconNum = this.detailDataElement.getFirstElementByName('ICON');
-    if (!iconNum || !iconNum.isNumberResource) return null!;
+    if (!iconNum || !iconNum.isNumberResource) return null;
     return iconNum;
   }
 
@@ -82,7 +82,7 @@ export class GameCharacter extends TabletopObject {
 
     const iconNum = this.getIconNumElement();
     if (!iconNum) {
-      const image: DataElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
+      const image = this.imageDataElement.getFirstElementByName('imageIdentifier');
       if (!image) return ImageFile.Empty;
       const file = ImageStorage.instance.get(image.value as string);
       return file ? file : ImageFile.Empty;
@@ -102,24 +102,24 @@ export class GameCharacter extends TabletopObject {
   get size(): number {
     return this.getCommonValue('size', 1);
   }
-  get chatPalette(): ChatPalette {
+  get chatPalette(): ChatPalette | null {
     for (const child of this.children) {
       if (child instanceof ChatPalette) return child;
     }
-    return null!;
+    return null;
   }
 
   set name(value: string) {
     this.setCommonValue('name', value);
   }
 
-  get remoteController(): BuffPalette {
+  get remoteController(): BuffPalette | null {
     for (const child of this.children) {
       if (child instanceof BuffPalette) {
         return child;
       }
     }
-    return null!;
+    return null;
   }
 
   private _buffs: BuffManager | null = null;
