@@ -199,7 +199,7 @@ export class Network {
     // できるだけ一纏めにして送る
     if (this.connection) {
       if (broadcast.length) this.connection.send(broadcast);
-      for (const sendTo in unicast) this.connection.send(unicast[sendTo], sendTo);
+      for (const [sendTo, data] of Object.entries(unicast)) this.connection.send(data, sendTo);
     }
 
     // 自分自身への送信

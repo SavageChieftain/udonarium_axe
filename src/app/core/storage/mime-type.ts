@@ -40,10 +40,8 @@ export function type(fileName: string): string {
 }
 
 export function extension(mimeType: string): string {
-  for (const key in types) {
-    if ((types as Record<string, string>)[key] === mimeType) {
-      return key;
-    }
+  for (const [key, value] of Object.entries(types as Record<string, string>)) {
+    if (value === mimeType) return key;
   }
   return mimeType.split('/')[1];
 }

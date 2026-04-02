@@ -149,9 +149,9 @@
             [(ngModel)]="tachieNum"
           />
           {{ tachieNum }}/{{ selectCharacterTachieNum - 1 }} 立ち絵
-          @if (selectCharacterTachie) {
-            @if ($any(selectCharacterTachie).currentValue.length > 0) {
-              {{ $any(selectCharacterTachie).currentValue }}
+          @if (selectCharacterTachie; as tachie) {
+            @if (tachie.currentValue) {
+              {{ tachie.currentValue }}
             }
           }
         }

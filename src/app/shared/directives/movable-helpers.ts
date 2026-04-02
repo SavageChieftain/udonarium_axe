@@ -70,7 +70,7 @@ export function setLayerCollidable(
   selfIsGrabbing: boolean,
   isCollidable: boolean
 ) {
-  for (const layerName in layerHash) {
+  for (const layerName of Object.keys(layerHash)) {
     let isEnable = isCollidable;
     if (-1 < colideLayers.indexOf(layerName)) {
       isEnable = selfIsGrabbing ? isCollidable : true;

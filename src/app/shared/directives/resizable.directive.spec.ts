@@ -13,10 +13,6 @@ describe('ResizableDirective', () => {
       orphanElement.style.width = '100px';
       orphanElement.style.height = '100px';
 
-      expect(() => {
-        console.log(orphanElement.parentElement);
-      }).not.toThrow();
-
       expect(orphanElement.parentElement).toBeNull();
     });
   });

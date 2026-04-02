@@ -90,62 +90,17 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     }
   }
 
-  get colorSelectorBoxBorder_0(): string {
-    if (0 === this.colorSelectNo) {
-      return '3px';
-    }
-    return '1px';
-  }
-
-  get colorSelectorBoxBorder_1(): string {
-    if (1 === this.colorSelectNo) {
-      return '3px';
-    }
-    return '1px';
-  }
-
-  get colorSelectorBoxBorder_2(): string {
-    if (2 === this.colorSelectNo) {
-      return '3px';
-    }
-    return '1px';
-  }
-
-  get colorSelectorRadius_0(): string {
-    if (0 === this.colorSelectNo) {
-      return '9px';
-    }
-    return '0px';
-  }
-
-  get colorSelectorRadius_1(): string {
-    if (1 === this.colorSelectNo) {
-      return '9px';
-    }
-    return '0px';
-  }
-
-  get colorSelectorRadius_2(): string {
-    if (2 === this.colorSelectNo) {
-      return '9px';
-    }
-    return '0px';
+  colorSelectorStyle(index: number): Record<string, string> {
+    const selected = index === this.colorSelectNo;
+    return {
+      'background-color': this.charactorChatColor(index),
+      border: `solid ${selected ? '3px' : '1px'} #666666`,
+      'border-radius': selected ? '9px' : '0px',
+    };
   }
 
   get selectChatColor(): string {
     return this.charactorChatColor(this.colorSelectNo);
-  }
-
-  get charactorChatColor_0(): string {
-    return this.charactorChatColor(0);
-  }
-
-  get charactorChatColor_1(): string {
-    return this.charactorChatColor(1);
-  }
-
-  get charactorChatColor_2(): string {
-    return this.charactorChatColor(2);
   }
 
   get selectCharacterTachie(): DataElement | null {

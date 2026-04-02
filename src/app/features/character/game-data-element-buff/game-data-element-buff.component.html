@@ -87,7 +87,7 @@ name="data-elm-name"
               <div
                 game-data-element-buff
                 class="table-row"
-                [gameDataElement]="$any(childElement)"
+                [gameDataElement]="childElement"
                 [isEdit]="isEdit()"
                 [isTagLocked]="isTagLocked()"
               ></div>
@@ -116,7 +116,7 @@ name="data-elm-name"
       <div
         game-data-element-buff
         class="table-row"
-        [gameDataElement]="$any(childElement)"
+        [gameDataElement]="childElement"
         [isEdit]="isEdit()"
         [isTagLocked]="isTagLocked()"
         [isPieceMode]="isPieceMode()"

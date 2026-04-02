@@ -113,7 +113,7 @@ export class ReConnectComponent implements OnInit {
         peersOfroom[alias].push(context);
       }
     }
-    for (const alias in peersOfroom) {
+    for (const alias of Object.keys(peersOfroom)) {
       this.rooms.push({
         alias: alias,
         roomName: peersOfroom[alias][0].roomName,

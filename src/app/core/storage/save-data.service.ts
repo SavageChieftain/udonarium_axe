@@ -136,8 +136,7 @@ export class SaveDataService {
       if (backgroundImageIdentifier)
         images[backgroundImageIdentifier] = this.imageStorage.get(backgroundImageIdentifier);
     }
-    for (const identifier in images) {
-      const image = images[identifier];
+    for (const image of Object.values(images)) {
       if (image) {
         files.push(image);
       }

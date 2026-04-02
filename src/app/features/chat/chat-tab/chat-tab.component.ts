@@ -18,7 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
-import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
@@ -67,7 +67,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     });
   }
 
-  sampleMessages: ChatMessageContext[] = SAMPLE_CHAT_MESSAGES;
+  private readonly rawSampleMessages = SAMPLE_CHAT_MESSAGES;
+  sampleMessages: ChatMessage[] = [];
 
   private topTimestamp = 0;
   private botomTimestamp = 0;
@@ -149,10 +150,10 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
 
   ngOnInit() {
     const messages: ChatMessage[] = [];
-    for (const context of this.sampleMessages) {
+    for (const context of this.rawSampleMessages) {
       const message = new ChatMessage();
       const ctx = context as Record<string, string | number | undefined>;
-      for (const key in context) {
+      for (const key of Object.keys(context)) {
         if (key === 'identifier') continue;
         if (key === 'tabIdentifier') continue;
         if (key === 'text') {

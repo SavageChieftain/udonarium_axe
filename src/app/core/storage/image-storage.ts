@@ -17,11 +17,7 @@ export class ImageStorage {
   private imageHash: { [identifier: string]: ImageFile } = {};
 
   get images(): ImageFile[] {
-    const images: ImageFile[] = [];
-    for (const identifier in this.imageHash) {
-      images.push(this.imageHash[identifier]);
-    }
-    return images;
+    return Object.values(this.imageHash);
   }
 
   private lazyTimer: ResettableTimeout | null = null;
@@ -29,7 +25,7 @@ export class ImageStorage {
   private constructor() {}
 
   private destroy() {
-    for (const identifier in this.imageHash) {
+    for (const identifier of Object.keys(this.imageHash)) {
       this.delete(identifier);
     }
   }

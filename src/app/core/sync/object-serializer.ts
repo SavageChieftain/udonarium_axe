@@ -33,7 +33,7 @@ export class ObjectSerializer {
     const tagName = gameObject.aliasName;
 
     let attrStr = '';
-    for (const name in attributes) {
+    for (const name of Object.keys(attributes)) {
       const attribute = encodeEntityReference(`${attributes[name]}`);
       if (attribute == null) continue;
       attrStr += ` ${name}="${attribute}"`;
@@ -44,7 +44,7 @@ export class ObjectSerializer {
 
   static toAttributes(syncData: object): Attributes {
     const attributes: Attributes = {};
-    for (const syncVar in syncData) {
+    for (const syncVar of Object.keys(syncData as Record<string, unknown>)) {
       Object.assign(
         attributes,
         ObjectSerializer.make2Attributes((syncData as Record<string, unknown>)[syncVar], syncVar)
@@ -65,7 +65,7 @@ export class ObjectSerializer {
 
   private static object2attributes(obj: Record<string, unknown>, rootKey: string): Attributes {
     const attributes: Attributes = {};
-    for (const objKey in obj) {
+    for (const objKey of Object.keys(obj)) {
       Object.assign(attributes, ObjectSerializer.make2Attributes(obj[objKey], `${rootKey}.${objKey}`));
     }
     return attributes;

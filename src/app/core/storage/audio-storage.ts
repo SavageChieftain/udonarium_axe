@@ -18,17 +18,13 @@ export class AudioStorage {
   private hash: { [identifier: string]: AudioFile } = {};
 
   get audios(): AudioFile[] {
-    const audios: AudioFile[] = [];
-    for (const identifier in this.hash) {
-      audios.push(this.hash[identifier]);
-    }
-    return audios;
+    return Object.values(this.hash);
   }
 
   private constructor() {}
 
   private destroy() {
-    for (const identifier in this.hash) {
+    for (const identifier of Object.keys(this.hash)) {
       this.delete(identifier);
     }
   }

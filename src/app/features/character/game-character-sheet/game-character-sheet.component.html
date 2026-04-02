@@ -471,7 +471,7 @@
       @for (childElement of tabletopObject.detailDataElement.children; track childElement) {
         <div class="flex-item">
           <div class="table">
-            <div class="table-row" game-data-element [gameDataElement]="$any(childElement)" [isEdit]="isEdit"></div>
+            <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit"></div>
           </div>
         </div>
       }

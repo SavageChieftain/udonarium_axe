@@ -170,7 +170,7 @@ export class ChatPalette extends ObjectNode {
         isContinue = true;
 
         if (match.match(/^[tTｔＴ].*/)) {
-          for (const variable of target!.chatPalette?.paletteVariables ?? []) {
+          for (const variable of target?.chatPalette?.paletteVariables ?? []) {
             if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
           }
           if (target) {

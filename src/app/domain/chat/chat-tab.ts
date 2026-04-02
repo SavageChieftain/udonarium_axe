@@ -134,7 +134,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     message.tabIdentifier = this.identifier;
 
     const chat = new ChatMessage();
-    for (const key in message) {
+    for (const key of Object.keys(message as Record<string, unknown>)) {
       if (key === 'identifier') continue;
       if (key === 'tabIdentifier') continue;
 

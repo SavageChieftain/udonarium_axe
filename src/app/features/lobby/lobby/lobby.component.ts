@@ -93,7 +93,7 @@ export class LobbyComponent implements OnInit {
         }
       }
       const roomsList: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
-      for (const alias in peersOfroom) {
+      for (const alias of Object.keys(peersOfroom)) {
         roomsList.push({
           alias: alias,
           roomName: peersOfroom[alias][0].roomName,
