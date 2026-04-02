@@ -236,8 +236,7 @@ export class ChatPalette extends ObjectNode {
     return variable;
   }
 
-  // override
-  apply(context: ObjectContext) {
+  override apply(context: ObjectContext) {
     super.apply(context);
     this.isAnalized = false;
   }

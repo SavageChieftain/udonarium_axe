@@ -82,7 +82,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get image(): ImageFile | null {
     return ImageStorage.instance.get(this.imageIdentifier);
   }
-  get index(): number {
+  override get index(): number {
     return this.minorIndex + this.timestamp;
   }
   get isDirect(): boolean {

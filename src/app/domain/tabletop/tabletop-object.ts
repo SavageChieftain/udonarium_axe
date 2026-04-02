@@ -80,7 +80,7 @@ export class TabletopObject extends ObjectNode {
     if (element) element.value = altitude;
   }
 
-  protected createDataElements() {
+  createDataElements() {
     this.initialize();
     const aliasName: string = this.aliasName;
     if (!this.rootDataElement) {

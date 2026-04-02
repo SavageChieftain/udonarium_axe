@@ -188,7 +188,7 @@ export class PeerCursor extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     if (!this.isMine) {
       this.subscription.add(
@@ -206,7 +206,7 @@ export class PeerCursor extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreRemoved() {
+  override onStoreRemoved() {
     super.onStoreRemoved();
     this.subscription.unsubscribe();
     PeerCursor.userIdMap.delete(this.userId);
@@ -247,8 +247,7 @@ export class PeerCursor extends GameObject {
     return PeerCursor.myCursor;
   }
 
-  // override
-  apply(context: ObjectContext) {
+  override apply(context: ObjectContext) {
     const syncData = context.syncData as Record<string, unknown>;
     const userId = syncData['userId'] as string;
     const peerId = syncData['peerId'] as string;

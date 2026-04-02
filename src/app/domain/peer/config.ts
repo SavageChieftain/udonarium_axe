@@ -49,7 +49,7 @@ export class Config extends ObjectNode implements InnerXml {
     return Config._instance;
   }
 
-  parseInnerXml(element: Element) {
+  override parseInnerXml(element: Element) {
     const context = Config.instance.toContext();
     context.syncData = this.toContext().syncData;
     Config.instance.apply(context);
@@ -59,8 +59,7 @@ export class Config extends ObjectNode implements InnerXml {
     this.destroy();
   }
 
-  // override
-  apply(context: ObjectContext) {
+  override apply(context: ObjectContext) {
     const _roomVolume = this._roomVolume;
     const _defaultDiceBot = this._defaultDiceBot;
     super.apply(context);

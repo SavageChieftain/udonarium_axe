@@ -11,12 +11,12 @@ export class ImageTagList extends ObjectNode implements InnerXml {
   private identifiers: string[] = [];
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     ObjectStore.instance.remove(this); // ObjectStoreには登録しない
   }
 
-  innerXml(): string {
+  override innerXml(): string {
     const parts: string[] = [];
     for (const identifier of new Set(this.identifiers)) {
       const tag = ImageTag.get(identifier);

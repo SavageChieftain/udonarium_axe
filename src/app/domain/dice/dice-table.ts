@@ -1,5 +1,4 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
-import { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { DiceTablePalette } from '@axe/domain/chat/chat-palette';
 
@@ -49,10 +48,5 @@ export class DiceTable extends ObjectNode {
 
     diceTable.appendChild(palette);
     return diceTable;
-  }
-
-  // override
-  apply(context: ObjectContext) {
-    super.apply(context);
   }
 }

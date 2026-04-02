@@ -19,7 +19,7 @@ import { Terrain } from '@axe/domain/tabletop/terrain';
 @SyncObject('room')
 export class Room extends GameObject implements InnerXml {
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     ObjectStore.instance.remove(this); // ObjectStoreには登録しない
   }

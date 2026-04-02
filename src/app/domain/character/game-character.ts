@@ -77,7 +77,7 @@ export class GameCharacter extends TabletopObject {
     return iconNum;
   }
 
-  get imageFile(): ImageFile {
+  override get imageFile(): ImageFile {
     if (!this.imageDataElement) return ImageFile.Empty;
 
     const iconNum = this.getIconNumElement();
@@ -131,10 +131,6 @@ export class GameCharacter extends TabletopObject {
 
   get status(): StatusAccessor {
     return (this._status ??= new StatusAccessor(this.detailDataElement, () => this.name));
-  }
-
-  public override createDataElements(): void {
-    super.createDataElements();
   }
 
   static create(name: string, size: number, imageIdentifier: string): GameCharacter {
@@ -207,7 +203,7 @@ export class GameCharacter extends TabletopObject {
     }
   }
 
-  clone(): this {
+  override clone(): this {
     const cloneObject = super.clone();
 
     let objectname: string;

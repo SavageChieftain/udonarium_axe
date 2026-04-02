@@ -32,7 +32,7 @@ export class SoundEffect extends GameObject {
   private subscription = new Subscription();
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     this.subscription.add(
       soundEffect$.subscribe((identifier) => {
@@ -54,7 +54,7 @@ export class SoundEffect extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreRemoved() {
+  override onStoreRemoved() {
     super.onStoreRemoved();
     this.subscription.unsubscribe();
   }

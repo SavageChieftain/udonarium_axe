@@ -51,8 +51,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
   private static pendingChildrenByParentId: Record<string, ObjectNode[]> = {};
   private needsSort: boolean = true;
 
-  // override
-  destroy() {
+  override destroy() {
     super.destroy();
     for (const child of [...this._children]) {
       child.destroy();
@@ -61,13 +60,13 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
   }
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     this.initializeChildren();
   }
 
   // GameObject Lifecycle
-  onStoreRemoved() {
+  override onStoreRemoved() {
     super.onStoreRemoved();
     if (this.parent) this.parent.removeChild(this);
   }
@@ -250,8 +249,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     }
   }
 
-  // override
-  apply(context: ObjectContext) {
+  override apply(context: ObjectContext) {
     const oldParent = this.parent;
     super.apply(context);
     if (oldParent && this.parent !== oldParent) oldParent.updateChildren(this);

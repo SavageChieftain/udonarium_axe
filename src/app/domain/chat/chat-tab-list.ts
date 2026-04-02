@@ -74,7 +74,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this.appendChild(chatTab)!;
   }
 
-  parseInnerXml(element: Element) {
+  override parseInnerXml(element: Element) {
     const reLoadOk = this.reloadCheck.answerCheck();
 
     if (reLoadOk) {

@@ -49,12 +49,12 @@ export class CardStack extends TabletopObject {
   get isEmpty(): boolean {
     return this.cards.length < 1;
   }
-  get imageFile(): ImageFile {
+  override get imageFile(): ImageFile {
     return this.topCard?.imageFile ?? ImageFile.Empty;
   }
 
   // ObjectNode Lifecycle
-  onChildRemoved(child: ObjectNode) {
+  override onChildRemoved(child: ObjectNode) {
     super.onChildRemoved(child);
     if (child instanceof Card) {
       emitCardStackDecreased({
@@ -165,8 +165,7 @@ export class CardStack extends TabletopObject {
     moveToTopmost(this, ['card']);
   }
 
-  // override
-  setLocation(location: string) {
+  override setLocation(location: string) {
     super.setLocation(location);
     const cards = this.cards;
     for (const card of cards) card.setLocation(location);

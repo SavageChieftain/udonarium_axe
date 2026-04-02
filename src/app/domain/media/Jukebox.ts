@@ -43,13 +43,13 @@ export class Jukebox extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     this.unlockAfterUserInteraction();
   }
 
   // GameObject Lifecycle
-  onStoreRemoved() {
+  override onStoreRemoved() {
     super.onStoreRemoved();
     this._stop();
   }
@@ -111,8 +111,7 @@ export class Jukebox extends GameObject {
     this.audioUpdateSub = null;
   }
 
-  // override
-  apply(context: ObjectContext) {
+  override apply(context: ObjectContext) {
     const audioIdentifier = this.audioIdentifier;
     const isPlaying = this.isPlaying;
     super.apply(context);

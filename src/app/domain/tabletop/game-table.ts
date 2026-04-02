@@ -57,7 +57,7 @@ export class GameTable extends ObjectNode {
   }
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     if (this.selected) emitSelectGameTable({ identifier: this.identifier });
   }

@@ -196,7 +196,7 @@ export class DiceBot extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     this.subscription.add(sendMessage$.subscribe((data) => this.handleSendMessage(data)));
     this.subscription.add(diceTableMessage$.subscribe((data) => this.handleDiceTableMessage(data)));
@@ -364,7 +364,7 @@ export class DiceBot extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreRemoved() {
+  override onStoreRemoved() {
     super.onStoreRemoved();
     this.subscription.unsubscribe();
   }

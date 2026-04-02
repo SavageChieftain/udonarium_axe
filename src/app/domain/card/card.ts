@@ -27,7 +27,7 @@ export class Card extends TabletopObject {
   @SyncVar() overViewWidth: number = 250;
   @SyncVar() overViewMaxHeight: number = 250;
 
-  get isVisibleOnTable(): boolean {
+  override get isVisibleOnTable(): boolean {
     return this.location.name === 'table' && (!this.parentIsAssigned || this.parentIsDestroyed);
   }
 
@@ -47,7 +47,7 @@ export class Card extends TabletopObject {
     return this.getImageFile('back');
   }
 
-  get imageFile(): ImageFile {
+  override get imageFile(): ImageFile {
     return this.isVisible ? (this.frontImage ?? ImageFile.Empty) : (this.backImage ?? ImageFile.Empty);
   }
 

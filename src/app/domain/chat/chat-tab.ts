@@ -107,7 +107,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
   }
 
   // ObjectNode Lifecycle
-  onChildAdded(child: ObjectNode) {
+  override onChildAdded(child: ObjectNode) {
     super.onChildAdded(child);
     if (child.parent === this && child instanceof ChatMessage && child.isDisplayable) {
       if (this.children.length === 1) {
@@ -191,7 +191,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     this._unreadLength = 0;
   }
 
-  innerXml(): string {
+  override innerXml(): string {
     let xml = '';
     for (const child of this.children) {
       if (child instanceof ChatMessage && !child.isDisplayable) continue;
@@ -219,9 +219,5 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
   logHtmlCoc(): string {
     return ChatLogExporter.exportTabHtmlCoc(this);
-  }
-
-  parseInnerXml(element: Element) {
-    return super.parseInnerXml(element);
   }
 }

@@ -24,7 +24,7 @@ describe('decorator-core', () => {
   describe('defineSyncObject', () => {
     it('ObjectFactoryにクラスを登録する', () => {
       class TestSyncObj extends GameObject {
-        get aliasName() {
+        override get aliasName() {
           return 'TestSyncObj';
         }
       }

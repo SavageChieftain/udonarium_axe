@@ -23,7 +23,7 @@ export class TableSelecter extends GameObject {
   private subscription = new Subscription();
 
   // GameObject Lifecycle
-  onStoreAdded() {
+  override onStoreAdded() {
     super.onStoreAdded();
     this.subscription.add(
       selectGameTable$.subscribe((data) => {
@@ -35,7 +35,7 @@ export class TableSelecter extends GameObject {
   }
 
   // GameObject Lifecycle
-  onStoreRemoved() {
+  override onStoreRemoved() {
     super.onStoreRemoved();
     this.subscription.unsubscribe();
   }

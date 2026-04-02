@@ -46,8 +46,7 @@ export class DiceSymbol extends TabletopObject {
   get faces(): string[] {
     return this.imageDataElement.children.map((element) => (element as DataElement).name);
   }
-  get imageFile(): ImageFile {
-    if (this.isVisible) return this.getImageFile(this.face) ?? ImageFile.Empty;
+  override get imageFile(): ImageFile {
     if (this.faces.length) return this.getImageFile(this.faces[0]) ?? ImageFile.Empty;
     return ImageFile.Empty;
   }

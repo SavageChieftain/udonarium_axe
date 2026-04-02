@@ -119,8 +119,7 @@ export class CutInLauncher extends GameObject {
     return ObjectStore.instance.getObjects(CutIn);
   }
 
-  // override
-  apply(context: ObjectContext) {
+  override apply(context: ObjectContext) {
     const launchCutInIdentifier = this.launchCutInIdentifier;
     const launchIsStart = this.launchIsStart;
     const launchTimeStamp = this.launchTimeStamp;
