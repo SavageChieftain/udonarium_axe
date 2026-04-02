@@ -490,7 +490,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
         height: 120,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
-      component.tabletopObject = null!;
+      component.tabletopObject = null;
     }
   }
 }

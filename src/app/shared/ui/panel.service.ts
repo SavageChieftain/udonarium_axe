@@ -65,7 +65,7 @@ export class PanelService {
       childPanelService.panelComponentRef = null;
     });
 
-    return <T>bodyComponentRef.instance;
+    return bodyComponentRef.instance as T;
   }
 
   private applyPanelOption(

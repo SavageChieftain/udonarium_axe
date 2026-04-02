@@ -204,7 +204,7 @@ export class Network {
 
     // 自分自身への送信
     if (this.callback.onData) {
-      this.callback.onData(null!, broadcast);
+      this.callback.onData(null, broadcast);
       this.callback.onData(this.peer, echocast);
     }
 
