@@ -84,7 +84,7 @@
           @if (findPeerImage(peer.peerId)) {
             <div
               class="image cover"
-              [style.background-image]="'url(' + findPeerImage(peer.peerId).url + ')' | safe: 'style'"
+              [style.background-image]="'url(' + findPeerImage(peer.peerId)!.url + ')' | safe: 'style'"
             ></div>
           }
         </div>
@@ -102,7 +102,7 @@
           @if (findPeerLastControlImage(peer.peerId)) {
             <div
               class="image cover"
-              [style.background-image]="'url(' + findPeerLastControlImage(peer.peerId).url + ')' | safe: 'style'"
+              [style.background-image]="'url(' + findPeerLastControlImage(peer.peerId)!.url + ')' | safe: 'style'"
             ></div>
           }
           @if (!findPeerLastControlImage(peer.peerId)) {
