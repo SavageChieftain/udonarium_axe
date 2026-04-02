@@ -4,12 +4,11 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 import { Card } from '@axe/domain/card/card';
 import { DataElement } from '@axe/domain/data/data-element';
 import { emitCardStackDecreased } from '@axe/domain/domain-events';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 
 @SyncObject('card-stack')
-export class CardStack extends TabletopObject {
+export class CardStack extends OwnedTabletopObject {
   override get aliasName(): 'card-stack' {
     return super.aliasName as 'card-stack';
   }
@@ -22,14 +21,6 @@ export class CardStack extends TabletopObject {
 
   @SyncVar() overViewWidth: number = 250;
   @SyncVar() overViewMaxHeight: number = 250;
-
-  get ownerName(): string {
-    const object = PeerCursor.findByUserId(this.owner);
-    return object ? object.name : '';
-  }
-  get hasOwner(): boolean {
-    return this.owner.length > 0;
-  }
 
   private get cardRoot(): ObjectNode | null {
     for (const node of this.children) {

@@ -1,11 +1,9 @@
-import { Network } from '@axe/core/index';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement } from '@axe/domain/data/data-element';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 
 @SyncObject('table-scratch-mask')
-export class GameTableScratchMask extends TabletopObject {
+export class GameTableScratchMask extends OwnedTabletopObject {
   override get aliasName(): 'table-scratch-mask' {
     return super.aliasName as 'table-scratch-mask';
   }
@@ -81,27 +79,6 @@ export class GameTableScratchMask extends TabletopObject {
   }
   get height(): number {
     return this.getCommonValue('height', 1);
-  }
-
-  get ownerName(): string {
-    const object = PeerCursor.findByUserId(this.owner);
-    return object ? object.name : '';
-  }
-
-  get hasOwner(): boolean {
-    return this.owner.length > 0;
-  }
-  get isMine(): boolean {
-    return this.isOwnedBy(Network.peerContext.userId);
-  }
-  isOwnedBy(userId: string): boolean {
-    return userId === this.owner;
-  }
-  get ownerIsOnline(): boolean {
-    return this.isOwnerOnline(Network.peerContexts);
-  }
-  isOwnerOnline(peerContexts: { userId: string; isOpen: boolean }[]): boolean {
-    return this.hasOwner && peerContexts.some((context) => context.userId === this.owner && context.isOpen);
   }
 
   static create(

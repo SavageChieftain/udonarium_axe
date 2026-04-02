@@ -1,9 +1,7 @@
-import { Network } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement } from '@axe/domain/data/data-element';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 
 export enum CardState {
@@ -12,7 +10,7 @@ export enum CardState {
 }
 
 @SyncObject('card')
-export class Card extends TabletopObject {
+export class Card extends OwnedTabletopObject {
   override get aliasName(): 'card' {
     return super.aliasName as 'card';
   }
@@ -48,25 +46,8 @@ export class Card extends TabletopObject {
     return this.isVisible ? (this.frontImage ?? ImageFile.Empty) : (this.backImage ?? ImageFile.Empty);
   }
 
-  get ownerName(): string {
-    const object = PeerCursor.findByUserId(this.owner);
-    return object ? object.name : '';
-  }
-
-  get hasOwner(): boolean {
-    return this.owner.length > 0;
-  }
-  get ownerIsOnline(): boolean {
-    return this.isOwnerOnline(Network.peerContexts);
-  }
-  isOwnerOnline(peerContexts: { userId: string; isOpen: boolean }[]): boolean {
-    return this.hasOwner && peerContexts.some((context) => context.userId === this.owner && context.isOpen);
-  }
   get isHand(): boolean {
-    return this.isOwnedBy(Network.peerContext.userId);
-  }
-  isOwnedBy(userId: string): boolean {
-    return userId === this.owner;
+    return this.isMine;
   }
   get isFront(): boolean {
     return this.state === CardState.FRONT;

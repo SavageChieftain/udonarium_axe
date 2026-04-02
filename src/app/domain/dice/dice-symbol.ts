@@ -1,9 +1,7 @@
-import { Network } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement } from '@axe/domain/data/data-element';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 
 export enum DiceType {
   D2,
@@ -17,7 +15,7 @@ export enum DiceType {
 }
 
 @SyncObject('dice-symbol')
-export class DiceSymbol extends TabletopObject {
+export class DiceSymbol extends OwnedTabletopObject {
   override get aliasName(): 'dice-symbol' {
     return super.aliasName as 'dice-symbol';
   }
@@ -45,25 +43,6 @@ export class DiceSymbol extends TabletopObject {
     return ImageFile.Empty;
   }
 
-  get ownerName(): string {
-    const object = PeerCursor.findByUserId(this.owner);
-    return object ? object.name : '';
-  }
-  get hasOwner(): boolean {
-    return 0 < this.owner.length;
-  }
-  get ownerIsOnline(): boolean {
-    return this.isOwnerOnline(Network.peerContexts);
-  }
-  isOwnerOnline(peerContexts: { userId: string; isOpen: boolean }[]): boolean {
-    return this.hasOwner && peerContexts.some((context) => context.userId === this.owner && context.isOpen);
-  }
-  get isMine(): boolean {
-    return this.isOwnedBy(Network.peerContext.userId);
-  }
-  isOwnedBy(userId: string): boolean {
-    return userId === this.owner;
-  }
   get isVisible(): boolean {
     return !this.hasOwner || this.isMine;
   }
