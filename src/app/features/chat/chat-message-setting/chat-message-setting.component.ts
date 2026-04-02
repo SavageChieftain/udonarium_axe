@@ -22,7 +22,7 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   private uiSignalService = inject(UiSignalService);
 
   isAllowedEmpty: boolean = false;
-  tabletopObject: GameCharacter = null!;
+  tabletopObject: GameCharacter | null = null;
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

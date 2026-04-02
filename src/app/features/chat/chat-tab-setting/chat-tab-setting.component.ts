@@ -13,6 +13,7 @@ import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -205,7 +206,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
       }
       this.selectedTab.tachieReset();
       const mess = 'ログをクリアしました';
-      const gameSystem = null!;
+      const gameSystem: GameSystemClass | null = null;
       const sendTo = '';
       this.chatMessageService.sendMessage(
         this.selectedTab,
@@ -223,7 +224,7 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
     if (!this.allowDeleteLog) return;
 
     const mess = 'ログをクリアしました';
-    const gameSystem = null!;
+    const gameSystem: GameSystemClass | null = null;
     const sendTo = '';
 
     for (const child of this.chatTabList.chatTabs) {

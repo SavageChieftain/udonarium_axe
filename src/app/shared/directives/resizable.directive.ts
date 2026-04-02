@@ -55,19 +55,19 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
     this.handleTypes.forEach((type) => {
       const handle = new ResizeHandler(this.elementRef.nativeElement, type);
       this.handleMap.set(type, handle);
-      handle.input.onStart = (ev) => this.onResizeStart(ev, handle);
-      handle.input.onMove = (ev) => this.onResizeMove(ev, handle);
-      handle.input.onEnd = (ev) => this.onResizeEnd(ev, handle);
-      handle.input.onContextMenu = (ev) => this.onContextMenu(ev, handle);
+      handle.input!.onStart = (ev) => this.onResizeStart(ev, handle);
+      handle.input!.onMove = (ev) => this.onResizeMove(ev, handle);
+      handle.input!.onEnd = (ev) => this.onResizeEnd(ev, handle);
+      handle.input!.onContextMenu = (ev) => this.onContextMenu(ev, handle);
     });
   }
 
   cancel() {
-    this.handleMap.forEach((handle) => handle.input.cancel());
+    this.handleMap.forEach((handle) => handle.input!.cancel());
   }
 
   destroy() {
-    this.handleMap.forEach((handle) => handle.input.destroy());
+    this.handleMap.forEach((handle) => handle.input!.destroy());
   }
 
   private onResizeStart(e: MouseEvent | TouchEvent, handle: ResizeHandler) {
@@ -75,11 +75,11 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
     if ((e as MouseEvent).button === 1 || (e as MouseEvent).button === 2) return this.cancel();
     this.setForeground();
     this.handleMap.forEach((h) => {
-      if (h !== handle) h.input.cancel();
+      if (h !== handle) h.input!.cancel();
     });
 
     this.startPosition = this.calcElementPosition(this.elementRef.nativeElement);
-    this.startPointer = handle.input.pointer;
+    this.startPointer = handle.input!.pointer;
     this.prevTrans = { left: 0, top: 0, width: 0, height: 0 };
 
     e.stopPropagation();
@@ -89,8 +89,8 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
     const trans: BoxSize = {
       left: 0,
       top: 0,
-      width: handle.input.pointer.x - this.startPointer.x,
-      height: handle.input.pointer.y - this.startPointer.y,
+      width: handle.input!.pointer.x - this.startPointer.x,
+      height: handle.input!.pointer.y - this.startPointer.y,
     };
 
     switch (handle.type) {
@@ -161,7 +161,7 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
   }
 
   private onResizeEnd(e: MouseEvent | TouchEvent, handle: ResizeHandler) {
-    if (handle.input.isDragging && e.cancelable) e.preventDefault();
+    if (handle.input!.isDragging && e.cancelable) e.preventDefault();
     e.stopPropagation();
   }
 

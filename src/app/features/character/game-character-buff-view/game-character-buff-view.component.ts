@@ -17,6 +17,6 @@ export class GameCharacterBuffViewComponent {
 
   //  @Input() title: string = '';
 
-  character: TabletopObject = null!;
+  character: TabletopObject | null = null;
   isEdit: boolean = false;
 }

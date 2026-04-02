@@ -200,7 +200,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get overViewNoteWidth(): number {
-    const note = <TextNote>this.tabletopObject;
+    const note = this.tabletopObject as TextNote;
     if (!note) return 250;
     let width = note.overViewWidth;
     if (width < 250) width = 250;
@@ -210,7 +210,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get overViewNoteMaxHeight(): number {
-    const note = <TextNote>this.tabletopObject;
+    const note = this.tabletopObject as TextNote;
     if (!note) return 250;
     let maxHeight = note.overViewMaxHeight;
     if (maxHeight < 250) maxHeight = 250;
@@ -220,7 +220,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get overViewCharacterWidth(): number {
-    const character = <GameCharacter>this.tabletopObject;
+    const character = this.tabletopObject as GameCharacter;
     if (!character) return 270;
     let width = character.overViewWidth;
     if (width < 270) width = 270;
@@ -230,7 +230,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get overViewCharacterMaxHeight(): number {
-    const character = <GameCharacter>this.tabletopObject;
+    const character = this.tabletopObject as GameCharacter;
     if (!character) return 250;
     let maxHeight = character.overViewMaxHeight;
     if (maxHeight < 250) maxHeight = 250;
@@ -240,8 +240,8 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get overViewCardWidth(): number {
-    const card = <Card>this.tabletopObject;
-    const cardStack = <CardStack>this.tabletopObject;
+    const card = this.tabletopObject as Card;
+    const cardStack = this.tabletopObject as CardStack;
     let object: Card | CardStack | null = null;
 
     if (!card && !cardStack) return 250;
@@ -264,8 +264,8 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
 
   get overViewCardMaxHeight(): number {
-    const card = <Card>this.tabletopObject;
-    const cardStack = <CardStack>this.tabletopObject;
+    const card = this.tabletopObject as Card;
+    const cardStack = this.tabletopObject as CardStack;
     let object: Card | CardStack | null = null;
 
     if (!card && !cardStack) return 250;

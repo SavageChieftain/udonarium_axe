@@ -69,7 +69,7 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
   readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
-  readonly textNote = input<TextNote>(null!);
+  readonly textNote = input.required<TextNote>();
   readonly is3D = input(false);
 
   get title(): string {

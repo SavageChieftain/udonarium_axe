@@ -24,7 +24,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
 
-  tabletopObject: RangeArea = null!;
+  tabletopObject: RangeArea | null = null;
 
   private _sendFrom!: string;
   get sendFrom(): string {
@@ -76,6 +76,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   }
 
   followring() {
+    if (!this.tabletopObject) return;
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       if (GameCharacter) {

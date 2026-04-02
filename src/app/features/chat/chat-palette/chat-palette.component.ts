@@ -55,8 +55,8 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   readonly editTextRef = viewChild<ElementRef<HTMLTextAreaElement>>('editText');
   character: GameCharacter | null = null;
 
-  get palette(): ChatPalette {
-    return this.character?.chatPalette ?? null!;
+  get palette(): ChatPalette | null {
+    return this.character?.chatPalette ?? null;
   }
 
   private _gameType: string = '';
@@ -88,7 +88,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   isIndexOpen: boolean = false;
   editPalette: string = '';
 
-  private doubleClickTimer: NodeJS.Timeout = null!;
+  private doubleClickTimer: NodeJS.Timeout | null = null;
   get diceBotInfos() {
     return DiceBot.diceBotInfos;
   }
@@ -204,7 +204,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
 
   selectAutoComplete(text: string, selectText: string) {
     const selectObj = this.completeSelectRef()?.nativeElement;
-    if (!selectObj) return;
+    if (!selectObj || !this.palette) return;
     const lineNo = this.palette.paletteMatchLine(text, selectObj.selectedIndex);
     this.japmIndex(lineNo);
     this.selectPalette(selectText);
@@ -217,7 +217,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   autoCompleteList(): string[] {
     let paletteMatch: string[] = [];
     if (this.text.length > 1) {
-      paletteMatch = this.palette.paletteMatch(this.text);
+      paletteMatch = this.palette?.paletteMatch(this.text) ?? [];
     }
     return paletteMatch;
   }
@@ -226,12 +226,12 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     const multiLine = line.replace(/\\n/g, '\n');
     if (this.doubleClickTimer && this.text === multiLine) {
       clearTimeout(this.doubleClickTimer);
-      this.doubleClickTimer = null!;
-      this.chatInputComponent().sendChat(null!);
+      this.doubleClickTimer = null;
+      this.chatInputComponent().sendChat(null);
     } else {
       this.text = multiLine;
       this.doubleClickTimer = setTimeout(() => {
-        this.doubleClickTimer = null!;
+        this.doubleClickTimer = null;
       }, 400);
     }
   }
@@ -324,6 +324,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
 
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
+    if (!this.palette) return;
     if (this.isEdit) {
       const selectEl = this.chatPaletteElementRef()?.nativeElement;
       this.editPalette = this.palette.value + '';
@@ -359,6 +360,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   indexBtn() {
+    if (!this.palette) return;
     const panel: HTMLElement = this.rootElementRef().nativeElement;
     const panelBox = panel.getBoundingClientRect();
 

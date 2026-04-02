@@ -16,7 +16,7 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  readonly gameDataElement = input<DataElement>(null!);
+  readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);
   readonly isTagLocked = input(false);
   readonly isValueLocked = input(false);
@@ -24,7 +24,7 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy {
 
   private _name: string = '';
   get name(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
+    this.objectChange.versionOf(this.gameDataElement().identifier)();
     return this._name;
   }
   set name(name: string) {
@@ -52,11 +52,11 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy {
 
   private updateTimer: NodeJS.Timeout | null = null;
   ngOnInit() {
-    if (this.gameDataElement()) this.setValues(this.gameDataElement());
+    this.setValues(this.gameDataElement());
 
     this.objectChange.objectChanged$
       .pipe(
-        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement().identifier),
+        filter((e) => e.identifier === this.gameDataElement().identifier),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

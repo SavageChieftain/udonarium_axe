@@ -24,6 +24,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { callWritingAMessage } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -147,14 +148,14 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     return this.charactorChatColor(2);
   }
 
-  get selectCharacterTachie() {
+  get selectCharacterTachie(): DataElement | null {
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       if (object.imageDataElement.children.length > this.tachieNum) {
-        return object.imageDataElement.children[this.tachieNum];
+        return object.imageDataElement.children[this.tachieNum] ?? null;
       }
     }
-    return null!;
+    return null;
   }
 
   get selectCharacterTachieNum(): number {
@@ -225,7 +226,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   private shouldUpdateCharacterList = true;
   private _gameCharacters: GameCharacter[] = [];
 
-  private writingEventInterval: NodeJS.Timeout = null!;
+  private writingEventInterval: NodeJS.Timeout | null = null;
   private previousWritingLength = 0;
   //  writingPeers: Map<string, NodeJS.Timeout> = new Map();
   writingPeers: Map<string, ResettableTimeout> = new Map(); // 1.13.xとのmargeで修正
@@ -332,7 +333,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.writingEventInterval) {
       clearTimeout(this.writingEventInterval);
-      this.writingEventInterval = null!;
+      this.writingEventInterval = null;
     }
     for (const [, timeout] of this.writingPeers) {
       timeout.stop();
@@ -352,7 +353,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
 
   onInput() {
     if (this.writingEventInterval === null && this.previousWritingLength <= this.text().length) {
-      let sendTo: string = null!;
+      let sendTo: string | undefined;
       if (this.isDirect) {
         const object = this.objectStore.get(this.sendTo());
         if (object instanceof PeerCursor) {
@@ -366,7 +367,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       }
       callWritingAMessage(this.chatTabidentifier(), sendTo);
       this.writingEventInterval = setTimeout(() => {
-        this.writingEventInterval = null!;
+        this.writingEventInterval = null;
       }, 200);
     }
     this.previousWritingLength = this.text().length;

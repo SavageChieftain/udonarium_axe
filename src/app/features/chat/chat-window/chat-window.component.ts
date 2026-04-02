@@ -200,7 +200,7 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
       this.panelService.chatTab = this.chatTab;
     } else {
       this.panelService.title = 'チャットウィンドウ';
-      this.panelService.chatTab = null!;
+      this.panelService.chatTab = null;
     }
   }
 

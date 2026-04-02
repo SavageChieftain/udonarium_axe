@@ -93,7 +93,7 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  readonly terrain = input<Terrain>(null!);
+  readonly terrain = input.required<Terrain>();
   readonly is3D = input(false);
   readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
 

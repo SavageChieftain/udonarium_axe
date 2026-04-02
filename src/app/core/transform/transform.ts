@@ -10,7 +10,7 @@ export interface IPoint3D extends IPoint2D {
   w: number;
 }
 export class Transform {
-  private element!: HTMLElement;
+  private element: HTMLElement | null = null;
   private matrix: Matrix3D = new Matrix3D();
   private sceneTransform: Matrix3D = new Matrix3D();
   private inverseSceneTransform: Matrix3D = new Matrix3D();
@@ -27,7 +27,7 @@ export class Transform {
   }
 
   clear(): Transform {
-    this.element = null!;
+    this.element = null;
     this.matrix.identity();
 
     return this;

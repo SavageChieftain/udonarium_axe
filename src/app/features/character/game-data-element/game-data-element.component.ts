@@ -34,7 +34,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  readonly gameDataElement = input<DataElement>(null!);
+  readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);
   readonly isTagLocked = input(false);
   readonly isValueLocked = input(false);
@@ -124,7 +124,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   }
 
   deleteImageElement() {
-    const root: DataElement = <DataElement>this.gameDataElement().parent!.parent;
+    const root: DataElement = this.gameDataElement().parent!.parent as DataElement;
     if (this.gameDataElement().parent!.children[0] != this.gameDataElement()) {
       this.gameDataElement().destroy();
       this.updateKomaIconMaxValue(root);

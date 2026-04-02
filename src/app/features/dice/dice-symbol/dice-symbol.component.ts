@@ -55,7 +55,7 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  readonly diceSymbol = input<DiceSymbol>(null!);
+  readonly diceSymbol = input.required<DiceSymbol>();
 
   get face(): string {
     return this.diceSymbol().face;

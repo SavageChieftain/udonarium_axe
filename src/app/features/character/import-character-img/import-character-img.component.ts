@@ -23,7 +23,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
 
-  tabletopObject: GameCharacter = null!;
+  tabletopObject: GameCharacter | null = null;
 
   private _sendFrom!: string;
   get sendFrom(): string {
@@ -74,6 +74,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   }
 
   importImages() {
+    if (!this.tabletopObject) return;
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
@@ -93,15 +94,15 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
 
         let count;
         for (count = 0; count < srcImageDataElement.children.length; count++) {
-          const dist = <DataElement>distImageDataElement.children[count];
-          const src = <DataElement>srcImageDataElement.children[count];
+          const dist = distImageDataElement.children[count] as DataElement;
+          const src = srcImageDataElement.children[count] as DataElement;
 
           dist.currentValue = src.currentValue;
           dist.name = src.name;
           dist.value = src.value;
         }
 
-        const root = <DataElement>distImageDataElement.parent;
+        const root = distImageDataElement.parent as DataElement;
         const icon = root.getElementsByName('ICON');
         if (icon) {
           icon[0].value = distImageDataElement.children.length - 1;

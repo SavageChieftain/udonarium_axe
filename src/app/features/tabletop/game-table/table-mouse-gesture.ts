@@ -31,12 +31,12 @@ export class TableMouseGesture {
   private currentPositionY: number = 0;
 
   private buttonCode: number = 0;
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
   get isGrabbing(): boolean {
-    return this.input.isGrabbing;
+    return this.input!.isGrabbing;
   }
   get isDragging(): boolean {
-    return this.input.isDragging;
+    return this.input!.isDragging;
   }
 
   private callbackOnWheel = (e: WheelEvent) => this.onWheel(e);
@@ -58,17 +58,17 @@ export class TableMouseGesture {
   }
 
   cancel() {
-    this.input.cancel();
+    this.input!.cancel();
   }
 
   destroy() {
-    this.input.destroy();
+    this.input!.destroy();
     this.removeEventListeners();
   }
 
   onInputStart(ev: MouseEvent | TouchEvent) {
-    this.currentPositionX = this.input.pointer.x;
-    this.currentPositionY = this.input.pointer.y;
+    this.currentPositionX = this.input!.pointer.x;
+    this.currentPositionY = this.input!.pointer.y;
     this.buttonCode = (ev as MouseEvent).button;
     if (this.onstart) this.onstart(ev);
   }
@@ -78,8 +78,8 @@ export class TableMouseGesture {
   }
 
   onInputMove(ev: MouseEvent | TouchEvent) {
-    const x = this.input.pointer.x;
-    const y = this.input.pointer.y;
+    const x = this.input!.pointer.x;
+    const y = this.input!.pointer.y;
     const deltaX = x - this.currentPositionX;
     const deltaY = y - this.currentPositionY;
 

@@ -55,7 +55,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private selectionSignalService = inject(SelectionSignalService);
   private objectChange = inject(ObjectChangeService);
 
-  readonly card = input<Card>(null!);
+  readonly card = input.required<Card>();
 
   get dispLockMark(): boolean {
     return this.card().dispLockMark;
@@ -135,7 +135,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.imageService.getSkeletonOr(this.card().backImage);
   }
 
-  private iconHiddenTimer: NodeJS.Timeout = null!;
+  private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
   gridSize: number = 50;
@@ -143,10 +143,10 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   movableOption: MovableOption = {};
   rotableOption: RotableOption = {};
 
-  private doubleClickTimer: NodeJS.Timeout = null!;
+  private doubleClickTimer: NodeJS.Timeout | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
-  private input: InputHandler = null!;
+  private input: InputHandler | null = null;
   ngOnInit() {
     this.movableOption = {
       tabletopObject: this.card(),
@@ -164,8 +164,8 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    clearTimeout(this.doubleClickTimer);
-    clearTimeout(this.iconHiddenTimer);
+    clearTimeout(this.doubleClickTimer ?? undefined);
+    clearTimeout(this.iconHiddenTimer ?? undefined);
     if (this.input) this.input.destroy();
   }
 
@@ -196,27 +196,27 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.doubleClickTimer) {
       this.stopDoubleClickTimer();
       this.doubleClickTimer = setTimeout(() => this.stopDoubleClickTimer(), (e as TouchEvent).touches ? 500 : 300);
-      this.doubleClickPoint = this.input.pointer;
+      this.doubleClickPoint = this.input!.pointer;
       return;
     }
 
     if ((e as TouchEvent).touches) {
-      this.input.onEnd = () => this.onDoubleClick();
+      this.input!.onEnd = () => this.onDoubleClick();
     } else {
       this.onDoubleClick();
     }
   }
 
   stopDoubleClickTimer() {
-    clearTimeout(this.doubleClickTimer);
-    this.doubleClickTimer = null!;
-    this.input.onEnd = null!;
+    clearTimeout(this.doubleClickTimer ?? undefined);
+    this.doubleClickTimer = null;
+    this.input!.onEnd = null;
   }
 
   onDoubleClick() {
     this.stopDoubleClickTimer();
     const distance =
-      (this.doubleClickPoint.x - this.input.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input.pointer.y) ** 2;
+      (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
     if (distance < 10 ** 2) {
       if (this.ownerIsOnline && !this.isHand) return;
       this.state = this.isVisible && !this.isHand ? CardState.BACK : CardState.FRONT;
@@ -354,7 +354,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onMove() {
-    this.input.cancel();
+    this.input!.cancel();
     SoundEffect.play(PresetSound.cardPick);
   }
 
@@ -402,9 +402,9 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startIconHiddenTimer() {
-    clearTimeout(this.iconHiddenTimer);
+    clearTimeout(this.iconHiddenTimer ?? undefined);
     this.iconHiddenTimer = setTimeout(() => {
-      this.iconHiddenTimer = null!;
+      this.iconHiddenTimer = null;
       this.isIconHidden.set(false);
     }, 300);
     this.isIconHidden.set(true);

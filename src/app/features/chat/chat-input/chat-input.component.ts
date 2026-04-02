@@ -22,6 +22,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { callWritingAMessage } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
@@ -234,14 +235,14 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.colorSelectNo = num;
   }
 
-  get selectCharacterTachie() {
+  get selectCharacterTachie(): DataElement | null {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       if (object.imageDataElement.children.length > this.tachieNum) {
-        return object.imageDataElement.children[this.tachieNum];
+        return object.imageDataElement.children[this.tachieNum] ?? null;
       }
     }
-    return null!;
+    return null;
   }
 
   get selectCharacterTachieNum() {
@@ -282,7 +283,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     return this._gameCharacters;
   }
 
-  private writingEventInterval: NodeJS.Timeout = null!;
+  private writingEventInterval: NodeJS.Timeout | null = null;
   private previousWritingLength: number = 0;
   readonly writingPeerNames = this.writingManager.names;
 
@@ -303,7 +304,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
-  private calcFitHeightInterval: NodeJS.Timeout = null!;
+  private calcFitHeightInterval: NodeJS.Timeout | null = null;
   ngOnInit(): void {
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier()) return;
@@ -346,18 +347,18 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     this.batchService.remove(this);
     if (this.writingEventInterval) {
       clearTimeout(this.writingEventInterval);
-      this.writingEventInterval = null!;
+      this.writingEventInterval = null;
     }
     if (this.calcFitHeightInterval) {
       clearTimeout(this.calcFitHeightInterval);
-      this.calcFitHeightInterval = null!;
+      this.calcFitHeightInterval = null;
     }
     this.writingManager.destroy();
   }
 
   onInput() {
     if (this.writingEventInterval === null && this.previousWritingLength <= this.text.length) {
-      let sendTo: string = null!;
+      let sendTo: string | undefined;
       if (this.isDirect) {
         const object = this.objectStore.get(this.sendTo);
         if (object instanceof PeerCursor) {
@@ -367,7 +368,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
       }
       callWritingAMessage(this.chatTabidentifier(), sendTo);
       this.writingEventInterval = setTimeout(() => {
-        this.writingEventInterval = null!;
+        this.writingEventInterval = null;
       }, 200);
     }
     this.previousWritingLength = this.text.length;
@@ -433,7 +434,7 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
   kickCalcFitHeight() {
     if (this.calcFitHeightInterval == null) {
       this.calcFitHeightInterval = setTimeout(() => {
-        this.calcFitHeightInterval = null!;
+        this.calcFitHeightInterval = null;
         this.calcFitHeight();
       }, 0);
     }

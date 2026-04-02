@@ -58,7 +58,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  readonly cardStack = input<CardStack>(null!);
+  readonly cardStack = input.required<CardStack>();
 
   get isLock(): boolean {
     return this.cardStack().isLock;

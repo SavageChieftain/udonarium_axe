@@ -157,7 +157,7 @@ export class TabletopService {
     });
   }
 
-  private findCache(aliasName: string): TabletopCache<TabletopObject> {
+  private findCache(aliasName: string): TabletopCache<TabletopObject> | null {
     switch (aliasName) {
       case GameCharacter.aliasName:
         return this.characterCache;
@@ -178,7 +178,7 @@ export class TabletopService {
       case DiceSymbol.aliasName:
         return this.diceSymbolCache;
       default:
-        return null!;
+        return null;
     }
   }
 

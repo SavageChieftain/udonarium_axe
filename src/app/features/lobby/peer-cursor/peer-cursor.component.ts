@@ -57,8 +57,8 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
-  private cursorElement: HTMLElement = null!;
-  private opacityElement: HTMLElement = null!;
+  private cursorElement: HTMLElement | null = null;
+  private opacityElement: HTMLElement | null = null;
   private fadeOutTimer: ResettableTimeout | null = null;
   private updateInterval: NodeJS.Timeout | null = null;
   private timestampInterval: NodeJS.Timeout | null = null;
@@ -266,24 +266,24 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private resetFadeOut() {
-    this.opacityElement.style.opacity = '1.0';
+    this.opacityElement!.style.opacity = '1.0';
     if (this.fadeOutTimer == null) {
       this.fadeOutTimer = new ResettableTimeout(() => {
-        this.opacityElement.style.opacity = '0.0';
+        this.opacityElement!.style.opacity = '0.0';
       }, 3000);
     }
     this.fadeOutTimer.reset();
   }
 
   private stopTransition() {
-    this.cursorElement.style.transform = window.getComputedStyle(this.cursorElement).transform;
+    this.cursorElement!.style.transform = window.getComputedStyle(this.cursorElement!).transform;
   }
 
   private setAnimatedTransition() {
-    this.cursorElement.style.transition = `transform ${this.delayMs + 33}ms linear, opacity 0.5s ease-out`;
+    this.cursorElement!.style.transition = `transform ${this.delayMs + 33}ms linear, opacity 0.5s ease-out`;
   }
 
   private setPosition(x: number, y: number, z: number) {
-    this.cursorElement.style.transform = `translateX(${x.toFixed(4)}px) translateY(${y.toFixed(4)}px) translateZ(${z.toFixed(4)}px)`;
+    this.cursorElement!.style.transform = `translateX(${x.toFixed(4)}px) translateY(${y.toFixed(4)}px) translateZ(${z.toFixed(4)}px)`;
   }
 }

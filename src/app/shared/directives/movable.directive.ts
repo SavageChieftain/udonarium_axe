@@ -112,9 +112,9 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
   width: number = 0;
   ratio: number = 1.0;
 
-  private updateTimer: NodeJS.Timeout = null!;
+  private updateTimer: NodeJS.Timeout | null = null;
   private collidableElements: HTMLElement[] = [];
-  input: InputHandler = null!;
+  input: InputHandler | null = null;
 
   get isGridSnap(): boolean {
     return this.tableSelecter.gridSnap;
@@ -158,13 +158,13 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (
         !this.tabletopObject ||
-        (event.isSendFromSelf && this.input.isGrabbing) ||
+        (event.isSendFromSelf && this.input!.isGrabbing) ||
         event.identifier !== this.tabletopObject.identifier ||
         !this.shouldTransition(this.tabletopObject)
       )
         return;
       this.batchService.add(() => {
-        if (this.input.isGrabbing) {
+        if (this.input!.isGrabbing) {
           this.cancel();
         } else {
           this.setAnimatedTransition(true);
@@ -188,8 +188,8 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
 
   scratchObjectPosition(_start: boolean) {
     const pointerScratch2d = {
-      x: this.input.pointer.x,
-      y: this.input.pointer.y,
+      x: this.input!.pointer.x,
+      y: this.input!.pointer.y,
       z: 0,
     };
     pointerScratch2d.x = Math.min(window.innerWidth - 0.1, Math.max(pointerScratch2d.x, 0.1));
@@ -248,7 +248,7 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
         this.tabletopObject.location.x = this.posX;
         this.tabletopObject.location.y = this.posY;
         this.tabletopObject.posZ = this.posZ;
-        this.updateTimer = null!;
+        this.updateTimer = null;
       }, 66);
     }
     this.updateTransformCss();

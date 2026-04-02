@@ -301,7 +301,7 @@ export class ChatMessageService {
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       const element = object.detailDataElement.getFirstElementByName('POS');
-      return resolveImagePos(element ? <number>element.currentValue : undefined);
+      return resolveImagePos(element ? (element.currentValue as number) : undefined);
     }
     return -1;
   }

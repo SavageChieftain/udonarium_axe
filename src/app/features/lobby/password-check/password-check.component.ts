@@ -31,7 +31,7 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
   password: string = '';
   readonly help = signal('');
 
-  private targetPeerContext: PeerContext = null!;
+  private targetPeerContext!: PeerContext;
   title: string = '';
 
   get peerId(): string {

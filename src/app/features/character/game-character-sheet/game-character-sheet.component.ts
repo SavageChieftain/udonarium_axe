@@ -193,13 +193,13 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   }
 
   chkKomaSize(height: number) {
-    const character = <GameCharacter>this.tabletopObject;
+    const character = this.tabletopObject as GameCharacter;
     character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
     this.pointerDeviceService.isDragging = false;
   }
 
   chkDiceKomaSize(height: number) {
-    const character = <DiceSymbol>this.tabletopObject;
+    const character = this.tabletopObject as DiceSymbol;
     character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
     this.pointerDeviceService.isDragging = false;
   }
@@ -213,14 +213,14 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
   }
 
   chkPopWidth(width: number) {
-    const character = <GameCharacter>this.tabletopObject;
+    const character = this.tabletopObject as GameCharacter;
     if (width < 270) width = 270;
     if (width > 800) width = 800;
     character.overViewWidth = width;
   }
 
   chkPopMaxHeight(maxHeight: number) {
-    const character = <GameCharacter>this.tabletopObject;
+    const character = this.tabletopObject as GameCharacter;
     if (maxHeight < 250) maxHeight = 250;
     if (maxHeight > 1000) maxHeight = 1000;
     character.overViewMaxHeight = maxHeight;
@@ -231,7 +231,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     this.isSaveing = true;
     this.progresPercent = 0;
     const element = obj.commonDataElement.getFirstElementByName('name');
-    const objectName: string = element ? <string>element.value : '';
+    const objectName: string = element ? (element.value as string) : '';
 
     await this.saveDataService.saveGameObjectAsync(obj, 'xml_' + objectName, (percent) => {
       this.progresPercent = percent;
@@ -259,28 +259,28 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
 
   changeMaskFillColor(event: string) {
     if (this.tabletopObject) {
-      const mask: GameTableScratchMask = <GameTableScratchMask>this.tabletopObject;
+      const mask: GameTableScratchMask = this.tabletopObject as GameTableScratchMask;
       mask.color = event;
     }
   }
 
   changeMaskChangeColor(event: string) {
     if (this.tabletopObject) {
-      const mask: GameTableScratchMask = <GameTableScratchMask>this.tabletopObject;
+      const mask: GameTableScratchMask = this.tabletopObject as GameTableScratchMask;
       mask.changeColor = event;
     }
   }
 
   changeGridColor(event: string) {
     if (this.tabletopObject) {
-      const range: RangeArea = <RangeArea>this.tabletopObject;
+      const range: RangeArea = this.tabletopObject as RangeArea;
       range.gridColor = event;
     }
   }
 
   changeRangeColor(event: string) {
     if (this.tabletopObject) {
-      const range: RangeArea = <RangeArea>this.tabletopObject;
+      const range: RangeArea = this.tabletopObject as RangeArea;
       range.rangeColor = event;
     }
   }

@@ -17,7 +17,7 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
   private objectChange = inject(ObjectChangeService);
 
   isAllowedEmpty: boolean = false;
-  tabletopObject: GameCharacter = null!;
+  tabletopObject: GameCharacter | null = null;
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

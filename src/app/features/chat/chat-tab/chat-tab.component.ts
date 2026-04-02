@@ -77,8 +77,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
   readonly logContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('logContainer');
   readonly messageContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('messageContainer');
 
-  private topElm: HTMLElement = null!;
-  private bottomElm: HTMLElement = null!;
+  private topElm: HTMLElement | null = null;
+  private bottomElm: HTMLElement | null = null;
   private topElmBox: ClientRect | null = null;
   private bottomElmBox: ClientRect | null = null;
   private topIndex = 0;
@@ -195,8 +195,8 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
     this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);
     this.onScroll();
-    this.panelService.scrollablePanel.addEventListener('scroll', this.callbackOnScroll, false);
-    this.panelService.scrollablePanel.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
+    this.panelService.scrollablePanel!.addEventListener('scroll', this.callbackOnScroll, false);
+    this.panelService.scrollablePanel!.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
   }
 
   ngOnDestroy() {
@@ -235,7 +235,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     this.needUpdate = true;
     this.preScrollTop = -1;
     this.scrollSpeed = 0;
-    this.topElm = this.bottomElm = null!;
+    this.topElm = this.bottomElm = null;
     this.adjustIndex();
     this.renderVersion.update((v) => v + 1);
   }
@@ -262,7 +262,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
   }
 
   private getScrollPosition(): ScrollPosition {
-    return getBoundedScrollPosition(this.panelService.scrollablePanel);
+    return getBoundedScrollPosition(this.panelService.scrollablePanel!);
   }
 
   private adjustScrollPosition() {
@@ -273,7 +273,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
 
     const { hasTopBlank, hasBotomBlank } = this.checkBlank(hasTopElm, hasBotomElm);
 
-    this.topElm = this.bottomElm = null!;
+    this.topElm = this.bottomElm = null;
 
     if (hasTopBlank || hasBotomBlank || (!hasTopElm && !hasBotomElm)) {
       setZeroTimeout(() => this.lazyScrollUpdate());
@@ -285,7 +285,7 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
 
     if (!hasTopElm && !hasBotomElm) return { hasTopBlank, hasBotomBlank };
 
-    let elm: HTMLElement = null!;
+    let elm: HTMLElement | null = null;
     let prevBox: ClientRect | null = null;
     if (hasBotomElm) {
       elm = this.bottomElm;
@@ -294,10 +294,10 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
       elm = this.topElm;
       prevBox = this.topElmBox;
     }
-    const currentBox = elm.getBoundingClientRect();
+    const currentBox = elm!.getBoundingClientRect();
     const diff = (prevBox?.top ?? 0) - currentBox.top - this.scrollSpeed;
     if ((!hasTopBlank || !hasBotomBlank) && 0.5 ** 2 < diff ** 2) {
-      this.panelService.scrollablePanel.scrollTop -= diff;
+      this.panelService.scrollablePanel!.scrollTop -= diff;
     }
 
     const logBox: ClientRect = this.logContainerRef().nativeElement.getBoundingClientRect();

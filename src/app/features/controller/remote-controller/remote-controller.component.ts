@@ -58,8 +58,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  get palette(): ChatPalette {
-    return this.character?.remoteController ?? null!;
+  get palette(): ChatPalette | null {
+    return this.character?.remoteController ?? null;
   }
 
   private _gameSystem!: GameSystemClass;
@@ -283,8 +283,10 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
     if (this.isEdit) {
+      if (!this.palette) return;
       this.editPalette = this.palette.value + '';
     } else {
+      if (!this.palette) return;
       this.palette.setPalette(this.editPalette);
     }
   }

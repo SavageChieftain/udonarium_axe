@@ -38,9 +38,9 @@ export class PanelService {
   height: number = 100;
   isCutIn: boolean = false;
   cutInIdentifier: string = '';
-  chatTab: ChatTab = null!;
-  cardStack: CardStack = null!;
-  scrollablePanel: HTMLDivElement = null!;
+  chatTab: ChatTab | null = null;
+  cardStack: CardStack | null = null;
+  scrollablePanel: HTMLDivElement | null = null;
   get isShow(): boolean {
     return this.panelComponentRef !== null;
   }

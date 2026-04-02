@@ -12,8 +12,8 @@ export enum HandleType {
 }
 
 export class ResizeHandler {
-  input: InputHandler = null!;
-  private handle: HTMLElement = null!;
+  input: InputHandler | null = null;
+  private handle: HTMLElement | null = null;
   private width = 12;
 
   constructor(
@@ -99,7 +99,7 @@ export class ResizeHandler {
   }
 
   destroy() {
-    this.handle.remove();
-    this.input.destroy();
+    this.handle!.remove();
+    this.input!.destroy();
   }
 }

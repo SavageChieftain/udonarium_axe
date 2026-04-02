@@ -1,7 +1,7 @@
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export type MovableLayerItem = {
-  input?: { isGrabbing: boolean };
+  input?: { isGrabbing: boolean } | null;
   setPointerEvents(isEnable: boolean): void;
 };
 

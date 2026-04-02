@@ -76,7 +76,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {}
 
-  readonly range = input<RangeArea>(null!);
+  readonly range = input.required<RangeArea>();
 
   readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
   readonly rangeCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('rangeCanvas');

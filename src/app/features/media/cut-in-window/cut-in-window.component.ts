@@ -58,7 +58,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   isTest = false;
 
-  cutIn: CutIn = null!;
+  cutIn: CutIn | null = null;
   playListId = '';
 
   private _naturalWidth = 0;
@@ -162,13 +162,12 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   chkeWindowMinSize() {
-    if (this.videoId) {
-      if (this.panelService.width < this.cutIn.minSizeWidth(true)) {
-        this.panelService.width = this.cutIn.minSizeWidth(true);
-      }
-      if (this.panelService.height < this.cutIn.minSizeHeight(true)) {
-        this.panelService.height = this.cutIn.minSizeHeight(true);
-      }
+    if (!this.cutIn || !this.videoId) return;
+    if (this.panelService.width < this.cutIn.minSizeWidth(true)) {
+      this.panelService.width = this.cutIn.minSizeWidth(true);
+    }
+    if (this.panelService.height < this.cutIn.minSizeHeight(true)) {
+      this.panelService.height = this.cutIn.minSizeHeight(true);
     }
   }
 
@@ -208,21 +207,21 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
         this.videoStateTransition = false;
-        this._timeoutIdVideo = null!;
+        this._timeoutIdVideo = null;
       }, 200);
     }
     if (state == 2) {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
         this.videoStateTransition = false;
-        this._timeoutIdVideo = null!;
+        this._timeoutIdVideo = null;
       }, 200);
     }
     if (state == 5) {
       this.videoStateTransition = true;
       this._timeoutIdVideo = setTimeout(() => {
         this.videoStateTransition = false;
-        this._timeoutIdVideo = null!;
+        this._timeoutIdVideo = null;
       }, 200);
     }
     if (state == 0) {
@@ -232,7 +231,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
         $event.target.seekTo(startSec, true);
         $event.target.playVideo();
       } else {
-        this.cutInTimeOut = null!;
+        this.cutInTimeOut = null;
         this.panelService.close();
       }
     }
@@ -247,7 +246,7 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.cutInTimeOut) {
       clearTimeout(this.cutInTimeOut);
-      this.cutInTimeOut = null!;
+      this.cutInTimeOut = null;
     }
     if (this.timerCheckWindowSize) {
       clearTimeout(this.timerCheckWindowSize);

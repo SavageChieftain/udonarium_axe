@@ -76,7 +76,7 @@ export function buildRangeContextMenu(
             name: '追従を解除',
             action: () => {
               SoundEffect.play(PresetSound.unlock);
-              range.followingCharctorIdentifier = null!;
+              range.followingCharctorIdentifier = '';
             },
           }
         : {
