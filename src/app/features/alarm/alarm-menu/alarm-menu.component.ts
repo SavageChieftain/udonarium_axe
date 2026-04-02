@@ -58,7 +58,8 @@ export class AlarmMenuComponent implements OnInit, OnDestroy {
   }
 
   isPeerIsDisConnect(peerId: string): boolean {
-    return PeerCursor.findByPeerId(peerId) ? PeerCursor.findByPeerId(peerId).isDisConnect : true;
+    const cursor = PeerCursor.findByPeerId(peerId);
+    return cursor ? cursor.isDisConnect : true;
   }
 
   setDefaultCheck() {

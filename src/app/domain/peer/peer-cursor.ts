@@ -213,15 +213,15 @@ export class PeerCursor extends GameObject {
     PeerCursor.peerIdMap.delete(this.peerId);
   }
 
-  static findByUserId(userId: UserId): PeerCursor {
+  static findByUserId(userId: UserId): PeerCursor | null {
     return this.find(PeerCursor.userIdMap, userId, true);
   }
 
-  static findByPeerId(peerId: PeerId): PeerCursor {
+  static findByPeerId(peerId: PeerId): PeerCursor | null {
     return this.find(PeerCursor.peerIdMap, peerId, false);
   }
 
-  private static find(map: Map<string, string>, key: string, isUserId: boolean): PeerCursor {
+  private static find(map: Map<string, string>, key: string, isUserId: boolean): PeerCursor | null {
     const identifier = map.get(key);
     if (identifier != null && ObjectStore.instance.get(identifier))
       return ObjectStore.instance.get<PeerCursor>(identifier)!;
@@ -233,7 +233,7 @@ export class PeerCursor extends GameObject {
         return cursor;
       }
     }
-    return null!;
+    return null;
   }
 
   static createMyCursor(): PeerCursor {

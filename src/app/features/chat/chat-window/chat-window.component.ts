@@ -86,24 +86,16 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chatTabidentifier = chatTabs[nextIndex].identifier;
   }
 
-  private testcount: number = 0;
-
   get chatTab(): ChatTab {
     this.objectChange.versionOf(this.chatTabidentifier)();
     this.objectChange.collectionOf('chat-tab')();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
   }
-  isAutoScroll: boolean = true;
+  private isAutoScroll: boolean = true;
   hasNewMessage = signal(false);
   isNearBottom = signal(true);
-  scrollToBottomTimer: NodeJS.Timeout = null!;
+  private scrollToBottomTimer: NodeJS.Timeout | null = null;
   private scrollListener: (() => void) | null = null;
-  testadd() {
-    this.chatTab.count++;
-  }
-  get testmess(): string[] {
-    return this.chatTab.imageIdentifier;
-  }
 
   ngOnInit() {
     this.sendFrom = PeerCursor.myCursor.identifier;
@@ -185,7 +177,7 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.scrollToBottomTimer != null) return;
     this.scrollToBottomTimer = setTimeout(() => {
       if (this.chatTab) this.chatTab.markForRead();
-      this.scrollToBottomTimer = null!;
+      this.scrollToBottomTimer = null;
       this.isAutoScroll = false;
       if (this.panelService.scrollablePanel) {
         this.panelService.scrollablePanel.scrollTop = this.panelService.scrollablePanel.scrollHeight;

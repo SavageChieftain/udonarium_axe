@@ -82,7 +82,7 @@ export class DiceBot extends GameObject {
   }
 
   static loadCustomGameSystem(_gameType: string): GameSystemClass | null {
-    return null!;
+    return null;
   }
 
   static async loadGameSystemAsync(gameType: string): Promise<GameSystemClass> {

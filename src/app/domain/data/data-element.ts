@@ -1,6 +1,5 @@
 import { Attributes } from '@axe/core/sync/attributes';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
-import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 
 const SAN_PATTERN = /^[SsＳｓ][AaＡａ][NnＮn]$/i;
@@ -89,7 +88,7 @@ export class DataElement extends ObjectNode {
   }
 
   get myIdentifer() {
-    return (this as unknown as GameObject).identifier;
+    return this.identifier;
   }
 
   get nowValueColor(): string {

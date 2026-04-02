@@ -87,7 +87,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
   ngOnDestroy() {}
 
   get imageFileUrl(): string {
-    const image = this.imageStorage.get(<string>this.gameDataElement().value);
+    const image = this.imageStorage.get(this.gameDataElement().value as string);
     if (image) return image.url;
     return '';
   }
@@ -112,7 +112,7 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
 
   addImageElement() {
     this.gameDataElement().appendChild(DataElement.create('imageIdentifier', '', { type: 'image' }));
-    this.updateKomaIconMaxValue(<DataElement>this.gameDataElement().parent!);
+    this.updateKomaIconMaxValue(this.gameDataElement().parent as DataElement);
   }
 
   addElement() {

@@ -46,8 +46,8 @@ export class ContextMenuComponent implements OnDestroy, AfterViewInit {
   parentMenu: ContextMenuAction | undefined;
   subMenu: ContextMenuAction[] | undefined;
 
-  showSubMenuTimer: ReturnType<typeof setTimeout> | undefined;
-  hideSubMenuTimer: ReturnType<typeof setTimeout> | undefined;
+  private showSubMenuTimer: ReturnType<typeof setTimeout> | undefined;
+  private hideSubMenuTimer: ReturnType<typeof setTimeout> | undefined;
 
   private callbackOnOutsideClick = (e: Event) => this.onOutsideClick(e);
 

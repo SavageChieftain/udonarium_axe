@@ -62,7 +62,7 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
   }
 
   handleFileSelect(event: Event) {
-    const files = (<HTMLInputElement>event.target).files;
+    const files = (event.target as HTMLInputElement).files;
     if (files && files.length) this.fileArchiver.load(files);
   }
 }

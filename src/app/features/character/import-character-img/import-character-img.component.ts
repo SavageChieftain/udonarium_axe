@@ -59,7 +59,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   get imageFile(): ImageFile {
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      const image = this.imageStorage.get(<string>object.imageDataElement.children[0].value);
+      const image = this.imageStorage.get(object.imageDataElement.children[0].value as string);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;

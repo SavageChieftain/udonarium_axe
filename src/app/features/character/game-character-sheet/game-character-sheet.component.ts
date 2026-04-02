@@ -162,9 +162,9 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
       width: 350,
       height: 250,
     };
-    option.title = (<GameCharacter>obj).name + 'への画像複製';
+    option.title = (obj as GameCharacter).name + 'への画像複製';
     const component = this.panelService.open<ImportCharacterImgComponent>(ImportCharacterImgComponent, option);
-    component.tabletopObject = <GameCharacter>obj;
+    component.tabletopObject = obj as GameCharacter;
   }
 
   clickRangeOffSetX() {

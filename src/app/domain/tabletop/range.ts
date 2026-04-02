@@ -13,11 +13,10 @@ export class RangeArea extends TabletopObject {
   constructor(identifier: string = generateUuid()) {
     super(identifier);
     this.isAltitudeIndicate = true;
-    this.followingCharctorIdentifier = null!;
   }
   @SyncVar() isLock: boolean = false;
   @SyncVar() rotate: number = 0;
-  @SyncVar() followingCharctorIdentifier: string = null!;
+  @SyncVar() followingCharctorIdentifier: string = '';
   @SyncVar() followingCounterDummy: number = 0; // 追従時再描画用ダミー
 
   @SyncVar() offSetX: boolean = false;
@@ -51,7 +50,7 @@ export class RangeArea extends TabletopObject {
   following() {
     const object = ObjectStore.instance.get<GameCharacter>(this.followingCharctorIdentifier);
     if (!object) {
-      this.followingCharctorIdentifier = null!;
+      this.followingCharctorIdentifier = '';
       return;
     }
 

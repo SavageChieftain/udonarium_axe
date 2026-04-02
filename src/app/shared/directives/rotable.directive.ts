@@ -37,7 +37,7 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  protected tabletopObject: RotableTabletopObject | null = null;
+  private tabletopObject: RotableTabletopObject | null = null;
 
   private transformCssOffset: string = '';
   private grabbingSelecter: string = '.rotate-grab';

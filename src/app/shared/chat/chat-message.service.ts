@@ -268,7 +268,7 @@ export class ChatMessageService {
       const entries: { label: string; identifier: string }[] = [];
       for (const child of data.children) {
         if (child instanceof DataElement) {
-          const img = this.imageStorage.get(<string>child.value);
+          const img = this.imageStorage.get(child.value as string);
           entries.push({
             label: child.getAttribute('currentValue'),
             identifier: img ? img.identifier : '',
@@ -284,7 +284,7 @@ export class ChatMessageService {
     const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) {
       if (object.imageDataElement.children.length > index) {
-        const img = this.imageStorage.get(<string>object.imageDataElement.children[index].value);
+        const img = this.imageStorage.get(object.imageDataElement.children[index].value as string);
         if (img) {
           return img.identifier;
         }

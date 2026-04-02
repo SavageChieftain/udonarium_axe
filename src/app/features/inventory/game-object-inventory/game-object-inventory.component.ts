@@ -166,8 +166,8 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
         const tableCharacterList_dest = [];
         const tableCharacterList_scr = this.inventoryService.tableInventory.tabletopObjects;
         for (const character of tableCharacterList_scr) {
-          const character_: GameCharacter = <GameCharacter>character;
-          if (!character_.hideInventory) tableCharacterList_dest.push(<TabletopObject>character);
+          const character_: GameCharacter = character as GameCharacter;
+          if (!character_.hideInventory) tableCharacterList_dest.push(character as TabletopObject);
         }
         return tableCharacterList_dest;
       }
