@@ -10,7 +10,7 @@
       [playerVars]="{
         autoplay: 1,
         controls: 0,
-        start: +cutIn.videoStart,
+        start: +(cutIn.videoStart ?? 0),
         loop: cutIn && cutIn.isLoop ? 1 : 0,
         playsinline: 1,
         rel: 0,

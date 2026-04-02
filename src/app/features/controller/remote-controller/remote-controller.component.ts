@@ -433,7 +433,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
     }
   }
 
-  trackByGameObject(index: number, gameObject: GameObject) {
+  trackByGameObject(index: number, gameObject: GameObject | null) {
     return gameObject ? gameObject.identifier : index;
   }
 

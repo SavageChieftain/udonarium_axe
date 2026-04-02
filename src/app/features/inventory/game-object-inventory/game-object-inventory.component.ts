@@ -432,7 +432,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
     gameObject.destroy();
   }
 
-  trackByGameObject(index: number, gameObject: GameObject) {
+  trackByGameObject(index: number, gameObject: GameObject | null) {
     return gameObject ? gameObject.identifier : index;
   }
 }
