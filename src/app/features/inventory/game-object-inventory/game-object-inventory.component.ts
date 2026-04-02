@@ -251,7 +251,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
       },
     });
 
-    this.contextMenuService.open(position, actions, (gameObject as unknown as { name: string }).name);
+    this.contextMenuService.open(position, actions, gameObject.name);
   }
 
   toggleEdit() {

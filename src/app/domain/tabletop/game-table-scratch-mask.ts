@@ -76,9 +76,6 @@ export class GameTableScratchMask extends TabletopObject {
     }
   }
 
-  get name(): string {
-    return this.getCommonValue('name', '');
-  }
   get width(): number {
     return this.getCommonValue('width', 1);
   }

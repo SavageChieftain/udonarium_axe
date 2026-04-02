@@ -51,13 +51,6 @@ export class Terrain extends TabletopObject {
   set depth(depth: number) {
     this.setCommonValue('depth', depth);
   }
-  get name(): string {
-    return this.getCommonValue('name', '');
-  }
-  set name(name: string) {
-    this.setCommonValue('name', name);
-  }
-
   get wallImage(): ImageFile | null {
     return this.getImageFile('wall');
   }

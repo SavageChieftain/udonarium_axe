@@ -109,30 +109,30 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     cloneObject.location.y += 50;
     if (obj.parent) obj.parent.appendChild(cloneObject);
     cloneObject.update();
-    switch (obj.aliasName) {
-      case 'terrain':
-        SoundEffect.play(PresetSound.blockPut);
-        (cloneObject as unknown as { isLocked: boolean }).isLocked = false;
-        break;
-      case 'card':
-      case 'card-stack':
-        (cloneObject as unknown as { owner: string }).owner = '';
-        (cloneObject as unknown as { toTopmost: () => void }).toTopmost();
-      // falls through
-      case 'table-mask':
-        (cloneObject as unknown as { isLock: boolean }).isLock = false;
-        SoundEffect.play(PresetSound.cardPut);
-        break;
-      case 'text-note':
-        (cloneObject as unknown as { toTopmost: () => void }).toTopmost();
-        SoundEffect.play(PresetSound.cardPut);
-        break;
-      case 'dice-symbol':
-        SoundEffect.play(PresetSound.dicePut);
-      // falls through
-      default:
-        SoundEffect.play(PresetSound.piecePut);
-        break;
+    if (cloneObject instanceof Terrain) {
+      cloneObject.isLocked = false;
+      SoundEffect.play(PresetSound.blockPut);
+    } else if (cloneObject instanceof Card) {
+      cloneObject.owner = '';
+      cloneObject.toTopmost();
+      cloneObject.isLock = false;
+      SoundEffect.play(PresetSound.cardPut);
+    } else if (cloneObject instanceof CardStack) {
+      cloneObject.owner = '';
+      cloneObject.toTopmost();
+      cloneObject.isLock = false;
+      SoundEffect.play(PresetSound.cardPut);
+    } else if (cloneObject instanceof GameTableMask) {
+      cloneObject.isLock = false;
+      SoundEffect.play(PresetSound.cardPut);
+    } else if (cloneObject instanceof TextNote) {
+      cloneObject.toTopmost();
+      SoundEffect.play(PresetSound.cardPut);
+    } else if (cloneObject instanceof DiceSymbol) {
+      SoundEffect.play(PresetSound.dicePut);
+      SoundEffect.play(PresetSound.piecePut);
+    } else {
+      SoundEffect.play(PresetSound.piecePut);
     }
   }
 

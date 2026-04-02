@@ -31,9 +31,6 @@ export class Card extends TabletopObject {
     return this.location.name === 'table' && (!this.parentIsAssigned || this.parentIsDestroyed);
   }
 
-  get name(): string {
-    return this.getCommonValue('name', '');
-  }
   get size(): number {
     return this.getCommonValue('size', 2);
   }

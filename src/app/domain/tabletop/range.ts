@@ -27,9 +27,6 @@ export class RangeArea extends TabletopObject {
   @SyncVar() fillOutLine: boolean = false;
   @SyncVar() subDivisionSnapPolygonal: boolean = true;
 
-  get name(): string {
-    return this.getCommonValue('name', '');
-  }
   get length(): number {
     return this.getCommonValue('length', 1);
   }

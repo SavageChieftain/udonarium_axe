@@ -50,6 +50,13 @@ export class TabletopObject extends ObjectNode {
     return this.getElement('buff');
   } //リリィにてバフ機能用の追加
 
+  get name(): string {
+    return this.getCommonValue('name', '');
+  }
+  set name(name: string) {
+    this.setCommonValue('name', name);
+  }
+
   addBuffDataElement() {
     if (!this.buffDataElement) {
       this.rootDataElement.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`));

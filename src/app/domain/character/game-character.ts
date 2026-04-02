@@ -96,9 +96,6 @@ export class GameCharacter extends TabletopObject {
     }
   }
 
-  get name(): string {
-    return this.getCommonValue('name', '');
-  }
   get size(): number {
     return this.getCommonValue('size', 1);
   }
@@ -107,10 +104,6 @@ export class GameCharacter extends TabletopObject {
       if (child instanceof ChatPalette) return child;
     }
     return null;
-  }
-
-  set name(value: string) {
-    this.setCommonValue('name', value);
   }
 
   get remoteController(): BuffPalette | null {
