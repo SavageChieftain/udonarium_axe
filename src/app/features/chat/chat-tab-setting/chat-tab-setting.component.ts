@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -22,7 +22,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-tab-setting.component.css'],
   imports: [FormsModule, NgClass],
 })
-export class ChatTabSettingComponent implements OnInit, OnDestroy {
+export class ChatTabSettingComponent implements OnInit {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -100,8 +100,6 @@ export class ChatTabSettingComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  ngOnDestroy() {}
 
   onChangeSelectTab(identifier: string) {
     this.selectedTab = this.objectStore.get<ChatTab>(identifier);

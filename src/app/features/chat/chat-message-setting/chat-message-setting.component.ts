@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -15,7 +15,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
-export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
+export class ChatMessageSettingComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
@@ -49,8 +49,4 @@ export class ChatMessageSettingComponent implements OnDestroy, AfterViewInit {
   changeKeepTachieOutWindow() {
     //中身なし
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 }

@@ -80,14 +80,14 @@ export class Terrain extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('depth', depth, {}, `depth_${object.identifier}`));
-    object.imageDataElement.appendChild(
+    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('depth', depth, {}, `depth_${object.identifier}`));
+    object.imageDataElement!.appendChild(
       DataElement.create('wall', wall, { type: 'image' }, `wall_${object.identifier}`)
     );
-    object.imageDataElement.appendChild(
+    object.imageDataElement!.appendChild(
       DataElement.create('floor', floor, { type: 'image' }, `floor_${object.identifier}`)
     );
     object.initialize();

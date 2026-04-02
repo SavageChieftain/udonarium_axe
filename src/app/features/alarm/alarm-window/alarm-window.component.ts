@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/shared/alarm';
@@ -14,7 +14,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./alarm-window.component.css'],
   imports: [NgTemplateOutlet, FormsModule],
 })
-export class AlarmWindowComponent implements AfterViewInit, OnDestroy {
+export class AlarmWindowComponent {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -31,8 +31,4 @@ export class AlarmWindowComponent implements AfterViewInit, OnDestroy {
 
   time!: string;
   title!: string;
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 }

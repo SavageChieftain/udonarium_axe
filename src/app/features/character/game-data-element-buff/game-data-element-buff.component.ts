@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
@@ -12,7 +12,7 @@ import { filter } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
-export class GameDataElementBuffComponent implements OnInit, OnDestroy {
+export class GameDataElementBuffComponent implements OnInit {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
@@ -63,8 +63,6 @@ export class GameDataElementBuffComponent implements OnInit, OnDestroy {
         this.setValues(this.gameDataElement());
       });
   }
-
-  ngOnDestroy() {}
 
   addElement() {
     this.gameDataElement().appendChild(

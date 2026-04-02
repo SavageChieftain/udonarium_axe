@@ -10,8 +10,8 @@ export class CharacterTemplateFactory {
     const sizeElement = DataElement.create('size', size, {}, `size_${character.identifier}`);
     const altitudeElement = DataElement.create('altitude', 0, {}, `altitude_${character.identifier}`);
 
-    if (character.imageDataElement.getFirstElementByName('imageIdentifier')) {
-      character.imageDataElement.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
+    if (character.imageDataElement!.getFirstElementByName('imageIdentifier')) {
+      character.imageDataElement!.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
     }
 
     const resourceElement = DataElement.create('リソース', '', {}, `リソース${character.identifier}`);
@@ -27,11 +27,11 @@ export class CharacterTemplateFactory {
       { type: DataElementType.NUMBER_RESOURCE, currentValue: '100' },
       `MP_${character.identifier}`
     );
-    character.commonDataElement.appendChild(nameElement);
-    character.commonDataElement.appendChild(sizeElement);
-    character.commonDataElement.appendChild(altitudeElement);
+    character.commonDataElement!.appendChild(nameElement);
+    character.commonDataElement!.appendChild(sizeElement);
+    character.commonDataElement!.appendChild(altitudeElement);
 
-    character.detailDataElement.appendChild(resourceElement);
+    character.detailDataElement!.appendChild(resourceElement);
     resourceElement.appendChild(hpElement);
     resourceElement.appendChild(mpElement);
 
@@ -47,8 +47,8 @@ export class CharacterTemplateFactory {
     const sizeElement = DataElement.create('size', size, {}, `size_${character.identifier}`);
     const altitudeElement = DataElement.create('altitude', 0, {}, `altitude_${character.identifier}`);
 
-    if (character.imageDataElement.getFirstElementByName('imageIdentifier')) {
-      character.imageDataElement.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
+    if (character.imageDataElement!.getFirstElementByName('imageIdentifier')) {
+      character.imageDataElement!.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
     }
 
     const resourceElement = DataElement.create('リソース', '', {}, `リソース${character.identifier}`);
@@ -65,16 +65,16 @@ export class CharacterTemplateFactory {
       `MP_${character.identifier}`
     );
 
-    character.commonDataElement.appendChild(nameElement);
-    character.commonDataElement.appendChild(sizeElement);
-    character.commonDataElement.appendChild(altitudeElement);
+    character.commonDataElement!.appendChild(nameElement);
+    character.commonDataElement!.appendChild(sizeElement);
+    character.commonDataElement!.appendChild(altitudeElement);
 
-    character.detailDataElement.appendChild(resourceElement);
+    character.detailDataElement!.appendChild(resourceElement);
     resourceElement.appendChild(hpElement);
     resourceElement.appendChild(mpElement);
 
     const infoElement = DataElement.create('情報', '', {}, `情報${character.identifier}`);
-    character.detailDataElement.appendChild(infoElement);
+    character.detailDataElement!.appendChild(infoElement);
 
     const textMarkDown = `テーブル表
 |[]|[]器術|[]|[]体術|[]|[]忍術|[]|[]謀術|[]|[]戦術|[]|[]妖術||
@@ -124,7 +124,7 @@ export class CharacterTemplateFactory {
 
   private static appendCommonDetailElements(character: GameCharacter): void {
     let testElement = DataElement.create('能力', '', {}, `能力${character.identifier}`);
-    character.detailDataElement.appendChild(testElement);
+    character.detailDataElement!.appendChild(testElement);
     testElement.appendChild(DataElement.create('器用度', 24, {}, `器用度${character.identifier}`));
     testElement.appendChild(DataElement.create('敏捷度', 24, {}, `敏捷度${character.identifier}`));
     testElement.appendChild(DataElement.create('筋力', 24, {}, `筋力${character.identifier}`));
@@ -133,7 +133,7 @@ export class CharacterTemplateFactory {
     testElement.appendChild(DataElement.create('精神力', 24, {}, `精神力${character.identifier}`));
 
     testElement = DataElement.create('戦闘特技', '', {}, `戦闘特技${character.identifier}`);
-    character.detailDataElement.appendChild(testElement);
+    character.detailDataElement!.appendChild(testElement);
     testElement.appendChild(DataElement.create('Lv1', '全力攻撃', {}, `Lv1${character.identifier}`));
     testElement.appendChild(DataElement.create('Lv3', '武器習熟/ソード', {}, `Lv3${character.identifier}`));
     testElement.appendChild(DataElement.create('Lv5', '武器習熟/ソードⅡ', {}, `Lv5${character.identifier}`));

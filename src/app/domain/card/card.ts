@@ -77,12 +77,12 @@ export class Card extends OwnedTabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
-    object.imageDataElement.appendChild(
+    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
+    object.imageDataElement!.appendChild(
       DataElement.create('front', fornt, { type: 'image' }, `front_${object.identifier}`)
     );
-    object.imageDataElement.appendChild(
+    object.imageDataElement!.appendChild(
       DataElement.create('back', back, { type: 'image' }, `back_${object.identifier}`)
     );
     object.initialize();

@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -25,7 +25,7 @@ import { filter } from 'rxjs';
     '(click)': 'click($event)',
   },
 })
-export class GameDataElementComponent implements OnInit, OnDestroy {
+export class GameDataElementComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private domSanitizer = inject(DomSanitizer);
@@ -83,8 +83,6 @@ export class GameDataElementComponent implements OnInit, OnDestroy {
         this.setValues(this.gameDataElement());
       });
   }
-
-  ngOnDestroy() {}
 
   get imageFileUrl(): string {
     const image = this.imageStorage.get(this.gameDataElement().value as string);

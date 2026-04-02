@@ -1,10 +1,10 @@
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 
 export class BuffManager {
-  constructor(private buffDataElement: DataElement) {}
+  constructor(private buffDataElement: DataElement | null) {}
 
   private get container(): DataElement | null {
-    return this.buffDataElement.children[0] ?? null;
+    return this.buffDataElement?.children[0] ?? null;
   }
 
   delete(name: string): boolean {
@@ -47,7 +47,7 @@ export class BuffManager {
   addRound(name: string, info: string = '', round: number = 3): void {
     const container = this.container;
     if (!container) return;
-    const data = this.buffDataElement.getFirstElementByName(name);
+    const data = this.buffDataElement?.getFirstElementByName(name);
     if (data) {
       data.value = round;
       data.currentValue = info;

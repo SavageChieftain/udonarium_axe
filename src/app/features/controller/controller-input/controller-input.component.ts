@@ -151,7 +151,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   get selectCharacterTachie(): DataElement | null {
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
-      if (object.imageDataElement.children.length > this.tachieNum) {
+      if (object.imageDataElement && object.imageDataElement.children.length > this.tachieNum) {
         return object.imageDataElement.children[this.tachieNum] ?? null;
       }
     }
@@ -161,7 +161,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   get selectCharacterTachieNum(): number {
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
-      return object.imageDataElement.children.length;
+      return object.imageDataElement?.children.length ?? 0;
     } else if (object instanceof PeerCursor) {
       return 0;
     }

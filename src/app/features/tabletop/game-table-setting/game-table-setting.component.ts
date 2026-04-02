@@ -1,13 +1,5 @@
 import { NgClass } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -34,7 +26,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   styleUrls: ['./game-table-setting.component.css'],
   imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe],
 })
-export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameTableSettingComponent implements OnInit {
   private modalService = inject(ModalService);
   private saveDataService = inject(SaveDataService);
   private imageService = inject(ImageService);
@@ -183,10 +175,6 @@ export class GameTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
       }
     });
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 
   selectGameTable(identifier: string) {
     emitSelectGameTable({ identifier });

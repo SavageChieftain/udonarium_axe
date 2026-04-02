@@ -174,7 +174,7 @@ export class ChatPalette extends ObjectNode {
             if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
           }
           if (target) {
-            const element = target.rootDataElement.getFirstElementByName(name);
+            const element = target.rootDataElement?.getFirstElementByName(name);
             if (element) {
               let targetElementText: string;
               if (useMax && element.isNumberResource) {

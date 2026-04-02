@@ -2,12 +2,12 @@ import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 
 export class StatusAccessor {
   constructor(
-    private detailDataElement: DataElement,
+    private detailDataElement: DataElement | null,
     private characterName: () => string
   ) {}
 
   canChangeName(name: string): boolean {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return false;
     return (
       data.type === DataElementType.NUMBER_RESOURCE ||
@@ -17,7 +17,7 @@ export class StatusAccessor {
   }
 
   canChange(name: string, nowOrMax: string): boolean {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return false;
     if (data.type === DataElementType.NUMBER_RESOURCE) {
       return nowOrMax === 'now' || nowOrMax === 'max';
@@ -29,7 +29,7 @@ export class StatusAccessor {
   }
 
   getType(name: string, nowOrMax: string): string | null {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return null;
     if (data.type === DataElementType.NUMBER_RESOURCE) {
       if (nowOrMax === 'now') return 'currentValue';
@@ -41,13 +41,13 @@ export class StatusAccessor {
   }
 
   getTextType(name: string): string | null {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return null;
     return data.type === DataElementType.NUMBER_RESOURCE ? 'currentValue' : 'value';
   }
 
   getValue(name: string, nowOrMax: string): number | null {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return null;
     const type = this.getType(name, nowOrMax);
     if (type == null) return null;
@@ -56,7 +56,7 @@ export class StatusAccessor {
   }
 
   setValue(name: string, nowOrMax: string, setValue: number): boolean {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return false;
     const type = this.getType(name, nowOrMax);
     if (type == null) return false;
@@ -69,7 +69,7 @@ export class StatusAccessor {
   }
 
   setText(name: string, text: string): boolean {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return false;
     const type = this.getTextType(name);
     if (type == null) return false;
@@ -82,7 +82,7 @@ export class StatusAccessor {
   }
 
   changeValue(name: string, nowOrMax: string, addValue: number, limitMin?: boolean, limitMax?: boolean): string {
-    const data = this.detailDataElement.getFirstElementByName(name);
+    const data = this.detailDataElement?.getFirstElementByName(name);
     if (!data) return '';
     const type = this.getType(name, nowOrMax);
     if (!type) return '';

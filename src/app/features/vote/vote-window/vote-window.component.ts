@@ -1,13 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -27,7 +19,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./vote-window.component.css'],
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
-export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
+export class VoteWindowComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -80,8 +72,6 @@ export class VoteWindowComponent implements AfterViewInit, OnInit, OnDestroy {
       this.panelService.close();
     });
   }
-
-  ngAfterViewInit() {}
 
   findUserId(peerId: string) {
     const peerCursor = PeerCursor.findByPeerId(peerId);

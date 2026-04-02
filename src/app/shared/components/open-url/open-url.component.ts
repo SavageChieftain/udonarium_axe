@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
@@ -10,7 +10,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./open-url.component.css'],
   imports: [NgClass],
 })
-export class OpenUrlComponent implements OnInit, OnDestroy {
+export class OpenUrlComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
@@ -59,8 +59,6 @@ export class OpenUrlComponent implements OnInit, OnDestroy {
     }
     return /^https?:\/\//.test(url.trim());
   }
-
-  ngOnDestroy() {}
 
   openUrl() {
     window.open(this.url.trim(), '_blank', 'noopener');

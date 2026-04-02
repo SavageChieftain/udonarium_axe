@@ -9,7 +9,7 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
 // バフ追加identifierを固定にするため初期キャラのバフはGameCharacterでやらずにここでやる
 function addBuffRound(character: GameCharacter, name: string, subcom: string, round: number): void {
-  if (character.buffDataElement.children) {
+  if (character.buffDataElement?.children) {
     for (const dataElm of character.buffDataElement.children) {
       dataElm.appendChild(
         DataElement.create(

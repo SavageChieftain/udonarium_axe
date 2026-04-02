@@ -1,6 +1,6 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, DestroyRef, effect, ElementRef, inject, viewChild } from '@angular/core';
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -47,7 +47,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./remote-controller.component.css'],
   imports: [FormsModule, ControllerInputComponent, NgClass, NgTemplateOutlet, SafePipe],
 })
-export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewInit {
+export class RemoteControllerComponent implements OnInit, OnDestroy {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private inventoryService = inject(GameObjectInventoryService);
@@ -290,8 +290,6 @@ export class RemoteControllerComponent implements OnInit, OnDestroy, AfterViewIn
       this.palette.setPalette(this.editPalette);
     }
   }
-
-  ngAfterViewInit() {}
 
   getTabTitle(inventoryType: string) {
     return getTabTitle(inventoryType);

@@ -90,109 +90,99 @@
             <div class="rotate-inner is-3d">
               <!-- バフ表示 -->
               <!-- クロームver102の描画問題に対処するため構成を修正している -->
-              @if (this.gameCharacter()!.buffDataElement) {
+              @let buffEl = this.gameCharacter()!.buffDataElement;
+              @if (buffEl) {
                 <div class="is-3d">
-                  @if (this.gameCharacter()!.buffDataElement.children.length === 1) {
-                    @for (child of this.gameCharacter()!.buffDataElement.children; track child) {
+                  @if (buffEl.children.length === 1) {
+                    @for (child of buffEl.children; track child) {
                       @if (child.children.length > 0) {
-                        @if (this.gameCharacter()!.buffDataElement) {
-                          <div
-                            style=""
-                            class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
-                            [ngStyle]="{
-                              transform:
-                                'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) translateY(-100%)',
-                            }"
-                          >
-                            <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
-                              <img src="./assets/images/target/target.png" />
-                            </div>
-                            <div [hidden]="foldingBuff">
-                              <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
-                              <div class="!table is-3d">
-                                @for (
-                                  childElement of this.gameCharacter()!.buffDataElement.children;
-                                  track childElement
-                                ) {
-                                  <div class="flex-item is-3d">
-                                    <div
-                                      class="table-row fornt-tag is-3d"
-                                      game-data-element-buff
-                                      [gameDataElement]="$any(childElement)"
-                                      [isEdit]="isEdit"
-                                      [isPieceMode]="true"
-                                    ></div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
-                            <div [hidden]="!foldingBuff">
-                              <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
-                              <div class="table is-3d">
+                        <div
+                          style=""
+                          class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
+                          [ngStyle]="{
+                            transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) translateY(-100%)',
+                          }"
+                        >
+                          <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
+                            <img src="./assets/images/target/target.png" />
+                          </div>
+                          <div [hidden]="foldingBuff">
+                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
+                            <div class="!table is-3d">
+                              @for (childElement of buffEl.children; track childElement) {
                                 <div class="flex-item is-3d">
                                   <div
                                     class="table-row fornt-tag is-3d"
-                                    style="font-family: Cambria, Georgia; font-size: 12px"
-                                  >
-                                    簡易表示中/バフ{{ buffNum }}個
-                                  </div>
+                                    game-data-element-buff
+                                    [gameDataElement]="$any(childElement)"
+                                    [isEdit]="isEdit"
+                                    [isPieceMode]="true"
+                                  ></div>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                          <div [hidden]="!foldingBuff">
+                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
+                            <div class="table is-3d">
+                              <div class="flex-item is-3d">
+                                <div
+                                  class="table-row fornt-tag is-3d"
+                                  style="font-family: Cambria, Georgia; font-size: 12px"
+                                >
+                                  簡易表示中/バフ{{ buffNum }}個
                                 </div>
                               </div>
                             </div>
                           </div>
-                        }
-                        @if (this.gameCharacter()!.buffDataElement) {
+                        </div>
+                        <div
+                          style=""
+                          class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
+                          [ngStyle]="{
+                            transform:
+                              'translateX(-50%) translateX(' +
+                              (size * gridSize) / 2 +
+                              'px) translateY(-100%) rotateY(180deg)',
+                          }"
+                        >
                           <div
-                            style=""
-                            class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
-                            [ngStyle]="{
-                              transform:
-                                'translateX(-50%) translateX(' +
-                                (size * gridSize) / 2 +
-                                'px) translateY(-100%) rotateY(180deg)',
-                            }"
+                            class="target-icon-buff2 scrolldown5"
+                            [hidden]="!isTargeted()"
+                            [ngStyle]="{ transform: 'rotateY(180deg)' }"
                           >
-                            <div
-                              class="target-icon-buff2 scrolldown5"
-                              [hidden]="!isTargeted()"
-                              [ngStyle]="{ transform: 'rotateY(180deg)' }"
-                            >
-                              <img src="./assets/images/target/target.png" />
-                            </div>
-                            <div [hidden]="foldingBuff">
-                              <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
-                              <div class="table is-3d">
-                                @for (
-                                  childElement of this.gameCharacter()!.buffDataElement.children;
-                                  track childElement
-                                ) {
-                                  <div class="flex-item is-3d">
-                                    <div
-                                      class="table-row fornt-tag is-3d"
-                                      game-data-element-buff
-                                      [gameDataElement]="$any(childElement)"
-                                      [isEdit]="isEdit"
-                                      [isPieceMode]="true"
-                                    ></div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
-                            <div [hidden]="!foldingBuff">
-                              <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
-                              <div class="table is-3d">
+                            <img src="./assets/images/target/target.png" />
+                          </div>
+                          <div [hidden]="foldingBuff">
+                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
+                            <div class="table is-3d">
+                              @for (childElement of buffEl.children; track childElement) {
                                 <div class="flex-item is-3d">
                                   <div
                                     class="table-row fornt-tag is-3d"
-                                    style="font-family: Cambria, Georgia; font-size: 12px"
-                                  >
-                                    簡易表示中/バフ{{ buffNum }}個
-                                  </div>
+                                    game-data-element-buff
+                                    [gameDataElement]="$any(childElement)"
+                                    [isEdit]="isEdit"
+                                    [isPieceMode]="true"
+                                  ></div>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                          <div [hidden]="!foldingBuff">
+                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
+                            <div class="table is-3d">
+                              <div class="flex-item is-3d">
+                                <div
+                                  class="table-row fornt-tag is-3d"
+                                  style="font-family: Cambria, Georgia; font-size: 12px"
+                                >
+                                  簡易表示中/バフ{{ buffNum }}個
                                 </div>
                               </div>
                             </div>
                           </div>
-                        }
+                        </div>
                       }
                     }
                   }

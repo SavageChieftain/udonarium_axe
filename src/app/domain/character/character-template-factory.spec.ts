@@ -22,7 +22,7 @@ describe('CharacterTemplateFactory', () => {
 
       expect(character.name).toBe('テスト勇者');
       expect(character.size).toBe(2);
-      const altitude = character.commonDataElement.getFirstElementByName('altitude');
+      const altitude = character.commonDataElement!.getFirstElementByName('altitude');
       expect(altitude).toBeTruthy();
       expect(altitude!.value).toBe(0);
     });
@@ -30,13 +30,13 @@ describe('CharacterTemplateFactory', () => {
     it('HP/MPリソースが作成される', () => {
       const character = GameCharacter.create('戦士', 1, '');
 
-      const hp = character.detailDataElement.getFirstElementByName('HP');
+      const hp = character.detailDataElement!.getFirstElementByName('HP');
       expect(hp).toBeTruthy();
       expect(hp!.value).toBe(200);
       expect(hp!.currentValue).toBe('200');
       expect(hp!.type).toBe(DataElementType.NUMBER_RESOURCE);
 
-      const mp = character.detailDataElement.getFirstElementByName('MP');
+      const mp = character.detailDataElement!.getFirstElementByName('MP');
       expect(mp).toBeTruthy();
       expect(mp!.value).toBe(100);
       expect(mp!.currentValue).toBe('100');
@@ -45,11 +45,11 @@ describe('CharacterTemplateFactory', () => {
     it('能力値が作成される', () => {
       const character = GameCharacter.create('魔法使い', 1, '');
 
-      const dex = character.detailDataElement.getFirstElementByName('器用度');
+      const dex = character.detailDataElement!.getFirstElementByName('器用度');
       expect(dex).toBeTruthy();
       expect(dex!.value).toBe(24);
 
-      const int = character.detailDataElement.getFirstElementByName('知力');
+      const int = character.detailDataElement!.getFirstElementByName('知力');
       expect(int).toBeTruthy();
       expect(int!.value).toBe(24);
     });
@@ -57,7 +57,7 @@ describe('CharacterTemplateFactory', () => {
     it('戦闘特技が作成される', () => {
       const character = GameCharacter.create('剣士', 1, '');
 
-      const lv1 = character.detailDataElement.getFirstElementByName('Lv1');
+      const lv1 = character.detailDataElement!.getFirstElementByName('Lv1');
       expect(lv1).toBeTruthy();
       expect(lv1!.value).toBe('全力攻撃');
     });
@@ -77,7 +77,7 @@ describe('CharacterTemplateFactory', () => {
       character.initialize();
       CharacterTemplateFactory.createCheckTable(character, '忍者', 1, '');
 
-      const ninjutsu = character.detailDataElement.getFirstElementByName('忍術');
+      const ninjutsu = character.detailDataElement!.getFirstElementByName('忍術');
       expect(ninjutsu).toBeTruthy();
       expect(ninjutsu!.type).toBe(DataElementType.MARKDOWN);
       expect(ninjutsu!.value).toContain('テーブル表');
@@ -89,7 +89,7 @@ describe('CharacterTemplateFactory', () => {
       character.initialize();
       CharacterTemplateFactory.createCheckTable(character, '人形', 1, '');
 
-      const parts = character.detailDataElement.getFirstElementByName('ネクロニカ的パーツ');
+      const parts = character.detailDataElement!.getFirstElementByName('ネクロニカ的パーツ');
       expect(parts).toBeTruthy();
       expect(parts!.type).toBe(DataElementType.MARKDOWN);
     });

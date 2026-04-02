@@ -30,9 +30,6 @@ export class RangeArea extends TabletopObject {
   get width(): number {
     return this.getCommonValue('width', 1);
   }
-  get opacity(): number {
-    return this.getOpacityValue();
-  }
 
   gridSize: number = 50;
 
@@ -63,10 +60,10 @@ export class RangeArea extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('length', length, {}, `length_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
-    object.commonDataElement.appendChild(
+    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('length', length, {}, `length_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
+    object.commonDataElement!.appendChild(
       DataElement.create(
         'opacity',
         opacity,

@@ -8,8 +8,6 @@ import {
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   viewChild,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -29,7 +27,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./chat-tachie-img.component.css'],
   imports: [NgStyle, SafePipe],
 })
-export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked {
+export class ChatTachieImageComponent implements AfterViewInit, AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private changeDetectionRef = inject(ChangeDetectorRef);
   private panelService = inject(PanelService);
@@ -132,8 +130,6 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   private timerId: ReturnType<typeof setTimeout> | null = null;
-
-  ngOnInit() {}
 
   //立ち絵表示幅取得
   ngAfterViewInit() {
@@ -337,8 +333,6 @@ export class ChatTachieImageComponent implements OnInit, OnDestroy, AfterViewIni
   tachieClick(pos: number) {
     this.chatTab.tachiePosHide(pos);
   }
-
-  ngOnDestroy() {}
 
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;

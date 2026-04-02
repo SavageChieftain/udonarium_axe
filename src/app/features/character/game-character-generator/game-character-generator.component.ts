@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnInit, ViewContainerRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, ViewContainerRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -21,7 +21,7 @@ import { filter, map } from 'rxjs';
   styleUrls: ['./game-character-generator.component.css'],
   imports: [FormsModule, SafePipe],
 })
-export class GameCharacterGeneratorComponent implements OnInit, AfterViewInit {
+export class GameCharacterGeneratorComponent implements OnInit {
   private viewContainerRef = inject(ViewContainerRef);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
@@ -48,8 +48,6 @@ export class GameCharacterGeneratorComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
   }
-
-  ngAfterViewInit() {}
 
   createGameCharacter() {
     GameCharacter.create(this.name, this.size, this.tableBackgroundImage().identifier);

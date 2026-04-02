@@ -29,24 +29,24 @@ export class TabletopObject extends ObjectNode {
   private _dataElements: { [name: string]: string | null } = {};
 
   // GameDataElement getter/setter
-  get rootDataElement(): DataElement {
+  get rootDataElement(): DataElement | null {
     for (const node of this.children) {
       if (node.getAttribute('name') === this.aliasName) return node as DataElement;
     }
-    return null!;
+    return null;
   }
 
-  get imageDataElement(): DataElement {
+  get imageDataElement(): DataElement | null {
     return this.getElement('image');
   }
-  get commonDataElement(): DataElement {
+  get commonDataElement(): DataElement | null {
     return this.getElement('common');
   }
-  get detailDataElement(): DataElement {
+  get detailDataElement(): DataElement | null {
     return this.getElement('detail');
   }
 
-  get buffDataElement(): DataElement {
+  get buffDataElement(): DataElement | null {
     return this.getElement('buff');
   } //リリィにてバフ機能用の追加
 
@@ -59,7 +59,7 @@ export class TabletopObject extends ObjectNode {
 
   addBuffDataElement() {
     if (!this.buffDataElement) {
-      this.rootDataElement.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`));
+      this.rootDataElement?.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`));
     }
   }
 
@@ -90,28 +90,26 @@ export class TabletopObject extends ObjectNode {
   createDataElements() {
     this.initialize();
     const aliasName: string = this.aliasName;
-    if (!this.rootDataElement) {
-      const rootElement = DataElement.create(aliasName, '', {}, `${aliasName}_${this.identifier}`);
-      this.appendChild(rootElement);
+    let rootEl = this.rootDataElement;
+    if (!rootEl) {
+      rootEl = DataElement.create(aliasName, '', {}, `${aliasName}_${this.identifier}`);
+      this.appendChild(rootEl);
     }
 
     if (!this.imageDataElement) {
       const imageEl = DataElement.create('image', '', {}, `image_${this.identifier}`);
-      this.rootDataElement.appendChild(imageEl);
+      rootEl.appendChild(imageEl);
       imageEl.appendChild(
         DataElement.create('imageIdentifier', '', { type: 'image' }, `imageIdentifier_${this.identifier}`)
       );
     }
-    if (!this.commonDataElement)
-      this.rootDataElement.appendChild(DataElement.create('common', '', {}, `common_${this.identifier}`));
-    if (!this.detailDataElement)
-      this.rootDataElement.appendChild(DataElement.create('detail', '', {}, `detail_${this.identifier}`));
-    if (!this.buffDataElement)
-      this.rootDataElement.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`)); //entyu
+    if (!this.commonDataElement) rootEl.appendChild(DataElement.create('common', '', {}, `common_${this.identifier}`));
+    if (!this.detailDataElement) rootEl.appendChild(DataElement.create('detail', '', {}, `detail_${this.identifier}`));
+    if (!this.buffDataElement) rootEl.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`)); //entyu
   }
 
-  protected getElement(name: string, from: DataElement = this.rootDataElement): DataElement {
-    if (!from) return null!;
+  protected getElement(name: string, from: DataElement | null = this.rootDataElement): DataElement | null {
+    if (!from) return null;
     let element: DataElement | null = this._dataElements[name]
       ? ObjectStore.instance.get(this._dataElements[name])
       : null;
@@ -119,7 +117,7 @@ export class TabletopObject extends ObjectNode {
       element = from.getFirstElementByName(name);
       this._dataElements[name] = element ? element.identifier : null;
     }
-    return element!;
+    return element;
   }
 
   protected getCommonValue<T extends string | number>(elementName: string, defaultValue: T): T {
@@ -152,6 +150,10 @@ export class TabletopObject extends ObjectNode {
     const element = this.getElement('opacity', this.commonDataElement);
     const num = element ? (element.currentValue as number) / (element.value as number) : 1;
     return Number.isNaN(num) ? 1 : num;
+  }
+
+  get opacity(): number {
+    return this.getOpacityValue();
   }
 
   setLocation(location: string) {

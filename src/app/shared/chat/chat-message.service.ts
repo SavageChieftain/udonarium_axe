@@ -264,7 +264,8 @@ export class ChatMessageService {
   private findImageIdentifierName(sendFrom: string, name: string): { identifier: string; index: number } {
     const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) {
-      const data: DataElement = object.imageDataElement;
+      const data: DataElement | null = object.imageDataElement;
+      if (!data) return findImageIdentifierByName([], name);
       const entries: { label: string; identifier: string }[] = [];
       for (const child of data.children) {
         if (child instanceof DataElement) {
@@ -283,7 +284,7 @@ export class ChatMessageService {
   private findImageIdentifier(sendFrom: string, index: number): string {
     const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) {
-      if (object.imageDataElement.children.length > index) {
+      if (object.imageDataElement && object.imageDataElement.children.length > index) {
         const img = this.imageStorage.get(object.imageDataElement.children[index].value as string);
         if (img) {
           return img.identifier;
@@ -300,7 +301,7 @@ export class ChatMessageService {
   private findImagePos(identifier: string): number {
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
-      const element = object.detailDataElement.getFirstElementByName('POS');
+      const element = object.detailDataElement?.getFirstElementByName('POS');
       return resolveImagePos(element ? (element.currentValue as number) : undefined);
     }
     return -1;

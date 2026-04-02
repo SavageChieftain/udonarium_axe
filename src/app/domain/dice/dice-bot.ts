@@ -302,10 +302,10 @@ export class DiceBot extends GameObject {
       let tableAns = 'ダイス目の番号が表にありません';
       if (rolledDiceNum) {
         const tablePalette = rollTable.diceTablePalette!.getPalette();
-        for (const i in tablePalette) {
-          const splitOneTable = tablePalette[i].split(/[:：,，\s]/);
+        for (const entry of tablePalette) {
+          const splitOneTable = entry.split(/[:：,，\s]/);
           if (splitOneTable[0] == rolledDiceNum[0]) {
-            tableAns = tablePalette[i].replace(/\\n/g, '\n');
+            tableAns = entry.replace(/\\n/g, '\n');
           }
         }
       }

@@ -1,14 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -39,7 +30,7 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
-export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDestroy {
+export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
   private panelService = inject(PanelService);
   private inventoryService = inject(GameObjectInventoryService);
   private contextMenuService = inject(ContextMenuService);
@@ -128,8 +119,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit, OnDe
   ngAfterViewInit() {
     // signal 駆動に移行済み — ポーリング不要
   }
-
-  ngOnDestroy() {}
 
   getTabTitle(inventoryType: string) {
     switch (inventoryType) {

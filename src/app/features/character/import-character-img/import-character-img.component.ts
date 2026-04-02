@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -17,7 +17,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })
-export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ImportCharacterImgComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
@@ -59,7 +59,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   get imageFile(): ImageFile {
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      const image = this.imageStorage.get(object.imageDataElement.children[0].value as string);
+      const image = this.imageStorage.get(object.imageDataElement?.children[0]?.value as string);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;
@@ -68,7 +68,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   get selectCharacterTachieNum() {
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      return object.imageDataElement.children.length;
+      return object.imageDataElement?.children.length ?? 0;
     }
     return 0;
   }
@@ -80,6 +80,7 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
       if (GameCharacter) {
         const distImageDataElement = this.tabletopObject.imageDataElement;
         const srcImageDataElement = object.imageDataElement;
+        if (!distImageDataElement || !srcImageDataElement) return;
 
         while (distImageDataElement.children.length < srcImageDataElement.children.length) {
           distImageDataElement.appendChild(DataElement.create('imageIdentifier', '', { type: 'image' }, ''));
@@ -119,8 +120,4 @@ export class ImportCharacterImgComponent implements OnInit, OnDestroy, AfterView
   ngOnInit() {
     this._sendFrom = this.gameCharacters.length >= 1 ? this.gameCharacters[0].identifier : '';
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 }

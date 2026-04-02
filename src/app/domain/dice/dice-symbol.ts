@@ -33,7 +33,7 @@ export class DiceSymbol extends OwnedTabletopObject {
   }
 
   get faces(): string[] {
-    return this.imageDataElement.children.map((element) => (element as DataElement).name);
+    return this.imageDataElement?.children.map((element) => (element as DataElement).name) ?? [];
   }
   override get imageFile(): ImageFile {
     if (this.faces.length) return this.getImageFile(this.faces[0]) ?? ImageFile.Empty;
@@ -95,8 +95,8 @@ export class DiceSymbol extends OwnedTabletopObject {
       faces.push(DataElement.create(faceName, '', { type: 'image' }, identifier));
     }
 
-    this.imageDataElement.children.forEach((element) => element.destroy());
-    faces.forEach((element) => this.imageDataElement.appendChild(element));
+    this.imageDataElement?.children.forEach((element) => element.destroy());
+    faces.forEach((element) => this.imageDataElement?.appendChild(element));
     this.face = faces[0].name;
 
     return faces;
@@ -106,8 +106,8 @@ export class DiceSymbol extends OwnedTabletopObject {
     const object: DiceSymbol = identifier ? new DiceSymbol(identifier) : new DiceSymbol();
 
     object.createDataElements();
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
 
     object.makeDiceFace(type, object.identifier);
     object.initialize();

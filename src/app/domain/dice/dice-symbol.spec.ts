@@ -203,7 +203,7 @@ describe('DiceSymbol', () => {
     it('facesが空の場合は空文字を返す', () => {
       const dice = DiceSymbol.create('d6', DiceType.D6, 1);
       // imageDataElementの子要素を全て削除してfacesを空にする
-      dice.imageDataElement.children.forEach((child) => child.destroy());
+      dice.imageDataElement!.children.forEach((child) => child.destroy());
       const result = dice.diceRoll();
       expect(result).toBe('');
     });

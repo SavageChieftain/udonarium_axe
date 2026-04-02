@@ -33,27 +33,15 @@ export class GameTable extends ObjectNode {
 
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {
-    const terrains: Terrain[] = [];
-    this.children.forEach((object) => {
-      if (object instanceof Terrain) terrains.push(object);
-    });
-    return terrains;
+    return this.children.filter((o): o is Terrain => o instanceof Terrain);
   }
 
   get masks(): GameTableMask[] {
-    const masks: GameTableMask[] = [];
-    this.children.forEach((object) => {
-      if (object instanceof GameTableMask) masks.push(object);
-    });
-    return masks;
+    return this.children.filter((o): o is GameTableMask => o instanceof GameTableMask);
   }
 
   get scratchMasks(): GameTableScratchMask[] {
-    const masks: GameTableScratchMask[] = [];
-    this.children.forEach((object) => {
-      if (object instanceof GameTableScratchMask) masks.push(object);
-    });
-    return masks;
+    return this.children.filter((o): o is GameTableScratchMask => o instanceof GameTableScratchMask);
   }
 
   // GameObject Lifecycle

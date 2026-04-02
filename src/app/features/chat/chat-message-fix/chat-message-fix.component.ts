@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -17,7 +17,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-message-fix.component.css'],
   imports: [FormsModule],
 })
-export class ChatMessageFixComponent implements OnInit, OnDestroy {
+export class ChatMessageFixComponent implements OnInit {
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);
@@ -64,8 +64,6 @@ export class ChatMessageFixComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.kickCalcFitHeight();
   }
-
-  ngOnDestroy() {}
 
   onInput() {
     this.previousWritingLength = this.text.length;

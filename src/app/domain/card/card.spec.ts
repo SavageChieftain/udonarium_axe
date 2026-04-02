@@ -55,8 +55,8 @@ describe('Card', () => {
     it('should create front and back image data elements', () => {
       const card = Card.create('Test', 'front.png', 'back.png');
 
-      const frontElement = card.imageDataElement.getFirstElementByName('front');
-      const backElement = card.imageDataElement.getFirstElementByName('back');
+      const frontElement = card.imageDataElement!.getFirstElementByName('front');
+      const backElement = card.imageDataElement!.getFirstElementByName('back');
 
       expect(frontElement).toBeTruthy();
       expect(backElement).toBeTruthy();

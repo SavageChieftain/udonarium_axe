@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -16,7 +16,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   styleUrls: ['./dice-table-setting.component.css'],
   imports: [FormsModule, NgSelectComponent, NgOptionComponent],
 })
-export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewInit {
+export class DiceTableSettingComponent implements OnInit {
   private modalService = inject(ModalService);
   private saveDataService = inject(SaveDataService);
   private panelService = inject(PanelService);
@@ -120,10 +120,6 @@ export class DiceTableSettingComponent implements OnInit, OnDestroy, AfterViewIn
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ダイス表設定'));
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 
   selectDiceTable(identifier: string) {
     this.selectedTable = this.objectStore.get<DiceTable>(identifier);

@@ -111,7 +111,8 @@ export class TabletopActionService {
       if (!image) {
         image = this.imageStorage.add(url);
       }
-      diceSymbol.imageDataElement.getFirstElementByName(face)!.value = image.identifier;
+      const faceEl = diceSymbol.imageDataElement?.getFirstElementByName(face);
+      if (faceEl) faceEl.value = image.identifier;
     });
 
     diceSymbol.location.x = position.x - 25;
@@ -145,7 +146,7 @@ export class TabletopActionService {
     range.location.y = position.y;
     range.posZ = position.z;
     range.type = typeName;
-    const data = range.commonDataElement.getFirstElementByName('opacity');
+    const data = range.commonDataElement?.getFirstElementByName('opacity');
     data!.currentValue = 60;
     return range;
   }

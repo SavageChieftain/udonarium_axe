@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   inject,
-  OnDestroy,
   OnInit,
   signal,
   viewChild,
@@ -22,7 +21,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PasswordCheckComponent implements OnInit, AfterViewInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
@@ -56,8 +55,6 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit, OnDestroy 
   ngAfterViewInit() {
     this.passwordInputElementRef().nativeElement.focus();
   }
-
-  ngOnDestroy() {}
 
   onInputChange(_value: string) {
     this.help.set('');

@@ -1,13 +1,11 @@
 import { NgStyle } from '@angular/common';
 import {
   AfterViewChecked,
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
   input,
-  OnDestroy,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +26,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   styleUrls: ['./chat-tachie.component.css'],
   imports: [FormsModule, NgStyle, ChatTachieImageComponent_1],
 })
-export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
+export class ChatTachieComponent implements AfterViewChecked {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -69,8 +67,6 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
 
   private timerId: ReturnType<typeof setTimeout> | null = null;
 
-  ngAfterViewInit() {}
-
   ngAfterViewChecked() {}
 
   shoeMessageSetting() {
@@ -85,8 +81,6 @@ export class ChatTachieComponent implements OnDestroy, AfterViewInit, AfterViewC
     };
     this.panelService.open<ChatMessageSettingComponent>(ChatMessageSettingComponent, option);
   }
-
-  ngOnDestroy() {}
 
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;

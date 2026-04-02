@@ -21,9 +21,6 @@ export class GameTableMask extends TabletopObject {
   get height(): number {
     return this.getCommonValue('height', 1);
   }
-  get opacity(): number {
-    return this.getOpacityValue();
-  }
 
   get color(): string {
     const element = this.getElement('color', this.commonDataElement);
@@ -88,10 +85,10 @@ export class GameTableMask extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
-    object.commonDataElement.appendChild(
+    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
+    object.commonDataElement!.appendChild(
       DataElement.create(
         'opacity',
         opacity,

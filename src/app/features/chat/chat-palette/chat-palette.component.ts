@@ -280,7 +280,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 
-          outtext += palette.evaluate(str2, character.rootDataElement, object);
+          outtext += palette.evaluate(str2, character.rootDataElement ?? undefined, object);
           outtext += ' [' + object.name + ']';
           first = false;
 
@@ -288,12 +288,12 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
             text: '',
             object: null,
           };
-          targetContext.text = palette.evaluate(str2, character.rootDataElement, object);
+          targetContext.text = palette.evaluate(str2, character.rootDataElement ?? undefined, object);
           targetContext.object = object;
           messageTargetContext.push(targetContext);
         }
       } else {
-        outtext = palette.evaluate(value.text, character.rootDataElement);
+        outtext = palette.evaluate(value.text, character.rootDataElement ?? undefined);
         const targetContext: ChatMessageTargetContext = {
           text: '',
           object: null,

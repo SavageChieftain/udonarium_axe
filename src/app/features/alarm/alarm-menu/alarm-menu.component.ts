@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { afterNextRender, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -19,7 +19,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./alarm-menu.component.css'],
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
-export class AlarmMenuComponent implements OnInit, OnDestroy {
+export class AlarmMenuComponent implements OnInit {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -163,6 +163,4 @@ export class AlarmMenuComponent implements OnInit, OnDestroy {
     const peerCursor = PeerCursor.findByPeerId(peerId);
     return peerCursor ? peerCursor.lastControlImage : null;
   }
-
-  ngOnDestroy() {}
 }

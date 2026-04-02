@@ -98,7 +98,7 @@ describe('GameTableMask', () => {
 
     it('color DataElementがあれば値を取得できる', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
-      mask.commonDataElement.appendChild(
+      mask.commonDataElement!.appendChild(
         DataElement.create('color', '#FF0000', { type: 'colors', currentValue: '#0a0a0a' }, 'color_' + mask.identifier)
       );
       expect(mask.color).toBe('#FF0000');
@@ -106,7 +106,7 @@ describe('GameTableMask', () => {
 
     it('color DataElementがあればsetterで値を更新できる', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
-      mask.commonDataElement.appendChild(
+      mask.commonDataElement!.appendChild(
         DataElement.create('color', '#555555', { type: 'colors', currentValue: '#0a0a0a' }, 'color_' + mask.identifier)
       );
       mask.color = '#00FF00';

@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -41,7 +33,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   styleUrls: ['./game-character-sheet.component.css'],
   imports: [FormsModule, GameDataElementComponent, SafePipe],
 })
-export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameCharacterSheetComponent implements OnInit {
   private saveDataService = inject(SaveDataService);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
@@ -108,10 +100,6 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
       }
     });
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 
   toggleEditMode() {
     this.isEdit = this.isEdit ? false : true;
@@ -256,7 +244,7 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     if (!obj || this.isSaveing) return;
     this.isSaveing = true;
     this.progresPercent = 0;
-    const element = obj.commonDataElement.getFirstElementByName('name');
+    const element = obj.commonDataElement?.getFirstElementByName('name');
     const objectName: string = element ? (element.value as string) : '';
 
     await this.saveDataService.saveGameObjectAsync(obj, 'xml_' + objectName, (percent) => {

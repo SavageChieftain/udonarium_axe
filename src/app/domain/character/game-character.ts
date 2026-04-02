@@ -47,8 +47,9 @@ export class GameCharacter extends TabletopObject {
 
   _selectedTachieNum: number = 0;
   get selectedTachieNum(): number {
-    if (this._selectedTachieNum > this.imageDataElement.children.length - 1) {
-      this._selectedTachieNum = this.imageDataElement.children.length - 1;
+    const childCount = this.imageDataElement?.children.length ?? 0;
+    if (this._selectedTachieNum > childCount - 1) {
+      this._selectedTachieNum = childCount - 1;
     }
     if (this._selectedTachieNum < 0) {
       this._selectedTachieNum = 0;
@@ -58,12 +59,9 @@ export class GameCharacter extends TabletopObject {
   }
 
   set selectedTachieNum(num: number) {
-    if (num > this.imageDataElement.children.length - 1) {
-      num = this.imageDataElement.children.length - 1;
-    }
-    if (num < 0) {
-      num = 0;
-    }
+    const childCount = this.imageDataElement?.children.length ?? 0;
+    if (num > childCount - 1) num = childCount - 1;
+    if (num < 0) num = 0;
     this._selectedTachieNum = num;
   }
 
@@ -116,11 +114,11 @@ export class GameCharacter extends TabletopObject {
   private _status: StatusAccessor | null = null;
 
   get buffs(): BuffManager {
-    return (this._buffs ??= new BuffManager(this.buffDataElement));
+    return (this._buffs ??= new BuffManager(this.buffDataElement ?? null));
   }
 
   get status(): StatusAccessor {
-    return (this._status ??= new StatusAccessor(this.detailDataElement, () => this.name));
+    return (this._status ??= new StatusAccessor(this.detailDataElement ?? null, () => this.name));
   }
 
   static create(name: string, size: number, imageIdentifier: string): GameCharacter {
@@ -136,10 +134,13 @@ export class GameCharacter extends TabletopObject {
   addExtendData() {
     this.addBuffDataElement();
 
-    const istachie = this.detailDataElement.getElementsByName('立ち絵位置');
+    const detail = this.detailDataElement;
+    if (!detail) return;
+
+    const istachie = detail.getElementsByName('立ち絵位置');
     if (istachie.length == 0) {
       const testElement: DataElement = DataElement.create('立ち絵位置', '', {}, `立ち絵位置${this.identifier}`);
-      this.detailDataElement.appendChild(testElement);
+      detail.appendChild(testElement);
       testElement.appendChild(
         DataElement.create(
           'POS',
@@ -150,13 +151,13 @@ export class GameCharacter extends TabletopObject {
       );
     }
 
-    const iconNum = this.detailDataElement.getElementsByName('コマ画像');
+    const iconNum = detail.getElementsByName('コマ画像');
     if (iconNum.length == 0) {
       const elementKoma: DataElement = DataElement.create('コマ画像', '', {}, `コマ画像${this.identifier}`);
-      this.detailDataElement.appendChild(elementKoma);
+      detail.appendChild(elementKoma);
 
       //コマ画像作成時は立ち絵の次に差し込み
-      const tachies = this.detailDataElement.getElementsByName('立ち絵位置');
+      const tachies = detail.getElementsByName('立ち絵位置');
       if (tachies.length != 0) {
         const parentElement = tachies[0].parent;
         if (!parentElement) return;
@@ -170,17 +171,19 @@ export class GameCharacter extends TabletopObject {
       elementKoma.appendChild(
         DataElement.create(
           'ICON',
-          this.imageDataElement.children.length - 1,
+          (this.imageDataElement?.children.length ?? 1) - 1,
           { type: DataElementType.NUMBER_RESOURCE, currentValue: 0 },
           `ICON_${this.identifier}`
         )
       );
     }
 
-    const isbuff = this.buffDataElement.getElementsByName('バフ/デバフ');
+    const buff = this.buffDataElement;
+    if (!buff) return;
+    const isbuff = buff.getElementsByName('バフ/デバフ');
     if (isbuff.length == 0) {
       const buffElement: DataElement = DataElement.create('バフ/デバフ', '', {}, `バフ/デバフ${this.identifier}`);
-      this.buffDataElement.appendChild(buffElement);
+      buff.appendChild(buffElement);
     }
     if (this.remoteController == null) {
       const controller: BuffPalette = new BuffPalette(`RemotController_${this.identifier}`);

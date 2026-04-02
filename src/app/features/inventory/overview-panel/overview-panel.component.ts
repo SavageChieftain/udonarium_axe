@@ -7,7 +7,6 @@ import {
   DestroyRef,
   ElementRef,
   inject,
-  OnDestroy,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -37,7 +36,7 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
     '(click)': 'onClick($event)',
   },
 })
-export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
+export class OverviewPanelComponent implements AfterViewInit {
   private inventoryService = inject(GameObjectInventoryService);
   private pointerDeviceService = inject(PointerDeviceService);
   private domSanitizer = inject(DomSanitizer);
@@ -103,8 +102,6 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.initPanelPosition();
   }
-
-  ngOnDestroy() {}
 
   private initPanelPosition() {
     const panel: HTMLElement = this.draggablePanel().nativeElement;

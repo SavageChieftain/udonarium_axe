@@ -94,9 +94,9 @@ export class GameTableScratchMask extends OwnedTabletopObject {
     object.M = new Array(object.maxSize * object.maxSize).fill(1);
 
     object.createDataElements();
-    object.commonDataElement.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
-    object.commonDataElement.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
+    object.commonDataElement!.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
     object.initialize();
     return object;
   }

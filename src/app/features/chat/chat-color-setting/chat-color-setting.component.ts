@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -11,7 +11,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./chat-color-setting.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
+export class ChatColorSettingComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectChange = inject(ObjectChangeService);
@@ -50,8 +50,4 @@ export class ChatColorSettingComponent implements OnDestroy, AfterViewInit {
       return this.myPeer.chatColorCode[num];
     }
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 }

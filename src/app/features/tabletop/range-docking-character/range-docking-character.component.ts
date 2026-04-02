@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -18,7 +18,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })
-export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterViewInit {
+export class RangeDockingCharacterComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
@@ -61,7 +61,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   get imageFile(): ImageFile {
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      const image = this.imageStorage.get(object.imageDataElement.children[0].value as string);
+      const image = this.imageStorage.get(object.imageDataElement?.children[0]?.value as string);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;
@@ -70,7 +70,7 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   get selectCharacterTachieNum() {
     const object = this.objectStore.get(this._sendFrom);
     if (object instanceof GameCharacter) {
-      return object.imageDataElement.children.length;
+      return object.imageDataElement?.children.length ?? 0;
     }
     return 0;
   }
@@ -95,8 +95,4 @@ export class RangeDockingCharacterComponent implements OnInit, OnDestroy, AfterV
   ngOnInit() {
     this._sendFrom = this.gameCharacters.length >= 1 ? this.gameCharacters[0].identifier : '';
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -13,7 +13,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./room-setting.component.css'],
   imports: [FormsModule],
 })
-export class RoomSettingComponent implements OnInit, OnDestroy {
+export class RoomSettingComponent implements OnInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
@@ -40,8 +40,6 @@ export class RoomSettingComponent implements OnInit, OnDestroy {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ルーム作成'));
     this.calcPeerId(this.roomName, this.password);
   }
-
-  ngOnDestroy() {}
 
   async calcPeerId(roomName: string, password: string) {
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();

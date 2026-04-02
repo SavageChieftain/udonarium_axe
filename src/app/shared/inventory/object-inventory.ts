@@ -89,7 +89,9 @@ export class ObjectInventory {
       for (const object of caches) {
         if (!object.rootDataElement) continue;
         const elements = this.dataTags.map((tag) =>
-          tag === this.newLineString ? this.newLineDataElement : object.rootDataElement.getFirstElementByName(tag)
+          tag === this.newLineString
+            ? this.newLineDataElement
+            : (object.rootDataElement?.getFirstElementByName(tag) ?? null)
         );
         this._dataElementMap.set(object.identifier, elements);
       }

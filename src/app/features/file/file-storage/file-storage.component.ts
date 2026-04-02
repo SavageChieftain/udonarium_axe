@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -16,7 +16,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, SafePipe],
 })
-export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
+export class FileStorageComponent implements OnInit {
   private panelService = inject(PanelService);
   private imageStorage = inject(ImageStorage);
   private fileArchiver = inject(FileArchiver);
@@ -143,10 +143,6 @@ export class FileStorageComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));
   }
-
-  ngAfterViewInit() {}
-
-  ngOnDestroy() {}
 
   handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
