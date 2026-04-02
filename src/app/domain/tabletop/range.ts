@@ -8,7 +8,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 @SyncObject('range')
 export class RangeArea extends TabletopObject {
   override get aliasName(): 'range' {
-    return 'range';
+    return super.aliasName as 'range';
   }
   constructor(identifier: string = generateUuid()) {
     super(identifier);
@@ -38,9 +38,7 @@ export class RangeArea extends TabletopObject {
     return this.getCommonValue('width', 1);
   }
   get opacity(): number {
-    const element = this.getElement('opacity', this.commonDataElement);
-    const num = element ? (element.currentValue as number) / (element.value as number) : 1;
-    return Number.isNaN(num) ? 1 : num;
+    return this.getOpacityValue();
   }
 
   gridSize: number = 50;
@@ -51,7 +49,7 @@ export class RangeArea extends TabletopObject {
   }
 
   following() {
-    const object = ObjectStore.instance.get(this.followingCharctorIdentifier) as GameCharacter;
+    const object = ObjectStore.instance.get<GameCharacter>(this.followingCharctorIdentifier);
     if (!object) {
       this.followingCharctorIdentifier = null!;
       return;

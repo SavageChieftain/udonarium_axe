@@ -11,7 +11,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
   @SyncVar() value: number | string = '';
   @SyncVar() protected attributes: Attributes = {};
   @SyncVar() private parentIdentifier: string = '';
-  @SyncVar() protected majorIndex: number = 0;
+  @SyncVar() private majorIndex: number = 0;
   @SyncVar() protected minorIndex: number = Math.random();
 
   get index(): number {

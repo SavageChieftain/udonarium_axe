@@ -11,7 +11,7 @@ import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 @SyncObject('card-stack')
 export class CardStack extends TabletopObject {
   override get aliasName(): 'card-stack' {
-    return 'card-stack';
+    return super.aliasName as 'card-stack';
   }
   @SyncVar() isLock: boolean = false;
 

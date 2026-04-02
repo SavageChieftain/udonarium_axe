@@ -95,9 +95,7 @@ export class ObjectStore {
 
     if (this.queueMap.has(context.identifier)) {
       const queue = this.queueMap.get(context.identifier)!;
-      for (const key in context) {
-        (queue as unknown as Record<string, unknown>)[key] = (context as unknown as Record<string, unknown>)[key];
-      }
+      Object.assign(queue, context);
       return;
     }
     networkSend('UPDATE_GAME_OBJECT', context);

@@ -7,7 +7,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 @SyncObject('table-mask')
 export class GameTableMask extends TabletopObject {
   override get aliasName(): 'table-mask' {
-    return 'table-mask';
+    return super.aliasName as 'table-mask';
   }
   @SyncVar() isLock: boolean = false;
   @SyncVar() dispLockMark: boolean = true;
@@ -28,9 +28,7 @@ export class GameTableMask extends TabletopObject {
     return this.getCommonValue('height', 1);
   }
   get opacity(): number {
-    const element = this.getElement('opacity', this.commonDataElement);
-    const num = element ? (element.currentValue as number) / (element.value as number) : 1;
-    return Number.isNaN(num) ? 1 : num;
+    return this.getOpacityValue();
   }
 
   get color(): string {

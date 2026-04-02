@@ -141,10 +141,10 @@ export class TabletopObject extends ObjectNode {
     return image ? ImageStorage.instance.get(image.value as string) : null;
   }
 
-  protected setImageFile(elementName: string, imageFile: ImageFile) {
-    const image = imageFile ? this.getElement(elementName, this.imageDataElement) : null;
-    if (!image) return;
-    image.value = imageFile.identifier;
+  protected getOpacityValue(): number {
+    const element = this.getElement('opacity', this.commonDataElement);
+    const num = element ? (element.currentValue as number) / (element.value as number) : 1;
+    return Number.isNaN(num) ? 1 : num;
   }
 
   setLocation(location: string) {

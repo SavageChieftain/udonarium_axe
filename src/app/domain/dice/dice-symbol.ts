@@ -19,7 +19,7 @@ export enum DiceType {
 @SyncObject('dice-symbol')
 export class DiceSymbol extends TabletopObject {
   override get aliasName(): 'dice-symbol' {
-    return 'dice-symbol';
+    return super.aliasName as 'dice-symbol';
   }
   @SyncVar() isLock: boolean = false;
 
