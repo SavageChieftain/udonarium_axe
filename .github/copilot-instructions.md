@@ -9,7 +9,7 @@ WebRTC（SkyWay SDK）によるP2P通信でサーバレスにオブジェクト�
 - **Signals** — signal/computed/effect/toSignal/input + `versionOf()`/`collectionOf()`
 - **テスト** — Vitest + happy-dom（デュアルランナー）
 - **P2P** — `@skyway-sdk/core` + `@msgpack/msgpack` v3
-- **コミット** — Conventional Commits + lefthook
+- **コミット** — Conventional Commits + lefthook（**コミットメッセージは必ず英語**、**lefthookフックの迂回は手段を問わず絶対禁止** — `--no-verify`、`LEFTHOOK=0`、`core.hooksPath` の変更、lefthook設定の一時無効化等を含む）
 
 ## コードスタイル
 
