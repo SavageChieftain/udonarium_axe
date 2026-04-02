@@ -107,7 +107,7 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.cardStack().ownerName;
   }
 
-  get topCard(): Card {
+  get topCard(): Card | null {
     return this.cardStack().topCard;
   }
   get imageFile(): ImageFile {

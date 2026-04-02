@@ -65,7 +65,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
   }
   get dataElms(): DataElement[] {
     return this.tabletopObject && this.tabletopObject.detailDataElement
-      ? (this.tabletopObject.detailDataElement.children as DataElement[]).filter((e) => e != null)
+      ? this.tabletopObject.detailDataElement.children.filter((e) => e != null)
       : [];
   }
   get hasDataElms(): boolean {
@@ -74,7 +74,7 @@ export class OverviewPanelComponent implements AfterViewInit, OnDestroy {
 
   get rangeElms(): DataElement[] {
     return this.tabletopObject && this.tabletopObject.commonDataElement
-      ? (this.tabletopObject.commonDataElement.children as DataElement[]).filter((e) => e != null)
+      ? this.tabletopObject.commonDataElement.children.filter((e) => e != null)
       : [];
   }
   get hasRangeElms(): boolean {

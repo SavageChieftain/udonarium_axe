@@ -29,6 +29,11 @@ export class DataElement extends ObjectNode {
   @SyncVar() type: string;
   @SyncVar() currentValue: number | string;
 
+  // DataElement の子は常に DataElement なので、aは型を正確に宣言する
+  override get children(): DataElement[] {
+    return super.children as DataElement[];
+  }
+
   get isNumberResource(): boolean {
     return this.type != null && this.type === DataElementType.NUMBER_RESOURCE;
   }
@@ -59,10 +64,8 @@ export class DataElement extends ObjectNode {
   getElementsByName(name: string): DataElement[] {
     const children: DataElement[] = [];
     for (const child of this.children) {
-      if (child instanceof DataElement) {
-        if (child.getAttribute('name') === name) children.push(child);
-        Array.prototype.push.apply(children, child.getElementsByName(name));
-      }
+      if (child.getAttribute('name') === name) children.push(child);
+      Array.prototype.push.apply(children, child.getElementsByName(name));
     }
     return children;
   }
@@ -70,21 +73,17 @@ export class DataElement extends ObjectNode {
   getElementsByType(type: string): DataElement[] {
     const children: DataElement[] = [];
     for (const child of this.children) {
-      if (child instanceof DataElement) {
-        if (child.getAttribute('type') === type) children.push(child);
-        Array.prototype.push.apply(children, child.getElementsByType(type));
-      }
+      if (child.getAttribute('type') === type) children.push(child);
+      Array.prototype.push.apply(children, child.getElementsByType(type));
     }
     return children;
   }
 
   getFirstElementByName(name: string): DataElement | null {
     for (const child of this.children) {
-      if (child instanceof DataElement) {
-        if (child.getAttribute('name') === name) return child;
-        const match = child.getFirstElementByName(name);
-        if (match) return match;
-      }
+      if (child.getAttribute('name') === name) return child;
+      const match = child.getFirstElementByName(name);
+      if (match) return match;
     }
     return null;
   }

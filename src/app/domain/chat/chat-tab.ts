@@ -44,7 +44,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
   imageDispFlag: boolean[] = Array(TACHIE_SLOT_COUNT).fill(true) as boolean[];
 
   get chatMessages(): ChatMessage[] {
-    return <ChatMessage[]>this.children;
+    return this.children as ChatMessage[];
   }
 
   get imageZposList(): number[] {

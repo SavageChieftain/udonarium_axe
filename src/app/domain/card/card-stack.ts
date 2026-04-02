@@ -34,17 +34,18 @@ export class CardStack extends TabletopObject {
     return this.owner.length > 0;
   }
 
-  private get cardRoot(): ObjectNode {
+  private get cardRoot(): ObjectNode | null {
     for (const node of this.children) {
       if (node.getAttribute('name') === 'cardRoot') return node;
     }
-    return null!;
+    return null;
   }
   get cards(): Card[] {
-    return this.cardRoot ? <Card[]>this.cardRoot.children : [];
+    const cardRoot = this.cardRoot;
+    return cardRoot ? (cardRoot.children as Card[]) : [];
   }
-  get topCard(): Card {
-    return this.isEmpty ? null! : this.cards[0];
+  get topCard(): Card | null {
+    return this.isEmpty ? null : this.cards[0];
   }
   get isEmpty(): boolean {
     return this.cards.length < 1;
@@ -65,8 +66,9 @@ export class CardStack extends TabletopObject {
   }
 
   shuffle(): Card[] {
-    if (!this.cardRoot) return [];
-    const length = this.cardRoot.children.length;
+    const cardRoot = this.cardRoot;
+    if (!cardRoot) return [];
+    const length = cardRoot.children.length;
     for (const card of this.cards) {
       card.index = Math.random() * length;
       card.rotate = Math.floor(Math.random() * 2) * 180;
@@ -76,7 +78,9 @@ export class CardStack extends TabletopObject {
   }
 
   drawCard(): Card | null {
-    const card = this.topCard ? this.cardRoot.removeChild(this.topCard) : null;
+    const topCard = this.topCard;
+    const cardRoot = this.cardRoot;
+    const card = topCard && cardRoot ? cardRoot.removeChild(topCard) : null;
     if (card) {
       card.rotate += this.rotate;
       if (card.rotate > 360) card.rotate -= 360;
@@ -87,9 +91,10 @@ export class CardStack extends TabletopObject {
   }
 
   drawCardAll(): Card[] {
+    const cardRoot = this.cardRoot;
     const cards = this.cards;
     for (const card of cards) {
-      this.cardRoot.removeChild(card);
+      cardRoot?.removeChild(card);
       card.rotate += this.rotate;
       this.setSamePositionFor(card);
       if (card.rotate > 360) card.rotate -= 360;
@@ -98,16 +103,18 @@ export class CardStack extends TabletopObject {
   }
 
   faceUp() {
-    if (this.topCard) {
-      this.topCard.faceUp();
-      this.setSamePositionFor(this.topCard);
+    const topCard = this.topCard;
+    if (topCard) {
+      topCard.faceUp();
+      this.setSamePositionFor(topCard);
     }
   }
 
   faceDown() {
-    if (this.topCard) {
-      this.topCard.faceDown();
-      this.setSamePositionFor(this.topCard);
+    const topCard = this.topCard;
+    if (topCard) {
+      topCard.faceDown();
+      this.setSamePositionFor(topCard);
     }
   }
 
@@ -139,26 +146,29 @@ export class CardStack extends TabletopObject {
   }
 
   putOnTop(card: Card): Card | null {
-    if (!this.cardRoot) return null;
-    if (!this.topCard) return this.putOnBottom(card);
+    const cardRoot = this.cardRoot;
+    if (!cardRoot) return null;
+    const topCard = this.topCard;
+    if (!topCard) return this.putOnBottom(card);
     card.owner = '';
     card.zindex = 0;
     let delta = Math.abs(card.rotate - this.rotate);
     if (delta > 180) delta = 360 - delta;
     card.rotate = delta <= 90 ? 0 : 180;
     this.setSamePositionFor(card);
-    return this.cardRoot.insertBefore(card, this.topCard);
+    return cardRoot.insertBefore(card, topCard);
   }
 
   putOnBottom(card: Card): Card | null {
-    if (!this.cardRoot) return null;
+    const cardRoot = this.cardRoot;
+    if (!cardRoot) return null;
     card.owner = '';
     card.zindex = 0;
     let delta = Math.abs(card.rotate - this.rotate);
     if (delta > 180) delta = 360 - delta;
     card.rotate = delta <= 90 ? 0 : 180;
     this.setSamePositionFor(card);
-    return this.cardRoot.appendChild(card);
+    return cardRoot.appendChild(card);
   }
 
   toTopmost() {

@@ -4,7 +4,7 @@ export class BuffManager {
   constructor(private buffDataElement: DataElement) {}
 
   private get container(): DataElement | null {
-    return this.buffDataElement.children[0] as DataElement | null;
+    return this.buffDataElement.children[0] ?? null;
   }
 
   delete(name: string): boolean {
@@ -20,7 +20,7 @@ export class BuffManager {
     const container = this.container;
     if (!container) return;
     for (const data of container.children) {
-      const sum = parseInt(data.value as string) - 1;
+      const sum = parseInt(String(data.value)) - 1;
       data.value = sum;
     }
   }
@@ -29,7 +29,7 @@ export class BuffManager {
     const container = this.container;
     if (!container) return;
     for (const data of container.children) {
-      const sum = parseInt(data.value as string) + 1;
+      const sum = parseInt(String(data.value)) + 1;
       data.value = sum;
     }
   }
@@ -38,7 +38,7 @@ export class BuffManager {
     const container = this.container;
     if (!container) return;
     for (const data of container.children) {
-      if (parseInt(data.value as string) <= 0) {
+      if (parseInt(String(data.value)) <= 0) {
         data.destroy();
       }
     }
