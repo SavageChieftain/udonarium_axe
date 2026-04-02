@@ -13,9 +13,6 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('character')
 export class GameCharacter extends TabletopObject {
-  override get aliasName(): 'character' {
-    return super.aliasName as 'character';
-  }
   constructor(identifier: string = generateUuid()) {
     super(identifier);
     this.isAltitudeIndicate = true;

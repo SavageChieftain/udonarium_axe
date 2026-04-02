@@ -20,9 +20,6 @@ export enum SlopeDirection {
 
 @SyncObject('terrain')
 export class Terrain extends TabletopObject {
-  override get aliasName(): 'terrain' {
-    return super.aliasName as 'terrain';
-  }
   @SyncVar() isLocked: boolean = false;
   @SyncVar() mode: TerrainViewState = TerrainViewState.ALL;
   @SyncVar() rotate: number = 0;

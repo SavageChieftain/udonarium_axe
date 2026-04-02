@@ -1,37 +1,27 @@
 @if (tabletopObject) {
   <div class="top-header">
     <button (click)="toggleEditMode()">編集切り替え</button>
-    @switch (tabletopObject.aliasName) {
-      @case ('card') {
-        <button (click)="openModal('front')">表面の画像を変更</button>
-        <button (click)="openModal('back')">裏面の画像を変更</button>
-      }
-      @case ('card-stack') {}
-      @case ('terrain') {
-        <button (click)="openModal('floor')">床の画像を変更</button>
-        <button (click)="openModal('wall')">壁の画像を変更</button>
-      }
-      @case ('dice-symbol') {
-        <button (click)="openModal(tabletopObject.face)" [disabled]="!tabletopObject.isVisible">
-          ダイス目の画像を変更
-        </button>
-      }
-      @case ('range') {}
-      @case ('table-scratch-mask') {}
-      @default {
-        <button (click)="openModal('imageIdentifier', true)">画像変更</button>
-      }
+    @if (card) {
+      <button (click)="openModal('front')">表面の画像を変更</button>
+      <button (click)="openModal('back')">裏面の画像を変更</button>
+    } @else if (terrain) {
+      <button (click)="openModal('floor')">床の画像を変更</button>
+      <button (click)="openModal('wall')">壁の画像を変更</button>
+    } @else if (diceSymbol) {
+      <button (click)="openModal(diceSymbol.face)" [disabled]="!diceSymbol.isVisible">ダイス目の画像を変更</button>
+    } @else if (!(cardStack || rangeArea || scratchMask)) {
+      <button (click)="openModal('imageIdentifier', true)">画像変更</button>
     }
     <button (click)="clone()">コピーを作る</button>
     <button (click)="saveToXML()">保存</button>
-    @if (tabletopObject.aliasName === 'dice-symbol') {
+    @if (diceSymbol) {
       <div class="extra-setting" style="display: table">
         <div class="extra-setting" style="width: 50%; display: table-cell">
           コマ画像の高さを指定
           <input
             type="checkbox"
             value="hideInventory"
-            [(ngModel)]="tabletopObject.specifyKomaImageFlag"
+            [(ngModel)]="diceSymbol.specifyKomaImageFlag"
             name="specifyKomaImageFlag"
             (click)="clickImageFlag()"
           />
@@ -46,12 +36,12 @@
               min="50"
               max="750"
               name="koma-image-height-range"
-              [(ngModel)]="tabletopObject.komaImageHeight"
-              [disabled]="!tabletopObject.specifyKomaImageFlag"
+              [(ngModel)]="diceSymbol.komaImageHeight"
+              [disabled]="!diceSymbol.specifyKomaImageFlag"
             />
             <input
               class="is-caret"
-              [(ngModel)]="tabletopObject.komaImageHeight"
+              [(ngModel)]="diceSymbol.komaImageHeight"
               type="number"
               style="width: 12em"
               min="50"
@@ -59,13 +49,13 @@
               name="popWidth"
               (change)="chkDiceKomaSize($any($event.target).value)"
               style="color: #555"
-              [disabled]="!tabletopObject.specifyKomaImageFlag"
+              [disabled]="!diceSymbol.specifyKomaImageFlag"
             />
           </div>
         </div>
       </div>
     }
-    @if (tabletopObject.aliasName === 'card-stack') {
+    @if (cardStack) {
       <div class="extra-setting" style="width: 400px">
         <div>
           ポップアップ横幅
@@ -78,12 +68,12 @@
             min="250"
             max="1000"
             name="overview-width-range"
-            [(ngModel)]="tabletopObject.overViewWidth"
+            [(ngModel)]="cardStack.overViewWidth"
           />
           <input
             class="is-caret"
             name="overview-width-range"
-            [(ngModel)]="tabletopObject.overViewWidth"
+            [(ngModel)]="cardStack.overViewWidth"
             type="number"
             min="250"
             max="1000"
@@ -103,12 +93,12 @@
             min="250"
             max="1000"
             name="overview-height-range"
-            [(ngModel)]="tabletopObject.overViewMaxHeight"
+            [(ngModel)]="cardStack.overViewMaxHeight"
           />
           <input
             class="is-caret"
             name="overview-height-range"
-            [(ngModel)]="tabletopObject.overViewMaxHeight"
+            [(ngModel)]="cardStack.overViewMaxHeight"
             type="number"
             min="250"
             max="1000"
@@ -119,7 +109,7 @@
         </div>
       </div>
     }
-    @if (tabletopObject.aliasName === 'card') {
+    @if (card) {
       <div class="extra-setting" style="width: 400px">
         <div>
           ポップアップ横幅
@@ -132,12 +122,12 @@
             min="250"
             max="1000"
             name="overview-width-range"
-            [(ngModel)]="tabletopObject.overViewWidth"
+            [(ngModel)]="card.overViewWidth"
           />
           <input
             class="is-caret"
             name="overview-width-range"
-            [(ngModel)]="tabletopObject.overViewWidth"
+            [(ngModel)]="card.overViewWidth"
             type="number"
             min="250"
             max="1000"
@@ -157,12 +147,12 @@
             min="250"
             max="1000"
             name="overview-height-range"
-            [(ngModel)]="tabletopObject.overViewMaxHeight"
+            [(ngModel)]="card.overViewMaxHeight"
           />
           <input
             class="is-caret"
             name="overview-height-range"
-            [(ngModel)]="tabletopObject.overViewMaxHeight"
+            [(ngModel)]="card.overViewMaxHeight"
             type="number"
             min="250"
             max="1000"
@@ -173,7 +163,7 @@
         </div>
       </div>
     }
-    @if (tabletopObject.aliasName === 'terrain') {
+    @if (terrain) {
       <div class="extra-setting" style="display: table">
         <div class="extra-setting" style="width: 30%; display: table-cell; text-align: right"></div>
         <div class="extra-setting" style="width: 70%; display: table-cell; text-align: right">
@@ -181,26 +171,20 @@
           <input
             type="checkbox"
             value="isGrid"
-            [(ngModel)]="tabletopObject.isGrid"
+            [(ngModel)]="terrain.isGrid"
             name="isGrid"
             (click)="clickGrid()"
           /><br />
         </div>
       </div>
     }
-    @if (tabletopObject.aliasName === 'character') {
-      @if (tabletopObject) {
-        <select
-          (change)="setLocation($any($event.target).value)"
-          name="location"
-          [ngModel]="tabletopObject.location.name"
-        >
-          <option value="table">テーブル</option>
-          <option value="common">共有インベントリ</option>
-          <option value="{{ networkService.peerId }}">個人インベントリ</option>
-          <option value="graveyard">墓地</option>
-        </select>
-      }
+    @if (character) {
+      <select (change)="setLocation($any($event.target).value)" name="location" [ngModel]="character.location.name">
+        <option value="table">テーブル</option>
+        <option value="common">共有インベントリ</option>
+        <option value="{{ networkService.peerId }}">個人インベントリ</option>
+        <option value="graveyard">墓地</option>
+      </select>
       <div class="extra-setting" style="display: table">
         <div class="extra-setting" style="width: 50%; display: table-cell">
           <div>
@@ -208,7 +192,7 @@
             <input
               type="checkbox"
               value="hideInventory"
-              [(ngModel)]="tabletopObject.hideInventory"
+              [(ngModel)]="character.hideInventory"
               name="hideInventory"
               (click)="clickHide()"
             />
@@ -218,7 +202,7 @@
             <input
               type="checkbox"
               value="hideInventory"
-              [(ngModel)]="tabletopObject.nonTalkFlag"
+              [(ngModel)]="character.nonTalkFlag"
               name="nonTalkFlag"
               (click)="clickNoTalk()"
             />
@@ -234,12 +218,12 @@
               min="270"
               max="1000"
               name="overview-width-range"
-              [(ngModel)]="tabletopObject.overViewWidth"
+              [(ngModel)]="character.overViewWidth"
             />
             <input
               class="is-caret"
               name="overview-width-range"
-              [(ngModel)]="tabletopObject.overViewWidth"
+              [(ngModel)]="character.overViewWidth"
               type="number"
               style="width: 12em"
               min="270"
@@ -260,12 +244,12 @@
               min="250"
               max="1000"
               name="overview-height-range"
-              [(ngModel)]="tabletopObject.overViewMaxHeight"
+              [(ngModel)]="character.overViewMaxHeight"
             />
             <input
               class="is-caret"
               name="overview-height-range"
-              [(ngModel)]="tabletopObject.overViewMaxHeight"
+              [(ngModel)]="character.overViewMaxHeight"
               type="number"
               style="width: 12em"
               min="250"
@@ -281,7 +265,7 @@
           <input
             type="checkbox"
             value="hideInventory"
-            [(ngModel)]="tabletopObject.specifyKomaImageFlag"
+            [(ngModel)]="character.specifyKomaImageFlag"
             name="specifyKomaImageFlag"
             (click)="clickImageFlag()"
           />
@@ -296,12 +280,12 @@
               min="50"
               max="750"
               name="koma-image-height-range"
-              [(ngModel)]="tabletopObject.komaImageHeight"
-              [disabled]="!tabletopObject.specifyKomaImageFlag"
+              [(ngModel)]="character.komaImageHeight"
+              [disabled]="!character.specifyKomaImageFlag"
             />
             <input
               class="is-caret"
-              [(ngModel)]="tabletopObject.komaImageHeight"
+              [(ngModel)]="character.komaImageHeight"
               type="number"
               style="width: 12em"
               min="50"
@@ -309,20 +293,20 @@
               name="popWidth"
               (change)="chkKomaSize($any($event.target).value)"
               style="color: #555"
-              [disabled]="!tabletopObject.specifyKomaImageFlag"
+              [disabled]="!character.specifyKomaImageFlag"
             />
           </div>
         </div>
       </div>
     }
-    @if (tabletopObject.aliasName === 'text-note') {
+    @if (textNote) {
       <div class="extra-setting" style="width: 400px">
         <div>
           height設定値に高さを制限
           <input
             type="checkbox"
             value="limitHeight"
-            [(ngModel)]="tabletopObject.limitHeight"
+            [(ngModel)]="textNote.limitHeight"
             name="limitHeight"
             (click)="clickLimitHeight()"
           />
@@ -338,12 +322,12 @@
             min="250"
             max="1000"
             name="overview-width-range"
-            [(ngModel)]="tabletopObject.overViewWidth"
+            [(ngModel)]="textNote.overViewWidth"
           />
           <input
             class="is-caret"
             name="overview-width-range"
-            [(ngModel)]="tabletopObject.overViewWidth"
+            [(ngModel)]="textNote.overViewWidth"
             type="number"
             min="250"
             max="1000"
@@ -363,12 +347,12 @@
             min="250"
             max="1000"
             name="overview-height-range"
-            [(ngModel)]="tabletopObject.overViewMaxHeight"
+            [(ngModel)]="textNote.overViewMaxHeight"
           />
           <input
             class="is-caret"
             name="overview-height-range"
-            [(ngModel)]="tabletopObject.overViewMaxHeight"
+            [(ngModel)]="textNote.overViewMaxHeight"
             type="number"
             min="250"
             max="1000"
@@ -379,7 +363,7 @@
         </div>
       </div>
     }
-    @if (tabletopObject.aliasName === 'table-scratch-mask') {
+    @if (scratchMask) {
       <div>
         カラー
         <input
@@ -387,7 +371,7 @@
           name="color11"
           list="color-list_11"
           (change)="changeMaskFillColor($any($event.target).value)"
-          value="{{ tabletopObject.color }}"
+          value="{{ scratchMask.color }}"
         />
         更新部カラー
         <input
@@ -395,13 +379,13 @@
           name="color12"
           list="color-list_12"
           (change)="changeMaskChangeColor($any($event.target).value)"
-          value="{{ tabletopObject.changeColor }}"
+          value="{{ scratchMask.changeColor }}"
         />
       </div>
       <br />
       ※width、height項目は最大50
     }
-    @if (tabletopObject.aliasName === 'range') {
+    @if (rangeArea) {
       <div>
         境界線
         <input
@@ -409,7 +393,7 @@
           name="color01"
           list="color-list_01"
           (change)="changeRangeColor($any($event.target).value)"
-          value="{{ tabletopObject.rangeColor }}"
+          value="{{ rangeArea.rangeColor }}"
         />
         塗りつぶし
         <input
@@ -417,15 +401,15 @@
           name="color02"
           list="color-list_02"
           (change)="changeGridColor($any($event.target).value)"
-          value="{{ tabletopObject.gridColor }}"
+          value="{{ rangeArea.gridColor }}"
         />
       </div>
-      @if (tabletopObject.type !== 'CIRCLE') {
+      @if (rangeArea.type !== 'CIRCLE') {
         <div>
           回転角度のスナップを細かくする:<input
             type="checkbox"
             value="noSnapPolygonal"
-            [(ngModel)]="tabletopObject.subDivisionSnapPolygonal"
+            [(ngModel)]="rangeArea.subDivisionSnapPolygonal"
             name="subDivisionSnapPolygonal"
             (click)="subDivisionSnapPolygonal()"
           />
@@ -435,27 +419,25 @@
         輪郭に沿って塗る:<input
           type="checkbox"
           value="fillOutLine"
-          [(ngModel)]="tabletopObject.fillOutLine"
+          [(ngModel)]="rangeArea.fillOutLine"
           name="fillOutLine"
           (click)="fillOutLine()"
         /><br />
         スクエアの塗りを半マスずらず 横:<input
           type="checkbox"
           value="offSetX"
-          [(ngModel)]="tabletopObject.offSetX"
+          [(ngModel)]="rangeArea.offSetX"
           name="offSetX"
           (click)="clickRangeOffSetX()"
         />
         &nbsp;縦:<input
           type="checkbox"
           value="offSetY"
-          [(ngModel)]="tabletopObject.offSetY"
+          [(ngModel)]="rangeArea.offSetY"
           name="offSetY"
           (click)="clickRangeOffSetY()"
         /><br />
-        @if (
-          tabletopObject.type === 'CIRCLE' || tabletopObject.type === 'SQUARE' || tabletopObject.type === 'DIAMOND'
-        ) {
+        @if (rangeArea.type === 'CIRCLE' || rangeArea.type === 'SQUARE' || rangeArea.type === 'DIAMOND') {
           <div>
             <br />
             ※この形状はwidth項目は不使用
@@ -494,32 +476,23 @@
         </div>
       }
     }
-    @switch (tabletopObject.aliasName) {
-      @case ('card') {}
-      @case ('card-stack') {}
-      @case ('terrain') {}
-      @case ('dice-symbol') {}
-      @case ('table-scratch-mask') {}
-      @default {
-        @if (tabletopObject.imageDataElement) {
-          <div class="flex-item">
-            <div class="table">
-              <div
-                class="table-row"
-                game-data-element
-                [gameDataElement]="tabletopObject.imageDataElement"
-                [isTagLocked]="true"
-                [isEdit]="isEdit"
-                [isImage]="true"
-              ></div>
-            </div>
-            @if (tabletopObject.aliasName === 'character') {
-              <button style="width: 300px; color: #555" (click)="showImportImages()">
-                画像を他のコマからインポート
-              </button>
-            }
+    @if (!(card || cardStack || terrain || diceSymbol || scratchMask)) {
+      @if (tabletopObject.imageDataElement) {
+        <div class="flex-item">
+          <div class="table">
+            <div
+              class="table-row"
+              game-data-element
+              [gameDataElement]="tabletopObject.imageDataElement"
+              [isTagLocked]="true"
+              [isEdit]="isEdit"
+              [isImage]="true"
+            ></div>
           </div>
-        }
+          @if (character) {
+            <button style="width: 300px; color: #555" (click)="showImportImages()">画像を他のコマからインポート</button>
+          }
+        </div>
       }
     }
     @if (isEdit) {

@@ -63,6 +63,32 @@ export class GameCharacterSheetComponent implements OnInit, OnDestroy, AfterView
     | null = null;
   isEdit: boolean = false;
 
+  // Typed accessors for template type narrowing via instanceof
+  get diceSymbol(): DiceSymbol | null {
+    return this.tabletopObject instanceof DiceSymbol ? this.tabletopObject : null;
+  }
+  get card(): Card | null {
+    return this.tabletopObject instanceof Card ? this.tabletopObject : null;
+  }
+  get cardStack(): CardStack | null {
+    return this.tabletopObject instanceof CardStack ? this.tabletopObject : null;
+  }
+  get terrain(): Terrain | null {
+    return this.tabletopObject instanceof Terrain ? this.tabletopObject : null;
+  }
+  get character(): GameCharacter | null {
+    return this.tabletopObject instanceof GameCharacter ? this.tabletopObject : null;
+  }
+  get textNote(): TextNote | null {
+    return this.tabletopObject instanceof TextNote ? this.tabletopObject : null;
+  }
+  get scratchMask(): GameTableScratchMask | null {
+    return this.tabletopObject instanceof GameTableScratchMask ? this.tabletopObject : null;
+  }
+  get rangeArea(): RangeArea | null {
+    return this.tabletopObject instanceof RangeArea ? this.tabletopObject : null;
+  }
+
   get imageFile(): ImageFile {
     const obj = this.tabletopObject as TabletopObject | null;
     if (!obj) return ImageFile.Empty;

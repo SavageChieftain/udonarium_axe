@@ -4,9 +4,6 @@ import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object'
 
 @SyncObject('table-scratch-mask')
 export class GameTableScratchMask extends OwnedTabletopObject {
-  override get aliasName(): 'table-scratch-mask' {
-    return super.aliasName as 'table-scratch-mask';
-  }
   @SyncVar() isLock: boolean = false;
   @SyncVar() isScratch: boolean = false;
   @SyncVar() dispLockMark: boolean = true;

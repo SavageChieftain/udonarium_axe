@@ -16,9 +16,6 @@ export enum DiceType {
 
 @SyncObject('dice-symbol')
 export class DiceSymbol extends OwnedTabletopObject {
-  override get aliasName(): 'dice-symbol' {
-    return super.aliasName as 'dice-symbol';
-  }
   @SyncVar() isLock: boolean = false;
 
   @SyncVar() face: string = '0';

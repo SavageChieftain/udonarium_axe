@@ -6,9 +6,6 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('table-mask')
 export class GameTableMask extends TabletopObject {
-  override get aliasName(): 'table-mask' {
-    return super.aliasName as 'table-mask';
-  }
   @SyncVar() isLock: boolean = false;
   @SyncVar() dispLockMark: boolean = true;
 

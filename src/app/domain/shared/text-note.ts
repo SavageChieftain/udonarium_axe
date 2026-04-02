@@ -5,9 +5,6 @@ import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 
 @SyncObject('text-note')
 export class TextNote extends TabletopObject {
-  override get aliasName(): 'text-note' {
-    return super.aliasName as 'text-note';
-  }
   @SyncVar() isLock: boolean = false;
 
   @SyncVar() rotate: number = 0;

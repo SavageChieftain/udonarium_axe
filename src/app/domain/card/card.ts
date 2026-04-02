@@ -11,9 +11,6 @@ export enum CardState {
 
 @SyncObject('card')
 export class Card extends OwnedTabletopObject {
-  override get aliasName(): 'card' {
-    return super.aliasName as 'card';
-  }
   @SyncVar() isLock: boolean = false;
   @SyncVar() dispLockMark: boolean = true;
 

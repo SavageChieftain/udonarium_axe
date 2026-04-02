@@ -7,9 +7,6 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('range')
 export class RangeArea extends TabletopObject {
-  override get aliasName(): 'range' {
-    return super.aliasName as 'range';
-  }
   constructor(identifier: string = generateUuid()) {
     super(identifier);
     this.isAltitudeIndicate = true;
