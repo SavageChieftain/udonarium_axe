@@ -22,22 +22,6 @@ export class FileSelecterComponent implements OnInit {
   private imageStorage = inject(ImageStorage);
   private objectChange = inject(ObjectChangeService);
 
-  //本家PR #92より
-  searchWord: string = '';
-
-  private _searchWord!: string;
-
-  private _searchWords!: string[];
-  get searchWords(): string[] {
-    if (this._searchWord !== this.searchWord) {
-      this._searchWord = this.searchWord;
-      this._searchWords =
-        this.searchWord != null && this.searchWord.trim().length > 0 ? this.searchWord.trim().split(/\s+/) : [];
-    }
-    return this._searchWords;
-  }
-  //
-
   isAllowedEmpty: boolean = false;
 
   getAllImage(): ImageFile[] {

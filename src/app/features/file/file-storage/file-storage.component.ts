@@ -24,19 +24,6 @@ export class FileStorageComponent implements OnInit {
 
   protected checkedFiles = new Set<string>();
 
-  //本家PR #92より
-  searchWord: string = '';
-  private _searchWord!: string;
-  private _searchWords!: string[];
-  get searchWords(): string[] {
-    if (this._searchWord !== this.searchWord) {
-      this._searchWord = this.searchWord;
-      this._searchWords =
-        this.searchWord != null && 0 < this.searchWord.trim().length ? this.searchWord.trim().split(/\s+/) : [];
-    }
-    return this._searchWords;
-  }
-
   getAllImage(): ImageFile[] {
     const imageFileList: ImageFile[] = [];
 

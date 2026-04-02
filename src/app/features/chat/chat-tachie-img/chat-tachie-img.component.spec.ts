@@ -31,22 +31,17 @@ describe('ChatTachieImageComponent', () => {
   });
 
   describe('イベントリスナー', () => {
-    it('imageFileUrl_00がfileVersion()シグナルを読み取ること', () => {
-      fixture.detectChanges();
+    it('tachieSlotsがfileVersion()シグナルを読み取ること', () => {
       const spy = vi.spyOn(objectChange, 'fileVersion');
-
-      // getterを呼び出すとfileVersion()が読まれる
-      void component.imageFileUrl_00;
-
+      fixture.detectChanges();
+      void component.tachieSlots();
       expect(spy).toHaveBeenCalled();
     });
 
     it('chatTabゲッターがversionOf()シグナルを読み取ること', () => {
-      fixture.detectChanges();
       const spy = vi.spyOn(objectChange, 'versionOf');
-
+      fixture.detectChanges();
       void component.chatTab;
-
       expect(spy).toHaveBeenCalledWith(component.chatTabidentifier());
     });
   });
