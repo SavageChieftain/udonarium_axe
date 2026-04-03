@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -12,7 +13,6 @@ import {
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { callRollDiceSymbol } from '@axe/domain/domain-events';
@@ -74,7 +74,7 @@ export class DiceSymbolComponent {
     this.diceSymbol().rotate = rotate;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
     this.objectChange.networkVersion();
     if (this.diceSymbol().owner) {
@@ -82,10 +82,7 @@ export class DiceSymbolComponent {
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
     }
     return this.diceSymbol().name;
-  }
-  set name(name: string) {
-    this.diceSymbol().name = name;
-  }
+  });
   get size(): number {
     return this.adjustMinBounds(this.diceSymbol().size);
   }
@@ -100,10 +97,10 @@ export class DiceSymbolComponent {
   get faces(): string[] {
     return this.diceSymbol().faces;
   }
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     return this.imageService.getEmptyOr(this.diceSymbol().imageFile);
-  }
+  });
 
   get isMine(): boolean {
     return this.diceSymbol().isMine;
@@ -232,7 +229,7 @@ export class DiceSymbolComponent {
         onDiceRoll: () => this.diceRoll(),
         onShowDetail: () => this.showDetail(this.diceSymbol()),
       }),
-      this.name
+      this.name()
     );
   }
 

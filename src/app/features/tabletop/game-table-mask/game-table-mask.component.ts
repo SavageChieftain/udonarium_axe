@@ -14,7 +14,6 @@ import {
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
@@ -98,12 +97,12 @@ export class GameTableMaskComponent {
     if (mask) mask.dispLockMark = disp;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     const mask = this.gameTableMask();
     if (!mask) return '';
     this.objectChange.versionOf(mask.identifier)();
     return mask.name;
-  }
+  });
   get width(): number {
     const mask = this.gameTableMask();
     return this.adjustMinBounds(mask?.width ?? 0);
@@ -116,12 +115,12 @@ export class GameTableMaskComponent {
     const mask = this.gameTableMask();
     return mask?.opacity ?? 0;
   }
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     const mask = this.gameTableMask();
     this.objectChange.fileVersion();
     if (!mask) throw new Error('gameTableMask is not set');
     return mask.imageFile;
-  }
+  });
   get isLock(): boolean {
     const mask = this.gameTableMask();
     return mask?.isLock ?? false;
@@ -448,7 +447,7 @@ export class GameTableMaskComponent {
       },
       onEdit: (m) => this.showDetail(m),
     });
-    this.contextMenuService.open(menuPosition, menuArray, this.name);
+    this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
 
   onMove() {

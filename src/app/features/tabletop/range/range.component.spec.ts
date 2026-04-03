@@ -43,7 +43,7 @@ describe('RangeComponent', () => {
       fixture.componentRef.setInput('range', range);
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'versionOf');
-      void component.name;
+      void component.name();
       expect(spy).toHaveBeenCalledWith(range.identifier);
     });
   });

@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -13,7 +14,6 @@ import {
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -65,7 +65,7 @@ export class CardStackComponent {
     this.cardStack().isLock = isLock;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     this.objectChange.versionOf(this.cardStack().identifier)();
     this.objectChange.networkVersion();
     if (this.cardStack().owner) {
@@ -73,7 +73,7 @@ export class CardStackComponent {
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
     }
     return this.cardStack().name;
-  }
+  });
   get rotate(): number {
     return this.cardStack().rotate;
   }
@@ -108,10 +108,10 @@ export class CardStackComponent {
   get topCard(): Card | null {
     return this.cardStack().topCard;
   }
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     return this.imageService.getSkeletonOr(this.cardStack().imageFile);
-  }
+  });
 
   readonly animeState = signal<'active' | 'inactive'>('inactive');
   private readonly cardsVersion = signal(0);
@@ -254,7 +254,7 @@ export class CardStackComponent {
       () => this.breakStack(),
       (cs) => this.showDetail(cs)
     );
-    this.contextMenuService.open(position, menuArray, this.name);
+    this.contextMenuService.open(position, menuArray, this.name());
   }
 
   onMove() {

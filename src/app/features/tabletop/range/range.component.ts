@@ -14,7 +14,6 @@ import {
 } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -210,10 +209,10 @@ export class RangeComponent {
     return this.tabletopService.currentTable;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     this.objectChange.versionOf(this.range().identifier)();
     return this.range().name;
-  }
+  });
   get width(): number {
     return this.adjustMinBounds(this.range().width);
   }
@@ -223,10 +222,10 @@ export class RangeComponent {
   get opacity(): number {
     return this.range().opacity;
   }
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     return this.range().imageFile;
-  }
+  });
   get isLock(): boolean {
     return this.range().isLock;
   }
@@ -365,7 +364,7 @@ export class RangeComponent {
       () => this.dockingWindowOpen(),
       (r) => this.showDetail(r)
     );
-    this.contextMenuService.open(menuPosition, menuArray, this.name);
+    this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
 
   dockingWindowOpen() {

@@ -30,13 +30,13 @@
       >
         <div
           class="upright-transform is-3d is-bg-color is-bg-texture chrome-smooth-image-trick"
-          [style.background-image]="'url(' + imageFile.url + ')' | safe: 'style'"
+          [style.background-image]="'url(' + imageFile().url + ')' | safe: 'style'"
           [style.width.px]="width * gridSize"
           [style.min-height.px]="height * gridSize"
         >
-          @if (title.length) {
+          @if (title().length) {
             <div class="title is-black-background is-pointer-events-none">
-              {{ title }}
+              {{ title() }}
               @if (isLock) {
                 <div class="lock-icon is-right">
                   <i class="material-icons" style="display: inline">lock</i>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -109,12 +109,12 @@ export class GameCharacterSheetComponent {
     return this.tabletopObject instanceof RangeArea ? this.tabletopObject : null;
   }
 
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     const obj = this.tabletopObject as TabletopObject | null;
     if (!obj) return ImageFile.Empty;
     this.objectChange.versionOf(obj.identifier)();
     return obj.imageFile;
-  }
+  });
 
   networkService = Network;
 

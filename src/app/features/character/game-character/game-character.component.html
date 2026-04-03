@@ -37,7 +37,7 @@
           </div>
         }
         <!--影-->
-        @if (isDropShadow && 0 < imageFile.url.length && this.gameCharacter()!.specifyKomaImageFlag) {
+        @if (isDropShadow && 0 < imageFile().url.length && this.gameCharacter()!.specifyKomaImageFlag) {
           <img
             class="image is-pointer-events-none chrome-smooth-image-trick"
             [ngStyle]="{
@@ -49,11 +49,11 @@
                 size * gridSize +
                 'px)',
             }"
-            [src]="imageFile.url | safe: 'resourceUrl'"
+            [src]="imageFile().url | safe: 'resourceUrl'"
             style="filter: brightness(0) opacity(0.7) blur(1px)"
           />
         }
-        @if (isDropShadow && 0 < imageFile.url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
+        @if (isDropShadow && 0 < imageFile().url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
           <img
             class="image is-pointer-events-none chrome-smooth-image-trick"
             [ngStyle]="{
@@ -65,7 +65,7 @@
                 size * gridSize +
                 'px)',
             }"
-            [src]="imageFile.url | safe: 'resourceUrl'"
+            [src]="imageFile().url | safe: 'resourceUrl'"
             style="filter: brightness(0) opacity(0.7) blur(1px)"
           />
         }
@@ -200,7 +200,7 @@
                 </div>
               </div>
               @if (this.gameCharacter()!.nonTalkFlag) {
-                @if (name) {
+                @if (name()) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
@@ -211,14 +211,14 @@
                     }"
                   >
                     <div class="has-length-limit is-3d">
-                      {{ name }}
+                      {{ name() }}
                       @if (isLock) {
                         <i class="material-icons lock-icon" style="display: inline">lock</i>
                       }
                     </div>
                   </div>
                 }
-                @if (name) {
+                @if (name()) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
@@ -229,7 +229,7 @@
                     }"
                   >
                     <div class="has-length-limit is-3d">
-                      {{ name }}
+                      {{ name() }}
                       @if (isLock) {
                         <i class="material-icons lock-icon" style="display: inline">lock</i>
                       }
@@ -238,20 +238,20 @@
                 }
               }
               @if (!this.gameCharacter()!.nonTalkFlag) {
-                @if (name) {
+                @if (name()) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
                   >
                     <div class="has-length-limit is-3d">
-                      {{ name }}
+                      {{ name() }}
                       @if (isLock) {
                         <i class="material-icons lock-icon" style="display: inline">lock</i>
                       }
                     </div>
                   </div>
                 }
-                @if (name) {
+                @if (name()) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
@@ -259,7 +259,7 @@
                     }"
                   >
                     <div class="has-length-limit is-3d">
-                      {{ name }}
+                      {{ name() }}
                       @if (isLock) {
                         <i class="material-icons lock-icon" style="display: inline">lock</i>
                       }
@@ -281,21 +281,21 @@
                 </div>
               }
               <!--画像-->
-              @if (0 < imageFile.url.length && this.gameCharacter()!.specifyKomaImageFlag) {
+              @if (0 < imageFile().url.length && this.gameCharacter()!.specifyKomaImageFlag) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
                     height: +this.gameCharacter()!.komaImageHeight + 'px',
                     transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)',
                   }"
-                  [src]="imageFile.url | safe: 'resourceUrl'"
+                  [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
-              @if (0 < imageFile.url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
+              @if (0 < imageFile().url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{ width: '100%' }"
-                  [src]="imageFile.url | safe: 'resourceUrl'"
+                  [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
               <!--回転部キャラ下-->

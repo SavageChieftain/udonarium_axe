@@ -14,7 +14,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
@@ -90,10 +89,10 @@ export class TextNoteComponent {
   readonly textNote = input.required<TextNote>();
   readonly is3D = input(false);
 
-  get title(): string {
+  readonly title = computed(() => {
     this.objectChange.versionOf(this.textNote().identifier)();
     return this.textNote().title;
-  }
+  });
   get isLock(): boolean {
     return this.textNote().isLock;
   }
@@ -122,10 +121,10 @@ export class TextNoteComponent {
     this.oldFontSize = this.textNote().fontSize;
     return this.textNote().fontSize;
   }
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     return this.textNote().imageFile;
-  }
+  });
   get rotate(): number {
     return this.textNote().rotate;
   }
@@ -282,7 +281,7 @@ export class TextNoteComponent {
         },
         onShowDetail: () => this.showDetail(this.textNote()),
       }),
-      this.title
+      this.title()
     );
   }
 
@@ -323,7 +322,7 @@ export class TextNoteComponent {
       let textAreaMax = this.height * this.gridSize - 2;
 
       if (textAreaMax < this.gridSize) textAreaMax = this.gridSize - 2;
-      if (this.title.length) {
+      if (this.title().length) {
         textAreaMax -= 32;
       } else {
         textAreaMax -= 2;

@@ -450,9 +450,9 @@
 
 @if (tabletopObject) {
   <div class="flex-container">
-    @if (imageFile.url) {
+    @if (imageFile().url) {
       <div class="box main-image-box">
-        <img class="main-image" [src]="imageFile.url | safe: 'resourceUrl'" [alt]="imageFile.name" />
+        <img class="main-image" [src]="imageFile().url | safe: 'resourceUrl'" [alt]="imageFile().name" />
       </div>
     }
     @if (tabletopObject.commonDataElement) {

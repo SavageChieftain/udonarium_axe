@@ -13,7 +13,6 @@ import {
   viewChild,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -131,12 +130,12 @@ export class GameCharacterComponent {
     if (char) char.isLock = isLock;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     const char = this.gameCharacter();
     if (!char) return '';
     this.objectChange.versionOf(char.identifier)();
     return char.name;
-  }
+  });
   get size(): number {
     const char = this.gameCharacter();
     return this.adjustMinBounds(char?.size ?? 0);
@@ -149,12 +148,12 @@ export class GameCharacterComponent {
     const char = this.gameCharacter();
     if (char) char.altitude = altitude;
   }
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     const char = this.gameCharacter();
     if (!char) throw new Error('gameCharacter is not set');
     return char.imageFile;
-  }
+  });
   get rotate(): number {
     const char = this.gameCharacter();
     return char?.rotate ?? 0;
@@ -256,7 +255,7 @@ export class GameCharacterComponent {
         onShowRemoteController: () => this.showRemoteController(char),
         onShowBuffEdit: () => this.showBuffEdit(char),
       }),
-      this.name
+      this.name()
     );
   }
 

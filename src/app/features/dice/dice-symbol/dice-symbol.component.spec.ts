@@ -37,7 +37,7 @@ describe('DiceSymbolComponent', () => {
       const original = objectChangeService.networkVersion;
       const spy = vi.fn(() => original());
       Object.defineProperty(objectChangeService, 'networkVersion', { value: spy, configurable: true });
-      void component.name;
+      void component.name();
       expect(spy).toHaveBeenCalled();
     });
 

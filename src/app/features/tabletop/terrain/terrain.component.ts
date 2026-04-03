@@ -142,12 +142,12 @@ export class TerrainComponent {
     return this.tabletopService.currentTable;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     this.objectChange.versionOf(this.terrain().identifier)();
     this.objectChange.versionOf(this.currentTable.identifier)();
     this.objectChange.versionOf(this.tableSelecter.identifier)();
     return this.terrain().name;
-  }
+  });
   get mode(): TerrainViewState {
     return this.terrain().mode;
   }
@@ -168,10 +168,10 @@ export class TerrainComponent {
     return this.terrain().hasFloor;
   }
 
-  get wallImage(): ImageFile {
+  readonly wallImage = computed(() => {
     this.objectChange.fileVersion();
     return this.imageService.getSkeletonOr(this.terrain().wallImage);
-  }
+  });
   get floorImage(): ImageFile {
     return this.imageService.getSkeletonOr(this.terrain().floorImage);
   }
@@ -254,7 +254,7 @@ export class TerrainComponent {
   readonly gridSize = 50;
 
   get isWallExist(): boolean {
-    return !!(this.hasWall && this.wallImage && this.wallImage.url && this.wallImage.url.length > 0);
+    return !!(this.hasWall && this.wallImage() && this.wallImage().url && this.wallImage().url.length > 0);
   }
 
   get terreinAltitude(): number {
@@ -302,7 +302,7 @@ export class TerrainComponent {
       this.tabletopActionService,
       (t) => this.showDetail(t)
     );
-    this.contextMenuService.open(menuPosition, menuArray, this.name);
+    this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
 
   onMove() {

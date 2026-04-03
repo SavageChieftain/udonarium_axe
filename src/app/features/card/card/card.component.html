@@ -15,7 +15,7 @@
     (rotable.ondragstart)="onMove()"
     (rotable.ondragend)="onMoved()"
   >
-    @if (imageFile) {
+    @if (imageFile()) {
       <img
         class="card-image is-3d chrome-smooth-image-trick"
         [src]="(isFront ? frontImage.url : backImage.url) | safe: 'resourceUrl'"

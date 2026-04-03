@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -72,7 +73,7 @@ export class CardComponent {
     this.card().isLock = isLock;
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     this.objectChange.versionOf(this.card().identifier)();
     this.objectChange.networkVersion();
     if (this.card().owner) {
@@ -80,7 +81,7 @@ export class CardComponent {
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
     }
     return this.card().name;
-  }
+  });
   get state(): CardState {
     return this.card().state;
   }
@@ -125,10 +126,10 @@ export class CardComponent {
     return this.card().ownerName;
   }
 
-  get imageFile(): ImageFile {
+  readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     return this.imageService.getSkeletonOr(this.card().imageFile);
-  }
+  });
   get frontImage(): ImageFile {
     return this.imageService.getSkeletonOr(this.card().frontImage);
   }
@@ -254,7 +255,7 @@ export class CardComponent {
         onCreateStack: () => this.createStack(),
         onShowDetail: () => this.showDetail(this.card()),
       }),
-      this.isVisible ? this.name : 'カード'
+      this.isVisible ? this.name() : 'カード'
     );
   }
 
