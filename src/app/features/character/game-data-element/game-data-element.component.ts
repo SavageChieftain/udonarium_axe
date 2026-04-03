@@ -176,7 +176,8 @@ export class GameDataElementComponent {
   }
 
   get markdown(): MarkDown {
-    return this.objectStore.get<MarkDown>('markdwon')!;
+    // 'markdwon' is the legacy identifier; keep as fallback for old peers in P2P sessions
+    return (this.objectStore.get<MarkDown>('markdown') ?? this.objectStore.get<MarkDown>('markdwon'))!;
   }
 
   escapeHtmlMarkDown(text: string | number, baseId: string): SafeHtml {

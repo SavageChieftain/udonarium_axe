@@ -67,7 +67,7 @@ export class AppInitializationService {
     const jukebox = new Jukebox('Jukebox');
     jukebox.initialize();
 
-    const markdown = new MarkDown('markdwon');
+    const markdown = new MarkDown('markdown');
     markdown.initialize();
 
     const cutInLauncher = new CutInLauncher('CutInLauncher');
