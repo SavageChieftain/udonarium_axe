@@ -105,6 +105,9 @@ export class TabletopService {
 
   private initialize() {
     this.refreshCacheAll();
+    this.objectChange.objectAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      this.refreshCache(e.aliasName);
+    });
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
         this.refreshCache(GameTableMask.aliasName);

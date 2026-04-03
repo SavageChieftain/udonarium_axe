@@ -66,6 +66,8 @@ export class ObjectChangeService {
   readonly objectChanged$ = objectChanged$.asObservable();
   /** Batched children hierarchy change notifications */
   readonly childrenChanged$ = childrenChanged$.asObservable();
+  /** Emitted synchronously when an object is added to ObjectStore. */
+  readonly objectAdded$ = objectAdded$.asObservable();
 
   // --- Per-identifier version signals ---
   private readonly _versions = new Map<string, WritableSignal<number>>();

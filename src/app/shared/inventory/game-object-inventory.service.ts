@@ -87,6 +87,9 @@ export class GameObjectInventoryService {
   }
 
   private initialize() {
+    this.objectChange.objectAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (e.aliasName === GameCharacter.aliasName) this.refresh();
+    });
     this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.refresh();
     });
