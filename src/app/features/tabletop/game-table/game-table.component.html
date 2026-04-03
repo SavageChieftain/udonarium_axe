@@ -8,29 +8,29 @@
     <div
       id="app-game-table"
       class="game-table table-image is-3d-2"
-      [style.background-image]="'url(' + tableImage.url + ')' | safe: 'style'"
+      [style.background-image]="'url(' + tableImage().url + ')' | safe: 'style'"
       #gameObjects
     >
       <canvas class="grid-canvas is-fill is-pointer-events-none" #gridCanvas></canvas>
-      @if (terrains.length) {
+      @if (terrains().length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (terrain of terrains; track terrain.identifier) {
+          @for (terrain of terrains(); track terrain.identifier) {
             <terrain class="is-3d will-change-transform" [terrain]="terrain"></terrain>
           }
         </div>
       }
-      @for (mask of tableMasks; track mask.identifier) {
+      @for (mask of tableMasks(); track mask.identifier) {
         <game-table-mask class="is-3d will-change-transform" [gameTableMask]="mask"> </game-table-mask>
       }
-      @for (scratchMask of tableScratchMasks; track scratchMask.identifier) {
+      @for (scratchMask of tableScratchMasks(); track scratchMask.identifier) {
         <game-table-scratch-mask class="is-3d will-change-transform" [gameTableScratchMask]="scratchMask">
         </game-table-scratch-mask>
       }
-      @if (textNotes.length) {
+      @if (textNotes().length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (textNote of textNotes; track textNote.identifier) {
+          @for (textNote of textNotes(); track textNote.identifier) {
             <text-note
               class="is-3d will-change-transform"
               [textNote]="textNote"
@@ -40,7 +40,7 @@
           }
         </div>
       }
-      @for (cardStack of cardStacks; track cardStack.identifier) {
+      @for (cardStack of cardStacks(); track cardStack.identifier) {
         <card-stack
           class="is-3d will-change-transform"
           [cardStack]="cardStack"
@@ -51,7 +51,7 @@
           }"
         ></card-stack>
       }
-      @for (card of cards; track card.identifier) {
+      @for (card of cards(); track card.identifier) {
         <card
           class="is-3d will-change-transform"
           [card]="card"
@@ -64,17 +64,17 @@
       }
       <div class="range">
         <div class="dummy"></div>
-        @for (cursor of peerCursors; track cursor.identifier) {
+        @for (cursor of peerCursors(); track cursor.identifier) {
           <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
         }
       </div>
-      @for (range of ranges; track range.identifier) {
+      @for (range of ranges(); track range.identifier) {
         <range class="is-3d will-change-transform" [range]="range"></range>
       }
-      @if (diceSymbols.length) {
+      @if (diceSymbols().length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (diceSymbol of diceSymbols; track diceSymbol.identifier) {
+          @for (diceSymbol of diceSymbols(); track diceSymbol.identifier) {
             <dice-symbol
               class="is-3d will-change-transform"
               [diceSymbol]="diceSymbol"
@@ -83,10 +83,10 @@
           }
         </div>
       }
-      @if (characters.length) {
+      @if (characters().length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (character of characters; track character.identifier) {
+          @for (character of characters(); track character.identifier) {
             <game-character
               class="is-3d will-change-transform"
               [gameCharacter]="character"
@@ -97,7 +97,7 @@
       }
       <div class="layer cursor-layer">
         <div class="dummy"></div>
-        @for (cursor of peerCursors; track cursor.identifier) {
+        @for (cursor of peerCursors(); track cursor.identifier) {
           <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
         }
       </div>

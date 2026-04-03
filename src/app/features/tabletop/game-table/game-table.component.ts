@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -14,19 +15,9 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Card } from '@axe/domain/card/card';
-import { CardStack } from '@axe/domain/card/card-stack';
-import { GameCharacter } from '@axe/domain/character/game-character';
-import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { Config } from '@axe/domain/peer/config';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
-import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
-import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
-import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { Terrain } from '@axe/domain/tabletop/terrain';
-import { TextNote } from '@axe/domain/tabletop/text-note';
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
@@ -187,12 +178,12 @@ export class GameTableComponent {
     return this.tabletopService.currentTable;
   }
 
-  get tableImage(): ImageFile {
+  readonly tableImage = computed(() => {
     this.objectChangeService.fileVersion();
     this.objectChangeService.versionOf(this.currentTable.identifier)();
     this.objectChangeService.versionOf(this.tableSelecter.identifier)();
     return this.imageService.getSkeletonOr(this.currentTable.imageIdentifier);
-  }
+  });
 
   get backgroundImage(): ImageFile {
     return this.imageService.getEmptyOr(this.currentTable.backgroundImageIdentifier);
@@ -229,46 +220,46 @@ export class GameTableComponent {
 
   private mouseGesture: TableMouseGesture | null = null;
   private touchGesture: TableTouchGesture | null = null;
-  get characters(): GameCharacter[] {
+  readonly characters = computed(() => {
     this.objectChangeService.collectionOf('character')();
     return this.tabletopService.characters;
-  }
-  get tableMasks(): GameTableMask[] {
+  });
+  readonly tableMasks = computed(() => {
     this.objectChangeService.collectionOf('table-mask')();
     return this.tabletopService.tableMasks;
-  }
-  get tableScratchMasks(): GameTableScratchMask[] {
+  });
+  readonly tableScratchMasks = computed(() => {
     this.objectChangeService.collectionOf('table-scratch-mask')();
     return this.tabletopService.tableScratchMasks;
-  }
-  get cards(): Card[] {
+  });
+  readonly cards = computed(() => {
     this.objectChangeService.collectionOf('card')();
     return this.tabletopService.cards;
-  }
-  get cardStacks(): CardStack[] {
+  });
+  readonly cardStacks = computed(() => {
     this.objectChangeService.collectionOf('card-stack')();
     return this.tabletopService.cardStacks;
-  }
-  get ranges(): RangeArea[] {
+  });
+  readonly ranges = computed(() => {
     this.objectChangeService.collectionOf('range')();
     return this.tabletopService.ranges;
-  }
-  get terrains(): Terrain[] {
+  });
+  readonly terrains = computed(() => {
     this.objectChangeService.collectionOf('terrain')();
     return this.tabletopService.terrains;
-  }
-  get textNotes(): TextNote[] {
+  });
+  readonly textNotes = computed(() => {
     this.objectChangeService.collectionOf('text-note')();
     return this.tabletopService.textNotes;
-  }
-  get diceSymbols(): DiceSymbol[] {
+  });
+  readonly diceSymbols = computed(() => {
     this.objectChangeService.collectionOf('dice-symbol')();
     return this.tabletopService.diceSymbols;
-  }
-  get peerCursors(): PeerCursor[] {
+  });
+  readonly peerCursors = computed(() => {
     this.objectChangeService.collectionOf('PeerCursor')();
     return this.tabletopService.peerCursors;
-  }
+  });
 
   initializeTableTouchGesture() {
     this.touchGesture = new TableTouchGesture(this.rootElementRef().nativeElement);
