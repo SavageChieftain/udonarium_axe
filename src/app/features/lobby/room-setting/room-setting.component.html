@@ -41,7 +41,7 @@
         <div [hidden]="!passwordValidation.errors.maxlength">パスワードの長さは12以内にしてください。</div>
       </div>
     }
-    @if (!validateLength) {
+    @if (!validateLength()) {
       <div>ルームの名前とパスワードの合計が長すぎるようです。どちらかを少し短くしてみてください。</div>
     }
     <div>
