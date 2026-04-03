@@ -1,4 +1,4 @@
-@if (!isConnected) {
+@if (!isConnected()) {
   <div>
     <button (click)="reload()" [disabled]="isReloading()">一覧を更新</button>
     <button (click)="showRoomSetting()">新しいルームを作成する</button>

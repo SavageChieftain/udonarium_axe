@@ -46,8 +46,8 @@ export class AppComponent {
 
   readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
 
-  isSaveing = signal(false);
-  progresPercent = signal(0);
+  isSaving = signal(false);
+  progressPercent = signal(0);
   private openPanelCount = 0;
 
   constructor() {
@@ -62,7 +62,17 @@ export class AppComponent {
     });
   }
 
-  open(componentName: string) {
+  open(
+    componentName:
+      | 'PeerMenuComponent'
+      | 'ChatWindowComponent'
+      | 'GameTableSettingComponent'
+      | 'FileStorageComponent'
+      | 'GameCharacterSheetComponent'
+      | 'JukeboxComponent'
+      | 'GameCharacterGeneratorComponent'
+      | 'GameObjectInventoryComponent'
+  ) {
     let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
     switch (componentName) {
@@ -103,19 +113,19 @@ export class AppComponent {
   }
 
   async save() {
-    if (this.isSaveing()) return;
-    this.isSaveing.set(true);
-    this.progresPercent.set(0);
+    if (this.isSaving()) return;
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
 
     const roomName =
       Network.peerContext && Network.peerContext.roomName.length > 0 ? Network.peerContext.roomName : 'ルームデータ';
     await this.saveDataService.saveRoomAsync(roomName, (percent) => {
-      this.progresPercent.set(percent);
+      this.progressPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing.set(false);
-      this.progresPercent.set(0);
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
     }, 500);
   }
 
@@ -123,7 +133,7 @@ export class AppComponent {
     const input = event.target as HTMLInputElement;
     const files = input.files;
     const reloadCheck = this.objectStore.get<ReloadCheck>('ReloadCheck');
-    reloadCheck!.reloadCheckStart(Network.peerContext.roomName != '');
+    reloadCheck?.reloadCheckStart(Network.peerContext.roomName != '');
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
   }

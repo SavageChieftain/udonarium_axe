@@ -69,8 +69,8 @@ export class ChatTabSettingComponent {
     return !this.isEmpty && !this.isDeleted;
   }
 
-  readonly isSaveing = signal(false);
-  readonly progresPercent = signal(0);
+  readonly isSaving = signal(false);
+  readonly progressPercent = signal(0);
 
   allowDeleteLog = false;
   allowDeleteTab = false;
@@ -119,19 +119,19 @@ export class ChatTabSettingComponent {
   }
 
   async save() {
-    if (!this.selectedTab() || this.isSaveing()) return;
-    this.isSaveing.set(true);
-    this.progresPercent.set(0);
+    if (!this.selectedTab() || this.isSaving()) return;
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
 
     const fileName: string = 'chat_' + this.selectedTab()!.name;
 
     await this.saveDataService.saveGameObjectAsync(this.selectedTab()!, fileName, (percent) => {
-      this.progresPercent.set(percent);
+      this.progressPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing.set(false);
-      this.progresPercent.set(0);
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
     }, 500);
   }
 

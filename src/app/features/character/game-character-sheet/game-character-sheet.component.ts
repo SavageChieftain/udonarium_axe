@@ -89,8 +89,8 @@ export class GameCharacterSheetComponent {
 
   networkService = Network;
 
-  readonly isSaveing = signal(false);
-  readonly progresPercent = signal(0);
+  readonly isSaving = signal(false);
+  readonly progressPercent = signal(0);
 
   constructor() {
     this.objectChange.objectDeleted$.subscribe((e) => {
@@ -240,19 +240,19 @@ export class GameCharacterSheetComponent {
   }
   async saveToXML() {
     const obj = this.tabletopObject;
-    if (!obj || this.isSaveing()) return;
-    this.isSaveing.set(true);
-    this.progresPercent.set(0);
+    if (!obj || this.isSaving()) return;
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
     const element = obj.commonDataElement?.getFirstElementByName('name');
     const objectName: string = element ? (element.value as string) : '';
 
     await this.saveDataService.saveGameObjectAsync(obj, 'xml_' + objectName, (percent) => {
-      this.progresPercent.set(percent);
+      this.progressPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing.set(false);
-      this.progresPercent.set(0);
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
     }, 500);
   }
 

@@ -127,7 +127,7 @@ export class ChatPalette extends ObjectNode {
     this.isAnalized = false;
   }
 
-  checkTargetCharactor(text: string): boolean {
+  checkTargetCharacter(text: string): boolean {
     let istarget = !!text.match(/[tTｔＴ][{｛]\s*([^{}｛｝]+)\s*[}｝]/g);
 
     if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {

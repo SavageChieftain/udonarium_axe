@@ -112,8 +112,8 @@ export class DiceTableSettingComponent {
     return !this.isEmpty && this.isSelected && !this.isDeleted;
   }
 
-  readonly isSaveing = signal(false);
-  readonly progresPercent = signal(0);
+  readonly isSaving = signal(false);
+  readonly progressPercent = signal(0);
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ダイス表設定'));
@@ -134,18 +134,18 @@ export class DiceTableSettingComponent {
 
   async save() {
     if (!this.selectedTable) return;
-    this.isSaveing.set(true);
-    this.progresPercent.set(0);
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
 
     const fileName: string = 'dice_table_' + this.selectedTable.name;
 
     await this.saveDataService.saveGameObjectAsync(this.selectedTable, fileName, (percent) => {
-      this.progresPercent.set(percent);
+      this.progressPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing.set(false);
-      this.progresPercent.set(0);
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
     }, 500);
   }
 

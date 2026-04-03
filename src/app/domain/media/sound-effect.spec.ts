@@ -92,7 +92,7 @@ describe('SoundEffect', () => {
       msg.initialize();
       store.add(msg);
 
-      emitSendMessage({ messageIdentifier: msg.identifier, messageTrget: null });
+      emitSendMessage({ messageIdentifier: msg.identifier, messageTarget: null });
 
       // 非同期のSubscription処理を待つ
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -122,7 +122,7 @@ describe('SoundEffect', () => {
       msg.initialize();
       store.add(msg);
 
-      emitSendMessage({ messageIdentifier: msg.identifier, messageTrget: null });
+      emitSendMessage({ messageIdentifier: msg.identifier, messageTarget: null });
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 

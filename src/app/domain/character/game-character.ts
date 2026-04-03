@@ -117,6 +117,7 @@ export class GameCharacter extends TabletopObject {
   addBuffDataElement() {
     if (!this.buffDataElement) {
       this.rootDataElement?.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`));
+      this._buffs = null;
     }
   }
 

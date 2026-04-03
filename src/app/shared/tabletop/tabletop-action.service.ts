@@ -147,7 +147,7 @@ export class TabletopActionService {
     range.posZ = position.z;
     range.type = typeName;
     const data = range.commonDataElement?.getFirstElementByName('opacity');
-    data!.currentValue = 60;
+    if (data) data.currentValue = 60;
     return range;
   }
 
@@ -287,7 +287,7 @@ export class TabletopActionService {
     return { name: '射程範囲を作成', action: undefined, subActions: subMenus };
   }
 
-  private getViewTable(): GameTable {
+  private getViewTable(): GameTable | null {
     return this.tableSelecter.viewTable;
   }
 }

@@ -128,9 +128,9 @@ export class GameTableComponent {
         const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
         // 移動
         this.setTransform(
-          100 - rotatedMovedX - this.viewPotisonX,
-          -rotatedMovedY - this.viewPotisonY,
-          -rotatedMovedZ - this.viewPotisonZ,
+          100 - rotatedMovedX - this.viewPositionX,
+          -rotatedMovedY - this.viewPositionY,
+          -rotatedMovedZ - this.viewPositionZ,
           0,
           0,
           0
@@ -219,9 +219,9 @@ export class GameTableComponent {
     return this.pointerDeviceService.isDragging;
   }
 
-  private viewPotisonX: number = 100;
-  private viewPotisonY: number = 0;
-  private viewPotisonZ: number = 0;
+  private viewPositionX: number = 100;
+  private viewPositionY: number = 0;
+  private viewPositionZ: number = 0;
 
   private viewRotateX: number = 50;
   private viewRotateY: number = 0;
@@ -318,12 +318,12 @@ export class GameTableComponent {
     if (srcEvent.cancelable) srcEvent.preventDefault();
 
     //
-    const scale = (1000 + Math.abs(this.viewPotisonZ)) / 1000;
+    const scale = (1000 + Math.abs(this.viewPositionZ)) / 1000;
     transformX *= scale;
     transformY *= scale;
     if (80 < rotateX + this.viewRotateX) rotateX += 80 - (rotateX + this.viewRotateX);
     if (rotateX + this.viewRotateX < 0) rotateX += 0 - (rotateX + this.viewRotateX);
-    if (750 < transformZ + this.viewPotisonZ) transformZ += 750 - (transformZ + this.viewPotisonZ);
+    if (750 < transformZ + this.viewPositionZ) transformZ += 750 - (transformZ + this.viewPositionZ);
 
     this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
     this.isTableTransformed = true;
@@ -369,7 +369,7 @@ export class GameTableComponent {
     if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
 
     //
-    const scale = (1000 + Math.abs(this.viewPotisonZ)) / 1000;
+    const scale = (1000 + Math.abs(this.viewPositionZ)) / 1000;
     transformX *= scale;
     transformY *= scale;
 
@@ -432,15 +432,15 @@ export class GameTableComponent {
     this.viewRotateY += rotateY;
     this.viewRotateZ += rotateZ;
 
-    this.viewPotisonX += transformX;
-    this.viewPotisonY += transformY;
-    this.viewPotisonZ += transformZ;
+    this.viewPositionX += transformX;
+    this.viewPositionY += transformY;
+    this.viewPositionZ += transformZ;
 
-    if (rotateX != 0 || rotateY != 0 || rotateX != 0) {
+    if (rotateX !== 0 || rotateY !== 0 || rotateZ !== 0) {
       this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
     }
 
-    this.gameTable().nativeElement.style.transform = `translateZ(${this.viewPotisonZ.toFixed(4)}px) translateY(${this.viewPotisonY.toFixed(4)}px) translateX(${this.viewPotisonX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;
+    this.gameTable().nativeElement.style.transform = `translateZ(${this.viewPositionZ.toFixed(4)}px) translateY(${this.viewPositionY.toFixed(4)}px) translateX(${this.viewPositionX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;
   }
 
   private setGameTableGrid(

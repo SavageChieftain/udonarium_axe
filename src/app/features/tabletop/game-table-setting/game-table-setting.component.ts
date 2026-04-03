@@ -119,7 +119,8 @@ export class GameTableSettingComponent {
   }
   set tableGridShow(tableGridShow: boolean) {
     this.tableSelecter.gridShow = tableGridShow;
-    if (tableGridShow) this.tableSelecter.viewTable.gridClipRect = null;
+    const viewTable = this.tableSelecter.viewTable;
+    if (tableGridShow && viewTable) viewTable.gridClipRect = null;
     triggerUpdateGameObject(this.tableSelecter.toContext()); // 自分にだけイベントを発行してグリッド更新を誘発
   }
 
@@ -159,8 +160,8 @@ export class GameTableSettingComponent {
     return !this.isEmpty && !this.isDeleted;
   }
 
-  readonly isSaveing = signal(false);
-  readonly progresPercent = signal(0);
+  readonly isSaving = signal(false);
+  readonly progressPercent = signal(0);
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'テーブル設定'));
@@ -193,18 +194,18 @@ export class GameTableSettingComponent {
   }
 
   async save() {
-    if (!this.selectedTable || this.isSaveing()) return;
-    this.isSaveing.set(true);
-    this.progresPercent.set(0);
+    if (!this.selectedTable || this.isSaving()) return;
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
 
     this.selectedTable.selected = true;
     await this.saveDataService.saveGameObjectAsync(this.selectedTable, 'map_' + this.selectedTable.name, (percent) => {
-      this.progresPercent.set(percent);
+      this.progressPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing.set(false);
-      this.progresPercent.set(0);
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
     }, 500);
   }
 

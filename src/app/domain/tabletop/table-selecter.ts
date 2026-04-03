@@ -40,7 +40,7 @@ export class TableSelecter extends GameObject {
     this.cleanups = [];
   }
 
-  get viewTable(): GameTable {
+  get viewTable(): GameTable | null {
     let table: GameTable | null = ObjectStore.instance.get<GameTable>(this.viewTableIdentifier);
     if (!table) {
       table = ObjectStore.instance.getObjects<GameTable>(GameTable)[0] ?? null;
@@ -49,6 +49,6 @@ export class TableSelecter extends GameObject {
         emitSelectGameTable({ identifier: table.identifier });
       }
     }
-    return table!;
+    return table;
   }
 }

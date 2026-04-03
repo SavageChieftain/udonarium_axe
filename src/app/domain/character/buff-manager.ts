@@ -1,7 +1,7 @@
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 
 export class BuffManager {
-  constructor(private buffDataElement: DataElement | null) {}
+  constructor(private readonly buffDataElement: DataElement | null) {}
 
   private get container(): DataElement | null {
     return this.buffDataElement?.children[0] ?? null;

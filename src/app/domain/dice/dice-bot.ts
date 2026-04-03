@@ -209,8 +209,8 @@ export class DiceBot extends GameObject {
     }
 
     let text: string;
-    if (data.messageTrget) {
-      text = toHalfWidth(data.messageTrget.text);
+    if (data.messageTarget) {
+      text = toHalfWidth(data.messageTarget.text);
     } else {
       text = toHalfWidth(chatMessage.text);
     }
@@ -240,9 +240,9 @@ export class DiceBot extends GameObject {
         return;
       }
 
-      if (data.messageTrget) {
-        if (data.messageTrget.object) {
-          this.sendResultMessage(rollResult, chatMessage, ` [${data.messageTrget.object.name}]`);
+      if (data.messageTarget) {
+        if (data.messageTarget.object) {
+          this.sendResultMessage(rollResult, chatMessage, ` [${data.messageTarget.object.name}]`);
         } else {
           this.sendResultMessage(rollResult, chatMessage);
         }
@@ -358,7 +358,7 @@ export class DiceBot extends GameObject {
     const chatTab = ObjectStore.instance.get<ChatTab>(originalMessage.tabIdentifier);
     if (chatTab) {
       const chat = chatTab.addMessage(diceBotMessage);
-      emitSendMessage({ messageIdentifier: chat.identifier, messageTrget: null });
+      emitSendMessage({ messageIdentifier: chat.identifier, messageTarget: null });
     }
   }
 

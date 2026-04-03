@@ -6,7 +6,7 @@ import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 
 export interface SendMessageEvent {
   messageIdentifier: string;
-  messageTrget: { text: string; object: { name: string } | null } | null;
+  messageTarget: { text: string; object: { name: string } | null } | null;
 }
 
 export interface DiceTableMessageEvent {
@@ -180,7 +180,7 @@ export function callSoundEffect(identifier: string) {
 }
 
 export function callWritingAMessage(tabIdentifier: string, sendTo?: string | null) {
-  networkSend('WRITING_A_MESSAGE', tabIdentifier, sendTo!);
+  networkSend('WRITING_A_MESSAGE', tabIdentifier, sendTo ?? undefined);
 }
 
 export function callHeartBeat(data: [number, string, number | null, number]) {

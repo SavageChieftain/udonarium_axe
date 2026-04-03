@@ -2,6 +2,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   signal,
@@ -35,9 +36,7 @@ export class PasswordCheckComponent {
   get peerId(): string {
     return Network.peerId;
   }
-  get isConnected(): boolean {
-    return Network.peerIds.length <= 1 ? false : true;
-  }
+  readonly isConnected = computed(() => Network.peerIds.length > 1);
 
   constructor() {
     const modalService = this.modalService;

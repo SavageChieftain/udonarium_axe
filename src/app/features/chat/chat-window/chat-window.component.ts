@@ -219,7 +219,7 @@ export class ChatWindowComponent {
     this.panelService.open<AlarmMenuComponent>(AlarmMenuComponent, option);
   }
 
-  checkTargetCharactor(text: string): boolean {
+  checkTargetCharacter(text: string): boolean {
     let istarget = false;
     if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
       istarget = true;
@@ -261,7 +261,7 @@ export class ChatWindowComponent {
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
 
-      if (this.checkTargetCharactor(value.text)) {
+      if (this.checkTargetCharacter(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {

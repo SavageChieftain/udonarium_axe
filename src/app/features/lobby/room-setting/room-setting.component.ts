@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -28,9 +28,7 @@ export class RoomSettingComponent {
   get peerId(): string {
     return Network.peerId;
   }
-  get isConnected(): boolean {
-    return Network.peerIds.length <= 1 ? false : true;
-  }
+  readonly isConnected = computed(() => Network.peerIds.length > 1);
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

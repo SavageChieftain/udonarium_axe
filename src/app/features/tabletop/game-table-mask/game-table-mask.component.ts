@@ -352,13 +352,16 @@ export class GameTableMaskComponent {
     // とりあえず、本当は周辺を表示したい。
     const tableSelecter = this.tableSelecter;
 
-    if (!tableSelecter.gridShow)
-      tableSelecter.viewTable.gridClipRect = {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      };
+    if (!tableSelecter.gridShow) {
+      const viewTable = tableSelecter.viewTable;
+      if (viewTable)
+        viewTable.gridClipRect = {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        };
+    }
     //viewTable.gridHeight = mask.posZ + mask.altitude * this.gridSize + 0.5;
     let offsetX;
     let offsetY;

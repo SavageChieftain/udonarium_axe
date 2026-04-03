@@ -2,8 +2,8 @@ import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 
 export class StatusAccessor {
   constructor(
-    private detailDataElement: DataElement | null,
-    private characterName: () => string
+    private readonly detailDataElement: DataElement | null,
+    private readonly characterName: () => string
   ) {}
 
   canChangeName(name: string): boolean {

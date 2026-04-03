@@ -252,7 +252,7 @@ export class ChatPaletteComponent {
       let outtext = '';
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
-      if (palette.checkTargetCharactor(value.text)) {
+      if (palette.checkTargetCharacter(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {

@@ -171,7 +171,7 @@ export class ChatMessageService {
     for (const target of eventPlan.sendTargets) {
       emitSendMessage({
         messageIdentifier: chat.identifier,
-        messageTrget: target,
+        messageTarget: target,
       });
     }
     emitDiceTableMessage({ messageIdentifier: chat.identifier });

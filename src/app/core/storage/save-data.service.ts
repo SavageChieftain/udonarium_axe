@@ -85,12 +85,12 @@ export class SaveDataService {
   }
 
   private saveAsync(files: File[], zipName: string, updateCallback?: UpdateCallback): Promise<void> {
-    let progresPercent = -1;
+    let progressPercent = -1;
     return this.fileArchiver.saveAsync(files, zipName, (meta) => {
       const percent = meta.percent | 0;
-      if (percent <= progresPercent) return;
-      progresPercent = percent;
-      updateCallback?.(progresPercent);
+      if (percent <= progressPercent) return;
+      progressPercent = percent;
+      updateCallback?.(progressPercent);
     });
   }
 

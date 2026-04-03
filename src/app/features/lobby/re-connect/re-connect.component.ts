@@ -105,7 +105,7 @@ export class ReConnectComponent {
         const context = PeerContext.parse(peerId);
         if (context.isRoom) {
           const alias = context.roomId + context.roomName;
-          if (!(alias in peersOfroom)) {
+          if (!Object.hasOwn(peersOfroom, alias)) {
             peersOfroom[alias] = [];
           }
           peersOfroom[alias].push(context);

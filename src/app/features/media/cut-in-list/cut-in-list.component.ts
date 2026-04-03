@@ -277,8 +277,8 @@ export class CutInListComponent {
       : `https://img.youtube.com/vi/${this.selectedCutIn.videoId}/hqdefault.jpg`;
   }
 
-  readonly isSaveing = signal(false);
-  readonly progresPercent = signal(0);
+  readonly isSaving = signal(false);
+  readonly progressPercent = signal(0);
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
@@ -303,19 +303,19 @@ export class CutInListComponent {
 
   async save() {
     if (!this.selectedCutIn) return;
-    this.isSaveing.set(true);
-    this.progresPercent.set(0);
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
 
     this.selectedCutIn.selected = true;
     const fileName: string = 'cut_' + this.selectedCutIn.name;
 
     await this.saveDataService.saveGameObjectAsync(this.selectedCutIn, fileName, (percent) => {
-      this.progresPercent.set(percent);
+      this.progressPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing.set(false);
-      this.progresPercent.set(0);
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
     }, 500);
   }
 

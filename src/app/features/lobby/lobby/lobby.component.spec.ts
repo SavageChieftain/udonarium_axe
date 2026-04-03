@@ -41,10 +41,10 @@ describe('LobbyComponent', () => {
       expect(typeof component.help).toBe('function');
     });
 
-    it('isConnectedゲッターがnetworkVersionシグナルを使用すること', () => {
+    it('isConnectedシグナルがnetworkVersionシグナルを使用すること', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'networkVersion');
-      void component.isConnected;
+      void component.isConnected();
       expect(spy).toHaveBeenCalled();
     });
   });

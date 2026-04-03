@@ -131,23 +131,23 @@ describe('ChatPalette', () => {
     });
   });
 
-  describe('checkTargetCharactor()', () => {
+  describe('checkTargetCharacter()', () => {
     it('t{}パターンを検出する', () => {
       const palette = new ChatPalette();
       palette.initialize();
-      expect(palette.checkTargetCharactor('2d6 t{ATK}')).toBe(true);
+      expect(palette.checkTargetCharacter('2d6 t{ATK}')).toBe(true);
     });
 
     it('T:パターンを検出する', () => {
       const palette = new ChatPalette();
       palette.initialize();
-      expect(palette.checkTargetCharactor('T:ターゲット名')).toBe(true);
+      expect(palette.checkTargetCharacter('T:ターゲット名')).toBe(true);
     });
 
     it('対象パターンがない場合falseを返す', () => {
       const palette = new ChatPalette();
       palette.initialize();
-      expect(palette.checkTargetCharactor('2d6+3')).toBe(false);
+      expect(palette.checkTargetCharacter('2d6+3')).toBe(false);
     });
   });
 

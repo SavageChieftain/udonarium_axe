@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -35,10 +35,10 @@ export class LobbyComponent {
   get peerId(): string {
     return Network.peerId;
   }
-  get isConnected(): boolean {
+  readonly isConnected = computed(() => {
     this.objectChange.networkVersion();
-    return Network.peerIds.length <= 1 ? false : true;
-  }
+    return Network.peerIds.length > 1;
+  });
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -84,7 +84,7 @@ export class LobbyComponent {
         const context = PeerContext.parse(peerId);
         if (context.isRoom) {
           const alias = context.roomId + context.roomName;
-          if (!(alias in peersOfroom)) {
+          if (!Object.hasOwn(peersOfroom, alias)) {
             peersOfroom[alias] = [];
           }
           peersOfroom[alias].push(context);
