@@ -19,11 +19,11 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })
 export class ImportCharacterImgComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private objectStore = inject(ObjectStore);
-  private imageStorage = inject(ImageStorage);
-  private objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly objectChange = inject(ObjectChangeService);
 
   tabletopObject: GameCharacter | null = null;
 

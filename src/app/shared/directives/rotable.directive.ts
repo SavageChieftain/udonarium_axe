@@ -20,12 +20,12 @@ export interface RotableOption {
 
 @Directive({ selector: '[appRotable]' })
 export class RotableDirective {
-  private elementRef = inject(ElementRef);
-  private batchService = inject(BatchService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private coordinateService = inject(CoordinateService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject(ElementRef);
+  private readonly batchService = inject(BatchService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private tabletopObject: RotableTabletopObject | null = null;
 

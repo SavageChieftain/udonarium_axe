@@ -18,11 +18,11 @@ import { debounceTime } from 'rxjs';
   styleUrls: ['./cut-in-bgm.component.css'],
 })
 export class CutInBgmComponent {
-  private modalService = inject(ModalService);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private audioStorage = inject(AudioStorage);
+  private readonly modalService = inject(ModalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
 

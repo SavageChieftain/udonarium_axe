@@ -22,9 +22,9 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 })
 export class CardStackListImageComponent {
   chatMessageService = inject(ChatMessageService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
 
   readonly isTilteTop = input(true);
   readonly dispByMouse = input(false);

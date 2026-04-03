@@ -61,6 +61,9 @@
 </ng-template>
 
 <ng-template #voteTargets let-peer="peer">
+  @let peerImage = findPeerImage(peer.peerId);
+  @let controlName = findPeerLastControlName(peer.peerId);
+  @let controlImage = findPeerLastControlImage(peer.peerId);
   <div class="inventory-object" (click)="voteBlockClick(peer.peerId)">
     <div class="object-tags-box">
       <div class="table-cell">
@@ -81,31 +84,23 @@
           {{ findPeerName(peer.peerId) }}
         </div>
         <div class="image-box">
-          @if (findPeerImage(peer.peerId)) {
-            <div
-              class="image cover"
-              [style.background-image]="'url(' + findPeerImage(peer.peerId)!.url + ')' | safe: 'style'"
-            ></div>
+          @if (peerImage) {
+            <div class="image cover" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
           }
         </div>
       </div>
       <div class="table-cell">
         <div class="object-name">
-          @if (findPeerLastControlName(peer.peerId)) {
-            {{ findPeerLastControlName(peer.peerId) }}
-          }
-          @if (!findPeerLastControlName(peer.peerId)) {
+          @if (controlName) {
+            {{ controlName }}
+          } @else {
             操作キャラなし
           }
         </div>
         <div class="image-box">
-          @if (findPeerLastControlImage(peer.peerId)) {
-            <div
-              class="image cover"
-              [style.background-image]="'url(' + findPeerLastControlImage(peer.peerId)!.url + ')' | safe: 'style'"
-            ></div>
-          }
-          @if (!findPeerLastControlImage(peer.peerId)) {
+          @if (controlImage) {
+            <div class="image cover" [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"></div>
+          } @else {
             <div class="image cover" [style.background-image]=""></div>
           }
         </div>

@@ -22,13 +22,13 @@ import { filter, map } from 'rxjs';
   imports: [FormsModule, SafePipe],
 })
 export class GameCharacterGeneratorComponent {
-  private viewContainerRef = inject(ViewContainerRef);
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private imageStorage = inject(ImageStorage);
-  private objectSerializer = inject(ObjectSerializer);
-  private tableSelecter = inject(TableSelecter);
-  private objectChange = inject(ObjectChangeService);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly objectSerializer = inject(ObjectSerializer);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly objectChange = inject(ObjectChangeService);
 
   name: string = 'ゲームキャラクター';
   size: number = 1;

@@ -44,11 +44,11 @@ const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('maci
 })
 export class ChatTabComponent {
   private renderVersion = signal(0);
-  private destroyRef = inject(DestroyRef);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private uiSignalService = inject(UiSignalService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly uiSignalService = inject(UiSignalService);
 
   constructor() {
     effect(() => {

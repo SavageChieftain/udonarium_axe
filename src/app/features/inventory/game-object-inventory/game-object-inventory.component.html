@@ -1,12 +1,13 @@
 <div class="component">
+  @let objects = getGameObjects(selectTab());
   <ng-container *ngTemplateOutlet="inventoryTab"></ng-container>
   <ng-container *ngTemplateOutlet="inventoryViewSetting"></ng-container>
   <ng-container *ngTemplateOutlet="inventoryMultiMove"></ng-container>
-  @if (getGameObjects(selectTab()).length < 1) {
+  @if (objects.length < 1) {
     <div>{{ getTabTitle(selectTab()) }}インベントリは空です</div>
   }
   <!--    <ng-container *ngIf="!gameObject.hideInventory && gameObject.location.name === 'table'"> -->
-  @for (gameObject of getGameObjects(selectTab()); track trackByGameObject($index, gameObject)) {
+  @for (gameObject of objects; track gameObject.identifier) {
     <div
       (contextmenu)="onContextMenu($event, gameObject)"
       (click)="selectGameObject(gameObject)"
@@ -19,11 +20,7 @@
 
   @if (selectTab() === 'graveyard') {
     <div style="padding-top: 6px">
-      <button
-        class="danger"
-        (click)="cleanInventory()"
-        [attr.disabled]="getGameObjects(selectTab()).length < 1 ? '' : null"
-      >
+      <button class="danger" (click)="cleanInventory()" [attr.disabled]="objects.length < 1 ? '' : null">
         墓場を空にする
       </button>
     </div>
@@ -81,16 +78,14 @@
         <i class="material-icons small-font">settings</i>完了
       </button>
     </div>
-  }
-  @if (!isEdit) {
+  } @else {
     <table style="font-size: 0.8em">
       <tr>
         <th style="vertical-align: middle">並び順 第1:</th>
         <td style="vertical-align: middle">
           @if (sortTag) {
             {{ sortTag }} ({{ sortOrderName }})
-          }
-          @if (!sortTag) {
+          } @else {
             -
           }
         </td>
@@ -98,8 +93,7 @@
         <td style="vertical-align: middle">
           @if (sortTag2nd) {
             {{ sortTag2nd }} ({{ sortOrderName2nd }})
-          }
-          @if (!sortTag2nd) {
+          } @else {
             -
           }
         </td>
@@ -130,8 +124,7 @@
         <i class="material-icons small-font">settings</i>キャンセル
       </button>
     </div>
-  }
-  @if (!isMultiMove) {
+  } @else {
     <div>
       <button class="tab-setting small-font" (click)="toggleMultiMove()">
         <i class="material-icons small-font">settings</i>一括移動
@@ -169,7 +162,7 @@
       <div class="table-cell">
         @if (gameObject.rootDataElement) {
           <div>
-            @for (dataElm of getInventoryTags(gameObject); track trackByGameObject($index, dataElm)) {
+            @for (dataElm of getInventoryTags(gameObject); track dataElm?.identifier ?? $index) {
               <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
             }
           </div>
@@ -226,8 +219,7 @@
               <div class="tag-value-box">
                 @if (dataElm.value !== 0) {
                   <input type="checkbox" checked (click)="dataElm.value = 0" />
-                }
-                @if (dataElm.value === 0) {
+                } @else {
                   <input type="checkbox" (click)="dataElm.value = 1" />
                 }
               </div>

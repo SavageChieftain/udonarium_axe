@@ -59,7 +59,7 @@
           (input)="onSelectAutoComplete(text, $event)"
           (click)="onSelectAutoComplete(text, $event)"
         >
-          @for (palette of autoCompleteList(); track $index) {
+          @for (palette of autoCompleteList(); track palette) {
             <option value="{{ palette }}">{{ palette }}</option>
           }
         </select>

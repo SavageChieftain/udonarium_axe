@@ -44,11 +44,11 @@ export interface TachieSlot {
 })
 export class ChatTachieImageComponent {
   chatMessageService = inject(ChatMessageService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private imageStorage = inject(ImageStorage);
-  private objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly objectChange = inject(ObjectChangeService);
 
   readonly chatTabidentifier = input('');
   readonly isTilteTop = input(false);

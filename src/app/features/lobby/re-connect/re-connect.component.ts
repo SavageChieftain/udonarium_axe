@@ -46,11 +46,11 @@ export function isReconnectCompleted(expectedPeerIds: Set<string>, observedPeerI
   styleUrls: ['./re-connect.component.css'],
 })
 export class ReConnectComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private objectStore = inject(ObjectStore);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
@@ -100,30 +100,34 @@ export class ReConnectComponent {
 
   async reload() {
     this.rooms = [];
-    const peersOfroom: { [room: string]: PeerContext[] } = {};
-    const peerIds = await Network.listAllPeers();
-    for (const peerId of peerIds) {
-      const context = PeerContext.parse(peerId);
-      if (context.isRoom) {
-        const alias = context.roomId + context.roomName;
-        if (!(alias in peersOfroom)) {
-          peersOfroom[alias] = [];
+    try {
+      const peersOfroom: { [room: string]: PeerContext[] } = {};
+      const peerIds = await Network.listAllPeers();
+      for (const peerId of peerIds) {
+        const context = PeerContext.parse(peerId);
+        if (context.isRoom) {
+          const alias = context.roomId + context.roomName;
+          if (!(alias in peersOfroom)) {
+            peersOfroom[alias] = [];
+          }
+          peersOfroom[alias].push(context);
         }
-        peersOfroom[alias].push(context);
       }
-    }
-    for (const alias of Object.keys(peersOfroom)) {
-      this.rooms.push({
-        alias: alias,
-        roomName: peersOfroom[alias][0].roomName,
-        peerContexts: peersOfroom[alias],
+      for (const alias of Object.keys(peersOfroom)) {
+        this.rooms.push({
+          alias: alias,
+          roomName: peersOfroom[alias][0].roomName,
+          peerContexts: peersOfroom[alias],
+        });
+      }
+      this.rooms.sort((a, b) => {
+        if (a.alias < b.alias) return -1;
+        if (a.alias > b.alias) return 1;
+        return 0;
       });
+    } catch (e) {
+      Logger.error('[ReConnect] ルーム一覧の取得に失敗しました', e);
     }
-    this.rooms.sort((a, b) => {
-      if (a.alias < b.alias) return -1;
-      if (a.alias > b.alias) return 1;
-      return 0;
-    });
   }
 
   async connect(peerContexts: PeerContext[]) {

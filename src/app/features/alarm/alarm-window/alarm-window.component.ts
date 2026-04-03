@@ -15,10 +15,10 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [NgTemplateOutlet, FormsModule],
 })
 export class AlarmWindowComponent {
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private chatMessageService = inject(ChatMessageService);
-  private objectStore = inject(ObjectStore);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly objectStore = inject(ObjectStore);
 
   private timestamp = 0;
   get alarm(): Alarm {

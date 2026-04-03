@@ -31,12 +31,12 @@ import { BatchService } from '@axe/shared/ui/batch.service';
   imports: [NgClass, SafePipe],
 })
 export class PeerCursorComponent {
-  private batchService = inject(BatchService);
-  private coordinateService = inject(CoordinateService);
-  private chatMessageService = inject(ChatMessageService);
-  private destroyRef = inject(DestroyRef);
-  private objectChange = inject(ObjectChangeService);
-  private objectStore = inject(ObjectStore);
+  private readonly batchService = inject(BatchService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly objectStore = inject(ObjectStore);
 
   readonly cursorElementRef = viewChild<ElementRef>('cursor');
   readonly opacityElementRef = viewChild<ElementRef>('opacity');

@@ -23,15 +23,15 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [FormsModule, NgClass],
 })
 export class ChatTabSettingComponent {
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private chatMessageService = inject(ChatMessageService);
-  private saveDataService = inject(SaveDataService);
-  private objectStore = inject(ObjectStore);
-  private objectSerializer = inject(ObjectSerializer);
-  private chatTabList = inject(ChatTabList);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectSerializer = inject(ObjectSerializer);
+  private readonly chatTabList = inject(ChatTabList);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly selectedTab = signal<ChatTab | null>(null);
   selectedTabXml = '';

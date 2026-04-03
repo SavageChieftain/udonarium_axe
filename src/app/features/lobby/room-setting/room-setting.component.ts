@@ -14,8 +14,8 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule],
 })
 export class RoomSettingComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
 
   peers: PeerContext[] = [];
   isReloading: boolean = false;

@@ -10,7 +10,7 @@ export interface AppConfig {
 
 @Injectable()
 export class AppConfigService {
-  private logger = inject(LoggerService);
+  private readonly logger = inject(LoggerService);
 
   constructor() {}
 

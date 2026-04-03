@@ -35,14 +35,14 @@ export interface MovableOption {
 
 @Directive({ selector: '[appMovable]' })
 export class MovableDirective {
-  private elementRef = inject(ElementRef);
-  private batchService = inject(BatchService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private coordinateService = inject(CoordinateService);
-  private tableSelecter = inject(TableSelecter);
-  private selectionSignalService = inject(SelectionSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject(ElementRef);
+  private readonly batchService = inject(BatchService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 

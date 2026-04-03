@@ -33,9 +33,9 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
   providedIn: 'root',
 })
 export class TabletopActionService {
-  private imageStorage = inject(ImageStorage);
-  private tableSelecter = inject(TableSelecter);
-  private selectionSignalService = inject(SelectionSignalService);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly selectionSignalService = inject(SelectionSignalService);
 
   constructor() {}
 

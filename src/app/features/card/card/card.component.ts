@@ -45,16 +45,16 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
   },
 })
 export class CardComponent {
-  private contextMenuService = inject(ContextMenuService);
-  private panelService = inject(PanelService);
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private tabletopService = inject(TabletopService);
-  private imageService = inject(ImageService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private selectionSignalService = inject(SelectionSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly panelService = inject(PanelService);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly tabletopService = inject(TabletopService);
+  private readonly imageService = inject(ImageService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly card = input.required<Card>();
 

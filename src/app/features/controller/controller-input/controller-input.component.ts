@@ -43,13 +43,13 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ControllerInputComponent {
-  private destroyRef = inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private imageStorage = inject(ImageStorage);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
 
   readonly gameType = model('');
   readonly sendFrom = model(PeerCursor.myCursor ? PeerCursor.myCursor.identifier : '');

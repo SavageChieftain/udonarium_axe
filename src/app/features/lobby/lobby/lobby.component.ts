@@ -19,11 +19,11 @@ import { merge, take } from 'rxjs';
   styleUrls: ['./lobby.component.css'],
 })
 export class LobbyComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private objectStore = inject(ObjectStore);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   rooms = signal<{ alias: string; roomName: string; peerContexts: PeerContext[] }[]>([]);
 

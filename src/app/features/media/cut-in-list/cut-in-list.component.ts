@@ -26,13 +26,13 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule, SafePipe],
 })
 export class CutInListComponent {
-  private pointerDeviceService = inject(PointerDeviceService);
-  private modalService = inject(ModalService);
-  private saveDataService = inject(SaveDataService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private imageStorage = inject(ImageStorage);
-  private audioStorage = inject(AudioStorage);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly modalService = inject(ModalService);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly audioStorage = inject(AudioStorage);
 
   _minSizeWidth = 10;
   _maxSizeWidth = 10;

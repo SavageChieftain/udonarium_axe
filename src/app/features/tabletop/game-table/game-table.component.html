@@ -15,22 +15,22 @@
       @if (terrains.length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (terrain of terrains; track trackByGameObject($index, terrain)) {
+          @for (terrain of terrains; track terrain.identifier) {
             <terrain class="is-3d will-change-transform" [terrain]="terrain"></terrain>
           }
         </div>
       }
-      @for (mask of tableMasks; track trackByGameObject($index, mask)) {
+      @for (mask of tableMasks; track mask.identifier) {
         <game-table-mask class="is-3d will-change-transform" [gameTableMask]="mask"> </game-table-mask>
       }
-      @for (scratchMask of tableScratchMasks; track trackByGameObject($index, scratchMask)) {
+      @for (scratchMask of tableScratchMasks; track scratchMask.identifier) {
         <game-table-scratch-mask class="is-3d will-change-transform" [gameTableScratchMask]="scratchMask">
         </game-table-scratch-mask>
       }
       @if (textNotes.length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (textNote of textNotes; track trackByGameObject($index, textNote)) {
+          @for (textNote of textNotes; track textNote.identifier) {
             <text-note
               class="is-3d will-change-transform"
               [textNote]="textNote"
@@ -40,7 +40,7 @@
           }
         </div>
       }
-      @for (cardStack of cardStacks; track trackByGameObject($index, cardStack)) {
+      @for (cardStack of cardStacks; track cardStack.identifier) {
         <card-stack
           class="is-3d will-change-transform"
           [cardStack]="cardStack"
@@ -51,7 +51,7 @@
           }"
         ></card-stack>
       }
-      @for (card of cards; track trackByGameObject($index, card)) {
+      @for (card of cards; track card.identifier) {
         <card
           class="is-3d will-change-transform"
           [card]="card"
@@ -64,17 +64,17 @@
       }
       <div class="range">
         <div class="dummy"></div>
-        @for (cursor of peerCursors; track trackByGameObject($index, cursor)) {
+        @for (cursor of peerCursors; track cursor.identifier) {
           <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
         }
       </div>
-      @for (range of ranges; track trackByGameObject($index, range)) {
+      @for (range of ranges; track range.identifier) {
         <range class="is-3d will-change-transform" [range]="range"></range>
       }
       @if (diceSymbols.length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (diceSymbol of diceSymbols; track trackByGameObject($index, diceSymbol)) {
+          @for (diceSymbol of diceSymbols; track diceSymbol.identifier) {
             <dice-symbol
               class="is-3d will-change-transform"
               [diceSymbol]="diceSymbol"
@@ -86,7 +86,7 @@
       @if (characters.length) {
         <div class="layer">
           <div class="dummy"></div>
-          @for (character of characters; track trackByGameObject($index, character)) {
+          @for (character of characters; track character.identifier) {
             <game-character
               class="is-3d will-change-transform"
               [gameCharacter]="character"
@@ -97,7 +97,7 @@
       }
       <div class="layer cursor-layer">
         <div class="dummy"></div>
-        @for (cursor of peerCursors; track trackByGameObject($index, cursor)) {
+        @for (cursor of peerCursors; track cursor.identifier) {
           <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
         }
       </div>

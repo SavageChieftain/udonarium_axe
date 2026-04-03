@@ -27,15 +27,15 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe],
 })
 export class GameTableSettingComponent {
-  private modalService = inject(ModalService);
-  private saveDataService = inject(SaveDataService);
-  private imageService = inject(ImageService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private objectSerializer = inject(ObjectSerializer);
-  private tableSelecter = inject(TableSelecter);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly modalService = inject(ModalService);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly imageService = inject(ImageService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectSerializer = inject(ObjectSerializer);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   get gameType(): string {
     return this.config.defaultDiceBot;

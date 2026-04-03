@@ -31,11 +31,11 @@ import GameSystemClass from 'bcdice/lib/game_system';
 })
 export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
-  private destroyRef = inject(DestroyRef);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
 
   sendFrom: string = 'Guest';
 

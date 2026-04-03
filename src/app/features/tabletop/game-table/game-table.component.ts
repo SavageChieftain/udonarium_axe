@@ -14,7 +14,6 @@ import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -82,18 +81,18 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   },
 })
 export class GameTableComponent {
-  private contextMenuService = inject(ContextMenuService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private coordinateService = inject(CoordinateService);
-  private imageService = inject(ImageService);
-  private tabletopService = inject(TabletopService);
-  private tabletopActionService = inject(TabletopActionService);
-  private modalService = inject(ModalService);
-  private objectStore = inject(ObjectStore);
-  private selectionSignalService = inject(SelectionSignalService);
-  private uiSignalService = inject(UiSignalService);
-  private objectChangeService = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly imageService = inject(ImageService);
+  private readonly tabletopService = inject(TabletopService);
+  private readonly tabletopActionService = inject(TabletopActionService);
+  private readonly modalService = inject(ModalService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly objectChangeService = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -479,9 +478,5 @@ export class GameTableComponent {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-  }
-
-  trackByGameObject(index: number, gameObject: GameObject) {
-    return gameObject.identifier;
   }
 }

@@ -8,7 +8,7 @@ const skeletonImage: ImageFile = ImageFile.create('./assets/images/skeleton.png'
   providedIn: 'root',
 })
 export class ImageService {
-  private imageStorage = inject(ImageStorage);
+  private readonly imageStorage = inject(ImageStorage);
 
   constructor() {}
 

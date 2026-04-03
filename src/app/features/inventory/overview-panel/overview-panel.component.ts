@@ -36,12 +36,12 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
   },
 })
 export class OverviewPanelComponent {
-  private inventoryService = inject(GameObjectInventoryService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private domSanitizer = inject(DomSanitizer);
-  private objectStore = inject(ObjectStore);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly domSanitizer = inject(DomSanitizer);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
   tabletopObject: TabletopObject | null = null;

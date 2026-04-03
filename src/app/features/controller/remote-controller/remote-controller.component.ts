@@ -57,14 +57,14 @@ import GameSystemClass from 'bcdice/lib/game_system';
 })
 export class RemoteControllerComponent {
   chatMessageService = inject(ChatMessageService);
-  private panelService = inject(PanelService);
-  private inventoryService = inject(GameObjectInventoryService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private selectionSignalService = inject(SelectionSignalService);
-  private uiSignalService = inject(UiSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   get palette(): ChatPalette | null {
     return this.character?.remoteController ?? null;
@@ -438,10 +438,6 @@ export class RemoteControllerComponent {
     } else {
       this.errorMessageController = '対象キャラクターが未選択です';
     }
-  }
-
-  trackByGameObject(index: number, gameObject: GameObject | null) {
-    return gameObject ? gameObject.identifier : index;
   }
 
   buffEdit(gameCharacter: GameCharacter) {

@@ -3,7 +3,7 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl, SafeScript, SafeStyle, SafeUrl
 
 @Pipe({ name: 'safe' })
 export class SafePipe implements PipeTransform {
-  private _sanitizer = inject(DomSanitizer);
+  private readonly _sanitizer = inject(DomSanitizer);
 
   public transform(
     value: string,

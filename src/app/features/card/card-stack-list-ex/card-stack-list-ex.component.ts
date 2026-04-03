@@ -18,9 +18,9 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   imports: [SafePipe],
 })
 export class CardStackListComponentEx {
-  private panelService = inject(PanelService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   cardStack: CardStack | null = null;
 

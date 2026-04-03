@@ -9,10 +9,10 @@ import { filter } from 'rxjs/operators';
 
 @Directive({ selector: '[appTooltip]' })
 export class TooltipDirective {
-  private viewContainerRef = inject(ViewContainerRef);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private static activeTooltips: ComponentRef<OverviewPanelComponent>[] = [];
 

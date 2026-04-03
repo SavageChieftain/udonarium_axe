@@ -51,20 +51,20 @@ import { xor } from 'lodash';
 })
 export class GameTableMaskComponent {
   private static readonly GRID_PATTERN = /^\d+:\d+$/;
-  private tabletopActionService = inject(TabletopActionService);
-  private contextMenuService = inject(ContextMenuService);
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private modalService = inject(ModalService);
-  private coordinateService = inject(CoordinateService);
-  private objectStore = inject(ObjectStore);
-  private tableSelecter = inject(TableSelecter);
-  private inventoryService = inject(GameObjectInventoryService);
-  private selectionSignalService = inject(SelectionSignalService);
-  private uiSignalService = inject(UiSignalService);
-  private destroyRef = inject(DestroyRef);
+  private readonly tabletopActionService = inject(TabletopActionService);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly modalService = inject(ModalService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {

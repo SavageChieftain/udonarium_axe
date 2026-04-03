@@ -20,10 +20,10 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 })
 export class ChatTachieComponent {
   chatMessageService = inject(ChatMessageService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private uiSignalService = inject(UiSignalService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly uiSignalService = inject(UiSignalService);
 
   readonly chatTabidentifier = input('');
 

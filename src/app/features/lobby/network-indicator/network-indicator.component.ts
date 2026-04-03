@@ -10,9 +10,9 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
   styleUrls: ['./network-indicator.component.css'],
 })
 export class NetworkIndicatorComponent {
-  private destroyRef = inject(DestroyRef);
-  private elementRef = inject(ElementRef);
-  private objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject(ElementRef);
+  private readonly objectChange = inject(ObjectChangeService);
 
   private timer: NodeJS.Timeout | null = null;
   private needRepeat = false;

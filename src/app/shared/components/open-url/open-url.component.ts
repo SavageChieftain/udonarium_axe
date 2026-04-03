@@ -11,8 +11,8 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [NgClass],
 })
 export class OpenUrlComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
 
   url: string = '';
   title: string = '';

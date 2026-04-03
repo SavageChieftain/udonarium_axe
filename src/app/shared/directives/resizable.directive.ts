@@ -12,8 +12,8 @@ interface BoxSize {
 
 @Directive({ selector: '[appResizable]' })
 export class ResizableDirective {
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isDisable = input(false, { alias: 'resizable.disable' });
   readonly boundsSelector = input('body', { alias: 'resizable.bounds' });

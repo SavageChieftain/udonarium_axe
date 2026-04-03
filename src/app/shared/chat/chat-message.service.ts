@@ -28,9 +28,9 @@ const HOURS = 60 * 60 * 1000;
 
 @Injectable()
 export class ChatMessageService {
-  private objectStore = inject(ObjectStore);
-  private imageStorage = inject(ImageStorage);
-  private chatTabList = inject(ChatTabList);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly chatTabList = inject(ChatTabList);
 
   private intervalTimer: NodeJS.Timeout | null = null;
   private timeOffset: number = Date.now();

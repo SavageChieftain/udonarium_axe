@@ -17,10 +17,10 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule, SafePipe],
 })
 export class FileStorageComponent {
-  private panelService = inject(PanelService);
-  private imageStorage = inject(ImageStorage);
-  private fileArchiver = inject(FileArchiver);
-  private objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly fileArchiver = inject(FileArchiver);
+  private readonly objectChange = inject(ObjectChangeService);
 
   protected checkedFiles = new Set<string>();
 

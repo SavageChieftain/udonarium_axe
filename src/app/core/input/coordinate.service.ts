@@ -6,7 +6,7 @@ import { Transform } from '@axe/core/transform/transform';
   providedIn: 'root',
 })
 export class CoordinateService {
-  private pointerDeviceService = inject(PointerDeviceService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
 
   tabletopOriginElement: HTMLElement = document.body;
 

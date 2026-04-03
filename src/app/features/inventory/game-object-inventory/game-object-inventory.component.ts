@@ -31,14 +31,14 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
 export class GameObjectInventoryComponent {
-  private panelService = inject(PanelService);
-  private inventoryService = inject(GameObjectInventoryService);
-  private contextMenuService = inject(ContextMenuService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private selectionSignalService = inject(SelectionSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -412,9 +412,5 @@ export class GameObjectInventoryComponent {
 
   private deleteGameObject(gameObject: GameObject) {
     gameObject.destroy();
-  }
-
-  trackByGameObject(index: number, gameObject: GameObject | null) {
-    return gameObject ? gameObject.identifier : index;
   }
 }

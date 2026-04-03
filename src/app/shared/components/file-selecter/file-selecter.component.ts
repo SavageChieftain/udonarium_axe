@@ -17,10 +17,10 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule, SafePipe],
 })
 export class FileSelecterComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private imageStorage = inject(ImageStorage);
-  private objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly objectChange = inject(ObjectChangeService);
 
   isAllowedEmpty: boolean = false;
 

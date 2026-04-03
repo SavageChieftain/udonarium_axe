@@ -13,8 +13,8 @@ import { filter } from 'rxjs';
   imports: [FormsModule],
 })
 export class GameDataElementBuffComponent {
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);

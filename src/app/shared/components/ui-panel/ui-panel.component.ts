@@ -37,9 +37,9 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 })
 export class UIPanelComponent {
   panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private destroyRef = inject(DestroyRef);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
   readonly scrollablePanel = viewChild.required<ElementRef<HTMLDivElement>>('scrollablePanel');
@@ -56,17 +56,9 @@ export class UIPanelComponent {
   constructor() {
     effect(() => {
       this.panelService.title = this.titleInput();
-    });
-    effect(() => {
       this.panelService.left = this.leftInput();
-    });
-    effect(() => {
       this.panelService.top = this.topInput();
-    });
-    effect(() => {
       this.panelService.width = this.widthInput();
-    });
-    effect(() => {
       this.panelService.height = this.heightInput();
     });
     afterNextRender(() => {

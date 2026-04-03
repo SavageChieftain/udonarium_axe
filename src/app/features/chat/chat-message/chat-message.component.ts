@@ -20,11 +20,11 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, SafePipe],
 })
 export class ChatMessageComponent {
-  private chatMessageService = inject(ChatMessageService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private objectChange = inject(ObjectChangeService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
   get chatMessage(): ChatMessage {

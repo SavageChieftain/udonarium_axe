@@ -56,14 +56,14 @@
       }
       <ul>
         @if (title !== 'インデックス') {
-          @for (action of actions; track $index) {
+          @for (action of actions; track action) {
             <ng-container
               *ngTemplateOutlet="action?.type === 'separator' ? separator : actionMenu; context: { action: action }"
             ></ng-container>
           }
         }
         @if (title === 'インデックス') {
-          @for (action of actions; track $index) {
+          @for (action of actions; track action) {
             <ng-container
               *ngTemplateOutlet="action?.type === 'separator' ? separator : indexMenu; context: { action: action }"
             ></ng-container>

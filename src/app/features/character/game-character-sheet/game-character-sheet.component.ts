@@ -34,13 +34,13 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   imports: [FormsModule, GameDataElementComponent, SafePipe],
 })
 export class GameCharacterSheetComponent {
-  private saveDataService = inject(SaveDataService);
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private uiSignalService = inject(UiSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   tabletopObject:
     | GameCharacter

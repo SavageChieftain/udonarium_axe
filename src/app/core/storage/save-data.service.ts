@@ -20,11 +20,11 @@ type UpdateCallback = (percent: number) => void;
   providedIn: 'root',
 })
 export class SaveDataService {
-  private imageStorage = inject(ImageStorage);
-  private fileArchiver = inject(FileArchiver);
-  private chatTabList = inject(ChatTabList);
-  private appConfig = inject(Config);
-  private dataSummarySetting = inject(DataSummarySetting);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly fileArchiver = inject(FileArchiver);
+  private readonly chatTabList = inject(ChatTabList);
+  private readonly appConfig = inject(Config);
+  private readonly dataSummarySetting = inject(DataSummarySetting);
 
   private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
 

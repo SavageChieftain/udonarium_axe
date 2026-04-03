@@ -5,8 +5,8 @@ import { InputHandler } from '@axe/shared/directives/input-handler';
 
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isDisable = input(false, { alias: 'draggable.disable' });
   readonly boundsSelector = input('body', { alias: 'draggable.bounds' });

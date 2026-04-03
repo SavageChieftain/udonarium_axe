@@ -23,11 +23,11 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   host: { '(contextmenu)': 'onContextMenu($event)' },
 })
 export class ContextMenuComponent {
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   contextMenuService = inject(ContextMenuService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private uiSignalService = inject(UiSignalService);
-  private destroyRef = inject(DestroyRef);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 

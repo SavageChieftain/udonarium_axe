@@ -19,10 +19,10 @@ import GameSystemClass from 'bcdice/lib/game_system';
 })
 export class ChatMessageFixComponent {
   chatMessageService = inject(ChatMessageService);
-  private batchService = inject(BatchService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
+  private readonly batchService = inject(BatchService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
 
   readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 

@@ -25,13 +25,13 @@ type LocationName = string;
 
 @Injectable()
 export class TabletopService {
-  private coordinateService = inject(CoordinateService);
-  private objectStore = inject(ObjectStore);
-  private objectSerializer = inject(ObjectSerializer);
-  private chatTabList = inject(ChatTabList);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectSerializer = inject(ObjectSerializer);
+  private readonly chatTabList = inject(ChatTabList);
   readonly tableSelecter = inject(TableSelecter);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private _emptyTable: GameTable = new GameTable('');
   get currentTable(): GameTable {

@@ -34,7 +34,7 @@
 <ng-template #overviewCard let-card="card">
   <div
     class="component-content is-small-size"
-    [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    [ngClass]="pointerEventsStyle"
     [ngStyle]="{ width: overViewCardWidth + 'px' }"
   >
     @if (hasImage) {
@@ -43,7 +43,7 @@
         <button class="zoom-button" (click)="chanageImageView(true)">
           <i class="material-icons">zoom_in</i>
         </button>
-        @if (card.hasOwner && 0 < card.ownerName.length) {
+        @if (card.hasOwner && card.ownerName) {
           <div class="component-owner position-right-bottom">
             <div class="owner-tag">{{ card.ownerName }}</div>
           </div>
@@ -56,11 +56,10 @@
         [ngClass]="{ 'with-button-marign': hasImage }"
         [ngStyle]="{ width: overViewCardWidthNoMargin + 'px' }"
       >
-        @if (card.isVisible === null || card.isVisible) {
-          {{ card.name }}
-        }
         @if (card.isVisible !== null && !card.isVisible) {
           カード
+        } @else {
+          {{ card.name }}
         }
       </div>
     }
@@ -88,7 +87,7 @@
   <div
     class="component-content is-large-size"
     [ngStyle]="{ 'max-width': 1000 + 'px', width: overViewNoteWidth + 'px' }"
-    [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
+    [ngClass]="pointerEventsStyle"
   >
     <div class="component-title title-background" [ngStyle]="{ 'max-width': 1000 + 'px' }">{{ note.title }}</div>
     <div
@@ -113,29 +112,17 @@
 
 <ng-template #overviewCharacter let-character="character">
   <div class="component-content character-grid-container is-middle-size">
-    <div
-      class="title-bg-area title-background"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    ></div>
+    <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
     @if (hasImage) {
-      <div
-        class="image-area character-image-box"
-        [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-      >
+      <div class="image-area character-image-box" [ngClass]="pointerEventsStyle">
         <img class="character-image" [src]="imageUrl | safe: 'resourceUrl'" />
       </div>
     }
-    <div
-      class="title-area component-title"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    >
+    <div class="title-area component-title" [ngClass]="pointerEventsStyle">
       {{ character.name }}
     </div>
     <div class="void-area is-pointer-events-none"></div>
-    <div
-      class="dataElm-area component-background"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    >
+    <div class="dataElm-area component-background" [ngClass]="pointerEventsStyle">
       @if (hasDataElms) {
         <div
           class="grid-container-root"
@@ -156,35 +143,22 @@
 
 <ng-template #overviewDiceSymbol let-dice="dice">
   <div class="component-content character-grid-container is-middle-size">
-    <div
-      class="title-bg-area title-background"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    ></div>
-    <div
-      class="title-area component-title"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    >
+    <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
+    <div class="title-area component-title" [ngClass]="pointerEventsStyle">
       {{ dice.name }}:
       @if (dice.isVisible) {
         {{ dice.face }}
-      }
-      @if (!dice.isVisible) {
+      } @else {
         ???
       }
     </div>
-    @if (dice.hasOwner && 0 < dice.ownerName.length) {
-      <div
-        class="owner-name-area component-owner"
-        [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-      >
+    @if (dice.hasOwner && dice.ownerName) {
+      <div class="owner-name-area component-owner" [ngClass]="pointerEventsStyle">
         <div class="owner-tag">{{ dice.ownerName }}</div>
       </div>
     }
     @if (hasImage) {
-      <div
-        class="image-area character-image-box"
-        [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-      >
+      <div class="image-area character-image-box" [ngClass]="pointerEventsStyle">
         <img
           class="character-image"
           [ngClass]="{ 'is-black-mask': !dice.isVisible, 'is-harf-black-mask': dice.isMine }"
@@ -193,10 +167,7 @@
       </div>
     }
     <div class="void-area is-pointer-events-none"></div>
-    <div
-      class="dataElm-area component-background"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    >
+    <div class="dataElm-area component-background" [ngClass]="pointerEventsStyle">
       @if (hasDataElms && dice.isVisible) {
         <div class="grid-container-root">
           <div class="grid-container">
@@ -214,21 +185,12 @@
 
 <ng-template #overviewRange let-range="range">
   <div class="component-content character-grid-container is-middle-size">
-    <div
-      class="title-bg-area title-background"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    ></div>
-    <div
-      class="title-area component-title"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    >
+    <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
+    <div class="title-area component-title" [ngClass]="pointerEventsStyle">
       {{ range.name }}
     </div>
     <div class="void-area is-pointer-events-none"></div>
-    <div
-      class="dataElm-area component-background"
-      [ngClass]="{ 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging }"
-    >
+    <div class="dataElm-area component-background" [ngClass]="pointerEventsStyle">
       @if (hasRangeElms) {
         <div
           class="grid-container-root"
@@ -318,8 +280,7 @@
         <div class="value">
           @if (dataElm.value !== 0) {
             <input type="checkbox" checked (click)="dataElm.value = 0" />
-          }
-          @if (dataElm.value === 0) {
+          } @else {
             <input type="checkbox" (click)="dataElm.value = 1" />
           }
         </div>

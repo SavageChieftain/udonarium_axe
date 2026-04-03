@@ -35,14 +35,14 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [FormsModule, BadgeComponent, ChatInputComponent],
 })
 export class ChatPaletteComponent {
-  private contextMenuService = inject(ContextMenuService);
-  private pointerDeviceService = inject(PointerDeviceService);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
   chatMessageService = inject(ChatMessageService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private uiSignalService = inject(UiSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
   readonly chatInputComponent = viewChild.required<ChatInputComponent>('chatInput');

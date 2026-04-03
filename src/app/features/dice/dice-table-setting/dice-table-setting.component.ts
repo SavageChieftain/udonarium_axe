@@ -17,10 +17,10 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   imports: [FormsModule, NgSelectComponent, NgOptionComponent],
 })
 export class DiceTableSettingComponent {
-  private modalService = inject(ModalService);
-  private saveDataService = inject(SaveDataService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
+  private readonly modalService = inject(ModalService);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
 
   get gameType(): string {
     const table = this.selectedTable;

@@ -30,12 +30,12 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [YouTubePlayer, SafePipe],
 })
 export class CutInWindowComponent {
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private audioStorage = inject(AudioStorage);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly audioStorage = inject(AudioStorage);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly cutInArea = viewChild<ElementRef<HTMLDivElement>>('cutInArea');
   readonly videoPlayer = viewChild<YouTubePlayer>('videoPlayerComponent');

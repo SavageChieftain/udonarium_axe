@@ -12,9 +12,9 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatColorSettingComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly objectChange = inject(ObjectChangeService);
 
   isAllowedEmpty: boolean = false;
   tabletopObject: GameCharacter | null = null;

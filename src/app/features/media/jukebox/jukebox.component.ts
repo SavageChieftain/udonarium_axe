@@ -22,12 +22,12 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule],
 })
 export class JukeboxComponent {
-  private modalService = inject(ModalService);
-  private objectChange = inject(ObjectChangeService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private audioStorage = inject(AudioStorage);
+  private readonly modalService = inject(ModalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
 

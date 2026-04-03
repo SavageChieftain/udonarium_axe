@@ -16,10 +16,10 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   imports: [FormsModule],
 })
 export class ChatMessageSettingComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private objectStore = inject(ObjectStore);
-  private uiSignalService = inject(UiSignalService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly uiSignalService = inject(UiSignalService);
 
   isAllowedEmpty: boolean = false;
   tabletopObject: GameCharacter | null = null;

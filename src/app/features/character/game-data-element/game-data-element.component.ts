@@ -26,13 +26,13 @@ import { filter } from 'rxjs';
   },
 })
 export class GameDataElementComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
-  private domSanitizer = inject(DomSanitizer);
-  private objectStore = inject(ObjectStore);
-  private imageStorage = inject(ImageStorage);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
+  private readonly domSanitizer = inject(DomSanitizer);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);

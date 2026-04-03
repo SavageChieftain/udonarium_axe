@@ -20,12 +20,12 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
 export class VoteWindowComponent {
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private chatMessageService = inject(ChatMessageService);
-  private objectStore = inject(ObjectStore);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
   private timestamp = 0;
   get vote(): Vote {
     return this.objectStore.get<Vote>('Vote')!;

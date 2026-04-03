@@ -12,8 +12,8 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [GameDataElementBuffComponent],
 })
 export class GameCharacterBuffViewComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
 
   //  @Input() title: string = '';
 

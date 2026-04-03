@@ -19,11 +19,11 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
 export class VoteMenuComponent {
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private chatMessageService = inject(ChatMessageService);
-  private saveDataService = inject(SaveDataService);
-  private objectStore = inject(ObjectStore);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly objectStore = inject(ObjectStore);
 
   protected checkedPeers = new Set<string>();
   networkService = Network;

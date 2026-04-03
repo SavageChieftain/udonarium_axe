@@ -23,12 +23,12 @@ import { interval } from 'rxjs';
   imports: [FormsModule, DatePipe, SafePipe],
 })
 export class PeerMenuComponent {
-  private tabletopActionService = inject(TabletopActionService);
-  private modalService = inject(ModalService);
-  private panelService = inject(PanelService);
-  private objectStore = inject(ObjectStore);
-  private tableSelecter = inject(TableSelecter);
-  private destroyRef = inject(DestroyRef);
+  private readonly tabletopActionService = inject(TabletopActionService);
+  private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly destroyRef = inject(DestroyRef);
   networkService = Network;
   gameRoomService = this.objectStore;
   help: string = '';

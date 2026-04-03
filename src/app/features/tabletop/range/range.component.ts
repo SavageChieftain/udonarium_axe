@@ -60,19 +60,19 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   },
 })
 export class RangeComponent {
-  private tabletopActionService = inject(TabletopActionService);
-  private contextMenuService = inject(ContextMenuService);
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private coordinateService = inject(CoordinateService);
-  private tabletopService = inject(TabletopService);
-  private objectStore = inject(ObjectStore);
-  private inventoryService = inject(GameObjectInventoryService);
-  private selectionSignalService = inject(SelectionSignalService);
-  private uiSignalService = inject(UiSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly tabletopActionService = inject(TabletopActionService);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly tabletopService = inject(TabletopService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly range = input.required<RangeArea>();
 

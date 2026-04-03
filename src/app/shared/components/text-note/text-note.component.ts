@@ -45,16 +45,16 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   },
 })
 export class TextNoteComponent {
-  private contextMenuService = inject(ContextMenuService);
-  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private objectStore = inject(ObjectStore);
-  private selectionSignalService = inject(SelectionSignalService);
-  private inventoryService = inject(GameObjectInventoryService);
-  private uiSignalService = inject(UiSignalService);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly uiSignalService = inject(UiSignalService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {

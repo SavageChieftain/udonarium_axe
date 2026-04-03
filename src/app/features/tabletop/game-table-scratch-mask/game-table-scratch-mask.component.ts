@@ -19,12 +19,12 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   imports: [MovableDirective],
 })
 export class GameTableScratchMaskComponent {
-  private contextMenuService = inject(ContextMenuService);
-  private panelService = inject(PanelService);
-  private pointerDeviceService = inject(PointerDeviceService);
-  private coordinateService = inject(CoordinateService);
-  private tabletopActionService = inject(TabletopActionService);
-  private objectChange = inject(ObjectChangeService);
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly panelService = inject(PanelService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly coordinateService = inject(CoordinateService);
+  private readonly tabletopActionService = inject(TabletopActionService);
+  private readonly objectChange = inject(ObjectChangeService);
 
   readonly gameTableScratchMask = input<GameTableScratchMask | null>(null);
 

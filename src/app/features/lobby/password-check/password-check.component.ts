@@ -21,8 +21,8 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PasswordCheckComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
 
   readonly passwordInputElementRef = viewChild.required<ElementRef<HTMLInputElement>>('passwordInput');
 

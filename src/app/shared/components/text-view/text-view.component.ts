@@ -9,8 +9,8 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./text-view.component.css'],
 })
 export class TextViewComponent {
-  private panelService = inject(PanelService);
-  private modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
+  private readonly modalService = inject(ModalService);
 
   text: string = '';
   title: string = '';

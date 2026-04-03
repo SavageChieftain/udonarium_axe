@@ -16,10 +16,10 @@ type ElementName = string;
   providedIn: 'root',
 })
 export class GameObjectInventoryService {
-  private objectStore = inject(ObjectStore);
-  private dataSummarySetting = inject(DataSummarySetting);
-  private objectChange = inject(ObjectChangeService);
-  private destroyRef = inject(DestroyRef);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly dataSummarySetting = inject(DataSummarySetting);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly inventoryVersion = signal(0);
 
