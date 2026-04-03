@@ -9,6 +9,7 @@ import {
   ElementRef,
   inject,
   input,
+  signal,
   viewChild,
 } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -90,13 +91,13 @@ export class TerrainComponent {
     });
     effect(() => {
       const terrain = this.terrain();
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: terrain,
         colideLayers: ['terrain'],
-      };
-      this.rotableOption = {
+      });
+      this.rotableOption.set({
         tabletopObject: terrain,
-      };
+      });
     });
     this.objectChange.objectChanged$.subscribe((e) => {
       if (!this.terrain()) return;
@@ -250,7 +251,7 @@ export class TerrainComponent {
     if (conf) conf.roomGridDispAlways = disp;
   }
 
-  gridSize: number = 50;
+  readonly gridSize = 50;
 
   get isWallExist(): boolean {
     return !!(this.hasWall && this.wallImage && this.wallImage.url && this.wallImage.url.length > 0);
@@ -262,8 +263,8 @@ export class TerrainComponent {
     return ret;
   }
 
-  movableOption: MovableOption = {};
-  rotableOption: RotableOption = {};
+  readonly movableOption = signal<MovableOption>({});
+  readonly rotableOption = signal<RotableOption>({});
 
   math = Math;
   slopeDirectionState = SlopeDirection;

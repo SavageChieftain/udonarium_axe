@@ -68,19 +68,19 @@ export class ChatInputComponent {
   readonly gameTypeInput = input('', { alias: 'gameType' });
   readonly gameTypeChange = output<string>();
 
-  private _gameType: string = '';
+  private readonly _gameType = signal('');
   private _isGameTypeByUser = 0;
   get gameType(): string {
-    if (this._gameType == 'DiceBot' && this._isGameTypeByUser == 0) {
-      return this.config?.defaultDiceBot ?? this._gameType;
+    if (this._gameType() == 'DiceBot' && this._isGameTypeByUser == 0) {
+      return this.config?.defaultDiceBot ?? this._gameType();
     } else {
-      return this._gameType;
+      return this._gameType();
     }
   }
 
   set gameType(gameType: string) {
     this._isGameTypeByUser = 1;
-    this._gameType = gameType;
+    this._gameType.set(gameType);
     this.gameTypeChange.emit(gameType);
   }
 
@@ -110,12 +110,12 @@ export class ChatInputComponent {
 
   readonly textInput = input('', { alias: 'text' });
   readonly textChange = output<string>();
-  private _text: string = '';
+  private readonly _text = signal('');
   get text(): string {
-    return this._text;
+    return this._text();
   }
   set text(text: string) {
-    this._text = text;
+    this._text.set(text);
     this.textChange.emit(text);
   }
 
@@ -136,7 +136,7 @@ export class ChatInputComponent {
 
   constructor() {
     effect(() => {
-      this._gameType = this.gameTypeInput();
+      this._gameType.set(this.gameTypeInput());
     });
     effect(() => {
       this._sendFrom.set(this.sendFromInput());
@@ -145,7 +145,7 @@ export class ChatInputComponent {
       this._sendTo.set(this.sendToInput());
     });
     effect(() => {
-      this._text = this.textInput();
+      this._text.set(this.textInput());
     });
     this.objectChange.messageAdded$.subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier()) return;
@@ -217,7 +217,6 @@ export class ChatInputComponent {
 
   colorSelectNo_ = 0;
 
-  //  @Input() isChatWindow: boolean = false;
   get isGameCharacter(): boolean {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {

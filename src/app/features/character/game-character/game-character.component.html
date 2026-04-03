@@ -1,12 +1,12 @@
 <!-- 下2行なぜこれで クロームver102 の重さが軽減できるのか検証が終わっていないが保留にして入れておく -->
-<div class="dummy-will-change" appMovable [movable.option]="movableOption"></div>
+<div class="dummy-will-change" appMovable [movable.option]="movableOption()"></div>
 @if (gameCharacter()) {
   <div
     class="component is-3d is-grab is-pointer-events-none"
     [style.width.px]="size * gridSize"
     [style.height.px]="size * gridSize"
     appMovable
-    [movable.option]="movableOption"
+    [movable.option]="movableOption()"
     (movable.ondragstart)="onMove()"
     (movable.ondragend)="onMoved()"
     (mousedown)="checkKey($event)"
@@ -16,7 +16,7 @@
       <div
         class="component-content is-3d is-pointer-events-auto"
         appRotable
-        [rotable.option]="rotableOption"
+        [rotable.option]="rotableOption()"
         (rotable.ondragstart)="onMove()"
         (rotable.ondragend)="onMoved()"
       >
@@ -106,7 +106,7 @@
                           <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
                             <img src="./assets/images/target/target.png" />
                           </div>
-                          <div [hidden]="foldingBuff">
+                          <div [hidden]="foldingBuff()">
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
                             <div class="!table is-3d">
                               @for (childElement of buffEl.children; track childElement) {
@@ -115,14 +115,14 @@
                                     class="table-row fornt-tag is-3d"
                                     game-data-element-buff
                                     [gameDataElement]="childElement"
-                                    [isEdit]="isEdit"
+                                    [isEdit]="false"
                                     [isPieceMode]="true"
                                   ></div>
                                 </div>
                               }
                             </div>
                           </div>
-                          <div [hidden]="!foldingBuff">
+                          <div [hidden]="!foldingBuff()">
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
                             <div class="table is-3d">
                               <div class="flex-item is-3d">
@@ -153,7 +153,7 @@
                           >
                             <img src="./assets/images/target/target.png" />
                           </div>
-                          <div [hidden]="foldingBuff">
+                          <div [hidden]="foldingBuff()">
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
                             <div class="table is-3d">
                               @for (childElement of buffEl.children; track childElement) {
@@ -162,7 +162,7 @@
                                     class="table-row fornt-tag is-3d"
                                     game-data-element-buff
                                     [gameDataElement]="childElement"
-                                    [isEdit]="isEdit"
+                                    [isEdit]="false"
                                     [isPieceMode]="true"
                                   ></div>
                                 </div>

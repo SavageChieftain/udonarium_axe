@@ -1,5 +1,5 @@
 <!-- 下2行なぜこれで クロームver102 の重さが軽減できるのか検証が終わっていないが保留にして入れておく -->
-<div class="dummy-will-change" appMovable [movable.option]="movableOption"></div>
+<div class="dummy-will-change" appMovable [movable.option]="movableOption()"></div>
 @if (gameTableMask()) {
   <div
     class="component is-3d"
@@ -12,7 +12,7 @@
     [style.width.px]="width * gridSize"
     [style.height.px]="height * gridSize"
     appMovable
-    [movable.option]="movableOption"
+    [movable.option]="movableOption()"
     [movable.disable]="isLock || isScratching"
     (movable.ondragstart)="onMove()"
     (movable.ondragend)="onMoved()"

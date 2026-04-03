@@ -119,10 +119,10 @@ export class CardStackComponent {
   private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
-  gridSize: number = 50;
+  readonly gridSize = 50;
 
-  movableOption: MovableOption = {};
-  rotableOption: RotableOption = {};
+  readonly movableOption = signal<MovableOption>({});
+  readonly rotableOption = signal<RotableOption>({});
 
   private doubleClickTimer: NodeJS.Timeout | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
@@ -141,14 +141,14 @@ export class CardStackComponent {
     }, this.destroyRef);
     effect(() => {
       const cardStack = this.cardStack();
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: cardStack,
         transformCssOffset: 'translateZ(0.15px)',
         colideLayers: ['terrain'],
-      };
-      this.rotableOption = {
+      });
+      this.rotableOption.set({
         tabletopObject: cardStack,
-      };
+      });
     });
     afterNextRender(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);

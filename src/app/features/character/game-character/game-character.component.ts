@@ -9,6 +9,7 @@ import {
   ElementRef,
   inject,
   input,
+  signal,
   viewChild,
 } from '@angular/core';
 import { Network } from '@axe/core/index';
@@ -96,14 +97,14 @@ export class GameCharacterComponent {
     effect(() => {
       const char = this.gameCharacter();
       if (!char) return;
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: char,
         transformCssOffset: 'translateZ(1.0px)',
         colideLayers: ['terrain'],
-      };
-      this.rotableOption = {
+      });
+      this.rotableOption.set({
         tabletopObject: char,
-      };
+      });
     });
 
     afterNextRender(() => {
@@ -187,18 +188,17 @@ export class GameCharacterComponent {
     if (char) char.isAltitudeIndicate = isAltitudeIndicate;
   }
 
-  protected foldingBuff: boolean = false;
-  isEdit: boolean = false;
-  gridSize: number = 50;
+  protected readonly foldingBuff = signal(false);
+  readonly gridSize = 50;
   math = Math;
 
   viewRotateX = 50;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
-  movableOption: MovableOption = {};
+  readonly movableOption = signal<MovableOption>({});
   private input: InputHandler | null = null;
 
-  rotableOption: RotableOption = {};
+  readonly rotableOption = signal<RotableOption>({});
 
   private highlightTimer: ReturnType<typeof setTimeout> | undefined;
   private unhighlightTimer: ReturnType<typeof setTimeout> | undefined;
@@ -470,7 +470,7 @@ export class GameCharacterComponent {
   }
 
   protected foldingBuffFlag(flag: boolean) {
-    this.foldingBuff = flag;
+    this.foldingBuff.set(flag);
   }
 
   get buffNum(): number {

@@ -292,14 +292,14 @@ export class RangeComponent {
 
   private readonly _clipVersion = signal(0);
 
-  gridSize: number = 50;
+  readonly gridSize = 50;
   math = Math;
 
   viewRotateX = 50;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
-  movableOption: MovableOption = {};
-  rotableOption: RotableOption = {};
+  readonly movableOption = signal<MovableOption>({});
+  readonly rotableOption = signal<RotableOption>({});
 
   private input: InputHandler | null = null;
 
@@ -315,14 +315,14 @@ export class RangeComponent {
       }
     }, this.destroyRef);
     effect(() => {
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: this.range(),
         transformCssOffset: 'translateZ(0.25px)',
         colideLayers: ['terrain'],
-      };
-      this.rotableOption = {
+      });
+      this.rotableOption.set({
         tabletopObject: this.range(),
-      };
+      });
     });
     afterNextRender(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);

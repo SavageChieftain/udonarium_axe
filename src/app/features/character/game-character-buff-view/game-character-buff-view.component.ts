@@ -15,8 +15,6 @@ export class GameCharacterBuffViewComponent {
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
 
-  //  @Input() title: string = '';
-
   readonly character = signal<GameCharacter | null>(null);
   readonly isEdit = signal(false);
 }

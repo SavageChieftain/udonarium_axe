@@ -65,14 +65,14 @@ export class TextNoteComponent {
       }
     });
     effect(() => {
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: this.textNote(),
         transformCssOffset: 'translateZ(0.15px)',
         colideLayers: ['terrain'],
-      };
-      this.rotableOption = {
+      });
+      this.rotableOption.set({
         tabletopObject: this.textNote(),
-      };
+      });
     });
     afterNextRender(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);
@@ -174,7 +174,7 @@ export class TextNoteComponent {
 
   private callbackOnMouseUp = (e: MouseEvent) => this.onMouseUp(e);
 
-  gridSize: number = 50;
+  readonly gridSize = 50;
   math = Math;
 
   private _transitionTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -213,8 +213,8 @@ export class TextNoteComponent {
   }
 
   private calcFitHeightTimer: ReturnType<typeof setTimeout> | null = null;
-  movableOption: MovableOption = {};
-  rotableOption: RotableOption = {};
+  readonly movableOption = signal<MovableOption>({});
+  readonly rotableOption = signal<RotableOption>({});
 
   private input: InputHandler | null = null;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);

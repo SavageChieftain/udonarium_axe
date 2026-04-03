@@ -9,13 +9,13 @@ import {
   ElementRef,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { generateUuid } from '@axe/core/util/uuid';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -70,12 +70,11 @@ export class GameTableMaskComponent {
     effect(() => {
       const mask = this.gameTableMask();
       if (!mask) return;
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: mask,
         transformCssOffset: 'translateZ(0.10px)',
         colideLayers: ['terrain'],
-      };
-      this.panelId = generateUuid();
+      });
     });
     afterNextRender(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);
@@ -275,17 +274,13 @@ export class GameTableMaskComponent {
     return mask?.ownerColor ?? '';
   }
 
-  panelId: string = '';
-
-  gridSize: number = 50;
+  readonly gridSize = 50;
   math = Math;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
-  movableOption: MovableOption = {};
+  readonly movableOption = signal<MovableOption>({});
 
   private input: InputHandler | null = null;
-
-  //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
   private buildScratchingGrids(set: Set<string>): string {
     const grids: string[] = [];

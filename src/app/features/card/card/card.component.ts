@@ -139,10 +139,10 @@ export class CardComponent {
   private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
-  gridSize: number = 50;
+  readonly gridSize = 50;
 
-  movableOption: MovableOption = {};
-  rotableOption: RotableOption = {};
+  readonly movableOption = signal<MovableOption>({});
+  readonly rotableOption = signal<RotableOption>({});
 
   private doubleClickTimer: NodeJS.Timeout | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
@@ -152,14 +152,14 @@ export class CardComponent {
   constructor() {
     effect(() => {
       const card = this.card();
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: card,
         transformCssOffset: 'translateZ(0.15px)',
         colideLayers: ['terrain'],
-      };
-      this.rotableOption = {
+      });
+      this.rotableOption.set({
         tabletopObject: card,
-      };
+      });
     });
     afterNextRender(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);

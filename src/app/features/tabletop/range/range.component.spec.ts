@@ -72,14 +72,14 @@ describe('RangeComponent', () => {
       const range = RangeArea.create('テスト', 3, 5, 1);
       fixture.componentRef.setInput('range', range);
       fixture.detectChanges();
-      expect(component.movableOption.tabletopObject).toBe(range);
+      expect(component.movableOption().tabletopObject).toBe(range);
     });
 
     it('rangeインプット設定後にrotableOptionのtabletopObjectがrangeになること', () => {
       const range = RangeArea.create('テスト', 3, 5, 1);
       fixture.componentRef.setInput('range', range);
       fixture.detectChanges();
-      expect(component.rotableOption.tabletopObject).toBe(range);
+      expect(component.rotableOption().tabletopObject).toBe(range);
     });
   });
 });

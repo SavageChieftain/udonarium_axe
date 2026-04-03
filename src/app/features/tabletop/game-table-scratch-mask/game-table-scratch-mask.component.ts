@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -28,17 +28,17 @@ export class GameTableScratchMaskComponent {
 
   readonly gameTableScratchMask = input<GameTableScratchMask | null>(null);
 
-  gridSize = 50;
-  movableOption: MovableOption = {};
+  readonly gridSize = 50;
+  readonly movableOption = signal<MovableOption>({});
 
   constructor() {
     effect(() => {
       const mask = this.gameTableScratchMask();
       if (!mask) return;
-      this.movableOption = {
+      this.movableOption.set({
         tabletopObject: mask,
         colideLayers: ['terrain'],
-      };
+      });
     });
   }
 
