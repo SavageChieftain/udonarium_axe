@@ -55,7 +55,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [FormsModule, ControllerInputComponent, NgClass, NgTemplateOutlet, SafePipe],
 })
 export class RemoteControllerComponent {
-  chatMessageService = inject(ChatMessageService);
+  readonly chatMessageService = inject(ChatMessageService);
   private readonly panelService = inject(PanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -314,10 +314,6 @@ export class RemoteControllerComponent {
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
     return getInventoryTags(gameObject, this.inventoryService);
-  }
-
-  toggleEdit() {
-    this.isEdit.set(!this.isEdit());
   }
 
   selectGameObject(gameObject: GameObject) {

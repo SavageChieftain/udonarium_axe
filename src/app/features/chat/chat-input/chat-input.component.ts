@@ -4,12 +4,11 @@ import {
   Component,
   computed,
   DestroyRef,
-  effect,
   ElementRef,
   inject,
   input,
+  linkedSignal,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -47,7 +46,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
 })
 export class ChatInputComponent {
   private readonly destroyRef = inject(DestroyRef);
-  chatMessageService = inject(ChatMessageService);
+  private readonly chatMessageService = inject(ChatMessageService);
   private readonly batchService = inject(BatchService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
@@ -68,7 +67,7 @@ export class ChatInputComponent {
   readonly gameTypeInput = input('', { alias: 'gameType' });
   readonly gameTypeChange = output<string>();
 
-  private readonly _gameType = signal('');
+  private readonly _gameType = linkedSignal(() => this.gameTypeInput());
   private _isGameTypeByUser = 0;
   get gameType(): string {
     if (this._gameType() == 'DiceBot' && this._isGameTypeByUser == 0) {
@@ -86,7 +85,7 @@ export class ChatInputComponent {
 
   readonly sendFromInput = input('', { alias: 'sendFrom' });
   readonly sendFromChange = output<string>();
-  private readonly _sendFrom = signal(PeerCursor.myCursor ? PeerCursor.myCursor.identifier : '');
+  private readonly _sendFrom = linkedSignal(() => this.sendFromInput());
   get sendFrom(): string {
     return this._sendFrom();
   }
@@ -97,7 +96,7 @@ export class ChatInputComponent {
 
   readonly sendToInput = input('', { alias: 'sendTo' });
   readonly sendToChange = output<string>();
-  private readonly _sendTo = signal('');
+  private readonly _sendTo = linkedSignal(() => this.sendToInput());
   get sendTo(): string {
     return this._sendTo();
   }
@@ -110,7 +109,7 @@ export class ChatInputComponent {
 
   readonly textInput = input('', { alias: 'text' });
   readonly textChange = output<string>();
-  private readonly _text = signal('');
+  private readonly _text = linkedSignal(() => this.textInput());
   get text(): string {
     return this._text();
   }
@@ -135,18 +134,6 @@ export class ChatInputComponent {
   readonly autoCompleteDo = output<number>();
 
   constructor() {
-    effect(() => {
-      this._gameType.set(this.gameTypeInput());
-    });
-    effect(() => {
-      this._sendFrom.set(this.sendFromInput());
-    });
-    effect(() => {
-      this._sendTo.set(this.sendToInput());
-    });
-    effect(() => {
-      this._text.set(this.textInput());
-    });
     this.objectChange.messageAdded$.subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier()) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
@@ -215,7 +202,7 @@ export class ChatInputComponent {
     return this.sendTo != null && this.sendTo.length > 0;
   }
 
-  colorSelectNo_ = 0;
+  private _colorSelectNo = 0;
 
   get isGameCharacter(): boolean {
     const object = this.objectStore.get(this.sendFrom);
@@ -226,16 +213,16 @@ export class ChatInputComponent {
   }
 
   get colorSelectNo() {
-    return this.colorSelectNo_;
+    return this._colorSelectNo;
   }
 
   set colorSelectNo(num: number) {
     if (num < 0) {
-      this.colorSelectNo_ = 0;
+      this._colorSelectNo = 0;
     } else if (num > 2) {
-      this.colorSelectNo_ = 2;
+      this._colorSelectNo = 2;
     } else {
-      this.colorSelectNo_ = num;
+      this._colorSelectNo = num;
     }
   }
 
@@ -318,7 +305,7 @@ export class ChatInputComponent {
       .filter((character) => allowsChat(character, this.myPeer.peerId));
   });
 
-  private writingEventInterval: NodeJS.Timeout | null = null;
+  private writingEventInterval: ReturnType<typeof setTimeout> | null = null;
   private previousWritingLength: number = 0;
   readonly writingPeerNames = this.writingManager.names;
 
@@ -332,7 +319,7 @@ export class ChatInputComponent {
     return this.objectStore.getObjects(PeerCursor);
   }
 
-  private calcFitHeightInterval: NodeJS.Timeout | null = null;
+  private calcFitHeightInterval: ReturnType<typeof setTimeout> | null = null;
 
   onInput() {
     if (this.writingEventInterval === null && this.previousWritingLength <= this.text.length) {
@@ -376,7 +363,7 @@ export class ChatInputComponent {
     if (event) event.preventDefault();
 
     if (!this.text.length) return;
-    if (event && (event as KeyboardEvent).keyCode !== 13) return;
+    if (event && (event as KeyboardEvent).key !== 'Enter') return;
 
     if (this.autoCompleteIndex() >= 0) {
       this.autoCompleteDo.emit(this.autoCompleteIndex());
@@ -442,7 +429,7 @@ export class ChatInputComponent {
     this.dicebotHelper.showHelp(this.gameType);
   }
 
-  shoeColorSetting() {
+  showColorSetting() {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];

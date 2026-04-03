@@ -195,15 +195,13 @@
           }
         </div>
       </div>
-      @if (1) {
-        <div style="pointer-events: none; z-index: 10; backface-visibility: hidden">
-          @if (isLock && dispLockMark) {
-            <div class="lock-icon is-center is-3d">
-              <i class="material-icons" style="pointer-events: none; backface-visibility: hidden">lock</i>
-            </div>
-          }
-        </div>
-      }
+      <div style="pointer-events: none; z-index: 10; backface-visibility: hidden">
+        @if (isLock && dispLockMark) {
+          <div class="lock-icon is-center is-3d">
+            <i class="material-icons" style="pointer-events: none; backface-visibility: hidden">lock</i>
+          </div>
+        }
+      </div>
       <!--
     <div *ngIf="isScratching" class="draw-icon is-center is-3d" style="pointer-events: none; z-index: 10; backface-visibility: hidden" [ngClass]="{'is-mine': gameTableMask()!.isMine}">
       <i class="material-icons" style="pointer-events: none; backface-visibility: hidden">{{ isPreviewMode ? 'visibility' : 'draw' }}</i>
