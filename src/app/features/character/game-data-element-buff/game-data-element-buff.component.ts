@@ -1,9 +1,7 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { filter } from 'rxjs';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',
@@ -14,7 +12,6 @@ import { filter } from 'rxjs';
 })
 export class GameDataElementBuffComponent {
   private readonly objectChange = inject(ObjectChangeService);
-  private readonly destroyRef = inject(DestroyRef);
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);
@@ -54,16 +51,10 @@ export class GameDataElementBuffComponent {
 
   constructor() {
     effect(() => {
-      this.setValues(this.gameDataElement());
+      const element = this.gameDataElement();
+      this.objectChange.versionOf(element.identifier)();
+      this.setValues(element);
     });
-    this.objectChange.objectChanged$
-      .pipe(
-        filter((e) => e.identifier === this.gameDataElement().identifier),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => {
-        this.setValues(this.gameDataElement());
-      });
   }
 
   addElement() {

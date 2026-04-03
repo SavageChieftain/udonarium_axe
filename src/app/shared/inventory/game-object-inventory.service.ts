@@ -1,5 +1,4 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -87,19 +86,19 @@ export class GameObjectInventoryService {
   }
 
   private initialize() {
-    this.objectChange.objectAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectAdded$.subscribe((e) => {
       if (e.aliasName === GameCharacter.aliasName) this.refresh();
-    });
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.networkOpen$.subscribe(() => {
       this.refresh();
-    });
-    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.peerConnect$.subscribe(() => {
       this.refresh();
-    });
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.peerDisconnect$.subscribe(() => {
       this.refresh();
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    }, this.destroyRef);
+    this.objectChange.objectChanged$.subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
       if (!object) return;
 
@@ -133,15 +132,15 @@ export class GameObjectInventoryService {
         this.refreshSort();
         this.callInventoryUpdate();
       }
-    });
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    }, this.destroyRef);
+    this.objectChange.objectDeleted$.subscribe((e) => {
       this.locationMap.delete(e.identifier);
       this.tagNameMap.delete(e.identifier);
       this.refresh();
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    }, this.destroyRef);
+    this.objectChange.fileSyncList$.subscribe((e) => {
       if (e.isSendFromSelf) this.callInventoryUpdate();
-    });
+    }, this.destroyRef);
   }
 
   private containsInGameCharacter(element: DataElement): boolean {

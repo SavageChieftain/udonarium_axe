@@ -1,9 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { EventChannel } from '@axe/core/event/event-channel';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
 import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/sync/object-change.service';
-import { firstValueFrom } from 'rxjs';
-import { Subject } from 'rxjs';
+
+function nextEvent<T>(channel: { subscribe(fn: (e: T) => void): () => void }): Promise<T> {
+  return new Promise<T>((resolve) => {
+    const off = channel.subscribe((e) => {
+      off();
+      resolve(e);
+    });
+  });
+}
 
 describe('ObjectChangeService', () => {
   let service: ObjectChangeService;
@@ -49,26 +57,26 @@ describe('ObjectChangeService', () => {
     expect(service.networkOpen$).toBeTruthy();
   });
 
-  it('should emit on objectChanged$ when objectChanged$ Subject fires', async () => {
+  it('should emit on objectChanged$ when objectChanged$ fires', async () => {
     const testData = { identifier: 'test-id', aliasName: 'TestAlias', isSendFromSelf: false };
-    const promise = firstValueFrom(service.objectChanged$);
-    objectChanged$.next(testData);
+    const promise = nextEvent(service.objectChanged$);
+    objectChanged$.emit(testData);
     const event = await promise;
     expect(event.identifier).toBe('test-id');
     expect(event.aliasName).toBe('TestAlias');
   });
 
-  it('should emit on childrenChanged$ when childrenChanged$ Subject fires', async () => {
+  it('should emit on childrenChanged$ when childrenChanged$ fires', async () => {
     const testData = { identifier: 'child-id' };
-    const promise = firstValueFrom(service.childrenChanged$);
-    childrenChanged$.next(testData);
+    const promise = nextEvent(service.childrenChanged$);
+    childrenChanged$.emit(testData);
     const event = await promise;
     expect(event.identifier).toBe('child-id');
   });
 
   it('should emit on objectDeleted$ when _objectDeleted$ fires', async () => {
-    const promise = firstValueFrom(service.objectDeleted$);
-    (service as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
+    const promise = nextEvent(service.objectDeleted$);
+    (service as unknown as { _objectDeleted$: EventChannel<ObjectDeleteEvent> })._objectDeleted$.emit({
       identifier: 'del-id',
       aliasName: 'GameCharacter',
       isSendFromSelf: true,
@@ -79,15 +87,17 @@ describe('ObjectChangeService', () => {
   });
 
   it('should emit on peerConnect$ when _peerConnect$ fires', async () => {
-    const promise = firstValueFrom(service.peerConnect$);
-    (service as unknown as { _peerConnect$: Subject<NetworkPeerEvent> })._peerConnect$.next({ peerId: 'peer-123' });
+    const promise = nextEvent(service.peerConnect$);
+    (service as unknown as { _peerConnect$: EventChannel<NetworkPeerEvent> })._peerConnect$.emit({
+      peerId: 'peer-123',
+    });
     const event = await promise;
     expect(event.peerId).toBe('peer-123');
   });
 
   it('should emit on peerDisconnect$ when _peerDisconnect$ fires', async () => {
-    const promise = firstValueFrom(service.peerDisconnect$);
-    (service as unknown as { _peerDisconnect$: Subject<NetworkPeerEvent> })._peerDisconnect$.next({
+    const promise = nextEvent(service.peerDisconnect$);
+    (service as unknown as { _peerDisconnect$: EventChannel<NetworkPeerEvent> })._peerDisconnect$.emit({
       peerId: 'peer-456',
     });
     const event = await promise;
@@ -95,14 +105,14 @@ describe('ObjectChangeService', () => {
   });
 
   it('should emit on networkOpen$ when _networkOpen$ fires', async () => {
-    const promise = firstValueFrom(service.networkOpen$);
-    (service as unknown as { _networkOpen$: Subject<NetworkPeerEvent> })._networkOpen$.next({ peerId: 'my-peer' });
+    const promise = nextEvent(service.networkOpen$);
+    (service as unknown as { _networkOpen$: EventChannel<NetworkPeerEvent> })._networkOpen$.emit({ peerId: 'my-peer' });
     const event = await promise;
     expect(event.peerId).toBe('my-peer');
   });
 
   it('DELETE_GAME_OBJECT を受信すると objectDeleted$ に変換される', async () => {
-    const promise = firstValueFrom(service.objectDeleted$);
+    const promise = nextEvent(service.objectDeleted$);
 
     localDispatch('DELETE_GAME_OBJECT', { identifier: 'network-del-id', aliasName: 'character' }, 'remote-peer-id');
 
@@ -114,7 +124,7 @@ describe('ObjectChangeService', () => {
   });
 
   it('CURSOR_MOVE を受信すると cursorMove$ に変換される', async () => {
-    const promise = firstValueFrom(service.cursorMove$);
+    const promise = nextEvent(service.cursorMove$);
 
     localDispatch('CURSOR_MOVE', [10, 20, 30], 'remote-peer-id');
 
@@ -127,7 +137,7 @@ describe('ObjectChangeService', () => {
   });
 
   it('NETWORK_ERROR を受信すると networkError$ に変換される', async () => {
-    const promise = firstValueFrom(service.networkError$);
+    const promise = nextEvent(service.networkError$);
 
     localDispatch('NETWORK_ERROR', { errorType: 'disconnect', errorMessage: 'connection lost' });
 
@@ -163,7 +173,7 @@ describe('ObjectChangeService', () => {
       const sig = service.versionOf('obj-changed-1');
       expect(sig()).toBe(0);
 
-      objectChanged$.next({ identifier: 'obj-changed-1', aliasName: 'TestAlias', isSendFromSelf: true });
+      objectChanged$.emit({ identifier: 'obj-changed-1', aliasName: 'TestAlias', isSendFromSelf: true });
 
       expect(sig()).toBe(1);
     });
@@ -172,7 +182,7 @@ describe('ObjectChangeService', () => {
       const sigTarget = service.versionOf('obj-changed-2a');
       const sigOther = service.versionOf('obj-changed-2b');
 
-      objectChanged$.next({ identifier: 'obj-changed-2a', aliasName: 'TestAlias', isSendFromSelf: true });
+      objectChanged$.emit({ identifier: 'obj-changed-2a', aliasName: 'TestAlias', isSendFromSelf: true });
 
       expect(sigTarget()).toBe(1);
       expect(sigOther()).toBe(0);
@@ -182,7 +192,7 @@ describe('ObjectChangeService', () => {
       const sig = service.versionOf('parent-1');
       expect(sig()).toBe(0);
 
-      childrenChanged$.next({ identifier: 'parent-1' });
+      childrenChanged$.emit({ identifier: 'parent-1' });
 
       expect(sig()).toBe(1);
     });
@@ -190,8 +200,8 @@ describe('ObjectChangeService', () => {
     it('objectChanged$ と childrenChanged$ が連続で emit されると version が累積する', () => {
       const sig = service.versionOf('combo-1');
 
-      objectChanged$.next({ identifier: 'combo-1', aliasName: 'TestAlias', isSendFromSelf: true });
-      childrenChanged$.next({ identifier: 'combo-1' });
+      objectChanged$.emit({ identifier: 'combo-1', aliasName: 'TestAlias', isSendFromSelf: true });
+      childrenChanged$.emit({ identifier: 'combo-1' });
 
       expect(sig()).toBe(2);
     });
@@ -199,7 +209,7 @@ describe('ObjectChangeService', () => {
     it('versionOf 未登録の identifier への objectChanged$ は無視される（エラーにならない）', () => {
       // versionOf を呼ばずに objectChanged$ を emit しても例外が発生しないこと
       expect(() => {
-        objectChanged$.next({ identifier: 'unregistered-1', aliasName: 'TestAlias', isSendFromSelf: true });
+        objectChanged$.emit({ identifier: 'unregistered-1', aliasName: 'TestAlias', isSendFromSelf: true });
       }).not.toThrow();
     });
 
@@ -207,7 +217,7 @@ describe('ObjectChangeService', () => {
       const sig1 = service.versionOf('cleanup-1');
       expect(sig1()).toBe(0);
 
-      objectRemoved$.next({ identifier: 'cleanup-1', aliasName: 'TestAlias' });
+      objectRemoved$.emit({ identifier: 'cleanup-1', aliasName: 'TestAlias' });
 
       // 再呼び出しすると新しいSignalが返される（version 0 にリセット）
       const sig2 = service.versionOf('cleanup-1');
@@ -243,7 +253,7 @@ describe('ObjectChangeService', () => {
       const sig = service.collectionOf('character');
       expect(sig()).toBe(0);
 
-      objectAdded$.next({ identifier: 'char-1', aliasName: 'character' });
+      objectAdded$.emit({ identifier: 'char-1', aliasName: 'character' });
 
       expect(sig()).toBe(1);
     });
@@ -252,7 +262,7 @@ describe('ObjectChangeService', () => {
       const sigTarget = service.collectionOf('character');
       const sigOther = service.collectionOf('card');
 
-      objectAdded$.next({ identifier: 'char-2', aliasName: 'character' });
+      objectAdded$.emit({ identifier: 'char-2', aliasName: 'character' });
 
       expect(sigTarget()).toBe(1);
       expect(sigOther()).toBe(0);
@@ -261,7 +271,7 @@ describe('ObjectChangeService', () => {
     it('objectRemoved$ が emit されると該当 aliasName の collection が increment される', () => {
       const sig = service.collectionOf('character');
 
-      objectRemoved$.next({ identifier: 'char-3', aliasName: 'character' });
+      objectRemoved$.emit({ identifier: 'char-3', aliasName: 'character' });
 
       expect(sig()).toBe(1);
     });
@@ -269,16 +279,16 @@ describe('ObjectChangeService', () => {
     it('add と remove で version が累積する', () => {
       const sig = service.collectionOf('card-stack');
 
-      objectAdded$.next({ identifier: 'cs-1', aliasName: 'card-stack' });
-      objectAdded$.next({ identifier: 'cs-2', aliasName: 'card-stack' });
-      objectRemoved$.next({ identifier: 'cs-1', aliasName: 'card-stack' });
+      objectAdded$.emit({ identifier: 'cs-1', aliasName: 'card-stack' });
+      objectAdded$.emit({ identifier: 'cs-2', aliasName: 'card-stack' });
+      objectRemoved$.emit({ identifier: 'cs-1', aliasName: 'card-stack' });
 
       expect(sig()).toBe(3);
     });
 
     it('collectionOf 未登録の aliasName への objectAdded$ は無視される（エラーにならない）', () => {
       expect(() => {
-        objectAdded$.next({ identifier: 'x', aliasName: 'unregistered-alias' });
+        objectAdded$.emit({ identifier: 'x', aliasName: 'unregistered-alias' });
       }).not.toThrow();
     });
 

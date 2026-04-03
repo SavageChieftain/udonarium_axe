@@ -1,4 +1,7 @@
-import { EventChannel } from '@axe/core/event/event-channel';
+#!/usr/bin/env node
+const fs = require('fs');
+
+const domainEvents = `import { EventChannel } from '@axe/core/event/event-channel';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 
@@ -218,3 +221,10 @@ networkMessage$.subscribe((msg) => {
       break;
   }
 });
+`;
+
+fs.writeFileSync('src/app/domain/domain-events.ts', domainEvents);
+console.log(
+  'OK:',
+  fs.statSync('src/app/domain/domain-events.ts').size + ' bytes, ' + domainEvents.split('\n').length + ' lines'
+);

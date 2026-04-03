@@ -1,5 +1,6 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { EventChannel } from '@axe/core/event/event-channel';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -7,7 +8,6 @@ import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.
 import { ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/sync/object-change.service';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-import { Subject } from 'rxjs';
 
 describe('ChatWindowComponent', () => {
   let component: ChatWindowComponent;
@@ -49,7 +49,7 @@ describe('ChatWindowComponent', () => {
       priv._chatTabidentifier.set(invalidId);
 
       const chatTabList = ChatTabList.instance;
-      objectChanged$.next({
+      objectChanged$.emit({
         identifier: chatTabList.identifier,
         aliasName: chatTabList.aliasName,
         isSendFromSelf: false,
@@ -64,7 +64,7 @@ describe('ChatWindowComponent', () => {
       const priv = component as unknown as { _chatTabidentifier: { (): string; set(v: string): void } };
       priv._chatTabidentifier.set(oldIdentifier);
 
-      (objectChange as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
+      (objectChange as unknown as { _objectDeleted$: EventChannel<ObjectDeleteEvent> })._objectDeleted$.emit({
         aliasName: 'chat-tab',
         identifier: oldIdentifier,
         isSendFromSelf: true,
@@ -81,7 +81,7 @@ describe('ChatWindowComponent', () => {
       priv._chatTabidentifier.set(invalidId);
 
       const chatTabList = ChatTabList.instance;
-      objectChanged$.next({
+      objectChanged$.emit({
         identifier: chatTabList.identifier,
         aliasName: chatTabList.aliasName,
         isSendFromSelf: false,
@@ -97,7 +97,7 @@ describe('ChatWindowComponent', () => {
       const priv = component as unknown as { _chatTabidentifier: { set(v: string): void } };
       priv._chatTabidentifier.set(oldIdentifier);
 
-      (objectChange as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
+      (objectChange as unknown as { _objectDeleted$: EventChannel<ObjectDeleteEvent> })._objectDeleted$.emit({
         aliasName: 'chat-tab',
         identifier: oldIdentifier,
         isSendFromSelf: true,

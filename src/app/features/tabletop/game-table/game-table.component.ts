@@ -9,7 +9,6 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -139,7 +138,7 @@ export class GameTableComponent {
       }, 50);
     });
 
-    this.objectChangeService.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChangeService.objectChanged$.subscribe((event) => {
       if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
         this.setGameTableGrid(
           this.currentTable.width,
@@ -149,7 +148,7 @@ export class GameTableComponent {
           this.currentTable.gridColor
         );
       }
-    });
+    }, this.destroyRef);
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();
     this.tabletopActionService.initAprilDiceImage();

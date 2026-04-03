@@ -4,8 +4,6 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 @Directive({ selector: '[appTooltip]' })
 export class TooltipDirective {
@@ -26,7 +24,7 @@ export class TooltipDirective {
   private closeTooltipTimer: NodeJS.Timeout | null = null;
 
   private tooltipComponentRef: ComponentRef<OverviewPanelComponent> | null = null;
-  private deleteSub?: Subscription;
+  private deleteOff?: () => void;
 
   constructor() {
     afterNextRender(() => {
@@ -36,7 +34,7 @@ export class TooltipDirective {
       this.removeEventListeners(this.viewContainerRef.element.nativeElement);
       this.clearTimer();
       this.close();
-      this.deleteSub?.unsubscribe();
+      this.deleteOff?.();
     });
   }
 
@@ -117,9 +115,9 @@ export class TooltipDirective {
     document.body.addEventListener('touchstart', this.callbackOnMouseDown, true);
     document.body.addEventListener('mousedown', this.callbackOnMouseDown, true);
 
-    this.deleteSub = this.objectChange.objectDeleted$
-      .pipe(filter((e) => this.tabletopObject() && this.tabletopObject().identifier === e.identifier))
-      .subscribe(() => this.closeAll());
+    this.deleteOff = this.objectChange.objectDeleted$.subscribe((e) => {
+      if (this.tabletopObject() && this.tabletopObject().identifier === e.identifier) this.closeAll();
+    });
 
     this.tooltipComponentRef.onDestroy(() => {
       const ref = this.tooltipComponentRef;
@@ -128,7 +126,8 @@ export class TooltipDirective {
       document.body.removeEventListener('touchstart', this.callbackOnMouseDown, true);
       document.body.removeEventListener('mousedown', this.callbackOnMouseDown, true);
       this.clearTimer();
-      this.deleteSub?.unsubscribe();
+      this.deleteOff?.();
+      this.deleteOff = undefined;
     });
     TooltipDirective.activeTooltips.push(this.tooltipComponentRef);
   }

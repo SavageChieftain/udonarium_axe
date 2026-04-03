@@ -39,7 +39,7 @@ export class ObjectStore {
     objectsMap.set(object.identifier, object);
     object.onStoreAdded();
     if (shouldBroadcast) this.update(object.toContext());
-    objectAdded$.next({ identifier: object.identifier, aliasName: object.aliasName });
+    objectAdded$.emit({ identifier: object.identifier, aliasName: object.aliasName });
     return object;
   }
 
@@ -50,7 +50,7 @@ export class ObjectStore {
     const objectsMap = this.aliasNameMap.get(object.aliasName);
     if (objectsMap) objectsMap.delete(object.identifier);
     object.onStoreRemoved();
-    objectRemoved$.next({ identifier: object.identifier, aliasName: object.aliasName });
+    objectRemoved$.emit({ identifier: object.identifier, aliasName: object.aliasName });
     return object;
   }
 

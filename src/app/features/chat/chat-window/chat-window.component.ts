@@ -1,5 +1,4 @@
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -93,7 +92,7 @@ export class ChatWindowComponent {
     this._chatTabidentifier.set(
       0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : ''
     );
-    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.messageAdded$.subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (message && message.isSendFromSelf) {
@@ -106,8 +105,8 @@ export class ChatWindowComponent {
         }
       }
       if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectChanged$.subscribe((event) => {
       const object = this.objectStore.get(event.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
         if (this._chatTabidentifier() && !this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
@@ -115,14 +114,14 @@ export class ChatWindowComponent {
           this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
       }
-    });
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectDeleted$.subscribe((event) => {
       if (event.aliasName !== 'chat-tab') return;
       if (this._chatTabidentifier() === event.identifier) {
         const chatTabs = this.chatMessageService.chatTabs;
         this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
       }
-    });
+    }, this.destroyRef);
     queueMicrotask(() => this.updatePanelTitle());
     afterNextRender(() => {
       queueMicrotask(() => this.scrollToBottom(true));

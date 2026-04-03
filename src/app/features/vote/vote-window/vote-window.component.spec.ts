@@ -46,7 +46,7 @@ describe('VoteWindowComponent', () => {
     fixture.detectChanges();
 
     vote.isFinish = true;
-    objectChanged$.next({ identifier: vote.identifier, aliasName: vote.aliasName, isSendFromSelf: false });
+    objectChanged$.emit({ identifier: vote.identifier, aliasName: vote.aliasName, isSendFromSelf: false });
 
     expect(closeSpy).toHaveBeenCalled();
   });

@@ -10,7 +10,6 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -131,15 +130,15 @@ export class CardStackComponent {
   private input: InputHandler | null = null;
 
   constructor() {
-    this.objectChange.shuffleCardStack$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.shuffleCardStack$.subscribe((event) => {
       if (event.identifier === this.cardStack().identifier) {
         this.animeState.set('active');
       }
-    });
-    this.objectChange.cardStackDecreased$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.cardStackDecreased$.subscribe((event) => {
       if (event.cardStackIdentifier === this.cardStack().identifier && this.cardStack())
         this.cardsVersion.update((v) => v + 1);
-    });
+    }, this.destroyRef);
     effect(() => {
       const cardStack = this.cardStack();
       this.movableOption = {

@@ -19,7 +19,7 @@ const BufferSharingTaskMock = BufferSharingTask as unknown as {
 };
 
 type AudioSharingSystemPrivateInstance = {
-  subscription?: { unsubscribe: () => void };
+  cleanups: (() => void)[];
   sendTaskMap: Map<string, unknown>;
   receiveTaskMap: Map<string, unknown>;
   startSendTask: (audio: AudioFile, sendTo: string) => Promise<void>;
@@ -76,7 +76,7 @@ describe('AudioSharingSystem', () => {
 
   beforeEach(() => {
     // 前のインスタンスのサブスクリプションをクリーンアップ（real networkMessage$ を使うため）
-    audioSharingStatic._instance?.subscription?.unsubscribe();
+    audioSharingStatic._instance?.cleanups.forEach((c) => c());
     // シングルトンをリセット
     audioSharingStatic._instance = undefined;
 
@@ -98,7 +98,7 @@ describe('AudioSharingSystem', () => {
   });
 
   afterEach(() => {
-    audioSharingStatic._instance?.subscription?.unsubscribe();
+    audioSharingStatic._instance?.cleanups.forEach((c) => c());
     vi.restoreAllMocks();
   });
 

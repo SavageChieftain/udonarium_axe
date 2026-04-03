@@ -1,6 +1,5 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -13,7 +12,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { interval } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,9 +39,8 @@ export class PeerMenuComponent {
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = '接続情報'));
-    interval(1000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.dispInfo());
+    const timer = setInterval(() => this.dispInfo(), 1000);
+    this.destroyRef.onDestroy(() => clearInterval(timer));
   }
 
   changeIcon() {

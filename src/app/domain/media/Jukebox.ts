@@ -6,7 +6,6 @@ import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { updateAudioResource$ } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
-import { Subscription } from 'rxjs';
 
 @SyncObject('jukebox')
 export class Jukebox extends GameObject {
@@ -20,7 +19,7 @@ export class Jukebox extends GameObject {
   }
 
   private audioPlayer: AudioPlayer = new AudioPlayer();
-  private audioUpdateSub: Subscription | null = null;
+  private audioUpdateCleanup: (() => void) | null = null;
 
   get config(): Config {
     return ObjectStore.instance.get<Config>('Config')!;
@@ -90,7 +89,7 @@ export class Jukebox extends GameObject {
   }
 
   private playAfterFileUpdate() {
-    this.audioUpdateSub = updateAudioResource$.subscribe(() => {
+    this.audioUpdateCleanup = updateAudioResource$.subscribe(() => {
       this._play();
     });
   }
@@ -107,8 +106,8 @@ export class Jukebox extends GameObject {
   }
 
   private unregisterEvent() {
-    this.audioUpdateSub?.unsubscribe();
-    this.audioUpdateSub = null;
+    this.audioUpdateCleanup?.();
+    this.audioUpdateCleanup = null;
   }
 
   override apply(context: ObjectContext) {

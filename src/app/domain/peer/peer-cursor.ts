@@ -8,7 +8,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { domainPeerDisconnect$ } from '@axe/domain/domain-events';
 import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/shared/constants';
 import { Vote } from '@axe/domain/shared/vote';
-import { Subscription } from 'rxjs';
 
 const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
 
@@ -150,7 +149,7 @@ export class PeerCursor extends GameObject {
   private static userIdMap: Map<UserId, ObjectIdentifier> = new Map();
   private static peerIdMap: Map<PeerId, ObjectIdentifier> = new Map();
   chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
-  private subscription = new Subscription();
+  private cleanups: (() => void)[] = [];
 
   private _diceImageType = '';
   private _diceImageIndex = -1;
@@ -191,7 +190,7 @@ export class PeerCursor extends GameObject {
   override onStoreAdded() {
     super.onStoreAdded();
     if (!this.isMine) {
-      this.subscription.add(
+      this.cleanups.push(
         domainPeerDisconnect$.subscribe((data) => {
           if (data.peerId !== this.peerId) return;
           setTimeout(() => {
@@ -208,7 +207,8 @@ export class PeerCursor extends GameObject {
   // GameObject Lifecycle
   override onStoreRemoved() {
     super.onStoreRemoved();
-    this.subscription.unsubscribe();
+    this.cleanups.forEach((c) => c());
+    this.cleanups = [];
     PeerCursor.userIdMap.delete(this.userId);
     PeerCursor.peerIdMap.delete(this.peerId);
   }

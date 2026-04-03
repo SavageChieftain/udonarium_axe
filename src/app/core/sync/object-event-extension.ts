@@ -1,8 +1,8 @@
+import { EventChannel } from '@axe/core/event/event-channel';
 import { Network } from '@axe/core/network/network';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
-import { Subject } from 'rxjs';
 
 export interface ObjectChangeEvent {
   identifier: string;
@@ -14,10 +14,10 @@ export interface ChildrenChangeEvent {
   identifier: string;
 }
 
-/** RxJS Subject for batched object change events. Shared with ObjectChangeService. */
-export const objectChanged$ = new Subject<ObjectChangeEvent>();
-/** RxJS Subject for batched children-change events. Shared with ObjectChangeService. */
-export const childrenChanged$ = new Subject<ChildrenChangeEvent>();
+/** EventChannel for batched object change events. Shared with ObjectChangeService. */
+export const objectChanged$ = new EventChannel<ObjectChangeEvent>();
+/** EventChannel for batched children-change events. Shared with ObjectChangeService. */
+export const childrenChanged$ = new EventChannel<ChildrenChangeEvent>();
 
 export interface ObjectStoreEvent {
   identifier: string;
@@ -25,9 +25,9 @@ export interface ObjectStoreEvent {
 }
 
 /** Emitted synchronously when ObjectStore.add() succeeds. */
-export const objectAdded$ = new Subject<ObjectStoreEvent>();
+export const objectAdded$ = new EventChannel<ObjectStoreEvent>();
 /** Emitted synchronously when ObjectStore.remove() succeeds. */
-export const objectRemoved$ = new Subject<ObjectStoreEvent>();
+export const objectRemoved$ = new EventChannel<ObjectStoreEvent>();
 
 const objectBatches = new Map<string, { object: GameObject; originFrom: string }>();
 const nodeBatches = new Set<string>();
@@ -71,7 +71,7 @@ const triggerEvent = () => {
   nodeBatches.clear();
 
   for (const data of objects) {
-    objectChanged$.next({
+    objectChanged$.emit({
       aliasName: data.object.aliasName,
       identifier: data.object.identifier,
       isSendFromSelf: data.originFrom === Network.peerId,
@@ -79,7 +79,7 @@ const triggerEvent = () => {
   }
 
   for (const identifier of nodes) {
-    childrenChanged$.next({ identifier });
+    childrenChanged$.emit({ identifier });
   }
 
   if (objects.length > 0 || nodes.length > 0) {

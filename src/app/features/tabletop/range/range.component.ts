@@ -12,7 +12,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -305,7 +304,7 @@ export class RangeComponent {
   private input: InputHandler | null = null;
 
   constructor() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectChanged$.subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
       if (!this.range() || !object) return;
       this.setRange();
@@ -314,7 +313,7 @@ export class RangeComponent {
         this.range().following();
         this.setRange();
       }
-    });
+    }, this.destroyRef);
     effect(() => {
       this.movableOption = {
         tabletopObject: this.range(),

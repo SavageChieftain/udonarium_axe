@@ -10,7 +10,6 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -142,14 +141,14 @@ export class DiceSymbolComponent {
   private input: InputHandler | null = null;
 
   constructor() {
-    this.objectChange.rollDiceSymbol$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.rollDiceSymbol$.subscribe((event) => {
       if (event.identifier === this.diceSymbol().identifier) {
         this.animeState.set('inactive');
         setTimeout(() => {
           this.animeState.set('active');
         });
       }
-    });
+    }, this.destroyRef);
     effect(() => {
       const diceSymbol = this.diceSymbol();
       this.movableOption = {

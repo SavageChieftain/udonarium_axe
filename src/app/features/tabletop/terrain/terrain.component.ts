@@ -11,7 +11,6 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -99,7 +98,7 @@ export class TerrainComponent {
         tabletopObject: terrain,
       };
     });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectChanged$.subscribe((e) => {
       if (!this.terrain()) return;
       if (
         e.identifier !== this.currentTable.identifier &&
@@ -114,7 +113,7 @@ export class TerrainComponent {
         this.currentTable.gridType,
         this.currentTable.gridColor
       );
-    });
+    }, this.destroyRef);
     afterNextRender(() => {
       this.input = new InputHandler(this.elementRef.nativeElement);
       this.input.onStart = (e) => this.onInputStart(e);

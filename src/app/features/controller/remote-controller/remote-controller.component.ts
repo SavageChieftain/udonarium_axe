@@ -9,7 +9,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -112,20 +111,20 @@ export class RemoteControllerComponent {
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
     this.gameType = this.character?.remoteController ? this.character.remoteController.dicebot : '';
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectDeleted$.subscribe((e) => {
       if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
       if (this.chatTabidentifier() === e.identifier) {
         this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
       }
-    });
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.networkOpen$.subscribe(() => {
       this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
       if (!this.inventoryTypes().includes(this.selectTab())) {
         this.selectTab.set(Network.peerId);
       }
-    });
+    }, this.destroyRef);
     this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
     this.destroyRef.onDestroy(() => {
       if (this.isEdit()) this.toggleEditMode();

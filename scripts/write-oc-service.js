@@ -1,15 +1,10 @@
-import { DestroyRef, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+#!/usr/bin/env node
+const fs = require('fs');
+
+const content = `import { DestroyRef, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { EventChannel, ReadableChannel } from '@axe/core/event/event-channel';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
-import {
-  childrenChanged$,
-  type ChildrenChangeEvent,
-  objectAdded$,
-  objectChanged$,
-  type ObjectChangeEvent,
-  objectRemoved$,
-  type ObjectStoreEvent,
-} from '@axe/core/sync/object-event-extension';
+import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
 import {
   alarmPop$,
   alarmTimeUp$,
@@ -28,6 +23,7 @@ import {
   xmlLoaded$,
 } from '@axe/domain/domain-events';
 import {
+  subscribeNetworkBindings,
   type CursorMoveEvent,
   type FileSyncEvent,
   type HeartBeatEvent,
@@ -35,7 +31,6 @@ import {
   type NetworkErrorEvent,
   type NetworkPeerEvent,
   type ObjectDeleteEvent,
-  subscribeNetworkBindings,
   type WritingMessageEvent,
 } from '@axe/shared/sync/object-change-network-helpers';
 
@@ -68,11 +63,11 @@ export class ObjectChangeService {
   private readonly destroyRef = inject(DestroyRef);
 
   /** Batched object change notifications (from both local and network sources) */
-  readonly objectChanged$: ReadableChannel<ObjectChangeEvent> = objectChanged$;
+  readonly objectChanged$: ReadableChannel<import('@axe/core/sync/object-event-extension').ObjectChangeEvent> = objectChanged$;
   /** Batched children hierarchy change notifications */
-  readonly childrenChanged$: ReadableChannel<ChildrenChangeEvent> = childrenChanged$;
+  readonly childrenChanged$: ReadableChannel<import('@axe/core/sync/object-event-extension').ChildrenChangeEvent> = childrenChanged$;
   /** Emitted synchronously when an object is added to ObjectStore. */
-  readonly objectAdded$: ReadableChannel<ObjectStoreEvent> = objectAdded$;
+  readonly objectAdded$: ReadableChannel<import('@axe/core/sync/object-event-extension').ObjectStoreEvent> = objectAdded$;
 
   // --- Per-identifier version signals ---
   private readonly _versions = new Map<string, WritableSignal<number>>();
@@ -219,9 +214,7 @@ export class ObjectChangeService {
     fileLoaded$.subscribe(bumpFileVersion, this.destroyRef);
     this._audioSyncList$.subscribe(bumpFileVersion, this.destroyRef);
     domainFileResourceUpdated$.subscribe(bumpFileVersion, this.destroyRef);
-    this.destroyRef.onDestroy(() => {
-      if (fileTimer !== null) clearTimeout(fileTimer);
-    });
+    this.destroyRef.onDestroy(() => { if (fileTimer !== null) clearTimeout(fileTimer); });
 
     // --- Debounced networkVersion signal ---
     let netTimer: ReturnType<typeof setTimeout> | null = null;
@@ -235,8 +228,10 @@ export class ObjectChangeService {
     this._networkOpen$.subscribe(bumpNetworkVersion, this.destroyRef);
     this._peerConnect$.subscribe(bumpNetworkVersion, this.destroyRef);
     this._peerDisconnect$.subscribe(bumpNetworkVersion, this.destroyRef);
-    this.destroyRef.onDestroy(() => {
-      if (netTimer !== null) clearTimeout(netTimer);
-    });
+    this.destroyRef.onDestroy(() => { if (netTimer !== null) clearTimeout(netTimer); });
   }
 }
+`;
+
+fs.writeFileSync('src/app/shared/sync/object-change.service.ts', content);
+console.log('OK:', fs.statSync('src/app/shared/sync/object-change.service.ts').size + ' bytes');

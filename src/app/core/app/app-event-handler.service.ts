@@ -1,5 +1,4 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/network/network';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
@@ -32,57 +31,57 @@ export class AppEventHandlerService {
   }
 
   private subscribeAlarmAndVote(): void {
-    this.objectChange.alarmTimeUp$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.alarmTimeUp$.subscribe((event) => {
       this.chatMessageService.sendSystemMessageLastSendCharactor(event.text);
-    });
-    this.objectChange.alarmPop$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.alarmPop$.subscribe((event) => {
       this.openAlarmPanel(event.title, String(event.time));
-    });
-    this.objectChange.startVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.startVote$.subscribe(() => {
       this.openVotePanel();
-    });
-    this.objectChange.finishVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.finishVote$.subscribe((event) => {
       this.chatMessageService.sendSystemMessageLastSendCharactor(event.text);
-    });
+    }, this.destroyRef);
   }
 
   private subscribeCutIn(): void {
-    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.startCutIn$.subscribe((event) => {
       this.openCutInPanel(event.cutIn as CutIn);
-    });
+    }, this.destroyRef);
   }
 
   private subscribeChangeDetection(): void {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.objectChanged$.subscribe((event) => {
       this.scheduleRender(event.isSendFromSelf);
-    });
-    this.objectChange.localObjectUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.localObjectUpdated$.subscribe(() => {
       this.scheduleRender(true);
-    });
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectDeleted$.subscribe((event) => {
       this.scheduleRender(event.isSendFromSelf);
-    });
-    this.objectChange.audioSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.audioSyncList$.subscribe(() => {
       this.scheduleRender(false);
-    });
-    this.objectChange.fileSyncList$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.fileSyncList$.subscribe(() => {
       this.scheduleRender(false);
-    });
-    this.objectChange.fileLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.fileLoaded$.subscribe(() => {
       this.scheduleRender(false);
-    });
+    }, this.destroyRef);
   }
 
   private subscribeNetwork(): void {
-    this.objectChange.loadConfig$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.loadConfig$.subscribe((event) => {
       Network.configure(event.config as Record<string, unknown>);
       Network.openStandby();
-    });
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.networkOpen$.subscribe(() => {
       PeerCursor.myCursor.peerId = Network.peerContext.peerId;
       PeerCursor.myCursor.userId = Network.peerContext.userId;
-    });
-    this.objectChange.networkError$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.networkError$.subscribe((event) => {
       const { errorType, errorMessage } = event;
 
       const quietErrorTypes = ['peer-unavailable'];
@@ -97,14 +96,14 @@ export class AppEventHandlerService {
 
       this.chatMessageService.sendSystemMessage('再接続を試みます...');
       Network.openStandby();
-    });
-    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.peerConnect$.subscribe(() => {
       this.chatMessageService.calibrateTimeOffset();
       this.scheduleRender(true);
-    });
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.peerDisconnect$.subscribe(() => {
       this.scheduleRender(false);
-    });
+    }, this.destroyRef);
   }
 
   private openVotePanel(): void {

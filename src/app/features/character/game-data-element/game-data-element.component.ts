@@ -1,6 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -13,7 +12,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { filter } from 'rxjs';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',
@@ -32,7 +30,6 @@ export class GameDataElementComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
-  private readonly destroyRef = inject(DestroyRef);
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);
@@ -74,16 +71,12 @@ export class GameDataElementComponent {
 
   constructor() {
     effect(() => {
-      if (this.gameDataElement()) this.setValues(this.gameDataElement());
+      const element = this.gameDataElement();
+      if (element) {
+        this.objectChange.versionOf(element.identifier)();
+        this.setValues(element);
+      }
     });
-    this.objectChange.objectChanged$
-      .pipe(
-        filter((e) => !!this.gameDataElement && e.identifier === this.gameDataElement().identifier),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => {
-        this.setValues(this.gameDataElement());
-      });
   }
 
   get imageFileUrl(): string {

@@ -9,7 +9,6 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
@@ -82,7 +81,7 @@ export class PeerCursorComponent {
 
   constructor() {
     if (!this.isMine) {
-      this.objectChange.cursorMove$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.objectChange.cursorMove$.subscribe((event) => {
         if (event.sendFrom !== this.cursor().peerId) return;
         this.batchService.add(() => {
           this.stopTransition();
@@ -90,9 +89,9 @@ export class PeerCursorComponent {
           this.setPosition(event.x, event.y, event.z);
           this.resetFadeOut();
         }, this);
-      });
+      }, this.destroyRef);
 
-      this.objectChange.heartBeat$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.objectChange.heartBeat$.subscribe((event) => {
         if (event.sendFrom !== this.cursor().peerId) return;
 
         this.batchService.add(() => {
@@ -116,7 +115,7 @@ export class PeerCursorComponent {
             }
           }
         }, this);
-      });
+      }, this.destroyRef);
     }
 
     afterNextRender(() => {

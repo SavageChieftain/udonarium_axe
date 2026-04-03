@@ -21,7 +21,6 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
 import GameSystemClass from 'bcdice/lib/game_system';
 import StaticLoader from 'bcdice/lib/loader/static_loader';
-import { Subscription } from 'rxjs';
 
 @SyncObject('dice-bot')
 export class DiceBot extends GameObject {
@@ -31,7 +30,7 @@ export class DiceBot extends GameObject {
     DiceBot.diceRollAsync.bind(DiceBot),
     DiceBot.loadGameSystemAsync.bind(DiceBot)
   );
-  private subscription = new Subscription();
+  private cleanups: (() => void)[] = [];
 
   static diceBotInfos: GameSystemInfo[] = [];
 
@@ -198,9 +197,9 @@ export class DiceBot extends GameObject {
   // GameObject Lifecycle
   override onStoreAdded() {
     super.onStoreAdded();
-    this.subscription.add(sendMessage$.subscribe((data) => this.handleSendMessage(data)));
-    this.subscription.add(diceTableMessage$.subscribe((data) => this.handleDiceTableMessage(data)));
-    this.subscription.add(resourceEditMessage$.subscribe((data) => this.handleResourceEditMessage(data)));
+    this.cleanups.push(sendMessage$.subscribe((data) => this.handleSendMessage(data)));
+    this.cleanups.push(diceTableMessage$.subscribe((data) => this.handleDiceTableMessage(data)));
+    this.cleanups.push(resourceEditMessage$.subscribe((data) => this.handleResourceEditMessage(data)));
   }
 
   private async handleSendMessage(data: SendMessageEvent) {
@@ -366,6 +365,7 @@ export class DiceBot extends GameObject {
   // GameObject Lifecycle
   override onStoreRemoved() {
     super.onStoreRemoved();
-    this.subscription.unsubscribe();
+    this.cleanups.forEach((c) => c());
+    this.cleanups = [];
   }
 }

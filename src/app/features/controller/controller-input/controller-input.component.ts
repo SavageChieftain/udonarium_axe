@@ -12,7 +12,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -214,7 +213,7 @@ export class ControllerInputComponent {
   }
 
   constructor() {
-    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.messageAdded$.subscribe((event) => {
       // 1.13.xとのmargeで修正
       if (event.tabIdentifier !== this.chatTabidentifier()) {
         return;
@@ -229,9 +228,9 @@ export class ControllerInputComponent {
         this.writingPeers.delete(sendFrom);
         this.updateWritingPeerNames();
       }
-    });
+    }, this.destroyRef);
 
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.objectChanged$.subscribe((event) => {
       if (event.aliasName !== GameCharacter.aliasName) {
         return;
       }
@@ -246,16 +245,16 @@ export class ControllerInputComponent {
           this.sendFrom.set(this.myPeer.identifier);
         }
       }
-    });
+    }, this.destroyRef);
 
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.peerDisconnect$.subscribe((event) => {
       const object = this.objectStore.get(this.sendTo());
       if (object instanceof PeerCursor && object.peerId === event.peerId) {
         this.sendTo.set('');
       }
-    });
+    }, this.destroyRef);
 
-    this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.writingMessage$.subscribe((event) => {
       // 1.13.xとのmargeで修正
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) {
         return;
@@ -271,7 +270,7 @@ export class ControllerInputComponent {
       }
       this.writingPeers.get(event.sendFrom)!.reset();
       this.updateWritingPeerNames();
-    });
+    }, this.destroyRef);
 
     this.destroyRef.onDestroy(() => {
       if (this.writingEventInterval) {

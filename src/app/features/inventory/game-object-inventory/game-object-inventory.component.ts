@@ -1,6 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -48,12 +47,12 @@ export class GameObjectInventoryComponent {
       }
     });
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    this.objectChange.networkOpen$.subscribe(() => {
       this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
       if (!this.inventoryTypes().includes(this.selectTab())) {
         this.selectTab.set(Network.peerId);
       }
-    });
+    }, this.destroyRef);
     this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
   }
 

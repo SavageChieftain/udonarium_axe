@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -15,7 +14,6 @@ import { Terrain } from '@axe/domain/tabletop/terrain';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { merge, take } from 'rxjs';
 
 export function resolveReconnectUserId(previousUserId: string, currentUserId: string): string {
   if (previousUserId?.length) return previousUserId;
@@ -148,7 +146,8 @@ export class ReConnectComponent {
 
     const expectedPeerIds = createExpectedPeerIdSet(peerContexts, this.networkService.peerId);
     const observedPeerIds: Set<string> = new Set();
-    this.objectChange.networkOpen$.pipe(take(1)).subscribe(() => {
+    const offOpen = this.objectChange.networkOpen$.subscribe(() => {
+      offOpen();
       Logger.info('[Network] ピア接続開始');
       this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
@@ -160,28 +159,27 @@ export class ReConnectComponent {
         this.closeIfConnected();
       }, 5000);
 
-      const subscription = merge(this.objectChange.peerConnect$, this.objectChange.peerDisconnect$)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((event) => {
-          if (expectedPeerIds.has(event.peerId)) {
-            observedPeerIds.add(event.peerId);
-          }
-          Logger.info(`[Network] 接続結果 (${observedPeerIds.size}/${expectedPeerIds.size})`, event.peerId);
-          if (isReconnectCompleted(expectedPeerIds, observedPeerIds)) {
-            clearTimeout(timeoutTimer);
-            subscription.unsubscribe();
-            this.resetNetwork();
-            this.closeIfConnected();
-          }
-        });
-
-      if (isReconnectCompleted(expectedPeerIds, observedPeerIds)) {
-        clearTimeout(timeoutTimer);
-        subscription.unsubscribe();
-        this.resetNetwork();
-        this.closeIfConnected();
-      }
-    });
+      const subs: { offConnect?: () => void; offDisconnect?: () => void } = {};
+      const tryComplete = () => {
+        if (isReconnectCompleted(expectedPeerIds, observedPeerIds)) {
+          clearTimeout(timeoutTimer);
+          subs.offConnect?.();
+          subs.offDisconnect?.();
+          this.resetNetwork();
+          this.closeIfConnected();
+        }
+      };
+      const handler = (event: { peerId: string }) => {
+        if (expectedPeerIds.has(event.peerId)) {
+          observedPeerIds.add(event.peerId);
+        }
+        Logger.info(`[Network] 接続結果 (${observedPeerIds.size}/${expectedPeerIds.size})`, event.peerId);
+        tryComplete();
+      };
+      subs.offConnect = this.objectChange.peerConnect$.subscribe(handler, this.destroyRef);
+      subs.offDisconnect = this.objectChange.peerDisconnect$.subscribe(handler, this.destroyRef);
+      tryComplete();
+    }, this.destroyRef);
   }
 
   private resetNetwork() {

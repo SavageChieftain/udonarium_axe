@@ -1,6 +1,5 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -166,13 +165,13 @@ export class GameTableSettingComponent {
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'テーブル設定'));
     this.selectedTable = this.tableSelecter.viewTable;
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectDeleted$.subscribe((e) => {
       if (!this.selectedTable || e.identifier !== this.selectedTable.identifier) return;
       const object = this.objectStore.get(e.identifier);
       if (object !== null) {
         this.selectedTableXml = object.toXml();
       }
-    });
+    }, this.destroyRef);
   }
 
   selectGameTable(identifier: string) {

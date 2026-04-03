@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, ViewContainerRef } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -12,7 +11,6 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { filter, map } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +27,7 @@ export class GameCharacterGeneratorComponent {
   private readonly objectSerializer = inject(ObjectSerializer);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   name: string = 'ゲームキャラクター';
   size: number = 1;
@@ -37,16 +36,14 @@ export class GameCharacterGeneratorComponent {
   minSize: number = 1;
   maxSize: number = 20;
 
-  readonly tableBackgroundImage = toSignal(
-    this.objectChange.selectFile$.pipe(
-      map((event) => this.imageStorage.get(event.fileIdentifier)),
-      filter((file): file is ImageFile => !!file)
-    ),
-    { initialValue: ImageFile.createEmpty('null') }
-  );
+  readonly tableBackgroundImage = signal<ImageFile>(ImageFile.createEmpty('null'));
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
+    this.objectChange.selectFile$.subscribe((event) => {
+      const file = this.imageStorage.get(event.fileIdentifier);
+      if (file) this.tableBackgroundImage.set(file);
+    }, this.destroyRef);
   }
 
   createGameCharacter() {

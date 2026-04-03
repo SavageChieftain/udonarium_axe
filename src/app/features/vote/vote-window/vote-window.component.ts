@@ -1,6 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -56,18 +55,18 @@ export class VoteWindowComponent {
 
   constructor() {
     this.timestamp = this.vote.initTimeStamp;
-    this.objectChange.endOldVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    this.objectChange.endOldVote$.subscribe(() => {
       if (this.timestamp != this.vote.initTimeStamp) {
         this.panelService.close();
       }
-    });
+    }, this.destroyRef);
 
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.objectChanged$.subscribe((event) => {
       if (event.identifier !== this.vote.identifier) return;
       if (this.timestamp !== this.vote.initTimeStamp) return;
       if (!this.vote.isFinish) return;
       this.panelService.close();
-    });
+    }, this.destroyRef);
 
     this.destroyRef.onDestroy(() => {
       if (this.vote && !this.isMyVoteEnd() && this.timestamp == this.vote.initTimeStamp) {

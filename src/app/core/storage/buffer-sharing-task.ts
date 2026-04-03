@@ -3,8 +3,6 @@ import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/
 import * as MessagePack from '@axe/core/util/message-pack';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { clearZeroTimeout, setZeroTimeout } from '@axe/core/util/zero-timeout';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 interface ChunkData {
   index: number;
@@ -37,7 +35,7 @@ export class BufferSharingTask<T> {
   oncancel: ((task: BufferSharingTask<T>) => void) | null = null;
 
   private timeoutTimer: ResettableTimeout | null = null;
-  private subscription = new Subscription();
+  private cleanups: (() => void)[] = [];
 
   private constructor(identifier: string, sendTo?: string, data?: T) {
     this.identifier = identifier;
@@ -101,8 +99,8 @@ export class BufferSharingTask<T> {
   }
 
   private dispose() {
-    this.subscription.unsubscribe();
-    this.subscription = new Subscription();
+    this.cleanups.forEach((c) => c());
+    this.cleanups = [];
     if (this.sendChunkTimer) clearZeroTimeout(this.sendChunkTimer);
     if (this.timeoutTimer) this.timeoutTimer.clear();
     this.sendChunkTimer = null;
@@ -114,31 +112,25 @@ export class BufferSharingTask<T> {
     this.uint8Array = MessagePack.encode(this.data as T);
     const total = Math.ceil(this.uint8Array.byteLength / this.chunkSize);
     this.chunks = new Array(total);
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<number> => msg.eventName === `FILE_MORE_CHUNK_${this.identifier}`))
-        .subscribe((msg) => {
-          if (this.sendTo !== msg.sendFrom) return;
-          this.completedChunkIndex = msg.data;
+    this.cleanups.push(
+      networkMessage$.subscribe((msg) => {
+        if (msg.eventName === `FILE_MORE_CHUNK_${this.identifier}`) {
+          const m = msg as NetworkMessage<number>;
+          if (this.sendTo !== m.sendFrom) return;
+          this.completedChunkIndex = m.data;
           if (this.sendChunkTimer == null && this.sentChunkIndex + 1 < this.chunks.length) {
             this.sendChunk(this.sentChunkIndex + 1);
           }
           this.resetTimeout();
-        })
-    );
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'DISCONNECT_PEER'))
-        .subscribe((msg) => {
-          if (msg.data.peerId !== this.sendTo) return;
-          Logger.warn('[BufferTask] 送信キャンセル（Peer切断）', msg.data.peerId);
+        } else if (msg.eventName === 'DISCONNECT_PEER') {
+          const m = msg as NetworkMessage<{ peerId: string }>;
+          if (m.data.peerId !== this.sendTo) return;
+          Logger.warn('[BufferTask] 送信キャンセル（Peer切断）', m.data.peerId);
           this._cancel();
-        })
-    );
-    this.subscription.add(
-      networkMessage$.pipe(filter((msg) => msg.eventName === `CANCEL_TASK_${this.identifier}`)).subscribe((msg) => {
-        Logger.warn('[BufferTask] 送信キャンセル', msg.sendFrom);
-        this._cancel();
+        } else if (msg.eventName === `CANCEL_TASK_${this.identifier}`) {
+          Logger.warn('[BufferTask] 送信キャンセル', msg.sendFrom);
+          this._cancel();
+        }
       })
     );
 
@@ -173,39 +165,30 @@ export class BufferSharingTask<T> {
     this.startTime = performance.now();
     this.chunkReceiveCount = 0;
 
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<ChunkData> => msg.eventName === `FILE_SEND_CHUNK_${this.identifier}`))
-        .subscribe((msg) => {
-          if (this.chunks.length < 1) this.chunks = new Array(msg.data.length);
-
-          if (this.chunks[msg.data.index] != null) {
-            return;
-          }
+    this.cleanups.push(
+      networkMessage$.subscribe((msg) => {
+        if (msg.eventName === `FILE_SEND_CHUNK_${this.identifier}`) {
+          const m = msg as NetworkMessage<ChunkData>;
+          if (this.chunks.length < 1) this.chunks = new Array(m.data.length);
+          if (this.chunks[m.data.index] != null) return;
           this.chunkReceiveCount++;
-          this.chunks[msg.data.index] = msg.data.chunk;
-          this.progress(msg.data.index, msg.data.length);
+          this.chunks[m.data.index] = m.data.chunk;
+          this.progress(m.data.index, m.data.length);
           if (this.chunks.length <= this.chunkReceiveCount) {
             this.finishReceive();
           } else {
             this.resetTimeout();
-            networkSend(`FILE_MORE_CHUNK_${this.identifier}`, msg.data.index, msg.sendFrom);
+            networkSend(`FILE_MORE_CHUNK_${this.identifier}`, m.data.index, m.sendFrom);
           }
-        })
-    );
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'DISCONNECT_PEER'))
-        .subscribe((msg) => {
-          if (msg.data.peerId !== this.sendTo) return;
-          Logger.warn('[BufferTask] 受信キャンセル（Peer切断）', msg.data.peerId);
+        } else if (msg.eventName === 'DISCONNECT_PEER') {
+          const m = msg as NetworkMessage<{ peerId: string }>;
+          if (m.data.peerId !== this.sendTo) return;
+          Logger.warn('[BufferTask] 受信キャンセル（Peer切断）', m.data.peerId);
           this._cancel();
-        })
-    );
-    this.subscription.add(
-      networkMessage$.pipe(filter((msg) => msg.eventName === `CANCEL_TASK_${this.identifier}`)).subscribe((msg) => {
-        Logger.warn('[BufferTask] 受信キャンセル', msg.sendFrom);
-        this._cancel();
+        } else if (msg.eventName === `CANCEL_TASK_${this.identifier}`) {
+          Logger.warn('[BufferTask] 受信キャンセル', msg.sendFrom);
+          this._cancel();
+        }
       })
     );
   }

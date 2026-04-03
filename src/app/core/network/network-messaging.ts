@@ -1,8 +1,8 @@
 import { ApplicationRef } from '@angular/core';
 import { ServiceLocator } from '@axe/core/di/service-locator';
+import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
-import { Observable, Subject } from 'rxjs';
 
 // --- Wire protocol (kept compatible with existing peers) ---
 export interface EventContext<T = unknown> {
@@ -19,11 +19,8 @@ export interface NetworkMessage<T = unknown> {
   isSendFromSelf: boolean;
 }
 
-// --- Internal state ---
-const _message$ = new Subject<NetworkMessage>();
-
-/** Observable stream of ALL dispatched messages (network-received + locally dispatched). */
-export const networkMessage$: Observable<NetworkMessage> = _message$.asObservable();
+/** EventChannel for ALL dispatched messages (network-received + locally dispatched). */
+export const networkMessage$ = new EventChannel<NetworkMessage>();
 
 // --- Send to peers via Network ---
 export function networkSend(eventName: string, data: unknown, sendTo?: string): void {
@@ -38,7 +35,7 @@ export function networkSend(eventName: string, data: unknown, sendTo?: string): 
 // --- Local dispatch (fires handlers synchronously, no network send) ---
 export function localDispatch(eventName: string, data: unknown, sendFrom?: string): void {
   const from = sendFrom ?? Network.peerId;
-  _message$.next({
+  networkMessage$.emit({
     eventName,
     data,
     sendFrom: from,
@@ -93,7 +90,7 @@ export function initializeNetworkMessaging(): void {
 
   callback.onData = (_peer, data) => {
     for (const ctx of data as EventContext[]) {
-      _message$.next({
+      networkMessage$.emit({
         eventName: ctx.eventName,
         data: ctx.data,
         sendFrom: ctx.sendFrom,

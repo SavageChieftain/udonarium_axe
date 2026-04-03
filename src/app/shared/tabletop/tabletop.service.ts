@@ -1,5 +1,4 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -105,10 +104,10 @@ export class TabletopService {
 
   private initialize() {
     this.refreshCacheAll();
-    this.objectChange.objectAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectAdded$.subscribe((e) => {
       this.refreshCache(e.aliasName);
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectChanged$.subscribe((event) => {
       if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
         this.refreshCache(GameTableMask.aliasName);
         this.refreshCache(GameTableScratchMask.aliasName);
@@ -123,16 +122,16 @@ export class TabletopService {
         this.refreshCache(event.aliasName);
         this.updateMap(object);
       }
-    });
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectDeleted$.subscribe((event) => {
       const aliasName = event.aliasName;
       if (!aliasName) {
         this.refreshCacheAll();
       } else {
         this.refreshCache(aliasName);
       }
-    });
-    this.objectChange.xmlLoaded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.xmlLoaded$.subscribe((event) => {
       const xmlElement: Element = event.xmlElement;
       // todo:立体地形の上にドロップした時の挙動
 
@@ -157,7 +156,7 @@ export class TabletopService {
           gameCharacter.addExtendData();
         }
       }
-    });
+    }, this.destroyRef);
   }
 
   private findCache(aliasName: string): TabletopCache<TabletopObject> | null {

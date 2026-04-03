@@ -8,7 +8,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -103,14 +102,14 @@ export class ChatPaletteComponent {
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
     this.gameType = this.character?.chatPalette ? this.character.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectDeleted$.subscribe((e) => {
       if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
       if (this.chatTabidentifier() === e.identifier) {
         this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
       }
-    });
+    }, this.destroyRef);
     effect(() => {
       const req = this.uiSignalService.jumpIndexRequest();
       if (!req || this._timeId != req.targetId) return;

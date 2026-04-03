@@ -3,7 +3,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/shared/vote';
-import { Subscription } from 'rxjs';
 
 describe('Vote', () => {
   let store: ObjectStore;
@@ -340,23 +339,20 @@ describe('Vote', () => {
     it('END_OLD_VOTE と START_VOTE がトリガーされる', () => {
       let endOldVoteCalled = false;
       let startVoteCalled = false;
-      const sub = new Subscription();
-      sub.add(
+      const cleanups = [
         domainEvents.endOldVote$.subscribe(() => {
           endOldVoteCalled = true;
-        })
-      );
-      sub.add(
+        }),
         domainEvents.startVote$.subscribe(() => {
           startVoteCalled = true;
-        })
-      );
+        }),
+      ];
 
       vote.startVote();
 
       expect(endOldVoteCalled).toBe(true);
       expect(startVoteCalled).toBe(true);
-      sub.unsubscribe();
+      cleanups.forEach((off) => off());
     });
   });
 
@@ -416,7 +412,7 @@ describe('Vote', () => {
 
       expect(finishEvents).toHaveLength(1);
       expect(finishEvents[0]).toEqual(expect.objectContaining({ text: expect.any(String) }));
-      sub.unsubscribe();
+      sub();
       vi.useRealTimers();
     });
 
@@ -434,7 +430,7 @@ describe('Vote', () => {
       vi.advanceTimersByTime(10);
 
       expect(finishEvents).toHaveLength(0);
-      sub.unsubscribe();
+      sub();
       vi.useRealTimers();
     });
 
@@ -458,7 +454,7 @@ describe('Vote', () => {
       vi.advanceTimersByTime(10);
 
       expect(finishEvents).toHaveLength(1);
-      sub.unsubscribe();
+      sub();
       vi.useRealTimers();
     });
 
@@ -480,7 +476,7 @@ describe('Vote', () => {
       vi.advanceTimersByTime(10);
 
       expect(finishEvents).toHaveLength(1);
-      sub.unsubscribe();
+      sub();
       vi.useRealTimers();
     });
   });

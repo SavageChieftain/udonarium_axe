@@ -1,5 +1,4 @@
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
@@ -29,7 +28,7 @@ export class NetworkIndicatorComponent {
         }
       };
 
-      this.objectChange.eventActivity$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.objectChange.eventActivity$.subscribe(() => {
         if (this.needRepeat || Network.bandwidthUsage < 3 * 1024) return;
         if (this.timer === null) {
           this.elementRef.nativeElement.style.display = 'block';
@@ -37,7 +36,7 @@ export class NetworkIndicatorComponent {
         } else {
           this.needRepeat = true;
         }
-      });
+      }, this.destroyRef);
     });
     this.destroyRef.onDestroy(() => {
       if (this.timer) {

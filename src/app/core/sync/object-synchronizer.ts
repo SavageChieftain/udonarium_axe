@@ -6,8 +6,6 @@ import { markForChanged } from '@axe/core/sync/object-event-extension';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { CatalogItem, ObjectStore } from '@axe/core/sync/object-store';
 import { SynchronizeRequest, SynchronizeTask } from '@axe/core/sync/synchronize-task';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 type PeerId = string;
 type ObjectIdentifier = string;
@@ -22,96 +20,77 @@ export class ObjectSynchronizer {
   private requestMap: Map<ObjectIdentifier, SynchronizeRequest> = new Map();
   private peerMap: Map<PeerId, SynchronizeTask[]> = new Map();
   private tasks: SynchronizeTask[] = [];
-  private subscription = new Subscription();
+  private cleanups: (() => void)[] = [];
 
   private constructor() {}
 
   initialize() {
     this.destroy();
 
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'CONNECT_PEER'))
-        .subscribe((msg) => {
-          if (!msg.isSendFromSelf) return;
-          this.sendCatalog(msg.data.peerId);
-        })
-    );
-
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'DISCONNECT_PEER'))
-        .subscribe((msg) => {
-          this.removePeerMap(msg.data.peerId);
-        })
-    );
-
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<CatalogItem[]> => msg.eventName === 'SYNCHRONIZE_GAME_OBJECT'))
-        .subscribe((msg) => {
-          if (msg.isSendFromSelf) return;
-          const catalog: CatalogItem[] = msg.data;
-          for (const item of catalog) {
-            if (ObjectStore.instance.isDeleted(item.identifier)) {
-              networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: item.identifier }, msg.sendFrom);
-            } else {
-              this.addRequestMap(item, msg.sendFrom);
+    this.cleanups.push(
+      networkMessage$.subscribe((msg) => {
+        switch (msg.eventName) {
+          case 'CONNECT_PEER':
+            if (msg.isSendFromSelf) this.sendCatalog((msg as NetworkMessage<{ peerId: string }>).data.peerId);
+            break;
+          case 'DISCONNECT_PEER':
+            this.removePeerMap((msg as NetworkMessage<{ peerId: string }>).data.peerId);
+            break;
+          case 'SYNCHRONIZE_GAME_OBJECT': {
+            if (msg.isSendFromSelf) break;
+            const catalog: CatalogItem[] = msg.data as CatalogItem[];
+            for (const item of catalog) {
+              if (ObjectStore.instance.isDeleted(item.identifier)) {
+                networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: item.identifier }, msg.sendFrom);
+              } else {
+                this.addRequestMap(item, msg.sendFrom);
+              }
             }
+            this.synchronize();
+            break;
           }
-          this.synchronize();
-        })
-    );
-
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<string> => msg.eventName === 'REQUEST_GAME_OBJECT'))
-        .subscribe((msg) => {
-          if (msg.isSendFromSelf) return;
-          if (ObjectStore.instance.isDeleted(msg.data)) {
-            networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: msg.data }, msg.sendFrom);
-          } else {
-            const object = ObjectStore.instance.get(msg.data);
-            if (object) networkSend('UPDATE_GAME_OBJECT', object.toContext(), msg.sendFrom);
+          case 'REQUEST_GAME_OBJECT': {
+            if (msg.isSendFromSelf) break;
+            const id = msg.data as string;
+            if (ObjectStore.instance.isDeleted(id)) {
+              networkSend('DELETE_GAME_OBJECT', { aliasName: '', identifier: id }, msg.sendFrom);
+            } else {
+              const obj = ObjectStore.instance.get(id);
+              if (obj) networkSend('UPDATE_GAME_OBJECT', obj.toContext(), msg.sendFrom);
+            }
+            break;
           }
-        })
-    );
-
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<ObjectContext> => msg.eventName === 'UPDATE_GAME_OBJECT'))
-        .subscribe((msg) => {
-          const context: ObjectContext = msg.data;
-          let object: GameObject | null = ObjectStore.instance.get(context.identifier);
-          if (object) {
-            if (!msg.isSendFromSelf) object = this.updateObject(object, context);
-            markForChanged(object, msg.sendFrom);
-          } else if (ObjectStore.instance.isDeleted(context.identifier)) {
-            networkSend(
-              'DELETE_GAME_OBJECT',
-              { aliasName: context.aliasName, identifier: context.identifier },
-              msg.sendFrom
-            );
-          } else {
-            object = this.createObject(context);
-            if (object) markForChanged(object, msg.sendFrom);
+          case 'UPDATE_GAME_OBJECT': {
+            const context: ObjectContext = msg.data as ObjectContext;
+            let object: GameObject | null = ObjectStore.instance.get(context.identifier);
+            if (object) {
+              if (!msg.isSendFromSelf) object = this.updateObject(object, context);
+              markForChanged(object, msg.sendFrom);
+            } else if (ObjectStore.instance.isDeleted(context.identifier)) {
+              networkSend(
+                'DELETE_GAME_OBJECT',
+                { aliasName: context.aliasName, identifier: context.identifier },
+                msg.sendFrom
+              );
+            } else {
+              object = this.createObject(context);
+              if (object) markForChanged(object, msg.sendFrom);
+            }
+            break;
           }
-        })
-    );
-
-    this.subscription.add(
-      networkMessage$
-        .pipe(filter((msg): msg is NetworkMessage<{ identifier: string }> => msg.eventName === 'DELETE_GAME_OBJECT'))
-        .subscribe((msg) => {
-          const identifier: ObjectIdentifier = msg.data.identifier;
-          ObjectStore.instance.delete(identifier, false);
-        })
+          case 'DELETE_GAME_OBJECT': {
+            const identifier: ObjectIdentifier = (msg.data as { identifier: string }).identifier;
+            ObjectStore.instance.delete(identifier, false);
+            break;
+          }
+        }
+      })
     );
   }
 
   destroy() {
-    this.subscription.unsubscribe();
-    this.subscription = new Subscription();
+    this.cleanups.forEach((c) => c());
+    this.cleanups = [];
   }
 
   private updateObject(object: GameObject, context: ObjectContext): GameObject {

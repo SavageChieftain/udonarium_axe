@@ -3,7 +3,6 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { emitSelectGameTable, selectGameTable$ } from '@axe/domain/domain-events';
 import { GameTable } from '@axe/domain/tabletop/game-table';
-import { Subscription } from 'rxjs';
 
 @SyncObject('TableSelecter')
 export class TableSelecter extends GameObject {
@@ -20,12 +19,12 @@ export class TableSelecter extends GameObject {
   @SyncVar() tableGridDummy: boolean = false;
   gridShow: boolean = false; // true=常時グリッド表示
   gridSnap: boolean = true;
-  private subscription = new Subscription();
+  private cleanups: (() => void)[] = [];
 
   // GameObject Lifecycle
   override onStoreAdded() {
     super.onStoreAdded();
-    this.subscription.add(
+    this.cleanups.push(
       selectGameTable$.subscribe((data) => {
         if (this.viewTable) this.viewTable.selected = false;
         this.viewTableIdentifier = data.identifier;
@@ -37,7 +36,8 @@ export class TableSelecter extends GameObject {
   // GameObject Lifecycle
   override onStoreRemoved() {
     super.onStoreRemoved();
-    this.subscription.unsubscribe();
+    this.cleanups.forEach((c) => c());
+    this.cleanups = [];
   }
 
   get viewTable(): GameTable {

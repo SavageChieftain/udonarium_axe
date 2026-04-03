@@ -12,7 +12,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -148,7 +147,7 @@ export class ChatInputComponent {
     effect(() => {
       this._text = this.textInput();
     });
-    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.messageAdded$.subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier()) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       const peerCursor = this.objectStore
@@ -156,8 +155,8 @@ export class ChatInputComponent {
         .find((obj) => obj.userId === message?.from);
       const sendFrom = peerCursor ? peerCursor.peerId : '?';
       this.writingManager.remove(sendFrom);
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectChanged$.subscribe((event) => {
       if (event.aliasName !== GameCharacter.aliasName) return;
       if (event.identifier !== this.sendFrom) return;
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
@@ -168,17 +167,17 @@ export class ChatInputComponent {
           this.sendFrom = this.myPeer.identifier;
         }
       }
-    });
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.peerDisconnect$.subscribe((event) => {
       const object = this.objectStore.get(this.sendTo);
       if (object instanceof PeerCursor && object.peerId === event.peerId) {
         this.sendTo = '';
       }
-    });
-    this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.writingMessage$.subscribe((event) => {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) return;
       this.writingManager.add(event.sendFrom);
-    });
+    }, this.destroyRef);
     this.destroyRef.onDestroy(() => {
       this.batchService.remove(this);
       if (this.writingEventInterval) {

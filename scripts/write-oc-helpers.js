@@ -1,4 +1,7 @@
-import { EventChannel, ReadableChannel } from '@axe/core/event/event-channel';
+#!/usr/bin/env node
+const fs = require('fs');
+
+const content = `import { EventChannel, ReadableChannel } from '@axe/core/event/event-channel';
 import { NetworkMessage } from '@axe/core/network/network-messaging';
 
 export interface ObjectDeleteEvent {
@@ -141,3 +144,7 @@ export function subscribeNetworkBindings(
     }
   });
 }
+`;
+
+fs.writeFileSync('src/app/shared/sync/object-change-network-helpers.ts', content);
+console.log('OK:', fs.statSync('src/app/shared/sync/object-change-network-helpers.ts').size + ' bytes');

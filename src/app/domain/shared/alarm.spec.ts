@@ -5,7 +5,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Alarm } from '@axe/domain/shared/alarm';
-import { Subscription } from 'rxjs';
 
 describe('Alarm', () => {
   let store: ObjectStore;
@@ -154,16 +153,17 @@ describe('Alarm', () => {
       alarm.isPopUp = true;
       const timeUpEvents: domainEvents.AlarmTimeUpEvent[] = [];
       const popEvents: domainEvents.AlarmPopEvent[] = [];
-      const sub = new Subscription();
-      sub.add(domainEvents.alarmTimeUp$.subscribe((e) => timeUpEvents.push(e)));
-      sub.add(domainEvents.alarmPop$.subscribe((e) => popEvents.push(e)));
+      const cleanups = [
+        domainEvents.alarmTimeUp$.subscribe((e) => timeUpEvents.push(e)),
+        domainEvents.alarmPop$.subscribe((e) => popEvents.push(e)),
+      ];
 
       alarm.startAlarm();
       vi.advanceTimersByTime(100000);
 
       expect(timeUpEvents).toHaveLength(0);
       expect(popEvents).toHaveLength(0);
-      sub.unsubscribe();
+      cleanups.forEach((off) => off());
     });
 
     it('isSound=true ならタイムアップ時にALARM_TIMEUP_ORIGINがトリガーされる', () => {
@@ -184,7 +184,7 @@ describe('Alarm', () => {
 
       expect(timeUpEvents).toHaveLength(1);
       expect(timeUpEvents[0]).toEqual(expect.objectContaining({ text: expect.any(String) }));
-      sub.unsubscribe();
+      sub();
     });
 
     it('isPopUp=true ならタイムアップ時にALARM_POPがトリガーされる', () => {
@@ -202,7 +202,7 @@ describe('Alarm', () => {
 
       expect(popEvents).toHaveLength(1);
       expect(popEvents[0]).toEqual({ title: 'ポップアップテスト', time: 3 });
-      sub.unsubscribe();
+      sub();
     });
 
     it('alarmTime秒後にコールバックが実行される', () => {
@@ -224,7 +224,7 @@ describe('Alarm', () => {
       // 10秒で実行される
       vi.advanceTimersByTime(1);
       expect(popEvents).toHaveLength(1);
-      sub.unsubscribe();
+      sub();
     });
   });
 

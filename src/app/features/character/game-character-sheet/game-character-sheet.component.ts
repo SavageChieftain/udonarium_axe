@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -94,11 +93,11 @@ export class GameCharacterSheetComponent {
   readonly progresPercent = signal(0);
 
   constructor() {
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectDeleted$.subscribe((e) => {
       if (this.tabletopObject && this.tabletopObject.identifier === e.identifier) {
         this.panelService.close();
       }
-    });
+    }, this.destroyRef);
   }
 
   toggleEditMode() {

@@ -1,5 +1,4 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { RangeArea } from '@axe/domain/tabletop/range';
@@ -107,7 +106,7 @@ export class RotableDirective {
     this.input.onContextMenu = (e) => this.onContextMenu(e);
 
     if (this.tabletopObject) {
-      this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      this.objectChange.objectChanged$.subscribe((event) => {
         const tabletopObject = this.tabletopObject;
         if (
           !tabletopObject ||
@@ -125,7 +124,7 @@ export class RotableDirective {
           this.stopTransition();
           this.setRotate(tabletopObject);
         }, this);
-      });
+      }, this.destroyRef);
       this.setRotate(this.tabletopObject);
     } else {
       this.updateTransformCss();

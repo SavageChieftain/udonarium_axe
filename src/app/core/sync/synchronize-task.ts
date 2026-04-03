@@ -1,7 +1,5 @@
 import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 type PeerId = string;
 type ObjectIdentifier = string;
@@ -14,7 +12,7 @@ export interface SynchronizeRequest {
 }
 
 export class SynchronizeTask {
-  private static subscription: Subscription | null = null;
+  private static cleanup: (() => void) | null = null;
   private static tasksMap: Map<ObjectIdentifier, SynchronizeTask[]> = new Map();
 
   onsynchronize: ((task: SynchronizeTask, identifier: string) => void) | null = null;
@@ -28,31 +26,22 @@ export class SynchronizeTask {
 
   static create(peerId: PeerId, requests: SynchronizeRequest[]): SynchronizeTask {
     if (SynchronizeTask.tasksMap.size < 1) {
-      const sub = new Subscription();
-      sub.add(
-        networkMessage$
-          .pipe(filter((msg): msg is NetworkMessage<{ peerId: string }> => msg.eventName === 'DISCONNECT_PEER'))
-          .subscribe((msg) => {
-            SynchronizeTask.onDisconnect(msg.data.peerId);
-          })
-      );
-      sub.add(
-        networkMessage$
-          .pipe(filter((msg): msg is NetworkMessage<{ identifier: string }> => msg.eventName === 'UPDATE_GAME_OBJECT'))
-          .subscribe((msg) => {
-            if (msg.isSendFromSelf) return;
-            SynchronizeTask.onUpdate(msg.data.identifier);
-          })
-      );
-      sub.add(
-        networkMessage$
-          .pipe(filter((msg): msg is NetworkMessage<{ identifier: string }> => msg.eventName === 'DELETE_GAME_OBJECT'))
-          .subscribe((msg) => {
-            if (msg.isSendFromSelf) return;
-            SynchronizeTask.onUpdate(msg.data.identifier);
-          })
-      );
-      SynchronizeTask.subscription = sub;
+      const off = networkMessage$.subscribe((msg) => {
+        switch (msg.eventName) {
+          case 'DISCONNECT_PEER':
+            SynchronizeTask.onDisconnect((msg as NetworkMessage<{ peerId: string }>).data.peerId);
+            break;
+          case 'UPDATE_GAME_OBJECT':
+            if (!msg.isSendFromSelf)
+              SynchronizeTask.onUpdate((msg as NetworkMessage<{ identifier: string }>).data.identifier);
+            break;
+          case 'DELETE_GAME_OBJECT':
+            if (!msg.isSendFromSelf)
+              SynchronizeTask.onUpdate((msg as NetworkMessage<{ identifier: string }>).data.identifier);
+            break;
+        }
+      });
+      SynchronizeTask.cleanup = off;
     }
     const task = new SynchronizeTask(peerId);
     task.initialize(requests);
@@ -113,8 +102,8 @@ export class SynchronizeTask {
       }
     }
     if (SynchronizeTask.tasksMap.size < 1) {
-      SynchronizeTask.subscription?.unsubscribe();
-      SynchronizeTask.subscription = null;
+      SynchronizeTask.cleanup?.();
+      SynchronizeTask.cleanup = null;
     }
   }
 
@@ -125,8 +114,8 @@ export class SynchronizeTask {
       task.onUpdate(identifier);
     }
     if (SynchronizeTask.tasksMap.size < 1) {
-      SynchronizeTask.subscription?.unsubscribe();
-      SynchronizeTask.subscription = null;
+      SynchronizeTask.cleanup?.();
+      SynchronizeTask.cleanup = null;
     }
   }
 

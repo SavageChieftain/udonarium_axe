@@ -12,7 +12,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
@@ -85,7 +84,7 @@ export class ChatTabComponent {
       messages.push(message);
     }
     this.sampleMessages = messages;
-    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.messageAdded$.subscribe((event) => {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (!message || !this.chatTab?.contains(message)) return;
       if (this.topTimestamp <= message.timestamp) {
@@ -99,8 +98,8 @@ export class ChatTabComponent {
         this.needUpdate = true;
         this.onMessageInit();
       }
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.objectChanged$.subscribe((event) => {
       const message = this.objectStore.get(event.identifier);
       if (
         message &&
@@ -111,7 +110,7 @@ export class ChatTabComponent {
       ) {
         this.renderVersion.update((v) => v + 1);
       }
-    });
+    }, this.destroyRef);
     afterNextRender(() => {
       this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
       this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);

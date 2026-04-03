@@ -462,7 +462,7 @@ describe('ObjectStore', () => {
         identifier: 'emit-add-1',
         aliasName: GameObject.aliasName,
       });
-      sub.unsubscribe();
+      sub();
     });
 
     it('add() が重複で失敗した場合は emit されない', () => {
@@ -475,7 +475,7 @@ describe('ObjectStore', () => {
       store.add(obj, false); // duplicate → returns null
 
       expect(callback).not.toHaveBeenCalled();
-      sub.unsubscribe();
+      sub();
     });
 
     it('add() が削除済み identifier で失敗した場合は emit されない', () => {
@@ -490,7 +490,7 @@ describe('ObjectStore', () => {
       store.add(newObj, false); // deleted → returns null
 
       expect(callback).not.toHaveBeenCalled();
-      sub.unsubscribe();
+      sub();
     });
 
     it('remove() で objectRemoved$ が emit される', () => {
@@ -507,7 +507,7 @@ describe('ObjectStore', () => {
         identifier: 'emit-rm-1',
         aliasName: GameObject.aliasName,
       });
-      sub.unsubscribe();
+      sub();
     });
 
     it('remove() が存在しないオブジェクトで失敗した場合は emit されない', () => {
@@ -518,7 +518,7 @@ describe('ObjectStore', () => {
       store.remove(obj); // not in store → returns null
 
       expect(callback).not.toHaveBeenCalled();
-      sub.unsubscribe();
+      sub();
     });
 
     it('delete() は内部で remove() を呼ぶため objectRemoved$ が emit される', () => {
@@ -535,7 +535,7 @@ describe('ObjectStore', () => {
         identifier: 'emit-del-1',
         aliasName: GameObject.aliasName,
       });
-      sub.unsubscribe();
+      sub();
     });
 
     it('emit される identifier と aliasName が正しい', () => {
@@ -556,8 +556,8 @@ describe('ObjectStore', () => {
       expect(removedEvents).toHaveLength(1);
       expect(removedEvents[0].identifier).toBe('emit-multi-1');
 
-      sub1.unsubscribe();
-      sub2.unsubscribe();
+      sub1();
+      sub2();
     });
   });
 });

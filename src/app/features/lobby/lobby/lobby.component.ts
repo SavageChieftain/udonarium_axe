@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -10,7 +9,6 @@ import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-sett
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { merge, take } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,17 +46,17 @@ export class LobbyComponent {
 
   constructor() {
     queueMicrotask(() => this.changeTitle());
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    this.objectChange.networkOpen$.subscribe(() => {
       this.changeTitle();
       if (Network.peerContext.isRoom) {
         queueMicrotask(() => this.modalService.resolve());
         return;
       }
       if (!this.isReloading()) this.reload();
-    });
-    this.objectChange.peerConnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.peerConnect$.subscribe(() => {
       this.changeTitle();
-    });
+    }, this.destroyRef);
     if (Network.isOpen) {
       this.reload();
     }
@@ -135,21 +133,27 @@ export class LobbyComponent {
     PeerCursor.myCursor.peerId = Network.peerId;
 
     const triedPeer: string[] = [];
-    this.objectChange.networkOpen$.pipe(take(1)).subscribe(() => {
+    const offOpen = this.objectChange.networkOpen$.subscribe(() => {
+      offOpen();
       this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }
-      merge(this.objectChange.peerConnect$, this.objectChange.peerDisconnect$)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((event) => {
-          triedPeer.push(event.peerId);
-          if (peerContexts.length <= triedPeer.length) {
-            this.resetNetwork();
-            this.closeIfConnected();
-          }
-        });
-    });
+      this.objectChange.peerConnect$.subscribe((event) => {
+        triedPeer.push(event.peerId);
+        if (peerContexts.length <= triedPeer.length) {
+          this.resetNetwork();
+          this.closeIfConnected();
+        }
+      }, this.destroyRef);
+      this.objectChange.peerDisconnect$.subscribe((event) => {
+        triedPeer.push(event.peerId);
+        if (peerContexts.length <= triedPeer.length) {
+          this.resetNetwork();
+          this.closeIfConnected();
+        }
+      }, this.destroyRef);
+    }, this.destroyRef);
   }
 
   private resetNetwork() {

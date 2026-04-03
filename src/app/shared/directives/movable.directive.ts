@@ -1,5 +1,4 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -138,7 +137,7 @@ export class MovableDirective {
     this.input.onEnd = (e) => this.onInputEnd(e);
     this.input.onContextMenu = (e) => this.onContextMenu(e);
 
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.objectChanged$.subscribe((event) => {
       if (
         !this.tabletopObject ||
         (event.isSendFromSelf && this.input!.isGrabbing) ||
@@ -155,7 +154,7 @@ export class MovableDirective {
         this.stopTransition();
         this.setPosition(this.tabletopObject);
       }, this);
-    });
+    }, this.destroyRef);
 
     if (this.layerName.length < 1 && this.tabletopObject) this.layerName = this.tabletopObject.aliasName;
     this.register();

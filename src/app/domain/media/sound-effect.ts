@@ -6,7 +6,6 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { callSoundEffect, sendMessage$, soundEffect$ } from '@axe/domain/domain-events';
-import { Subscription } from 'rxjs';
 
 export class PresetSound {
   static dicePick: string = '';
@@ -29,18 +28,18 @@ export class PresetSound {
 
 @SyncObject('sound-effect')
 export class SoundEffect extends GameObject {
-  private subscription = new Subscription();
+  private cleanups: (() => void)[] = [];
 
   // GameObject Lifecycle
   override onStoreAdded() {
     super.onStoreAdded();
-    this.subscription.add(
+    this.cleanups.push(
       soundEffect$.subscribe((identifier) => {
         const audio = AudioStorage.instance.get(identifier);
         if (audio) AudioPlayer.play(audio, 0.5);
       })
     );
-    this.subscription.add(
+    this.cleanups.push(
       sendMessage$.subscribe((data) => {
         const chatMessage = ObjectStore.instance.get<ChatMessage>(data.messageIdentifier);
         if (!chatMessage || !chatMessage.isSendFromSelf || !chatMessage.isDicebot) return;
@@ -56,7 +55,8 @@ export class SoundEffect extends GameObject {
   // GameObject Lifecycle
   override onStoreRemoved() {
     super.onStoreRemoved();
-    this.subscription.unsubscribe();
+    this.cleanups.forEach((c) => c());
+    this.cleanups = [];
   }
 
   play(arg: string | AudioFile): void {

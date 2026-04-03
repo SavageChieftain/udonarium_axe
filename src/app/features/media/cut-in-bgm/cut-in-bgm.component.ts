@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -9,7 +8,6 @@ import { Jukebox } from '@axe/domain/media/Jukebox';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { debounceTime } from 'rxjs';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,12 +24,8 @@ export class CutInBgmComponent {
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly eventVersion = toSignal(this.objectChange.eventActivity$.pipe(debounceTime(100)), {
-    initialValue: undefined,
-  });
-
   get audios(): AudioFile[] {
-    this.eventVersion();
+    this.objectChange.networkVersion();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   }
   get jukebox(): Jukebox {

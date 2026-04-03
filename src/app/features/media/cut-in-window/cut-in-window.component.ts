@@ -7,7 +7,6 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { YouTubePlayer } from '@angular/youtube-player';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
@@ -50,30 +49,30 @@ export class CutInWindowComponent {
   timerCheckWindowSize: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.objectChange.startCutIn$.subscribe((event) => {
       const cutIn = event.cutIn as CutIn;
       if (this.cutIn) {
         if (this.cutIn.identifier == cutIn.identifier || this.cutIn.tagName == cutIn.tagName) {
           this.panelService.close();
         }
       }
-    });
-    this.objectChange.stopCutInByBgm$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    }, this.destroyRef);
+    this.objectChange.stopCutInByBgm$.subscribe(() => {
       if (this.cutIn) {
         const audio = this.audioStorage.get(this.cutIn.audioIdentifier);
         if (this.cutIn.tagName == '' && audio) {
           this.panelService.close();
         }
       }
-    });
-    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    }, this.destroyRef);
+    this.objectChange.stopCutIn$.subscribe((event) => {
       const cutIn = event.cutIn as CutIn;
       if (this.cutIn) {
         if (this.cutIn.identifier == cutIn.identifier) {
           this.panelService.close();
         }
       }
-    });
+    }, this.destroyRef);
     afterNextRender(() => {
       if (this.cutIn) {
         setTimeout(() => {

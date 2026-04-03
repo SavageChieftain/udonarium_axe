@@ -1,10 +1,9 @@
 import { BufferSharingTask } from '@axe/core/storage/buffer-sharing-task';
 
 const mocks = vi.hoisted(() => {
-  const noop = { subscribe: () => ({ unsubscribe: () => {} }) };
   return {
     networkSend: vi.fn(),
-    networkMessage$: { pipe: () => noop },
+    networkMessage$: { subscribe: () => () => {} },
   };
 });
 

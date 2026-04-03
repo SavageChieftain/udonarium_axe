@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -35,17 +34,17 @@ export class CardStackListComponentEx {
   constructor() {
     queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
     if (this.cardStack) this.panelService.cardStack = this.cardStack;
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectChanged$.subscribe((e) => {
       if (!this.cardStack) return;
       if (e.identifier === this.cardStack.identifier && this.cardStack.owner !== this.owner) {
         this.panelService.close();
       }
-    });
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    }, this.destroyRef);
+    this.objectChange.objectDeleted$.subscribe((e) => {
       if (this.cardStack && this.cardStack.identifier === e.identifier) {
         this.panelService.close();
       }
-    });
+    }, this.destroyRef);
     this.destroyRef.onDestroy(() => {
       if (this.cardStack && this.cardStack.owner === this.owner) {
         this.cardStack.owner = '';

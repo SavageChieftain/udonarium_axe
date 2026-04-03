@@ -1,6 +1,5 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
@@ -79,15 +78,15 @@ export class ChatTabSettingComponent {
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    this.objectChange.objectDeleted$.subscribe((e) => {
       if (!this.selectedTab() || e.identifier !== this.selectedTab()!.identifier) return;
       const object = this.objectStore.get(e.identifier);
       if (object !== null) {
         this.selectedTabXml = object.toXml();
       }
       this.selectedTab.set(null);
-    });
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+    }, this.destroyRef);
+    this.objectChange.objectChanged$.subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
         if (this.selectedTab() && !this.objectStore.get(this.selectedTab()!.identifier)) {
@@ -97,7 +96,7 @@ export class ChatTabSettingComponent {
           this.selectedTab.set(this.chatTabs[0]);
         }
       }
-    });
+    }, this.destroyRef);
   }
 
   onChangeSelectTab(identifier: string) {

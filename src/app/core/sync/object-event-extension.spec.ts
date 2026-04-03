@@ -39,7 +39,7 @@ describe('object-event-extension', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(callback).toHaveBeenCalled();
       expect(callback.mock.calls[0][0]).toEqual(expect.objectContaining({ identifier: obj.identifier }));
-      sub.unsubscribe();
+      sub();
     });
   });
 
@@ -59,7 +59,7 @@ describe('object-event-extension', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(callback).toHaveBeenCalled();
       expect(callback.mock.calls[0][0]).toEqual(expect.objectContaining({ identifier: parent.identifier }));
-      sub.unsubscribe();
+      sub();
     });
   });
 
