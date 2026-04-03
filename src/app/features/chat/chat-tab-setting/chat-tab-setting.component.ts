@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -70,8 +70,8 @@ export class ChatTabSettingComponent implements OnInit {
     return !this.isEmpty && !this.isDeleted;
   }
 
-  isSaveing = false;
-  progresPercent = 0;
+  readonly isSaveing = signal(false);
+  readonly progresPercent = signal(0);
 
   allowDeleteLog = false;
   allowDeleteTab = false;
@@ -121,19 +121,19 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   async save() {
-    if (!this.selectedTab || this.isSaveing) return;
-    this.isSaveing = true;
-    this.progresPercent = 0;
+    if (!this.selectedTab || this.isSaveing()) return;
+    this.isSaveing.set(true);
+    this.progresPercent.set(0);
 
     const fileName: string = 'chat_' + this.selectedTab.name;
 
     await this.saveDataService.saveGameObjectAsync(this.selectedTab, fileName, (percent) => {
-      this.progresPercent = percent;
+      this.progresPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing = false;
-      this.progresPercent = 0;
+      this.isSaveing.set(false);
+      this.progresPercent.set(0);
     }, 500);
   }
 

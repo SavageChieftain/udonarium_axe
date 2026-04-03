@@ -1,6 +1,14 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, DestroyRef, effect, ElementRef, inject, viewChild } from '@angular/core';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -47,7 +55,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./remote-controller.component.css'],
   imports: [FormsModule, ControllerInputComponent, NgClass, NgTemplateOutlet, SafePipe],
 })
-export class RemoteControllerComponent implements OnInit, OnDestroy {
+export class RemoteControllerComponent {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private inventoryService = inject(GameObjectInventoryService);
@@ -88,7 +96,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
   }
 
   get chatTab(): ChatTab {
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -100,6 +108,27 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       this.uiSignalService.targetChange();
+    });
+    queueMicrotask(() => this.updatePanelTitle());
+    this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
+    this.gameType = this.character?.remoteController ? this.character.remoteController.dicebot : '';
+    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (this.character && this.character.identifier === e.identifier) {
+        this.panelService.close();
+      }
+      if (this.chatTabidentifier() === e.identifier) {
+        this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
+      }
+    });
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
+      if (!this.inventoryTypes().includes(this.selectTab())) {
+        this.selectTab.set(Network.peerId);
+      }
+    });
+    this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
+    this.destroyRef.onDestroy(() => {
+      if (this.isEdit()) this.toggleEditMode();
     });
   }
 
@@ -148,10 +177,10 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
     this.controllerInputComponent()?.onInput();
   }
 
-  public buffAreaIsHide = false;
-  public controllerAreaIsHide = false;
+  readonly buffAreaIsHide = signal(false);
+  readonly controllerAreaIsHide = signal(false);
 
-  chatTabidentifier = '';
+  readonly chatTabidentifier = signal('');
   remoteNumber = 0;
 
   recoveryLimitFlag = false;
@@ -167,23 +196,29 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
 
   remoteControlleridentifier: string[] = ['test01', 'test02'];
   inputText = '';
-  isEdit = false;
+  readonly isEdit = signal(false);
   editPalette = '';
 
   private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
   charList: string[] = [];
 
-  inventoryTypes: string[] = ['table', 'common', 'graveyard'];
-  selectTab = 'table';
+  readonly inventoryTypes = signal<string[]>(['table', 'common', 'graveyard']);
+  readonly selectTab = signal('table');
 
   hideChkBoxEvent(eventValue: boolean) {
-    this.buffAreaIsHide = eventValue;
+    this.buffAreaIsHide.set(eventValue);
   }
   controllerHideChkChange(eventValue: boolean) {
-    this.controllerAreaIsHide = eventValue;
+    this.controllerAreaIsHide.set(eventValue);
   }
   recoveryLimitFlagChange(_value: boolean) {
     // 現状特に処理なし
+  }
+  onControllerHideChkChange(event: Event): void {
+    this.controllerHideChkChange((event.target as HTMLInputElement).checked);
+  }
+  onRecoveryLimitFlagChange(event: Event): void {
+    this.recoveryLimitFlagChange((event.target as HTMLInputElement).checked);
   }
 
   reverseValue() {
@@ -209,40 +244,12 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnInit() {
-    queueMicrotask(() => this.updatePanelTitle());
-    this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
-    this.gameType = this.character?.remoteController ? this.character.remoteController.dicebot : '';
-    this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (this.character && this.character.identifier === e.identifier) {
-        this.panelService.close();
-      }
-      if (this.chatTabidentifier === e.identifier) {
-        this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
-      }
-    });
-
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-      if (!this.inventoryTypes.includes(this.selectTab)) {
-        this.selectTab = Network.peerId;
-      }
-    });
-    this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-  }
-
-  ngOnDestroy() {
-    if (this.isEdit) {
-      this.toggleEditMode();
-    }
-  }
-
   updatePanelTitle() {
     this.panelService.title = this.character ? this.character.name + ' のリモコン' : 'リモコン';
   }
 
   onSelectedCharacter(identifier: string) {
-    if (this.isEdit) {
+    if (this.isEdit()) {
       this.toggleEditMode();
     }
     const object = this.objectStore.get(identifier);
@@ -281,8 +288,8 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
   }
 
   toggleEditMode() {
-    this.isEdit = this.isEdit ? false : true;
-    if (this.isEdit) {
+    this.isEdit.set(!this.isEdit());
+    if (this.isEdit()) {
       if (!this.palette) return;
       this.editPalette = this.palette.value + '';
     } else {
@@ -311,7 +318,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
   }
 
   toggleEdit() {
-    this.isEdit = !this.isEdit;
+    this.isEdit.set(!this.isEdit());
   }
 
   selectGameObject(gameObject: GameObject) {
@@ -320,7 +327,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
   }
 
   getTargetCharacters(checkedOnly: boolean): GameCharacter[] {
-    const objectList = this.getGameObjects(this.selectTab);
+    const objectList = this.getGameObjects(this.selectTab());
     return getTargetCharacters(objectList, checkedOnly);
   }
 
@@ -451,7 +458,7 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
   }
 
   allBoxCheck(value: { check: boolean }) {
-    const objectList = this.getGameObjects(this.selectTab);
+    const objectList = this.getGameObjects(this.selectTab());
     for (const object of objectList) {
       if (object instanceof GameCharacter) {
         object.targeted = value.check;

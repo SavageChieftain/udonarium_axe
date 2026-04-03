@@ -11,7 +11,8 @@
                   type="radio"
                   value="{{ chatTab.identifier }}"
                   ng-control="options"
-                  [(ngModel)]="chatTabidentifier"
+                  [ngModel]="chatTabidentifier()"
+                  (ngModelChange)="chatTabidentifier.set($event)"
                 />
                 <div>{{ chatTab.name }}</div>
               </label>
@@ -21,7 +22,7 @@
 
         <controller-input
           [onlyCharacters]="true"
-          [chatTabidentifier]="chatTabidentifier"
+          [chatTabidentifier]="chatTabidentifier()"
           [(gameType)]="gameType"
           [(sendFrom)]="sendFrom"
           [(text)]="text"
@@ -33,16 +34,16 @@
         >
         </controller-input>
 
-        @if (!buffAreaIsHide) {
+        @if (!buffAreaIsHide()) {
           @if (errorMessageBuff.length > 0) {
             <div>{{ errorMessageBuff }}</div>
           }
-          @if (isEdit) {
+          @if (isEdit()) {
             <div class="edit-info">
               <i class="material-icons" style="vertical-align: bottom; size: 0.8rem">info_outline</i> バフ編集中です
             </div>
           }
-          @if (!isEdit) {
+          @if (!isEdit()) {
             <div style="flex-grow: 1; height: 0; min-height: 100px">
               <form name="remote-controller-buff">
                 @if (!buffHideIsChk) {
@@ -75,7 +76,7 @@
               </select>
             </div>
           }
-          @if (isEdit) {
+          @if (isEdit()) {
             <div style="flex-grow: 1; height: 0; min-height: 100px">
               <textarea
                 class="palette is-caret"
@@ -88,10 +89,10 @@
           }
           <div style="flex-grow: 0">
             <button type="submit" (click)="toggleEditMode()" style="width: 20em">
-              @if (!isEdit) {
+              @if (!isEdit()) {
                 <span>バフパレット編集</span>
               }
-              @if (isEdit) {
+              @if (isEdit()) {
                 <span>バフパレット確定</span>
               }
             </button>
@@ -118,11 +119,11 @@
       カウンターリモコン
       <div style="float: right; text-align: right">
         隠す
-        <input name="buff_hide_chk" type="checkbox" (change)="controllerHideChkChange($event.target.checked)" />
+        <input name="buff_hide_chk" type="checkbox" (change)="onControllerHideChkChange($event)" />
       </div>
     </div>
 
-    @if (!controllerAreaIsHide) {
+    @if (!controllerAreaIsHide()) {
       <div>
         変更量
         <input
@@ -146,14 +147,14 @@
             name="max_limit_chk"
             type="checkbox"
             [(ngModel)]="this.recoveryLimitFlag"
-            (change)="recoveryLimitFlagChange($event.target.checked)"
+            (change)="onRecoveryLimitFlagChange($event)"
           /><br />
           0制限
           <input
             name="min_limit_chk"
             type="checkbox"
             [(ngModel)]="this.recoveryLimitFlagMin"
-            (change)="recoveryLimitFlagChange($event.target.checked)"
+            (change)="onRecoveryLimitFlagChange($event)"
           />
         </div>
       </div>
@@ -214,10 +215,10 @@
   </div>
 
   <div class="controller-right">
-    @if (getGameObjects(selectTab).length < 1) {
-      <div>{{ getTabTitle(selectTab) }}インベントリは空です</div>
+    @if (getGameObjects(selectTab()).length < 1) {
+      <div>{{ getTabTitle(selectTab()) }}インベントリは空です</div>
     }
-    @for (gameObject of getGameObjects(selectTab); track trackByGameObject($index, gameObject)) {
+    @for (gameObject of getGameObjects(selectTab()); track trackByGameObject($index, gameObject)) {
       <div [ngClass]="{ box: true, selected: 0 }">
         <ng-container *ngTemplateOutlet="gameObjectTags; context: { gameObject: gameObject }"></ng-container>
       </div>

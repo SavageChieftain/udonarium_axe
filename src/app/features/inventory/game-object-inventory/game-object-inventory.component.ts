@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -30,7 +30,7 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
-export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
+export class GameObjectInventoryComponent {
   private panelService = inject(PanelService);
   private inventoryService = inject(GameObjectInventoryService);
   private contextMenuService = inject(ContextMenuService);
@@ -47,11 +47,19 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
         this.selectedIdentifier = selection.identifier;
       }
     });
+    queueMicrotask(() => (this.panelService.title = 'インベントリ'));
+    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
+      if (!this.inventoryTypes().includes(this.selectTab())) {
+        this.selectTab.set(Network.peerId);
+      }
+    });
+    this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
   }
 
-  inventoryTypes: string[] = ['table', 'common', 'graveyard'];
+  readonly inventoryTypes = signal<string[]>(['table', 'common', 'graveyard']);
 
-  selectTab: string = 'table';
+  readonly selectTab = signal('table');
   selectedIdentifier: string = '';
   multiMoveTargets: Set<string> = new Set();
 
@@ -103,21 +111,6 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
 
   get newLineString(): string {
     return this.inventoryService.newLineString;
-  }
-
-  ngOnInit() {
-    queueMicrotask(() => (this.panelService.title = 'インベントリ'));
-    this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-      if (!this.inventoryTypes.includes(this.selectTab)) {
-        this.selectTab = Network.peerId;
-      }
-    });
-    this.inventoryTypes = ['table', 'common', Network.peerId, 'graveyard'];
-  }
-
-  ngAfterViewInit() {
-    // signal 駆動に移行済み — ポーリング不要
   }
 
   getTabTitle(inventoryType: string) {
@@ -255,8 +248,8 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
   }
 
   cleanInventory() {
-    const tabTitle = this.getTabTitle(this.selectTab);
-    const gameObjects = this.getGameObjects(this.selectTab);
+    const tabTitle = this.getTabTitle(this.selectTab());
+    const gameObjects = this.getGameObjects(this.selectTab());
     if (!confirm(`${tabTitle}に存在する${gameObjects.length}個の要素を完全に削除しますか？`)) return;
     for (const gameObject of gameObjects) {
       this.deleteGameObject(gameObject);
@@ -265,7 +258,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
   }
 
   existsMultiMoveSelectedInTab(): boolean {
-    return this.getGameObjects(this.selectTab).some((x) => this.multiMoveTargets.has(x.identifier));
+    return this.getGameObjects(this.selectTab()).some((x) => this.multiMoveTargets.has(x.identifier));
   }
 
   toggleMultiMoveTarget(e: Event, gameObject: GameCharacter) {
@@ -281,9 +274,9 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
 
   allTabBoxCheck() {
     if (this.existsMultiMoveSelectedInTab()) {
-      this.getGameObjects(this.selectTab).forEach((x) => this.multiMoveTargets.delete(x.identifier));
+      this.getGameObjects(this.selectTab()).forEach((x) => this.multiMoveTargets.delete(x.identifier));
     } else {
-      this.getGameObjects(this.selectTab).forEach((x) => this.multiMoveTargets.add(x.identifier));
+      this.getGameObjects(this.selectTab()).forEach((x) => this.multiMoveTargets.add(x.identifier));
     }
   }
 
@@ -299,7 +292,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
       { name: 'graveyard', alias: '墓場に移動' },
     ];
     for (const location of locations) {
-      if (this.selectTab === location.name) continue;
+      if (this.selectTab() === location.name) continue;
       actions.push({
         name: location.alias,
         action: () => {
@@ -309,7 +302,7 @@ export class GameObjectInventoryComponent implements OnInit, AfterViewInit {
         },
       });
     }
-    if (this.selectTab == 'graveyard') {
+    if (this.selectTab() == 'graveyard') {
       actions.push({
         name: '墓場から削除',
         action: () => {

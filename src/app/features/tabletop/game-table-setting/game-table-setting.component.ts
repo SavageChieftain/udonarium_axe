@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -160,8 +160,8 @@ export class GameTableSettingComponent implements OnInit {
     return !this.isEmpty && !this.isDeleted;
   }
 
-  isSaveing: boolean = false;
-  progresPercent: number = 0;
+  readonly isSaveing = signal(false);
+  readonly progresPercent = signal(0);
 
   ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'テーブル設定'));
@@ -194,18 +194,18 @@ export class GameTableSettingComponent implements OnInit {
   }
 
   async save() {
-    if (!this.selectedTable || this.isSaveing) return;
-    this.isSaveing = true;
-    this.progresPercent = 0;
+    if (!this.selectedTable || this.isSaveing()) return;
+    this.isSaveing.set(true);
+    this.progresPercent.set(0);
 
     this.selectedTable.selected = true;
     await this.saveDataService.saveGameObjectAsync(this.selectedTable, 'map_' + this.selectedTable.name, (percent) => {
-      this.progresPercent = percent;
+      this.progresPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing = false;
-      this.progresPercent = 0;
+      this.isSaveing.set(false);
+      this.progresPercent.set(0);
     }, 500);
   }
 

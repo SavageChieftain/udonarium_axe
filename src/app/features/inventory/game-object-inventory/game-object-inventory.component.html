@@ -2,11 +2,11 @@
   <ng-container *ngTemplateOutlet="inventoryTab"></ng-container>
   <ng-container *ngTemplateOutlet="inventoryViewSetting"></ng-container>
   <ng-container *ngTemplateOutlet="inventoryMultiMove"></ng-container>
-  @if (getGameObjects(selectTab).length < 1) {
-    <div>{{ getTabTitle(selectTab) }}インベントリは空です</div>
+  @if (getGameObjects(selectTab()).length < 1) {
+    <div>{{ getTabTitle(selectTab()) }}インベントリは空です</div>
   }
   <!--    <ng-container *ngIf="!gameObject.hideInventory && gameObject.location.name === 'table'"> -->
-  @for (gameObject of getGameObjects(selectTab); track trackByGameObject($index, gameObject)) {
+  @for (gameObject of getGameObjects(selectTab()); track trackByGameObject($index, gameObject)) {
     <div
       (contextmenu)="onContextMenu($event, gameObject)"
       (click)="selectGameObject(gameObject)"
@@ -17,12 +17,12 @@
     </div>
   }
 
-  @if (selectTab === 'graveyard') {
+  @if (selectTab() === 'graveyard') {
     <div style="padding-top: 6px">
       <button
         class="danger"
         (click)="cleanInventory()"
-        [attr.disabled]="getGameObjects(selectTab).length < 1 ? '' : null"
+        [attr.disabled]="getGameObjects(selectTab()).length < 1 ? '' : null"
       >
         墓場を空にする
       </button>
@@ -33,9 +33,16 @@
 <ng-template #inventoryTab>
   <form class="is-sticky-top" name="game-object-inventory">
     <div class="tab">
-      @for (inventoryType of inventoryTypes; track inventoryType) {
+      @for (inventoryType of inventoryTypes(); track inventoryType) {
         <label>
-          <input name="tab" type="radio" value="{{ inventoryType }}" ng-control="options" [(ngModel)]="selectTab" />
+          <input
+            name="tab"
+            type="radio"
+            value="{{ inventoryType }}"
+            ng-control="options"
+            [ngModel]="selectTab()"
+            (ngModelChange)="selectTab.set($event)"
+          />
           <div>{{ getTabTitle(inventoryType) }} ({{ getInventory(inventoryType).length }})</div>
         </label>
       }

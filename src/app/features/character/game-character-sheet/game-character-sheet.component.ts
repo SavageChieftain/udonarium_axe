@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -90,8 +90,8 @@ export class GameCharacterSheetComponent implements OnInit {
 
   networkService = Network;
 
-  isSaveing: boolean = false;
-  progresPercent: number = 0;
+  readonly isSaveing = signal(false);
+  readonly progresPercent = signal(0);
 
   ngOnInit() {
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
@@ -241,19 +241,19 @@ export class GameCharacterSheetComponent implements OnInit {
   }
   async saveToXML() {
     const obj = this.tabletopObject;
-    if (!obj || this.isSaveing) return;
-    this.isSaveing = true;
-    this.progresPercent = 0;
+    if (!obj || this.isSaveing()) return;
+    this.isSaveing.set(true);
+    this.progresPercent.set(0);
     const element = obj.commonDataElement?.getFirstElementByName('name');
     const objectName: string = element ? (element.value as string) : '';
 
     await this.saveDataService.saveGameObjectAsync(obj, 'xml_' + objectName, (percent) => {
-      this.progresPercent = percent;
+      this.progresPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing = false;
-      this.progresPercent = 0;
+      this.isSaveing.set(false);
+      this.progresPercent.set(0);
     }, 500);
   }
 

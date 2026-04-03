@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -112,8 +112,8 @@ export class DiceTableSettingComponent {
     return !this.isEmpty && this.isSelected && !this.isDeleted;
   }
 
-  isSaveing: boolean = false;
-  progresPercent: number = 0;
+  readonly isSaveing = signal(false);
+  readonly progresPercent = signal(0);
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ダイス表設定'));
@@ -134,18 +134,18 @@ export class DiceTableSettingComponent {
 
   async save() {
     if (!this.selectedTable) return;
-    this.isSaveing = true;
-    this.progresPercent = 0;
+    this.isSaveing.set(true);
+    this.progresPercent.set(0);
 
     const fileName: string = 'dice_table_' + this.selectedTable.name;
 
     await this.saveDataService.saveGameObjectAsync(this.selectedTable, fileName, (percent) => {
-      this.progresPercent = percent;
+      this.progresPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing = false;
-      this.progresPercent = 0;
+      this.isSaveing.set(false);
+      this.progresPercent.set(0);
     }, 500);
   }
 

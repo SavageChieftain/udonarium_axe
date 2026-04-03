@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 //
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -277,8 +277,8 @@ export class CutInListComponent {
       : `https://img.youtube.com/vi/${this.selectedCutIn.videoId}/hqdefault.jpg`;
   }
 
-  isSaveing = false;
-  progresPercent = 0;
+  readonly isSaveing = signal(false);
+  readonly progresPercent = signal(0);
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
@@ -303,19 +303,19 @@ export class CutInListComponent {
 
   async save() {
     if (!this.selectedCutIn) return;
-    this.isSaveing = true;
-    this.progresPercent = 0;
+    this.isSaveing.set(true);
+    this.progresPercent.set(0);
 
     this.selectedCutIn.selected = true;
     const fileName: string = 'cut_' + this.selectedCutIn.name;
 
     await this.saveDataService.saveGameObjectAsync(this.selectedCutIn, fileName, (percent) => {
-      this.progresPercent = percent;
+      this.progresPercent.set(percent);
     });
 
     setTimeout(() => {
-      this.isSaveing = false;
-      this.progresPercent = 0;
+      this.isSaveing.set(false);
+      this.progresPercent.set(0);
     }, 500);
   }
 

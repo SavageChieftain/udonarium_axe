@@ -45,11 +45,11 @@
           </div>
           <button (click)="upTabIndex()">↑</button>
           <button (click)="downTabIndex()">↓</button>
-          <button [disabled]="isSaveing" (click)="save()">
+          <button [disabled]="isSaveing()" (click)="save()">
             <div style="position: relative">
-              <div [ngClass]="{ 'is-hidden': isSaveing }">保存</div>
-              @if (isSaveing) {
-                <div class="progress">{{ progresPercent }}%</div>
+              <div [ngClass]="{ 'is-hidden': isSaveing() }">保存</div>
+              @if (isSaveing()) {
+                <div class="progress">{{ progresPercent() }}%</div>
               }
             </div>
           </button>
