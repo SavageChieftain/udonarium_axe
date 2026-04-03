@@ -95,7 +95,7 @@ export class DiceSymbol extends OwnedTabletopObject {
       faces.push(DataElement.create(faceName, '', { type: 'image' }, identifier));
     }
 
-    this.imageDataElement?.children.forEach((element) => element.destroy());
+    [...(this.imageDataElement?.children ?? [])].forEach((element) => element.destroy());
     faces.forEach((element) => this.imageDataElement?.appendChild(element));
     this.face = faces[0].name;
 

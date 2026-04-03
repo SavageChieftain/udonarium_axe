@@ -26,7 +26,7 @@ export class CardStackListComponentEx {
 
   owner: string = Network.peerContext.userId;
 
-  get cards(): Card[] {
+  get cards(): readonly Card[] {
     if (!this.cardStack) return [];
     this.objectChange.versionOf(this.cardStack.identifier)();
     return this.cardStack.cards;

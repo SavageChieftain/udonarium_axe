@@ -648,7 +648,7 @@ describe('ObjectNode', () => {
       expect(parent.children[0]).toBe(child);
     });
 
-    it('should return copy of children array', () => {
+    it('should return the same readonly children reference each time', () => {
       const parent = new ObjectNode('parent');
       const child = new ObjectNode('child');
       store.add(parent, false);
@@ -658,7 +658,7 @@ describe('ObjectNode', () => {
       const children1 = parent.children;
       const children2 = parent.children;
 
-      expect(children1).not.toBe(children2);
+      expect(children1).toBe(children2);
       expect(children1).toEqual(children2);
     });
   });

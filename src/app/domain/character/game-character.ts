@@ -37,7 +37,7 @@ export class GameCharacter extends TabletopObject {
 
   chatBubbleAltitude: number = 0;
 
-  _targeted: boolean = false;
+  private _targeted: boolean = false;
   get targeted(): boolean {
     return this._targeted;
   }
@@ -45,7 +45,7 @@ export class GameCharacter extends TabletopObject {
     this._targeted = flag;
   }
 
-  _selectedTachieNum: number = 0;
+  private _selectedTachieNum: number = 0;
   get selectedTachieNum(): number {
     const childCount = this.imageDataElement?.children.length ?? 0;
     if (this._selectedTachieNum > childCount - 1) {
@@ -108,6 +108,16 @@ export class GameCharacter extends TabletopObject {
       }
     }
     return null;
+  }
+
+  get buffDataElement(): DataElement | null {
+    return this.getElement('buff');
+  }
+
+  addBuffDataElement() {
+    if (!this.buffDataElement) {
+      this.rootDataElement?.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`));
+    }
   }
 
   private _buffs: BuffManager | null = null;

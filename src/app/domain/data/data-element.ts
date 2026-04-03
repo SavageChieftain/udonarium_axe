@@ -29,8 +29,8 @@ export class DataElement extends ObjectNode {
   @SyncVar() currentValue: number | string;
 
   // DataElement の子は常に DataElement なので、aは型を正確に宣言する
-  override get children(): DataElement[] {
-    return super.children as DataElement[];
+  override get children(): readonly DataElement[] {
+    return super.children as readonly DataElement[];
   }
 
   get isNumberResource(): boolean {

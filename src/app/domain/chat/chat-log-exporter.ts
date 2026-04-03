@@ -116,7 +116,7 @@ export class ChatLogExporter {
     return head + parts.join('') + '  </body>\n</html>';
   }
 
-  static exportAllTabsHtml(tabs: ChatTab[], showTime: number | boolean, userId?: string): string {
+  static exportAllTabsHtml(tabs: readonly ChatTab[], showTime: number | boolean, userId?: string): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
@@ -134,7 +134,7 @@ export class ChatLogExporter {
     return head + main + '\n  </body>\n</html>';
   }
 
-  static exportAllTabsHtmlCoc(tabs: ChatTab[], userId?: string): string {
+  static exportAllTabsHtmlCoc(tabs: readonly ChatTab[], userId?: string): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -163,7 +163,7 @@ export class ChatLogExporter {
     return message.isDisplayable;
   }
 
-  private static mergeTabMessages(tabs: ChatTab[], formatter: MessageFormatter, userId?: string): string {
+  private static mergeTabMessages(tabs: readonly ChatTab[], formatter: MessageFormatter, userId?: string): string {
     if (!tabs || tabs.length === 0) return '';
     const tabNum = tabs.length;
     const indexList = new Array<number>(tabNum).fill(0);

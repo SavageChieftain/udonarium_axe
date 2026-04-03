@@ -87,7 +87,7 @@ export class CardStackComponent {
   get isShowTotal(): boolean {
     return this.cardStack().isShowTotal;
   }
-  get cards(): Card[] {
+  get cards(): readonly Card[] {
     this.cardsVersion();
     return this.cardStack().cards;
   }

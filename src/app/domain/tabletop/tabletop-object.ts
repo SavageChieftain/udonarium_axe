@@ -25,7 +25,6 @@ export class TabletopObject extends ObjectNode {
     return this.location.name === 'table';
   }
 
-  private _imageFile: ImageFile = ImageFile.Empty;
   private _dataElements: { [name: string]: string | null } = {};
 
   // GameDataElement getter/setter
@@ -46,10 +45,6 @@ export class TabletopObject extends ObjectNode {
     return this.getElement('detail');
   }
 
-  get buffDataElement(): DataElement | null {
-    return this.getElement('buff');
-  } //リリィにてバフ機能用の追加
-
   get name(): string {
     return this.getCommonValue('name', '');
   }
@@ -57,20 +52,10 @@ export class TabletopObject extends ObjectNode {
     this.setCommonValue('name', name);
   }
 
-  addBuffDataElement() {
-    if (!this.buffDataElement) {
-      this.rootDataElement?.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`));
-    }
-  }
-
   get imageFile(): ImageFile {
-    if (!this.imageDataElement) return this._imageFile;
-    const imageIdElement = this.imageDataElement.getFirstElementByName('imageIdentifier');
-    if (imageIdElement && this._imageFile.identifier !== imageIdElement.value) {
-      const file = ImageStorage.instance.get(imageIdElement.value as string);
-      this._imageFile = file ? file : ImageFile.Empty;
-    }
-    return this._imageFile;
+    const imageIdElement = this.imageDataElement?.getFirstElementByName('imageIdentifier');
+    if (!imageIdElement) return ImageFile.Empty;
+    return ImageStorage.instance.get(imageIdElement.value as string) ?? ImageFile.Empty;
   }
 
   @SyncVar() isAltitudeIndicate: boolean = false;
@@ -105,7 +90,6 @@ export class TabletopObject extends ObjectNode {
     }
     if (!this.commonDataElement) rootEl.appendChild(DataElement.create('common', '', {}, `common_${this.identifier}`));
     if (!this.detailDataElement) rootEl.appendChild(DataElement.create('detail', '', {}, `detail_${this.identifier}`));
-    if (!this.buffDataElement) rootEl.appendChild(DataElement.create('buff', '', {}, `buff_${this.identifier}`)); //entyu
   }
 
   protected getElement(name: string, from: DataElement | null = this.rootDataElement): DataElement | null {

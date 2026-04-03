@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
@@ -17,6 +17,6 @@ export class GameCharacterBuffViewComponent {
 
   //  @Input() title: string = '';
 
-  character: TabletopObject | null = null;
+  character: GameCharacter | null = null;
   isEdit: boolean = false;
 }

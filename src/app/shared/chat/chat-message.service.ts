@@ -40,7 +40,7 @@ export class ChatMessageService {
 
   gameType: string = 'DiceBot';
 
-  get chatTabs(): ChatTab[] {
+  get chatTabs(): readonly ChatTab[] {
     return this.chatTabList.chatTabs;
   }
 

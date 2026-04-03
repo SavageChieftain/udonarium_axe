@@ -7,9 +7,9 @@ import { Jukebox } from '@axe/domain/media/Jukebox';
 
 @SyncObject('config')
 export class Config extends ObjectNode implements InnerXml {
-  @SyncVar() _defaultDiceBot: string = 'DiceBot';
-  @SyncVar() _roomVolume: number = 1.0;
-  @SyncVar() _roomGridDispAlways: boolean = false;
+  @SyncVar('_defaultDiceBot') private _defaultDiceBot: string = 'DiceBot';
+  @SyncVar('_roomVolume') private _roomVolume: number = 1.0;
+  @SyncVar('_roomGridDispAlways') private _roomGridDispAlways: boolean = false;
 
   get defaultDiceBot(): string {
     if (this._defaultDiceBot == '') {

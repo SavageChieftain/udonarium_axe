@@ -25,9 +25,9 @@ export class CardStack extends OwnedTabletopObject {
     }
     return null;
   }
-  get cards(): Card[] {
+  get cards(): readonly Card[] {
     const cardRoot = this.cardRoot;
-    return cardRoot ? (cardRoot.children as Card[]) : [];
+    return cardRoot ? (cardRoot.children as readonly Card[]) : [];
   }
   get topCard(): Card | null {
     return this.isEmpty ? null : this.cards[0];
@@ -50,7 +50,7 @@ export class CardStack extends OwnedTabletopObject {
     }
   }
 
-  shuffle(): Card[] {
+  shuffle(): readonly Card[] {
     const cardRoot = this.cardRoot;
     if (!cardRoot) return [];
     const length = cardRoot.children.length;
@@ -77,7 +77,7 @@ export class CardStack extends OwnedTabletopObject {
 
   drawCardAll(): Card[] {
     const cardRoot = this.cardRoot;
-    const cards = this.cards;
+    const cards = [...this.cards];
     for (const card of cards) {
       cardRoot?.removeChild(card);
       card.rotate += this.rotate;

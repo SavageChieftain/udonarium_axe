@@ -40,12 +40,12 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
   }
 
   private _children: ObjectNode[] = [];
-  get children(): ObjectNode[] {
+  get children(): readonly ObjectNode[] {
     if (this.needsSort) {
       this.needsSort = false;
       this._children.sort((a, b) => a.index - b.index);
     }
-    return [...this._children];
+    return this._children;
   }
 
   private static pendingChildrenByParentId: Record<string, ObjectNode[]> = {};

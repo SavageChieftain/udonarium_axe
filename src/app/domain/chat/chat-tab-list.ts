@@ -8,7 +8,7 @@ import { ReloadCheck } from '@axe/domain/shared/reload-check';
 
 @SyncObject('chat-tab-list')
 export class ChatTabList extends ObjectNode implements InnerXml {
-  @SyncVar() _systemMessageTabIndex: number = 0;
+  @SyncVar('_systemMessageTabIndex') private _systemMessageTabIndex: number = 0;
   set systemMessageTabIndex(index: number) {
     this._systemMessageTabIndex = index;
   }
@@ -40,8 +40,8 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return ChatTabList._instance;
   }
 
-  get chatTabs(): ChatTab[] {
-    return this.children as ChatTab[];
+  get chatTabs(): readonly ChatTab[] {
+    return this.children as readonly ChatTab[];
   }
 
   //チャット簡易表示フラグ、拡張余地のため整数型

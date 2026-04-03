@@ -2,7 +2,7 @@ import { ChatMessage } from '@axe/domain/chat/chat-message';
 
 export type ScrollPosition = { top: number; bottom: number; clientHeight: number; scrollHeight: number };
 
-export function findDisplayableTopIndex(chatMessages: ChatMessage[], dispLength: number): number {
+export function findDisplayableTopIndex(chatMessages: readonly ChatMessage[], dispLength: number): number {
   const len = chatMessages.length;
   let count = 0;
   let i = len - 1;

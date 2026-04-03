@@ -56,7 +56,7 @@ export class ChatTabSettingComponent {
     if (this.isEditable && this.selectedTab()) this.selectedTab()!.name = tabName;
   }
 
-  get chatTabs(): ChatTab[] {
+  get chatTabs(): readonly ChatTab[] {
     this.objectChange.collectionOf('chat-tab')();
     return this.chatMessageService.chatTabs;
   }
