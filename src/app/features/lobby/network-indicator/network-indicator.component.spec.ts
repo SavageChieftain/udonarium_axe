@@ -20,7 +20,7 @@ describe('NetworkIndicatorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('ngOnDestroy', () => {
+  describe('破棄クリーンアップ', () => {
     it('timer が clearTimeout でクリアされ null になる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { timer: NodeJS.Timeout | null };

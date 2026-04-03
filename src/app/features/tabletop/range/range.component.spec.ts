@@ -47,4 +47,39 @@ describe('RangeComponent', () => {
       expect(spy).toHaveBeenCalledWith(range.identifier);
     });
   });
+
+  describe('_clipVersionシグナル (Zoneless CD)', () => {
+    type PrivClipVersion = { _clipVersion: { (): number; update(fn: (v: number) => number): void } };
+
+    it('初期値が0であること', () => {
+      const priv = component as unknown as PrivClipVersion;
+      expect(priv._clipVersion()).toBe(0);
+    });
+
+    it('updateで値がインクリメントされること', () => {
+      const priv = component as unknown as PrivClipVersion;
+      priv._clipVersion.update((v) => v + 1);
+      expect(priv._clipVersion()).toBe(1);
+    });
+
+    it('clipCornゲッターがpolygon文字列を返すこと', () => {
+      expect(component.clipCorn).toContain('polygon(');
+    });
+  });
+
+  describe('movableOption / rotableOption (effect経由)', () => {
+    it('rangeインプット設定後にmovableOptionのtabletopObjectがrangeになること', () => {
+      const range = RangeArea.create('テスト', 3, 5, 1);
+      fixture.componentRef.setInput('range', range);
+      fixture.detectChanges();
+      expect(component.movableOption.tabletopObject).toBe(range);
+    });
+
+    it('rangeインプット設定後にrotableOptionのtabletopObjectがrangeになること', () => {
+      const range = RangeArea.create('テスト', 3, 5, 1);
+      fixture.componentRef.setInput('range', range);
+      fixture.detectChanges();
+      expect(component.rotableOption.tabletopObject).toBe(range);
+    });
+  });
 });
