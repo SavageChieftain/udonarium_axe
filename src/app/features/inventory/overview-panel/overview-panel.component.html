@@ -37,9 +37,9 @@
     [ngClass]="pointerEventsStyle"
     [ngStyle]="{ width: overViewCardWidth + 'px' }"
   >
-    @if (hasImage) {
+    @if (hasImage()) {
       <div style="position: relative">
-        <img class="card-image" [src]="imageUrl | safe: 'resourceUrl'" />
+        <img class="card-image" [src]="imageUrl() | safe: 'resourceUrl'" />
         <button class="zoom-button" (click)="chanageImageView(true)">
           <i class="material-icons">zoom_in</i>
         </button>
@@ -53,7 +53,7 @@
     @if (card?.name) {
       <div
         class="component-title title-background"
-        [ngClass]="{ 'with-button-marign': hasImage }"
+        [ngClass]="{ 'with-button-marign': hasImage() }"
         [ngStyle]="{ width: overViewCardWidthNoMargin + 'px' }"
       >
         @if (card.isVisible !== null && !card.isVisible) {
@@ -113,9 +113,9 @@
 <ng-template #overviewCharacter let-character="character">
   <div class="component-content character-grid-container is-middle-size">
     <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
-    @if (hasImage) {
+    @if (hasImage()) {
       <div class="image-area character-image-box" [ngClass]="pointerEventsStyle">
-        <img class="character-image" [src]="imageUrl | safe: 'resourceUrl'" />
+        <img class="character-image" [src]="imageUrl() | safe: 'resourceUrl'" />
       </div>
     }
     <div class="title-area component-title" [ngClass]="pointerEventsStyle">
@@ -157,12 +157,12 @@
         <div class="owner-tag">{{ dice.ownerName }}</div>
       </div>
     }
-    @if (hasImage) {
+    @if (hasImage()) {
       <div class="image-area character-image-box" [ngClass]="pointerEventsStyle">
         <img
           class="character-image"
           [ngClass]="{ 'is-black-mask': !dice.isVisible, 'is-harf-black-mask': dice.isMine }"
-          [src]="imageUrl | safe: 'resourceUrl'"
+          [src]="imageUrl() | safe: 'resourceUrl'"
         />
       </div>
     }
@@ -335,6 +335,6 @@
 <ng-template #imageView>
   <div class="image-view-background is-fill fade-in" (click)="chanageImageView(false)">
     <div class="close-button is-pointer-events-none"><i class="material-icons">close</i></div>
-    <img class="contain-image" [src]="imageUrl | safe: 'resourceUrl'" />
+    <img class="contain-image" [src]="imageUrl() | safe: 'resourceUrl'" />
   </div>
 </ng-template>

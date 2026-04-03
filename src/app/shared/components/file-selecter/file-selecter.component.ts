@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -40,29 +40,29 @@ export class FileSelecterComponent {
   }
 
   //本家PR #92より
-  get images(): ImageFile[] {
+  readonly images = computed(() => {
     this.objectChange.fileVersion();
     const imageFileList: ImageFile[] = [];
-    if (this.selectTag == '全て') return this.getAllImage();
+    if (this.selectTag() == '全て') return this.getAllImage();
 
     for (const imageFile of this.fileStorageService.images) {
       const identifier = imageFile.context.identifier;
 
       if (ImageTag.get(identifier)) {
         const tag: string = ImageTag.get(identifier).tag;
-        if (this.selectTag == tag) {
+        if (this.selectTag() == tag) {
           imageFileList.push(imageFile);
         }
       } else {
         //タグ未設定の場合 画像投下直後は ImageTag.get(identifier) は空文字ではなく該当なしとなるため
-        if (this.selectTag == '') {
+        if (this.selectTag() == '') {
           imageFileList.push(imageFile);
         }
       }
     }
 
     return imageFileList;
-  }
+  });
 
   selectedFile: ImageFile | null = null;
   get isSelected(): boolean {
@@ -94,7 +94,7 @@ export class FileSelecterComponent {
     return tags2;
   }
 
-  selectTag: string = '';
+  readonly selectTag = signal('');
   fileStorageService = this.imageStorage;
 
   identifierList: string[] = [];

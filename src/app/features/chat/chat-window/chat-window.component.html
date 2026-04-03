@@ -1,10 +1,10 @@
 <!--<h2>チャットシステム</h2>-->
 <div class="component">
   <div class="log">
-    @if (chatTab) {
-      <chat-tab [chatTab]="chatTab" (addMessage)="scrollToBottom()"></chat-tab>
+    @if (chatTab()) {
+      <chat-tab [chatTab]="chatTab()" (addMessage)="scrollToBottom()"></chat-tab>
     }
-    @if (!chatTab) {
+    @if (!chatTab()) {
       <div>
         ※チャットタブの内容が更新されました。チャットタブを選択しなおすか、このチャットウィンドウを開きなおしてください。
       </div>

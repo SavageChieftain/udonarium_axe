@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -42,12 +42,12 @@ export class GameTableScratchMaskComponent {
     });
   }
 
-  get name(): string {
+  readonly name = computed(() => {
     const mask = this.gameTableScratchMask();
     if (!mask) return '';
     this.objectChange.versionOf(mask.identifier)();
     return mask.name;
-  }
+  });
   get width(): number {
     const mask = this.gameTableScratchMask();
     return mask ? Math.max(1, mask.width) : 1;
@@ -103,7 +103,7 @@ export class GameTableScratchMaskComponent {
       },
     });
 
-    this.contextMenuService.open(coordinate, actions, this.name);
+    this.contextMenuService.open(coordinate, actions, this.name());
   }
 
   lock() {

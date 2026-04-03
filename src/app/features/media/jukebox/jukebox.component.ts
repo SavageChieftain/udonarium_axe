@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
@@ -60,10 +60,10 @@ export class JukeboxComponent {
     AudioPlayer.auditionVolume = auditionVolume * this.roomVolume;
   }
 
-  get audios(): AudioFile[] {
+  readonly audios = computed(() => {
     this.objectChange.fileVersion();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
-  }
+  });
   get jukebox(): Jukebox {
     return this.objectStore.get<Jukebox>('Jukebox')!;
   }

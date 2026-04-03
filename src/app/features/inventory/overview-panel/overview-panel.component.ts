@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
@@ -49,14 +50,12 @@ export class OverviewPanelComponent {
   left: number = 0;
   top: number = 0;
 
-  get imageUrl(): string {
+  readonly imageUrl = computed(() => {
     this.objectChange.fileVersion();
     if (this.tabletopObject) this.objectChange.versionOf(this.tabletopObject.identifier)();
     return this.tabletopObject && this.tabletopObject.imageFile ? this.tabletopObject.imageFile.url : '';
-  }
-  get hasImage(): boolean {
-    return this.imageUrl.length > 0;
-  }
+  });
+  readonly hasImage = computed(() => this.imageUrl().length > 0);
 
   get inventoryDataElms(): DataElement[] {
     return this.tabletopObject ? this.getInventoryTags(this.tabletopObject).filter((e) => e != null) : [];
@@ -251,7 +250,7 @@ export class OverviewPanelComponent {
   }
 
   get overViewCardWidthNoMargin(): number {
-    if (this.hasImage) return this.overViewCardWidth - 60 - 12 - 2;
+    if (this.hasImage()) return this.overViewCardWidth - 60 - 12 - 2;
 
     return this.overViewCardWidth - 12 - 2;
   }

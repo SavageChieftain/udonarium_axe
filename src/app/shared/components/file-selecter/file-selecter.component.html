@@ -2,7 +2,14 @@
   <div class="image-chg">
     @for (tag of tagList; track tag) {
       <label>
-        <input name="image-chg" type="radio" value="{{ tag }}" [(ngModel)]="selectTag" (change)="resetBtn()" />
+        <input
+          name="image-chg"
+          type="radio"
+          value="{{ tag }}"
+          [ngModel]="selectTag()"
+          (ngModelChange)="selectTag.set($event)"
+          (change)="resetBtn()"
+        />
         @if (tag.length === 0) {
           <div>未設定</div>
         }
@@ -19,7 +26,7 @@
       <button (click)="onSelectedFile(empty)">画像なし</button>
     </span>
   }
-  @for (file of images; track file) {
+  @for (file of images(); track file) {
     <span class="image">
       <div style="float: left">
         @if (file.url) {

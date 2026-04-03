@@ -29,7 +29,7 @@
 }
 <hr />
 <div>
-  @for (audio of audios; track audio.identifier) {
+  @for (audio of audios(); track audio.identifier) {
     <div class="box">
       @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
         <button (click)="play(audio)" [disabled]="!audio.isReady">試聴/再生</button>
@@ -53,7 +53,7 @@
       ><br />
     </div>
   }
-  @if (!audios.length) {
+  @if (!audios().length) {
     <div>アップロードされた音楽ファイルはここに表示されます。</div>
   }
 </div>

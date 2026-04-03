@@ -2,7 +2,14 @@
   <div class="image-chg">
     @for (tag of tagList; track tag) {
       <label>
-        <input name="image-chg" type="radio" value="{{ tag }}" [(ngModel)]="selectTag" (change)="resetBtn()" />
+        <input
+          name="image-chg"
+          type="radio"
+          value="{{ tag }}"
+          [ngModel]="selectTag()"
+          (ngModelChange)="selectTag.set($event)"
+          (change)="resetBtn()"
+        />
         @if (!tag) {
           <div>未設定</div>
         }
@@ -31,7 +38,7 @@
   </div>
 </div>
 <div id="file-list">
-  @for (file of images; track file) {
+  @for (file of images(); track file) {
     <span class="image_">
       <div class="img-box" style="float: left" (click)="imgBlockClick(file.identifier)">
         @if (file.url) {

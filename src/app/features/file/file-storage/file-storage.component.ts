@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -39,28 +39,28 @@ export class FileStorageComponent {
     return imageFileList;
   }
 
-  get images(): ImageFile[] {
+  readonly images = computed(() => {
     this.objectChange.fileVersion();
     const imageFileList: ImageFile[] = [];
-    if (this.selectTag == '全て') return this.getAllImage();
+    if (this.selectTag() == '全て') return this.getAllImage();
     for (const imageFile of this.fileStorageService.images) {
       const identifier = imageFile.context.identifier;
 
       if (ImageTag.get(identifier)) {
         //
         const tag: string = ImageTag.get(identifier).tag;
-        if (tag == this.selectTag) {
+        if (tag == this.selectTag()) {
           imageFileList.push(imageFile);
         }
       } else {
         //タグ未設定の場合 画像投下直後は ImageTag.get(identifier) は空文字ではなく該当なしとなるため
-        if (this.selectTag == '') {
+        if (this.selectTag() == '') {
           imageFileList.push(imageFile);
         }
       }
     }
     return imageFileList;
-  }
+  });
 
   selectedFile: ImageFile | null = null;
   get isSelected(): boolean {
@@ -102,7 +102,7 @@ export class FileStorageComponent {
     if (this.newTagName() == '全て') return; //表示上混乱するタグの禁止
     if (this.newTagName() == 'システム予約') return; //システム予約名称
 
-    const changeableImages = this.images;
+    const changeableImages = this.images();
 
     for (const img of changeableImages) {
       if (this.checkedFiles.has(img.context.identifier)) {
@@ -117,7 +117,7 @@ export class FileStorageComponent {
     }
   }
 
-  selectTag: string = '';
+  readonly selectTag = signal('');
   readonly newTagName = signal<string>('');
 
   resetBtn() {

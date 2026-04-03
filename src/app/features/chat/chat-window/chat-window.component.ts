@@ -1,4 +1,12 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -76,11 +84,11 @@ export class ChatWindowComponent {
     this.chatTabidentifier = chatTabs[nextIndex].identifier;
   }
 
-  get chatTab(): ChatTab {
+  readonly chatTab = computed(() => {
     this.objectChange.versionOf(this.chatTabidentifier)();
     this.objectChange.collectionOf('chat-tab')();
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
-  }
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier) ?? null;
+  });
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
@@ -104,7 +112,7 @@ export class ChatWindowComponent {
           this.hasNewMessage.set(true);
         }
       }
-      if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
+      if (this.isAutoScroll) this.chatTab()?.markForRead();
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
       const object = this.objectStore.get(event.identifier);
@@ -162,7 +170,7 @@ export class ChatWindowComponent {
     this.panelService.scrollablePanel.dispatchEvent(event);
     if (this.scrollToBottomTimer != null) return;
     this.scrollToBottomTimer = setTimeout(() => {
-      if (this.chatTab) this.chatTab.markForRead();
+      this.chatTab()?.markForRead();
       this.scrollToBottomTimer = null;
       this.isAutoScroll = false;
       if (this.panelService.scrollablePanel) {
@@ -181,9 +189,10 @@ export class ChatWindowComponent {
   }
 
   updatePanelTitle() {
-    if (this.chatTab) {
-      this.panelService.title = 'チャットウィンドウ - ' + this.chatTab.name;
-      this.panelService.chatTab = this.chatTab;
+    const tab = this.chatTab();
+    if (tab) {
+      this.panelService.title = 'チャットウィンドウ - ' + tab.name;
+      this.panelService.chatTab = tab;
     } else {
       this.panelService.title = 'チャットウィンドウ';
       this.panelService.chatTab = null;
@@ -198,7 +207,7 @@ export class ChatWindowComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x - 250, top: coordinate.y - 175, width: 500, height: 380 };
     const component = this.panelService.open<ChatTabSettingComponent>(ChatTabSettingComponent, option);
-    component.selectedTab.set(this.chatTab);
+    component.selectedTab.set(this.chatTab());
   }
 
   showDiceTableSetting() {
@@ -256,7 +265,8 @@ export class ChatWindowComponent {
     tachieNum: number;
     messColor: string;
   }) {
-    if (this.chatTab) {
+    const tab = this.chatTab();
+    if (tab) {
       let outtext = '';
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
@@ -301,7 +311,7 @@ export class ChatWindowComponent {
         messageTargetContext.push(targetContext);
       }
       this.chatMessageService.sendMessage(
-        this.chatTab,
+        tab,
         outtext,
         value.gameSystem,
         value.sendFrom,
