@@ -471,7 +471,7 @@
       @for (childElement of tabletopObject.detailDataElement.children; track childElement) {
         <div class="flex-item">
           <div class="table">
-            <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit"></div>
+            <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
           </div>
         </div>
       }
@@ -485,7 +485,7 @@
               game-data-element
               [gameDataElement]="tabletopObject.imageDataElement"
               [isTagLocked]="true"
-              [isEdit]="isEdit"
+              [isEdit]="isEdit()"
               [isImage]="true"
             ></div>
           </div>
@@ -495,7 +495,7 @@
         </div>
       }
     }
-    @if (isEdit) {
+    @if (isEdit()) {
       <div class="flex-item">
         <button style="width: 100%; color: #555" (click)="addDataElement()">新しい項目を追加</button>
       </div>

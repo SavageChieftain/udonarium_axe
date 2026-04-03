@@ -1,7 +1,7 @@
 <div class="table">
   <div class="table-cell" style="width: 13em">
     <div>
-      <button (click)="createDiceTable()" [attr.disabled]="this.isEdit ? '' : null">新しい表を作る</button>
+      <button (click)="createDiceTable()" [attr.disabled]="isEdit() ? '' : null">新しい表を作る</button>
     </div>
     <select
       style="width: 100%"
@@ -10,7 +10,7 @@
       name="dice-table-select"
       name="dice-table-select"
       [ngModel]="selectedTable?.identifier"
-      [attr.disabled]="this.isEdit ? '' : null"
+      [attr.disabled]="isEdit() ? '' : null"
     >
       @for (diceTable of getDiceTables(); track diceTable) {
         <option value="{{ diceTable.identifier }}">{{ diceTable.name }}</option>
@@ -83,13 +83,13 @@
       </ng-select>
     </div>
 
-    @if (isEdit) {
+    @if (isEdit()) {
       <div class="edit-info">
         <i class="material-icons" style="vertical-align: bottom; size: 0.8rem">info_outline</i> ダイス表編集中です
       </div>
     }
     <!--入力部 -->
-    @if (!isEdit) {
+    @if (!isEdit()) {
       <div style="flex-grow: 1; height: 0; min-height: 150px">
         <select class="palette" style="overflow-y: auto" size="5">
           @if (selectedTable) {
@@ -102,24 +102,25 @@
         </select>
       </div>
     }
-    @if (isEdit) {
+    @if (isEdit()) {
       <div style="flex-grow: 1; height: 0; min-height: 150px">
         <textarea
           class="palette is-caret"
           style="resize: none"
           name="dice-table-palette"
           name="dice-table-palette"
-          [(ngModel)]="editPalette"
+          [ngModel]="editPalette()"
+          (ngModelChange)="editPalette.set($event)"
           placeholder="ダイス表"
         ></textarea>
       </div>
     }
     <div style="flex-grow: 0">
       <button type="submit" (click)="toggleEditMode()" [attr.disabled]="!isEditable ? '' : null">
-        @if (!isEdit) {
+        @if (!isEdit()) {
           <span>ダイス表の編集</span>
         }
-        @if (isEdit) {
+        @if (isEdit()) {
           <span>ダイス表を確定</span>
         }
       </button>

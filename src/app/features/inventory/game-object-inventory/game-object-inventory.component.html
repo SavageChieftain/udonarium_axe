@@ -12,7 +12,7 @@
       (contextmenu)="onContextMenu($event, gameObject)"
       (click)="selectGameObject(gameObject)"
       (dblclick)="focusToObject($event, gameObject)"
-      [ngClass]="{ box: true, selected: selectedIdentifier === gameObject.identifier }"
+      [ngClass]="{ box: true, selected: selectedIdentifier() === gameObject.identifier }"
     >
       <ng-container *ngTemplateOutlet="gameObjectTags; context: { gameObject: gameObject }"></ng-container>
     </div>
@@ -47,7 +47,7 @@
   </form>
 </ng-template>
 <ng-template #inventoryViewSetting>
-  @if (isEdit) {
+  @if (isEdit()) {
     <div>
       <div style="font-size: 12px">並び順第1</div>
       <input class="is-caret" name="sort-tag" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
@@ -107,7 +107,7 @@
   }
 </ng-template>
 <ng-template #inventoryMultiMove>
-  @if (isMultiMove) {
+  @if (isMultiMove()) {
     <div style="font-size: 0.8em">
       <span style="font-weight: bold">一括移動:</span>
       <button class="tab-setting small-font" (click)="allTabBoxCheck()">
@@ -136,18 +136,18 @@
   <div class="inventory-object">
     <div class="object-name">
       {{ gameObject.name }}
-      @if (selectedIdentifier === gameObject.identifier) {
+      @if (selectedIdentifier() === gameObject.identifier) {
         <button style="font-size: 0.8em; padding: 2px 5px" (click)="onContextMenu($event, gameObject)">
           <i class="material-icons" style="font-size: 1em">settings</i>
         </button>
       }
     </div>
     <div class="object-tags-box">
-      @if (isMultiMove) {
+      @if (isMultiMove()) {
         <div class="table-cell">
           <input
             type="checkbox"
-            [checked]="multiMoveTargets.has(gameObject.identifier)"
+            [checked]="multiMoveTargets().has(gameObject.identifier)"
             (change)="toggleMultiMoveTarget($event, gameObject)"
           />
         </div>

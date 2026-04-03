@@ -449,7 +449,7 @@ export class RemoteControllerComponent {
     };
     option.title = gameCharacter.name + 'のバフ編集';
     const component = this.panelService.open(GameCharacterBuffViewComponent, option);
-    component.character = gameCharacter;
+    component.character.set(gameCharacter);
   }
 
   allBoxCheck(value: { check: boolean }) {

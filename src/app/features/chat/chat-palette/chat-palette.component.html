@@ -43,7 +43,7 @@
         ＜<i class="material-icons small-font">bookmarks</i>
       </button>
     </div>
-    @if (isEdit) {
+    @if (isEdit()) {
       <div class="edit-info">
         <i class="material-icons" style="vertical-align: bottom; size: 0.8rem">info_outline</i>
         チャットパレット編集中です
@@ -66,7 +66,7 @@
       }
     </div>
   </div>
-  <div [hidden]="isEdit" style="flex-grow: 1; height: 0; min-height: 100px">
+  <div [hidden]="isEdit()" style="flex-grow: 1; height: 0; min-height: 100px">
     <select
       class="palette"
       style="overflow-y: auto"
@@ -83,22 +83,23 @@
       }
     </select>
   </div>
-  <div [hidden]="!isEdit" style="flex-grow: 1; height: 0; min-height: 100px">
+  <div [hidden]="!isEdit()" style="flex-grow: 1; height: 0; min-height: 100px">
     <textarea
       name="edit-palette"
       class="palette is-caret"
       #editText
       style="resize: none"
-      [(ngModel)]="editPalette"
+      [ngModel]="editPalette()"
+      (ngModelChange)="editPalette.set($event)"
       placeholder="チャットパレット"
     ></textarea>
   </div>
   <div style="flex-grow: 0">
     <button type="submit" (click)="toggleEditMode()">
-      @if (!isEdit) {
+      @if (!isEdit()) {
         <span>チャットパレットの編集</span>
       }
-      @if (isEdit) {
+      @if (isEdit()) {
         <span>チャットパレットを確定</span>
       }
     </button>

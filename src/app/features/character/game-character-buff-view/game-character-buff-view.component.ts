@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
 import { ModalService } from '@axe/shared/ui/modal.service';
@@ -17,6 +17,6 @@ export class GameCharacterBuffViewComponent {
 
   //  @Input() title: string = '';
 
-  character: GameCharacter | null = null;
-  isEdit: boolean = false;
+  readonly character = signal<GameCharacter | null>(null);
+  readonly isEdit = signal(false);
 }

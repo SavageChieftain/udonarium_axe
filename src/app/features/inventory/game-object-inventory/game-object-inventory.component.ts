@@ -43,7 +43,7 @@ export class GameObjectInventoryComponent {
     effect(() => {
       const selection = this.selectionSignalService.selectedObject();
       if (selection && this.objectStore.get(selection.identifier) instanceof TabletopObject) {
-        this.selectedIdentifier = selection.identifier;
+        this.selectedIdentifier.set(selection.identifier);
       }
     });
     queueMicrotask(() => (this.panelService.title = 'インベントリ'));
@@ -59,11 +59,11 @@ export class GameObjectInventoryComponent {
   readonly inventoryTypes = signal<string[]>(['table', 'common', 'graveyard']);
 
   readonly selectTab = signal('table');
-  selectedIdentifier: string = '';
-  multiMoveTargets: Set<string> = new Set();
+  readonly selectedIdentifier = signal('');
+  readonly multiMoveTargets = signal(new Set<string>());
 
-  isEdit: boolean = false;
-  isMultiMove: boolean = false;
+  readonly isEdit = signal(false);
+  readonly isMultiMove = signal(false);
 
   get sortTag(): string {
     return this.inventoryService.sortTag;
@@ -236,14 +236,14 @@ export class GameObjectInventoryComponent {
   }
 
   toggleEdit() {
-    this.isEdit = !this.isEdit;
+    this.isEdit.update((v) => !v);
   }
 
   toggleMultiMove() {
-    if (this.isMultiMove) {
-      this.multiMoveTargets.clear();
+    if (this.isMultiMove()) {
+      this.multiMoveTargets.set(new Set());
     }
-    this.isMultiMove = !this.isMultiMove;
+    this.isMultiMove.update((v) => !v);
   }
 
   cleanInventory() {
@@ -257,7 +257,7 @@ export class GameObjectInventoryComponent {
   }
 
   existsMultiMoveSelectedInTab(): boolean {
-    return this.getGameObjects(this.selectTab()).some((x) => this.multiMoveTargets.has(x.identifier));
+    return this.getGameObjects(this.selectTab()).some((x) => this.multiMoveTargets().has(x.identifier));
   }
 
   toggleMultiMoveTarget(e: Event, gameObject: GameCharacter) {
@@ -265,17 +265,29 @@ export class GameObjectInventoryComponent {
       return;
     }
     if (e.target.checked) {
-      this.multiMoveTargets.add(gameObject.identifier);
+      this.multiMoveTargets.update((s) => new Set(s).add(gameObject.identifier));
     } else {
-      this.multiMoveTargets.delete(gameObject.identifier);
+      this.multiMoveTargets.update((s) => {
+        const n = new Set(s);
+        n.delete(gameObject.identifier);
+        return n;
+      });
     }
   }
 
   allTabBoxCheck() {
     if (this.existsMultiMoveSelectedInTab()) {
-      this.getGameObjects(this.selectTab()).forEach((x) => this.multiMoveTargets.delete(x.identifier));
+      this.multiMoveTargets.update((s) => {
+        const n = new Set(s);
+        this.getGameObjects(this.selectTab()).forEach((x) => n.delete(x.identifier));
+        return n;
+      });
     } else {
-      this.getGameObjects(this.selectTab()).forEach((x) => this.multiMoveTargets.add(x.identifier));
+      this.multiMoveTargets.update((s) => {
+        const n = new Set(s);
+        this.getGameObjects(this.selectTab()).forEach((x) => n.add(x.identifier));
+        return n;
+      });
     }
   }
 
@@ -316,7 +328,7 @@ export class GameObjectInventoryComponent {
   }
 
   multiMove(location: string) {
-    for (const gameObjectIdentifier of this.multiMoveTargets) {
+    for (const gameObjectIdentifier of this.multiMoveTargets()) {
       const gameObject = this.objectStore.get(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter) {
         gameObject.setLocation(location);
@@ -326,7 +338,7 @@ export class GameObjectInventoryComponent {
 
   multiDelete() {
     const inGraveyard: Set<GameCharacter> = new Set();
-    for (const gameObjectIdentifier of this.multiMoveTargets) {
+    for (const gameObjectIdentifier of this.multiMoveTargets()) {
       const gameObject = this.objectStore.get<GameCharacter>(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter && gameObject.location.name == 'graveyard') {
         inGraveyard.add(gameObject);
@@ -369,7 +381,7 @@ export class GameObjectInventoryComponent {
       height: 350,
     };
     const component = this.panelService.open<ChatPaletteComponent>(ChatPaletteComponent, option);
-    component.character = gameObject;
+    component.character.set(gameObject);
   }
 
   private showRemoteController(gameObject: GameCharacter) {
@@ -398,11 +410,15 @@ export class GameObjectInventoryComponent {
   }
 
   selectGameObject(gameObject: GameObject) {
-    if (this.isMultiMove) {
-      if (this.multiMoveTargets.has(gameObject.identifier)) {
-        this.multiMoveTargets.delete(gameObject.identifier);
+    if (this.isMultiMove()) {
+      if (this.multiMoveTargets().has(gameObject.identifier)) {
+        this.multiMoveTargets.update((s) => {
+          const n = new Set(s);
+          n.delete(gameObject.identifier);
+          return n;
+        });
       } else {
-        this.multiMoveTargets.add(gameObject.identifier);
+        this.multiMoveTargets.update((s) => new Set(s).add(gameObject.identifier));
       }
     }
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);

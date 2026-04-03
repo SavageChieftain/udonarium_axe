@@ -6,7 +6,7 @@
   [style.top.px]="top"
   [style.width.px]="width"
   [style.height.px]="height"
-  [resizable.disable]="isMinimized || isFullScreen"
+  [resizable.disable]="isMinimized() || isFullScreen()"
   [draggable.stack]="'.draggable-panel'"
   appDraggable
   appResizable
@@ -19,10 +19,10 @@
   <div class="title no-caret" #titleBar>
     @if (title !== 'メニュー') {
       <div class="title-button">
-        <button [disabled]="isFullScreen" (click)="toggleMinimize()">
+        <button [disabled]="isFullScreen()" (click)="toggleMinimize()">
           <i class="material-icons" style="font-size: 14px">minimize</i>
         </button>
-        <button [disabled]="isMinimized" (click)="toggleFullScreen()">
+        <button [disabled]="isMinimized()" (click)="toggleFullScreen()">
           <i class="material-icons" style="font-size: 14px">fullscreen</i>
         </button>
         <button (click)="close()"><i class="material-icons" style="font-size: 14px">close</i></button>
@@ -34,7 +34,7 @@
     <chat-tachie-img
       [chatTabidentifier]="panelService.chatTab.identifier"
       [isTilteTop]="true"
-      [dispByMouse]="tachieDispByMouse"
+      [dispByMouse]="tachieDispByMouse()"
     ></chat-tachie-img>
   }
   @if (panelService.cardStack) {

@@ -29,9 +29,9 @@ export class PeerMenuComponent {
   private readonly destroyRef = inject(DestroyRef);
   networkService = Network;
   gameRoomService = this.objectStore;
-  help: string = '';
-  isPasswordVisible = false;
-  dispDetailFlag = false;
+  readonly help = signal('');
+  readonly isPasswordVisible = signal(false);
+  readonly dispDetailFlag = signal(false);
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -74,7 +74,7 @@ export class PeerMenuComponent {
   }
 
   togglePasswordVisibility() {
-    this.isPasswordVisible = !this.isPasswordVisible;
+    this.isPasswordVisible.update((v) => !v);
   }
 
   findUserId(peerId: string) {

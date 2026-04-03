@@ -89,9 +89,15 @@ export class DiceTableSettingComponent {
     return Object.create(DiceTablePalette.prototype) as DiceTablePalette;
   }
 
-  isEdit: boolean = false;
-  selectedTable: DiceTable | null = null;
-  editPalette: string = '';
+  isEdit = signal(false);
+  private readonly _selectedTable = signal<DiceTable | null>(null);
+  get selectedTable(): DiceTable | null {
+    return this._selectedTable();
+  }
+  set selectedTable(value: DiceTable | null) {
+    this._selectedTable.set(value);
+  }
+  readonly editPalette = signal('');
 
   //  get isEmpty(): boolean { return this.tableSelecter ? (this.tableSelecter.viewTable ? false : true) : true; }
   get isEmpty(): boolean {
@@ -120,7 +126,7 @@ export class DiceTableSettingComponent {
   }
 
   selectDiceTable(identifier: string) {
-    this.selectedTable = this.objectStore.get<DiceTable>(identifier);
+    this._selectedTable.set(this.objectStore.get<DiceTable>(identifier));
   }
 
   getDiceTables(): DiceTable[] {
@@ -156,14 +162,14 @@ export class DiceTableSettingComponent {
   }
 
   toggleEditMode() {
-    this.isEdit = this.isEdit ? false : true;
+    this.isEdit.update((v) => !v);
     const table = this.selectedTable;
     if (!table) return;
 
-    if (this.isEdit) {
-      this.editPalette = table.diceTablePalette!.value + '';
+    if (this.isEdit()) {
+      this.editPalette.set(table.diceTablePalette!.value + '');
     } else {
-      table.diceTablePalette!.setPalette(this.editPalette);
+      table.diceTablePalette!.setPalette(this.editPalette());
     }
   }
 

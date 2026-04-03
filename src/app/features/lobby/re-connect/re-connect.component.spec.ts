@@ -62,7 +62,7 @@ describe('ReConnectComponent', () => {
     component.roomId = 'room-id';
     component.roomName = 'room-name';
     component.rooms = [{ alias: 'room-idroom-name', roomName: 'room-name', peerContexts: [] }];
-    component.forceCleanup = false;
+    component.forceCleanup.set(false);
 
     const disconnectSpy = vi.spyOn(component, 'disConnect').mockImplementation(() => undefined);
     const deleteSpy = vi.spyOn(component, 'deleteObject').mockImplementation(() => undefined);
@@ -82,7 +82,7 @@ describe('ReConnectComponent', () => {
     component.roomId = 'room-id';
     component.roomName = 'room-name';
     component.rooms = [{ alias: 'room-idroom-name', roomName: 'room-name', peerContexts: [] }];
-    component.forceCleanup = true;
+    component.forceCleanup.set(true);
 
     vi.spyOn(component, 'disConnect').mockImplementation(() => undefined);
     const deleteSpy = vi.spyOn(component, 'deleteObject').mockImplementation(() => undefined);

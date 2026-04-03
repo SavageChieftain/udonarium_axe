@@ -41,7 +41,7 @@ export class GameCharacterSheetComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
 
-  tabletopObject:
+  private readonly _tabletopObject = signal<
     | GameCharacter
     | DiceSymbol
     | Card
@@ -51,8 +51,37 @@ export class GameCharacterSheetComponent {
     | RangeArea
     | GameTableMask
     | GameTableScratchMask
-    | null = null;
-  isEdit: boolean = false;
+    | null
+  >(null);
+  get tabletopObject():
+    | GameCharacter
+    | DiceSymbol
+    | Card
+    | CardStack
+    | Terrain
+    | TextNote
+    | RangeArea
+    | GameTableMask
+    | GameTableScratchMask
+    | null {
+    return this._tabletopObject();
+  }
+  set tabletopObject(
+    value:
+      | GameCharacter
+      | DiceSymbol
+      | Card
+      | CardStack
+      | Terrain
+      | TextNote
+      | RangeArea
+      | GameTableMask
+      | GameTableScratchMask
+      | null
+  ) {
+    this._tabletopObject.set(value);
+  }
+  readonly isEdit = signal(false);
 
   // Typed accessors for template type narrowing via instanceof
   get diceSymbol(): DiceSymbol | null {
@@ -101,7 +130,7 @@ export class GameCharacterSheetComponent {
   }
 
   toggleEditMode() {
-    this.isEdit = this.isEdit ? false : true;
+    this.isEdit.update((v) => !v);
   }
 
   addDataElement() {

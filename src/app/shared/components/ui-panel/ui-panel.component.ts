@@ -8,6 +8,7 @@ import {
   ElementRef,
   inject,
   input,
+  signal,
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
@@ -113,10 +114,10 @@ export class UIPanelComponent {
   private preWidth: number = 100;
   private preHeight: number = 100;
 
-  isFullScreen: boolean = false;
-  isMinimized: boolean = false;
+  readonly isFullScreen = signal(false);
+  readonly isMinimized = signal(false);
 
-  protected tachieDispByMouse: boolean = true;
+  protected readonly tachieDispByMouse = signal(true);
   private timerCheckWindowSize: ReturnType<typeof setInterval> | null = null;
 
   get isPointerDragging(): boolean {
@@ -124,7 +125,7 @@ export class UIPanelComponent {
   }
 
   showTachie(flag: boolean) {
-    this.tachieDispByMouse = flag;
+    this.tachieDispByMouse.set(flag);
   }
 
   // youtube動画が既定値未満にしないための処理 マニュアルで200*200位上津衣装となっていたのでCutIn側でそれに翔う
@@ -166,7 +167,7 @@ export class UIPanelComponent {
   }
 
   toggleMinimize() {
-    if (this.isFullScreen) return;
+    if (this.isFullScreen()) return;
     const id = this.panelService.cutInIdentifier;
     if (id) {
       const cutIn = this.objectStore.get<CutIn>(id);
@@ -177,21 +178,21 @@ export class UIPanelComponent {
 
     const body = this.scrollablePanel().nativeElement;
     const panel = this.draggablePanel().nativeElement;
-    if (this.isMinimized) {
-      this.isMinimized = false;
+    if (this.isMinimized()) {
+      this.isMinimized.set(false);
       body.style.display = '';
       this.height = this.preHeight;
     } else {
       this.preHeight = panel.offsetHeight;
 
-      this.isMinimized = true;
+      this.isMinimized.set(true);
       body.style.display = 'none';
       this.height = this.titleBar().nativeElement.offsetHeight;
     }
   }
 
   toggleFullScreen() {
-    if (this.isMinimized) return;
+    if (this.isMinimized()) return;
 
     const panel = this.draggablePanel().nativeElement;
     if (
@@ -200,12 +201,12 @@ export class UIPanelComponent {
       panel.offsetWidth >= window.innerWidth &&
       panel.offsetHeight >= window.innerHeight
     ) {
-      this.isFullScreen = false;
+      this.isFullScreen.set(false);
     } else {
-      this.isFullScreen = true;
+      this.isFullScreen.set(true);
     }
 
-    if (this.isFullScreen) {
+    if (this.isFullScreen()) {
       this.preLeft = panel.offsetLeft;
       this.preTop = panel.offsetTop;
       this.preWidth = panel.offsetWidth;

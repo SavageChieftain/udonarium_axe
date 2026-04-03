@@ -53,12 +53,12 @@
         <span>
           @if (networkService.isOpen) {
             <span style="font-weight: bold">{{
-              isPasswordVisible ? networkService.peerContext.password : '●●●●●●●●'
+              isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●'
             }}</span>
           }
           <button style="padding: 2px; margin-left: 1em; font-size: 1em" (click)="togglePasswordVisibility()">
             <span class="material-icons" style="font-size: 1em; vertical-align: text-bottom">{{
-              isPasswordVisible ? 'visibility' : 'visibility_off'
+              isPasswordVisible() ? 'visibility' : 'visibility_off'
             }}</span>
           </button>
         </span>
@@ -84,7 +84,8 @@
       name="disp-detail-flag"
       type="checkbox"
       value="dispDetailFlag"
-      [(ngModel)]="dispDetailFlag" /></span
+      [ngModel]="dispDetailFlag()"
+      (ngModelChange)="dispDetailFlag.set($event)" /></span
   ><br />
 </div>
 @for (context of networkService.peerContexts; track context) {
@@ -101,7 +102,7 @@
         <span>接続確認：[{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}]</span>
       }
       <br />
-      @if (dispDetailFlag) {
+      @if (dispDetailFlag()) {
         <div>
           @if (findPeerTimeReceive(context.peerId) > 0) {
             <span>往復通信時間：{{ findPeerTimeLatency(context.peerId) }}秒</span>
@@ -129,5 +130,5 @@
   }
 </div>
 <div>
-  <span style="font-size: 12px">{{ help }}</span>
+  <span style="font-size: 12px">{{ help() }}</span>
 </div>

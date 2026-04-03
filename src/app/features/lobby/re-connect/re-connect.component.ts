@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -52,7 +52,7 @@ export class ReConnectComponent {
 
   rooms: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
 
-  forceCleanup: boolean = false;
+  readonly forceCleanup = signal(false);
 
   networkService = Network;
   roomName = '';
@@ -81,7 +81,7 @@ export class ReConnectComponent {
   reConnect() {
     this.reconnectUserId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
     this.disConnect();
-    if (this.forceCleanup) {
+    if (this.forceCleanup()) {
       Logger.warn('[Network] 強制クリーンアップを有効にして再接続を実行します');
       this.deleteObject();
     }

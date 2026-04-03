@@ -17,13 +17,9 @@ export class RoomSettingComponent {
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
 
-  peers: PeerContext[] = [];
-  isReloading: boolean = false;
-
   readonly roomName = signal<string>('ふつうの部屋');
   readonly password = signal<string>('');
   readonly validateLength = signal<boolean>(true);
-  isPrivate: boolean = false;
 
   get peerId(): string {
     return Network.peerId;

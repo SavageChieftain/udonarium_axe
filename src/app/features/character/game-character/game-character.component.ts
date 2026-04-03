@@ -441,7 +441,7 @@ export class GameCharacterComponent {
       height: 350,
     };
     const component = this.panelService.open<ChatPaletteComponent>(ChatPaletteComponent, option);
-    component.character = gameObject;
+    component.character.set(gameObject);
   }
 
   private showRemoteController(gameObject: GameCharacter) {
@@ -466,7 +466,7 @@ export class GameCharacterComponent {
     };
     option.title = gameObject.name + 'のバフ編集';
     const component = this.panelService.open<GameCharacterBuffViewComponent>(GameCharacterBuffViewComponent, option);
-    component.character = gameObject;
+    component.character.set(gameObject);
   }
 
   protected foldingBuffFlag(flag: boolean) {

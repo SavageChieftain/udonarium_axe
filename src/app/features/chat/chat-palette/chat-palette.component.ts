@@ -48,10 +48,10 @@ export class ChatPaletteComponent {
   readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
   readonly completeSelectRef = viewChild<ElementRef<HTMLSelectElement>>('completeSelect');
   readonly editTextRef = viewChild<ElementRef<HTMLTextAreaElement>>('editText');
-  character: GameCharacter | null = null;
+  readonly character = signal<GameCharacter | null>(null);
 
   get palette(): ChatPalette | null {
-    return this.character?.chatPalette ?? null;
+    return this.character()?.chatPalette ?? null;
   }
 
   private _gameType: string = '';
@@ -65,11 +65,12 @@ export class ChatPaletteComponent {
   }
   set gameType(gameType: string) {
     this._gameType = gameType;
-    if (this.character?.chatPalette) this.character.chatPalette.dicebot = gameType;
+    const char = this.character();
+    if (char?.chatPalette) char.chatPalette.dicebot = gameType;
   }
 
   get sendFrom(): string {
-    return this.character?.identifier ?? '';
+    return this.character()?.identifier ?? '';
   }
   set sendFrom(sendFrom: string) {
     this.onSelectedCharacter(sendFrom);
@@ -79,8 +80,8 @@ export class ChatPaletteComponent {
   text: string = '';
   sendTo: string = '';
 
-  isEdit: boolean = false;
-  editPalette: string = '';
+  readonly isEdit = signal(false);
+  readonly editPalette = signal('');
 
   private doubleClickTimer: NodeJS.Timeout | null = null;
   get diceBotInfos() {
@@ -100,10 +101,11 @@ export class ChatPaletteComponent {
   constructor() {
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
-    this.gameType = this.character?.chatPalette ? this.character.chatPalette.dicebot : '';
+    const char = this.character();
+    this.gameType = char?.chatPalette ? char.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
     this.objectChange.objectDeleted$.subscribe((e) => {
-      if (this.character && this.character.identifier === e.identifier) {
+      if (this.character() && this.character()!.identifier === e.identifier) {
         this.panelService.close();
       }
       if (this.chatTabidentifier() === e.identifier) {
@@ -116,20 +118,21 @@ export class ChatPaletteComponent {
       this.japmIndex(req.lineNo);
     });
     this.destroyRef.onDestroy(() => {
-      if (this.isEdit) this.toggleEditMode();
+      if (this.isEdit()) this.toggleEditMode();
     });
   }
 
   updatePanelTitle() {
-    this.panelService.title = this.character ? this.character.name + ' のチャットパレット' : 'チャットパレット';
+    this.panelService.title = this.character() ? this.character()!.name + ' のチャットパレット' : 'チャットパレット';
   }
 
   onSelectedCharacter(identifier: string) {
-    if (this.isEdit) this.toggleEditMode();
+    if (this.isEdit()) this.toggleEditMode();
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
-      this.character = object;
-      const gameType = this.character.chatPalette ? this.character.chatPalette.dicebot : '';
+      this.character.set(object);
+      const char = this.character()!;
+      const gameType = char.chatPalette ? char.chatPalette.dicebot : '';
       if (0 < gameType.length) this.gameType = gameType;
     }
     this.updatePanelTitle();
@@ -246,7 +249,7 @@ export class ChatPaletteComponent {
     tachieNum: number;
     messColor: string;
   }) {
-    const character = this.character;
+    const character = this.character();
     const palette = this.palette;
     if (this.chatTab && character && palette) {
       let outtext = '';
@@ -313,11 +316,11 @@ export class ChatPaletteComponent {
   }
 
   toggleEditMode() {
-    this.isEdit = this.isEdit ? false : true;
+    this.isEdit.update((v) => !v);
     if (!this.palette) return;
-    if (this.isEdit) {
+    if (this.isEdit()) {
       const selectEl = this.chatPaletteElementRef()?.nativeElement;
-      this.editPalette = this.palette.value + '';
+      this.editPalette.set(this.palette.value + '');
       const selectTop = selectEl?.scrollTop ?? 0;
       const selectHeight = selectEl?.scrollHeight ?? 1;
       setTimeout(() => {
@@ -327,7 +330,7 @@ export class ChatPaletteComponent {
         }
       }, 10);
     } else {
-      this.palette.setPalette(this.editPalette);
+      this.palette.setPalette(this.editPalette());
     }
   }
 
