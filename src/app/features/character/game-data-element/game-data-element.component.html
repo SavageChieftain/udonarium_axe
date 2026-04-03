@@ -1,5 +1,5 @@
 @if (gameDataElement()) {
-  @if (gameDataElement().children.length < 1) {
+  @if (!gameDataElement().children.length) {
     @if (isEdit()) {
       <div class="table-cell table-cell_solid">
         @if (!isImage()) {
@@ -208,7 +208,7 @@
       }
     </div>
   }
-  @if (0 < gameDataElement().children.length) {
+  @if (gameDataElement().children.length) {
     @if (isEdit()) {
       <div class="table-cell table-cell_solid" style="vertical-align: top">
         @if (isImage()) {
@@ -239,7 +239,7 @@
           />
         }
       </div>
-      @if (0 < gameDataElement().children.length) {
+      @if (gameDataElement().children.length) {
         <div class="table">
           @for (childElement of gameDataElement().children; track childElement; let i = $index) {
             <div

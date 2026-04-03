@@ -1,6 +1,6 @@
 <div class="component">
   <ng-container *ngTemplateOutlet="alarmTop"></ng-container>
-  @if (peerList.length < 1) {
+  @if (!peerList.length) {
     <div>自分しか部屋にいません</div>
   }
   @for (peer of peerList; track peer) {

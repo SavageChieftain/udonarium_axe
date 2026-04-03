@@ -18,7 +18,7 @@
 </div>
 <div class="table">
   <div class="table-cell imagebox">
-    @if (0 < imageFile.url.length) {
+    @if (imageFile.url) {
       <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
     }
   </div>

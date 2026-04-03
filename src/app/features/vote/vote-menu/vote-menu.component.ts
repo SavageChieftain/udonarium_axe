@@ -45,7 +45,7 @@ export class VoteMenuComponent {
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = '点呼/投票設定'));
     this.setDefaultCheck();
-    afterNextRender(() => setTimeout(() => this.setDefaultCheck(), 0));
+    afterNextRender(() => this.setDefaultCheck());
   }
 
   isPeerIsDisConnect(peerId: string): boolean {

@@ -200,7 +200,7 @@
                 </div>
               </div>
               @if (this.gameCharacter()!.nonTalkFlag) {
-                @if (0 < name.length) {
+                @if (name) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
@@ -218,7 +218,7 @@
                     </div>
                   </div>
                 }
-                @if (0 < name.length) {
+                @if (name) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
@@ -238,7 +238,7 @@
                 }
               }
               @if (!this.gameCharacter()!.nonTalkFlag) {
-                @if (0 < name.length) {
+                @if (name) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
@@ -251,7 +251,7 @@
                     </div>
                   </div>
                 }
-                @if (0 < name.length) {
+                @if (name) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{

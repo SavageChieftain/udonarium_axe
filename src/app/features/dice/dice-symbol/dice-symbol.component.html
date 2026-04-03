@@ -38,7 +38,7 @@
           <div class="rotate-frame is-3d" [style.width.px]="size * gridSize" [style.height.px]="size * gridSize">
             <div class="rotate-inner is-3d">
               <!-- クロームver102の描画問題に対処するため構成を修正している -->
-              @if (0 < name.length) {
+              @if (name) {
                 <div
                   class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
@@ -57,7 +57,7 @@
                   </div>
                 </div>
               }
-              @if (0 < name.length) {
+              @if (name) {
                 <div
                   class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                   [ngStyle]="{
@@ -78,7 +78,7 @@
                   </div>
                 </div>
               }
-              @if (hasOwner && 0 < ownerName.length) {
+              @if (hasOwner && ownerName) {
                 <div
                   class="owner-tag is-nowrap is-black-background is-3d will-change"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
@@ -87,7 +87,7 @@
                   <div class="back-tag has-length-limit is-3d">{{ ownerName }}</div>
                 </div>
               }
-              @if (0 < imageFile.url.length && specifyImageFlag) {
+              @if (imageFile.url && specifyImageFlag) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
@@ -98,7 +98,7 @@
                   [ngClass]="{ 'is-black-mask': !isVisible, 'is-harf-black-mask': isMine }"
                 />
               }
-              @if (0 < imageFile.url.length && !specifyImageFlag) {
+              @if (imageFile.url && !specifyImageFlag) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{ width: '100%' }"

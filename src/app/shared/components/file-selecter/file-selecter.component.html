@@ -6,7 +6,7 @@
         @if (tag.length === 0) {
           <div>未設定</div>
         }
-        @if (tag.length > 0) {
+        @if (tag) {
           <div>{{ tag }}</div>
         }
       </label>
@@ -22,10 +22,10 @@
   @for (file of images; track file) {
     <span class="image">
       <div style="float: left">
-        @if (0 < file.url.length) {
+        @if (file.url) {
           <img [src]="file.url | safe: 'resourceUrl'" [alt]="file.name" height="120" (click)="onSelectedFile(file)" />
         }
-        @if (file.url.length <= 0) {
+        @if (!file.url) {
           <img src="assets/images/loading.gif" alt="{{ file.name }}" />
         }
       </div>

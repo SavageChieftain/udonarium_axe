@@ -50,7 +50,7 @@
         }
       </div>
     }
-    @if (0 < card?.name?.length) {
+    @if (card?.name) {
       <div
         class="component-title title-background"
         [ngClass]="{ 'with-button-marign': hasImage }"
@@ -253,9 +253,9 @@
 </ng-template>
 
 <ng-template #dataElement let-dataElm="dataElm">
-  @if (0 < dataElm.children.length) {
+  @if (dataElm.children.length) {
     <div class="section" style="padding-top: 0.5em">
-      @if (0 < dataElm.name.trim().length) {
+      @if (dataElm.name.trim()) {
         <div class="section-text">{{ dataElm.name }}</div>
       }
       <div class="grid-container indetnt">

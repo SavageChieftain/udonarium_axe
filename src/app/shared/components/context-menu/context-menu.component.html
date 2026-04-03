@@ -4,7 +4,7 @@
   (mouseleave)="hideSubMenu()"
   #root
 >
-  @if (0 < title.length) {
+  @if (title) {
     <div class="title">{{ title }}</div>
   }
   <div style="display: flex; align-items: top">

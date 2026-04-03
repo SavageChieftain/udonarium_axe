@@ -53,7 +53,7 @@ export class ChatTabComponent {
   constructor() {
     effect(() => {
       this.uiSignalService.chatRedrawVersion();
-      setTimeout(() => this.redraw(), 0);
+      setZeroTimeout(() => this.redraw());
     });
     effect(() => {
       this.chatTabInput();

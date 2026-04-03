@@ -12,7 +12,7 @@
       #gameObjects
     >
       <canvas class="grid-canvas is-fill is-pointer-events-none" #gridCanvas></canvas>
-      @if (terrains.length > 0) {
+      @if (terrains.length) {
         <div class="layer">
           <div class="dummy"></div>
           @for (terrain of terrains; track trackByGameObject($index, terrain)) {
@@ -27,7 +27,7 @@
         <game-table-scratch-mask class="is-3d will-change-transform" [gameTableScratchMask]="scratchMask">
         </game-table-scratch-mask>
       }
-      @if (textNotes.length > 0) {
+      @if (textNotes.length) {
         <div class="layer">
           <div class="dummy"></div>
           @for (textNote of textNotes; track trackByGameObject($index, textNote)) {
@@ -71,7 +71,7 @@
       @for (range of ranges; track trackByGameObject($index, range)) {
         <range class="is-3d will-change-transform" [range]="range"></range>
       }
-      @if (diceSymbols.length > 0) {
+      @if (diceSymbols.length) {
         <div class="layer">
           <div class="dummy"></div>
           @for (diceSymbol of diceSymbols; track trackByGameObject($index, diceSymbol)) {
@@ -83,7 +83,7 @@
           }
         </div>
       }
-      @if (characters.length > 0) {
+      @if (characters.length) {
         <div class="layer">
           <div class="dummy"></div>
           @for (character of characters; track trackByGameObject($index, character)) {

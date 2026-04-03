@@ -3,10 +3,10 @@
     @for (tag of tagList; track tag) {
       <label>
         <input name="image-chg" type="radio" value="{{ tag }}" [(ngModel)]="selectTag" (change)="resetBtn()" />
-        @if (tag.length === 0) {
+        @if (!tag) {
           <div>未設定</div>
         }
-        @if (tag.length > 0) {
+        @if (tag) {
           <div>{{ tag }}</div>
         }
       </label>
@@ -34,13 +34,13 @@
   @for (file of images; track file) {
     <span class="image_">
       <div class="img-box" style="float: left" (click)="imgBlockClick(file.identifier)">
-        @if (0 < file.url.length) {
+        @if (file.url) {
           <img [src]="file.url | safe: 'resourceUrl'" [alt]="file.name" height="120" (click)="onSelectedFile(file)" />
         }
-        @if (file.url.length <= 0) {
+        @if (!file.url) {
           <img src="assets/images/loading.gif" alt="{{ file.name }}" />
         }
-        @if (0 < file.url.length) {
+        @if (file.url) {
           <input class="img-chk" name="tag_chg_chk" type="checkbox" [checked]="checkedFiles.has(file.identifier)" />
         }
       </div>

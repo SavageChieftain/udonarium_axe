@@ -35,7 +35,7 @@
         </controller-input>
 
         @if (!buffAreaIsHide()) {
-          @if (errorMessageBuff.length > 0) {
+          @if (errorMessageBuff) {
             <div>{{ errorMessageBuff }}</div>
           }
           @if (isEdit()) {
@@ -158,7 +158,7 @@
           />
         </div>
       </div>
-      @if (errorMessageController.length > 0) {
+      @if (errorMessageController) {
         <div>{{ errorMessageController }}</div>
       }
       @if (character?.rootDataElement) {

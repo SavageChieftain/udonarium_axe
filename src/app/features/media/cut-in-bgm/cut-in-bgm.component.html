@@ -14,7 +14,7 @@
       <span>{{ audio.name }}</span>
     </div>
   }
-  @if (audios.length < 1) {
+  @if (!audios.length) {
     <div>音楽がアップロードされていません。</div>
   }
 </div>

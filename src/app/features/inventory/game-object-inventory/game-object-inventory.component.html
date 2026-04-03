@@ -87,19 +87,19 @@
       <tr>
         <th style="vertical-align: middle">並び順 第1:</th>
         <td style="vertical-align: middle">
-          @if (0 < sortTag.length) {
+          @if (sortTag) {
             {{ sortTag }} ({{ sortOrderName }})
           }
-          @if (sortTag.length < 1) {
+          @if (!sortTag) {
             -
           }
         </td>
         <th style="vertical-align: middle">第2:</th>
         <td style="vertical-align: middle">
-          @if (0 < sortTag2nd.length) {
+          @if (sortTag2nd) {
             {{ sortTag2nd }} ({{ sortOrderName2nd }})
           }
-          @if (sortTag2nd.length < 1) {
+          @if (!sortTag2nd) {
             -
           }
         </td>

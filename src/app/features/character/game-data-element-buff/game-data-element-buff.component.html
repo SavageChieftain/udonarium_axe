@@ -1,6 +1,6 @@
 @if (!isPieceMode()) {
   @if (gameDataElement()) {
-    @if (gameDataElement().children.length < 1) {
+    @if (!gameDataElement().children.length) {
       @switch (gameDataElement().type) {
         @case ('numberResource') {
           <div class="table-cell" style="border-bottom: none">
@@ -68,7 +68,7 @@ name="data-elm-name"
         }
       }
     }
-    @if (0 < gameDataElement().children.length) {
+    @if (gameDataElement().children.length) {
       <div class="table" style="width: 100%">
         <div class="table-cell_inner-table-title">
           @if (!isTagLocked()) {
@@ -81,7 +81,7 @@ name="data-elm-name"
             -->
           }
         </div>
-        @if (0 < gameDataElement().children.length) {
+        @if (gameDataElement().children.length) {
           <div class="table">
             @for (childElement of gameDataElement().children; track childElement) {
               <div
@@ -102,7 +102,7 @@ name="data-elm-name"
 }
 
 @if (isPieceMode()) {
-  @if (gameDataElement().children.length < 1) {
+  @if (!gameDataElement().children.length) {
     @switch (gameDataElement().type) {
       @case ('numberResource') {
         <span style="font-family: Cambria, Georgia; font-size: 12px">
@@ -111,7 +111,7 @@ name="data-elm-name"
       }
     }
   }
-  @if (0 < gameDataElement().children.length) {
+  @if (gameDataElement().children.length) {
     @for (childElement of gameDataElement().children; track childElement) {
       <div
         game-data-element-buff

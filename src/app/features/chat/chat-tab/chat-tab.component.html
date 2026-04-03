@@ -1,6 +1,6 @@
 <div class="log" [style.minHeight.px]="minScrollHeight" #logContainer>
   <div class="virtual-scroll-container" [style.marginBottom.px]="bottomSpace" #messageContainer>
-    @if (0 < chatMessages.length) {
+    @if (chatMessages.length) {
       @for (chatMessage of chatMessages; track trackByChatMessage($index, chatMessage)) {
         @if (chatMessage.isDisplayable) {
           <chat-message
@@ -13,7 +13,7 @@
         }
       }
     }
-    @if (chatMessages.length <= 0) {
+    @if (!chatMessages.length) {
       <!--      <span>使用している <a href= "3rdpartylicenses.txt" target="_blank">3rdpartylicenses</a>についてはこちらを参照してください</span>-->
       @for (chatMessage of sampleMessages; track chatMessage) {
         <chat-message

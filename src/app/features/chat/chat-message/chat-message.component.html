@@ -10,7 +10,7 @@
         }"
       >
         <div class="image">
-          @if (0 < imageFile().url.length) {
+          @if (imageFile().url) {
             <img [src]="imageFile().url | safe: 'resourceUrl'" />
           }
         </div>

@@ -5,7 +5,7 @@
         @if (chatTab.tachieDispFlag) {
           @if (isTachieDispMode) {
             @for (slot of tachieSlots(); track slot.pos) {
-              @if (0 < slot.imageFileUrl.length) {
+              @if (slot.imageFileUrl) {
                 <img
                   [class]="'tachie-image pos' + (slot.pos < 10 ? '0' : '') + slot.pos"
                   [src]="slot.imageFileUrl | safe: 'resourceUrl'"

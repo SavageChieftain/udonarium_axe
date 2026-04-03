@@ -62,10 +62,10 @@
         }
         <br />
         @if (!isCutInBgmUploaded()) {
-          @if (cutInAudioName.length > 0) {
+          @if (cutInAudioName) {
             <span>音楽ファイルがアップされていません</span>
           }
-          @if (cutInAudioName.length <= 0) {
+          @if (!cutInAudioName) {
             <span>音楽ファイルが設定されていません</span>
           }
         }
