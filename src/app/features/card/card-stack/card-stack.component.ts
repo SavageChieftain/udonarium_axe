@@ -372,7 +372,6 @@ export class CardStackComponent {
 
     this.cardStack().owner = Network.peerContext.userId;
     const component = this.panelService.open<CardStackListComponent>(CardStackListComponent, option);
-    //    let component = this.panelService.open<CardStackListComponentEx>(CardStackListComponentEx, option);
     component.cardStack = gameObject;
   }
 

@@ -3,7 +3,7 @@ import { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { InnerXml } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 
 @SyncObject('config')
 export class Config extends ObjectNode implements InnerXml {

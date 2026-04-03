@@ -1,7 +1,0 @@
-<div>
-  @for (card of cards; track trackByCard($index, card)) {
-    <ng-container class="box">
-      <img class="card-image" [src]="card?.frontImage?.url ?? '' | safe: 'resourceUrl'" />
-    </ng-container>
-  }
-</div>

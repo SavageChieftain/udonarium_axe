@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 
 describe('Jukebox', () => {
   let store: ObjectStore;

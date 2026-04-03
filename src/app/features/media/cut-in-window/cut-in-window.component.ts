@@ -14,7 +14,7 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { Config } from '@axe/domain/peer/config';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';

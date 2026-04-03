@@ -10,7 +10,7 @@ import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { OpenUrlComponent } from '@axe/shared/components/open-url/open-url.component';

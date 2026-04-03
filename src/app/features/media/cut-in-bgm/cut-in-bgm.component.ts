@@ -4,7 +4,7 @@ import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';

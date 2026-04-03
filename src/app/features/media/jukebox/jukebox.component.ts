@@ -7,7 +7,7 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { Config } from '@axe/domain/peer/config';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';

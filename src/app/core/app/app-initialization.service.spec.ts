@@ -3,7 +3,7 @@ import { AppConfigService } from '@axe/core/app/app-config.service';
 import { AppInitializationService } from '@axe/core/app/app-initialization.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Alarm } from '@axe/domain/shared/alarm';

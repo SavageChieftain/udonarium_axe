@@ -15,7 +15,7 @@ import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-import { Jukebox } from '@axe/domain/media/Jukebox';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
