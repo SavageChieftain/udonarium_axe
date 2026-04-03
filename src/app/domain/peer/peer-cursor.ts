@@ -5,9 +5,9 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
 import { domainPeerDisconnect$ } from '@axe/domain/domain-events';
-import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/shared/constants';
-import { Vote } from '@axe/domain/shared/vote';
+import { Vote } from '@axe/domain/vote/vote';
 
 const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
 

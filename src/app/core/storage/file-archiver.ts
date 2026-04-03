@@ -7,7 +7,7 @@ import * as MimeType from '@axe/core/storage/mime-type';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { xml2element } from '@axe/core/util/xml-util';
 import { emitFileLoaded, emitXmlLoaded } from '@axe/domain/domain-events';
-import { ReloadCheck } from '@axe/domain/shared/reload-check';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 

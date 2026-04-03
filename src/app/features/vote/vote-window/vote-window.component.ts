@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { Vote } from '@axe/domain/shared/vote';
+import { Vote } from '@axe/domain/vote/vote';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';

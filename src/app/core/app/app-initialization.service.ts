@@ -10,6 +10,7 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageSharingSystem } from '@axe/core/storage/image-sharing-system';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
+import { Alarm } from '@axe/domain/alarm/alarm';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { MarkDown } from '@axe/domain/data/mark-down';
@@ -19,10 +20,9 @@ import { Jukebox } from '@axe/domain/media/jukebox';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { Alarm } from '@axe/domain/shared/alarm';
-import { ReloadCheck } from '@axe/domain/shared/reload-check';
-import { Vote } from '@axe/domain/shared/vote';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { Vote } from '@axe/domain/vote/vote';
 import { NgSelectConfig } from '@ng-select/ng-select';
 
 @Injectable({ providedIn: 'root' })

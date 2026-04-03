@@ -7,25 +7,25 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { TextNote } from '@axe/domain/shared/text-note';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
+import { TextNote } from '@axe/domain/tabletop/text-note';
 import {
   getDiceMenuItems,
   getRangeMenuItems,
   getTrumpCardCodes,
   TERRAIN_TEXTURE_PATH,
   TRUMP_BACK_IMAGE_PATH,
-} from '@axe/shared/tabletop/tabletop-action-helpers';
-import { initAprilDiceImages } from '@axe/shared/tabletop/tabletop-default-dice';
+} from '@axe/features/tabletop/tabletop-action-helpers';
+import { initAprilDiceImages } from '@axe/features/tabletop/tabletop-default-dice';
 import {
   makeDefaultTable as _makeDefaultTable,
   makeDefaultTabletopObjects as _makeDefaultTabletopObjects,
-} from '@axe/shared/tabletop/tabletop-default-setup';
+} from '@axe/features/tabletop/tabletop-default-setup';
 import { ContextMenuAction } from '@axe/shared/ui/context-menu.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 

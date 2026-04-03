@@ -8,13 +8,13 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceTable } from '@axe/domain/dice/dice-table';
 import { CutIn } from '@axe/domain/media/cut-in';
-import { ReloadCheck } from '@axe/domain/shared/reload-check';
-import { TextNote } from '@axe/domain/shared/text-note';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { Terrain } from '@axe/domain/tabletop/terrain';
+import { TextNote } from '@axe/domain/tabletop/text-note';
 
 @SyncObject('room')
 export class Room extends GameObject implements InnerXml {

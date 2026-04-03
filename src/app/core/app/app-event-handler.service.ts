@@ -3,7 +3,7 @@ import { Network } from '@axe/core/network/network';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { Vote } from '@axe/domain/shared/vote';
+import { Vote } from '@axe/domain/vote/vote';
 import { AlarmWindowComponent } from '@axe/features/alarm/alarm-window/alarm-window.component';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';

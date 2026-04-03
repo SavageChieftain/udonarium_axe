@@ -2,9 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { Alarm } from '@axe/domain/alarm/alarm';
 import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { Alarm } from '@axe/domain/shared/alarm';
 
 describe('Alarm', () => {
   let store: ObjectStore;

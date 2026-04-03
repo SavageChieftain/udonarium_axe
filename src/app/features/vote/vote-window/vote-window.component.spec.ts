@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Vote } from '@axe/domain/shared/vote';
+import { Vote } from '@axe/domain/vote/vote';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';

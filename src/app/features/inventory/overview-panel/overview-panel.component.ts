@@ -17,8 +17,8 @@ import { CardStack } from '@axe/domain/card/card-stack'; //
 import { GameCharacter } from '@axe/domain/character/game-character'; //
 import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
-import { TextNote } from '@axe/domain/shared/text-note'; //
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { TextNote } from '@axe/domain/tabletop/text-note'; //
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';

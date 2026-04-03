@@ -12,7 +12,7 @@ import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { ReloadCheck } from '@axe/domain/shared/reload-check';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';

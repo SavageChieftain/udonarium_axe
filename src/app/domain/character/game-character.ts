@@ -7,8 +7,8 @@ import { BuffManager } from '@axe/domain/character/buff-manager';
 import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { BuffPalette, ChatPalette } from '@axe/domain/chat/chat-palette';
+import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/shared/constants';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('character')

@@ -4,7 +4,7 @@ import { InnerXml } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
-import { ReloadCheck } from '@axe/domain/shared/reload-check';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 
 @SyncObject('chat-tab-list')
 export class ChatTabList extends ObjectNode implements InnerXml {

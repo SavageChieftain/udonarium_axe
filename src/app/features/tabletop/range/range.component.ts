@@ -32,6 +32,8 @@ import {
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
+import { TabletopService } from '@axe/features/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -40,8 +42,6 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';

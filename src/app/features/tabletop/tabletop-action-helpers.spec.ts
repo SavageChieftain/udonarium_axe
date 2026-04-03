@@ -5,7 +5,7 @@ import {
   getTrumpCardCodes,
   TERRAIN_TEXTURE_PATH,
   TRUMP_BACK_IMAGE_PATH,
-} from '@axe/shared/tabletop/tabletop-action-helpers';
+} from '@axe/features/tabletop/tabletop-action-helpers';
 
 describe('tabletop-action-helpers', () => {
   it('getTrumpCardCodes: トランプ54枚分のコードを返す', () => {

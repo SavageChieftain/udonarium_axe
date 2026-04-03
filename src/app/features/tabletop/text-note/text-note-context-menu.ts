@@ -1,5 +1,5 @@
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { TextNote } from '@axe/domain/shared/text-note';
+import { TextNote } from '@axe/domain/tabletop/text-note';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
