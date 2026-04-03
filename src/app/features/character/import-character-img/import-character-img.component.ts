@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -6,6 +6,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
@@ -17,32 +18,24 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })
-export class ImportCharacterImgComponent implements OnInit {
+export class ImportCharacterImgComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
   private imageStorage = inject(ImageStorage);
+  private objectChange = inject(ObjectChangeService);
 
   tabletopObject: GameCharacter | null = null;
 
-  private _sendFrom!: string;
-  get sendFrom(): string {
-    return this._sendFrom;
-  }
-  set sendFrom(sendFrom: string) {
-    this._sendFrom = sendFrom;
-  }
+  sendFrom: string = '';
 
-  private shouldUpdateCharacterList: boolean = true;
-  private _gameCharacters: GameCharacter[] = [];
-  get gameCharacters(): GameCharacter[] {
-    if (this.shouldUpdateCharacterList) {
-      this.shouldUpdateCharacterList = false;
-      this._gameCharacters = this.objectStore
-        .getObjects<GameCharacter>(GameCharacter)
-        .filter((character) => this.allowsChat(character));
-    }
-    return this._gameCharacters;
+  readonly gameCharacters = computed(() => {
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
+    return this.objectStore.getObjects<GameCharacter>(GameCharacter).filter((character) => this.allowsChat(character));
+  });
+
+  constructor() {
+    this.sendFrom = this.gameCharacters().length >= 1 ? this.gameCharacters()[0].identifier : '';
   }
 
   private allowsChat(gameCharacter: GameCharacter): boolean {
@@ -57,7 +50,7 @@ export class ImportCharacterImgComponent implements OnInit {
   }
 
   get imageFile(): ImageFile {
-    const object = this.objectStore.get(this._sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       const image = this.imageStorage.get(object.imageDataElement?.children[0]?.value as string);
       return image ? image : ImageFile.Empty;
@@ -66,7 +59,7 @@ export class ImportCharacterImgComponent implements OnInit {
   }
 
   get selectCharacterTachieNum() {
-    const object = this.objectStore.get(this._sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       return object.imageDataElement?.children.length ?? 0;
     }
@@ -75,7 +68,7 @@ export class ImportCharacterImgComponent implements OnInit {
 
   importImages() {
     if (!this.tabletopObject) return;
-    const object = this.objectStore.get(this._sendFrom);
+    const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
         const distImageDataElement = this.tabletopObject.imageDataElement;
@@ -115,9 +108,5 @@ export class ImportCharacterImgComponent implements OnInit {
 
   cancel() {
     this.panelService.close();
-  }
-
-  ngOnInit() {
-    this._sendFrom = this.gameCharacters.length >= 1 ? this.gameCharacters[0].identifier : '';
   }
 }

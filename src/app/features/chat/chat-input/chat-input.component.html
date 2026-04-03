@@ -16,7 +16,7 @@
         @if (!onlyCharacters()) {
           <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
         }
-        @for (gameCharacter of gameCharacters; track gameCharacter) {
+        @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
           <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }} </ng-option>
         }
       </ng-select>

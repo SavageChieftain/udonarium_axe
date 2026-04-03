@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, ViewContainerRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, ViewContainerRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -21,7 +21,7 @@ import { filter, map } from 'rxjs';
   styleUrls: ['./game-character-generator.component.css'],
   imports: [FormsModule, SafePipe],
 })
-export class GameCharacterGeneratorComponent implements OnInit {
+export class GameCharacterGeneratorComponent {
   private viewContainerRef = inject(ViewContainerRef);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
@@ -45,7 +45,7 @@ export class GameCharacterGeneratorComponent implements OnInit {
     { initialValue: ImageFile.createEmpty('null') }
   );
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
   }
 

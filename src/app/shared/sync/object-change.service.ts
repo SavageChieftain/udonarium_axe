@@ -152,9 +152,13 @@ export class ObjectChangeService {
 
   /** Signal that updates when any file-related event occurs (debounced). Read in getters to track file changes. */
   readonly fileVersion = toSignal(
-    merge(this._fileSyncList$, this._fileResourceUpdated$, this.fileLoaded$, this.domainFileResourceUpdated$).pipe(
-      debounceTime(100)
-    ),
+    merge(
+      this._fileSyncList$,
+      this._fileResourceUpdated$,
+      this.fileLoaded$,
+      this._audioSyncList$,
+      this.domainFileResourceUpdated$
+    ).pipe(debounceTime(100)),
     { initialValue: undefined }
   );
 

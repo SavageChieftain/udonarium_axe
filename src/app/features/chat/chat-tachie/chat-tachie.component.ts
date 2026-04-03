@@ -1,13 +1,5 @@
 import { NgStyle } from '@angular/common';
-import {
-  AfterViewChecked,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  inject,
-  input,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -26,7 +18,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   styleUrls: ['./chat-tachie.component.css'],
   imports: [FormsModule, NgStyle, ChatTachieImageComponent_1],
 })
-export class ChatTachieComponent implements AfterViewChecked {
+export class ChatTachieComponent {
   chatMessageService = inject(ChatMessageService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -34,8 +26,6 @@ export class ChatTachieComponent implements AfterViewChecked {
   private uiSignalService = inject(UiSignalService);
 
   readonly chatTabidentifier = input('');
-  private readonly tachieArea = viewChild<ElementRef>('tachieArea');
-  private _tachieAreaWidth = 0;
 
   get chatTab(): ChatTab {
     return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
@@ -43,10 +33,6 @@ export class ChatTachieComponent implements AfterViewChecked {
 
   get chatTabList(): ChatTabList {
     return this.objectStore.get<ChatTabList>('ChatTabList')!;
-  }
-
-  get tachieAreaWidth(): number {
-    return this._tachieAreaWidth;
   }
 
   chkHeight(newNum: number) {
@@ -65,10 +51,6 @@ export class ChatTachieComponent implements AfterViewChecked {
     return 0;
   }
 
-  private timerId: ReturnType<typeof setTimeout> | null = null;
-
-  ngAfterViewChecked() {}
-
   shoeMessageSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const title = 'チャット詳細設定';
@@ -82,8 +64,8 @@ export class ChatTachieComponent implements AfterViewChecked {
     this.panelService.open<ChatMessageSettingComponent>(ChatMessageSettingComponent, option);
   }
 
-  trackByChatTab(index: number, chatTab: ChatTab) {
-    return chatTab.identifier;
+  onChkHeight(event: Event): void {
+    this.chkHeight((event.target as HTMLInputElement).valueAsNumber);
   }
 
   changeSimpleDisp() {

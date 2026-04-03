@@ -2,8 +2,8 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
-  DoCheck,
   effect,
   ElementRef,
   inject,
@@ -47,7 +47,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-input.component.css'],
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
-export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
+export class ChatInputComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
@@ -271,37 +271,25 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
     return image ? image : ImageFile.Empty;
   }
 
-  private shouldUpdateCharacterList: boolean = true;
-  private _gameCharacters: GameCharacter[] = [];
-  get gameCharacters(): GameCharacter[] {
-    if (this.shouldUpdateCharacterList) {
-      this.shouldUpdateCharacterList = false;
-      this._gameCharacters = this.objectStore
-        .getObjects<GameCharacter>(GameCharacter)
-        .filter((character) => allowsChat(character, this.myPeer.peerId));
-    }
-    return this._gameCharacters;
-  }
+  readonly gameCharacters = computed(() => {
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
+    return this.objectStore
+      .getObjects<GameCharacter>(GameCharacter)
+      .filter((character) => allowsChat(character, this.myPeer.peerId));
+  });
 
   private writingEventInterval: NodeJS.Timeout | null = null;
   private previousWritingLength: number = 0;
   readonly writingPeerNames = this.writingManager.names;
 
-  private _diceBotInfosSnapshot: typeof DiceBot.diceBotInfos = [];
   get diceBotInfos() {
-    return this._diceBotInfosSnapshot;
+    return DiceBot.diceBotInfos;
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
   }
   get otherPeers(): PeerCursor[] {
     return this.objectStore.getObjects(PeerCursor);
-  }
-
-  ngDoCheck(): void {
-    if (this._diceBotInfosSnapshot !== DiceBot.diceBotInfos) {
-      this._diceBotInfosSnapshot = DiceBot.diceBotInfos;
-    }
   }
 
   private calcFitHeightInterval: NodeJS.Timeout | null = null;
@@ -318,12 +306,11 @@ export class ChatInputComponent implements OnInit, OnDestroy, DoCheck {
 
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.aliasName !== GameCharacter.aliasName) return;
-      this.shouldUpdateCharacterList = true;
       if (event.identifier !== this.sendFrom) return;
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
       if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId)) {
-        if (0 < this.gameCharacters.length && this.onlyCharacters()) {
-          this.sendFrom = this.gameCharacters[0].identifier;
+        if (0 < this.gameCharacters().length && this.onlyCharacters()) {
+          this.sendFrom = this.gameCharacters()[0].identifier;
         } else {
           this.sendFrom = this.myPeer.identifier;
         }

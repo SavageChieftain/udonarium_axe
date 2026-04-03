@@ -1,5 +1,5 @@
 import {
-  AfterViewChecked,
+  afterEveryRender,
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
@@ -44,7 +44,7 @@ const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('maci
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChatMessageComponent],
 })
-export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
+export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy {
   private renderVersion = signal(0);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
@@ -64,6 +64,10 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
       } else {
         queueMicrotask(() => this.resetMessages());
       }
+    });
+    afterEveryRender(() => {
+      if (!this.topElm || !this.bottomElm) return;
+      queueMicrotask(() => this.adjustScrollPosition());
     });
   }
 
@@ -209,11 +213,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy, After
     if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
     if (this.addMessageEventTimer) clearTimeout(this.addMessageEventTimer);
     this.addMessageEventTimer = null;
-  }
-
-  ngAfterViewChecked() {
-    if (!this.topElm || !this.bottomElm) return;
-    queueMicrotask(() => this.adjustScrollPosition());
   }
 
   onMessageInit() {

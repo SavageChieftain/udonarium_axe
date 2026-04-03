@@ -50,4 +50,8 @@ export class ChatColorSettingComponent {
       return this.myPeer.chatColorCode[num];
     }
   }
+
+  onChangeColor(event: Event, index: number): void {
+    this.changeColor((event.target as HTMLInputElement).value, index);
+  }
 }

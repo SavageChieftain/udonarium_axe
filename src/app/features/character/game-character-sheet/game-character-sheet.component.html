@@ -47,7 +47,7 @@
               min="50"
               max="750"
               name="popWidth"
-              (change)="chkDiceKomaSize($any($event.target).value)"
+              (change)="onChkDiceKomaSize($event)"
               style="color: #555"
               [disabled]="!diceSymbol.specifyKomaImageFlag"
             />
@@ -78,7 +78,7 @@
             min="250"
             max="1000"
             name="popWidth"
-            (change)="chkPopWidth($any($event.target).value)"
+            (change)="onChkPopWidth($event)"
             style="color: #555"
           />
         </div>
@@ -103,7 +103,7 @@
             min="250"
             max="1000"
             name="popWidth"
-            (change)="chkPopMaxHeight($any($event.target).value)"
+            (change)="onChkPopMaxHeight($event)"
             style="color: #555"
           />
         </div>
@@ -132,7 +132,7 @@
             min="250"
             max="1000"
             name="popWidth"
-            (change)="chkPopWidth($any($event.target).value)"
+            (change)="onChkPopWidth($event)"
             style="color: #555"
           />
         </div>
@@ -157,7 +157,7 @@
             min="250"
             max="1000"
             name="popWidth"
-            (change)="chkPopMaxHeight($any($event.target).value)"
+            (change)="onChkPopMaxHeight($event)"
             style="color: #555"
           />
         </div>
@@ -179,7 +179,7 @@
       </div>
     }
     @if (character) {
-      <select (change)="setLocation($any($event.target).value)" name="location" [ngModel]="character.location.name">
+      <select (change)="onSetLocation($event)" name="location" [ngModel]="character.location.name">
         <option value="table">テーブル</option>
         <option value="common">共有インベントリ</option>
         <option value="{{ networkService.peerId }}">個人インベントリ</option>
@@ -229,7 +229,7 @@
               min="270"
               max="1000"
               name="popWidth"
-              (change)="chkPopWidth($any($event.target).value)"
+              (change)="onChkPopWidth($event)"
               style="color: #555"
             />
           </div>
@@ -255,7 +255,7 @@
               min="250"
               max="1000"
               name="popHeight"
-              (change)="chkPopMaxHeight($any($event.target).value)"
+              (change)="onChkPopMaxHeight($event)"
               style="color: #555"
             />
           </div>
@@ -291,7 +291,7 @@
               min="50"
               max="750"
               name="popWidth"
-              (change)="chkKomaSize($any($event.target).value)"
+              (change)="onChkKomaSize($event)"
               style="color: #555"
               [disabled]="!character.specifyKomaImageFlag"
             />
@@ -332,7 +332,7 @@
             min="250"
             max="1000"
             name="popWidth"
-            (change)="chkPopWidth($any($event.target).value)"
+            (change)="onChkPopWidth($event)"
             style="color: #555"
           />
         </div>
@@ -357,7 +357,7 @@
             min="250"
             max="1000"
             name="popWidth"
-            (change)="chkPopMaxHeight($any($event.target).value)"
+            (change)="onChkPopMaxHeight($event)"
             style="color: #555"
           />
         </div>
@@ -370,7 +370,7 @@
           type="color"
           name="color11"
           list="color-list_11"
-          (change)="changeMaskFillColor($any($event.target).value)"
+          (change)="onChangeMaskFillColor($event)"
           value="{{ scratchMask.color }}"
         />
         更新部カラー
@@ -378,7 +378,7 @@
           type="color"
           name="color12"
           list="color-list_12"
-          (change)="changeMaskChangeColor($any($event.target).value)"
+          (change)="onChangeMaskChangeColor($event)"
           value="{{ scratchMask.changeColor }}"
         />
       </div>
@@ -392,7 +392,7 @@
           type="color"
           name="color01"
           list="color-list_01"
-          (change)="changeRangeColor($any($event.target).value)"
+          (change)="onChangeRangeColor($event)"
           value="{{ rangeArea.rangeColor }}"
         />
         塗りつぶし
@@ -400,7 +400,7 @@
           type="color"
           name="color02"
           list="color-list_02"
-          (change)="changeGridColor($any($event.target).value)"
+          (change)="onChangeGridColor($event)"
           value="{{ rangeArea.gridColor }}"
         />
       </div>

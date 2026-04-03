@@ -226,4 +226,8 @@ export class GameDataElementComponent implements OnInit {
   textFocus(dataElmIdentifier: string) {
     this.editCheckedIds.add(dataElmIdentifier);
   }
+
+  onSetElementType(event: Event): void {
+    this.setElementType((event.target as HTMLInputElement).value);
+  }
 }

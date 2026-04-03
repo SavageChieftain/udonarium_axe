@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -16,7 +16,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, SafePipe],
 })
-export class FileStorageComponent implements OnInit {
+export class FileStorageComponent {
   private panelService = inject(PanelService);
   private imageStorage = inject(ImageStorage);
   private fileArchiver = inject(FileArchiver);
@@ -94,13 +94,13 @@ export class FileStorageComponent implements OnInit {
 
   fileStorageService = this.imageStorage;
 
-  inputNewTag(newTag: string) {
-    this.newTagName = newTag;
+  onInputNewTag(event: Event): void {
+    this.newTagName.set((event.target as HTMLInputElement).value);
   }
 
   changeTag() {
-    if (this.newTagName == '全て') return; //表示上混乱するタグの禁止
-    if (this.newTagName == 'システム予約') return; //システム予約名称
+    if (this.newTagName() == '全て') return; //表示上混乱するタグの禁止
+    if (this.newTagName() == 'システム予約') return; //システム予約名称
 
     const changeableImages = this.images;
 
@@ -108,26 +108,24 @@ export class FileStorageComponent implements OnInit {
       if (this.checkedFiles.has(img.context.identifier)) {
         let imageTag = ImageTag.get(img.context.identifier);
         imageTag = imageTag ? imageTag : ImageTag.create(img.context.identifier);
-        if (this.newTagName == '未設定') {
+        if (this.newTagName() == '未設定') {
           imageTag.tag = '';
         } else {
-          imageTag.tag = this.newTagName;
+          imageTag.tag = this.newTagName();
         }
       }
     }
   }
 
   selectTag: string = '';
-  newTagName: string = '';
+  readonly newTagName = signal<string>('');
 
   resetBtn() {
     //  処理なし
   }
 
   //本家PR #92より
-  constructor() {}
-
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));
   }
 

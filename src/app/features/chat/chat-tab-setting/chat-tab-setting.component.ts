@@ -279,4 +279,8 @@ export class ChatTabSettingComponent implements OnInit {
       this.chkSystemTabIndex();
     }
   }
+
+  onSelectTab(event: Event): void {
+    this.onChangeSelectTab((event.target as HTMLInputElement).value);
+  }
 }

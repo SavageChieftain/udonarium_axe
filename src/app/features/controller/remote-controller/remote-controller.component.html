@@ -63,8 +63,8 @@
                 class="palette"
                 style="overflow-y: auto"
                 size="5"
-                (input)="selectPalette($any($event.target).value)"
-                (click)="clickPalette($any($event.target).value)"
+                (input)="onSelectPalette($event)"
+                (click)="onClickPalette($event)"
                 #chatPalette
               >
                 @if (palette) {
@@ -163,8 +163,8 @@
       @if (character?.rootDataElement) {
         <div>
           <div class="controller">
-            @for (data of character?.detailDataElement?.children ?? []; track data) {
-              @for (dataElm of data.children; track dataElm) {
+            @for (data of character?.detailDataElement?.children ?? []; track data.identifier) {
+              @for (dataElm of data.children; track dataElm.identifier) {
                 @if (dataElm && this.dataTags.includes(dataElm.name)) {
                   @switch (dataElm.type) {
                     @case ('numberResource') {

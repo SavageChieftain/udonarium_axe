@@ -298,4 +298,32 @@ export class GameCharacterSheetComponent implements OnInit {
       range.rangeColor = event;
     }
   }
+
+  onChkDiceKomaSize(event: Event): void {
+    this.chkDiceKomaSize((event.target as HTMLInputElement).valueAsNumber);
+  }
+  onChkKomaSize(event: Event): void {
+    this.chkKomaSize((event.target as HTMLInputElement).valueAsNumber);
+  }
+  onChkPopWidth(event: Event): void {
+    this.chkPopWidth((event.target as HTMLInputElement).valueAsNumber);
+  }
+  onChkPopMaxHeight(event: Event): void {
+    this.chkPopMaxHeight((event.target as HTMLInputElement).valueAsNumber);
+  }
+  onSetLocation(event: Event): void {
+    this.setLocation((event.target as HTMLInputElement).value);
+  }
+  onChangeMaskFillColor(event: Event): void {
+    this.changeMaskFillColor((event.target as HTMLInputElement).value);
+  }
+  onChangeMaskChangeColor(event: Event): void {
+    this.changeMaskChangeColor((event.target as HTMLInputElement).value);
+  }
+  onChangeRangeColor(event: Event): void {
+    this.changeRangeColor((event.target as HTMLInputElement).value);
+  }
+  onChangeGridColor(event: Event): void {
+    this.changeGridColor((event.target as HTMLInputElement).value);
+  }
 }

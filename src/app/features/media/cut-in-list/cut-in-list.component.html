@@ -6,7 +6,7 @@
     <select
       style="width: 15em"
       size="20"
-      (change)="selectCutIn($any($event.target).value)"
+      (change)="onSelectCutIn($event)"
       name="cut-in-select"
       name="cut-in-select"
       [ngModel]="selectedCutIn?.identifier"

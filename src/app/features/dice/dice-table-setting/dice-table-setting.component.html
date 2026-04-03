@@ -6,7 +6,7 @@
     <select
       style="width: 100%"
       size="15;padding-right:5px"
-      (change)="selectDiceTable($any($event.target).value)"
+      (change)="onSelectDiceTable($event)"
       name="dice-table-select"
       name="dice-table-select"
       [ngModel]="selectedTable?.identifier"

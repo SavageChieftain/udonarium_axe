@@ -54,14 +54,14 @@ describe('FileStorageComponent', () => {
   describe('changeTag', () => {
     it('タグ名が「全て」のとき早期リターンすること', () => {
       component['checkedFiles'].add('img-1');
-      component.newTagName = '全て';
+      component.newTagName.set('全て');
       component.changeTag();
       // エラーなく完了すること（タグ変更処理が行われない）
     });
 
     it('タグ名が「システム予約」のとき早期リターンすること', () => {
       component['checkedFiles'].add('img-1');
-      component.newTagName = 'システム予約';
+      component.newTagName.set('システム予約');
       component.changeTag();
       // エラーなく完了すること
     });

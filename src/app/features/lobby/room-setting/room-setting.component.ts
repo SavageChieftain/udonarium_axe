@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -13,15 +13,16 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./room-setting.component.css'],
   imports: [FormsModule],
 })
-export class RoomSettingComponent implements OnInit {
+export class RoomSettingComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
   peers: PeerContext[] = [];
   isReloading: boolean = false;
 
-  roomName: string = 'ふつうの部屋';
-  password: string = '';
+  readonly roomName = signal<string>('ふつうの部屋');
+  readonly password = signal<string>('');
+  readonly validateLength = signal<boolean>(true);
   isPrivate: boolean = false;
 
   get peerId(): string {
@@ -30,29 +31,30 @@ export class RoomSettingComponent implements OnInit {
   get isConnected(): boolean {
     return Network.peerIds.length <= 1 ? false : true;
   }
-  validateLength: boolean = true;
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
   }
 
-  ngOnInit() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ルーム作成'));
-    this.calcPeerId(this.roomName, this.password);
+  constructor() {
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = ' ルーム作成'));
+    effect(() => {
+      void this.calcPeerId(this.roomName(), this.password());
+    });
   }
 
   async calcPeerId(roomName: string, password: string) {
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
     const context = await PeerContext.createRoom(userId, PeerContext.generateId('***'), roomName, password);
-    this.validateLength = context.peerId.length < 64;
+    this.validateLength.set(context.peerId.length < 64);
     this.myPeer.reConnectPass = password;
   }
 
   createRoom() {
     const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
-    Network.open(userId, PeerContext.generateId('***'), this.roomName, this.password);
+    Network.open(userId, PeerContext.generateId('***'), this.roomName(), this.password());
     PeerCursor.myCursor.peerId = Network.peerId;
-    this.myPeer.reConnectPass = this.password;
+    this.myPeer.reConnectPass = this.password();
     this.modalService.resolve(true);
   }
 }

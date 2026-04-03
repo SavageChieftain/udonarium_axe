@@ -4,10 +4,10 @@
       ルーム名 :
       <input
         class="input"
-        (input)="calcPeerId($any($event.target).value, password)"
         name="room-name"
         name="room-name"
-        [(ngModel)]="roomName"
+        [ngModel]="roomName()"
+        (ngModelChange)="roomName.set($event)"
         required
         minlength="1"
         maxlength="128"
@@ -19,10 +19,10 @@
       パスワード:
       <input
         class="input"
-        (input)="calcPeerId(roomName, $any($event.target).value)"
         name="password"
         name="password"
-        [(ngModel)]="password"
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)"
         maxlength="12"
         #passwordValidation="ngModel"
         placeholder="空ならパスワードなし"
@@ -46,7 +46,7 @@
     }
     <div>
       <button
-        [disabled]="!roomNameValidation.valid || !passwordValidation.valid || !validateLength"
+        [disabled]="!roomNameValidation.valid || !passwordValidation.valid || !validateLength()"
         (click)="createRoom()"
       >
         新しいルームを作成

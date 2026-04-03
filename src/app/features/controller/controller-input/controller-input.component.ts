@@ -2,6 +2,7 @@ import { NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
@@ -137,15 +138,10 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     }
     return image ? image : ImageFile.Empty;
   }
-  get gameCharacters(): GameCharacter[] {
-    if (this.shouldUpdateCharacterList) {
-      this.shouldUpdateCharacterList = false;
-      this._gameCharacters = this.objectStore
-        .getObjects<GameCharacter>(GameCharacter)
-        .filter((character) => this.allowsChat(character));
-    }
-    return this._gameCharacters;
-  }
+  readonly gameCharacters = computed(() => {
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
+    return this.objectStore.getObjects<GameCharacter>(GameCharacter).filter((character) => this.allowsChat(character));
+  });
 
   get diceBotInfos() {
     return DiceBot.diceBotInfos;
@@ -177,9 +173,6 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
   gameHelp = '';
 
   colorSelectNo_: number = 0;
-
-  private shouldUpdateCharacterList = true;
-  private _gameCharacters: GameCharacter[] = [];
 
   private writingEventInterval: NodeJS.Timeout | null = null;
   private previousWritingLength = 0;
@@ -245,14 +238,13 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       if (event.aliasName !== GameCharacter.aliasName) {
         return;
       }
-      this.shouldUpdateCharacterList = true;
       if (event.identifier !== this.sendFrom()) {
         return;
       }
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
       if (gameCharacter && !this.allowsChat(gameCharacter)) {
-        if (0 < this.gameCharacters.length && this.onlyCharacters()) {
-          this.sendFrom.set(this.gameCharacters[0].identifier);
+        if (0 < this.gameCharacters().length && this.onlyCharacters()) {
+          this.sendFrom.set(this.gameCharacters()[0].identifier);
         } else {
           this.sendFrom.set(this.myPeer.identifier);
         }

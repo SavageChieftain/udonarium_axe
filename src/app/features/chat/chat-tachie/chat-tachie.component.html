@@ -23,7 +23,7 @@
         min="{{ chatTabList.minTachieSize }}"
         max="{{ chatTabList.maxTachieSize }}"
         name="tachieHeight"
-        (change)="chkHeight($any($event.target).value)"
+        (change)="onChkHeight($event)"
       />
       チャット簡易表示:
       @if (chatTab) {

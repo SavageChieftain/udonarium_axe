@@ -464,4 +464,11 @@ export class RemoteControllerComponent implements OnInit, OnDestroy {
     object.targeted = !object.targeted;
     this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
   }
+
+  onSelectPalette(event: Event): void {
+    this.selectPalette((event.target as HTMLInputElement).value);
+  }
+  onClickPalette(event: Event): void {
+    this.clickPalette((event.target as HTMLInputElement).value);
+  }
 }

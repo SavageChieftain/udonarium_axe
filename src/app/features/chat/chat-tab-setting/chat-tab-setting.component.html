@@ -6,7 +6,7 @@
     <select
       style="width: 10em"
       size="10"
-      (change)="onChangeSelectTab($any($event.target).value)"
+      (change)="onSelectTab($event)"
       name="chat-tab-select"
       name="chat-tab-select"
       [ngModel]="selectedTab?.identifier"

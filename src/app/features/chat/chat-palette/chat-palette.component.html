@@ -55,8 +55,8 @@
           #completeSelect
           style="overflow-y: auto"
           size="5"
-          (input)="selectAutoComplete(text, $any($event.target).value)"
-          (click)="selectAutoComplete(text, $any($event.target).value)"
+          (input)="onSelectAutoComplete(text, $event)"
+          (click)="onSelectAutoComplete(text, $event)"
         >
           @for (palette of autoCompleteList(); track $index) {
             <option value="{{ palette }}">{{ palette }}</option>
@@ -70,8 +70,8 @@
       class="palette"
       style="overflow-y: auto"
       size="5"
-      (input)="selectPalette($any($event.target).value)"
-      (click)="clickPalette($any($event.target).value)"
+      (input)="onSelectPalette($event)"
+      (click)="onClickPalette($event)"
       (focusout)="resizeChatInput()"
       #chatPalette
     >

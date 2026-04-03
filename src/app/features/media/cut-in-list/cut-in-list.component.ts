@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 //
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -25,7 +25,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./cut-in-list.component.css'],
   imports: [FormsModule, SafePipe],
 })
-export class CutInListComponent implements OnInit {
+export class CutInListComponent {
   private pointerDeviceService = inject(PointerDeviceService);
   private modalService = inject(ModalService);
   private saveDataService = inject(SaveDataService);
@@ -280,7 +280,7 @@ export class CutInListComponent implements OnInit {
   isSaveing = false;
   progresPercent = 0;
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
   }
 
@@ -490,5 +490,9 @@ export class CutInListComponent implements OnInit {
   stopCutIn() {
     if (!this.selectedCutIn) return;
     this.cutInLauncher.stopCutIn(this.selectedCutIn);
+  }
+
+  onSelectCutIn(event: Event): void {
+    this.selectCutIn((event.target as HTMLInputElement).value);
   }
 }

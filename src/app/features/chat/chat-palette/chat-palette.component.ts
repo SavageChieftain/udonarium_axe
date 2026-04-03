@@ -359,6 +359,16 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     }
   }
 
+  onSelectAutoComplete(text: string, event: Event): void {
+    this.selectAutoComplete(text, (event.target as HTMLInputElement).value);
+  }
+  onSelectPalette(event: Event): void {
+    this.selectPalette((event.target as HTMLInputElement).value);
+  }
+  onClickPalette(event: Event): void {
+    this.clickPalette((event.target as HTMLInputElement).value);
+  }
+
   indexBtn() {
     if (!this.palette) return;
     const panel: HTMLElement = this.rootElementRef().nativeElement;

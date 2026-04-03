@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   inject,
-  OnInit,
   signal,
   viewChild,
 } from '@angular/core';
@@ -21,13 +20,13 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PasswordCheckComponent implements OnInit, AfterViewInit {
+export class PasswordCheckComponent implements AfterViewInit {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
   readonly passwordInputElementRef = viewChild.required<ElementRef<HTMLInputElement>>('passwordInput');
 
-  password: string = '';
+  readonly password = signal<string>('');
   readonly help = signal('');
 
   private targetPeerContext!: PeerContext;
@@ -46,9 +45,7 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit {
 
     this.targetPeerContext = option.peerId ? PeerContext.parse(option.peerId as string) : PeerContext.parse('???');
     this.title = option.title ? (option.title as string) : '';
-  }
 
-  ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
   }
 
@@ -56,12 +53,13 @@ export class PasswordCheckComponent implements OnInit, AfterViewInit {
     this.passwordInputElementRef().nativeElement.focus();
   }
 
-  onInputChange(_value: string) {
+  onPasswordChange(value: string): void {
+    this.password.set(value);
     this.help.set('');
   }
 
   async submit() {
-    if (await this.targetPeerContext.verifyPassword(this.password)) this.modalService.resolve(this.password);
+    if (await this.targetPeerContext.verifyPassword(this.password())) this.modalService.resolve(this.password());
     this.help.set('パスワードが違います');
   }
 }

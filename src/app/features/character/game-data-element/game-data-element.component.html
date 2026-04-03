@@ -5,7 +5,7 @@
         @if (!isImage()) {
           <ng-container *ngTemplateOutlet="editButtons"></ng-container>
           <select
-            (change)="setElementType($any($event.target).value)"
+            (change)="onSetElementType($event)"
             name="data-elm-type"
             name="data-elm-type"
             [ngModel]="gameDataElement().type"

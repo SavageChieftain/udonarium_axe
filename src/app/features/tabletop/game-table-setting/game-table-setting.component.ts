@@ -37,7 +37,6 @@ export class GameTableSettingComponent implements OnInit {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  _gameType: string = '';
   get gameType(): string {
     return this.config.defaultDiceBot;
   }
@@ -239,5 +238,9 @@ export class GameTableSettingComponent implements OnInit {
       if (!this.selectedTable || !value) return;
       this.selectedTable.backgroundImageIdentifier = value;
     });
+  }
+
+  onSelectGameTable(event: Event): void {
+    this.selectGameTable((event.target as HTMLInputElement).value);
   }
 }
