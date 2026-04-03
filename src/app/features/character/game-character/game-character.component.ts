@@ -12,12 +12,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
@@ -31,7 +31,7 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
@@ -250,132 +250,12 @@ export class GameCharacterComponent {
     const position = this.pointerDeviceService.pointers[0];
     this.contextMenuService.open(
       position,
-      [
-        {
-          name: '高度設定',
-          action: undefined,
-          subActions: [
-            {
-              name: '高度を0にする',
-              action: () => {
-                if (this.altitude != 0) {
-                  this.altitude = 0;
-                  SoundEffect.play(PresetSound.sweep);
-                }
-              },
-              altitudeHande: char,
-            },
-            this.isAltitudeIndicate
-              ? {
-                  name: '☑ 高度の表示',
-                  action: () => {
-                    this.isAltitudeIndicate = false;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                }
-              : {
-                  name: '☐ 高度の表示',
-                  action: () => {
-                    this.isAltitudeIndicate = true;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                },
-            this.isDropShadow
-              ? {
-                  name: '☑ 影の表示',
-                  action: () => {
-                    this.isDropShadow = false;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                }
-              : {
-                  name: '☐ 影の表示',
-                  action: () => {
-                    this.isDropShadow = true;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                },
-          ],
-        },
-        ContextMenuSeparator,
-        {
-          name: '詳細を表示',
-          action: () => {
-            this.showDetail(char);
-          },
-        },
-        {
-          name: 'チャットパレットを表示',
-          action: () => {
-            this.showChatPalette(char);
-          },
-        },
-        {
-          name: 'リモコンを表示',
-          action: () => {
-            this.showRemoteController(char);
-          },
-        },
-        {
-          name: 'バフ編集',
-          action: () => {
-            this.showBuffEdit(char);
-          },
-        },
-        ContextMenuSeparator,
-        {
-          name: '共有イベントリに移動',
-          action: () => {
-            char.setLocation('common');
-            SoundEffect.play(PresetSound.piecePut);
-          },
-        },
-        {
-          name: '個人イベントリに移動',
-          action: () => {
-            char.setLocation(Network.peerId);
-            SoundEffect.play(PresetSound.piecePut);
-          },
-        },
-        {
-          name: '墓場に移動',
-          action: () => {
-            char.setLocation('graveyard');
-            SoundEffect.play(PresetSound.sweep);
-          },
-        },
-        ContextMenuSeparator,
-        this.isLock
-          ? {
-              name: '固定解除',
-              action: () => {
-                this.isLock = false;
-                SoundEffect.play(PresetSound.unlock);
-              },
-            }
-          : {
-              name: '固定する',
-              action: () => {
-                this.isLock = true;
-                SoundEffect.play(PresetSound.lock);
-              },
-            },
-        ContextMenuSeparator,
-        {
-          name: 'コピーを作る',
-          action: () => {
-            const cloneObject = char.clone();
-            cloneObject.location.x += this.gridSize;
-            cloneObject.location.y += this.gridSize;
-            cloneObject.update();
-            SoundEffect.play(PresetSound.piecePut);
-          },
-        },
-      ],
+      buildGameCharacterContextMenu(char, this.gridSize, this.inventoryService, {
+        onShowDetail: () => this.showDetail(char),
+        onShowChatPalette: () => this.showChatPalette(char),
+        onShowRemoteController: () => this.showRemoteController(char),
+        onShowBuffEdit: () => this.showBuffEdit(char),
+      }),
       this.name
     );
   }

@@ -40,7 +40,7 @@ import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
-import { TextNoteComponent } from '@axe/shared/components/text-note/text-note.component';
+import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';

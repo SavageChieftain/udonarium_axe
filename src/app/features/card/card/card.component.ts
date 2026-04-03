@@ -10,7 +10,6 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -19,6 +18,7 @@ import { Card, CardState } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -28,7 +28,7 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
@@ -248,112 +248,14 @@ export class CardComponent {
     e.preventDefault();
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
-    const menuArray = [];
-    menuArray.push(
-      this.isLock
-        ? {
-            name: '固定解除',
-            action: () => {
-              this.isLock = false;
-              this.dispLockMark = true;
-              SoundEffect.play(PresetSound.unlock);
-            },
-          }
-        : {
-            name: '固定する',
-            action: () => {
-              this.isLock = true;
-              SoundEffect.play(PresetSound.lock);
-            },
-          }
+    this.contextMenuService.open(
+      position,
+      buildCardContextMenu(this.card(), this.gridSize, {
+        onCreateStack: () => this.createStack(),
+        onShowDetail: () => this.showDetail(this.card()),
+      }),
+      this.isVisible ? this.name : 'カード'
     );
-    if (this.isLock) {
-      menuArray.push(
-        this.dispLockMark
-          ? {
-              name: '固定マーク消去',
-              action: () => {
-                this.dispLockMark = false;
-                SoundEffect.play(PresetSound.lock);
-              },
-            }
-          : {
-              name: '固定マーク表示',
-              action: () => {
-                this.dispLockMark = true;
-                SoundEffect.play(PresetSound.lock);
-              },
-            }
-      );
-    }
-    menuArray.push(ContextMenuSeparator);
-    menuArray.push(
-      !this.isVisible || this.isHand
-        ? {
-            name: '表にする',
-            action: () => {
-              this.card().faceUp();
-              SoundEffect.play(PresetSound.cardDraw);
-            },
-          }
-        : {
-            name: '裏にする',
-            action: () => {
-              this.card().faceDown();
-              SoundEffect.play(PresetSound.cardDraw);
-            },
-          }
-    );
-    menuArray.push(
-      this.isHand
-        ? {
-            name: '裏にする',
-            action: () => {
-              this.card().faceDown();
-              SoundEffect.play(PresetSound.cardDraw);
-            },
-          }
-        : {
-            name: '自分だけ見る',
-            action: () => {
-              SoundEffect.play(PresetSound.cardDraw);
-              this.card().faceDown();
-              this.owner = Network.peerContext.userId;
-            },
-          }
-    );
-    menuArray.push(ContextMenuSeparator);
-    menuArray.push({
-      name: '重なったカードで山札を作る',
-      action: () => {
-        this.createStack();
-        SoundEffect.play(PresetSound.cardPut);
-      },
-    });
-    menuArray.push({
-      name: 'カードを編集',
-      action: () => {
-        this.showDetail(this.card());
-      },
-    });
-    menuArray.push({
-      name: 'コピーを作る',
-      action: () => {
-        const cloneObject = this.card().clone();
-        cloneObject.location.x += this.gridSize;
-        cloneObject.location.y += this.gridSize;
-        cloneObject.toTopmost();
-        SoundEffect.play(PresetSound.cardPut);
-      },
-    });
-    menuArray.push({
-      name: '削除する',
-      action: () => {
-        this.card().destroy();
-        SoundEffect.play(PresetSound.sweep);
-      },
-    });
-    this.contextMenuService.open(position, menuArray, this.isVisible ? this.name : 'カード');
   }
 
   onMove() {

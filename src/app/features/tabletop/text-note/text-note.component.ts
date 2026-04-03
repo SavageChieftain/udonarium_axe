@@ -19,6 +19,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/shared/text-note';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
+import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -27,7 +28,7 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
@@ -274,99 +275,13 @@ export class TextNoteComponent {
     const position = this.pointerDeviceService.pointers[0];
     this.contextMenuService.open(
       position,
-      [
-        {
-          name: '高度設定',
-          action: undefined,
-          subActions: [
-            {
-              name: '高度を0にする',
-              action: () => {
-                if (this.altitude != 0) {
-                  this.altitude = 0;
-                  SoundEffect.play(PresetSound.sweep);
-                }
-              },
-              altitudeHande: this.textNote(),
-            },
-            this.isAltitudeIndicate
-              ? {
-                  name: '☑ 高度の表示',
-                  action: () => {
-                    this.isAltitudeIndicate = false;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                }
-              : {
-                  name: '☐ 高度の表示',
-                  action: () => {
-                    this.isAltitudeIndicate = true;
-                    SoundEffect.play(PresetSound.sweep);
-                    this.inventoryService.notifyInventoryUpdate();
-                  },
-                },
-          ],
+      buildTextNoteContextMenu(this.textNote(), this.gridSize, this.inventoryService, {
+        onSetUpright: (isUpright) => {
+          this.transition = true;
+          this.textNote().isUpright = isUpright;
         },
-        ContextMenuSeparator,
-        this.isLock
-          ? {
-              name: '固定解除',
-              action: () => {
-                this.isLock = false;
-                SoundEffect.play(PresetSound.unlock);
-              },
-            }
-          : {
-              name: '固定する',
-              action: () => {
-                this.isLock = true;
-                SoundEffect.play(PresetSound.lock);
-              },
-            },
-        ContextMenuSeparator,
-        this.isUpright
-          ? {
-              name: '寝かせる',
-              action: () => {
-                this.transition = true;
-                this.isUpright = false;
-                SoundEffect.play(PresetSound.sweep);
-              },
-            }
-          : {
-              name: '直立させる',
-              action: () => {
-                this.transition = true;
-                this.isUpright = true;
-                SoundEffect.play(PresetSound.sweep);
-              },
-            },
-        ContextMenuSeparator,
-        {
-          name: 'メモを編集',
-          action: () => {
-            this.showDetail(this.textNote());
-          },
-        },
-        {
-          name: 'コピーを作る',
-          action: () => {
-            const cloneObject = this.textNote().clone();
-            cloneObject.location.x += this.gridSize;
-            cloneObject.location.y += this.gridSize;
-            cloneObject.toTopmost();
-            SoundEffect.play(PresetSound.cardPut);
-          },
-        },
-        {
-          name: '削除する',
-          action: () => {
-            this.textNote().destroy();
-            SoundEffect.play(PresetSound.sweep);
-          },
-        },
-      ],
+        onShowDetail: () => this.showDetail(this.textNote()),
+      }),
       this.title
     );
   }

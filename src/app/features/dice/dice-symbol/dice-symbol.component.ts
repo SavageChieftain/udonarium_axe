@@ -10,7 +10,6 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -20,6 +19,7 @@ import { callRollDiceSymbol } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
+import { buildDiceSymbolContextMenu } from '@axe/features/dice/dice-symbol/dice-symbol-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -27,7 +27,7 @@ import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
@@ -226,95 +226,14 @@ export class DiceSymbolComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
-
-    const actions: ContextMenuAction[] = [];
-
-    if (this.isVisible) {
-      actions.push({
-        name: 'ダイスを振る',
-        action: () => {
-          this.diceRoll();
-        },
-      });
-    }
-    if (actions.length) actions.push(ContextMenuSeparator);
-    if (this.isMine || this.hasOwner) {
-      actions.push({
-        name: 'ダイスを公開',
-        action: () => {
-          this.owner = '';
-          SoundEffect.play(PresetSound.unlock);
-        },
-      });
-    }
-    if (!this.isMine) {
-      actions.push({
-        name: '自分だけ見る',
-        action: () => {
-          this.owner = Network.peerContext.userId;
-          SoundEffect.play(PresetSound.lock);
-        },
-      });
-    }
-
-    if (this.isVisible) {
-      const subActions: ContextMenuAction[] = [];
-      this.faces.forEach((face) => {
-        subActions.push({
-          name: `${face}`,
-          action: () => {
-            this.face = face;
-            SoundEffect.play(PresetSound.dicePut);
-          },
-        });
-      });
-      actions.push({ name: `ダイス目を設定`, action: undefined, subActions: subActions });
-    }
-
-    actions.push(ContextMenuSeparator);
-    actions.push(
-      this.isLock
-        ? {
-            name: '固定解除',
-            action: () => {
-              this.isLock = false;
-              SoundEffect.play(PresetSound.unlock);
-            },
-          }
-        : {
-            name: '固定する',
-            action: () => {
-              this.isLock = true;
-              SoundEffect.play(PresetSound.lock);
-            },
-          }
+    this.contextMenuService.open(
+      position,
+      buildDiceSymbolContextMenu(this.diceSymbol(), this.gridSize, {
+        onDiceRoll: () => this.diceRoll(),
+        onShowDetail: () => this.showDetail(this.diceSymbol()),
+      }),
+      this.name
     );
-    actions.push(ContextMenuSeparator);
-
-    actions.push({
-      name: '詳細を表示',
-      action: () => {
-        this.showDetail(this.diceSymbol());
-      },
-    });
-    actions.push({
-      name: 'コピーを作る',
-      action: () => {
-        const cloneObject = this.diceSymbol().clone();
-        cloneObject.location.x += this.gridSize;
-        cloneObject.location.y += this.gridSize;
-        cloneObject.update();
-        SoundEffect.play(PresetSound.dicePut);
-      },
-    });
-    actions.push({
-      name: '削除する',
-      action: () => {
-        this.diceSymbol().destroy();
-        SoundEffect.play(PresetSound.sweep);
-      },
-    });
-    this.contextMenuService.open(position, actions, this.name);
   }
 
   onMove() {
