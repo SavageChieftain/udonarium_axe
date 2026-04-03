@@ -26,7 +26,7 @@ describe('NetworkIndicatorComponent', () => {
       const priv = component as unknown as { timer: NodeJS.Timeout | null };
       priv.timer = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(priv.timer).toBeNull();

@@ -1,6 +1,6 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -9,8 +9,6 @@ import {
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -53,7 +51,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
+export class TerrainComponent {
   private imageService = inject(ImageService);
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
@@ -90,6 +88,46 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
       this.gridCanvas().nativeElement.style.opacity = opacity + '';
+    });
+    effect(() => {
+      const terrain = this.terrain();
+      this.movableOption = {
+        tabletopObject: terrain,
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: terrain,
+      };
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
+      if (!this.terrain()) return;
+      if (
+        e.identifier !== this.currentTable.identifier &&
+        e.identifier !== this.tableSelecter.identifier &&
+        e.identifier !== this.terrain().identifier
+      )
+        return;
+      this.setGameTableGrid(
+        this.width,
+        this.depth,
+        this.gridSize,
+        this.currentTable.gridType,
+        this.currentTable.gridColor
+      );
+    });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+      this.setGameTableGrid(
+        this.width,
+        this.depth,
+        this.gridSize,
+        this.currentTable.gridType,
+        this.currentTable.gridColor
+      );
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.input) this.input.destroy();
     });
   }
 
@@ -233,48 +271,6 @@ export class TerrainComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private input: InputHandler | null = null;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
-
-  ngOnInit() {
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (!this.terrain()) return;
-      if (
-        e.identifier !== this.currentTable.identifier &&
-        e.identifier !== this.tableSelecter.identifier &&
-        e.identifier !== this.terrain().identifier
-      )
-        return;
-      this.setGameTableGrid(
-        this.width,
-        this.depth,
-        this.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor
-      );
-    });
-    this.movableOption = {
-      tabletopObject: this.terrain(),
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: this.terrain(),
-    };
-  }
-
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
-    this.setGameTableGrid(
-      this.width,
-      this.depth,
-      this.gridSize,
-      this.currentTable.gridType,
-      this.currentTable.gridColor
-    );
-  }
-
-  ngOnDestroy() {
-    if (this.input) this.input.destroy();
-  }
 
   onDragstart(e: DragEvent) {
     e.stopPropagation();

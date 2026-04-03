@@ -1,14 +1,12 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   effect,
   ElementRef,
   inject,
-  OnDestroy,
-  OnInit,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -83,7 +81,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
     '(document:contextmenu)': 'onDocumentContextMenu($event)',
   },
 })
-export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameTableComponent {
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private coordinateService = inject(CoordinateService);
@@ -140,6 +138,42 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
           0
         );
       }, 50);
+    });
+
+    this.objectChangeService.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
+        this.setGameTableGrid(
+          this.currentTable.width,
+          this.currentTable.height,
+          this.currentTable.gridSize,
+          this.currentTable.gridType,
+          this.currentTable.gridColor
+        );
+      }
+    });
+    this.tabletopActionService.makeDefaultTable();
+    this.tabletopActionService.makeDefaultTabletopObjects();
+    this.tabletopActionService.initAprilDiceImage();
+
+    afterNextRender(() => {
+      this.initializeTableTouchGesture();
+      this.initializeTableMouseGesture();
+      this.cancelInput();
+
+      this.setGameTableGrid(
+        this.currentTable.width,
+        this.currentTable.height,
+        this.currentTable.gridSize,
+        this.currentTable.gridType,
+        this.currentTable.gridColor
+      );
+      this.setTransform(0, 0, 0, 0, 0, 0);
+      this.coordinateService.tabletopOriginElement = this.gameObjects().nativeElement;
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.mouseGesture) this.mouseGesture.destroy();
+      if (this.touchGesture) this.touchGesture.destroy();
     });
   }
 
@@ -236,44 +270,6 @@ export class GameTableComponent implements OnInit, OnDestroy, AfterViewInit {
   get peerCursors(): PeerCursor[] {
     this.objectChangeService.collectionOf('PeerCursor')();
     return this.tabletopService.peerCursors;
-  }
-
-  ngOnInit() {
-    this.objectChangeService.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
-        this.setGameTableGrid(
-          this.currentTable.width,
-          this.currentTable.height,
-          this.currentTable.gridSize,
-          this.currentTable.gridType,
-          this.currentTable.gridColor
-        );
-      }
-    });
-    this.tabletopActionService.makeDefaultTable();
-    this.tabletopActionService.makeDefaultTabletopObjects();
-    this.tabletopActionService.initAprilDiceImage();
-  }
-
-  ngAfterViewInit() {
-    this.initializeTableTouchGesture();
-    this.initializeTableMouseGesture();
-    this.cancelInput();
-
-    this.setGameTableGrid(
-      this.currentTable.width,
-      this.currentTable.height,
-      this.currentTable.gridSize,
-      this.currentTable.gridType,
-      this.currentTable.gridColor
-    );
-    this.setTransform(0, 0, 0, 0, 0, 0);
-    this.coordinateService.tabletopOriginElement = this.gameObjects().nativeElement;
-  }
-
-  ngOnDestroy() {
-    if (this.mouseGesture) this.mouseGesture.destroy();
-    if (this.touchGesture) this.touchGesture.destroy();
   }
 
   initializeTableTouchGesture() {

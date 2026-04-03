@@ -1,15 +1,15 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
+  signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -59,7 +59,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
+export class RangeComponent {
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -73,8 +73,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   private uiSignalService = inject(UiSignalService);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
-
-  constructor() {}
 
   readonly range = input.required<RangeArea>();
 
@@ -112,6 +110,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public get clipCorn() {
+    this._clipVersion();
     let clipCorn = 'polygon(' + this.clipAreaCorn.clip01x + 'px ' + this.clipAreaCorn.clip01y + 'px, ';
     clipCorn += this.clipAreaCorn.clip02x + 'px ' + this.clipAreaCorn.clip02y + 'px, ';
     clipCorn += this.clipAreaCorn.clip03x + 'px ' + this.clipAreaCorn.clip03y + 'px, ';
@@ -125,6 +124,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public get clipLine() {
+    this._clipVersion();
     let clipLine = 'polygon(' + this.clipAreaLine.clip01x + 'px ' + this.clipAreaLine.clip01y + 'px, ';
     clipLine += this.clipAreaLine.clip02x + 'px ' + this.clipAreaLine.clip02y + 'px, ';
     clipLine += this.clipAreaLine.clip03x + 'px ' + this.clipAreaLine.clip03y + 'px, ';
@@ -133,6 +133,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public get clipSquare() {
+    this._clipVersion();
     let clipSquare = 'polygon(' + this.clipAreaSquare.clip01x + 'px ' + this.clipAreaSquare.clip01y + 'px, ';
     clipSquare += this.clipAreaSquare.clip02x + 'px ' + this.clipAreaSquare.clip02y + 'px, ';
     clipSquare += this.clipAreaSquare.clip03x + 'px ' + this.clipAreaSquare.clip03y + 'px, ';
@@ -141,6 +142,7 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public get clipDiamond() {
+    this._clipVersion();
     let clipDiamond = 'polygon(' + this.clipAreaDiamond.clip01x + 'px ' + this.clipAreaDiamond.clip01y + 'px, ';
     clipDiamond += this.clipAreaDiamond.clip02x + 'px ' + this.clipAreaDiamond.clip02y + 'px, ';
     clipDiamond += this.clipAreaDiamond.clip03x + 'px ' + this.clipAreaDiamond.clip03y + 'px, ';
@@ -289,6 +291,8 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.range().isAltitudeIndicate = isAltitudeIndicate;
   }
 
+  private readonly _clipVersion = signal(0);
+
   gridSize: number = 50;
   math = Math;
 
@@ -299,7 +303,8 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
   rotableOption: RotableOption = {};
 
   private input: InputHandler | null = null;
-  ngOnInit() {
+
+  constructor() {
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
       if (!this.range() || !object) return;
@@ -310,25 +315,24 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setRange();
       }
     });
-    this.movableOption = {
-      tabletopObject: this.range(),
-      transformCssOffset: 'translateZ(0.25px)',
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: this.range(),
-    };
-    this.setRange();
-  }
-
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
-    this.setRange();
-  }
-
-  ngOnDestroy() {
-    if (this.input) this.input.destroy();
+    effect(() => {
+      this.movableOption = {
+        tabletopObject: this.range(),
+        transformCssOffset: 'translateZ(0.25px)',
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: this.range(),
+      };
+    });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+      this.setRange();
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.input) this.input.destroy();
+    });
   }
 
   onDragstart(e: DragEvent) {
@@ -449,5 +453,6 @@ export class RangeComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const opacity: number = this.range().opacity;
     this.gridCanvas().nativeElement.style.opacity = opacity + '';
+    this._clipVersion.update((v) => v + 1);
   }
 }

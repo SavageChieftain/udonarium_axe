@@ -24,18 +24,6 @@ describe('ChatTabComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
-    let ng0203Thrown = false;
-    try {
-      component.ngOnInit();
-    } catch (e: unknown) {
-      if (String(e).includes('NG0203')) {
-        ng0203Thrown = true;
-      }
-    }
-    expect(ng0203Thrown).toBe(false);
-  });
-
   describe('ngOnChanges', () => {
     it('scrollablePanelが存在する場合はresetMessagesが同期的に呼ばれること', () => {
       const panelService = TestBed.inject(PanelService);

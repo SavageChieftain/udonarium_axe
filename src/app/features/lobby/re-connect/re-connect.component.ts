@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
@@ -45,7 +45,7 @@ export function isReconnectCompleted(expectedPeerIds: Set<string>, observedPeerI
   templateUrl: './re-connect.component.html',
   styleUrls: ['./re-connect.component.css'],
 })
-export class ReConnectComponent implements OnInit {
+export class ReConnectComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
@@ -65,14 +65,13 @@ export class ReConnectComponent implements OnInit {
     return PeerCursor.myCursor;
   }
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => this.changeTitle());
     this.reconnectUserId = this.networkService.peerContext.userId;
     if (this.networkService.peerContext.isRoom) {
       this.roomName = this.networkService.peerContext.roomName;
       this.roomId = this.networkService.peerContext.roomId;
     }
-
     this.reload();
   }
 

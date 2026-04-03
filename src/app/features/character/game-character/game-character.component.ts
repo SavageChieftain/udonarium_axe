@@ -1,6 +1,6 @@
 import { NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -9,8 +9,6 @@ import {
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   viewChild,
 } from '@angular/core';
 import { Network } from '@axe/core/index';
@@ -48,7 +46,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit {
+export class GameCharacterComponent {
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
@@ -93,6 +91,30 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
         this.unhighlightTimer = undefined;
         this.rootElementRef().nativeElement.classList.remove('focused');
       }, 1010);
+    });
+
+    effect(() => {
+      const char = this.gameCharacter();
+      if (!char) return;
+      this.movableOption = {
+        tabletopObject: char,
+        transformCssOffset: 'translateZ(1.0px)',
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: char,
+      };
+    });
+
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      if (this.input) this.input.onStart = (e) => this.onInputStart(e);
+    });
+
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.highlightTimer);
+      clearTimeout(this.unhighlightTimer);
+      if (this.input) this.input.destroy();
     });
   }
 
@@ -200,30 +222,6 @@ export class GameCharacterComponent implements OnInit, OnDestroy, AfterViewInit 
 */
     const ret = 0;
     return ret;
-  }
-
-  ngOnInit() {
-    const char = this.gameCharacter();
-    if (!char) return;
-    this.movableOption = {
-      tabletopObject: char,
-      transformCssOffset: 'translateZ(1.0px)',
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: char,
-    };
-  }
-
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    if (this.input) this.input.onStart = (e) => this.onInputStart(e);
-  }
-
-  ngOnDestroy() {
-    clearTimeout(this.highlightTimer);
-    clearTimeout(this.unhighlightTimer);
-    if (this.input) this.input.destroy();
   }
 
   onDragstart(e: DragEvent) {

@@ -1,5 +1,5 @@
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -20,7 +20,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PasswordCheckComponent implements AfterViewInit {
+export class PasswordCheckComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
@@ -47,10 +47,9 @@ export class PasswordCheckComponent implements AfterViewInit {
     this.title = option.title ? (option.title as string) : '';
 
     queueMicrotask(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
-  }
-
-  ngAfterViewInit() {
-    this.passwordInputElementRef().nativeElement.focus();
+    afterNextRender(() => {
+      this.passwordInputElementRef().nativeElement.focus();
+    });
   }
 
   onPasswordChange(value: string): void {

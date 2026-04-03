@@ -64,9 +64,9 @@ describe('GameTableMaskComponent', () => {
       }).not.toThrow();
     });
 
-    it('ngDestroyで_scratchingTimerIdをクリアしても例外にならないこと', () => {
+    it('destroyで_scratchingTimerIdをクリアしても例外にならないこと', () => {
       expect(() => {
-        component.ngOnDestroy();
+        fixture.destroy();
       }).not.toThrow();
     });
 

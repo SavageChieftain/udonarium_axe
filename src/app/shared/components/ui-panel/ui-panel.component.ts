@@ -1,13 +1,13 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
@@ -35,10 +35,11 @@ import { PanelService } from '@axe/shared/ui/panel.service';
     NgStyle,
   ],
 })
-export class UIPanelComponent implements OnInit, OnDestroy {
+export class UIPanelComponent {
   panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectStore = inject(ObjectStore);
+  private destroyRef = inject(DestroyRef);
 
   readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
   readonly scrollablePanel = viewChild.required<ElementRef<HTMLDivElement>>('scrollablePanel');
@@ -67,6 +68,18 @@ export class UIPanelComponent implements OnInit, OnDestroy {
     });
     effect(() => {
       this.panelService.height = this.heightInput();
+    });
+    afterNextRender(() => {
+      this.panelService.scrollablePanel = this.scrollablePanel().nativeElement;
+      this.timerCheckWindowSize = setInterval(() => {
+        this.chkeWindowMinSize();
+      }, 500);
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.timerCheckWindowSize) {
+        clearInterval(this.timerCheckWindowSize);
+        this.timerCheckWindowSize = null;
+      }
     });
   }
 
@@ -120,14 +133,7 @@ export class UIPanelComponent implements OnInit, OnDestroy {
     this.tachieDispByMouse = flag;
   }
 
-  ngOnInit() {
-    this.panelService.scrollablePanel = this.scrollablePanel().nativeElement;
-    this.timerCheckWindowSize = setInterval(() => {
-      this.chkeWindowMinSize();
-    }, 500);
-  }
-
-  // youtube動画が既定値未満にしないための処理 マニュアルで200*200位上津衣装となっていたのでCutIn側でそれに習う
+  // youtube動画が既定値未満にしないための処理 マニュアルで200*200位上津衣装となっていたのでCutIn側でそれに翔う
   chkeWindowMinSize() {
     const id = this.panelService.cutInIdentifier;
     if (!id) return;
@@ -235,13 +241,6 @@ export class UIPanelComponent implements OnInit, OnDestroy {
 
   get isCutIn(): boolean {
     return this.panelService.isCutIn;
-  }
-
-  ngOnDestroy() {
-    if (this.timerCheckWindowSize) {
-      clearInterval(this.timerCheckWindowSize);
-      this.timerCheckWindowSize = null;
-    }
   }
 
   close() {

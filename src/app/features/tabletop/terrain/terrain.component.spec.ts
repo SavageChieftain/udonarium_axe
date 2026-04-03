@@ -23,18 +23,6 @@ describe('TerrainComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
-    let ng0203Thrown = false;
-    try {
-      component.ngOnInit();
-    } catch (e: unknown) {
-      if (String(e).includes('NG0203')) {
-        ng0203Thrown = true;
-      }
-    }
-    expect(ng0203Thrown).toBe(false);
-  });
-
   describe('viewRotateZ computed signal', () => {
     it('初期値はデフォルト10であること', () => {
       expect(component.viewRotateZ()).toBe(10);

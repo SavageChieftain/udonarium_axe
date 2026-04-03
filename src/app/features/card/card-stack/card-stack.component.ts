@@ -1,14 +1,13 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -47,7 +46,7 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
+export class CardStackComponent {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -130,7 +129,8 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
   private doubleClickPoint = { x: 0, y: 0 };
 
   private input: InputHandler | null = null;
-  ngOnInit() {
+
+  constructor() {
     this.objectChange.shuffleCardStack$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.cardStack().identifier) {
         this.animeState.set('active');
@@ -140,25 +140,26 @@ export class CardStackComponent implements OnInit, AfterViewInit, OnDestroy {
       if (event.cardStackIdentifier === this.cardStack().identifier && this.cardStack())
         this.cardsVersion.update((v) => v + 1);
     });
-    this.movableOption = {
-      tabletopObject: this.cardStack(),
-      transformCssOffset: 'translateZ(0.15px)',
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: this.cardStack(),
-    };
-  }
-
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
-  }
-
-  ngOnDestroy() {
-    clearTimeout(this.doubleClickTimer ?? undefined);
-    clearTimeout(this.iconHiddenTimer ?? undefined);
-    if (this.input) this.input.destroy();
+    effect(() => {
+      const cardStack = this.cardStack();
+      this.movableOption = {
+        tabletopObject: cardStack,
+        transformCssOffset: 'translateZ(0.15px)',
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: cardStack,
+      };
+    });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+    });
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.doubleClickTimer ?? undefined);
+      clearTimeout(this.iconHiddenTimer ?? undefined);
+      if (this.input) this.input.destroy();
+    });
   }
 
   onShuffleDone() {

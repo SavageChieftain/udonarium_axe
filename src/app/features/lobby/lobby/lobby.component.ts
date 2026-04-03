@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
@@ -18,7 +18,7 @@ import { merge, take } from 'rxjs';
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.css'],
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private objectStore = inject(ObjectStore);
@@ -46,7 +46,7 @@ export class LobbyComponent implements OnInit {
     return PeerCursor.myCursor;
   }
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => this.changeTitle());
     this.objectChange.networkOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.changeTitle();

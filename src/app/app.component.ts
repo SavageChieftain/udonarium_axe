@@ -1,6 +1,5 @@
 import {
   afterNextRender,
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   inject,
@@ -38,7 +37,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./app.component.css'],
   imports: [GameTableComponent, UIPanelComponent, NetworkIndicatorComponent],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);
@@ -54,16 +53,13 @@ export class AppComponent implements AfterViewInit {
   constructor() {
     this.eventHandler.initialize();
     afterNextRender(() => {
+      PanelService.defaultParentViewContainerRef =
+        ModalService.defaultParentViewContainerRef =
+        ContextMenuService.defaultParentViewContainerRef =
+          this.modalLayerViewContainerRef();
       this.panelService.open(PeerMenuComponent, { width: 500, height: 450, left: 100 });
       this.panelService.open(ChatWindowComponent, { width: 700, height: 400, left: 100, top: 450 });
     });
-  }
-
-  ngAfterViewInit() {
-    PanelService.defaultParentViewContainerRef =
-      ModalService.defaultParentViewContainerRef =
-      ContextMenuService.defaultParentViewContainerRef =
-        this.modalLayerViewContainerRef();
   }
 
   open(componentName: string) {

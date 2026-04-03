@@ -1,12 +1,10 @@
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
   inject,
-  OnDestroy,
-  OnInit,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -31,7 +29,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./cut-in-window.component.css'],
   imports: [YouTubePlayer, SafePipe],
 })
-export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
+export class CutInWindowComponent {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
@@ -50,6 +48,55 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
   readonly audioPlayer: AudioPlayer = new AudioPlayer();
   private cutInTimeOut: ReturnType<typeof setTimeout> | null = null;
   timerCheckWindowSize: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const cutIn = event.cutIn as CutIn;
+      if (this.cutIn) {
+        if (this.cutIn.identifier == cutIn.identifier || this.cutIn.tagName == cutIn.tagName) {
+          this.panelService.close();
+        }
+      }
+    });
+    this.objectChange.stopCutInByBgm$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.cutIn) {
+        const audio = this.audioStorage.get(this.cutIn.audioIdentifier);
+        if (this.cutIn.tagName == '' && audio) {
+          this.panelService.close();
+        }
+      }
+    });
+    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const cutIn = event.cutIn as CutIn;
+      if (this.cutIn) {
+        if (this.cutIn.identifier == cutIn.identifier) {
+          this.panelService.close();
+        }
+      }
+    });
+    afterNextRender(() => {
+      if (this.cutIn) {
+        setTimeout(() => {
+          this.moveCutInPos();
+        }, 0);
+      }
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.cutInTimeOut) {
+        clearTimeout(this.cutInTimeOut);
+        this.cutInTimeOut = null;
+      }
+      if (this.timerCheckWindowSize) {
+        clearTimeout(this.timerCheckWindowSize);
+        this.timerCheckWindowSize = null;
+      }
+      if (this._timeoutIdVideo) {
+        clearTimeout(this._timeoutIdVideo);
+        this._timeoutIdVideo = null;
+      }
+      this.stopCutIn();
+    });
+  }
 
   private _videoId = '';
   private _timeoutIdVideo: ReturnType<typeof setTimeout> | null = null;
@@ -102,41 +149,6 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
 
   stopCutIn() {
     this.audioPlayer.stop();
-  }
-
-  ngOnInit() {
-    this.objectChange.startCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const cutIn = event.cutIn as CutIn;
-      if (this.cutIn) {
-        if (this.cutIn.identifier == cutIn.identifier || this.cutIn.tagName == cutIn.tagName) {
-          this.panelService.close();
-        }
-      }
-    });
-    this.objectChange.stopCutInByBgm$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      if (this.cutIn) {
-        const audio = this.audioStorage.get(this.cutIn.audioIdentifier);
-        if (this.cutIn.tagName == '' && audio) {
-          this.panelService.close();
-        }
-      }
-    });
-    this.objectChange.stopCutIn$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const cutIn = event.cutIn as CutIn;
-      if (this.cutIn) {
-        if (this.cutIn.identifier == cutIn.identifier) {
-          this.panelService.close();
-        }
-      }
-    });
-  }
-
-  ngAfterViewInit() {
-    if (this.cutIn) {
-      setTimeout(() => {
-        this.moveCutInPos();
-      }, 0);
-    }
   }
 
   moveCutInPos() {
@@ -241,21 +253,5 @@ export class CutInWindowComponent implements AfterViewInit, OnInit, OnDestroy {
     if (!this.videoId) return;
     // 後で修正
     // this.cutInImageElement.nativeElement.src = 'https://img.youtube.com/vi/' + this.videoId + '/default.jpg'
-  }
-
-  ngOnDestroy() {
-    if (this.cutInTimeOut) {
-      clearTimeout(this.cutInTimeOut);
-      this.cutInTimeOut = null;
-    }
-    if (this.timerCheckWindowSize) {
-      clearTimeout(this.timerCheckWindowSize);
-      this.timerCheckWindowSize = null;
-    }
-    if (this._timeoutIdVideo) {
-      clearTimeout(this._timeoutIdVideo);
-      this._timeoutIdVideo = null;
-    }
-    this.stopCutIn();
   }
 }

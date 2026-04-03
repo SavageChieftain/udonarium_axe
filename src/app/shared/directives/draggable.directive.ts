@@ -1,11 +1,12 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, ElementRef, inject, input, output } from '@angular/core';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 
 @Directive({ selector: '[appDraggable]' })
-export class DraggableDirective implements AfterViewInit, OnDestroy {
+export class DraggableDirective {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private destroyRef = inject(DestroyRef);
 
   readonly isDisable = input(false, { alias: 'draggable.disable' });
   readonly boundsSelector = input('body', { alias: 'draggable.bounds' });
@@ -26,15 +27,16 @@ export class DraggableDirective implements AfterViewInit, OnDestroy {
   private startPointer: PointerCoordinate = { x: 0, y: 0, z: 0 };
   private prevTrans: PointerCoordinate = { x: 0, y: 0, z: 0 };
 
-  ngAfterViewInit() {
-    this.initialize();
-    this.adjustPosition();
-    this.setForeground();
-  }
-
-  ngOnDestroy() {
-    this.cancel();
-    this.destroy();
+  constructor() {
+    afterNextRender(() => {
+      this.initialize();
+      this.adjustPosition();
+      this.setForeground();
+    });
+    this.destroyRef.onDestroy(() => {
+      this.cancel();
+      this.destroy();
+    });
   }
 
   private initialize() {

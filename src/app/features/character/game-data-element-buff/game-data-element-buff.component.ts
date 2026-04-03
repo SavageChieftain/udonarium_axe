@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
@@ -12,7 +12,7 @@ import { filter } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
-export class GameDataElementBuffComponent implements OnInit {
+export class GameDataElementBuffComponent {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
@@ -22,38 +22,40 @@ export class GameDataElementBuffComponent implements OnInit {
   readonly isValueLocked = input(false);
   readonly isPieceMode = input(false);
 
-  private _name: string = '';
+  private readonly _name = signal<string>('');
   get name(): string {
     this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this._name;
+    return this._name();
   }
   set name(name: string) {
-    this._name = name;
+    this._name.set(name);
     this.setUpdateTimer();
   }
 
-  private _value: number | string = 0;
+  private readonly _value = signal<number | string>(0);
   get value(): number | string {
-    return this._value;
+    return this._value();
   }
   set value(value: number | string) {
-    this._value = value;
+    this._value.set(value);
     this.setUpdateTimer();
   }
 
-  private _currentValue: number | string = 0;
+  private readonly _currentValue = signal<number | string>(0);
   get currentValue(): number | string {
-    return this._currentValue;
+    return this._currentValue();
   }
   set currentValue(currentValue: number | string) {
-    this._currentValue = currentValue;
+    this._currentValue.set(currentValue);
     this.setUpdateTimer();
   }
 
   private updateTimer: NodeJS.Timeout | null = null;
-  ngOnInit() {
-    this.setValues(this.gameDataElement());
 
+  constructor() {
+    effect(() => {
+      this.setValues(this.gameDataElement());
+    });
     this.objectChange.objectChanged$
       .pipe(
         filter((e) => e.identifier === this.gameDataElement().identifier),
@@ -97,9 +99,9 @@ export class GameDataElementBuffComponent implements OnInit {
   }
 
   private setValues(object: DataElement) {
-    this._name = object.name;
-    this._currentValue = object.currentValue;
-    this._value = object.value;
+    this._name.set(object.name);
+    this._currentValue.set(object.currentValue);
+    this._value.set(object.value);
   }
 
   private setUpdateTimer() {

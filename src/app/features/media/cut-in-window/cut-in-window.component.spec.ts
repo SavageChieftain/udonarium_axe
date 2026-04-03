@@ -28,7 +28,7 @@ describe('CutInWindowComponent', () => {
       const priv = component as unknown as { cutInTimeOut: ReturnType<typeof setTimeout> | null };
       priv.cutInTimeOut = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(priv.cutInTimeOut).toBeNull();
@@ -38,7 +38,7 @@ describe('CutInWindowComponent', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       component.timerCheckWindowSize = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(component.timerCheckWindowSize).toBeNull();
@@ -49,7 +49,7 @@ describe('CutInWindowComponent', () => {
       const priv = component as unknown as { _timeoutIdVideo: ReturnType<typeof setTimeout> | null };
       priv._timeoutIdVideo = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(priv._timeoutIdVideo).toBeNull();

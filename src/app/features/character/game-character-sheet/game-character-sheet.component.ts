@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -33,7 +33,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   styleUrls: ['./game-character-sheet.component.css'],
   imports: [FormsModule, GameDataElementComponent, SafePipe],
 })
-export class GameCharacterSheetComponent implements OnInit {
+export class GameCharacterSheetComponent {
   private saveDataService = inject(SaveDataService);
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
@@ -93,7 +93,7 @@ export class GameCharacterSheetComponent implements OnInit {
   readonly isSaveing = signal(false);
   readonly progresPercent = signal(0);
 
-  ngOnInit() {
+  constructor() {
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       if (this.tabletopObject && this.tabletopObject.identifier === e.identifier) {
         this.panelService.close();

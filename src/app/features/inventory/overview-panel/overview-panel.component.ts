@@ -1,7 +1,6 @@
 import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   afterNextRender,
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -36,7 +35,7 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
     '(click)': 'onClick($event)',
   },
 })
-export class OverviewPanelComponent implements AfterViewInit {
+export class OverviewPanelComponent {
   private inventoryService = inject(GameObjectInventoryService);
   private pointerDeviceService = inject(PointerDeviceService);
   private domSanitizer = inject(DomSanitizer);
@@ -95,12 +94,9 @@ export class OverviewPanelComponent implements AfterViewInit {
 
   constructor() {
     afterNextRender(() => {
+      this.initPanelPosition();
       this.adjustPositionRoot();
     });
-  }
-
-  ngAfterViewInit() {
-    this.initPanelPosition();
   }
 
   private initPanelPosition() {

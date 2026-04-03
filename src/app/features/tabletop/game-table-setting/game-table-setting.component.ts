@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -26,7 +26,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   styleUrls: ['./game-table-setting.component.css'],
   imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe],
 })
-export class GameTableSettingComponent implements OnInit {
+export class GameTableSettingComponent {
   private modalService = inject(ModalService);
   private saveDataService = inject(SaveDataService);
   private imageService = inject(ImageService);
@@ -163,7 +163,7 @@ export class GameTableSettingComponent implements OnInit {
   readonly isSaveing = signal(false);
   readonly progresPercent = signal(0);
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'テーブル設定'));
     this.selectedTable = this.tableSelecter.viewTable;
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {

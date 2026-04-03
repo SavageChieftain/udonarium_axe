@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -16,7 +16,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, SafePipe],
 })
-export class FileSelecterComponent implements OnInit {
+export class FileSelecterComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
   private imageStorage = inject(ImageStorage);
@@ -125,9 +125,6 @@ export class FileSelecterComponent implements OnInit {
   constructor() {
     const option = this.modalService.option as Record<string, unknown>;
     this.isAllowedEmpty = !!option?.isAllowedEmpty;
-  }
-
-  ngOnInit() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ファイル一覧'));
   }
 

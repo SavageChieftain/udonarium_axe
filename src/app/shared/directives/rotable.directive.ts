@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  DestroyRef,
-  Directive,
-  effect,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  output,
-} from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -29,7 +19,7 @@ export interface RotableOption {
 }
 
 @Directive({ selector: '[appRotable]' })
-export class RotableDirective implements AfterViewInit, OnDestroy {
+export class RotableDirective {
   private elementRef = inject(ElementRef);
   private batchService = inject(BatchService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -93,29 +83,20 @@ export class RotableDirective implements AfterViewInit, OnDestroy {
       this._rotate = this.value();
       this.updateTransformCss();
     });
-  }
-
-  ngAfterViewInit() {
-    const opt = this.option();
-    if (opt != null) {
-      if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
-      if (opt.grabbingSelecter != null) this.grabbingSelecter = opt.grabbingSelecter;
-      if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
-    }
-    this._rotate = this.value();
-    this.batchService.add(() => this.initialize(), this.elementRef);
-    if (this.tabletopObject) {
-      this.setRotate(this.tabletopObject);
-    } else {
-      this.updateTransformCss();
-    }
-  }
-
-  ngOnDestroy() {
-    this.cancel();
-    this.input?.destroy();
-    this.batchService.remove(this);
-    this.batchService.remove(this.elementRef);
+    afterNextRender(() => {
+      this.batchService.add(() => this.initialize(), this.elementRef);
+      if (this.tabletopObject) {
+        this.setRotate(this.tabletopObject);
+      } else {
+        this.updateTransformCss();
+      }
+    });
+    this.destroyRef.onDestroy(() => {
+      this.cancel();
+      this.input?.destroy();
+      this.batchService.remove(this);
+      this.batchService.remove(this.elementRef);
+    });
   }
 
   initialize() {

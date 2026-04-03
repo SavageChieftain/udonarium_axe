@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -17,7 +17,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-message-fix.component.css'],
   imports: [FormsModule],
 })
-export class ChatMessageFixComponent implements OnInit {
+export class ChatMessageFixComponent {
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
   private panelService = inject(PanelService);
@@ -61,7 +61,7 @@ export class ChatMessageFixComponent implements OnInit {
 
   private calcFitHeightInterval: NodeJS.Timeout | null = null;
 
-  ngOnInit(): void {
+  constructor() {
     this.kickCalcFitHeight();
   }
 

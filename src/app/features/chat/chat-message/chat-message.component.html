@@ -1,5 +1,5 @@
 <div class="container">
-  <div [class.chat-slide-in]="animeState === 'active'" [class.chat-fade-in]="animeState !== 'active'">
+  <div [class.chat-slide-in]="animeState() === 'active'" [class.chat-fade-in]="animeState() !== 'active'">
     @if (!chatSimpleDispFlag()) {
       <div
         class="message"
@@ -10,8 +10,8 @@
         }"
       >
         <div class="image">
-          @if (0 < imageFile.url.length) {
-            <img [src]="imageFile.url | safe: 'resourceUrl'" />
+          @if (0 < imageFile().url.length) {
+            <img [src]="imageFile().url | safe: 'resourceUrl'" />
           }
         </div>
         <div class="body" [ngStyle]="{ color: chatMessage.messColor }">

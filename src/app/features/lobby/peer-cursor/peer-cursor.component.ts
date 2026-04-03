@@ -1,14 +1,12 @@
 import { NgClass } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,7 +30,7 @@ import { BatchService } from '@axe/shared/ui/batch.service';
   styleUrls: ['./peer-cursor.component.css'],
   imports: [NgClass, SafePipe],
 })
-export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PeerCursorComponent {
   private batchService = inject(BatchService);
   private coordinateService = inject(CoordinateService);
   private chatMessageService = inject(ChatMessageService);
@@ -51,7 +49,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.cursor().name;
   }
   get isMine(): boolean {
-    return this.cursor().isMine;
+    return this.cursor()?.isMine ?? false;
   }
   get chatTabList(): ChatTabList {
     return this.objectStore.get<ChatTabList>('ChatTabList')!;
@@ -82,7 +80,7 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
     return maxDelay < 1000 ? 1000 : maxDelay;
   }
 
-  ngOnInit() {
+  constructor() {
     if (!this.isMine) {
       this.objectChange.cursorMove$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
         if (event.sendFrom !== this.cursor().peerId) return;
@@ -120,6 +118,41 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
         }, this);
       });
     }
+
+    afterNextRender(() => {
+      if (this.isMine) {
+        document.body.addEventListener('mousemove', this.callcack);
+        document.body.addEventListener('touchmove', this.callcack);
+      } else {
+        this.cursorElement = this.cursorElementRef()?.nativeElement;
+        this.opacityElement = this.opacityElementRef()?.nativeElement;
+        this.setAnimatedTransition();
+        this.setPosition(0, 0, 0);
+        this.resetFadeOut();
+      }
+
+      this.timestampIntervalEnable = true;
+      this.timestampLoop();
+    });
+
+    this.destroyRef.onDestroy(() => {
+      this.logoutMessage();
+
+      document.body.removeEventListener('mousemove', this.callcack);
+      document.body.removeEventListener('touchmove', this.callcack);
+      this.batchService.remove(this);
+      if (this.fadeOutTimer) this.fadeOutTimer.clear();
+
+      if (this.updateInterval) {
+        clearTimeout(this.updateInterval);
+        this.updateInterval = null;
+      }
+      if (this.timestampInterval) {
+        clearTimeout(this.timestampInterval);
+        this.timestampInterval = null;
+      }
+      this.timestampIntervalEnable = false;
+    });
   }
 
   private chkDisConnect() {
@@ -204,41 +237,6 @@ export class PeerCursorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.timestampLoop();
       }, this.delayMsHb);
     }
-  }
-
-  ngAfterViewInit() {
-    if (this.isMine) {
-      document.body.addEventListener('mousemove', this.callcack);
-      document.body.addEventListener('touchmove', this.callcack);
-    } else {
-      this.cursorElement = this.cursorElementRef()?.nativeElement;
-      this.opacityElement = this.opacityElementRef()?.nativeElement;
-      this.setAnimatedTransition();
-      this.setPosition(0, 0, 0);
-      this.resetFadeOut();
-    }
-
-    this.timestampIntervalEnable = true;
-    this.timestampLoop();
-  }
-
-  ngOnDestroy() {
-    this.logoutMessage();
-
-    document.body.removeEventListener('mousemove', this.callcack);
-    document.body.removeEventListener('touchmove', this.callcack);
-    this.batchService.remove(this);
-    if (this.fadeOutTimer) this.fadeOutTimer.clear();
-
-    if (this.updateInterval) {
-      clearTimeout(this.updateInterval);
-      this.updateInterval = null;
-    }
-    if (this.timestampInterval) {
-      clearTimeout(this.timestampInterval);
-      this.timestampInterval = null;
-    }
-    this.timestampIntervalEnable = false;
   }
 
   private onMouseMove(e: Event) {

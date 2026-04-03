@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -22,7 +22,7 @@ import { interval } from 'rxjs';
   styleUrls: ['./peer-menu.component.css'],
   imports: [FormsModule, DatePipe, SafePipe],
 })
-export class PeerMenuComponent implements OnInit {
+export class PeerMenuComponent {
   private tabletopActionService = inject(TabletopActionService);
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
@@ -39,7 +39,7 @@ export class PeerMenuComponent implements OnInit {
     return PeerCursor.myCursor;
   }
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.panelService.title = '接続情報'));
     interval(1000)
       .pipe(takeUntilDestroyed(this.destroyRef))

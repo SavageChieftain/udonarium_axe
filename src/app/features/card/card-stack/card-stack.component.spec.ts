@@ -53,13 +53,13 @@ describe('CardStackComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
+  describe('timer cleanup on destroy', () => {
     it('doubleClickTimer が clearTimeout でクリアされる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { doubleClickTimer: NodeJS.Timeout | null };
       priv.doubleClickTimer = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
     });
@@ -69,7 +69,7 @@ describe('CardStackComponent', () => {
       const priv = component as unknown as { iconHiddenTimer: NodeJS.Timeout | null };
       priv.iconHiddenTimer = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
     });

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -18,7 +18,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective],
 })
-export class GameTableScratchMaskComponent implements OnInit {
+export class GameTableScratchMaskComponent {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -74,15 +74,6 @@ export class GameTableScratchMaskComponent implements OnInit {
   }
   get posZ(): number {
     return this.gameTableScratchMask()?.posZ ?? 0;
-  }
-
-  ngOnInit() {
-    const mask = this.gameTableScratchMask();
-    if (!mask) return;
-    this.movableOption = {
-      tabletopObject: mask,
-      colideLayers: ['terrain'],
-    };
   }
 
   onMove() {}

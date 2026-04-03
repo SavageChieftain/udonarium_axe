@@ -1,6 +1,6 @@
 import {
   afterEveryRender,
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -8,8 +8,6 @@ import {
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   output,
   signal,
   viewChild,
@@ -44,7 +42,7 @@ const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('maci
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChatMessageComponent],
 })
-export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ChatTabComponent {
   private renderVersion = signal(0);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
@@ -68,6 +66,62 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy {
     afterEveryRender(() => {
       if (!this.topElm || !this.bottomElm) return;
       queueMicrotask(() => this.adjustScrollPosition());
+    });
+    // initialize sampleMessages
+    const messages: ChatMessage[] = [];
+    for (const context of this.rawSampleMessages) {
+      const message = new ChatMessage();
+      const ctx = context as Record<string, string | number | undefined>;
+      for (const key of Object.keys(context)) {
+        if (key === 'identifier') continue;
+        if (key === 'tabIdentifier') continue;
+        if (key === 'text') {
+          message.value = ctx[key] as string;
+          continue;
+        }
+        if (ctx[key] == null || ctx[key] === '') continue;
+        message.setAttribute(key, ctx[key] as string | number);
+      }
+      messages.push(message);
+    }
+    this.sampleMessages = messages;
+    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
+      if (!message || !this.chatTab?.contains(message)) return;
+      if (this.topTimestamp <= message.timestamp) {
+        this.renderVersion.update((v) => v + 1);
+        this.needUpdate = true;
+        this.onMessageInit();
+      }
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const message = this.objectStore.get(event.identifier);
+      if (
+        message &&
+        message instanceof ChatMessage &&
+        this.topTimestamp <= message.timestamp &&
+        message.timestamp <= this.botomTimestamp &&
+        this.chatTab?.contains(message)
+      ) {
+        this.renderVersion.update((v) => v + 1);
+      }
+    });
+    afterNextRender(() => {
+      this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
+      this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);
+      this.onScroll();
+      this.panelService.scrollablePanel!.addEventListener('scroll', this.callbackOnScroll, false);
+      this.panelService.scrollablePanel!.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.panelService.scrollablePanel) {
+        this.panelService.scrollablePanel.removeEventListener('scroll', this.callbackOnScroll, false);
+        this.panelService.scrollablePanel.removeEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
+      }
+      if (this.scrollEventShortTimer) this.scrollEventShortTimer.clear();
+      if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
+      if (this.addMessageEventTimer) clearTimeout(this.addMessageEventTimer);
+      this.addMessageEventTimer = null;
     });
   }
 
@@ -151,69 +205,6 @@ export class ChatTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   readonly addMessage = output<void>();
-
-  ngOnInit() {
-    const messages: ChatMessage[] = [];
-    for (const context of this.rawSampleMessages) {
-      const message = new ChatMessage();
-      const ctx = context as Record<string, string | number | undefined>;
-      for (const key of Object.keys(context)) {
-        if (key === 'identifier') continue;
-        if (key === 'tabIdentifier') continue;
-        if (key === 'text') {
-          message.value = ctx[key] as string;
-          continue;
-        }
-        if (ctx[key] == null || ctx[key] === '') continue;
-        message.setAttribute(key, ctx[key] as string | number);
-      }
-      messages.push(message);
-    }
-    this.sampleMessages = messages;
-
-    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
-      if (!message || !this.chatTab?.contains(message)) return;
-
-      if (this.topTimestamp <= message.timestamp) {
-        this.renderVersion.update((v) => v + 1);
-        this.needUpdate = true;
-        this.onMessageInit();
-      }
-    });
-
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const message = this.objectStore.get(event.identifier);
-      if (
-        message &&
-        message instanceof ChatMessage &&
-        this.topTimestamp <= message.timestamp &&
-        message.timestamp <= this.botomTimestamp &&
-        this.chatTab?.contains(message)
-      ) {
-        this.renderVersion.update((v) => v + 1);
-      }
-    });
-  }
-
-  ngAfterViewInit() {
-    this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
-    this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);
-    this.onScroll();
-    this.panelService.scrollablePanel!.addEventListener('scroll', this.callbackOnScroll, false);
-    this.panelService.scrollablePanel!.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
-  }
-
-  ngOnDestroy() {
-    if (this.panelService.scrollablePanel) {
-      this.panelService.scrollablePanel.removeEventListener('scroll', this.callbackOnScroll, false);
-      this.panelService.scrollablePanel.removeEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
-    }
-    if (this.scrollEventShortTimer) this.scrollEventShortTimer.clear();
-    if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
-    if (this.addMessageEventTimer) clearTimeout(this.addMessageEventTimer);
-    this.addMessageEventTimer = null;
-  }
 
   onMessageInit() {
     if (this.addMessageEventTimer != null) return;

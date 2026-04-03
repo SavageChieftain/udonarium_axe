@@ -1,5 +1,5 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -19,7 +19,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, SafePipe],
 })
-export class ChatMessageComponent implements OnInit {
+export class ChatMessageComponent {
   private chatMessageService = inject(ChatMessageService);
   private pointerDeviceService = inject(PointerDeviceService);
   private panelService = inject(PanelService);
@@ -35,18 +35,21 @@ export class ChatMessageComponent implements OnInit {
   readonly simpleDispFlagUserId = input(false);
   readonly chatSimpleDispFlag = input(false);
 
-  imageFile: ImageFile = ImageFile.Empty;
-  animeState: string = 'inactive';
+  readonly imageFile = signal<ImageFile>(ImageFile.Empty);
+  readonly animeState = signal<string>('inactive');
+
+  constructor() {
+    effect(() => {
+      const chatMessage = this.chatMessageInput();
+      const file = chatMessage.image;
+      if (file) this.imageFile.set(file);
+      const time = this.chatMessageService.getTime();
+      if (time - 10 * 1000 < chatMessage.timestamp) this.animeState.set('active');
+    });
+  }
 
   get chatTabList(): ChatTabList {
     return this.objectStore.get<ChatTabList>('ChatTabList')!;
-  }
-
-  ngOnInit() {
-    const file = this.chatMessage.image;
-    if (file) this.imageFile = file;
-    const time = this.chatMessageService.getTime();
-    if (time - 10 * 1000 < this.chatMessage.timestamp) this.animeState = 'active';
   }
 
   discloseMessage() {

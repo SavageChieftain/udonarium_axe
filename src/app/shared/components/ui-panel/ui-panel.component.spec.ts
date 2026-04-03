@@ -50,13 +50,13 @@ describe('UIPanelComponent', () => {
     expect(panel.classList.contains('pointer-events-none')).toBe(false);
   });
 
-  describe('ngOnDestroy', () => {
+  describe('timerCheckWindowSize cleanup', () => {
     it('timerCheckWindowSize が clearInterval でクリアされる', () => {
       const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
       const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
       priv.timerCheckWindowSize = setInterval(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearIntervalSpy).toHaveBeenCalled();
       expect(priv.timerCheckWindowSize).toBeNull();

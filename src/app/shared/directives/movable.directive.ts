@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  DestroyRef,
-  Directive,
-  effect,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  output,
-} from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -44,7 +34,7 @@ export interface MovableOption {
 }
 
 @Directive({ selector: '[appMovable]' })
-export class MovableDirective implements AfterViewInit, OnDestroy {
+export class MovableDirective {
   private elementRef = inject(ElementRef);
   private batchService = inject(BatchService);
   private pointerDeviceService = inject(PointerDeviceService);
@@ -128,24 +118,17 @@ export class MovableDirective implements AfterViewInit, OnDestroy {
       if (opt.colideLayers != null) this.colideLayers = opt.colideLayers;
       if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
     });
-  }
-
-  ngAfterViewInit() {
-    const opt = this.option();
-    if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
-    if (opt.layerName != null) this.layerName = opt.layerName;
-    if (opt.colideLayers != null) this.colideLayers = opt.colideLayers;
-    if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
-    this.batchService.add(() => this.initialize(), this.elementRef);
-    this.setPosition(this.tabletopObject);
-  }
-
-  ngOnDestroy() {
-    this.cancel();
-    if (this.input) this.input.destroy();
-    this.unregister();
-    this.batchService.remove(this);
-    this.batchService.remove(this.elementRef);
+    afterNextRender(() => {
+      this.batchService.add(() => this.initialize(), this.elementRef);
+      this.setPosition(this.tabletopObject);
+    });
+    this.destroyRef.onDestroy(() => {
+      this.cancel();
+      if (this.input) this.input.destroy();
+      this.unregister();
+      this.batchService.remove(this);
+      this.batchService.remove(this.elementRef);
+    });
   }
 
   initialize() {

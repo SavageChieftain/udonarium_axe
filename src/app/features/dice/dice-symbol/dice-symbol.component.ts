@@ -1,14 +1,13 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -44,7 +43,7 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DiceSymbolComponent {
   private panelService = inject(PanelService);
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -141,7 +140,8 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
   private doubleClickPoint = { x: 0, y: 0 };
 
   private input: InputHandler | null = null;
-  ngOnInit() {
+
+  constructor() {
     this.objectChange.rollDiceSymbol$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.identifier === this.diceSymbol().identifier) {
         this.animeState.set('inactive');
@@ -150,25 +150,26 @@ export class DiceSymbolComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       }
     });
-    this.movableOption = {
-      tabletopObject: this.diceSymbol(),
-      transformCssOffset: 'translateZ(1.0px)',
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: this.diceSymbol(),
-    };
-  }
-
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
-  }
-
-  ngOnDestroy() {
-    clearTimeout(this.doubleClickTimer ?? undefined);
-    clearTimeout(this.iconHiddenTimer ?? undefined);
-    if (this.input) this.input.destroy();
+    effect(() => {
+      const diceSymbol = this.diceSymbol();
+      this.movableOption = {
+        tabletopObject: diceSymbol,
+        transformCssOffset: 'translateZ(1.0px)',
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: diceSymbol,
+      };
+    });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+    });
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.doubleClickTimer ?? undefined);
+      clearTimeout(this.iconHiddenTimer ?? undefined);
+      if (this.input) this.input.destroy();
+    });
   }
 
   onDragstart(e: DragEvent) {

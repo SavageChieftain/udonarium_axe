@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Network } from '@axe/core/index';
 import { Card } from '@axe/domain/card/card';
@@ -17,7 +17,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SafePipe],
 })
-export class CardStackListComponentEx implements OnInit, OnDestroy {
+export class CardStackListComponentEx {
   private panelService = inject(PanelService);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
@@ -32,7 +32,7 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
     return this.cardStack.cards;
   }
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
     if (this.cardStack) this.panelService.cardStack = this.cardStack;
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
@@ -41,18 +41,16 @@ export class CardStackListComponentEx implements OnInit, OnDestroy {
         this.panelService.close();
       }
     });
-
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       if (this.cardStack && this.cardStack.identifier === e.identifier) {
         this.panelService.close();
       }
     });
-  }
-
-  ngOnDestroy() {
-    if (this.cardStack && this.cardStack.owner === this.owner) {
-      this.cardStack.owner = '';
-    }
+    this.destroyRef.onDestroy(() => {
+      if (this.cardStack && this.cardStack.owner === this.owner) {
+        this.cardStack.owner = '';
+      }
+    });
   }
 
   drawCard(card: Card) {

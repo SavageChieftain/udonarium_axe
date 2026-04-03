@@ -16,34 +16,29 @@ describe('PeerCursorComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PeerCursorComponent);
     component = fixture.componentInstance;
-    vi.spyOn(component, 'ngOnDestroy').mockImplementation(() => undefined);
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnDestroy を直接呼び出してもエラーにならないこと（タイマー未設定時）', () => {
-    // タイマーフィールドが null の状態で ngOnDestroy を呼んでも安全であることを確認
-    vi.mocked(component.ngOnDestroy).mockRestore();
-    expect(() => component.ngOnDestroy()).not.toThrow();
+  it('コンポーネント破棄時にエラーにならないこと（タイマー未設定時）', () => {
+    expect(() => fixture.destroy()).not.toThrow();
   });
 
-  describe('ngOnDestroy', () => {
+  describe('破棄クリーンアップ', () => {
     it('updateInterval が clearTimeout でクリアされ null になる', () => {
-      vi.mocked(component.ngOnDestroy).mockRestore();
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { updateInterval: NodeJS.Timeout | null };
       priv.updateInterval = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(priv.updateInterval).toBeNull();
     });
 
     it('timestampInterval が clearTimeout でクリアされ null になる', () => {
-      vi.mocked(component.ngOnDestroy).mockRestore();
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as {
         timestampInterval: NodeJS.Timeout | null;
@@ -51,7 +46,7 @@ describe('PeerCursorComponent', () => {
       };
       priv.timestampInterval = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(priv.timestampInterval).toBeNull();

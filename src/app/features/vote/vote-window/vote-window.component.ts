@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -19,7 +19,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./vote-window.component.css'],
   imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
 })
-export class VoteWindowComponent implements OnInit, OnDestroy {
+export class VoteWindowComponent {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -56,9 +56,6 @@ export class VoteWindowComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.timestamp = this.vote.initTimeStamp;
-  }
-
-  ngOnInit() {
     this.objectChange.endOldVote$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.timestamp != this.vote.initTimeStamp) {
         this.panelService.close();
@@ -70,6 +67,15 @@ export class VoteWindowComponent implements OnInit, OnDestroy {
       if (this.timestamp !== this.vote.initTimeStamp) return;
       if (!this.vote.isFinish) return;
       this.panelService.close();
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.vote && !this.isMyVoteEnd() && this.timestamp == this.vote.initTimeStamp) {
+        this.vote.voting(null, PeerCursor.myCursor.peerId);
+        let text = this.vote.isRollCall ? '点呼：' : '投票：';
+        text += '棄権しました' + '(' + this.vote.votedTotalNum() + '/' + this.answerList.length + ')';
+        this.chatMessageService.sendSystemMessageLastSendCharactor(text);
+      }
     });
   }
 
@@ -96,14 +102,5 @@ export class VoteWindowComponent implements OnInit, OnDestroy {
   findPeerLastControlImage(peerId: string): ImageFile | null {
     const peerCursor = PeerCursor.findByPeerId(peerId);
     return peerCursor ? peerCursor.lastControlImage : null;
-  }
-
-  ngOnDestroy() {
-    if (this.vote && !this.isMyVoteEnd() && this.timestamp == this.vote.initTimeStamp) {
-      this.vote.voting(null, PeerCursor.myCursor.peerId);
-      let text = this.vote.isRollCall ? '点呼：' : '投票：';
-      text += '棄権しました' + '(' + this.vote.votedTotalNum() + '/' + this.answerList.length + ')';
-      this.chatMessageService.sendSystemMessageLastSendCharactor(text);
-    }
   }
 }

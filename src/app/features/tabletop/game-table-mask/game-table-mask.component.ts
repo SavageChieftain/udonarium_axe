@@ -1,14 +1,14 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
   input,
-  OnDestroy,
 } from '@angular/core';
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -49,7 +49,7 @@ import { xor } from 'lodash';
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
+export class GameTableMaskComponent {
   private static readonly GRID_PATTERN = /^\d+:\d+$/;
   private tabletopActionService = inject(TabletopActionService);
   private contextMenuService = inject(ContextMenuService);
@@ -64,6 +64,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
   private inventoryService = inject(GameObjectInventoryService);
   private selectionSignalService = inject(SelectionSignalService);
   private uiSignalService = inject(UiSignalService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -76,9 +77,16 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
       };
       this.panelId = generateUuid();
     });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+      this.input.onMove = (e) => this.onInputMove(e);
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.input) this.input.destroy();
+      clearTimeout(this._scratchingTimerId);
+    });
   }
-
-  //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
   readonly gameTableMask = input<GameTableMask | null>(null);
 
@@ -277,16 +285,7 @@ export class GameTableMaskComponent implements OnDestroy, AfterViewInit {
 
   private input: InputHandler | null = null;
 
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
-    this.input.onMove = (e) => this.onInputMove(e);
-  }
-
-  ngOnDestroy() {
-    if (this.input) this.input.destroy();
-    clearTimeout(this._scratchingTimerId);
-  }
+  //  @ViewChild('elementToDetach') elementToDetach: ElementRef;
 
   private buildScratchingGrids(set: Set<string>): string {
     const grids: string[] = [];

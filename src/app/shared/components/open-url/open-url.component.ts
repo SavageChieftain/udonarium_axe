@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
@@ -10,7 +10,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./open-url.component.css'],
   imports: [NgClass],
 })
-export class OpenUrlComponent implements OnInit {
+export class OpenUrlComponent {
   private panelService = inject(PanelService);
   private modalService = inject(ModalService);
 
@@ -27,18 +27,6 @@ export class OpenUrlComponent implements OnInit {
     this.title = option.title ? (option.title as string) : '';
     this.subTitle = option.subTitle ? (option.subTitle as string) : '';
     this.urlObj = this.isValid ? new URL(this.url) : null;
-  }
-
-  get isValid(): boolean {
-    return this.validUrl(this.url.trim());
-  }
-
-  get isOuter(): boolean {
-    if (!this.isValid || this.urlObj === null) return false;
-    return window.location.origin !== this.urlObj.origin;
-  }
-
-  ngOnInit() {
     queueMicrotask(() => {
       let titleBar = '外部URLを開く';
       if (this.title) {
@@ -48,6 +36,15 @@ export class OpenUrlComponent implements OnInit {
       }
       this.modalService.title = this.panelService.title = titleBar;
     });
+  }
+
+  get isValid(): boolean {
+    return this.validUrl(this.url.trim());
+  }
+
+  get isOuter(): boolean {
+    if (!this.isValid || this.urlObj === null) return false;
+    return window.location.origin !== this.urlObj.origin;
   }
 
   validUrl(url: string): boolean {

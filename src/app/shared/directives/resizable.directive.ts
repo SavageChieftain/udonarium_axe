@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, ElementRef, inject, input, output } from '@angular/core';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
 import { HandleType, ResizeHandler } from '@axe/shared/directives/resize-handler';
@@ -11,8 +11,9 @@ interface BoxSize {
 }
 
 @Directive({ selector: '[appResizable]' })
-export class ResizableDirective implements AfterViewInit, OnDestroy {
+export class ResizableDirective {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private destroyRef = inject(DestroyRef);
 
   readonly isDisable = input(false, { alias: 'resizable.disable' });
   readonly boundsSelector = input('body', { alias: 'resizable.bounds' });
@@ -41,14 +42,15 @@ export class ResizableDirective implements AfterViewInit, OnDestroy {
   private startPointer: PointerCoordinate = { x: 0, y: 0, z: 0 };
   private prevTrans: BoxSize = { left: 0, top: 0, width: 0, height: 0 };
 
-  ngAfterViewInit() {
-    this.initialize();
-    this.setForeground();
-  }
-
-  ngOnDestroy() {
-    this.cancel();
-    this.destroy();
+  constructor() {
+    afterNextRender(() => {
+      this.initialize();
+      this.setForeground();
+    });
+    this.destroyRef.onDestroy(() => {
+      this.cancel();
+      this.destroy();
+    });
   }
 
   private initialize() {

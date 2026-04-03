@@ -1,13 +1,13 @@
 import { NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   signal,
 } from '@angular/core';
 import { Network } from '@axe/core/index';
@@ -44,7 +44,7 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
+export class CardComponent {
   private contextMenuService = inject(ContextMenuService);
   private panelService = inject(PanelService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -54,6 +54,7 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private objectStore = inject(ObjectStore);
   private selectionSignalService = inject(SelectionSignalService);
   private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   readonly card = input.required<Card>();
 
@@ -147,26 +148,28 @@ export class CardComponent implements OnInit, OnDestroy, AfterViewInit {
   private doubleClickPoint = { x: 0, y: 0 };
 
   private input: InputHandler | null = null;
-  ngOnInit() {
-    this.movableOption = {
-      tabletopObject: this.card(),
-      transformCssOffset: 'translateZ(0.15px)',
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: this.card(),
-    };
-  }
 
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input.onStart = (e) => this.onInputStart(e);
-  }
-
-  ngOnDestroy() {
-    clearTimeout(this.doubleClickTimer ?? undefined);
-    clearTimeout(this.iconHiddenTimer ?? undefined);
-    if (this.input) this.input.destroy();
+  constructor() {
+    effect(() => {
+      const card = this.card();
+      this.movableOption = {
+        tabletopObject: card,
+        transformCssOffset: 'translateZ(0.15px)',
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: card,
+      };
+    });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+    });
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.doubleClickTimer ?? undefined);
+      clearTimeout(this.iconHiddenTimer ?? undefined);
+      if (this.input) this.input.destroy();
+    });
   }
 
   onCardDrop(e: Event) {

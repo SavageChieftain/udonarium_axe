@@ -89,16 +89,9 @@ describe('GameCharacterComponent', () => {
       }).not.toThrow();
     });
 
-    it('ngAfterViewInitで例外が発生しないこと', () => {
-      expect(() => {
-        component.ngAfterViewInit();
-      }).not.toThrow();
-    });
-
-    it('ngOnDestroyでタイマーをクリアしても例外が発生しないこと', () => {
-      expect(() => {
-        component.ngOnDestroy();
-      }).not.toThrow();
+    it('コンポーネントの初期化と破棄で例外が発生しないこと', () => {
+      expect(() => fixture.detectChanges()).not.toThrow();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

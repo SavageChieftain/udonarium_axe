@@ -1,4 +1,4 @@
-import { AfterViewInit, ComponentRef, Directive, inject, input, OnDestroy, ViewContainerRef } from '@angular/core';
+import { afterNextRender, ComponentRef, DestroyRef, Directive, inject, input, ViewContainerRef } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
@@ -8,10 +8,11 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 @Directive({ selector: '[appTooltip]' })
-export class TooltipDirective implements AfterViewInit, OnDestroy {
+export class TooltipDirective {
   private viewContainerRef = inject(ViewContainerRef);
   private pointerDeviceService = inject(PointerDeviceService);
   private objectChange = inject(ObjectChangeService);
+  private destroyRef = inject(DestroyRef);
 
   private static activeTooltips: ComponentRef<OverviewPanelComponent>[] = [];
 
@@ -27,15 +28,16 @@ export class TooltipDirective implements AfterViewInit, OnDestroy {
   private tooltipComponentRef: ComponentRef<OverviewPanelComponent> | null = null;
   private deleteSub?: Subscription;
 
-  ngAfterViewInit() {
-    this.addEventListeners(this.viewContainerRef.element.nativeElement);
-  }
-
-  ngOnDestroy() {
-    this.removeEventListeners(this.viewContainerRef.element.nativeElement);
-    this.clearTimer();
-    this.close();
-    this.deleteSub?.unsubscribe();
+  constructor() {
+    afterNextRender(() => {
+      this.addEventListeners(this.viewContainerRef.element.nativeElement);
+    });
+    this.destroyRef.onDestroy(() => {
+      this.removeEventListeners(this.viewContainerRef.element.nativeElement);
+      this.clearTimer();
+      this.close();
+      this.deleteSub?.unsubscribe();
+    });
   }
 
   private onMouseEnter(_e: MouseEvent) {
