@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -38,7 +29,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-window.component.css'],
   imports: [ChatTabComponent, FormsModule, ChatTachieComponent, BadgeComponent, ChatInputComponent],
 })
-export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
   private destroyRef = inject(DestroyRef);
   private objectChange = inject(ObjectChangeService);
@@ -55,13 +46,13 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chatMessageService.gameType = gameType;
   }
 
-  private _chatTabidentifier: string = '';
+  private readonly _chatTabidentifier = signal('');
   get chatTabidentifier(): string {
-    return this._chatTabidentifier;
+    return this._chatTabidentifier();
   }
   set chatTabidentifier(chatTabidentifier: string) {
-    const hasChanged: boolean = this._chatTabidentifier !== chatTabidentifier;
-    this._chatTabidentifier = chatTabidentifier;
+    const hasChanged: boolean = this._chatTabidentifier() !== chatTabidentifier;
+    this._chatTabidentifier.set(chatTabidentifier);
     this.updatePanelTitle();
     if (hasChanged) {
       this.scrollToBottom(true);
@@ -91,17 +82,17 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.objectChange.collectionOf('chat-tab')();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
   }
-  private isAutoScroll: boolean = true;
-  hasNewMessage = signal(false);
-  isNearBottom = signal(true);
+  private isAutoScroll = true;
+  readonly hasNewMessage = signal(false);
+  readonly isNearBottom = signal(true);
   private scrollToBottomTimer: NodeJS.Timeout | null = null;
   private scrollListener: (() => void) | null = null;
 
-  ngOnInit() {
+  constructor() {
     this.sendFrom = PeerCursor.myCursor.identifier;
-    this._chatTabidentifier =
-      0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : '';
-
+    this._chatTabidentifier.set(
+      0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : ''
+    );
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
@@ -116,39 +107,35 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       if (this.isAutoScroll && this.chatTab) this.chatTab.markForRead();
     });
-
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       const object = this.objectStore.get(event.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
-        if (this._chatTabidentifier && !this.objectStore.get<ChatTab>(this._chatTabidentifier)) {
+        if (this._chatTabidentifier() && !this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
           const chatTabs = this.chatMessageService.chatTabs;
           this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
       }
     });
-
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event.aliasName !== 'chat-tab') return;
-      if (this._chatTabidentifier === event.identifier) {
+      if (this._chatTabidentifier() === event.identifier) {
         const chatTabs = this.chatMessageService.chatTabs;
         this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
       }
     });
     queueMicrotask(() => this.updatePanelTitle());
-  }
-
-  ngAfterViewInit() {
-    queueMicrotask(() => this.scrollToBottom(true));
-    if (this.panelService.scrollablePanel) {
-      this.scrollListener = () => this.onScrollPositionChange();
-      this.panelService.scrollablePanel.addEventListener('scroll', this.scrollListener, { passive: true });
-    }
-  }
-
-  ngOnDestroy() {
-    if (this.scrollListener && this.panelService.scrollablePanel) {
-      this.panelService.scrollablePanel.removeEventListener('scroll', this.scrollListener);
-    }
+    afterNextRender(() => {
+      queueMicrotask(() => this.scrollToBottom(true));
+      if (this.panelService.scrollablePanel) {
+        this.scrollListener = () => this.onScrollPositionChange();
+        this.panelService.scrollablePanel.addEventListener('scroll', this.scrollListener, { passive: true });
+      }
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.scrollListener && this.panelService.scrollablePanel) {
+        this.panelService.scrollablePanel.removeEventListener('scroll', this.scrollListener);
+      }
+    });
   }
 
   private onScrollPositionChange() {
@@ -212,7 +199,7 @@ export class ChatWindowComponent implements OnInit, AfterViewInit, OnDestroy {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x - 250, top: coordinate.y - 175, width: 500, height: 380 };
     const component = this.panelService.open<ChatTabSettingComponent>(ChatTabSettingComponent, option);
-    component.selectedTab = this.chatTab;
+    component.selectedTab.set(this.chatTab);
   }
 
   showDiceTableSetting() {

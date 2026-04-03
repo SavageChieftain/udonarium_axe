@@ -45,7 +45,8 @@ describe('ChatWindowComponent', () => {
     it('UPDATE_GAME_OBJECTでChatTabList変更時に無効なタブが再選択されること', () => {
       fixture.detectChanges();
       const invalidId = 'non-existent-tab-id';
-      (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = invalidId;
+      const priv = component as unknown as { _chatTabidentifier: { (): string; set(v: string): void } };
+      priv._chatTabidentifier.set(invalidId);
 
       const chatTabList = ChatTabList.instance;
       objectChanged$.next({
@@ -54,13 +55,14 @@ describe('ChatWindowComponent', () => {
         isSendFromSelf: false,
       });
 
-      expect((component as unknown as { _chatTabidentifier: string })._chatTabidentifier).not.toBe(invalidId);
+      expect(priv._chatTabidentifier()).not.toBe(invalidId);
     });
 
     it('DELETE_GAME_OBJECTで選択中タブ削除時にタブが再選択されること', () => {
       fixture.detectChanges();
       const oldIdentifier = 'non-existent-tab-id';
-      (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = oldIdentifier;
+      const priv = component as unknown as { _chatTabidentifier: { (): string; set(v: string): void } };
+      priv._chatTabidentifier.set(oldIdentifier);
 
       (objectChange as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
         aliasName: 'chat-tab',
@@ -68,14 +70,15 @@ describe('ChatWindowComponent', () => {
         isSendFromSelf: true,
       });
 
-      expect((component as unknown as { _chatTabidentifier: string })._chatTabidentifier).not.toBe(oldIdentifier);
+      expect(priv._chatTabidentifier()).not.toBe(oldIdentifier);
     });
 
     it('UPDATE_GAME_OBJECTでタブ再選択時にscrollToBottomが呼ばれること', () => {
       fixture.detectChanges();
       const spy = vi.spyOn(component, 'scrollToBottom');
       const invalidId = 'non-existent-tab-id';
-      (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = invalidId;
+      const priv = component as unknown as { _chatTabidentifier: { set(v: string): void } };
+      priv._chatTabidentifier.set(invalidId);
 
       const chatTabList = ChatTabList.instance;
       objectChanged$.next({
@@ -91,7 +94,8 @@ describe('ChatWindowComponent', () => {
       fixture.detectChanges();
       const spy = vi.spyOn(component, 'scrollToBottom');
       const oldIdentifier = 'non-existent-tab-id';
-      (component as unknown as { _chatTabidentifier: string })._chatTabidentifier = oldIdentifier;
+      const priv = component as unknown as { _chatTabidentifier: { set(v: string): void } };
+      priv._chatTabidentifier.set(oldIdentifier);
 
       (objectChange as unknown as { _objectDeleted$: Subject<ObjectDeleteEvent> })._objectDeleted$.next({
         aliasName: 'chat-tab',

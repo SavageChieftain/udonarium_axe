@@ -1,6 +1,6 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -9,8 +9,7 @@ import {
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
+  signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +44,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
     '(contextmenu)': 'onContextMenu($event)',
   },
 })
-export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
+export class TextNoteComponent {
   private contextMenuService = inject(ContextMenuService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private panelService = inject(PanelService);
@@ -64,6 +63,24 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.textNote().identifier === req.identifier) {
         this.calcFitHeight();
       }
+    });
+    effect(() => {
+      this.movableOption = {
+        tabletopObject: this.textNote(),
+        transformCssOffset: 'translateZ(0.15px)',
+        colideLayers: ['terrain'],
+      };
+      this.rotableOption = {
+        tabletopObject: this.textNote(),
+      };
+    });
+    afterNextRender(() => {
+      this.input = new InputHandler(this.elementRef.nativeElement);
+      this.input.onStart = (e) => this.onInputStart(e);
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this._transitionTimeout) clearTimeout(this._transitionTimeout);
+      if (this._fallTimeout) clearTimeout(this._fallTimeout);
     });
   }
 
@@ -161,34 +178,36 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
   math = Math;
 
   private _transitionTimeout: ReturnType<typeof setTimeout> | null = null;
-  private _transition: boolean = false;
+  private readonly _transition = signal(false);
   get transition(): boolean {
-    return this._transition;
+    return this._transition();
   }
   set transition(transition: boolean) {
-    this._transition = transition;
     if (this._transitionTimeout) clearTimeout(this._transitionTimeout);
     if (transition) {
+      this._transition.set(true);
       this._transitionTimeout = setTimeout(() => {
-        this._transition = false;
+        this._transition.set(false);
       }, 132);
     } else {
+      this._transition.set(false);
       this._transitionTimeout = null;
     }
   }
   private _fallTimeout: ReturnType<typeof setTimeout> | null = null;
-  private _fall: boolean = false;
+  private readonly _fall = signal(false);
   get fall(): boolean {
-    return this._fall;
+    return this._fall();
   }
   set fall(fall: boolean) {
-    this._fall = fall;
     if (this._fallTimeout) clearTimeout(this._fallTimeout);
     if (fall) {
+      this._fall.set(true);
       this._fallTimeout = setTimeout(() => {
-        this._fall = false;
+        this._fall.set(false);
       }, 132);
     } else {
+      this._fall.set(false);
       this._fallTimeout = null;
     }
   }
@@ -199,27 +218,6 @@ export class TextNoteComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private input: InputHandler | null = null;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
-
-  ngOnInit() {
-    this.movableOption = {
-      tabletopObject: this.textNote(),
-      transformCssOffset: 'translateZ(0.15px)',
-      colideLayers: ['terrain'],
-    };
-    this.rotableOption = {
-      tabletopObject: this.textNote(),
-    };
-  }
-
-  ngAfterViewInit() {
-    this.input = new InputHandler(this.elementRef.nativeElement);
-    this.input!.onStart = (e) => this.onInputStart(e);
-  }
-
-  ngOnDestroy() {
-    if (this._transitionTimeout) clearTimeout(this._transitionTimeout);
-    if (this._fallTimeout) clearTimeout(this._fallTimeout);
-  }
 
   onDragstart(e: DragEvent) {
     e.stopPropagation();

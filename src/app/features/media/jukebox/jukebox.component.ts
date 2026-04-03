@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
@@ -21,7 +21,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   styleUrls: ['./jukebox.component.css'],
   imports: [FormsModule],
 })
-export class JukeboxComponent implements OnDestroy {
+export class JukeboxComponent {
   private modalService = inject(ModalService);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
@@ -29,6 +29,7 @@ export class JukeboxComponent implements OnDestroy {
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
+  private readonly destroyRef = inject(DestroyRef);
 
   roomVolumeChange = false;
 
@@ -76,10 +77,7 @@ export class JukeboxComponent implements OnDestroy {
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
-  }
-
-  ngOnDestroy() {
-    this.stop();
+    this.destroyRef.onDestroy(() => this.stop());
   }
 
   play(audio: AudioFile) {

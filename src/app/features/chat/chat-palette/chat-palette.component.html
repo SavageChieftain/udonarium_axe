@@ -9,7 +9,8 @@
               type="radio"
               value="{{ chatTab.identifier }}"
               ng-control="options"
-              [(ngModel)]="chatTabidentifier"
+              [ngModel]="chatTabidentifier()"
+              (ngModelChange)="chatTabidentifier.set($event)"
             />
             <div>
               {{ chatTab.name }}
@@ -25,7 +26,7 @@
     <chat-input
       class="is-caret"
       [onlyCharacters]="true"
-      [chatTabidentifier]="chatTabidentifier"
+      [chatTabidentifier]="chatTabidentifier()"
       [(gameType)]="gameType"
       [(sendFrom)]="sendFrom"
       [autoCompleteIndex]="completeIndex()"

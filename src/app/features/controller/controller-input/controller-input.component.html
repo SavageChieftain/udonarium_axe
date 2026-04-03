@@ -95,7 +95,7 @@
     バフ/デバッファー
     <div style="float: right; text-align: right">
       隠す
-      <input name="buff_hide_chk" type="checkbox" (change)="buffHideChkChange($event.target.checked)" />
+      <input name="buff_hide_chk" type="checkbox" (change)="onBuffHideChkChange($event)" />
     </div>
     <form name="controller-input-buff">
       <div [hidden]="buffHideIsChk">

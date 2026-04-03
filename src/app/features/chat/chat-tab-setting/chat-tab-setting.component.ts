@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -22,7 +22,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-tab-setting.component.css'],
   imports: [FormsModule, NgClass],
 })
-export class ChatTabSettingComponent implements OnInit {
+export class ChatTabSettingComponent {
   private modalService = inject(ModalService);
   private panelService = inject(PanelService);
   private chatMessageService = inject(ChatMessageService);
@@ -33,7 +33,7 @@ export class ChatTabSettingComponent implements OnInit {
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
 
-  selectedTab: ChatTab | null = null;
+  readonly selectedTab = signal<ChatTab | null>(null);
   selectedTabXml = '';
 
   get systemTabIndex(): number {
@@ -49,11 +49,11 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   get tabName(): string {
-    if (this.selectedTab) this.objectChange.versionOf(this.selectedTab.identifier)();
-    return this.selectedTab?.name ?? '';
+    if (this.selectedTab()) this.objectChange.versionOf(this.selectedTab()!.identifier)();
+    return this.selectedTab()?.name ?? '';
   }
   set tabName(tabName: string) {
-    if (this.isEditable && this.selectedTab) this.selectedTab.name = tabName;
+    if (this.isEditable && this.selectedTab()) this.selectedTab()!.name = tabName;
   }
 
   get chatTabs(): ChatTab[] {
@@ -64,7 +64,7 @@ export class ChatTabSettingComponent implements OnInit {
     return this.chatMessageService.chatTabs.length < 1;
   }
   get isDeleted(): boolean {
-    return this.selectedTab ? this.objectStore.get(this.selectedTab.identifier) == null : false;
+    return this.selectedTab() ? this.objectStore.get(this.selectedTab()!.identifier) == null : false;
   }
   get isEditable(): boolean {
     return !this.isEmpty && !this.isDeleted;
@@ -77,41 +77,40 @@ export class ChatTabSettingComponent implements OnInit {
   allowDeleteTab = false;
   modeCocLog = false;
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
-      if (!this.selectedTab || e.identifier !== this.selectedTab.identifier) return;
+      if (!this.selectedTab() || e.identifier !== this.selectedTab()!.identifier) return;
       const object = this.objectStore.get(e.identifier);
       if (object !== null) {
         this.selectedTabXml = object.toXml();
       }
-      this.selectedTab = null;
+      this.selectedTab.set(null);
     });
-
     this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       const object = this.objectStore.get(e.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
-        if (this.selectedTab && !this.objectStore.get(this.selectedTab.identifier)) {
-          this.selectedTab = null;
+        if (this.selectedTab() && !this.objectStore.get(this.selectedTab()!.identifier)) {
+          this.selectedTab.set(null);
         }
-        if (!this.selectedTab && this.chatTabs.length > 0) {
-          this.selectedTab = this.chatTabs[0];
+        if (!this.selectedTab() && this.chatTabs.length > 0) {
+          this.selectedTab.set(this.chatTabs[0]);
         }
       }
     });
   }
 
   onChangeSelectTab(identifier: string) {
-    this.selectedTab = this.objectStore.get<ChatTab>(identifier);
+    this.selectedTab.set(this.objectStore.get<ChatTab>(identifier));
     this.selectedTabXml = '';
   }
 
   onChangeSystemTab() {
-    if (!this.selectedTab) {
+    if (!this.selectedTab()) {
       this.chatTabList.systemMessageTabIndex = 0;
     } else {
-      const parentElement = this.selectedTab.parent!;
-      const index: number = parentElement.children.indexOf(this.selectedTab);
+      const parentElement = this.selectedTab()!.parent!;
+      const index: number = parentElement.children.indexOf(this.selectedTab()!);
       this.chatTabList.systemMessageTabIndex = index;
     }
   }
@@ -121,13 +120,13 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   async save() {
-    if (!this.selectedTab || this.isSaveing()) return;
+    if (!this.selectedTab() || this.isSaveing()) return;
     this.isSaveing.set(true);
     this.progresPercent.set(0);
 
-    const fileName: string = 'chat_' + this.selectedTab.name;
+    const fileName: string = 'chat_' + this.selectedTab()!.name;
 
-    await this.saveDataService.saveGameObjectAsync(this.selectedTab, fileName, (percent) => {
+    await this.saveDataService.saveGameObjectAsync(this.selectedTab()!, fileName, (percent) => {
       this.progresPercent.set(percent);
     });
 
@@ -155,14 +154,14 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   saveLog() {
-    if (!this.selectedTab) return;
-    const fileName: string = this.roomName + '_log_' + this.selectedTab.name;
+    if (!this.selectedTab()) return;
+    const fileName: string = this.roomName + '_log_' + this.selectedTab()!.name;
     const fileName_: string = this.appendTimestamp(fileName);
 
     if (this.modeCocLog) {
-      this.saveDataService.saveHtmlChatLogCoc(this.selectedTab, fileName_);
+      this.saveDataService.saveHtmlChatLogCoc(this.selectedTab()!, fileName_);
     } else {
-      this.saveDataService.saveHtmlChatLog(this.selectedTab, fileName_);
+      this.saveDataService.saveHtmlChatLog(this.selectedTab()!, fileName_);
     }
   }
 
@@ -178,11 +177,11 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   delete() {
-    if (!this.isEmpty && this.selectedTab) {
-      const parentElement = this.selectedTab.parent!;
-      const index: number = parentElement.children.indexOf(this.selectedTab);
-      this.selectedTabXml = this.selectedTab.toXml();
-      this.selectedTab.destroy();
+    if (!this.isEmpty && this.selectedTab()) {
+      const parentElement = this.selectedTab()!.parent!;
+      const index: number = parentElement.children.indexOf(this.selectedTab()!);
+      this.selectedTabXml = this.selectedTab()!.toXml();
+      this.selectedTab()!.destroy();
 
       if (this.systemTabIndex > index) {
         this.systemTabIndex--;
@@ -198,16 +197,16 @@ export class ChatTabSettingComponent implements OnInit {
   deleteLog() {
     if (!this.allowDeleteLog) return;
 
-    if (!this.isEmpty && this.selectedTab) {
-      while (this.selectedTab.children.length > 0) {
-        this.selectedTab.children[0].destroy();
+    if (!this.isEmpty && this.selectedTab()) {
+      while (this.selectedTab()!.children.length > 0) {
+        this.selectedTab()!.children[0].destroy();
       }
-      this.selectedTab.tachieReset();
+      this.selectedTab()!.tachieReset();
       const mess = 'ログをクリアしました';
       const gameSystem: GameSystemClass | null = null;
       const sendTo = '';
       this.chatMessageService.sendMessage(
-        this.selectedTab,
+        this.selectedTab()!,
         mess,
         gameSystem,
         this.myPeer.identifier,
@@ -235,7 +234,7 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   restore() {
-    if (this.selectedTab && this.selectedTabXml) {
+    if (this.selectedTab() && this.selectedTabXml) {
       const restoreTable = this.objectSerializer.parseXml(this.selectedTabXml)! as ChatTab;
       this.chatTabList.addChatTab(restoreTable);
       this.selectedTabXml = '';
@@ -249,12 +248,12 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   upTabIndex() {
-    if (!this.selectedTab) return;
-    const parentElement = this.selectedTab.parent!;
-    const index: number = parentElement.children.indexOf(this.selectedTab);
+    if (!this.selectedTab()) return;
+    const parentElement = this.selectedTab()!.parent!;
+    const index: number = parentElement.children.indexOf(this.selectedTab()!);
     if (0 < index) {
       const prevElement = parentElement.children[index - 1];
-      parentElement.insertBefore(this.selectedTab, prevElement);
+      parentElement.insertBefore(this.selectedTab()!, prevElement);
       if (this.systemTabIndex == index) {
         this.systemTabIndex--;
       } else if (this.systemTabIndex == index - 1) {
@@ -265,12 +264,12 @@ export class ChatTabSettingComponent implements OnInit {
   }
 
   downTabIndex() {
-    if (!this.selectedTab) return;
-    const parentElement = this.selectedTab.parent!;
-    const index: number = parentElement.children.indexOf(this.selectedTab);
+    if (!this.selectedTab()) return;
+    const parentElement = this.selectedTab()!.parent!;
+    const index: number = parentElement.children.indexOf(this.selectedTab()!);
     if (index < parentElement.children.length - 1) {
       const nextElement = parentElement.children[index + 1];
-      parentElement.insertBefore(nextElement, this.selectedTab);
+      parentElement.insertBefore(nextElement, this.selectedTab()!);
       if (this.systemTabIndex == index) {
         this.systemTabIndex++;
       } else if (this.systemTabIndex == index + 1) {

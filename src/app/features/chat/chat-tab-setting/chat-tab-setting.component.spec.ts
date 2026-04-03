@@ -26,12 +26,12 @@ describe('ChatTabSettingComponent', () => {
 
   describe('selectedTabがnullの場合', () => {
     it('selectedTabがnullでもdetectChangesでクラッシュしないこと', () => {
-      component.selectedTab = null;
+      component.selectedTab.set(null);
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
     it('tabNameが空文字を返すこと', () => {
-      component.selectedTab = null;
+      component.selectedTab.set(null);
       expect(component.tabName).toBe('');
     });
   });

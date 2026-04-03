@@ -30,13 +30,13 @@ describe('ControllerInputComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
+  describe('cleanup on destroy', () => {
     it('writingEventInterval が clearTimeout でクリアされ null になる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { writingEventInterval: NodeJS.Timeout | null };
       priv.writingEventInterval = setTimeout(() => {}, 999_999);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       expect(priv.writingEventInterval).toBeNull();
@@ -50,7 +50,7 @@ describe('ControllerInputComponent', () => {
       component.writingPeers.set('peer-1', timeout1);
       component.writingPeers.set('peer-2', timeout2);
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       expect(timeout1.stop).toHaveBeenCalled();
       expect(timeout2.stop).toHaveBeenCalled();

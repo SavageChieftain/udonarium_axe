@@ -1,12 +1,12 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
-  AfterViewInit,
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   inject,
   input,
-  OnDestroy,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -22,11 +22,12 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   imports: [NgClass, FormsModule, NgTemplateOutlet],
   host: { '(contextmenu)': 'onContextMenu($event)' },
 })
-export class ContextMenuComponent implements OnDestroy, AfterViewInit {
+export class ContextMenuComponent {
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   private uiSignalService = inject(UiSignalService);
+  private destroyRef = inject(DestroyRef);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
@@ -51,31 +52,32 @@ export class ContextMenuComponent implements OnDestroy, AfterViewInit {
 
   private callbackOnOutsideClick = (e: Event) => this.onOutsideClick(e);
 
+  constructor() {
+    afterNextRender(() => {
+      if (!this.isSubmenu()) {
+        this.adjustPositionRoot();
+        document.addEventListener('touchstart', this.callbackOnOutsideClick, true);
+        document.addEventListener('mousedown', this.callbackOnOutsideClick, true);
+      } else {
+        this.adjustPositionSub();
+      }
+      this.indexMenuPosion();
+    });
+    this.destroyRef.onDestroy(() => {
+      document.removeEventListener('touchstart', this.callbackOnOutsideClick, true);
+      document.removeEventListener('mousedown', this.callbackOnOutsideClick, true);
+    });
+  }
+
   get isPointerDragging(): boolean {
     return this.pointerDeviceService.isDragging;
   }
+
   get altitudeHande(): TabletopObject | null {
     for (const action of this.actions) {
       if (action && action.altitudeHande) return action.altitudeHande;
     }
     return null;
-  }
-
-  ngAfterViewInit() {
-    if (!this.isSubmenu()) {
-      this.adjustPositionRoot();
-      document.addEventListener('touchstart', this.callbackOnOutsideClick, true);
-      document.addEventListener('mousedown', this.callbackOnOutsideClick, true);
-    } else {
-      this.adjustPositionSub();
-    }
-
-    this.indexMenuPosion();
-  }
-
-  ngOnDestroy() {
-    document.removeEventListener('touchstart', this.callbackOnOutsideClick, true);
-    document.removeEventListener('mousedown', this.callbackOnOutsideClick, true);
   }
 
   onOutsideClick(event: Event) {

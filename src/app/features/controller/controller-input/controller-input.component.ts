@@ -8,8 +8,6 @@ import {
   inject,
   input,
   model,
-  OnDestroy,
-  OnInit,
   output,
   signal,
   viewChild,
@@ -44,7 +42,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./controller-input.component.css'],
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
-export class ControllerInputComponent implements OnInit, OnDestroy {
+export class ControllerInputComponent {
   private destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
   private objectChange = inject(ObjectChangeService);
@@ -170,7 +168,6 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
 
   readonly allBox = output<{ check: boolean }>();
   readonly hideChkEvent = output<boolean>();
-  gameHelp = '';
 
   colorSelectNo_: number = 0;
 
@@ -216,7 +213,7 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnInit(): void {
+  constructor() {
     this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       // 1.13.xとのmargeで修正
       if (event.tabIdentifier !== this.chatTabidentifier()) {
@@ -275,17 +272,17 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
       this.writingPeers.get(event.sendFrom)!.reset();
       this.updateWritingPeerNames();
     });
-  }
 
-  ngOnDestroy() {
-    if (this.writingEventInterval) {
-      clearTimeout(this.writingEventInterval);
-      this.writingEventInterval = null;
-    }
-    for (const [, timeout] of this.writingPeers) {
-      timeout.stop();
-    }
-    this.writingPeers.clear();
+    this.destroyRef.onDestroy(() => {
+      if (this.writingEventInterval) {
+        clearTimeout(this.writingEventInterval);
+        this.writingEventInterval = null;
+      }
+      for (const [, timeout] of this.writingPeers) {
+        timeout.stop();
+      }
+      this.writingPeers.clear();
+    });
   }
 
   private updateWritingPeerNames() {
@@ -381,6 +378,10 @@ export class ControllerInputComponent implements OnInit, OnDestroy {
     DiceBot.getHelpMessage(gameType).then(() => {});
   }
   // 親コンポーネントにもCHKBOX情報を渡す、作りが悪いがチャット入力部流用のためひとまずこのまま
+  onBuffHideChkChange(event: Event): void {
+    this.buffHideChkChange((event.target as HTMLInputElement).checked);
+  }
+
   buffHideChkChange(chk: boolean) {
     this.hideChkEvent.emit(chk);
     this.buffHideIsChk = chk;

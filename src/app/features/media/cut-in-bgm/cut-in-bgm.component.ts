@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
@@ -17,13 +17,14 @@ import { debounceTime } from 'rxjs';
   templateUrl: './cut-in-bgm.component.html',
   styleUrls: ['./cut-in-bgm.component.css'],
 })
-export class CutInBgmComponent implements OnInit, OnDestroy {
+export class CutInBgmComponent {
   private modalService = inject(ModalService);
   private objectChange = inject(ObjectChangeService);
   private panelService = inject(PanelService);
   private objectStore = inject(ObjectStore);
   private audioStorage = inject(AudioStorage);
-  private fileArchiver = inject(FileArchiver);
+  private readonly fileArchiver = inject(FileArchiver);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly eventVersion = toSignal(this.objectChange.eventActivity$.pipe(debounceTime(100)), {
     initialValue: undefined,
@@ -38,13 +39,11 @@ export class CutInBgmComponent implements OnInit, OnDestroy {
   }
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
-  ngOnInit() {
+
+  constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインBGM選択'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
-  }
-
-  ngOnDestroy() {
-    this.stop();
+    this.destroyRef.onDestroy(() => this.stop());
   }
 
   play(audio: AudioFile) {

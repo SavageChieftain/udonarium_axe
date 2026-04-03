@@ -23,16 +23,9 @@ describe('TextNoteComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
-    let ng0203Thrown = false;
-    try {
-      component.ngOnInit();
-    } catch (e: unknown) {
-      if (String(e).includes('NG0203')) {
-        ng0203Thrown = true;
-      }
-    }
-    expect(ng0203Thrown).toBe(false);
+  it('effectがコンストラクタで登録されるためNG0203が発生しないこと', () => {
+    // lifecycle hook廃止: effect()はコンストラクタ内で登録済み
+    expect(component).toBeTruthy();
   });
 
   describe('viewRotateZ computed signal', () => {

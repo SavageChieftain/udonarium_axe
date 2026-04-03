@@ -8,9 +8,8 @@ import {
   ElementRef,
   inject,
   input,
-  OnDestroy,
-  OnInit,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -47,7 +46,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   styleUrls: ['./chat-input.component.css'],
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
-export class ChatInputComponent implements OnInit, OnDestroy {
+export class ChatInputComponent {
   private destroyRef = inject(DestroyRef);
   chatMessageService = inject(ChatMessageService);
   private batchService = inject(BatchService);
@@ -88,23 +87,23 @@ export class ChatInputComponent implements OnInit, OnDestroy {
 
   readonly sendFromInput = input('', { alias: 'sendFrom' });
   readonly sendFromChange = output<string>();
-  private _sendFrom: string = this.myPeer ? this.myPeer.identifier : '';
+  private readonly _sendFrom = signal(PeerCursor.myCursor ? PeerCursor.myCursor.identifier : '');
   get sendFrom(): string {
-    return this._sendFrom;
+    return this._sendFrom();
   }
   set sendFrom(sendFrom: string) {
-    this._sendFrom = sendFrom;
+    this._sendFrom.set(sendFrom);
     this.sendFromChange.emit(sendFrom);
   }
 
   readonly sendToInput = input('', { alias: 'sendTo' });
   readonly sendToChange = output<string>();
-  private _sendTo: string = '';
+  private readonly _sendTo = signal('');
   get sendTo(): string {
-    return this._sendTo;
+    return this._sendTo();
   }
   set sendTo(sendTo: string) {
-    this._sendTo = sendTo;
+    this._sendTo.set(sendTo);
     this.sendToChange.emit(sendTo);
   }
 
@@ -141,13 +140,56 @@ export class ChatInputComponent implements OnInit, OnDestroy {
       this._gameType = this.gameTypeInput();
     });
     effect(() => {
-      this._sendFrom = this.sendFromInput();
+      this._sendFrom.set(this.sendFromInput());
     });
     effect(() => {
-      this._sendTo = this.sendToInput();
+      this._sendTo.set(this.sendToInput());
     });
     effect(() => {
       this._text = this.textInput();
+    });
+    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.tabIdentifier !== this.chatTabidentifier()) return;
+      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
+      const peerCursor = this.objectStore
+        .getObjects<PeerCursor>(PeerCursor)
+        .find((obj) => obj.userId === message?.from);
+      const sendFrom = peerCursor ? peerCursor.peerId : '?';
+      this.writingManager.remove(sendFrom);
+    });
+    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.aliasName !== GameCharacter.aliasName) return;
+      if (event.identifier !== this.sendFrom) return;
+      const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
+      if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId)) {
+        if (0 < this.gameCharacters().length && this.onlyCharacters()) {
+          this.sendFrom = this.gameCharacters()[0].identifier;
+        } else {
+          this.sendFrom = this.myPeer.identifier;
+        }
+      }
+    });
+    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      const object = this.objectStore.get(this.sendTo);
+      if (object instanceof PeerCursor && object.peerId === event.peerId) {
+        this.sendTo = '';
+      }
+    });
+    this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) return;
+      this.writingManager.add(event.sendFrom);
+    });
+    this.destroyRef.onDestroy(() => {
+      this.batchService.remove(this);
+      if (this.writingEventInterval) {
+        clearTimeout(this.writingEventInterval);
+        this.writingEventInterval = null;
+      }
+      if (this.calcFitHeightInterval) {
+        clearTimeout(this.calcFitHeightInterval);
+        this.calcFitHeightInterval = null;
+      }
+      this.writingManager.destroy();
     });
   }
 
@@ -293,55 +335,6 @@ export class ChatInputComponent implements OnInit, OnDestroy {
   }
 
   private calcFitHeightInterval: NodeJS.Timeout | null = null;
-  ngOnInit(): void {
-    this.objectChange.messageAdded$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.tabIdentifier !== this.chatTabidentifier()) return;
-      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
-      const peerCursor = this.objectStore
-        .getObjects<PeerCursor>(PeerCursor)
-        .find((obj) => obj.userId === message?.from);
-      const sendFrom = peerCursor ? peerCursor.peerId : '?';
-      this.writingManager.remove(sendFrom);
-    });
-
-    this.objectChange.objectChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.aliasName !== GameCharacter.aliasName) return;
-      if (event.identifier !== this.sendFrom) return;
-      const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
-      if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId)) {
-        if (0 < this.gameCharacters().length && this.onlyCharacters()) {
-          this.sendFrom = this.gameCharacters()[0].identifier;
-        } else {
-          this.sendFrom = this.myPeer.identifier;
-        }
-      }
-    });
-
-    this.objectChange.peerDisconnect$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      const object = this.objectStore.get(this.sendTo);
-      if (object instanceof PeerCursor && object.peerId === event.peerId) {
-        this.sendTo = '';
-      }
-    });
-
-    this.objectChange.writingMessage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
-      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) return;
-      this.writingManager.add(event.sendFrom);
-    });
-  }
-
-  ngOnDestroy() {
-    this.batchService.remove(this);
-    if (this.writingEventInterval) {
-      clearTimeout(this.writingEventInterval);
-      this.writingEventInterval = null;
-    }
-    if (this.calcFitHeightInterval) {
-      clearTimeout(this.calcFitHeightInterval);
-      this.calcFitHeightInterval = null;
-    }
-    this.writingManager.destroy();
-  }
 
   onInput() {
     if (this.writingEventInterval === null && this.previousWritingLength <= this.text.length) {

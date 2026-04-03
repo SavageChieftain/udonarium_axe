@@ -5,9 +5,7 @@ import {
   effect,
   ElementRef,
   inject,
-  Injector,
-  OnDestroy,
-  OnInit,
+  signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -21,7 +19,6 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
-import { ChatInputComponent as ChatInputComponent_1 } from '@axe/features/chat/chat-input/chat-input.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -35,9 +32,9 @@ import GameSystemClass from 'bcdice/lib/game_system';
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
   styleUrls: ['./chat-palette.component.css'],
-  imports: [FormsModule, BadgeComponent, ChatInputComponent_1],
+  imports: [FormsModule, BadgeComponent, ChatInputComponent],
 })
-export class ChatPaletteComponent implements OnInit, OnDestroy {
+export class ChatPaletteComponent {
   private contextMenuService = inject(ContextMenuService);
   private pointerDeviceService = inject(PointerDeviceService);
   chatMessageService = inject(ChatMessageService);
@@ -46,7 +43,6 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   private uiSignalService = inject(UiSignalService);
   private objectChange = inject(ObjectChangeService);
   private destroyRef = inject(DestroyRef);
-  private injector = inject(Injector);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
   readonly chatInputComponent = viewChild.required<ChatInputComponent>('chatInput');
@@ -80,12 +76,11 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     this.onSelectedCharacter(sendFrom);
   }
 
-  chatTabidentifier: string = '';
+  readonly chatTabidentifier = signal('');
   text: string = '';
   sendTo: string = '';
 
   isEdit: boolean = false;
-  isIndexOpen: boolean = false;
   editPalette: string = '';
 
   private doubleClickTimer: NodeJS.Timeout | null = null;
@@ -94,7 +89,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
   }
 
   get chatTab(): ChatTab {
-    return this.objectStore.get<ChatTab>(this.chatTabidentifier)!;
+    return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -103,31 +98,27 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     return this.objectStore.getObjects(PeerCursor);
   }
 
-  ngOnInit() {
+  constructor() {
     queueMicrotask(() => this.updatePanelTitle());
-    this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
+    this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
     this.gameType = this.character?.chatPalette ? this.character.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
     this.objectChange.objectDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((e) => {
       if (this.character && this.character.identifier === e.identifier) {
         this.panelService.close();
       }
-      if (this.chatTabidentifier === e.identifier) {
-        this.chatTabidentifier = this.chatMessageService.chatTabs[0]?.identifier ?? '';
+      if (this.chatTabidentifier() === e.identifier) {
+        this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
       }
     });
-    effect(
-      () => {
-        const req = this.uiSignalService.jumpIndexRequest();
-        if (!req || this._timeId != req.targetId) return;
-        this.japmIndex(req.lineNo);
-      },
-      { injector: this.injector }
-    );
-  }
-
-  ngOnDestroy() {
-    if (this.isEdit) this.toggleEditMode();
+    effect(() => {
+      const req = this.uiSignalService.jumpIndexRequest();
+      if (!req || this._timeId != req.targetId) return;
+      this.japmIndex(req.lineNo);
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.isEdit) this.toggleEditMode();
+    });
   }
 
   updatePanelTitle() {
@@ -151,7 +142,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
 
   chatTabSwitchRelative(direction: number) {
     const chatTabs = this.chatMessageService.chatTabs;
-    const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier);
+    const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier());
     if (index < 0) {
       return;
     }
@@ -164,7 +155,7 @@ export class ChatPaletteComponent implements OnInit, OnDestroy {
     } else {
       nextIndex = index + direction;
     }
-    this.chatTabidentifier = chatTabs[nextIndex].identifier;
+    this.chatTabidentifier.set(chatTabs[nextIndex].identifier);
   }
 
   autoCompleteSwitchRelative(direction: number) {

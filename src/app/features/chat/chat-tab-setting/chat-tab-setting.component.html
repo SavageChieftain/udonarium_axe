@@ -9,7 +9,7 @@
       (change)="onSelectTab($event)"
       name="chat-tab-select"
       name="chat-tab-select"
-      [ngModel]="selectedTab?.identifier"
+      [ngModel]="selectedTab()?.identifier"
     >
       @for (chatTab of chatTabs; track chatTab) {
         <option value="{{ chatTab.identifier }}">{{ chatTab.name }}</option>
@@ -21,7 +21,7 @@
     <div style="width: 10em; overflow: hidden; font-size: 14px">現在システム表示先：<br />{{ systemTab()?.name }}</div>
   </div>
   <div class="flex-item">
-    @if (!isEmpty && selectedTab) {
+    @if (!isEmpty && selectedTab()) {
       <div>
         タブ名 :
         <input
