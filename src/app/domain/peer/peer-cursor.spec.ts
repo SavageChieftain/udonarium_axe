@@ -184,6 +184,11 @@ describe('PeerCursor', () => {
       const cursor2 = PeerCursor.createMyCursor();
       expect(cursor1).toBe(cursor2);
     });
+
+    it('isDisConnect が false に設定される（自分自身は切断扱いにならない）', () => {
+      const cursor = PeerCursor.createMyCursor();
+      expect(cursor.isDisConnect).toBe(false);
+    });
   });
 
   describe('findByUserId / findByPeerId', () => {

@@ -480,4 +480,51 @@ describe('Vote', () => {
       vi.useRealTimers();
     });
   });
+
+  describe('自分を点呼に含む（リグレッション）', () => {
+    it('isDisConnect=true の自分は棄権扱いになる（切断時の期待動作）', () => {
+      // myCursor が isDisConnect=true のとき voteAnswerByPeerId は -2 を返す
+      vote.voteId = 1;
+      vi.spyOn(PeerCursor, 'findByPeerId').mockImplementation((peerId: string) => {
+        if (peerId === 'my-peer-id') return { voteId: 1, voteAnswer: 0, isDisConnect: true } as unknown as PeerCursor;
+        return null!;
+      });
+      expect(vote.voteAnswerByPeerId('my-peer-id')).toBe(-2);
+    });
+
+    it('自分が接続中（isDisConnect=false）なら実際の投票値を返す', () => {
+      // createMyCursor() が isDisConnect=false を設定することで意図通りに動作する
+      vote.voteId = 1;
+      vi.spyOn(PeerCursor, 'findByPeerId').mockImplementation((peerId: string) => {
+        if (peerId === 'my-peer-id') return { voteId: 1, voteAnswer: 0, isDisConnect: false } as unknown as PeerCursor;
+        return null!;
+      });
+      expect(vote.voteAnswerByPeerId('my-peer-id')).toBe(0);
+    });
+
+    it('自分を含む点呼で自分が接続中なら投票後に投票済みと判定される', () => {
+      // PeerCursor.myCursor に isDisConnect=false を設定した状態で voting() を呼び出すと
+      // voteId が揃い isVoteEnd() が true になること
+      const myCursor = {
+        peerId: 'my-peer-id',
+        voteAnswer: -1,
+        voteId: -1,
+        isDisConnect: false,
+      } as unknown as PeerCursor;
+      PeerCursor.myCursor = myCursor;
+
+      vote.choices = ['準備完了'];
+      vote.voteId = 1;
+      vote.targetPeerId = ['my-peer-id'];
+      vote.chairId = 'other-chair';
+
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue(myCursor);
+
+      vote.voting('準備完了', 'my-peer-id');
+
+      expect(myCursor.voteAnswer).toBe(0);
+      expect(myCursor.voteId).toBe(1);
+      expect(vote.isVoteEnd('my-peer-id')).toBe(true);
+    });
+  });
 });

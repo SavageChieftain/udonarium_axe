@@ -243,6 +243,7 @@ export class PeerCursor extends GameObject {
     }
     PeerCursor.myCursor = new PeerCursor();
     PeerCursor.myCursor.peerId = Network.peerId;
+    PeerCursor.myCursor.isDisConnect = false;
     PeerCursor.myCursor.initialize();
     return PeerCursor.myCursor;
   }
