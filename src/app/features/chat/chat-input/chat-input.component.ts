@@ -123,7 +123,7 @@ export class ChatInputComponent {
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
-    tachieNum: number;
+    portraitIndex: number;
     messColor: string;
   }>();
 
@@ -183,18 +183,18 @@ export class ChatInputComponent {
     return this.objectStore.get<Config>('Config')!;
   }
 
-  get tachieNum(): number {
+  get portraitIndex(): number {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
-      return object.selectedTachieNum;
+      return object.selectedPortraitIndex;
     }
     return 0;
   }
 
-  set tachieNum(num: number) {
+  set portraitIndex(num: number) {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
-      object.selectedTachieNum = num;
+      object.selectedPortraitIndex = num;
     }
   }
 
@@ -262,17 +262,17 @@ export class ChatInputComponent {
     this.colorSelectNo = num;
   }
 
-  get selectCharacterTachie(): DataElement | null {
+  get selectedPortrait(): DataElement | null {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
-      if (object.imageDataElement && object.imageDataElement.children.length > this.tachieNum) {
-        return object.imageDataElement.children[this.tachieNum] ?? null;
+      if (object.imageDataElement && object.imageDataElement.children.length > this.portraitIndex) {
+        return object.imageDataElement.children[this.portraitIndex] ?? null;
       }
     }
     return null;
   }
 
-  get selectCharacterTachieNum() {
+  get portraitCount() {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       return object.imageDataElement?.children.length ?? 0;
@@ -283,8 +283,8 @@ export class ChatInputComponent {
   }
 
   get imageFile(): ImageFile {
-    if (this.selectCharacterTachie) {
-      const image = this.imageStorage.get(this.selectCharacterTachie.value as string);
+    if (this.selectedPortrait) {
+      const image = this.imageStorage.get(this.selectedPortrait.value as string);
       return image ? image : ImageFile.Empty;
     }
 
@@ -378,7 +378,7 @@ export class ChatInputComponent {
       text: this.text,
       sendFrom: this.sendFrom,
       sendTo: this.sendTo,
-      tachieNum: this.tachieNum,
+      portraitIndex: this.portraitIndex,
       messColor: this.selectChatColor,
     };
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
@@ -387,7 +387,7 @@ export class ChatInputComponent {
         gameSystem: gameSystem,
         sendFrom: message.sendFrom,
         sendTo: message.sendTo,
-        tachieNum: message.tachieNum,
+        portraitIndex: message.portraitIndex,
         messColor: message.messColor,
       });
     });

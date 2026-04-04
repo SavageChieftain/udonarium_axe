@@ -25,11 +25,11 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return ObjectStore.instance.get<ReloadCheck>('ReloadCheck')!;
   }
 
-  public tachieHeightValue = 200;
-  public minTachieSize = 100;
-  public maxTachieSize = 500;
-  public isTachieInWindow = false;
-  public isKeepTachieOutWindow = false;
+  public portraitHeight = 200;
+  public minPortraitSize = 100;
+  public maxPortraitSize = 500;
+  public isPortraitInWindow = false;
+  public isKeepPortraitOutWindow = false;
 
   private static _instance: ChatTabList;
   static get instance(): ChatTabList {

@@ -56,16 +56,16 @@ export class ControllerInputComponent {
   readonly sendTo = model('');
   readonly text = model('');
 
-  readonly tachieNum = linkedSignal(() => {
+  readonly portraitIndex = linkedSignal(() => {
     this.objectChange.versionOf(this.sendFrom())();
     const object = this.objectStore.get(this.sendFrom());
-    return object instanceof GameCharacter ? object.selectedTachieNum : 0;
+    return object instanceof GameCharacter ? object.selectedPortraitIndex : 0;
   });
 
-  setTachieNum(num: number) {
+  setPortraitIndex(num: number) {
     const object = this.objectStore.get(this.sendFrom());
-    if (object instanceof GameCharacter) object.selectedTachieNum = num;
-    this.tachieNum.set(num);
+    if (object instanceof GameCharacter) object.selectedPortraitIndex = num;
+    this.portraitIndex.set(num);
   }
 
   get isDirect(): boolean {
@@ -99,18 +99,18 @@ export class ControllerInputComponent {
     return this.charactorChatColor(this.colorSelectNo);
   }
 
-  readonly selectCharacterTachie = computed((): DataElement | null => {
+  readonly selectedPortrait = computed((): DataElement | null => {
     this.objectChange.versionOf(this.sendFrom())();
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
-      if (object.imageDataElement && object.imageDataElement.children.length > this.tachieNum()) {
-        return object.imageDataElement.children[this.tachieNum()] ?? null;
+      if (object.imageDataElement && object.imageDataElement.children.length > this.portraitIndex()) {
+        return object.imageDataElement.children[this.portraitIndex()] ?? null;
       }
     }
     return null;
   });
 
-  readonly selectCharacterTachieNum = computed((): number => {
+  readonly portraitCount = computed((): number => {
     this.objectChange.versionOf(this.sendFrom())();
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
@@ -123,8 +123,8 @@ export class ControllerInputComponent {
 
   readonly imageFile = computed((): ImageFile => {
     this.objectChange.fileVersion();
-    if (this.selectCharacterTachie()) {
-      const imageFile = this.imageStorage.get(this.selectCharacterTachie()!.value as string);
+    if (this.selectedPortrait()) {
+      const imageFile = this.imageStorage.get(this.selectedPortrait()!.value as string);
       return imageFile ? imageFile : ImageFile.Empty;
     }
     const object = this.objectStore.get(this.sendFrom());
@@ -162,7 +162,7 @@ export class ControllerInputComponent {
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
-    tachieNum: number;
+    portraitIndex: number;
     messColor: string;
   }>();
 
@@ -338,7 +338,7 @@ export class ControllerInputComponent {
       text: this.text(),
       sendFrom: this.sendFrom(),
       sendTo: this.sendTo(),
-      tachieNum: this.tachieNum(),
+      portraitIndex: this.portraitIndex(),
       messColor: this.selectChatColor,
     };
     DiceBot.loadGameSystemAsync(this.gameType()).then((gameSystem) => {
@@ -347,7 +347,7 @@ export class ControllerInputComponent {
         gameSystem,
         sendFrom: message.sendFrom,
         sendTo: message.sendTo,
-        tachieNum: message.tachieNum,
+        portraitIndex: message.portraitIndex,
         messColor: message.messColor,
       });
     });

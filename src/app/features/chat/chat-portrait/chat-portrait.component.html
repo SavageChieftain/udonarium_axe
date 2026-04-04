@@ -1,28 +1,33 @@
 <div>
-  <form name="chat-tachie">
-    <div id="tachie-component_" #tachieArea [ngStyle]="{ height: tachieAreaHeight + 'px' }">
-      <chat-tachie-img
+  <form name="chat-portrait">
+    <div id="portrait-component_" #portraitArea [ngStyle]="{ height: portraitAreaHeight + 'px' }">
+      <chat-portrait-img
         [chatTabidentifier]="chatTabidentifier()"
         [isTilteTop]="false"
         [dispByMouse]="true"
-      ></chat-tachie-img>
+      ></chat-portrait-img>
     </div>
     <div>
       立ち絵表示:
       @if (chatTab) {
-        <input type="checkbox" value="tachieDispFlag" [(ngModel)]="chatTab.tachieDispFlag" name="tachieDispFlag" />
+        <input
+          type="checkbox"
+          value="portraitDisplayFlag"
+          [(ngModel)]="chatTab.portraitDisplayFlag"
+          name="portraitDisplayFlag"
+        />
       }
       @if (!chatTab) {
-        <input type="checkbox" name="tachieDispFlag" disabled />
+        <input type="checkbox" name="portraitDisplayFlag" disabled />
       }
       /サイズ:
       <input
         class="is-caret"
-        [(ngModel)]="chatTabList.tachieHeightValue"
+        [(ngModel)]="chatTabList.portraitHeight"
         type="number"
-        min="{{ chatTabList.minTachieSize }}"
-        max="{{ chatTabList.maxTachieSize }}"
-        name="tachieHeight"
+        min="{{ chatTabList.minPortraitSize }}"
+        max="{{ chatTabList.maxPortraitSize }}"
+        name="portraitHeight"
         (change)="onChkHeight($event)"
       />
       チャット簡易表示:

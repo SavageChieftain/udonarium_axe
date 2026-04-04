@@ -6,7 +6,7 @@ export interface DiceBotTagResolver {
   checkSecretEditCommand(text: string): boolean;
 }
 
-export type TachieCommand =
+export type PortraitCommand =
   | { type: 'none' }
   | { type: 'hide' }
   | { type: 'index'; index: number }
@@ -28,8 +28,8 @@ export interface ChatEventPlan {
   resourceEditTargetContext: ChatMessageTargetContext[] | null;
 }
 
-export function resolveTachieIndex(tachieNum?: number): number {
-  return tachieNum != null && tachieNum > 0 ? tachieNum : 0;
+export function resolvePortraitIndex(portraitIndex?: number): number {
+  return portraitIndex != null && portraitIndex > 0 ? portraitIndex : 0;
 }
 
 export function resolveMessageColor(color: string | undefined, defaultColor: string): string {
@@ -48,7 +48,7 @@ export function resolveChatMessageTag(
   return gameSystem.ID;
 }
 
-export function parseTachieCommand(text: string): TachieCommand {
+export function parsePortraitCommand(text: string): PortraitCommand {
   const matchesArray = (' ' + text).match(/\s[@＠](\S+)\s*$/i);
   if (!matchesArray) return { type: 'none' };
 
@@ -65,7 +65,7 @@ export function parseTachieCommand(text: string): TachieCommand {
   return { type: 'name', name: token };
 }
 
-export function stripTachieCommand(text: string): string {
+export function stripPortraitCommand(text: string): string {
   return text.replace(/([@＠]\S+\s*)$/i, '');
 }
 

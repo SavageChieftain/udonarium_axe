@@ -4,10 +4,10 @@
     <div class="table-cell">
       <input
         type="checkbox"
-        value="isTachieInWindow"
-        [(ngModel)]="chatTabList.isTachieInWindow"
-        name="tachieInWindow"
-        (click)="changeTachieInWindow()"
+        value="isPortraitInWindow"
+        [(ngModel)]="chatTabList.isPortraitInWindow"
+        name="portraitInWindow"
+        (click)="changePortraitInWindow()"
       />
     </div>
   </div>
@@ -19,11 +19,11 @@
     <div class="table-cell">
       <input
         type="checkbox"
-        value="isKeepTachieOutWindow"
-        [(ngModel)]="chatTabList.isKeepTachieOutWindow"
-        name="isKeepTachieOutWindow"
-        (click)="changeKeepTachieOutWindow()"
-        [attr.disabled]="chatTabList.isTachieInWindow ? '' : null"
+        value="isKeepPortraitOutWindow"
+        [(ngModel)]="chatTabList.isKeepPortraitOutWindow"
+        name="isKeepPortraitOutWindow"
+        (click)="changeKeepPortraitOutWindow()"
+        [attr.disabled]="chatTabList.isPortraitInWindow ? '' : null"
       />
     </div>
   </div>

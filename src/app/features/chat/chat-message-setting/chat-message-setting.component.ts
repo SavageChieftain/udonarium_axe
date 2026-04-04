@@ -42,11 +42,11 @@ export class ChatMessageSettingComponent {
     //中身なし
   }
 
-  changeTachieInWindow() {
+  changePortraitInWindow() {
     //中身なし
   }
 
-  changeKeepTachieOutWindow() {
+  changeKeepPortraitOutWindow() {
     //中身なし
   }
 }

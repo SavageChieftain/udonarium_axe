@@ -61,7 +61,7 @@ export class RangeDockingCharacterComponent {
     return ImageFile.Empty;
   });
 
-  readonly selectCharacterTachieNum = computed((): number => {
+  readonly portraitCount = computed((): number => {
     this.objectChange.versionOf(this.sendFrom())();
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {

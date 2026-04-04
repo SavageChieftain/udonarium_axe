@@ -34,7 +34,7 @@ export class CardStackListImageComponent {
 
   readonly cardAreaWidth = signal(0);
 
-  get tachieY_Pos(): number {
+  get portraitYPos(): number {
     return 0 - 26;
   }
 

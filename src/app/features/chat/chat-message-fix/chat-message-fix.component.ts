@@ -41,7 +41,7 @@ export class ChatMessageFixComponent {
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
-    tachieNum: number;
+    portraitIndex: number;
     messColor: string;
   };
 

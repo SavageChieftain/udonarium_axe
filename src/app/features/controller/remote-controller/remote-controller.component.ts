@@ -335,7 +335,7 @@ export class RemoteControllerComponent {
       this.chatMessageService,
       this._gameSystem,
       this.sendFrom,
-      this.controllerInputComponent().tachieNum(),
+      this.controllerInputComponent().portraitIndex(),
       this.getTargetCharacters(checkedOnly)
     );
   }
@@ -354,7 +354,7 @@ export class RemoteControllerComponent {
       this.chatMessageService,
       this._gameSystem,
       this.sendFrom,
-      this.controllerInputComponent().tachieNum(),
+      this.controllerInputComponent().portraitIndex(),
       this.getTargetCharacters(checkedOnly)
     );
   }
@@ -372,7 +372,7 @@ export class RemoteControllerComponent {
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
-    tachieNum: number;
+    portraitIndex: number;
     messColor: string;
   }) {
     const parsed = parseBuffInput(value.text);
@@ -395,7 +395,7 @@ export class RemoteControllerComponent {
       this._gameSystem,
       this.sendFrom,
       '',
-      value.tachieNum,
+      value.portraitIndex,
       value.messColor
     );
     this.errorMessageBuff = '';
@@ -429,7 +429,7 @@ export class RemoteControllerComponent {
         this._gameSystem,
         this.sendFrom,
         '',
-        this.controllerInputComponent().tachieNum(),
+        this.controllerInputComponent().portraitIndex(),
         this.controllerInputComponent().selectChatColor
       );
       this.errorMessageController = '';

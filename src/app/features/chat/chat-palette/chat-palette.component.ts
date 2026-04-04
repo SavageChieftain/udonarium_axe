@@ -246,7 +246,7 @@ export class ChatPaletteComponent {
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
-    tachieNum: number;
+    portraitIndex: number;
     messColor: string;
   }) {
     const character = this.character();
@@ -301,7 +301,7 @@ export class ChatPaletteComponent {
         value.gameSystem,
         value.sendFrom,
         value.sendTo,
-        value.tachieNum,
+        value.portraitIndex,
         value.messColor,
         messageTargetContext
       );

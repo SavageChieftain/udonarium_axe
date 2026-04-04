@@ -18,9 +18,9 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { AlarmMenuComponent } from '@axe/features/alarm/alarm-menu/alarm-menu.component';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
+import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
-import { ChatTachieComponent } from '@axe/features/chat/chat-tachie/chat-tachie.component';
 import { DiceTableSettingComponent } from '@axe/features/dice/dice-table-setting/dice-table-setting.component';
 import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
@@ -34,7 +34,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   selector: 'chat-window',
   templateUrl: './chat-window.component.html',
   styleUrls: ['./chat-window.component.css'],
-  imports: [ChatTabComponent, FormsModule, ChatTachieComponent, BadgeComponent, ChatInputComponent],
+  imports: [ChatTabComponent, FormsModule, ChatPortraitComponent, BadgeComponent, ChatInputComponent],
 })
 export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
@@ -262,7 +262,7 @@ export class ChatWindowComponent {
     gameSystem: GameSystemClass;
     sendFrom: string;
     sendTo: string;
-    tachieNum: number;
+    portraitIndex: number;
     messColor: string;
   }) {
     const tab = this.chatTab();
@@ -316,7 +316,7 @@ export class ChatWindowComponent {
         value.gameSystem,
         value.sendFrom,
         value.sendTo,
-        value.tachieNum,
+        value.portraitIndex,
         value.messColor,
         messageTargetContext
       );

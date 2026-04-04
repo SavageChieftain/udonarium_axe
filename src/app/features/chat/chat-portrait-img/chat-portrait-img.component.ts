@@ -21,13 +21,13 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
-const TACHIE_COUNT = 12;
-const TACHIE_OPACITY_BACKGROUND = 0.66;
-const TACHIE_ZINDEX_FRONT = 11;
-const TACHIE_ZINDEX_OFFSET = 10;
+const PORTRAIT_COUNT = 12;
+const PORTRAIT_OPACITY_BACKGROUND = 0.66;
+const PORTRAIT_ZINDEX_FRONT = 11;
+const PORTRAIT_ZINDEX_OFFSET = 10;
 
 /** 1ポジション分の立ち絵描画情報 */
-export interface TachieSlot {
+export interface PortraitSlot {
   readonly pos: number;
   readonly imageFileUrl: string;
   readonly zIndex: number;
@@ -37,12 +37,12 @@ export interface TachieSlot {
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'chat-tachie-img',
-  templateUrl: './chat-tachie-img.component.html',
-  styleUrls: ['./chat-tachie-img.component.css'],
+  selector: 'chat-portrait-img',
+  templateUrl: './chat-portrait-img.component.html',
+  styleUrls: ['./chat-portrait-img.component.css'],
   imports: [NgStyle, SafePipe],
 })
-export class ChatTachieImageComponent {
+export class ChatPortraitImageComponent {
   chatMessageService = inject(ChatMessageService);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -54,18 +54,18 @@ export class ChatTachieImageComponent {
   readonly isTilteTop = input(false);
   readonly dispByMouse = input(false);
 
-  private readonly tachieAreaEl = viewChild.required<ElementRef>('tachieArea');
+  private readonly portraitAreaEl = viewChild.required<ElementRef>('portraitArea');
 
   // ------- DOM幅: signal + afterRender で自動追従 -------
-  readonly tachieAreaWidth = signal(0);
+  readonly portraitAreaWidth = signal(0);
 
   constructor() {
     afterNextRender(() => {
-      this.tachieAreaWidth.set(this.tachieAreaEl().nativeElement.offsetWidth);
+      this.portraitAreaWidth.set(this.portraitAreaEl().nativeElement.offsetWidth);
     });
     afterEveryRender(() => {
-      const w: number = this.tachieAreaEl().nativeElement.offsetWidth;
-      if (w !== this.tachieAreaWidth()) this.tachieAreaWidth.set(w);
+      const w: number = this.portraitAreaEl().nativeElement.offsetWidth;
+      if (w !== this.portraitAreaWidth()) this.portraitAreaWidth.set(w);
     });
   }
 
@@ -86,9 +86,9 @@ export class ChatTachieImageComponent {
 
   // ------- 表示フラグ -------
 
-  get tachieY_Pos(): number {
-    if (!this.chatTabList?.isTachieInWindow) {
-      return -(this.chatTabList?.tachieHeightValue ?? 0) - 26;
+  get portraitYPos(): number {
+    if (!this.chatTabList?.isPortraitInWindow) {
+      return -(this.chatTabList?.portraitHeight ?? 0) - 26;
     } else {
       return 0;
     }
@@ -96,14 +96,14 @@ export class ChatTachieImageComponent {
 
   get dispFlag(): boolean {
     if (!this.chatTabList) return false;
-    if (this.isTilteTop() && !this.chatTabList.isTachieInWindow) return true;
-    if (!this.isTilteTop() && this.chatTabList.isTachieInWindow) return true;
+    if (this.isTilteTop() && !this.chatTabList.isPortraitInWindow) return true;
+    if (!this.isTilteTop() && this.chatTabList.isPortraitInWindow) return true;
     return false;
   }
 
-  get isTachieDispMode(): boolean {
+  get isPortraitDispMode(): boolean {
     if (!this.chatTabList) return false;
-    if (this.chatTabList.isKeepTachieOutWindow) {
+    if (this.chatTabList.isKeepPortraitOutWindow) {
       return this.dispFlag;
     } else {
       return this.dispFlag && this.dispByMouse();
@@ -112,25 +112,25 @@ export class ChatTachieImageComponent {
 
   // ------- 全ポジション分の描画情報を computed 配列で一括計算 -------
 
-  readonly tachieSlots = computed<TachieSlot[]>(() => {
+  readonly portraitSlots = computed<PortraitSlot[]>(() => {
     this.version();
     this.fileVer();
     const chatTab = this.chatTab;
     const chatTabList = this.chatTabList;
-    const slots: TachieSlot[] = [];
+    const slots: PortraitSlot[] = [];
 
-    for (let pos = 0; pos < TACHIE_COUNT; pos++) {
+    for (let pos = 0; pos < PORTRAIT_COUNT; pos++) {
       const imageIdentifier = chatTab?.imageIdentifier?.[pos] ?? '';
       const imageFile = imageIdentifier ? this.imageStorage.get(imageIdentifier) : null;
       const imageFileUrl = imageFile ? imageFile.url : '';
 
-      const rawZIndex = chatTab?.tachieZindex(pos) ?? 0;
-      const zIndex = rawZIndex + TACHIE_ZINDEX_OFFSET;
-      const opacity = rawZIndex === TACHIE_ZINDEX_FRONT ? 1 : TACHIE_OPACITY_BACKGROUND;
+      const rawZIndex = chatTab?.portraitZIndex(pos) ?? 0;
+      const zIndex = rawZIndex + PORTRAIT_ZINDEX_OFFSET;
+      const opacity = rawZIndex === PORTRAIT_ZINDEX_FRONT ? 1 : PORTRAIT_OPACITY_BACKGROUND;
 
       let height = 0;
-      if (chatTab?.tachieDispFlag && chatTab.tachiePosIsDisp(pos)) {
-        height = chatTabList?.tachieHeightValue ?? 0;
+      if (chatTab?.portraitDisplayFlag && chatTab.isPortraitPosVisible(pos)) {
+        height = chatTabList?.portraitHeight ?? 0;
       }
 
       slots.push({ pos, imageFileUrl, zIndex, opacity, height });
@@ -140,7 +140,7 @@ export class ChatTachieImageComponent {
 
   // ------- イベントハンドラ -------
 
-  tachieClick(pos: number): void {
-    this.chatTab.tachiePosHide(pos);
+  portraitClick(pos: number): void {
+    this.chatTab.hidePortraitPos(pos);
   }
 }

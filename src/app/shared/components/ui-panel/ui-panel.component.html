@@ -11,8 +11,8 @@
   appDraggable
   appResizable
   #draggablePanel
-  (mouseenter)="showTachie(true)"
-  (mouseleave)="showTachie(false)"
+  (mouseenter)="showPortrait(true)"
+  (mouseleave)="showPortrait(false)"
 >
   <!--  style = "{{backGroundSetting(0)}}"-->
 
@@ -31,11 +31,11 @@
     {{ panelService.title }}
   </div>
   @if (panelService.chatTab) {
-    <chat-tachie-img
+    <chat-portrait-img
       [chatTabidentifier]="panelService.chatTab.identifier"
       [isTilteTop]="true"
-      [dispByMouse]="tachieDispByMouse()"
-    ></chat-tachie-img>
+      [dispByMouse]="portraitDispByMouse()"
+    ></chat-portrait-img>
   }
   @if (panelService.cardStack) {
     <card-stack-list-img [cardStackidentifier]="panelService.cardStack.identifier"></card-stack-list-img>

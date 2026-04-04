@@ -59,12 +59,12 @@ describe('ChatTab', () => {
     });
   });
 
-  describe('tachieReset()', () => {
+  describe('portraitReset()', () => {
     it('立ち絵情報をリセットする', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.imageIdentifier = ['x', 'y'];
-      tab.tachieReset();
+      tab.portraitReset();
       expect(tab.imageIdentifier).toHaveLength(12);
       expect(tab.imageIdentifier[0]).toBe('a');
     });
@@ -85,38 +85,38 @@ describe('ChatTab', () => {
     });
   });
 
-  describe('tachiePosIsDisp()', () => {
+  describe('isPortraitPosVisible()', () => {
     it('初期状態では全位置がtrue', () => {
       const tab = new ChatTab();
       tab.initialize();
-      expect(tab.tachiePosIsDisp(0)).toBe(true);
-      expect(tab.tachiePosIsDisp(11)).toBe(true);
+      expect(tab.isPortraitPosVisible(0)).toBe(true);
+      expect(tab.isPortraitPosVisible(11)).toBe(true);
     });
   });
 
-  describe('tachiePosHide()', () => {
+  describe('hidePortraitPos()', () => {
     it('指定位置を非表示にする', () => {
       const tab = new ChatTab();
       tab.initialize();
-      tab.tachiePosHide(3);
-      expect(tab.tachiePosIsDisp(3)).toBe(false);
+      tab.hidePortraitPos(3);
+      expect(tab.isPortraitPosVisible(3)).toBe(false);
     });
   });
 
-  describe('tachieZindex()', () => {
+  describe('portraitZIndex()', () => {
     it('位置のZ順序インデックスを返す', () => {
       const tab = new ChatTab();
       tab.initialize();
-      expect(tab.tachieZindex(0)).toBe(0);
-      expect(tab.tachieZindex(5)).toBe(5);
+      expect(tab.portraitZIndex(0)).toBe(0);
+      expect(tab.portraitZIndex(5)).toBe(5);
     });
   });
 
-  describe('replaceTachieZindex()', () => {
+  describe('replacePortraitZIndex()', () => {
     it('指定位置をZ順序の最上位に移動する', () => {
       const tab = new ChatTab();
       tab.initialize();
-      tab.replaceTachieZindex(3);
+      tab.replacePortraitZIndex(3);
       const zpos = tab.imageZposList;
       expect(zpos[zpos.length - 1]).toBe(3);
     });

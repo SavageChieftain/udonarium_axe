@@ -58,7 +58,7 @@ export class ImportCharacterImgComponent {
     return ImageFile.Empty;
   }
 
-  get selectCharacterTachieNum() {
+  get portraitCount() {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       return object.imageDataElement?.children.length ?? 0;

@@ -45,24 +45,24 @@ export class GameCharacter extends TabletopObject {
     this._targeted = flag;
   }
 
-  private _selectedTachieNum: number = 0;
-  get selectedTachieNum(): number {
+  private _selectedPortraitIndex: number = 0;
+  get selectedPortraitIndex(): number {
     const childCount = this.imageDataElement?.children.length ?? 0;
-    if (this._selectedTachieNum > childCount - 1) {
-      this._selectedTachieNum = childCount - 1;
+    if (this._selectedPortraitIndex > childCount - 1) {
+      this._selectedPortraitIndex = childCount - 1;
     }
-    if (this._selectedTachieNum < 0) {
-      this._selectedTachieNum = 0;
+    if (this._selectedPortraitIndex < 0) {
+      this._selectedPortraitIndex = 0;
     }
 
-    return this._selectedTachieNum;
+    return this._selectedPortraitIndex;
   }
 
-  set selectedTachieNum(num: number) {
+  set selectedPortraitIndex(num: number) {
     const childCount = this.imageDataElement?.children.length ?? 0;
     if (num > childCount - 1) num = childCount - 1;
     if (num < 0) num = 0;
-    this._selectedTachieNum = num;
+    this._selectedPortraitIndex = num;
   }
 
   private getIconNumElement(): DataElement | null {
@@ -148,8 +148,8 @@ export class GameCharacter extends TabletopObject {
     const detail = this.detailDataElement;
     if (!detail) return;
 
-    const istachie = detail.getElementsByName('立ち絵位置');
-    if (istachie.length == 0) {
+    const portraitPosEl = detail.getElementsByName('立ち絵位置');
+    if (portraitPosEl.length == 0) {
       const testElement: DataElement = DataElement.create('立ち絵位置', '', {}, `立ち絵位置${this.identifier}`);
       detail.appendChild(testElement);
       testElement.appendChild(
@@ -168,11 +168,11 @@ export class GameCharacter extends TabletopObject {
       detail.appendChild(elementKoma);
 
       //コマ画像作成時は立ち絵の次に差し込み
-      const tachies = detail.getElementsByName('立ち絵位置');
-      if (tachies.length != 0) {
-        const parentElement = tachies[0].parent;
+      const portraitPosEls = detail.getElementsByName('立ち絵位置');
+      if (portraitPosEls.length != 0) {
+        const parentElement = portraitPosEls[0].parent;
         if (!parentElement) return;
-        const index: number = parentElement.children.indexOf(tachies[0]);
+        const index: number = parentElement.children.indexOf(portraitPosEls[0]);
         if (index < parentElement.children.length - 1) {
           const nextElement = parentElement.children[index + 1];
 

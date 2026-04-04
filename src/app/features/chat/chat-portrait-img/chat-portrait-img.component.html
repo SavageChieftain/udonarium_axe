@@ -1,28 +1,28 @@
 <div>
-  <div id="tachie-component_">
-    <div class="tachie-image-box" #tachieArea style="height:0px,width:100%">
+  <div id="portrait-component_">
+    <div class="portrait-image-box" #portraitArea style="height:0px,width:100%">
       @if (chatTab) {
-        @if (chatTab.tachieDispFlag) {
-          @if (isTachieDispMode) {
-            @for (slot of tachieSlots(); track slot.pos) {
+        @if (chatTab.portraitDisplayFlag) {
+          @if (isPortraitDispMode) {
+            @for (slot of portraitSlots(); track slot.pos) {
               @if (slot.imageFileUrl) {
                 <img
-                  [class]="'tachie-image pos' + (slot.pos < 10 ? '0' : '') + slot.pos"
+                  [class]="'portrait-image pos' + (slot.pos < 10 ? '0' : '') + slot.pos"
                   [src]="slot.imageFileUrl | safe: 'resourceUrl'"
                   [ngStyle]="{
                     transform:
                       'translateX( calc( (' +
-                      tachieAreaWidth() +
+                      portraitAreaWidth() +
                       'px - 100% ) / 11 * ' +
                       slot.pos +
                       ' ) ) translateY(' +
-                      tachieY_Pos +
+                      portraitYPos +
                       'px)',
                     'z-index': slot.zIndex,
                     opacity: slot.opacity,
                     height: slot.height + 'px',
                   }"
-                  (mousedown)="tachieClick(slot.pos)"
+                  (mousedown)="portraitClick(slot.pos)"
                 />
               }
             }

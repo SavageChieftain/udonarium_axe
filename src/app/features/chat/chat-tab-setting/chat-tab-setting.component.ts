@@ -200,7 +200,7 @@ export class ChatTabSettingComponent {
       while (this.selectedTab()!.children.length > 0) {
         this.selectedTab()!.children[0].destroy();
       }
-      this.selectedTab()!.tachieReset();
+      this.selectedTab()!.portraitReset();
       const mess = 'ログをクリアしました';
       const gameSystem: GameSystemClass | null = null;
       const sendTo = '';
@@ -227,7 +227,7 @@ export class ChatTabSettingComponent {
       while (child.children.length > 0) {
         child.children[0].destroy();
       }
-      child.tachieReset();
+      child.portraitReset();
       this.chatMessageService.sendMessage(child, mess, gameSystem, this.myPeer.identifier, sendTo, 0, '#000000');
     }
   }

@@ -1,5 +1,5 @@
 /**/
-.tachie-button {
+.portrait-button {
   background-color: #eee;
   color: #444;
   font-size: 1em;
@@ -9,7 +9,7 @@
   width: 6em;
 }
 
-.tachie-button:hover {
+.portrait-button:hover {
   background-color: #ccc;
   color: #444;
 }

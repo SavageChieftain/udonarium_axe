@@ -3,25 +3,25 @@ import {
   calcChatTimestamp,
   emitChatMessageEvents,
   findImageIdentifierByName,
-  parseTachieCommand,
+  parsePortraitCommand,
   resolveChatMessageTag,
   resolveImagePos,
   resolveMessageColor,
-  resolveTachieIndex,
-  stripTachieCommand,
+  resolvePortraitIndex,
+  stripPortraitCommand,
 } from '@axe/shared/chat/chat-message-helpers';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 describe('chat-message-helpers', () => {
-  describe('resolveTachieIndex', () => {
-    it('tachieNum が正数ならその値を返す', () => {
-      expect(resolveTachieIndex(2)).toBe(2);
+  describe('resolvePortraitIndex', () => {
+    it('portraitIndex が正数ならその値を返す', () => {
+      expect(resolvePortraitIndex(2)).toBe(2);
     });
 
-    it('tachieNum が未指定または 0 以下なら 0 を返す', () => {
-      expect(resolveTachieIndex(undefined)).toBe(0);
-      expect(resolveTachieIndex(0)).toBe(0);
-      expect(resolveTachieIndex(-1)).toBe(0);
+    it('portraitIndex が未指定または 0 以下なら 0 を返す', () => {
+      expect(resolvePortraitIndex(undefined)).toBe(0);
+      expect(resolvePortraitIndex(0)).toBe(0);
+      expect(resolvePortraitIndex(-1)).toBe(0);
     });
   });
 
@@ -63,22 +63,22 @@ describe('chat-message-helpers', () => {
     });
   });
 
-  describe('parseTachieCommand / stripTachieCommand', () => {
+  describe('parsePortraitCommand / stripPortraitCommand', () => {
     it('hide コマンドを判定できる', () => {
-      expect(parseTachieCommand('hello @hide')).toEqual({ type: 'hide' });
+      expect(parsePortraitCommand('hello @hide')).toEqual({ type: 'hide' });
     });
 
     it('数値コマンドを判定できる', () => {
-      expect(parseTachieCommand('hello @12')).toEqual({ type: 'index', index: 12 });
+      expect(parsePortraitCommand('hello @12')).toEqual({ type: 'index', index: 12 });
     });
 
     it('名前コマンドを判定できる', () => {
-      expect(parseTachieCommand('hello @笑顔')).toEqual({ type: 'name', name: '笑顔' });
+      expect(parsePortraitCommand('hello @笑顔')).toEqual({ type: 'name', name: '笑顔' });
     });
 
     it('末尾コマンドを除去できる', () => {
-      expect(stripTachieCommand('hello @hide')).toBe('hello ');
-      expect(stripTachieCommand('hello')).toBe('hello');
+      expect(stripPortraitCommand('hello @hide')).toBe('hello ');
+      expect(stripPortraitCommand('hello')).toBe('hello');
     });
   });
 

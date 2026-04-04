@@ -7,7 +7,7 @@ import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
 import { emitMessageAdded } from '@axe/domain/domain-events';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 
-const TACHIE_SLOT_COUNT = 12;
+const PORTRAIT_SLOT_COUNT = 12;
 const DEFAULT_IMAGE_IDENTIFIERS: readonly string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
 
 @SyncObject('chat-tab')
@@ -17,10 +17,10 @@ export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() pos_num = -1;
   @SyncVar() imageIdentifier: string[] = [...DEFAULT_IMAGE_IDENTIFIERS];
   @SyncVar('imageCharactorName') imageCharacterName: string[] = Array.from(
-    { length: TACHIE_SLOT_COUNT },
+    { length: PORTRAIT_SLOT_COUNT },
     (_, i) => `#${i}`
   );
-  @SyncVar() imageIdentifierZpos: number[] = Array.from({ length: TACHIE_SLOT_COUNT }, (_, i) => i);
+  @SyncVar() imageIdentifierZpos: number[] = Array.from({ length: PORTRAIT_SLOT_COUNT }, (_, i) => i);
 
   @SyncVar() count = 0;
   @SyncVar() imageIdentifierDummy = 'test'; // 通信開始ために使わなくても書かなきゃだめっぽい後日見直し
@@ -34,14 +34,14 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return this._displayableMessageNum;
   }
 
-  tachieReset() {
+  portraitReset() {
     this.imageIdentifier = [...DEFAULT_IMAGE_IDENTIFIERS];
-    this.imageCharacterName = Array.from({ length: TACHIE_SLOT_COUNT }, (_, i) => `#${i}`);
-    this.imageIdentifierZpos = Array.from({ length: TACHIE_SLOT_COUNT }, (_, i) => i);
+    this.imageCharacterName = Array.from({ length: PORTRAIT_SLOT_COUNT }, (_, i) => `#${i}`);
+    this.imageIdentifierZpos = Array.from({ length: PORTRAIT_SLOT_COUNT }, (_, i) => i);
     this.imageIdentifierDummy = 'test';
   }
 
-  imageDispFlag: boolean[] = Array(TACHIE_SLOT_COUNT).fill(true) as boolean[];
+  imageDispFlag: boolean[] = Array(PORTRAIT_SLOT_COUNT).fill(true) as boolean[];
 
   get chatMessages(): readonly ChatMessage[] {
     return this.children as readonly ChatMessage[];
@@ -61,23 +61,23 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return -1;
   }
 
-  tachiePosHide(pos: number) {
+  hidePortraitPos(pos: number) {
     this.imageDispFlag[pos] = false;
   }
 
-  tachiePosIsDisp(pos: number): boolean {
+  isPortraitPosVisible(pos: number): boolean {
     return this.imageDispFlag[pos];
   }
 
-  tachieZindex(toppos: number): number {
+  portraitZIndex(toppos: number): number {
     const index = this.imageIdentifierZpos.indexOf(Number(toppos));
     return index;
   }
 
   public chatSimpleDispFlag = 0;
-  public tachieDispFlag = 1;
+  public portraitDisplayFlag = 1;
 
-  replaceTachieZindex(toppos: number) {
+  replacePortraitZIndex(toppos: number) {
     const index = this.imageIdentifierZpos.indexOf(Number(toppos));
     if (index >= 0) {
       this.imageIdentifierZpos.splice(index, 1);
@@ -165,7 +165,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
           } else {
             this.imageIdentifier[this.pos_num] = message.imageIdentifier ?? '';
             this.imageCharacterName[this.pos_num] = message.name ?? '';
-            this.replaceTachieZindex(this.pos_num);
+            this.replacePortraitZIndex(this.pos_num);
             this.imageDispFlag[this.pos_num] = true;
 
             chat.setAttribute(key, (message as Record<string, unknown>)[key] as string | number);

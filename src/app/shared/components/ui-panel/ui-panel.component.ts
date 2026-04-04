@@ -16,7 +16,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CardStackListImageComponent as CardStackListImageComponent_1 } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
-import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/features/chat/chat-tachie-img/chat-tachie-img.component';
+import { ChatPortraitImageComponent as ChatPortraitImageComponent_1 } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { ResizableDirective } from '@axe/shared/directives/resizable.directive';
 import { PanelService } from '@axe/shared/ui/panel.service';
@@ -31,7 +31,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
     DraggableDirective,
     ResizableDirective,
     NgClass,
-    ChatTachieImageComponent_1,
+    ChatPortraitImageComponent_1,
     CardStackListImageComponent_1,
     NgStyle,
   ],
@@ -117,15 +117,15 @@ export class UIPanelComponent {
   readonly isFullScreen = signal(false);
   readonly isMinimized = signal(false);
 
-  protected readonly tachieDispByMouse = signal(true);
+  protected readonly portraitDispByMouse = signal(true);
   private timerCheckWindowSize: ReturnType<typeof setInterval> | null = null;
 
   get isPointerDragging(): boolean {
     return this.pointerDeviceService.isDragging;
   }
 
-  showTachie(flag: boolean) {
-    this.tachieDispByMouse.set(flag);
+  showPortrait(flag: boolean) {
+    this.portraitDispByMouse.set(flag);
   }
 
   // youtube動画が既定値未満にしないための処理 マニュアルで200*200位上津衣装となっていたのでCutIn側でそれに翔う

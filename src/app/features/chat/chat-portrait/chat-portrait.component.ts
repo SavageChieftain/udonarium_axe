@@ -6,19 +6,19 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
-import { ChatTachieImageComponent as ChatTachieImageComponent_1 } from '@axe/features/chat/chat-tachie-img/chat-tachie-img.component';
+import { ChatPortraitImageComponent as ChatPortraitImageComponent_1 } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'chat-tachie',
-  templateUrl: './chat-tachie.component.html',
-  styleUrls: ['./chat-tachie.component.css'],
-  imports: [FormsModule, NgStyle, ChatTachieImageComponent_1],
+  selector: 'chat-portrait',
+  templateUrl: './chat-portrait.component.html',
+  styleUrls: ['./chat-portrait.component.css'],
+  imports: [FormsModule, NgStyle, ChatPortraitImageComponent_1],
 })
-export class ChatTachieComponent {
+export class ChatPortraitComponent {
   chatMessageService = inject(ChatMessageService);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -36,15 +36,15 @@ export class ChatTachieComponent {
   }
 
   chkHeight(newNum: number) {
-    if (newNum <= this.chatTabList.minTachieSize) this.chatTabList.tachieHeightValue = this.chatTabList.minTachieSize;
-    if (newNum >= this.chatTabList.maxTachieSize) this.chatTabList.tachieHeightValue = this.chatTabList.maxTachieSize;
+    if (newNum <= this.chatTabList.minPortraitSize) this.chatTabList.portraitHeight = this.chatTabList.minPortraitSize;
+    if (newNum >= this.chatTabList.maxPortraitSize) this.chatTabList.portraitHeight = this.chatTabList.maxPortraitSize;
   }
 
-  get tachieAreaHeight(): number {
+  get portraitAreaHeight(): number {
     if (this.chatTab) {
-      if (this.chatTab.tachieDispFlag) {
-        if (this.chatTabList.isTachieInWindow) {
-          return this.chatTabList.tachieHeightValue;
+      if (this.chatTab.portraitDisplayFlag) {
+        if (this.chatTabList.isPortraitInWindow) {
+          return this.chatTabList.portraitHeight;
         }
       }
     }

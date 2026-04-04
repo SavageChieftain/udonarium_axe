@@ -1,23 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { ChatTachieImageComponent } from '@axe/features/chat/chat-tachie-img/chat-tachie-img.component';
+import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
-describe('ChatTachieImageComponent', () => {
-  let component: ChatTachieImageComponent;
-  let fixture: ComponentFixture<ChatTachieImageComponent>;
+describe('ChatPortraitImageComponent', () => {
+  let component: ChatPortraitImageComponent;
+  let fixture: ComponentFixture<ChatPortraitImageComponent>;
   let objectChange: ObjectChangeService;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [ChatTachieImageComponent],
+      imports: [ChatPortraitImageComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ChatTachieImageComponent);
+    fixture = TestBed.createComponent(ChatPortraitImageComponent);
     component = fixture.componentInstance;
     objectChange = TestBed.inject(ObjectChangeService);
 
@@ -31,10 +31,10 @@ describe('ChatTachieImageComponent', () => {
   });
 
   describe('イベントリスナー', () => {
-    it('tachieSlotsがfileVersion()シグナルを読み取ること', () => {
+    it('portraitSlotsがfileVersion()シグナルを読み取ること', () => {
       const spy = vi.spyOn(objectChange, 'fileVersion');
       fixture.detectChanges();
-      void component.tachieSlots();
+      void component.portraitSlots();
       expect(spy).toHaveBeenCalled();
     });
 

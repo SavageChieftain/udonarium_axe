@@ -15,12 +15,12 @@ import {
   calcChatTimestamp,
   emitChatMessageEvents,
   findImageIdentifierByName,
-  parseTachieCommand,
+  parsePortraitCommand,
   resolveChatMessageTag,
   resolveImagePos,
   resolveMessageColor,
-  resolveTachieIndex,
-  stripTachieCommand,
+  resolvePortraitIndex,
+  stripPortraitCommand,
 } from '@axe/shared/chat/chat-message-helpers';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -139,11 +139,11 @@ export class ChatMessageService {
     gameSystem: GameSystemClass | null,
     sendFrom: string,
     sendTo?: string,
-    tachieNum?: number,
+    portraitIndex?: number,
     color?: string,
     messageTargetContext?: ChatMessageTargetContext[]
   ): ChatMessage {
-    const imgIndex = resolveTachieIndex(tachieNum);
+    const imgIndex = resolvePortraitIndex(portraitIndex);
     const messageColor = resolveMessageColor(color, '#000000');
 
     const dicebot = this.objectStore.get<DiceBot>('DiceBot')!;
@@ -164,7 +164,7 @@ export class ChatMessageService {
 
     this.setLastControlInfoToPeer(sendFrom, this.findImageIdentifier(sendFrom, imgIndex), imgIndex, sendTo);
 
-    this.applyTachieCommand(chatMessage, text, sendFrom);
+    this.applyPortraitCommand(chatMessage, text, sendFrom);
     const chat = chatTab.addMessage(chatMessage);
 
     const eventPlan = emitChatMessageEvents(messageTargetContext ?? undefined);
@@ -183,13 +183,13 @@ export class ChatMessageService {
     return chat;
   }
 
-  private applyTachieCommand(chatMessage: ChatMessageContext, text: string, sendFrom: string): void {
-    const command = parseTachieCommand(text);
+  private applyPortraitCommand(chatMessage: ChatMessageContext, text: string, sendFrom: string): void {
+    const command = parsePortraitCommand(text);
     if (command.type === 'none') return;
 
     if (command.type === 'hide') {
       chatMessage.imageIdentifier = '';
-      chatMessage.text = stripTachieCommand(text);
+      chatMessage.text = stripPortraitCommand(text);
       return;
     }
 
@@ -198,9 +198,9 @@ export class ChatMessageService {
       if (!newIdentifier) return;
 
       chatMessage.imageIdentifier = newIdentifier;
-      chatMessage.text = stripTachieCommand(text);
+      chatMessage.text = stripPortraitCommand(text);
       const obj = this.objectStore.get(sendFrom);
-      if (obj instanceof GameCharacter) obj.selectedTachieNum = command.index;
+      if (obj instanceof GameCharacter) obj.selectedPortraitIndex = command.index;
       return;
     }
 
@@ -208,9 +208,9 @@ export class ChatMessageService {
     if (!found.identifier) return;
 
     chatMessage.imageIdentifier = found.identifier;
-    chatMessage.text = stripTachieCommand(text);
+    chatMessage.text = stripPortraitCommand(text);
     const obj = this.objectStore.get(sendFrom);
-    if (obj instanceof GameCharacter) obj.selectedTachieNum = found.index;
+    if (obj instanceof GameCharacter) obj.selectedPortraitIndex = found.index;
   }
 
   private findId(identifier: string): string {

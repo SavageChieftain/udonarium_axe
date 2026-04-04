@@ -82,21 +82,21 @@ describe('ChatTabList', () => {
     });
   });
 
-  describe('tachie設定', () => {
-    it('tachieHeightValue のデフォルトは200', () => {
-      expect(ChatTabList.instance.tachieHeightValue).toBe(200);
+  describe('portrait設定', () => {
+    it('portraitHeight のデフォルトは200', () => {
+      expect(ChatTabList.instance.portraitHeight).toBe(200);
     });
 
-    it('minTachieSize のデフォルトは100', () => {
-      expect(ChatTabList.instance.minTachieSize).toBe(100);
+    it('minPortraitSize のデフォルトは100', () => {
+      expect(ChatTabList.instance.minPortraitSize).toBe(100);
     });
 
-    it('maxTachieSize のデフォルトは500', () => {
-      expect(ChatTabList.instance.maxTachieSize).toBe(500);
+    it('maxPortraitSize のデフォルトは500', () => {
+      expect(ChatTabList.instance.maxPortraitSize).toBe(500);
     });
 
-    it('isTachieInWindow のデフォルトはfalse', () => {
-      expect(ChatTabList.instance.isTachieInWindow).toBe(false);
+    it('isPortraitInWindow のデフォルトはfalse', () => {
+      expect(ChatTabList.instance.isPortraitInWindow).toBe(false);
     });
   });
 
