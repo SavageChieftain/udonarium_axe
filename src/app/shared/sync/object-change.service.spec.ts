@@ -298,4 +298,41 @@ describe('ObjectChangeService', () => {
       expect(typeof (sig as unknown as Record<string, unknown>)['update']).not.toBe('function');
     });
   });
+
+  describe('notifyChanged()', () => {
+    it('versionOf を呼び出した後に notifyChanged を呼ぶと signal が increment される', () => {
+      const sig = service.versionOf('notify-1');
+      expect(sig()).toBe(0);
+
+      service.notifyChanged('notify-1');
+
+      expect(sig()).toBe(1);
+    });
+
+    it('複数回呼び出すと版数が累積する', () => {
+      const sig = service.versionOf('notify-2');
+
+      service.notifyChanged('notify-2');
+      service.notifyChanged('notify-2');
+      service.notifyChanged('notify-2');
+
+      expect(sig()).toBe(3);
+    });
+
+    it('versionOf 未登録の identifier に対して呼び出してもエラーにならない', () => {
+      expect(() => {
+        service.notifyChanged('notify-unregistered');
+      }).not.toThrow();
+    });
+
+    it('無関係な identifier の signal には影響しない', () => {
+      const sigTarget = service.versionOf('notify-3a');
+      const sigOther = service.versionOf('notify-3b');
+
+      service.notifyChanged('notify-3a');
+
+      expect(sigTarget()).toBe(1);
+      expect(sigOther()).toBe(0);
+    });
+  });
 });

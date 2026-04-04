@@ -136,6 +136,32 @@ describe('ChatTab', () => {
       tab.markForRead();
       expect(tab.unreadLength).toBe(0);
     });
+
+    it('addMessage でメッセージを追加すると unreadLength が増加する', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      tab.addMessage({ text: 'hello', name: 'user1' });
+      expect(tab.unreadLength).toBeGreaterThan(0);
+      expect(tab.hasUnread).toBe(true);
+    });
+
+    it('複数メッセージ追加で unreadLength が累積する', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      tab.addMessage({ text: 'msg1', name: 'user1' });
+      tab.addMessage({ text: 'msg2', name: 'user1' });
+      tab.addMessage({ text: 'msg3', name: 'user1' });
+      expect(tab.unreadLength).toBe(3);
+    });
+
+    it('addMessage 後に markForRead すると unreadLength が 0 になる', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      tab.addMessage({ text: 'hello', name: 'user1' });
+      tab.markForRead();
+      expect(tab.unreadLength).toBe(0);
+      expect(tab.hasUnread).toBe(false);
+    });
   });
 
   describe('dispCharctorIcon', () => {

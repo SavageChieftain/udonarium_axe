@@ -1,7 +1,7 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EventChannel } from '@axe/core/event/event-channel';
-import { objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
@@ -104,6 +104,54 @@ describe('ChatWindowComponent', () => {
       });
 
       expect(spy).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('chatTabsVersion signal', () => {
+    it('chatTabsVersion が computed signal として公開されていること', () => {
+      expect(typeof component.chatTabsVersion).toBe('function');
+    });
+
+    it('chatTabsVersion() が chatTabs 配列を返すこと', () => {
+      fixture.detectChanges();
+      const tabs = component.chatTabsVersion();
+      expect(Array.isArray(tabs)).toBe(true);
+    });
+
+    it('childrenChanged$ emit 後に chatTabsVersion の依存 signal (versionOf) が increment されること', () => {
+      fixture.detectChanges();
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const tabs = component.chatTabsVersion();
+      if (tabs.length === 0) return; // タブなしは検証スキップ
+
+      const tabId = tabs[0].identifier;
+      const before = objectChange.versionOf(tabId)();
+
+      childrenChanged$.emit({ identifier: tabId });
+
+      const after = objectChange.versionOf(tabId)();
+      expect(after).toBe(before + 1);
+    });
+
+    it('scrollToBottom 後に notifyChanged が呼ばれること', async () => {
+      fixture.detectChanges();
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const spy = vi.spyOn(objectChange, 'notifyChanged');
+
+      // panelService.scrollablePanel を設定して scrollToBottom が早期 return しないようにする
+      const panelEl = document.createElement('div');
+      const priv = component as unknown as { panelService: { scrollablePanel: HTMLDivElement | null } };
+      priv.panelService.scrollablePanel = panelEl;
+
+      vi.useFakeTimers();
+      try {
+        component.scrollToBottom(true);
+        await vi.runAllTimersAsync();
+      } finally {
+        vi.useRealTimers();
+      }
+
+      expect(spy).toHaveBeenCalled();
     });
   });
 });

@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { childrenChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -52,6 +54,32 @@ describe('ChatPaletteComponent', () => {
       initialize: (opened) => {
         opened.character.set(createChar('テスト'));
       },
+    });
+  });
+
+  describe('chatTabsVersion signal', () => {
+    it('chatTabsVersion が computed signal として公開されていること', () => {
+      expect(typeof component.chatTabsVersion).toBe('function');
+    });
+
+    it('chatTabsVersion() が chatTabs 配列を返すこと', () => {
+      fixture.detectChanges();
+      const tabs = component.chatTabsVersion();
+      expect(Array.isArray(tabs)).toBe(true);
+    });
+
+    it('childrenChanged$ emit 後に versionOf signal が increment されること', () => {
+      fixture.detectChanges();
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const tabs = component.chatTabsVersion();
+      if (tabs.length === 0) return;
+
+      const tabId = tabs[0].identifier;
+      const before = objectChange.versionOf(tabId)();
+
+      childrenChanged$.emit({ identifier: tabId });
+
+      expect(objectChange.versionOf(tabId)()).toBe(before + 1);
     });
   });
 });
