@@ -1,6 +1,7 @@
 import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { Subject } from 'rxjs';
 
 declare const Type: FunctionConstructor;
 interface Type<T> {
@@ -40,6 +41,7 @@ export class PanelService {
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
   scrollablePanel: HTMLDivElement | null = null;
+  readonly scrollToBottom$ = new Subject<void>();
   get isShow(): boolean {
     return this.panelComponentRef !== null;
   }

@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
@@ -111,17 +112,16 @@ export class ChatTabComponent {
         this.renderVersion.update((v) => v + 1);
       }
     }, this.destroyRef);
+    this.panelService.scrollToBottom$.pipe(takeUntilDestroyed()).subscribe(() => this.resetMessages());
     afterNextRender(() => {
       this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
       this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);
       this.onScroll();
       this.panelService.scrollablePanel!.addEventListener('scroll', this.callbackOnScroll, false);
-      this.panelService.scrollablePanel!.addEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
     });
     this.destroyRef.onDestroy(() => {
       if (this.panelService.scrollablePanel) {
         this.panelService.scrollablePanel.removeEventListener('scroll', this.callbackOnScroll, false);
-        this.panelService.scrollablePanel.removeEventListener('scrolltobottom', this.callbackOnScrollToBottom, false);
       }
       if (this.scrollEventShortTimer) this.scrollEventShortTimer.clear();
       if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
@@ -199,7 +199,6 @@ export class ChatTabComponent {
   private scrollEventLongTimer: ResettableTimeout | null = null;
   private addMessageEventTimer: NodeJS.Timeout | null = null;
   private callbackOnScroll: () => void = () => this.onScroll();
-  private callbackOnScrollToBottom: () => void = () => this.resetMessages();
 
   readonly chatTabInput = input<ChatTab | null>(null, { alias: 'chatTab' });
   get chatTab(): ChatTab | null {

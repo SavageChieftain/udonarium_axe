@@ -180,13 +180,11 @@ export class ChatWindowComponent {
     this.scrollToBottom(true);
   }
 
-  // @TODO やり方はもう少し考えた方がいいい
   scrollToBottom(isForce: boolean = false) {
     if (isForce) this.isAutoScroll = true;
     if (!this.isAutoScroll) return;
     if (!this.panelService.scrollablePanel) return;
-    const event = new CustomEvent('scrolltobottom', {});
-    this.panelService.scrollablePanel.dispatchEvent(event);
+    this.panelService.scrollToBottom$.next();
     if (this.scrollToBottomTimer != null) return;
     this.scrollToBottomTimer = setTimeout(() => {
       this.chatTab()?.markForRead();
