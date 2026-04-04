@@ -183,8 +183,8 @@
           @if (isImage()) {
             <div class="table-2">
               <div class="table-cell-2 sub-image-box">
-                @if (imageFileUrl) {
-                  <img class="sub-image" [src]="imageFileUrl | safe: 'resourceUrl'" [alt]="gameDataElement().value" />
+                @if (imageFileUrl()) {
+                  <img class="sub-image" [src]="imageFileUrl() | safe: 'resourceUrl'" [alt]="gameDataElement().value" />
                 }
               </div>
               <div class="table-cell-2 sub-table">

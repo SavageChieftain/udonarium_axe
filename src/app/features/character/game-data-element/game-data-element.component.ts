@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -79,11 +79,11 @@ export class GameDataElementComponent {
     });
   }
 
-  get imageFileUrl(): string {
-    const image = this.imageStorage.get(this.gameDataElement().value as string);
-    if (image) return image.url;
-    return '';
-  }
+  readonly imageFileUrl = computed(() => {
+    this.objectChange.fileVersion();
+    const image = this.imageStorage.get(this._value() as string);
+    return image ? image.url : '';
+  });
 
   openModal(_name: string = '', isAllowedEmpty: boolean = false) {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: isAllowedEmpty }).then((value) => {
