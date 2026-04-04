@@ -48,6 +48,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   let fileContext: ImageContext;
 
   //-------------------------
+
   testCharacter = new GameCharacter('testCharacter_1');
   fileContext = ImageFile.createEmpty('testCharacter_1_image').toContext();
   fileContext.url = './assets/images/mon_052.gif';
@@ -55,11 +56,13 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.x = 5 * 50;
   testCharacter.location.y = 9 * 50;
   testCharacter.initialize();
-  ImageTag.create(testFile.identifier).tag = 'モンスター'; //本家PR #92より
+  ImageTag.create(testFile.identifier).tag = 'モンスター';
 
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターA', 1, testFile.identifier);
   addBuffRound(testCharacter, 'テストバフ1', '防+1', 3);
+
   //-------------------------
+
   testCharacter = new GameCharacter('testCharacter_2');
   testCharacter.location.x = 8 * 50;
   testCharacter.location.y = 8 * 50;
@@ -67,6 +70,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターB', 1, testFile.identifier);
 
   //-------------------------
+
   testCharacter = new GameCharacter('testCharacter_3');
   fileContext = ImageFile.createEmpty('testCharacter_3_image').toContext();
   fileContext.url = './assets/images/mon_128.gif';
@@ -75,8 +79,9 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.initialize();
 
   testFile = imageStorage.add(fileContext);
-  ImageTag.create(testFile.identifier).tag = 'モンスター'; //本家PR #92より
+  ImageTag.create(testFile.identifier).tag = 'モンスター';
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターC', 3, testFile.identifier);
+
   //-------------------------
 
   testCharacter = new GameCharacter('testCharacter_4');
@@ -85,13 +90,15 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
 
   testFile = imageStorage.add(fileContext);
 
-  ImageTag.create(testFile.identifier).tag = ''; //本家PR #92より
+  ImageTag.create(testFile.identifier).tag = '';
   testCharacter.location.x = 6 * 50;
   testCharacter.location.y = 11 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターA', 1, testFile.identifier);
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
+
   //-------------------------
+
   testCharacter = new GameCharacter('testCharacter_5');
   fileContext = ImageFile.createEmpty('testCharacter_5_image').toContext();
   fileContext.url = './assets/images/mon_211.gif';
@@ -109,7 +116,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   fileContext.url = './assets/images/mon_135.gif';
   testFile = imageStorage.add(fileContext);
 
-  ImageTag.create(testFile.identifier).tag = ''; //本家PR #92より
+  ImageTag.create(testFile.identifier).tag = '';
 
   testCharacter.initialize();
   testCharacter.location.x = 5 * 50;
@@ -125,7 +132,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   fileContext.url = './assets/images/ninja.png';
   testFile = imageStorage.add(fileContext);
 
-  ImageTag.create(testFile.identifier).tag = ''; //本家PR #92より
+  ImageTag.create(testFile.identifier).tag = '';
 
   testCharacter.initialize();
   testCharacter.location.x = 10 * 50;
