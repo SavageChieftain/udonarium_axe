@@ -15,6 +15,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
@@ -85,6 +86,13 @@ export class TextNoteComponent {
     effect(() => {
       const note = this.textNote();
       this.objectChange.versionOf(note.identifier)();
+      const trackChildren = (elms: readonly DataElement[]) => {
+        for (const elm of elms) {
+          this.objectChange.versionOf(elm.identifier)();
+          if (elm.children.length) trackChildren(elm.children as DataElement[]);
+        }
+      };
+      if (note.commonDataElement) trackChildren(note.commonDataElement.children as DataElement[]);
       this._text.set(note.text);
       this._fontSize.set(note.fontSize);
     });
@@ -96,13 +104,26 @@ export class TextNoteComponent {
   readonly is3D = input(false);
 
   readonly title = computed(() => {
-    this.objectChange.versionOf(this.textNote().identifier)();
-    return this.textNote().title;
+    const note = this.textNote();
+    this.objectChange.versionOf(note.identifier)();
+    if (note.commonDataElement) {
+      for (const elm of note.commonDataElement.children as DataElement[]) {
+        this.objectChange.versionOf(elm.identifier)();
+      }
+    }
+    return note.title;
   });
 
   /** TextNote とその子 DataElement の全変更を追跡する computed。テンプレートから参照して OnPush を突破する */
   readonly textNoteVersion = computed(() => {
-    return this.objectChange.versionOf(this.textNote().identifier)();
+    const note = this.textNote();
+    let v = this.objectChange.versionOf(note.identifier)();
+    if (note.commonDataElement) {
+      for (const elm of note.commonDataElement.children as DataElement[]) {
+        v += this.objectChange.versionOf(elm.identifier)();
+      }
+    }
+    return v;
   });
 
   get isLock(): boolean {
