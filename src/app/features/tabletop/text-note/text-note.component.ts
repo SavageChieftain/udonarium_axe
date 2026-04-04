@@ -95,6 +95,7 @@ export class TextNoteComponent {
       if (note.commonDataElement) trackChildren(note.commonDataElement.children as DataElement[]);
       this._text.set(note.text);
       this._fontSize.set(note.fontSize);
+      this.calcFitHeightIfNeeded();
     });
   }
 
