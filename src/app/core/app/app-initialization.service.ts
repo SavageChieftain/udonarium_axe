@@ -15,6 +15,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -97,6 +98,7 @@ export class AppInitializationService {
     const addHidden = (path: string): string => {
       const file = this.audioStorage.add(path);
       file.isHidden = true;
+      AudioTag.create(file.identifier).tag = 'SE';
       return file.identifier;
     };
 

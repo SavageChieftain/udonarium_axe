@@ -68,11 +68,34 @@ export class AudioPlayer {
     return AudioPlayer._auditionGainNode;
   }
 
+  private static _seVolume: number = 0.5;
+  static get seVolume(): number {
+    return AudioPlayer._seVolume;
+  }
+  static set seVolume(seVolume: number) {
+    AudioPlayer._seVolume = seVolume;
+    AudioPlayer.seGainNode.gain.setTargetAtTime(AudioPlayer._seVolume, AudioPlayer.audioContext.currentTime, 0.01);
+  }
+
+  private static _seGainNode: GainNode;
+  private static get seGainNode(): GainNode {
+    if (!AudioPlayer._seGainNode) {
+      const seGain = AudioPlayer.audioContext.createGain();
+      seGain.gain.setValueAtTime(AudioPlayer._seVolume, AudioPlayer.audioContext.currentTime);
+      seGain.connect(AudioPlayer.audioContext.destination);
+      AudioPlayer._seGainNode = seGain;
+    }
+    return AudioPlayer._seGainNode;
+  }
+
   static get rootNode(): AudioNode {
     return AudioPlayer.masterGainNode;
   }
   static get auditionNode(): AudioNode {
     return AudioPlayer.auditionGainNode;
+  }
+  static get seNode(): AudioNode {
+    return AudioPlayer.seGainNode;
   }
 
   private _audioElm: HTMLAudioElement | undefined;
@@ -209,7 +232,7 @@ export class AudioPlayer {
     const gain = AudioPlayer.audioContext.createGain();
     gain.gain.setValueAtTime(volume, AudioPlayer.audioContext.currentTime);
 
-    gain.connect(AudioPlayer.rootNode);
+    gain.connect(AudioPlayer.seNode);
     source.connect(gain);
 
     source.onended = () => {

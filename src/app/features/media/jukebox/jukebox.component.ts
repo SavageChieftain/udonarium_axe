@@ -61,6 +61,14 @@ export class JukeboxComponent {
     AudioPlayer.auditionVolume = auditionVolume * this.roomVolume;
   }
 
+  get seVolume(): number {
+    return this.jukebox?.seVolume ?? 0.5;
+  }
+  set seVolume(seVolume: number) {
+    if (this.jukebox) this.jukebox.seVolume = seVolume;
+    AudioPlayer.seVolume = seVolume * this.roomVolume;
+  }
+
   readonly audios = computed(() => {
     this.objectChange.fileVersion();
     const all = this.audioStorage.audios.filter((audio) => !audio.isHidden);

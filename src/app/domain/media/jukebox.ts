@@ -41,6 +41,14 @@ export class Jukebox extends GameObject {
     this._auditionVolume = _auditionVolume;
   }
 
+  private _seVolume = 0.5;
+  get seVolume(): number {
+    return this._seVolume;
+  }
+  set seVolume(seVolume: number) {
+    this._seVolume = seVolume;
+  }
+
   // GameObject Lifecycle
   override onStoreAdded() {
     super.onStoreAdded();
@@ -56,6 +64,7 @@ export class Jukebox extends GameObject {
   setNewVolume() {
     AudioPlayer.volume = this.volume * this.config.roomVolume;
     AudioPlayer.auditionVolume = this.auditionVolume * this.config.roomVolume;
+    AudioPlayer.seVolume = this.seVolume * this.config.roomVolume;
   }
 
   play(identifier: string, isLoop: boolean = false) {
