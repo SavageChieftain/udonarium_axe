@@ -2,9 +2,18 @@ import { Logger } from '@axe/core/logging/logger';
 import { MutablePeerSessionState, PeerSessionGrade, PeerSessionState } from '@axe/core/network/peer-session-state';
 import { sha256 } from '@axe/core/util/crypto-util';
 import base from 'base-x';
-import lzbase62 from 'lzbase62';
 
 const Base62 = base('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
+function compressRoomName(roomName: string): string {
+  if (!roomName) return '';
+  return Base62.encode(new TextEncoder().encode(roomName));
+}
+
+function decompressRoomName(encoded: string): string {
+  if (!encoded) return '';
+  return new TextDecoder().decode(Base62.decode(encoded));
+}
 const roomIdPattern = /^(\w{6})(\w{3})(\w*)-(\w*)/i;
 
 export interface IPeerContext {
@@ -52,7 +61,7 @@ export class PeerContext implements IPeerContext {
       if (regArray != null) {
         this.digestUserId = regArray[1];
         this.roomId = regArray[2];
-        this.roomName = lzbase62.decompress(regArray[3]);
+        this.roomName = decompressRoomName(regArray[3]);
         this.digestPassword = regArray[4];
         return;
       }
@@ -110,7 +119,7 @@ export class PeerContext implements IPeerContext {
     const digestUserId = await calcDigest(userId, 6);
     const checksumedRoomId = await calcChecksumedRoomId(roomId, roomName, password);
     const digestPassword = await calcDigestPassword(digestUserId, checksumedRoomId, roomName, password);
-    const peerId = `${digestUserId}${checksumedRoomId}${lzbase62.compress(roomName)}-${digestPassword}`;
+    const peerId = `${digestUserId}${checksumedRoomId}${compressRoomName(roomName)}-${digestPassword}`;
     const peer = new PeerContext(peerId);
     peer.userId = userId;
     peer.password = password;

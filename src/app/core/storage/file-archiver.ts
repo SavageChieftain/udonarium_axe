@@ -8,8 +8,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { xml2element } from '@axe/core/util/xml-util';
 import { emitFileLoaded, emitXmlLoaded } from '@axe/domain/domain-events';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
-import { saveAs } from 'file-saver';
-import JSZip from 'jszip';
+import { type AsyncZippable, unzip, type Unzipped, zip } from 'fflate';
 
 type MetaData = { percent: number; currentFile: string };
 type UpdateCallback = (metadata: MetaData) => void;
@@ -138,23 +137,22 @@ export class FileArchiver {
 
   private async handleZip(file: File) {
     if (!file.type.includes('application/') && file.type.length > 0) return;
-    let zip = new JSZip();
+    let entries: Unzipped;
     try {
-      zip = await zip.loadAsync(file);
+      const arrayBuffer = await file.arrayBuffer();
+      entries = await new Promise<Unzipped>((resolve, reject) => {
+        unzip(new Uint8Array(arrayBuffer), (err, data) => {
+          if (err) reject(err);
+          else resolve(data);
+        });
+      });
     } catch (reason) {
       Logger.warn('[FileArchiver] ZIP読み込みエラー', reason);
       return;
     }
-    const zipEntries: JSZip.JSZipObject[] = [];
-    zip.forEach((relativePath, zipEntry) => zipEntries.push(zipEntry));
-    for (const zipEntry of zipEntries) {
+    for (const [name, data] of Object.entries(entries)) {
       try {
-        const arraybuffer = await zipEntry.async('arraybuffer');
-        await this.load([
-          new File([arraybuffer], zipEntry.name, {
-            type: MimeType.type(zipEntry.name),
-          }),
-        ]);
+        await this.load([new File([data.slice()], name, { type: MimeType.type(name) })]);
       } catch (reason) {
         Logger.warn('[FileArchiver] ZIP展開エラー', reason);
       }
@@ -165,25 +163,34 @@ export class FileArchiver {
     if (!files) return;
     const saveFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 
-    const zip = new JSZip();
+    updateCallback?.({ percent: 0, currentFile: '' });
+
+    const zipData: AsyncZippable = {};
     for (const file of saveFiles) {
-      zip.file(file.name, file);
+      zipData[file.name] = [new Uint8Array(await file.arrayBuffer()), { level: 6 }];
     }
 
-    const blob = await zip.generateAsync(
-      {
-        type: 'blob',
-        compression: 'DEFLATE',
-        compressionOptions: {
-          level: 6,
-        },
-      },
-      updateCallback
-    );
-    saveAs(blob, `${zipName}.zip`);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      zip(zipData, (err, data) => {
+        if (err) reject(err);
+        else resolve(new Blob([data.slice()], { type: 'application/zip' }));
+      });
+    });
+
+    updateCallback?.({ percent: 100, currentFile: '' });
+    downloadBlob(blob, `${zipName}.zip`);
   }
 }
 
 function toArrayOfFileList(fileList: FileList): File[] {
   return Array.from(fileList);
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }

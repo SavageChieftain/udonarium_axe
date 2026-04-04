@@ -12,7 +12,6 @@ import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { ImageTagList } from '@axe/domain/media/image-tag-list';
 import { Config } from '@axe/domain/peer/config';
 import { Room } from '@axe/domain/peer/room';
-import { saveAs } from 'file-saver';
 import xmlFormat from 'xml-formatter';
 type UpdateCallback = (percent: number) => void;
 
@@ -147,25 +146,25 @@ export class SaveDataService {
   saveHtmlChatLog(chatTab: ChatTab, fileName: string) {
     const text: string = chatTab.logHtml();
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, fileName + '.html');
+    downloadBlob(blob, fileName + '.html');
   }
 
   saveHtmlChatLogAll(fileName: string) {
     const text: string = this.chatTabList.logHtml();
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, fileName + '.html');
+    downloadBlob(blob, fileName + '.html');
   }
 
   saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string) {
     const text: string = chatTab.logHtmlCoc();
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, fileName + '.html');
+    downloadBlob(blob, fileName + '.html');
   }
 
   saveHtmlChatLogAllCoc(fileName: string) {
     const text: string = this.chatTabList.logHtmlCoc();
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, fileName + '.html');
+    downloadBlob(blob, fileName + '.html');
   }
 
   private appendTimestamp(fileName: string): string {
@@ -178,4 +177,13 @@ export class SaveDataService {
 
     return fileName + `_${year}-${month}-${day}_${hours}${minutes}`;
   }
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }

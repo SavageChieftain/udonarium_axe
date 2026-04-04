@@ -33,7 +33,6 @@ import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
-import { xor } from 'lodash';
 
 @Component({
   selector: 'game-table-mask',
@@ -405,7 +404,12 @@ export class GameTableMaskComponent {
       this._currentScratchingSet = null;
     }
     const currentScratchingAry: string[] = this.scratchingGrids.split(/,/g);
-    this.scratchedGrids = xor(currentScratchedAry, currentScratchingAry)
+    const aSet = new Set(currentScratchedAry);
+    const bSet = new Set(currentScratchingAry);
+    this.scratchedGrids = [
+      ...currentScratchedAry.filter((x) => !bSet.has(x)),
+      ...currentScratchingAry.filter((x) => !aSet.has(x)),
+    ]
       .filter((grid) => grid && GameTableMaskComponent.GRID_PATTERN.test(grid))
       .sort()
       .join(',');
