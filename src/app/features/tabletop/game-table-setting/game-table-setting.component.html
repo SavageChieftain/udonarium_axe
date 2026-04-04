@@ -41,13 +41,7 @@
       </div>
       <div>
         Name :
-        <input
-          name="table-name"
-          class="is-caret"
-          [(ngModel)]="tableName"
-          placeholder="Name"
-          [attr.disabled]="!isEditable ? '' : null"
-        />
+        <input name="table-name" [(ngModel)]="tableName" placeholder="Name" [attr.disabled]="!isEditable ? '' : null" />
       </div>
       <div>
         <input
@@ -60,7 +54,6 @@
         />
         Width :
         <input
-          class="is-caret"
           name="table-width"
           name="table-width"
           [(ngModel)]="tableWidth"
@@ -82,7 +75,6 @@
         />
         Height :
         <input
-          class="is-caret"
           name="table-height"
           name="table-height"
           [(ngModel)]="tableHeight"
@@ -169,7 +161,7 @@
   標準のダイスボット(部屋接続時に選択されるダイスボットになります)。<br />
   ※テーブル毎の設定ではなく部屋全体の設定です。
   <ng-select
-    class="ud-select is-caret"
+    class="ud-select"
     style="width: 15em; margin-left: 0.1em"
     (change)="loadDiceBot($event)"
     [(ngModel)]="gameType"

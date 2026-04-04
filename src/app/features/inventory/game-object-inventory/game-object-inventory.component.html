@@ -49,7 +49,7 @@
   @if (isEdit()) {
     <div>
       <div style="font-size: 12px">並び順第1</div>
-      <input class="is-caret" name="sort-tag" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
+      <input name="sort-tag" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
       <select name="sort-order" name="sort-order" [(ngModel)]="sortOrder">
         <option value="ASC">昇順</option>
         <option value="DESC">降順</option>
@@ -57,7 +57,7 @@
     </div>
     <div>
       <div style="font-size: 12px">並び順第2</div>
-      <input class="is-caret" name="sort-tag-2nd" name="sort-tag-2nd" [(ngModel)]="sortTag2nd" placeholder="タグ名" />
+      <input name="sort-tag-2nd" name="sort-tag-2nd" [(ngModel)]="sortTag2nd" placeholder="タグ名" />
       <select name="sort-order-2nd" name="sort-order-2nd" [(ngModel)]="sortOrder2nd">
         <option value="ASC">昇順</option>
         <option value="DESC">降順</option>
@@ -65,7 +65,6 @@
     </div>
     <div style="font-size: 12px; padding-top: 6px">表示項目</div>
     <input
-      class="is-caret"
       style="width: 100%; box-sizing: border-box"
       name="data-tag"
       name="data-tag"
@@ -181,7 +180,7 @@
           <div class="resource-tag">
             <div style="font-size: 0.8em; display: inline-block; margin-right: 0.5em">{{ dataElm.name }}</div>
             <input
-              class="input resource-value is-caret"
+              class="input resource-value"
               type="number"
               [style]="'color:' + dataElm.nowValueColor + ';'"
               size="1"
@@ -233,7 +232,7 @@
               <div class="tag-value-box">
                 <div class="hidden-spacer" style="font-weight: bold">{{ dataElm.value }}</div>
                 <input
-                  class="input tag-value is-caret"
+                  class="input tag-value"
                   size="1"
                   name="data-value"
                   name="data-value"

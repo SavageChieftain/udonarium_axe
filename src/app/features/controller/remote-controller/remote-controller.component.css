@@ -5,7 +5,6 @@
   background-color: rgba(30, 30, 30, 0.8);
 }
 .palette {
-  /*.input {*/
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, sans-serif;
   width: 100%;
@@ -62,8 +61,6 @@
   color: #ccc;
 }
 
-/*---------------*/
-
 .controller {
   padding: 0 5px 5px 5px;
   user-select: none;
@@ -102,7 +99,6 @@
   background: #555;
   color: #ccc;
 }
-/*---------------*/
 
 .badge {
   position: absolute;
@@ -110,7 +106,6 @@
   right: 0;
 }
 
-/**/
 .component {
   width: 100%;
 }
@@ -472,9 +467,7 @@ input[type='range']::-ms-tooltip {
 .flex-item {
   margin: 5px 0px;
   padding: 10px;
-  -webkit-flex: 1 0 auto; /* Safari */
   flex: 1 0 auto;
-  /*border: 1px solid #999;*/
   box-sizing: border-box;
   min-width: 25px;
 
@@ -487,7 +480,6 @@ input[type='range']::-ms-tooltip {
   display: table;
   width: 100%;
   box-sizing: border-box;
-  /*border:1px solid #FFFF00;*/
 }
 .table-row {
   display: table-row;
@@ -532,8 +524,3 @@ input[type='range']::-ms-tooltip {
   border: solid 1px #555;
 }
 
-/*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
-キャレットの点滅で負荷がかかることへの対策不透明度指定*/
-.is-caret {
-  caret-color: rgba(0, 0, 0, 0.95);
-}

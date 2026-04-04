@@ -19,7 +19,7 @@
     @if (myPeer) {
       <span>あなたのニックネーム：</span>
     }
-    <input name="peer-name" class="is-caret" [(ngModel)]="myPeer.name" placeholder="ニックネーム" /><br />
+    <input name="peer-name" [(ngModel)]="myPeer.name" placeholder="ニックネーム" /><br />
     <span>ID：</span>
     @if (networkService.isOpen) {
       <span style="font-weight: bold">{{ networkService.peerContext.userId }}</span>
@@ -76,7 +76,7 @@
 <hr />
 <div>
   <span
-    ><input name="peer-timeout" class="is-caret" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
+    ><input name="peer-timeout" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
     秒以上通信できない参加者情報をチャットに表示</span
   ><br />
   <span

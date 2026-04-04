@@ -10,7 +10,6 @@
   background-color: rgba(30, 30, 30, 0.8);
 }
 .palette {
-  /*.input {*/
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, sans-serif;
   width: 100%;
@@ -92,19 +91,3 @@
   opacity: 0.8;
 }
 
-/*
-  overflow: auto;
-  padding: 1px;
-  margin: 5px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  vertical-align: bottom;
-*/
-
-/*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
-キャレットの点滅で負荷がかかることへの対策不透明度指定*/
-.is-caret {
-  caret-color: rgba(0, 0, 0, 0.95);
-}

@@ -131,8 +131,6 @@
   left: 0;
   right: 0;
   margin: auto;
-
-  /*  width: 100%;*/
   height: auto;
   vertical-align: bottom;
 }
@@ -140,7 +138,6 @@
 .buff-tag {
   box-sizing: border-box;
   padding: 3px 9px;
-  /*  border:10px #666;*/
   border: 1px #222 solid;
   border-radius: 12px;
   position: absolute;
@@ -150,12 +147,9 @@
 
 .is-buff-background {
   color: #222;
-  /*  background-color: rgba(100, 100, 0, 0.5);*/
-  /*  background-color: rgba(240,218,189, 0.8);*/
   background-color: rgba(240, 229, 215, 0.8);
 }
 
-/**/
 .name-tag {
   box-sizing: border-box;
   font-size: 15px;

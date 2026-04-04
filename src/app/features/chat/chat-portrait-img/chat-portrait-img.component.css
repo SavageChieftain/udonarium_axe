@@ -19,17 +19,6 @@
 }
 
 .portrait-image-box {
-  /*
-  height:250px;
-*/
-  /*  width: 100px;
-  max-height: 120px;
-  overflow: hidden;
-  vertical-align: bottom;
-  margin-left: 0.5em;
-  margin-bottom: -6px;
-  border-radius: 1em;
-*/
 }
 
 img {
@@ -41,27 +30,9 @@ img {
   padding: 0;
   vertical-align: bottom;
   z-index: 1;
-  /*  vertical-align: bottom;*/
 }
-
-/*
-.portraitarea{
-  width:100%;
-
-  overflow: hidden;
-  vertical-align: bottom;
-  margin-left: 0.5em;
-  margin-bottom: -6px;
-  border-radius: 1em;
-  z-index: 1;
-}
-*/
 
 .portrait {
-  /* 
- position: absolute;
-*/
-}
 
 .pos00 {
 }
@@ -82,15 +53,4 @@ img {
 }
 
 .component {
-  /*
-  position: absolute;
-  max-height: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: visible;
-  color: #444;
-  z-index: 9000;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-*/
 }

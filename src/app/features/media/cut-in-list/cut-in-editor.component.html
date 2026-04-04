@@ -14,13 +14,7 @@
 </div>
 <div>
   名称 :
-  <input
-    class="is-caret"
-    name="cut-in-name"
-    [(ngModel)]="cutInName"
-    placeholder="Name"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
+  <input name="cut-in-name" [(ngModel)]="cutInName" placeholder="Name" [attr.disabled]="!isEditable() ? '' : null" />
 </div>
 <div>
   <button (click)="playCutIn()" [disabled]="">カットイン再生</button>
@@ -73,7 +67,6 @@
 </div>
 <div>
   Width :<input
-    class="is-caret"
     name="cut-in-width"
     [(ngModel)]="cutInWidth"
     type="number"
@@ -92,7 +85,6 @@
 </div>
 <div>
   Height :<input
-    class="is-caret"
     name="cut-in-height"
     [(ngModel)]="cutInHeight"
     type="number"
@@ -112,7 +104,6 @@
     [attr.disabled]="!isEditable() ? '' : null"
   />
   X位置 :<input
-    class="is-caret"
     name="cut-in-x-pos-num"
     [(ngModel)]="cutInX_Pos"
     type="number"
@@ -132,7 +123,6 @@
     [attr.disabled]="!isEditable() ? '' : null"
   />
   Y位置 :<input
-    class="is-caret"
     name="cut-in-y-pos-num"
     [(ngModel)]="cutInY_Pos"
     type="number"
@@ -152,7 +142,6 @@
 </div>
 <div>
   再生時間 :<input
-    class="is-caret"
     name="cut-in-out-time"
     [(ngModel)]="cutInOutTime"
     type="number"
@@ -163,7 +152,6 @@
 </div>
 <div>
   タグ名称 :<input
-    class="is-caret"
     name="cut-in-tag-name"
     [(ngModel)]="cutInTagName"
     placeholder=""
@@ -186,7 +174,6 @@
     (change)="changeYouTubeInfo()"
   />
   URL :<input
-    class="is-caret"
     name="cut-in-video-url"
     [(ngModel)]="cutInVideoURL"
     placeholder="URL"

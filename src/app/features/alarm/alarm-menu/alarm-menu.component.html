@@ -26,16 +26,9 @@
         <div style="display: table-cell; align: left">
           <div style="text-align: left">
             <span style="display: inline-block; width: 5em; margin-left: 0.5em">タイトル:</span
-            ><input
-              class="is-caret"
-              [(ngModel)]="alarmTitle"
-              placeholder="アラーム"
-              name="alarmTitle"
-              style="width: 15em"
-            /><br />
+            ><input [(ngModel)]="alarmTitle" placeholder="アラーム" name="alarmTitle" style="width: 15em" /><br />
             <span style="display: inline-block; width: 5em; margin-left: 0.5em">時間:</span
             ><input
-              class="is-caret"
               type="number"
               [(ngModel)]="alarmTime"
               placeholder=""

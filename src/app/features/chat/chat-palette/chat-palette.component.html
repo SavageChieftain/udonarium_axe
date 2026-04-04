@@ -23,7 +23,6 @@
       </div>
     </form>
     <chat-input
-      class="is-caret"
       [onlyCharacters]="true"
       [chatTabidentifier]="chatTabidentifier()"
       [(gameType)]="gameType"
@@ -85,7 +84,7 @@
   <div [hidden]="!isEdit()" style="flex-grow: 1; height: 0; min-height: 100px">
     <textarea
       name="edit-palette"
-      class="palette is-caret"
+      class="palette"
       #editText
       style="resize: none"
       [ngModel]="editPalette()"

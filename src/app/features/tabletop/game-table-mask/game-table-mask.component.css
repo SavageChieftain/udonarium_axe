@@ -54,15 +54,6 @@
   height: 25px;
 }
 
-/*
-.lock-icon {
-  visibility: hidden;
-}
-.component:hover .lock-icon, .component:active .lock-icon {
-  visibility: visible;
-}
-*/
-
 .lock-icon {
   visibility: visible;
 }
@@ -158,93 +149,6 @@
   overflow: hidden;
 }
 
-/*
-.scratching-mark.scratching::before,
-.scratching-mark.scratching::after,
-.scratching-mark.scratching2::before,
-.scratching-mark.scratching2::after,
-.scratching-mark.restore::before,
-.scratching-mark.restore::after,
-.scratching-mark.restore2::before,
-.scratching-mark.restore2::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  border-radius: 2px;
-}
-.scratching-mark.scratching::before,
-.scratching-mark.scratching::after {
-  width: 6px;
-  height: 51px;
-
-}
-.scratching-mark.scratching2::before,
-.scratching-mark.scratching2::after {
-  width: 4px;
-  height: 49px;
-}
-
-.scratching-mark.restore::before,
-.scratching-mark.restore::after {
-  width: 6px;
-  height: 26px;
-}
-.scratching-mark.restore2::before,
-.scratching-mark.restore2::after {
-  width: 4px;
-  height: 24px;
-}
-
-.scratching-mark.scratching::before,
-.scratching-mark.scratching2::before {
-  transform: translate(-50%,-50%) rotate(45deg);
-}
-.scratching-mark.scratching::after,
-.scratching-mark.scratching2::after {
-  transform: translate(-50%,-50%) rotate(-45deg);
-}
-.scratching-mark.restore::before,
-.scratching-mark.restore2::before {
-  transform: translate(-50%,-50%);
-}
-.scratching-mark.restore::after,
-.scratching-mark.restore2::after {
-  transform: translate(-50%,-50%) rotate(90deg);
-}
-
-.scratching-mark.restore,
-.scratching-mark.scratched {
-  border: 3px solid;
-  border-radius: 2px;
-}
-
-.scratching-mark.scratching::before,
-.scratching-mark.scratching::after {
-  background-color: #222;
-}
-.scratching-mark.scratching2::before,
-.scratching-mark.scratching2::after {
-  background-color: rgb(255, 62, 62);
-}
-
-.scratching-mark.scratched {
-  border-color: rgb(255, 62, 62);
-}
-.scratching-mark.restore::before,
-.scratching-mark.restore::after {
-  background-color: #222;
-}
-.scratching-mark.restore2::before,
-.scratching-mark.restore2::after {
-  background-color: rgb(128, 152, 255);
-}
-.scratching-mark.restore {
-  border-color: rgb(128, 152, 255);
-  box-shadow: 0px 0px 0px 1px #222,
-    inset 0px 0px 0px 1px #222;
-}
-*/
 .name-tag {
   font-size: 15px;
   padding: 3px 9px;

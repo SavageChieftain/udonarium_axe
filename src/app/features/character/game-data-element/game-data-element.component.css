@@ -1,4 +1,3 @@
-/**/
 .portrait-button {
   background-color: #eee;
   color: #444;
@@ -17,7 +16,6 @@
 .sub-image {
   height: 120px;
   display: inline-block;
-  /*  max-width: 120px;*/
   max-height: 120px;
   vertical-align: top;
   text-align: center;
@@ -46,24 +44,18 @@
 }
 .table {
   display: table;
-  /*padding-left: 10px;*/
-  /*border:1px solid #FF0000;*/
   width: 100%;
   box-sizing: border-box;
 }
 .table-row {
   padding-top: 10px;
   display: table-row;
-  /*border:5px solid #00FF00;*/
-  /*border-bottom:1px dotted #888;*/
-  /*width :100%;*/
   box-sizing: border-box;
 }
 .table-cell {
   display: table-cell;
   vertical-align: bottom;
   padding: 0.5em 0em 0.1em 0.5em;
-  /*border:1px solid #0000FF;*/
   border-bottom: 1px dotted #888;
   box-sizing: border-box;
 }
@@ -76,7 +68,6 @@
   vertical-align: bottom;
   padding: 0.2em 0em 0.1em 0.5em;
   border: none;
-  /*border-bottom:1px solid #0ff;*/
   box-sizing: border-box;
 }
 .table-cell_inner-table-title {
@@ -87,12 +78,10 @@
 .box {
   display: inline-block;
   margin: 10px;
-  /*border:1px solid #FFF;*/
 }
 .hidden-spacer {
   visibility: hidden;
   height: 0;
-  /*background: #0FF;*/
   max-width: 20em;
   overflow: hidden;
   padding: 0 3px;
@@ -133,12 +122,10 @@
   word-break: break-word;
 }
 
-/*button,*/
 input,
 button,
 textarea,
 select {
-  /*.input {*/
   background: none;
   border: none;
   border-radius: 2px;
@@ -275,26 +262,4 @@ input[type='range']::-ms-thumb {
 
 input[type='range']::-ms-tooltip {
   display: none;
-}
-/*
-.markdown_table{
-  display: table;
-	border: 2px solid #000000;
-}
-
-.markdown_table_cell{
-  display: table-cell;
-  vertical-align: bottom;
-	border: 2px solid #000000;
-}
-
-.markdown_table_row{
-  display:table-row;
-	border: 2px solid #000000;
-}
-*/
-/*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
-キャレットの点滅で負荷がかかることへの対策不透明度指定*/
-.is-caret {
-  caret-color: rgba(0, 0, 0, 0.95);
 }

@@ -1,7 +1,7 @@
 <div
   class="fly-in"
   [ngClass]="{ 'pointer-events-none': isPointerDragging }"
-  class="draggable-panel no-caret"
+  class="draggable-panel"
   [style.left.px]="left"
   [style.top.px]="top"
   [style.width.px]="width"
@@ -14,7 +14,7 @@
   (mouseenter)="showPortrait(true)"
   (mouseleave)="showPortrait(false)"
 >
-  <div class="title no-caret" #titleBar>
+  <div class="title" #titleBar>
     @if (title !== 'メニュー') {
       <div class="title-button">
         <button [disabled]="isFullScreen()" (click)="toggleMinimize()">
@@ -38,8 +38,8 @@
   @if (panelService.cardStack) {
     <card-stack-list-img [cardStackidentifier]="panelService.cardStack.identifier"></card-stack-list-img>
   }
-  <div class="scrollable-panel no-caret" [ngStyle]="{ padding: padding_ }" #scrollablePanel>
+  <div class="scrollable-panel" [ngStyle]="{ padding: padding_ }" #scrollablePanel>
     <ng-content></ng-content>
-    <div #content class="no-caret"></div>
+    <div #content></div>
   </div>
 </div>

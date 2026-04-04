@@ -1,7 +1,7 @@
 <div class="remote-controller-wrapper">
-  <div class="sticky-top-left is-caret">
-    <div class="flex-container is-caret">
-      <div class="is-caret" style="flex-grow: 0">
+  <div class="sticky-top-left">
+    <div class="flex-container">
+      <div style="flex-grow: 0">
         <form name="remote-controller-chat-tab">
           <div class="chat-tab">
             @for (chatTab of chatTabsVersion(); track chatTab) {
@@ -44,7 +44,7 @@
             </div>
             <div style="flex-grow: 1; height: 0; min-height: 100px">
               <textarea
-                class="palette is-caret"
+                class="palette"
                 style="resize: none"
                 [(ngModel)]="editPalette"
                 [ngModelOptions]="{ standalone: true }"
@@ -57,7 +57,7 @@
                 @if (!buffHideIsChk) {
                   <textarea
                     name="buff-text"
-                    class="controller-input is-caret"
+                    class="controller-input"
                     placeholder="Enterで送信"
                     [(ngModel)]="text"
                     [ngModelOptions]="{ standalone: true }"
@@ -272,7 +272,7 @@
                       </div>
                       <div class="table-cell">
                         <input
-                          class="input tag-value is-caret"
+                          class="input tag-value"
                           [style]="'color:' + dataElm.nowValueColor + ';'"
                           size="1"
                           name="data-current-value"
@@ -281,7 +281,7 @@
                           placeholder=""
                         />
                         <input
-                          class="input tag-value is-caret"
+                          class="input tag-value"
                           size="1"
                           name="data-value"
                           name="data-value"
@@ -318,7 +318,7 @@
                   <div class="tag-value-box">
                     <div class="hidden-spacer" style="font-weight: bold">{{ dataElm.value }}</div>
                     <input
-                      class="input tag-value is-caret"
+                      class="input tag-value"
                       size="1"
                       name="data-value"
                       name="data-value"

@@ -46,10 +46,7 @@ button.color:hover {
 .table {
   box-sizing: border-box;
   padding: 5px;
-  /*position : fixed;*/
-  /*bottom : 0;*/
   display: table;
-  /*width: calc(100% - 30px);*/
   width: 100%;
 }
 
@@ -61,7 +58,6 @@ button.color:hover {
   display: inline-block;
   width: 50px;
   height: 50px;
-  /*  min-width: 50px;*/
   max-width: 50px;
   max-height: 50px;
   vertical-align: top;
@@ -116,13 +112,11 @@ button.color:hover {
   width: 4.5em;
   max-width: 4.5em;
   min-width: 4.5em;
-  /*  background-color:#0AA;*/
 }
 
 .portrait-tag {
   vertical-align: bottom;
   overflow: hidden;
-  /*  background-color:#AAA;*/
   max-width: 10em;
   white-space: nowrap;
 }
@@ -134,8 +128,3 @@ button.color:hover {
   font-family: inherit;
 }
 
-/*2022/1/16現在、クロームバージョン: 97.0.4692.71（Official Build） （64 ビット）
-キャレットの点滅で負荷がかかることへの対策不透明度指定*/
-.is-caret {
-  caret-color: rgba(0, 0, 0, 0.95);
-}

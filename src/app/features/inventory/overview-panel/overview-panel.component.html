@@ -97,7 +97,7 @@
       <div style="position: relative; width: 100%">
         <div class="is-fill">
           <textarea
-            class="textarea is-caret"
+            class="textarea"
             name="note-text"
             name="note-text"
             [(ngModel)]="note.text"
@@ -291,7 +291,7 @@
           <div style="display: inline-block; width: min-content">
             <div class="hidden-spacer" style="margin-right: 2em">{{ dataElm.currentValue }}</div>
             <input
-              class="input is-caret"
+              class="input"
               type="number"
               [style]="'color:' + dataElm.nowValueColor + ';'"
               size="1"
@@ -324,7 +324,7 @@
         <div class="tag">{{ dataElm.name }}</div>
         <div class="value">
           <div class="hidden-spacer">{{ dataElm.value }}</div>
-          <input class="input is-caret" size="1" name="data-value" name="data-value" [(ngModel)]="dataElm.value" />
+          <input class="input" size="1" name="data-value" name="data-value" [(ngModel)]="dataElm.value" />
         </div>
       }
     }

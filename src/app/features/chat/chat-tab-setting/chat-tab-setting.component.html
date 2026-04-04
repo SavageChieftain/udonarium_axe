@@ -24,13 +24,7 @@
     @if (!isEmpty && selectedTab()) {
       <div>
         タブ名 :
-        <input
-          name="tab-name"
-          class="is-caret"
-          [(ngModel)]="tabName"
-          placeholder="Name"
-          [attr.disabled]="!isEditable ? '' : null"
-        />
+        <input name="tab-name" [(ngModel)]="tabName" placeholder="Name" [attr.disabled]="!isEditable ? '' : null" />
       </div>
       <hr />
       <div>

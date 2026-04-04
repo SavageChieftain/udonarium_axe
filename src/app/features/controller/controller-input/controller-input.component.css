@@ -21,10 +21,7 @@ button.color:hover {
 .table {
   box-sizing: border-box;
   padding: 5px;
-  /*position : fixed;*/
-  /*bottom : 0;*/
   display: table;
-  /*width: calc(100% - 30px);*/
   width: 100%;
 }
 
