@@ -46,6 +46,7 @@
             class="textarea is-caret"
             (input)="calcFitHeight()"
             #textArea
+            [attr.data-v]="textNoteVersion()"
             [style.font-size.px]="fontSize + 9"
             name="text-note-text"
             name="text-note-text"

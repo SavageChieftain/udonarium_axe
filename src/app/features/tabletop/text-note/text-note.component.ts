@@ -92,6 +92,12 @@ export class TextNoteComponent {
     this.objectChange.versionOf(this.textNote().identifier)();
     return this.textNote().title;
   });
+
+  /** TextNote とその子 DataElement の全変更を追跡する computed。テンプレートから参照して OnPush を突破する */
+  readonly textNoteVersion = computed(() => {
+    return this.objectChange.versionOf(this.textNote().identifier)();
+  });
+
   get isLock(): boolean {
     return this.textNote().isLock;
   }
@@ -99,27 +105,17 @@ export class TextNoteComponent {
     this.textNote().isLock = isLock;
   }
 
-  oldText: string = '';
-  oldFontSize: number = 9;
   get text(): string {
-    if (this.oldText != this.textNote().text) {
-      this.calcFitHeightIfNeeded();
-    }
-    this.oldText = this.textNote().text;
     return this.textNote().text;
   }
   set text(text: string) {
-    this.calcFitHeightIfNeeded();
     this.textNote().text = text;
-    this.oldText = text;
+    this.calcFitHeightIfNeeded();
   }
   get fontSize(): number {
-    if (this.oldFontSize != this.textNote().fontSize) {
-      this.calcFitHeightIfNeeded();
-    }
-    this.oldFontSize = this.textNote().fontSize;
     return this.textNote().fontSize;
   }
+
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     const textNote = this.textNote();

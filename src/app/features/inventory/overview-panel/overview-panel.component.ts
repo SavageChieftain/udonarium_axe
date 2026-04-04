@@ -57,6 +57,23 @@ export class OverviewPanelComponent {
   });
   readonly hasImage = computed(() => this.imageUrl().length > 0);
 
+  /** tabletopObject とその配下 DataElement の version を追跡し、OnPush を突破する */
+  readonly objectVersion = computed(() => {
+    if (!this.tabletopObject) return 0;
+    this.objectChange.versionOf(this.tabletopObject.identifier)();
+    const trackChildren = (elms: readonly DataElement[]) => {
+      for (const elm of elms) {
+        this.objectChange.versionOf(elm.identifier)();
+        if (elm.children.length) trackChildren(elm.children as DataElement[]);
+      }
+    };
+    if (this.tabletopObject.commonDataElement)
+      trackChildren(this.tabletopObject.commonDataElement.children as DataElement[]);
+    if (this.tabletopObject.detailDataElement)
+      trackChildren(this.tabletopObject.detailDataElement.children as DataElement[]);
+    return 1;
+  });
+
   get inventoryDataElms(): DataElement[] {
     return this.tabletopObject ? this.getInventoryTags(this.tabletopObject).filter((e) => e != null) : [];
   }

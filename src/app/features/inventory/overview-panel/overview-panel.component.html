@@ -1,4 +1,4 @@
-<div class="component is-pointer-events-none fade-in" appDraggable #draggablePanel>
+<div class="component is-pointer-events-none fade-in" appDraggable #draggablePanel [attr.data-v]="objectVersion()">
   @if (tabletopObject) {
     @switch (tabletopObject.aliasName) {
       @case ('numberResource') {}
