@@ -81,18 +81,18 @@ export class FileArchiver {
 
     const files = event.dataTransfer?.files;
     if (!files) return;
-    this.load(files);
+    this.load(files, { x: event.clientX, y: event.clientY });
   }
 
-  async load(files: File[] | FileList): Promise<void> {
+  async load(files: File[] | FileList, dropPoint?: { x: number; y: number }): Promise<void> {
     if (!files) return;
     const loadFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 
     for (const file of loadFiles) {
       await this.handleImage(file);
       await this.handleAudio(file);
-      await this.handleText(file);
-      await this.handleZip(file);
+      await this.handleText(file, dropPoint);
+      await this.handleZip(file, dropPoint);
       emitFileLoaded();
     }
   }
@@ -116,7 +116,7 @@ export class FileArchiver {
     await AudioStorage.instance.addAsync(file);
   }
 
-  private async handleText(file: File): Promise<void> {
+  private async handleText(file: File, dropPoint?: { x: number; y: number }): Promise<void> {
     if (!file.type.startsWith('text/')) return;
 
     let isLoadOk = true;
@@ -128,14 +128,14 @@ export class FileArchiver {
     if (isLoadOk) {
       try {
         const xmlElement: Element | null = xml2element(await FileReaderUtil.readAsTextAsync(file));
-        if (xmlElement) emitXmlLoaded({ xmlElement: xmlElement });
+        if (xmlElement) emitXmlLoaded({ xmlElement, dropPoint });
       } catch (reason) {
         Logger.warn('[FileArchiver] XML読み込みエラー', reason);
       }
     }
   }
 
-  private async handleZip(file: File) {
+  private async handleZip(file: File, dropPoint?: { x: number; y: number }) {
     if (!file.type.includes('application/') && file.type.length > 0) return;
     let entries: Unzipped;
     try {
@@ -152,7 +152,7 @@ export class FileArchiver {
     }
     for (const [name, data] of Object.entries(entries)) {
       try {
-        await this.load([new File([data.slice()], name, { type: MimeType.type(name) })]);
+        await this.load([new File([data.slice()], name, { type: MimeType.type(name) })], dropPoint);
       } catch (reason) {
         Logger.warn('[FileArchiver] ZIP展開エラー', reason);
       }

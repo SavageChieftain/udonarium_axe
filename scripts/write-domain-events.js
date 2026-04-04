@@ -58,6 +58,7 @@ export interface AlarmPopEvent {
 
 export interface XmlLoadedEvent {
   xmlElement: Element;
+  dropPoint?: { x: number; y: number };
 }
 
 export interface LoadConfigEvent {

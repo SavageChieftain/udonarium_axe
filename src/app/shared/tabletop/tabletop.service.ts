@@ -133,12 +133,19 @@ export class TabletopService {
     }, this.destroyRef);
     this.objectChange.xmlLoaded$.subscribe((event) => {
       const xmlElement: Element = event.xmlElement;
-      // todo:立体地形の上にドロップした時の挙動
 
       const gameObject = this.objectSerializer.parseXml(xmlElement);
 
       if (gameObject instanceof TabletopObject) {
-        const pointer = this.coordinateService.calcTabletopLocalCoordinate();
+        const dropTarget = event.dropPoint
+          ? ((document.elementFromPoint(event.dropPoint.x, event.dropPoint.y) as HTMLElement) ?? undefined)
+          : undefined;
+        const pointer = dropTarget
+          ? this.coordinateService.calcTabletopLocalCoordinate(
+              { x: event.dropPoint!.x, y: event.dropPoint!.y, z: 0 },
+              dropTarget
+            )
+          : this.coordinateService.calcTabletopLocalCoordinate();
         gameObject.location.x = pointer.x - 25;
         gameObject.location.y = pointer.y - 25;
         gameObject.posZ = pointer.z;
