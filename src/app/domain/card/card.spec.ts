@@ -23,6 +23,7 @@ describe('Card', () => {
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     vi.clearAllMocks();
+    Object.defineProperty(Network.peerContext, 'userId', { value: '', writable: true, configurable: true });
   });
 
   describe('create()', () => {
@@ -209,7 +210,7 @@ describe('Card', () => {
       const card = new Card();
       const mockUserId = 'current-user';
 
-      vi.spyOn(Network.peerContext, 'userId', 'get').mockReturnValue(mockUserId);
+      Object.defineProperty(Network.peerContext, 'userId', { value: mockUserId, configurable: true });
       card.owner = mockUserId;
 
       expect(card.isHand).toBe(true);
@@ -218,7 +219,7 @@ describe('Card', () => {
     it('should return false for isHand when owned by different user', () => {
       const card = new Card();
 
-      vi.spyOn(Network.peerContext, 'userId', 'get').mockReturnValue('user1');
+      Object.defineProperty(Network.peerContext, 'userId', { value: 'user1', configurable: true });
       card.owner = 'user2';
 
       expect(card.isHand).toBe(false);
@@ -229,7 +230,7 @@ describe('Card', () => {
     it('should be visible when in hand', () => {
       const card = new Card();
 
-      vi.spyOn(Network.peerContext, 'userId', 'get').mockReturnValue('user1');
+      Object.defineProperty(Network.peerContext, 'userId', { value: 'user1', configurable: true });
       card.owner = 'user1';
 
       expect(card.isVisible).toBe(true);
@@ -247,6 +248,7 @@ describe('Card', () => {
       card.state = CardState.BACK;
       card.owner = '';
 
+      Object.defineProperty(Network.peerContext, 'userId', { value: 'someone', configurable: true });
       expect(card.isVisible).toBe(false);
     });
 

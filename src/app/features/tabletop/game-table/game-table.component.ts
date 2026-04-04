@@ -140,7 +140,7 @@ export class GameTableComponent {
         this.gameTable().nativeElement,
         this.gameObjects().nativeElement,
         this.gridCanvas().nativeElement,
-        () => this.tableSelecter.gridShow,
+        () => this.currentTable.gridShow,
         () => this.roomGridDispAlways
       );
       this.gestureService.cancelInput();
@@ -286,7 +286,7 @@ export class GameTableComponent {
 
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
-      let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
+      let opacity: number = this.currentTable.gridShow ? 1.0 : 0.0;
       if (this.roomGridDispAlways) {
         opacity = 1.0;
       }

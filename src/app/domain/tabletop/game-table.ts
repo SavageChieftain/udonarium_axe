@@ -30,6 +30,8 @@ export class GameTable extends ObjectNode {
   @SyncVar() selected: boolean = false;
   @SyncVar() gridType: GridType = GridType.SQUARE;
   @SyncVar() gridColor: string = '#000000e6';
+  @SyncVar() gridShow: boolean = false;
+  @SyncVar() gridSnap: boolean = true;
 
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {

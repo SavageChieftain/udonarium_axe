@@ -43,14 +43,4 @@ describe('TableSelecter', () => {
       expect(TableSelecter.instance.tableGridDummy).toBe(false);
     });
   });
-
-  describe('プロパティ', () => {
-    it('gridShow のデフォルトはfalse', () => {
-      expect(TableSelecter.instance.gridShow).toBe(false);
-    });
-
-    it('gridSnap のデフォルトはtrue', () => {
-      expect(TableSelecter.instance.gridSnap).toBe(true);
-    });
-  });
 });

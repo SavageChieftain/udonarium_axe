@@ -117,20 +117,21 @@ export class GameTableSettingComponent {
   }
 
   get tableGridShow(): boolean {
-    return this.tableSelecter.gridShow;
+    return this.selectedTable?.gridShow ?? false;
   }
   set tableGridShow(tableGridShow: boolean) {
-    this.tableSelecter.gridShow = tableGridShow;
-    const viewTable = this.tableSelecter.viewTable;
-    if (tableGridShow && viewTable) viewTable.gridClipRect = null;
-    triggerUpdateGameObject(this.tableSelecter.toContext()); // 自分にだけイベントを発行してグリッド更新を誘発
+    if (!this.selectedTable) return;
+    this.selectedTable.gridShow = tableGridShow;
+    if (tableGridShow) this.selectedTable.gridClipRect = null;
+    triggerUpdateGameObject(this.selectedTable.toContext()); // 自分にだけイベントを発行してグリッド更新を誘発
   }
 
   get tableGridSnap(): boolean {
-    return this.tableSelecter.gridSnap;
+    return this.selectedTable?.gridSnap ?? true;
   }
   set tableGridSnap(tableGridSnap: boolean) {
-    this.tableSelecter.gridSnap = tableGridSnap;
+    if (!this.selectedTable) return;
+    this.selectedTable.gridSnap = tableGridSnap;
   }
 
   get tableGridType(): GridType {
@@ -191,9 +192,9 @@ export class GameTableSettingComponent {
     const gameTable = new GameTable();
     gameTable.name = '白紙のテーブル';
     gameTable.imageIdentifier = ImageFile.Empty.identifier;
+    gameTable.gridShow = true;
     gameTable.initialize();
     this.selectGameTable(gameTable.identifier);
-    this.tableGridShow = true;
   }
 
   async save() {

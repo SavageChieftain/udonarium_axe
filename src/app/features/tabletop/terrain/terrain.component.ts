@@ -81,7 +81,7 @@ export class TerrainComponent {
         if (this.roomGridDispAlways) {
           opacity = 1.0;
         }
-        if (this.tableSelecter.gridShow) {
+        if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;
         }
       }
@@ -376,7 +376,7 @@ export class TerrainComponent {
         if (this.roomGridDispAlways) {
           opacity = 1.0;
         }
-        if (this.tableSelecter.gridShow) {
+        if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;
         }
       }

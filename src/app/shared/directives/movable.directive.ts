@@ -106,7 +106,7 @@ export class MovableDirective {
   input: InputHandler | null = null;
 
   get isGridSnap(): boolean {
-    return this.tableSelecter.gridSnap;
+    return this.tableSelecter.viewTable?.gridSnap ?? true;
   }
 
   constructor() {

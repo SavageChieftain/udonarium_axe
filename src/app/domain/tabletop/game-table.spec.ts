@@ -114,6 +114,18 @@ describe('GameTable', () => {
       table.initialize();
       expect(table.gridColor).toBe('#000000e6');
     });
+
+    it('gridShow がデフォルト false', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.gridShow).toBe(false);
+    });
+
+    it('gridSnap がデフォルト true', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.gridSnap).toBe(true);
+    });
   });
 
   describe('プロパティ変更', () => {

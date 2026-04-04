@@ -17,8 +17,6 @@ export class TableSelecter extends GameObject {
 
   @SyncVar() viewTableIdentifier: string = '';
   @SyncVar() tableGridDummy: boolean = false;
-  gridShow: boolean = false; // true=常時グリッド表示
-  gridSnap: boolean = true;
   private cleanups: (() => void)[] = [];
 
   // GameObject Lifecycle

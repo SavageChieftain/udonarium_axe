@@ -339,7 +339,7 @@ export class GameTableMaskComponent {
     // とりあえず、本当は周辺を表示したい。
     const tableSelecter = this.tableSelecter;
 
-    if (!tableSelecter.gridShow) {
+    if (!tableSelecter.viewTable?.gridShow) {
       const viewTable = tableSelecter.viewTable;
       if (viewTable)
         viewTable.gridClipRect = {
