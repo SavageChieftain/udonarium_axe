@@ -68,7 +68,7 @@ export class JukeboxComponent {
     if (tag === '全て') return all;
     return all.filter((audio) => {
       const audioTag = AudioTag.get(audio.identifier);
-      const t = audioTag?.tag ?? '';
+      const t = audioTag?.tag || 'BGM';
       return t === tag;
     });
   });
@@ -81,16 +81,17 @@ export class JukeboxComponent {
     for (const audio of this.audioStorage.audios) {
       if (audio.isHidden) continue;
       const audioTag = AudioTag.get(audio.identifier);
-      if (audioTag?.tag) tags.add(audioTag.tag);
+      const t = audioTag?.tag || 'BGM';
+      tags.add(t);
     }
     const sorted = [...tags].sort();
-    return ['全て', '', ...sorted];
+    return ['全て', ...sorted];
   });
 
   static readonly PRESET_TAGS = ['BGM', 'SE'];
 
   getTagOf(audio: AudioFile): string {
-    return AudioTag.get(audio.identifier)?.tag ?? '';
+    return AudioTag.get(audio.identifier)?.tag || 'BGM';
   }
 
   setTagOf(audio: AudioFile, tag: string) {

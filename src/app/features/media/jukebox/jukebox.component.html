@@ -31,7 +31,7 @@
 <div class="tag-filter">
   タグ：<select [ngModel]="selectTag()" (ngModelChange)="selectTag.set($event)">
     @for (tag of tagList(); track tag) {
-      <option [value]="tag">{{ tag || 'タグなし' }}</option>
+      <option [value]="tag">{{ tag }}</option>
     }
   </select>
 </div>
@@ -58,9 +58,8 @@
       }
       <span>{{ audio.name }}</span>
       <select class="tag-select" [ngModel]="getTagOf(audio)" (ngModelChange)="setTagOf(audio, $event)">
-        <option value="">タグなし</option>
         @for (tag of tagList(); track tag) {
-          @if (tag !== '全て' && tag !== '') {
+          @if (tag !== '全て') {
             <option [value]="tag">{{ tag }}</option>
           }
         }

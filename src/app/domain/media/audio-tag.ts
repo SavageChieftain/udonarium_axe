@@ -7,7 +7,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 @SyncObject('audio-tag')
 export class AudioTag extends ObjectNode {
   @SyncVar() audioIdentifier: string = '';
-  @SyncVar() tag: string = '';
+  @SyncVar() tag: string = 'BGM';
 
   containsWords(words: string[]): boolean {
     return words.every((word) => this.tag.includes(word));
