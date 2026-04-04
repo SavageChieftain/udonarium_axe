@@ -9,7 +9,6 @@ export enum SortOrder {
 
 @SyncObject('summary-setting')
 export class DataSummarySetting extends GameObject implements InnerXml {
-  // todo:シングルトン化するのは妥当？
   private static _instance: DataSummarySetting;
   static get instance(): DataSummarySetting {
     if (!DataSummarySetting._instance) {
