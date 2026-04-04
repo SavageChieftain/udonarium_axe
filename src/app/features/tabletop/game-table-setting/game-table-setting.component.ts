@@ -190,9 +190,10 @@ export class GameTableSettingComponent {
   createGameTable() {
     const gameTable = new GameTable();
     gameTable.name = '白紙のテーブル';
-    gameTable.imageIdentifier = 'testTableBackgroundImage_image';
+    gameTable.imageIdentifier = ImageFile.Empty.identifier;
     gameTable.initialize();
     this.selectGameTable(gameTable.identifier);
+    this.tableGridShow = true;
   }
 
   async save() {
