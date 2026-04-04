@@ -168,8 +168,8 @@ export class MovableDirective {
     this.setCollidableLayer(false);
   }
 
-  notifyDragLocked() {
-    this.selectionSignalService.notifyDragLocked();
+  cancelTableGesture() {
+    this.selectionSignalService.cancelTableGesture();
   }
 
   scratchObjectPosition(_start: boolean) {

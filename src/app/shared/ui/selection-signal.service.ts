@@ -23,7 +23,7 @@ export class SelectionSignalService {
   readonly selectedObject = signal<TabletopObjectSelection | null>(null);
   readonly highlightedObject = signal<TabletopObjectHighlight | null>(null);
   readonly focusCoordinate = signal<TabletopCoordinate | null>(null);
-  readonly dragLockedVersion = signal(0);
+  readonly cancelTableGestureVersion = signal(0);
 
   selectObject(identifier: string, className: string): void {
     this.selectedObject.set({ identifier, className });
@@ -37,7 +37,7 @@ export class SelectionSignalService {
     this.focusCoordinate.set({ x, y, timestamp: Date.now() });
   }
 
-  notifyDragLocked(): void {
-    this.dragLockedVersion.update((v) => v + 1);
+  cancelTableGesture(): void {
+    this.cancelTableGestureVersion.update((v) => v + 1);
   }
 }

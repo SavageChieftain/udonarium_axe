@@ -32,7 +32,7 @@ export interface MovableInteractionContext {
   setAnimatedTransition(isEnable: boolean): void;
   setCollidableLayer(isCollidable: boolean): void;
   cancel(): void;
-  notifyDragLocked(): void;
+  cancelTableGesture(): void;
   snapToGrid(gridSize?: number): void;
   scratchObjectPosition(start: boolean): void;
 }
@@ -43,7 +43,7 @@ export function handleInputStart(context: MovableInteractionContext, e: MouseEve
     (e as MouseEvent).button === 1 ||
     (e as MouseEvent).button === 2
   ) {
-    if (context.isDisable() && !context.isScratcOwner()) context.notifyDragLocked();
+    context.cancelTableGesture();
     return context.cancel();
   }
 

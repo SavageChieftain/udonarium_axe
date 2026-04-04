@@ -269,11 +269,7 @@ export class TextNoteComponent {
     e.preventDefault();
     this.textNote().toTopmost();
 
-    // TODO:もっと良い方法考える
-    if (e.button === 2) {
-      this.selectionSignalService.notifyDragLocked();
-      return;
-    }
+    if (e.button === 2) return;
     this.addMouseEventListeners();
   }
 

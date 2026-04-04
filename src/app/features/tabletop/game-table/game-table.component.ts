@@ -87,7 +87,7 @@ export class GameTableComponent {
 
   constructor() {
     effect(() => {
-      this.selectionSignalService.dragLockedVersion();
+      this.selectionSignalService.cancelTableGestureVersion();
       this.gestureService.cancelInput();
     });
     effect(() => {
