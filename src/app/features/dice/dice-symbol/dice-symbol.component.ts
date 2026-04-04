@@ -181,11 +181,6 @@ export class DiceSymbolComponent {
   onInputStart(e: MouseEvent | TouchEvent) {
     this.startDoubleClickTimer(e);
     this.startIconHiddenTimer();
-
-    // TODO:もっと良い方法考える
-    if (this.isLock) {
-      this.selectionSignalService.notifyDragLocked();
-    }
   }
 
   startDoubleClickTimer(e: MouseEvent | TouchEvent) {

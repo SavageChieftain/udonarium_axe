@@ -239,10 +239,6 @@ export class CardComponent {
     this.startDoubleClickTimer(e);
     this.card().toTopmost();
     this.startIconHiddenTimer();
-
-    if (this.isLock) {
-      this.selectionSignalService.notifyDragLocked();
-    }
   }
 
   onContextMenu(e: Event) {

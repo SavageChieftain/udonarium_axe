@@ -229,11 +229,6 @@ export class GameCharacterComponent {
 
   onInputStart(_e: MouseEvent | TouchEvent) {
     if (this.input) this.input.cancel();
-
-    // TODO:もっと良い方法考える
-    if (this.isLock) {
-      this.selectionSignalService.notifyDragLocked();
-    }
   }
 
   onContextMenu(e: Event) {

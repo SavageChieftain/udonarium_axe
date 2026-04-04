@@ -233,10 +233,6 @@ export class CardStackComponent {
     this.cardStack().toTopmost();
     this.startIconHiddenTimer();
 
-    if (this.isLock) {
-      this.selectionSignalService.notifyDragLocked();
-    }
-
     this.selectionSignalService.selectObject(this.cardStack().identifier, 'GameCharacter');
   }
 

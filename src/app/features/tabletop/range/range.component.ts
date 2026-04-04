@@ -42,7 +42,6 @@ import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 @Component({
@@ -66,7 +65,6 @@ export class RangeComponent {
   private readonly tabletopService = inject(TabletopService);
   private readonly objectStore = inject(ObjectStore);
   private readonly inventoryService = inject(GameObjectInventoryService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -341,11 +339,6 @@ export class RangeComponent {
 
   onInputStart(_e: MouseEvent | TouchEvent) {
     this.input?.cancel();
-
-    // TODO:もっと良い方法考える
-    if (this.isLock) {
-      this.selectionSignalService.notifyDragLocked();
-    }
   }
 
   onContextMenu(e: Event) {

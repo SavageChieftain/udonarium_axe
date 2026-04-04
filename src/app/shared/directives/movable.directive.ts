@@ -168,6 +168,10 @@ export class MovableDirective {
     this.setCollidableLayer(false);
   }
 
+  notifyDragLocked() {
+    this.selectionSignalService.notifyDragLocked();
+  }
+
   scratchObjectPosition(_start: boolean) {
     const pointerScratch2d = {
       x: this.input!.pointer.x,

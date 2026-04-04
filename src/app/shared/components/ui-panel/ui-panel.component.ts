@@ -128,7 +128,8 @@ export class UIPanelComponent {
     this.portraitDispByMouse.set(flag);
   }
 
-  // youtube動画が既定値未満にしないための処理 マニュアルで200*200位上津衣装となっていたのでCutIn側でそれに翔う
+  // youtube動画が既定値未満にしないための処理
+  // マニュアルで200*200以上となっていたのでCutIn側でそれに従う
   chkeWindowMinSize() {
     const id = this.panelService.cutInIdentifier;
     if (!id) return;

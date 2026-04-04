@@ -257,11 +257,6 @@ export class TerrainComponent {
 
   onInputStart(_e: MouseEvent | TouchEvent) {
     this.input?.cancel();
-
-    // TODO:もっと良い方法考える
-    if (this.isLocked()) {
-      this.selectionSignalService.notifyDragLocked();
-    }
   }
 
   onContextMenu(e: Event) {

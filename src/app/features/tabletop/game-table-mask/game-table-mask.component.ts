@@ -30,7 +30,6 @@ import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.serv
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 @Component({
@@ -59,7 +58,6 @@ export class GameTableMaskComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly inventoryService = inject(GameObjectInventoryService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -301,10 +299,6 @@ export class GameTableMaskComponent {
       if (this.input) this.input.cancel();
     } else if (!window.PointerEvent && (e as MouseEvent).button < 2 && (e as MouseEvent).buttons < 2) {
       this.scratching(true);
-    }
-    // TODO:もっと良い方法考える
-    if ((this.isLock && !this.isScratching) || (this.isScratching && !mask.isMine)) {
-      this.selectionSignalService.notifyDragLocked();
     }
   }
 

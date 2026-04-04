@@ -297,11 +297,6 @@ export class TextNoteComponent {
 
   onInputStart(_e: Event) {
     this.input!.cancel();
-
-    // TODO:もっと良い方法考える
-    if (this.isLock) {
-      this.selectionSignalService.notifyDragLocked();
-    }
   }
 
   onContextMenu(e: MouseEvent) {
