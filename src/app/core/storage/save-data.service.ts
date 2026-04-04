@@ -1,4 +1,6 @@
 import { inject, Injectable } from '@angular/core';
+import { AudioFile } from '@axe/core/storage/audio-file';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -9,6 +11,7 @@ import { xml2element } from '@axe/core/util/xml-util';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
+import { AudioTagList } from '@axe/domain/media/audio-tag-list';
 import { ImageTagList } from '@axe/domain/media/image-tag-list';
 import { Config } from '@axe/domain/peer/config';
 import { Room } from '@axe/domain/peer/room';
@@ -20,6 +23,7 @@ type UpdateCallback = (percent: number) => void;
 })
 export class SaveDataService {
   private readonly imageStorage = inject(ImageStorage);
+  private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly chatTabList = inject(ChatTabList);
   private readonly appConfig = inject(Config);
@@ -50,6 +54,10 @@ export class SaveDataService {
 
     const imageTagXml = this.convertToXml(ImageTagList.create(images));
     files.push(new File([imageTagXml], 'imagetag.xml', { type: 'text/plain' }));
+
+    const audios: AudioFile[] = this.audioStorage.audios.filter((a) => !a.isHidden);
+    const audioTagXml = this.convertToXml(AudioTagList.create(audios));
+    files.push(new File([audioTagXml], 'audiotag.xml', { type: 'text/plain' }));
 
     return this.saveAsync(files, this.appendTimestamp(fileName), updateCallback);
   }

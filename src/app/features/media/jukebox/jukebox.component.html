@@ -28,6 +28,13 @@
   <button (click)="openCutInList()" [disabled]="0">カットイン編集</button>
 }
 <hr />
+<div class="tag-filter">
+  タグ：<select [ngModel]="selectTag()" (ngModelChange)="selectTag.set($event)">
+    @for (tag of tagList(); track tag) {
+      <option [value]="tag">{{ tag || 'タグなし' }}</option>
+    }
+  </select>
+</div>
 <div>
   @for (audio of audios(); track audio.identifier) {
     <div class="box">
@@ -49,8 +56,15 @@
       @if (audio === jukebox.audio) {
         <span>【BGM】</span>
       }
-      <span>{{ audio.name }}</span
-      ><br />
+      <span>{{ audio.name }}</span>
+      <select class="tag-select" [ngModel]="getTagOf(audio)" (ngModelChange)="setTagOf(audio, $event)">
+        <option value="">タグなし</option>
+        @for (tag of tagList(); track tag) {
+          @if (tag !== '全て' && tag !== '') {
+            <option [value]="tag">{{ tag }}</option>
+          }
+        }
+      </select>
     </div>
   }
   @if (!audios().length) {

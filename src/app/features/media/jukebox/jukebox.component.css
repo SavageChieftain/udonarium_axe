@@ -25,3 +25,12 @@
 .box {
   border-bottom: 1px dotted #888;
 }
+
+.tag-filter {
+  margin-bottom: 4px;
+}
+
+.tag-select {
+  margin-left: 8px;
+  font-size: 12px;
+}

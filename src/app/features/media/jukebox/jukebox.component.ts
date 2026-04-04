@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
@@ -6,6 +6,7 @@ import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { Config } from '@axe/domain/peer/config';
@@ -62,8 +63,41 @@ export class JukeboxComponent {
 
   readonly audios = computed(() => {
     this.objectChange.fileVersion();
-    return this.audioStorage.audios.filter((audio) => !audio.isHidden);
+    const all = this.audioStorage.audios.filter((audio) => !audio.isHidden);
+    const tag = this.selectTag();
+    if (tag === '全て') return all;
+    return all.filter((audio) => {
+      const audioTag = AudioTag.get(audio.identifier);
+      const t = audioTag?.tag ?? '';
+      return t === tag;
+    });
   });
+
+  readonly selectTag = signal('全て');
+
+  readonly tagList = computed((): string[] => {
+    this.objectChange.fileVersion();
+    const tags = new Set<string>(JukeboxComponent.PRESET_TAGS);
+    for (const audio of this.audioStorage.audios) {
+      if (audio.isHidden) continue;
+      const audioTag = AudioTag.get(audio.identifier);
+      if (audioTag?.tag) tags.add(audioTag.tag);
+    }
+    const sorted = [...tags].sort();
+    return ['全て', '', ...sorted];
+  });
+
+  static readonly PRESET_TAGS = ['BGM', 'SE'];
+
+  getTagOf(audio: AudioFile): string {
+    return AudioTag.get(audio.identifier)?.tag ?? '';
+  }
+
+  setTagOf(audio: AudioFile, tag: string) {
+    let audioTag = AudioTag.get(audio.identifier);
+    if (!audioTag) audioTag = AudioTag.create(audio.identifier);
+    audioTag.tag = tag;
+  }
   get jukebox(): Jukebox {
     return this.objectStore.get<Jukebox>('Jukebox')!;
   }

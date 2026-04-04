@@ -121,7 +121,12 @@ export class FileArchiver {
 
     let isLoadOk = true;
     // data.xmlはここでは通過させ後段で中身が部屋データ更新だった場合更新確認をする
-    if (file.name === 'config.xml' || file.name === 'imagetag.xml' || file.name === 'summary.xml') {
+    if (
+      file.name === 'config.xml' ||
+      file.name === 'imagetag.xml' ||
+      file.name === 'audiotag.xml' ||
+      file.name === 'summary.xml'
+    ) {
       isLoadOk = this.reloadCheck.isLoadOk();
     }
 
