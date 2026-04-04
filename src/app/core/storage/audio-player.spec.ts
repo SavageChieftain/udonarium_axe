@@ -94,6 +94,7 @@ type AudioPlayerPrivateStatic = {
   _audioContext: unknown;
   _masterGainNode: unknown;
   _auditionGainNode: unknown;
+  _seGainNode: unknown;
   cacheMap: Map<string, { url: string; blob: Blob }>;
   MAX_CACHE_SIZE: number;
   evictCacheIfNeeded: () => void;
@@ -113,6 +114,7 @@ function resetStaticState() {
   audioPlayerPrivate._audioContext = undefined;
   audioPlayerPrivate._masterGainNode = undefined;
   audioPlayerPrivate._auditionGainNode = undefined;
+  audioPlayerPrivate._seGainNode = undefined;
   audioPlayerPrivate.cacheMap.clear();
 }
 
@@ -249,6 +251,30 @@ describe('AudioPlayer', () => {
   describe('static auditionNode', () => {
     it('auditionGainNode を返す', () => {
       const node = AudioPlayer.auditionNode;
+      expect(node).toBeDefined();
+    });
+  });
+
+  // ─── static seVolume ─────────────────────────────────────────────────────
+
+  describe('static seVolume', () => {
+    it('デフォルトは 0.5', () => {
+      expect(AudioPlayer.seVolume).toBe(0.5);
+    });
+
+    it('セットすると seGainNode に反映される', () => {
+      AudioPlayer.seVolume = 0.7;
+      expect(AudioPlayer.seVolume).toBe(0.7);
+      const gainNode = audioCtxMock.createGain.mock.results[0].value as GainNodeMock;
+      expect(gainNode.gain.setTargetAtTime).toHaveBeenCalledWith(0.7, 0, 0.01);
+    });
+  });
+
+  // ─── static seNode ───────────────────────────────────────────────────────
+
+  describe('static seNode', () => {
+    it('seGainNode を返す', () => {
+      const node = AudioPlayer.seNode;
       expect(node).toBeDefined();
     });
   });

@@ -76,6 +76,21 @@ describe('Jukebox', () => {
     });
   });
 
+  describe('seVolume', () => {
+    it('デフォルトは0.5', () => {
+      const jukebox = new Jukebox();
+      jukebox.initialize();
+      expect(jukebox.seVolume).toBe(0.5);
+    });
+
+    it('設定できる', () => {
+      const jukebox = new Jukebox();
+      jukebox.initialize();
+      jukebox.seVolume = 0.7;
+      expect(jukebox.seVolume).toBe(0.7);
+    });
+  });
+
   describe('stop', () => {
     it('停止するとaudioIdentifierが空になりisPlayingがfalse', () => {
       const jukebox = new Jukebox();
