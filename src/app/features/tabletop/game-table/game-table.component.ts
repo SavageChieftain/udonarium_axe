@@ -173,7 +173,7 @@ export class GameTableComponent {
     this.objectChangeService.fileVersion();
     this.objectChangeService.versionOf(this.currentTable.identifier)();
     this.objectChangeService.versionOf(this.tableSelecter.identifier)();
-    return this.imageService.getSkeletonOr(this.currentTable.imageIdentifier);
+    return this.imageService.getEmptyOr(this.currentTable.imageIdentifier);
   });
 
   get backgroundImage(): ImageFile {

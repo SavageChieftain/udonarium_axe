@@ -21,9 +21,16 @@
       <div class="images-select">
         <div>
           画像
-          <div (click)="openBgImageModal()">
-            <img height="120" [src]="tableBackgroundImage.url | safe: 'resourceUrl'" />
-          </div>
+          @if (!tableBackgroundImage.url) {
+            <div>
+              <button (click)="openBgImageModal()" style="height: 120px">テーブル画像を追加</button>
+            </div>
+          }
+          @if (tableBackgroundImage.url) {
+            <div (click)="openBgImageModal()">
+              <img height="120" [src]="tableBackgroundImage.url | safe: 'resourceUrl'" />
+            </div>
+          }
         </div>
         <div>
           背景
