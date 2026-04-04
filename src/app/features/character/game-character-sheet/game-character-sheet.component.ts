@@ -110,6 +110,7 @@ export class GameCharacterSheetComponent {
   }
 
   readonly imageFile = computed(() => {
+    this.objectChange.fileVersion();
     const obj = this.tabletopObject as TabletopObject | null;
     if (!obj) return ImageFile.Empty;
     this.objectChange.versionOf(obj.identifier)();

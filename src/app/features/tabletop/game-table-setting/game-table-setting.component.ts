@@ -69,11 +69,13 @@ export class GameTableSettingComponent {
   }
 
   get tableBackgroundImage(): ImageFile {
+    this.objectChange.fileVersion();
     if (this.selectedTable) this.objectChange.versionOf(this.selectedTable.identifier)();
     return this.imageService.getEmptyOr(this.selectedTable ? this.selectedTable.imageIdentifier : '');
   }
 
   get tableDistanceviewImage(): ImageFile {
+    this.objectChange.fileVersion();
     if (this.selectedTable) this.objectChange.versionOf(this.selectedTable.identifier)();
     return this.imageService.getEmptyOr(this.selectedTable ? this.selectedTable.backgroundImageIdentifier : '');
   }

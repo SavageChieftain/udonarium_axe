@@ -223,7 +223,9 @@ export class RangeComponent {
   }
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
-    return this.range().imageFile;
+    const range = this.range();
+    this.objectChange.versionOf(range.identifier)();
+    return range.imageFile;
   });
   get isLock(): boolean {
     return this.range().isLock;

@@ -122,7 +122,9 @@ export class TextNoteComponent {
   }
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
-    return this.textNote().imageFile;
+    const textNote = this.textNote();
+    this.objectChange.versionOf(textNote.identifier)();
+    return textNote.imageFile;
   });
   get rotate(): number {
     return this.textNote().rotate;

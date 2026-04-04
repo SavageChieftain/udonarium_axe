@@ -150,6 +150,7 @@ export class GameCharacterComponent {
     this.objectChange.fileVersion();
     const char = this.gameCharacter();
     if (!char) throw new Error('gameCharacter is not set');
+    this.objectChange.versionOf(char.identifier)();
     return char.imageFile;
   });
   get rotate(): number {

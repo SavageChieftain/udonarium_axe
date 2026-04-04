@@ -98,7 +98,9 @@ export class DiceSymbolComponent {
   }
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
-    return this.imageService.getEmptyOr(this.diceSymbol().imageFile);
+    const diceSymbol = this.diceSymbol();
+    this.objectChange.versionOf(diceSymbol.identifier)();
+    return this.imageService.getEmptyOr(diceSymbol.imageFile);
   });
 
   get isMine(): boolean {

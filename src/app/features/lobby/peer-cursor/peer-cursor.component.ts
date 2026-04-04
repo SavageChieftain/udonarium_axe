@@ -44,6 +44,7 @@ export class PeerCursorComponent {
 
   readonly iconUrl = computed(() => {
     this.objectChange.fileVersion();
+    this.objectChange.versionOf(this.cursor().identifier)();
     return this.cursor().image?.url ?? '';
   });
   get name(): string {

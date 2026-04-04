@@ -169,6 +169,7 @@ export class TerrainComponent {
 
   readonly wallImage = computed(() => {
     this.objectChange.fileVersion();
+    this.objectChange.versionOf(this.terrain().identifier)();
     return this.imageService.getSkeletonOr(this.terrain().wallImage);
   });
   get floorImage(): ImageFile {

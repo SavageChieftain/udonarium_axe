@@ -117,6 +117,7 @@ export class GameTableMaskComponent {
     const mask = this.gameTableMask();
     this.objectChange.fileVersion();
     if (!mask) throw new Error('gameTableMask is not set');
+    this.objectChange.versionOf(mask.identifier)();
     return mask.imageFile;
   });
   get isLock(): boolean {

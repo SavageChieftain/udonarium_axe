@@ -127,7 +127,9 @@ export class CardComponent {
 
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
-    return this.imageService.getSkeletonOr(this.card().imageFile);
+    const card = this.card();
+    this.objectChange.versionOf(card.identifier)();
+    return this.imageService.getSkeletonOr(card.imageFile);
   });
   get frontImage(): ImageFile {
     return this.imageService.getSkeletonOr(this.card().frontImage);

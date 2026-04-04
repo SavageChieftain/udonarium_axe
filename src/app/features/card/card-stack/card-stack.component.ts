@@ -109,7 +109,9 @@ export class CardStackComponent {
   }
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
-    return this.imageService.getSkeletonOr(this.cardStack().imageFile);
+    const cardStack = this.cardStack();
+    this.objectChange.versionOf(cardStack.identifier)();
+    return this.imageService.getSkeletonOr(cardStack.imageFile);
   });
 
   readonly animeState = signal<'active' | 'inactive'>('inactive');
