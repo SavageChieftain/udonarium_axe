@@ -79,7 +79,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
 
     if (reLoadOk) {
       // XMLからの新規作成を許可せず、既存のオブジェクトを更新する
-      for (const child of ChatTabList.instance.children) {
+      for (const child of [...ChatTabList.instance.children]) {
         child.destroy();
       }
 
