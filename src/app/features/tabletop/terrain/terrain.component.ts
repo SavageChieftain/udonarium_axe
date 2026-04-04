@@ -15,13 +15,12 @@ import {
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { Config } from '@axe/domain/peer/config';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
@@ -107,8 +106,8 @@ export class TerrainComponent {
       )
         return;
       this.setGameTableGrid(
-        this.width,
-        this.depth,
+        this.width(),
+        this.depth(),
         this.gridSize,
         this.currentTable.gridType,
         this.currentTable.gridColor
@@ -118,8 +117,8 @@ export class TerrainComponent {
       this.input = new InputHandler(this.elementRef.nativeElement);
       this.input.onStart = (e) => this.onInputStart(e);
       this.setGameTableGrid(
-        this.width,
-        this.depth,
+        this.width(),
+        this.depth(),
         this.gridSize,
         this.currentTable.gridType,
         this.currentTable.gridColor
@@ -141,105 +140,84 @@ export class TerrainComponent {
     return this.tabletopService.currentTable;
   }
 
+  private readonly terrainVersion = computed(() => this.objectChange.versionOf(this.terrain().identifier)());
+
   readonly name = computed(() => {
-    this.objectChange.versionOf(this.terrain().identifier)();
+    this.terrainVersion();
     this.objectChange.versionOf(this.currentTable.identifier)();
     this.objectChange.versionOf(this.tableSelecter.identifier)();
     return this.terrain().name;
   });
-  get mode(): TerrainViewState {
-    return this.terrain().mode;
-  }
-  set mode(mode: TerrainViewState) {
-    this.terrain().mode = mode;
-  }
-
-  get isLocked(): boolean {
+  readonly isLocked = computed(() => {
+    this.terrainVersion();
     return this.terrain().isLocked;
-  }
-  set isLocked(isLocked: boolean) {
-    this.terrain().isLocked = isLocked;
-  }
-  get hasWall(): boolean {
+  });
+  readonly hasWall = computed(() => {
+    this.terrainVersion();
     return this.terrain().hasWall;
-  }
-  get hasFloor(): boolean {
+  });
+  readonly hasFloor = computed(() => {
+    this.terrainVersion();
     return this.terrain().hasFloor;
-  }
+  });
 
   readonly wallImage = computed(() => {
     this.objectChange.fileVersion();
-    this.objectChange.versionOf(this.terrain().identifier)();
+    this.terrainVersion();
     return this.imageService.getSkeletonOr(this.terrain().wallImage);
   });
-  get floorImage(): ImageFile {
+  readonly floorImage = computed(() => {
+    this.objectChange.fileVersion();
+    this.terrainVersion();
     return this.imageService.getSkeletonOr(this.terrain().floorImage);
-  }
+  });
 
-  get height(): number {
+  readonly height = computed(() => {
+    this.terrainVersion();
     return this.adjustMinBounds(this.terrain().height);
-  }
-  get width(): number {
+  });
+  readonly width = computed(() => {
+    this.terrainVersion();
     return this.adjustMinBounds(this.terrain().width);
-  }
-  get depth(): number {
+  });
+  readonly depth = computed(() => {
+    this.terrainVersion();
     return this.adjustMinBounds(this.terrain().depth);
-  }
-  get altitude(): number {
+  });
+  readonly altitude = computed(() => {
+    this.terrainVersion();
     return this.terrain().altitude;
-  }
-  set altitude(altitude: number) {
-    this.terrain().altitude = altitude;
-  }
+  });
 
-  get isDropShadow(): boolean {
+  readonly isDropShadow = computed(() => {
+    this.terrainVersion();
     return this.terrain().isDropShadow;
-  }
-  set isDropShadow(isDropShadow: boolean) {
-    this.terrain().isDropShadow = isDropShadow;
-  }
-
-  get isSurfaceShading(): boolean {
+  });
+  readonly isSurfaceShading = computed(() => {
+    this.terrainVersion();
     return this.terrain().isSurfaceShading;
-  }
-  set isSurfaceShading(isSurfaceShading: boolean) {
-    this.terrain().isSurfaceShading = isSurfaceShading;
-  }
+  });
 
-  get isSlope(): boolean {
+  readonly isSlope = computed(() => {
+    this.terrainVersion();
     return this.terrain().isSlope;
-  }
-  set isSlope(isSlope: boolean) {
-    this.terrain().isSlope = isSlope;
-    if (!isSlope) this.terrain().slopeDirection = SlopeDirection.NONE;
-  }
+  });
+  readonly slopeDirection = computed(() => {
+    this.terrainVersion();
+    const terrain = this.terrain();
+    if (!terrain.isSlope) return SlopeDirection.NONE;
+    if (terrain.slopeDirection === SlopeDirection.NONE) return SlopeDirection.BOTTOM;
+    return terrain.slopeDirection;
+  });
 
-  get slopeDirection(): number {
-    if (!this.terrain().isSlope) return SlopeDirection.NONE;
-    if (this.terrain().isSlope && this.terrain().slopeDirection === SlopeDirection.NONE) return SlopeDirection.BOTTOM;
-    return this.terrain().slopeDirection;
-  }
-  set slopeDirection(slopeDirection: number) {
-    this.terrain().isSlope = slopeDirection != SlopeDirection.NONE;
-    this.terrain().slopeDirection = slopeDirection;
-  }
-
-  get isAltitudeIndicate(): boolean {
+  readonly isAltitudeIndicate = computed(() => {
+    this.terrainVersion();
     return this.terrain().isAltitudeIndicate;
-  }
-  set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.terrain().isAltitudeIndicate = isAltitudeIndicate;
-  }
+  });
 
-  get isVisibleFloor(): boolean {
-    return 0 < this.width * this.depth;
-  }
-  get isVisibleWallTopBottom(): boolean {
-    return 0 < this.width * this.height;
-  }
-  get isVisibleWallLeftRight(): boolean {
-    return 0 < this.depth * this.height;
-  }
+  readonly isVisibleFloor = computed(() => 0 < this.width() * this.depth());
+  readonly isVisibleWallTopBottom = computed(() => 0 < this.width() * this.height());
+  readonly isVisibleWallLeftRight = computed(() => 0 < this.depth() * this.height());
 
   get roomGridDispAlways(): boolean {
     const conf = this.objectStore.get<Config>('Config');
@@ -253,15 +231,15 @@ export class TerrainComponent {
 
   readonly gridSize = 50;
 
-  get isWallExist(): boolean {
-    return !!(this.hasWall && this.wallImage() && this.wallImage().url && this.wallImage().url.length > 0);
-  }
+  readonly isWallExist = computed(
+    () => !!(this.hasWall() && this.wallImage() && this.wallImage().url && this.wallImage().url.length > 0)
+  );
 
-  get terreinAltitude(): number {
-    let ret = this.altitude;
-    if (this.altitude < 0 || (!this.isSlope && !this.isWallExist)) ret += this.height;
+  readonly terreinAltitude = computed(() => {
+    let ret = this.altitude();
+    if (this.altitude() < 0 || (!this.isSlope() && !this.isWallExist())) ret += this.height();
     return ret;
-  }
+  });
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
@@ -281,7 +259,7 @@ export class TerrainComponent {
     this.input?.cancel();
 
     // TODO:もっと良い方法考える
-    if (this.isLocked) {
+    if (this.isLocked()) {
       this.selectionSignalService.notifyDragLocked();
     }
   }
@@ -313,34 +291,34 @@ export class TerrainComponent {
     SoundEffect.play(PresetSound.blockPut);
   }
 
-  get floorModCss() {
+  readonly floorModCss = computed(() => {
     let ret = '';
     let tmp: number;
-    switch (this.slopeDirection) {
+    switch (this.slopeDirection()) {
       case SlopeDirection.TOP:
-        tmp = Math.atan(this.height / this.depth);
+        tmp = Math.atan(this.height() / this.depth());
         ret = ' rotateX(' + tmp + 'rad) scaleY(' + 1 / Math.cos(tmp) + ')';
         break;
       case SlopeDirection.BOTTOM:
-        tmp = Math.atan(this.height / this.depth);
+        tmp = Math.atan(this.height() / this.depth());
         ret = ' rotateX(' + -tmp + 'rad) scaleY(' + 1 / Math.cos(tmp) + ')';
         break;
       case SlopeDirection.LEFT:
-        tmp = Math.atan(this.height / this.width);
+        tmp = Math.atan(this.height() / this.width());
         ret = ' rotateY(' + -tmp + 'rad) scaleX(' + 1 / Math.cos(tmp) + ')';
         break;
       case SlopeDirection.RIGHT:
-        tmp = Math.atan(this.height / this.width);
+        tmp = Math.atan(this.height() / this.width());
         ret = ' rotateY(' + tmp + 'rad) scaleX(' + 1 / Math.cos(tmp) + ')';
         break;
     }
     return ret;
-  }
+  });
 
-  get floorBrightness() {
+  readonly floorBrightness = computed(() => {
     let ret = 1.0;
-    if (!this.isSurfaceShading) return ret;
-    switch (this.slopeDirection) {
+    if (!this.isSurfaceShading()) return ret;
+    switch (this.slopeDirection()) {
       case SlopeDirection.TOP:
         ret = 0.4;
         break;
@@ -355,7 +333,7 @@ export class TerrainComponent {
         break;
     }
     return ret;
-  }
+  });
 
   private adjustMinBounds(value: number, min: number = 0): number {
     return value < min ? min : value;
