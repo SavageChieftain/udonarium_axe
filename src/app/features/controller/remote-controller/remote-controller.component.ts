@@ -23,7 +23,6 @@ import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { ControllerInputComponent } from '@axe/features/controller/controller-input/controller-input.component';
 import {
   addBuffRound,
@@ -447,8 +446,14 @@ export class RemoteControllerComponent {
       height: 300,
     };
     option.title = gameCharacter.name + 'のバフ編集';
-    const component = this.panelService.open(GameCharacterBuffViewComponent, option);
-    component.character.set(gameCharacter);
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-buff-view/game-character-buff-view.component').then(
+          (m) => m.GameCharacterBuffViewComponent
+        ),
+      option,
+      (component) => component.character.set(gameCharacter)
+    );
   }
 
   allBoxCheck(value: { check: boolean }) {

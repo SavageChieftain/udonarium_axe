@@ -1,8 +1,8 @@
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
 export interface MaskMenuParams {

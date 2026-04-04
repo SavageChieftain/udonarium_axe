@@ -16,13 +16,10 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { AlarmMenuComponent } from '@axe/features/alarm/alarm-menu/alarm-menu.component';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
 import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
-import { DiceTableSettingComponent } from '@axe/features/dice/dice-table-setting/dice-table-setting.component';
-import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -213,19 +210,31 @@ export class ChatWindowComponent {
   showDiceTableSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x + 50, top: coordinate.y - 450, width: 650, height: 400 };
-    this.panelService.open<DiceTableSettingComponent>(DiceTableSettingComponent, option);
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/dice/dice-table-setting/dice-table-setting.component').then(
+          (m) => m.DiceTableSettingComponent
+        ),
+      option
+    );
   }
 
   showVoteMenu() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x + 50, top: coordinate.y - 450, width: 650, height: 400 };
-    this.panelService.open<VoteMenuComponent>(VoteMenuComponent, option);
+    this.panelService.openLazy(
+      () => import('@axe/features/vote/vote-menu/vote-menu.component').then((m) => m.VoteMenuComponent),
+      option
+    );
   }
 
   showAlarmMenu() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x + 50, top: coordinate.y - 450, width: 650, height: 400 };
-    this.panelService.open<AlarmMenuComponent>(AlarmMenuComponent, option);
+    this.panelService.openLazy(
+      () => import('@axe/features/alarm/alarm-menu/alarm-menu.component').then((m) => m.AlarmMenuComponent),
+      option
+    );
   }
 
   checkTargetCharacter(text: string): boolean {

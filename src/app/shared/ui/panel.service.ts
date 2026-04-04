@@ -68,6 +68,18 @@ export class PanelService {
     return bodyComponentRef.instance as T;
   }
 
+  openLazy<T>(
+    factory: () => Promise<Type<T>>,
+    option?: PanelOption,
+    setup?: (instance: T) => void,
+    parentViewContainerRef?: ViewContainerRef
+  ): void {
+    factory().then((childComponent) => {
+      const instance = this.open(childComponent, option, parentViewContainerRef);
+      setup?.(instance);
+    });
+  }
+
   private applyPanelOption(
     panelComponentRef: ComponentRef<UIPanelInstance>,
     childPanelService: PanelService,

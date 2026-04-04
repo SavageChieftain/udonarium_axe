@@ -20,7 +20,6 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
 import {
   ClipAreaCorn,
@@ -31,8 +30,6 @@ import {
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -41,6 +38,8 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
@@ -403,8 +402,14 @@ export class RangeComponent {
       width: 400,
       height: 300,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 
   private setRange() {

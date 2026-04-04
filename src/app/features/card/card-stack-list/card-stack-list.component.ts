@@ -4,7 +4,6 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { callShuffleCardStack } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -107,8 +106,14 @@ export class CardStackListComponent {
       width: 600,
       height: 600,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 
   trackByCard(index: number, card: Card) {

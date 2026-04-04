@@ -17,7 +17,6 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -356,7 +355,13 @@ export class TextNoteComponent {
       width: 700,
       height: 400,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 }

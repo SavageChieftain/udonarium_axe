@@ -20,12 +20,12 @@ import {
   getTrumpCardCodes,
   TERRAIN_TEXTURE_PATH,
   TRUMP_BACK_IMAGE_PATH,
-} from '@axe/features/tabletop/tabletop-action-helpers';
-import { initAprilDiceImages } from '@axe/features/tabletop/tabletop-default-dice';
+} from '@axe/shared/tabletop/tabletop-action-helpers';
+import { initAprilDiceImages } from '@axe/shared/tabletop/tabletop-default-dice';
 import {
   makeDefaultTable as _makeDefaultTable,
   makeDefaultTabletopObjects as _makeDefaultTabletopObjects,
-} from '@axe/features/tabletop/tabletop-default-setup';
+} from '@axe/shared/tabletop/tabletop-default-setup';
 import { ContextMenuAction } from '@axe/shared/ui/context-menu.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 

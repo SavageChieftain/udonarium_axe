@@ -7,9 +7,9 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 

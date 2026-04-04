@@ -20,8 +20,6 @@ import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -29,6 +27,7 @@ import { RotableOption } from '@axe/shared/directives/rotable.directive';
 import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
@@ -332,7 +331,13 @@ export class CardComponent {
       width: 600,
       height: 600,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 }

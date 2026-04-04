@@ -22,10 +22,7 @@ import { Config } from '@axe/domain/peer/config';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -35,6 +32,8 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
@@ -373,8 +372,14 @@ export class TerrainComponent {
       width: 600,
       height: 300,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 
   private setGameTableGrid(

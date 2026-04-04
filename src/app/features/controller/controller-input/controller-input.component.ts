@@ -27,7 +27,6 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { callWritingAMessage } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -208,8 +207,14 @@ export class ControllerInputComponent {
         width: 300,
         height: 120,
       };
-      const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
-      component.tabletopObject = object;
+      this.panelService.openLazy(
+        () =>
+          import('@axe/features/chat/chat-color-setting/chat-color-setting.component').then(
+            (m) => m.ChatColorSettingComponent
+          ),
+        option,
+        (component) => (component.tabletopObject = object)
+      );
     }
   }
 

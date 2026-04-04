@@ -18,7 +18,6 @@ import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { callRollDiceSymbol } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { buildDiceSymbolContextMenu } from '@axe/features/dice/dice-symbol/dice-symbol-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -259,8 +258,14 @@ export class DiceSymbolComponent {
       width: 600,
       height: 600,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 
   private startIconHiddenTimer() {

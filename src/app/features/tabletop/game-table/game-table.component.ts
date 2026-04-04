@@ -23,20 +23,19 @@ import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.com
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
-import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
-import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
-import { TabletopService } from '@axe/features/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
@@ -47,6 +46,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-table',
   templateUrl: './game-table.component.html',
   styleUrls: ['./game-table.component.css'],
+  providers: [GameTableGestureService],
   imports: [
     NgClass,
     TerrainComponent,
@@ -83,18 +83,12 @@ export class GameTableComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
     effect(() => {
       this.selectionSignalService.dragLockedVersion();
-      if (!this.gridCanvas) return;
-      this.isTableTransformMode = true;
-      this.pointerDeviceService.isDragging = false;
-      let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
-      if (this.roomGridDispAlways) {
-        opacity = 1.0;
-      }
-      this.gridCanvas().nativeElement.style.opacity = opacity + '';
+      this.gestureService.cancelInput();
     });
     effect(() => {
       const focus = this.selectionSignalService.focusCoordinate();
@@ -104,24 +98,20 @@ export class GameTableComponent {
         setTimeout(() => {
           this.gameTable().nativeElement.style.transition = '';
         }, 100);
-        // 座標変換
         const centerX = this.gridCanvas().nativeElement.clientWidth / 2;
         const centerY = this.gridCanvas().nativeElement.clientHeight / 2;
         const movedX = focus.x - centerX;
         const movedY = focus.y - centerY;
-        // z軸回転
-        const rotateZRad = (this.viewRotateZ / 180) * Math.PI;
+        const rotateZRad = (this.gestureService.viewRotateZ / 180) * Math.PI;
         const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
         const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
-        // x軸回転
-        const rotateXRad = (this.viewRotateX / 180) * Math.PI;
+        const rotateXRad = (this.gestureService.viewRotateX / 180) * Math.PI;
         const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
         const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
-        // 移動
-        this.setTransform(
-          100 - rotatedMovedX - this.viewPositionX,
-          -rotatedMovedY - this.viewPositionY,
-          -rotatedMovedZ - this.viewPositionZ,
+        this.gestureService.setTransform(
+          100 - rotatedMovedX - this.gestureService.viewPositionX,
+          -rotatedMovedY - this.gestureService.viewPositionY,
+          -rotatedMovedZ - this.gestureService.viewPositionZ,
           0,
           0,
           0
@@ -145,9 +135,15 @@ export class GameTableComponent {
     this.tabletopActionService.initAprilDiceImage();
 
     afterNextRender(() => {
-      this.initializeTableTouchGesture();
-      this.initializeTableMouseGesture();
-      this.cancelInput();
+      this.gestureService.initialize(
+        this.rootElementRef().nativeElement,
+        this.gameTable().nativeElement,
+        this.gameObjects().nativeElement,
+        this.gridCanvas().nativeElement,
+        () => this.tableSelecter.gridShow,
+        () => this.roomGridDispAlways
+      );
+      this.gestureService.cancelInput();
 
       this.setGameTableGrid(
         this.currentTable.width,
@@ -156,13 +152,8 @@ export class GameTableComponent {
         this.currentTable.gridType,
         this.currentTable.gridColor
       );
-      this.setTransform(0, 0, 0, 0, 0, 0);
+      this.gestureService.setTransform(0, 0, 0, 0, 0, 0);
       this.coordinateService.tabletopOriginElement = this.gameObjects().nativeElement;
-    });
-
-    this.destroyRef.onDestroy(() => {
-      if (this.mouseGesture) this.mouseGesture.destroy();
-      if (this.touchGesture) this.touchGesture.destroy();
     });
   }
 
@@ -203,23 +194,9 @@ export class GameTableComponent {
     if (conf) conf.roomGridDispAlways = disp;
   }
 
-  private isTableTransformMode: boolean = false;
-  private isTableTransformed: boolean = false;
-
   get isPointerDragging(): boolean {
     return this.pointerDeviceService.isDragging;
   }
-
-  private viewPositionX: number = 100;
-  private viewPositionY: number = 0;
-  private viewPositionZ: number = 0;
-
-  private viewRotateX: number = 50;
-  private viewRotateY: number = 0;
-  private viewRotateZ: number = 10;
-
-  private mouseGesture: TableMouseGesture | null = null;
-  private touchGesture: TableTouchGesture | null = null;
   readonly characters = computed(() => {
     this.objectChangeService.collectionOf('character')();
     return this.tabletopService.characters;
@@ -261,124 +238,6 @@ export class GameTableComponent {
     return this.tabletopService.peerCursors;
   });
 
-  initializeTableTouchGesture() {
-    this.touchGesture = new TableTouchGesture(this.rootElementRef().nativeElement);
-    this.touchGesture.onstart = () => this.onTableTouchStart();
-    this.touchGesture.onend = () => this.onTableTouchEnd();
-    this.touchGesture.ongesture = () => this.onTableTouchGesture();
-    this.touchGesture.ontransform = (tX, tY, tZ, rX, rY, rZ, ev, src) =>
-      this.onTableTouchTransform(tX, tY, tZ, rX, rY, rZ, ev, src);
-  }
-
-  initializeTableMouseGesture() {
-    this.mouseGesture = new TableMouseGesture(this.rootElementRef().nativeElement);
-    this.mouseGesture.onstart = (e) => this.onTableMouseStart(e);
-    this.mouseGesture.onend = (e) => this.onTableMouseEnd(e);
-    this.mouseGesture.ontransform = (tX, tY, tZ, rX, rY, rZ, ev, src) =>
-      this.onTableMouseTransform(tX, tY, tZ, rX, rY, rZ, ev, src);
-  }
-
-  onTableTouchStart() {
-    this.mouseGesture?.cancel();
-  }
-
-  onTableTouchEnd() {
-    this.cancelInput();
-  }
-
-  onTableTouchGesture() {
-    this.cancelInput();
-  }
-
-  onTableTouchTransform(
-    transformX: number,
-    transformY: number,
-    transformZ: number,
-    rotateX: number,
-    rotateY: number,
-    rotateZ: number,
-    event: TableTouchGestureEvent,
-    srcEvent: TouchEvent | MouseEvent | PointerEvent
-  ) {
-    if (!this.isTableTransformMode || document.body !== document.activeElement) return;
-
-    if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
-      this.contextMenuService.close();
-    }
-
-    if (srcEvent.cancelable) srcEvent.preventDefault();
-
-    //
-    const scale = (1000 + Math.abs(this.viewPositionZ)) / 1000;
-    transformX *= scale;
-    transformY *= scale;
-    if (80 < rotateX + this.viewRotateX) rotateX += 80 - (rotateX + this.viewRotateX);
-    if (rotateX + this.viewRotateX < 0) rotateX += 0 - (rotateX + this.viewRotateX);
-    if (750 < transformZ + this.viewPositionZ) transformZ += 750 - (transformZ + this.viewPositionZ);
-
-    this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
-    this.isTableTransformed = true;
-  }
-
-  onTableMouseStart(e: TouchEvent | MouseEvent | PointerEvent) {
-    const me = e as MouseEvent;
-    if ((me.target as HTMLElement).contains(this.gameObjects().nativeElement) || me.button === 1 || me.button === 2) {
-      this.isTableTransformMode = true;
-    } else {
-      this.isTableTransformMode = false;
-      this.pointerDeviceService.isDragging = true;
-      this.gridCanvas().nativeElement.style.opacity = 1.0 + '';
-      this.uiSignalService.notifyTerrainGridShow();
-    }
-    if (!document.activeElement?.contains(me.target as Node)) {
-      this.removeSelectionRanges();
-      this.removeFocus();
-    }
-  }
-
-  onTableMouseEnd(_e: TouchEvent | MouseEvent | PointerEvent) {
-    this.cancelInput();
-    this.uiSignalService.notifyTerrainGridEnd();
-  }
-
-  onTableMouseTransform(
-    transformX: number,
-    transformY: number,
-    transformZ: number,
-    rotateX: number,
-    rotateY: number,
-    rotateZ: number,
-    event: TableMouseGestureEvent,
-    srcEvent: TouchEvent | MouseEvent | PointerEvent | KeyboardEvent
-  ) {
-    if (!this.isTableTransformMode || document.body !== document.activeElement) return;
-
-    if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
-      this.contextMenuService.close();
-    }
-
-    if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
-
-    //
-    const scale = (1000 + Math.abs(this.viewPositionZ)) / 1000;
-    transformX *= scale;
-    transformY *= scale;
-
-    this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
-    this.isTableTransformed = true;
-  }
-
-  cancelInput() {
-    this.mouseGesture?.cancel();
-    this.isTableTransformMode = true;
-    this.pointerDeviceService.isDragging = false;
-    let opacity: number = this.tableSelecter.gridShow ? 1.0 : 0.0;
-    if (this.roomGridDispAlways) {
-      opacity = 1.0;
-    }
-    this.gridCanvas().nativeElement.style.opacity = opacity + '';
-  }
-
   onContextMenu(e: MouseEvent) {
     if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;
     e.preventDefault();
@@ -400,38 +259,16 @@ export class GameTableComponent {
     this.contextMenuService.open(menuPosition, menuActions, this.currentTable.name);
   }
   onDocumentMouseDown(_e: MouseEvent) {
-    this.isTableTransformed = false;
+    this.gestureService.isTableTransformed = false;
   }
 
   onDocumentTouchStart(_e: TouchEvent) {
-    this.isTableTransformed = false;
+    this.gestureService.isTableTransformed = false;
   }
 
   onDocumentContextMenu(e: MouseEvent) {
-    if (this.isTableTransformed && !this.pointerDeviceService.isAllowedToOpenContextMenu) e.preventDefault();
-  }
-
-  private setTransform(
-    transformX: number,
-    transformY: number,
-    transformZ: number,
-    rotateX: number,
-    rotateY: number,
-    rotateZ: number
-  ) {
-    this.viewRotateX += rotateX;
-    this.viewRotateY += rotateY;
-    this.viewRotateZ += rotateZ;
-
-    this.viewPositionX += transformX;
-    this.viewPositionY += transformY;
-    this.viewPositionZ += transformZ;
-
-    if (rotateX !== 0 || rotateY !== 0 || rotateZ !== 0) {
-      this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
-    }
-
-    this.gameTable().nativeElement.style.transform = `translateZ(${this.viewPositionZ.toFixed(4)}px) translateY(${this.viewPositionY.toFixed(4)}px) translateX(${this.viewPositionX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;
+    if (this.gestureService.isTableTransformed && !this.pointerDeviceService.isAllowedToOpenContextMenu)
+      e.preventDefault();
   }
 
   private setGameTableGrid(
@@ -455,18 +292,5 @@ export class GameTableComponent {
       }
       this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });
-  }
-
-  private removeSelectionRanges() {
-    const selection = window.getSelection();
-    if (!selection?.isCollapsed) {
-      selection?.removeAllRanges();
-    }
-  }
-
-  private removeFocus() {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
   }
 }

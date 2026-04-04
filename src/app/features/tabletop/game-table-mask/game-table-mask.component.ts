@@ -18,16 +18,15 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
 import { buildMaskCss, buildScratchingGridInfos } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
-import { TabletopActionService } from '@axe/features/tabletop/tabletop-action.service';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
@@ -517,8 +516,14 @@ export class GameTableMaskComponent {
       width: 400,
       height: 300,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 
   identify(index: number, item: { identifier?: string } | null): string | number {

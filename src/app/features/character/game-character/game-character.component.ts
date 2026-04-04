@@ -20,8 +20,6 @@ import { buildGameCharacterContextMenu } from '@axe/features/character/game-char
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
-import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
-import { RemoteControllerComponent } from '@axe/features/controller/remote-controller/remote-controller.component';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -319,8 +317,11 @@ export class GameCharacterComponent {
       width: 615,
       height: 350,
     };
-    const component = this.panelService.open<ChatPaletteComponent>(ChatPaletteComponent, option);
-    component.character.set(gameObject);
+    this.panelService.openLazy(
+      () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
+      option,
+      (component) => component.character.set(gameObject)
+    );
   }
 
   private showRemoteController(gameObject: GameCharacter) {
@@ -331,8 +332,14 @@ export class GameCharacterComponent {
       width: 700,
       height: 600,
     };
-    const component = this.panelService.open<RemoteControllerComponent>(RemoteControllerComponent, option);
-    component.character = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/controller/remote-controller/remote-controller.component').then(
+          (m) => m.RemoteControllerComponent
+        ),
+      option,
+      (component) => (component.character = gameObject)
+    );
   }
 
   private showBuffEdit(gameObject: GameCharacter) {

@@ -10,9 +10,6 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
-import { RemoteControllerComponent } from '@axe/features/controller/remote-controller/remote-controller.component';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -368,8 +365,14 @@ export class GameObjectInventoryComponent {
       width: 800,
       height: 600,
     };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
+          (m) => m.GameCharacterSheetComponent
+        ),
+      option,
+      (component) => (component.tabletopObject = gameObject)
+    );
   }
 
   private showChatPalette(gameObject: GameCharacter) {
@@ -380,8 +383,11 @@ export class GameObjectInventoryComponent {
       width: 615,
       height: 350,
     };
-    const component = this.panelService.open<ChatPaletteComponent>(ChatPaletteComponent, option);
-    component.character.set(gameObject);
+    this.panelService.openLazy(
+      () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
+      option,
+      (component) => component.character.set(gameObject)
+    );
   }
 
   private showRemoteController(gameObject: GameCharacter) {
@@ -392,8 +398,14 @@ export class GameObjectInventoryComponent {
       width: 700,
       height: 600,
     };
-    const component = this.panelService.open<RemoteControllerComponent>(RemoteControllerComponent, option);
-    component.character = gameObject;
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/controller/remote-controller/remote-controller.component').then(
+          (m) => m.RemoteControllerComponent
+        ),
+      option,
+      (component) => (component.character = gameObject)
+    );
   }
 
   protected focusToObject(e: Event, gameObject: TabletopObject) {
