@@ -86,6 +86,16 @@ export class ChatWindowComponent {
     this.objectChange.collectionOf('chat-tab')();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier) ?? null;
   });
+
+  /** 全タブの unreadLength 変化に反応させるための computed signal。
+   *  collectionOf('chat-tab') でタブ追加/削除、versionOf(tab.identifier) でメッセージ追加を検知する。 */
+  readonly chatTabsVersion = computed(() => {
+    this.objectChange.collectionOf('chat-tab')();
+    const tabs = this.chatMessageService.chatTabs;
+    for (const tab of tabs) this.objectChange.versionOf(tab.identifier)();
+    return tabs;
+  });
+
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
@@ -168,6 +178,7 @@ export class ChatWindowComponent {
     if (this.scrollToBottomTimer != null) return;
     this.scrollToBottomTimer = setTimeout(() => {
       this.chatTab()?.markForRead();
+      this.objectChange.notifyChanged(this.chatTabidentifier);
       this.scrollToBottomTimer = null;
       this.isAutoScroll = false;
       if (this.panelService.scrollablePanel) {

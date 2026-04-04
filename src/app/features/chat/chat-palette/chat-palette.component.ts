@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -82,6 +83,14 @@ export class ChatPaletteComponent {
 
   readonly isEdit = signal(false);
   readonly editPalette = signal('');
+
+  /** 全タブの unreadLength 変化に反応させるための computed signal。 */
+  readonly chatTabsVersion = computed(() => {
+    this.objectChange.collectionOf('chat-tab')();
+    const tabs = this.chatMessageService.chatTabs;
+    for (const tab of tabs) this.objectChange.versionOf(tab.identifier)();
+    return tabs;
+  });
 
   private doubleClickTimer: NodeJS.Timeout | null = null;
   get diceBotInfos() {

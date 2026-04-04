@@ -27,7 +27,7 @@
       <chat-portrait [chatTabidentifier]="chatTabidentifier"></chat-portrait>
       <!-- entyu end -->
       <div class="chat-tab">
-        @for (chatTab of chatMessageService.chatTabs; track trackByChatTab($index, chatTab)) {
+        @for (chatTab of chatTabsVersion(); track trackByChatTab($index, chatTab)) {
           <label>
             <input
               name="chat-tab"
