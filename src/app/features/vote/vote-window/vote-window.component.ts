@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -26,11 +26,12 @@ export class VoteWindowComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private timestamp = 0;
-  get vote(): Vote {
+  readonly vote = computed(() => {
+    this.objectChange.versionOf('Vote')();
     return this.objectStore.get<Vote>('Vote')!;
-  }
+  });
   get answerList(): number[] {
-    return this.vote.voteAnswer;
+    return this.vote().voteAnswer;
   }
 
   numberOfVote(index: number): number {
@@ -43,36 +44,41 @@ export class VoteWindowComponent {
   }
 
   isMyVoteEnd(): boolean {
-    return this.vote.isVoteEnd(PeerCursor.myCursor.peerId);
+    return this.vote().isVoteEnd(PeerCursor.myCursor.peerId);
   }
 
   voteSend(choice: string) {
-    this.vote.voting(choice, PeerCursor.myCursor.peerId);
-    let text = this.vote.isRollCall ? '点呼：' : '投票：';
-    text += choice + '(' + this.vote.votedTotalNum() + '/' + this.answerList.length + ')';
+    this.vote().voting(choice, PeerCursor.myCursor.peerId);
+    let text = this.vote().isRollCall ? '点呼：' : '投票：';
+    text += choice + '(' + this.vote().votedTotalNum() + '/' + this.answerList.length + ')';
     this.chatMessageService.sendSystemMessageLastSendCharactor(text);
   }
 
   constructor() {
-    this.timestamp = this.vote.initTimeStamp;
+    this.timestamp = this.vote().initTimeStamp;
     this.objectChange.endOldVote$.subscribe(() => {
-      if (this.timestamp != this.vote.initTimeStamp) {
+      if (this.timestamp != this.vote().initTimeStamp) {
         this.panelService.close();
       }
     }, this.destroyRef);
 
     this.objectChange.objectChanged$.subscribe((event) => {
-      if (event.identifier !== this.vote.identifier) return;
-      if (this.timestamp !== this.vote.initTimeStamp) return;
-      if (!this.vote.isFinish) return;
+      if (event.identifier !== this.vote().identifier) return;
+      if (this.timestamp !== this.vote().initTimeStamp) return;
+      if (!this.vote().isFinish) return;
       this.panelService.close();
     }, this.destroyRef);
 
     this.destroyRef.onDestroy(() => {
-      if (this.vote && !this.isMyVoteEnd() && this.timestamp == this.vote.initTimeStamp) {
-        this.vote.voting(null, PeerCursor.myCursor.peerId);
-        let text = this.vote.isRollCall ? '点呼：' : '投票：';
-        text += '棄権しました' + '(' + this.vote.votedTotalNum() + '/' + this.answerList.length + ')';
+      const currentVote = this.objectStore.get<Vote>('Vote');
+      if (
+        currentVote &&
+        !currentVote.isVoteEnd(PeerCursor.myCursor?.peerId ?? '') &&
+        this.timestamp == currentVote.initTimeStamp
+      ) {
+        currentVote.voting(null, PeerCursor.myCursor?.peerId ?? null);
+        let text = currentVote.isRollCall ? '点呼：' : '投票：';
+        text += '棄権しました' + '(' + currentVote.votedTotalNum() + '/' + currentVote.voteAnswer.length + ')';
         this.chatMessageService.sendSystemMessageLastSendCharactor(text);
       }
     });

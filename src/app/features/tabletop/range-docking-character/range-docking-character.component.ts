@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -28,7 +28,7 @@ export class RangeDockingCharacterComponent {
 
   tabletopObject: RangeArea | null = null;
 
-  sendFrom: string = '';
+  readonly sendFrom = signal('');
 
   readonly gameCharacters = computed(() => {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
@@ -36,7 +36,7 @@ export class RangeDockingCharacterComponent {
   });
 
   constructor() {
-    this.sendFrom = this.gameCharacters().length >= 1 ? this.gameCharacters()[0].identifier : '';
+    this.sendFrom.set(this.gameCharacters().length >= 1 ? this.gameCharacters()[0].identifier : '');
   }
 
   private allowsChat(gameCharacter: GameCharacter): boolean {
@@ -50,26 +50,29 @@ export class RangeDockingCharacterComponent {
     }
   }
 
-  get imageFile(): ImageFile {
-    const object = this.objectStore.get(this.sendFrom);
+  readonly imageFile = computed((): ImageFile => {
+    this.objectChange.fileVersion();
+    this.objectChange.versionOf(this.sendFrom())();
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       const image = this.imageStorage.get(object.imageDataElement?.children[0]?.value as string);
       return image ? image : ImageFile.Empty;
     }
     return ImageFile.Empty;
-  }
+  });
 
-  get selectCharacterTachieNum() {
-    const object = this.objectStore.get(this.sendFrom);
+  readonly selectCharacterTachieNum = computed((): number => {
+    this.objectChange.versionOf(this.sendFrom())();
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       return object.imageDataElement?.children.length ?? 0;
     }
     return 0;
-  }
+  });
 
   followring() {
     if (!this.tabletopObject) return;
-    const object = this.objectStore.get(this.sendFrom);
+    const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
         SoundEffect.play(PresetSound.lock);

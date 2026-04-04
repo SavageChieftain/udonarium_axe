@@ -23,6 +23,6 @@ describe('CutInBgmComponent', () => {
   });
 
   it('audiosが配列を返すこと', () => {
-    expect(Array.isArray(component.audios)).toBe(true);
+    expect(Array.isArray(component.audios())).toBe(true);
   });
 });

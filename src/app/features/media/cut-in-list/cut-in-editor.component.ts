@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -12,6 +11,7 @@ import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.com
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { OpenUrlComponent } from '@axe/shared/components/open-url/open-url.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
+import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 
 @Component({
@@ -26,6 +26,7 @@ export class CutInEditorComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly imageStorage = inject(ImageStorage);
   private readonly audioStorage = inject(AudioStorage);
+  private readonly objectChange = inject(ObjectChangeService);
 
   readonly cutIn = input<CutIn | null>(null);
   readonly isEditable = input(false);
@@ -45,16 +46,19 @@ export class CutInEditorComponent {
     return this.isEditable();
   }
 
-  get cutInImage(): ImageFile {
-    if (!this.c) return ImageFile.Empty;
-    const file = this.imageStorage.get(this.c.imageIdentifier);
+  readonly cutInImage = computed(() => {
+    this.objectChange.fileVersion();
+    const c = this.cutIn();
+    if (!c) return ImageFile.Empty;
+    const file = this.imageStorage.get(c.imageIdentifier);
     return file ? file : ImageFile.Empty;
-  }
+  });
 
-  get cutInImageUrl(): string {
-    if (!this.c) return ImageFile.Empty.url;
-    return !this.c.videoId ? this.cutInImage.url : `https://img.youtube.com/vi/${this.c.videoId}/hqdefault.jpg`;
-  }
+  readonly cutInImageUrl = computed(() => {
+    const c = this.cutIn();
+    if (!c) return ImageFile.Empty.url;
+    return !c.videoId ? this.cutInImage().url : `https://img.youtube.com/vi/${c.videoId}/hqdefault.jpg`;
+  });
 
   get cutInName(): string {
     if (!this.c) return '';
@@ -216,9 +220,10 @@ export class CutInEditorComponent {
     if (this.editable && this.c) this.c.audioIdentifier = cutInAudioIdentifier;
   }
 
-  get audios(): AudioFile[] {
+  readonly audios = computed(() => {
+    this.objectChange.fileVersion();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
-  }
+  });
 
   get minSizeWidth(): number {
     if (this.c) this._minSizeWidth = this.c.minSizeWidth(this.isYouTubeCutIn());

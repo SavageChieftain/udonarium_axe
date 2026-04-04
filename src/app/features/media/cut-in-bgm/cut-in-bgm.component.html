@@ -1,5 +1,5 @@
 <div>
-  @for (audio of audios; track audio.identifier) {
+  @for (audio of audios(); track audio.identifier) {
     <div class="box">
       <button (click)="selectBgm(audio)">登録</button>
       @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
@@ -14,7 +14,7 @@
       <span>{{ audio.name }}</span>
     </div>
   }
-  @if (!audios.length) {
+  @if (!audios().length) {
     <div>音楽がアップロードされていません。</div>
   }
 </div>

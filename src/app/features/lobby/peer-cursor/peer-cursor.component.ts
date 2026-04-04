@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
@@ -41,9 +42,10 @@ export class PeerCursorComponent {
   readonly opacityElementRef = viewChild<ElementRef>('opacity');
   readonly cursor = input(PeerCursor.myCursor);
 
-  get iconUrl(): string {
+  readonly iconUrl = computed(() => {
+    this.objectChange.fileVersion();
     return this.cursor().image?.url ?? '';
-  }
+  });
   get name(): string {
     return this.cursor().name;
   }

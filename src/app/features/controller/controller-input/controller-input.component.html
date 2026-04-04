@@ -1,8 +1,8 @@
 <div class="table" [ngClass]="{ 'direct-message': isDirect }">
   <div class="table">
     <div class="table-cell imagebox">
-      @if (0 < imageFile.url.length) {
-        <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
+      @if (0 < imageFile().url.length) {
+        <img class="image" [src]="imageFile().url | safe: 'resourceUrl'" />
       }
     </div>
     <div class="table-cell">
@@ -52,7 +52,7 @@
 
       <!-- 立ち絵ここから-->
       <div class="tachie-tag">
-        @if (1 >= selectCharacterTachieNum) {
+        @if (1 >= selectCharacterTachieNum()) {
           <input
             type="range"
             [style]="
@@ -62,11 +62,12 @@
             min="0"
             max="0"
             name="tachie-num"
-            [(ngModel)]="tachieNum"
+            [ngModel]="tachieNum()"
+            (ngModelChange)="setTachieNum($event)"
           />
           0/0 立ち絵
         }
-        @if (1 < selectCharacterTachieNum) {
+        @if (1 < selectCharacterTachieNum()) {
           <input
             type="range"
             [style]="
@@ -74,12 +75,13 @@
                 | safe: 'style'
             "
             min="0"
-            max="{{ selectCharacterTachieNum - 1 }}"
+            max="{{ selectCharacterTachieNum() - 1 }}"
             name="tachie-num"
-            [(ngModel)]="tachieNum"
+            [ngModel]="tachieNum()"
+            (ngModelChange)="setTachieNum($event)"
           />
-          {{ tachieNum }}/{{ selectCharacterTachieNum - 1 }} 立ち絵
-          @if (selectCharacterTachie; as tachie) {
+          {{ tachieNum() }}/{{ selectCharacterTachieNum() - 1 }} 立ち絵
+          @if (selectCharacterTachie(); as tachie) {
             @if (tachie.currentValue) {
               {{ tachie.currentValue }}
             }

@@ -2,13 +2,13 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
   viewChild,
 } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
-import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -110,9 +110,10 @@ export class CutInWindowComponent {
   private _naturalWidth = 0;
   private _naturalHeight = 0;
 
-  get audios(): AudioFile[] {
+  readonly audios = computed(() => {
+    this.objectChange.fileVersion();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
-  }
+  });
   get cutInLauncher(): CutInLauncher {
     return this.objectStore.get<CutInLauncher>('CutInLauncher')!;
   }

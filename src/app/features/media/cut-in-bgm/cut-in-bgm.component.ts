@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -24,10 +24,10 @@ export class CutInBgmComponent {
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
 
-  get audios(): AudioFile[] {
-    this.objectChange.networkVersion();
+  readonly audios = computed(() => {
+    this.objectChange.fileVersion();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
-  }
+  });
   get jukebox(): Jukebox {
     return this.objectStore.get<Jukebox>('Jukebox')!;
   }

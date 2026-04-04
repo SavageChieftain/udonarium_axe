@@ -1,6 +1,6 @@
 <div class="component">
   <ng-container *ngTemplateOutlet="voteTop"></ng-container>
-  @for (target of vote.targetPeerId; track target) {
+  @for (target of vote().targetPeerId; track target) {
     <div style="font-size: 15px" [ngClass]="{ box: true }">
       <ng-container *ngTemplateOutlet="voteAnswers; context: { target: target }"></ng-container>
     </div>
@@ -11,16 +11,16 @@
   <form class="is-sticky-top" name="vote-window">
     <div class="tab">
       <div>
-        {{ vote.voteTitle }}
+        {{ vote().voteTitle }}
       </div>
       <div>
-        投票数:{{ vote.votedTotalNum() }}/{{ vote.voteAnswer.length }} (棄権：{{ vote.votedNumByIndex(-2) }})<span
+        投票数:{{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }} (棄権：{{ vote().votedNumByIndex(-2) }})<span
           style="font-size: 12px"
           >※投票前に閉じると棄権</span
         >
       </div>
       <div>
-        @for (choice of vote.choices; track choice) {
+        @for (choice of vote().choices; track choice) {
           <ng-container style="font-size: 15px">
             <button
               type="button"
@@ -29,7 +29,7 @@
               id="{{ choice }}"
               [attr.disabled]="isMyVoteEnd() ? '' : null"
             >
-              {{ choice }}:{{ vote.votedNumByChoice(choice) }}人
+              {{ choice }}:{{ vote().votedNumByChoice(choice) }}人
             </button>
           </ng-container>
         }
@@ -70,14 +70,14 @@
         </div>
       </div>
       <div class="table-cell message">
-        @if (vote.voteAnswerByPeerId(target) === -1) {
+        @if (vote().voteAnswerByPeerId(target) === -1) {
           未投票
         }
-        @if (vote.voteAnswerByPeerId(target) === -2) {
+        @if (vote().voteAnswerByPeerId(target) === -2) {
           棄権
         }
-        @if (vote.voteAnswerByPeerId(target) >= 0) {
-          {{ vote.indexToChoice(vote.voteAnswerByPeerId(target)) }}
+        @if (vote().voteAnswerByPeerId(target) >= 0) {
+          {{ vote().indexToChoice(vote().voteAnswerByPeerId(target)) }}
         }
       </div>
     </div>

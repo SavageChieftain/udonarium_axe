@@ -7,7 +7,8 @@
       name="send-from"
       class="ud-select is-caret"
       style="width: 12em"
-      [(ngModel)]="sendFrom"
+      [ngModel]="sendFrom()"
+      (ngModelChange)="sendFrom.set($event)"
       [clearable]="false"
     >
       @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
@@ -18,8 +19,8 @@
 </div>
 <div class="table">
   <div class="table-cell imagebox">
-    @if (imageFile.url) {
-      <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
+    @if (imageFile().url) {
+      <img class="image" [src]="imageFile().url | safe: 'resourceUrl'" />
     }
   </div>
 </div>

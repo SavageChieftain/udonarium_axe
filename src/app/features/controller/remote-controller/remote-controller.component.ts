@@ -2,6 +2,7 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -94,9 +95,11 @@ export class RemoteControllerComponent {
     return DiceBot.diceBotInfos;
   }
 
-  get chatTab(): ChatTab {
+  readonly chatTab = computed(() => {
+    this.objectChange.versionOf(this.chatTabidentifier())();
+    this.objectChange.collectionOf('chat-tab')();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
-  }
+  });
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
   }
@@ -328,11 +331,11 @@ export class RemoteControllerComponent {
 
   remoteDecBuffRound(checkedOnly: boolean) {
     sendDecBuffRoundMessage(
-      this.chatTab,
+      this.chatTab(),
       this.chatMessageService,
       this._gameSystem,
       this.sendFrom,
-      this.controllerInputComponent().tachieNum,
+      this.controllerInputComponent().tachieNum(),
       this.getTargetCharacters(checkedOnly)
     );
   }
@@ -347,11 +350,11 @@ export class RemoteControllerComponent {
 
   remoteBuffDeleteZeroRound(checkedOnly: boolean) {
     sendDeleteZeroRoundBuffMessage(
-      this.chatTab,
+      this.chatTab(),
       this.chatMessageService,
       this._gameSystem,
       this.sendFrom,
-      this.controllerInputComponent().tachieNum,
+      this.controllerInputComponent().tachieNum(),
       this.getTargetCharacters(checkedOnly)
     );
   }
@@ -387,7 +390,7 @@ export class RemoteControllerComponent {
     addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
     const mess = 'バフを付与 ' + parsed.bufftext + ' > ' + text;
     this.chatMessageService.sendMessage(
-      this.chatTab,
+      this.chatTab(),
       mess,
       this._gameSystem,
       this.sendFrom,
@@ -421,12 +424,12 @@ export class RemoteControllerComponent {
       }
       const mess = '[' + this.remoteControllerSelect.dispName + ']変更[' + hugou + this.remoteNumber + ']＞' + text;
       this.chatMessageService.sendMessage(
-        this.chatTab,
+        this.chatTab(),
         mess,
         this._gameSystem,
         this.sendFrom,
         '',
-        this.controllerInputComponent().tachieNum,
+        this.controllerInputComponent().tachieNum(),
         this.controllerInputComponent().selectChatColor
       );
       this.errorMessageController = '';
