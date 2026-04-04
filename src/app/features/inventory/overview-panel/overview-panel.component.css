@@ -509,7 +509,6 @@ input[type='range']::-ms-tooltip {
   display: none;
 }
 
-
 /* ── CSS Animations ─────────────────────────────────────────── */
 
 @keyframes fadeIn {
