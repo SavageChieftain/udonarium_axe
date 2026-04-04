@@ -96,7 +96,10 @@ export class ObjectChangeService {
   // --- Per-aliasName collection signals ---
   private readonly _collections = new Map<string, WritableSignal<number>>();
 
-  /** 特定型のオブジェクトが追加/削除されたことを通知する signal（読み取り専用）。 */
+  /** 特定型のオブジェクトが追加/削除されたことを通知する signal（読み取り専用）。
+   *  objectAdded$/objectRemoved$ で自動 increment される。
+   *  フィルタ済みコレクションの見かけ上の変化（location/parent 変更等）には
+   *  notifyCollectionChanged() で手動 increment が必要。 */
   collectionOf(aliasName: string): Signal<number> {
     let sig = this._collections.get(aliasName);
     if (!sig) {
@@ -104,6 +107,11 @@ export class ObjectChangeService {
       this._collections.set(aliasName, sig);
     }
     return sig.asReadonly();
+  }
+
+  /** フィルタ済みコレクションの見かけ上の変化（location/parent 変更等）を通知する。 */
+  notifyCollectionChanged(aliasName: string): void {
+    this._collections.get(aliasName)?.update((v) => v + 1);
   }
 
   // --- Events bridged from networkMessage$ (network/P2P events only) ---

@@ -112,15 +112,20 @@ export class TabletopService {
         this.refreshCache(GameTableMask.aliasName);
         this.refreshCache(GameTableScratchMask.aliasName);
         this.refreshCache(Terrain.aliasName);
+        this.objectChange.notifyCollectionChanged(GameTableMask.aliasName);
+        this.objectChange.notifyCollectionChanged(GameTableScratchMask.aliasName);
+        this.objectChange.notifyCollectionChanged(Terrain.aliasName);
         return;
       }
 
       const object = this.objectStore.get(event.identifier);
       if (!object || !(object instanceof TabletopObject)) {
         this.refreshCache(event.aliasName);
+        this.objectChange.notifyCollectionChanged(event.aliasName);
       } else if (this.shouldRefreshCache(object)) {
         this.refreshCache(event.aliasName);
         this.updateMap(object);
+        this.objectChange.notifyCollectionChanged(event.aliasName);
       }
     }, this.destroyRef);
     this.objectChange.objectDeleted$.subscribe((event) => {
