@@ -99,7 +99,6 @@ export class DiceTableSettingComponent {
   }
   readonly editPalette = signal('');
 
-  //  get isEmpty(): boolean { return this.tableSelecter ? (this.tableSelecter.viewTable ? false : true) : true; }
   get isEmpty(): boolean {
     return false;
   }
@@ -114,7 +113,6 @@ export class DiceTableSettingComponent {
   }
 
   get isEditable(): boolean {
-    //    return !this.isEmpty && !this.isDeleted;
     return !this.isEmpty && this.isSelected && !this.isDeleted;
   }
 

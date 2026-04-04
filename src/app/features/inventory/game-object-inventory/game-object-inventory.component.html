@@ -6,7 +6,6 @@
   @if (objects.length < 1) {
     <div>{{ getTabTitle(selectTab()) }}インベントリは空です</div>
   }
-  <!--    <ng-container *ngIf="!gameObject.hideInventory && gameObject.location.name === 'table'"> -->
   @for (gameObject of objects; track gameObject.identifier) {
     <div
       (contextmenu)="onContextMenu($event, gameObject)"

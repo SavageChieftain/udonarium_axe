@@ -28,7 +28,6 @@ export interface ContextMenuAction {
 
 @Injectable()
 export class ContextMenuService {
-  /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static ContextMenuComponentClass: { new (...args: unknown[]): unknown } = null!;
   private panelComponentRef: ComponentRef<unknown> | null = null;

@@ -29,7 +29,6 @@ export class ModalService {
     this._title.set(value);
   }
 
-  /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static ModalComponentClass: { new (...args: unknown[]): unknown } = null!;
   get option(): unknown {

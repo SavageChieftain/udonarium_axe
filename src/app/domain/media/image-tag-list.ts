@@ -32,4 +32,3 @@ export class ImageTagList extends ObjectNode implements InnerXml {
     return imageTagList;
   }
 }
-//

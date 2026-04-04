@@ -156,7 +156,7 @@ export class RotableDirective {
 
   onInputMove(e: MouseEvent | TouchEvent) {
     if (this.input?.isGrabbing && !this.pointerDeviceService.isDragging) {
-      return this.cancel(); // todo
+      return this.cancel();
     }
     if (this.isDisable() || !this.input?.isGrabbing) return this.cancel();
 

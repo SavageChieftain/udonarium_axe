@@ -26,14 +26,6 @@
       (stateChange)="onPlayerStateChange($event)"
     >
     </youtube-player>
-    <!--
-    <img *ngIf="videoId"
-      style="pointer-events: auto"
-      draggable="false"
-      [style.object-fit]="objectFit"
-      [src]="'https://img.youtube.com/vi/' + videoId + '/hqdefault.jpg'"
-      (error)="onErrorFallback()">
-    -->
     @if (!videoId) {
       <img [src]="cutIn.cutInImage.url | safe: 'resourceUrl'" />
     }

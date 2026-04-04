@@ -27,7 +27,6 @@ type PanelServiceAssignableKey = 'title' | 'top' | 'left' | 'width' | 'height' |
 
 @Injectable()
 export class PanelService {
-  /* Todo */
   static defaultParentViewContainerRef: ViewContainerRef;
   static UIPanelComponentClass: { new (...args: unknown[]): UIPanelInstance } = null!;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;

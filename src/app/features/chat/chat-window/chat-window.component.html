@@ -1,4 +1,3 @@
-<!--<h2>チャットシステム</h2>-->
 <div class="component">
   <div class="log">
     @if (chatTab()) {
@@ -17,8 +16,6 @@
       </button>
     }
     <form name="chat-window">
-      <!--  -->
-
       <chat-portrait [chatTabidentifier]="chatTabidentifier"></chat-portrait>
       <div class="chat-tab">
         @for (chatTab of chatTabsVersion(); track trackByChatTab($index, chatTab)) {
@@ -60,6 +57,4 @@
       (tabSwitch)="chatTabSwitchRelative($event)"
     ></chat-input>
   </div>
-
-  <!--<div style="white-space:pre-wrap; font-size: 8px;"><span>{{gameHelp}}</span></div>-->
 </div>

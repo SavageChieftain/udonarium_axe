@@ -39,7 +39,6 @@ export class FileSelecterComponent {
     return imageFileList;
   }
 
-  //本家PR #92より
   readonly images = computed(() => {
     this.objectChange.fileVersion();
     const imageFileList: ImageFile[] = [];

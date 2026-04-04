@@ -76,13 +76,10 @@ export class TabletopActionService {
   createTerrain(position: PointerCoordinate): Terrain | undefined {
     const url = TERRAIN_TEXTURE_PATH;
     let image = this.imageStorage.get(url);
-    //本家PR #92より
-    //    if (!image) image = this.imageStorage.add(url);
     if (!image) {
       image = this.imageStorage.add(url);
       ImageTag.create(image.identifier).tag = '地形';
     }
-    //
     const viewTable = this.getViewTable();
     if (!viewTable) return undefined;
 
@@ -158,23 +155,15 @@ export class TabletopActionService {
     cardStack.posZ = position.z;
 
     const back = TRUMP_BACK_IMAGE_PATH;
-    //本家PR #92より
-    //    if (!this.imageStorage.get(back)) {
-    //      this.imageStorage.add(back);
-    //    }
     if (!this.imageStorage.get(back)) {
       const image = this.imageStorage.add(back);
       ImageTag.create(image.identifier).tag = 'トランプ';
     }
-    //
     for (const trump of getTrumpCardCodes()) {
       const url: string = './assets/images/trump/' + trump + '.gif';
       if (!this.imageStorage.get(url)) {
-        //本家PR #92より
-        //          this.imageStorage.add(url);
         const image = this.imageStorage.add(url);
         ImageTag.create(image.identifier).tag = 'トランプ';
-        //
       }
       const card = Card.create('カード', url, back);
       cardStack.putOnBottom(card);

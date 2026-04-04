@@ -164,7 +164,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   private initializePublication() {
-    //
     const member = this.member;
     const subscription = member?.subscriptions.find(
       (subscription) =>
@@ -173,12 +172,10 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
         subscription.publication.publisher.name === this.skyWay.peer.peerId
     ) as Subscription<RemoteDataStream>;
 
-    //
     if (!subscription) {
       Logger.error(`[SkyWay] サブスクリプションが見つかりません: ${this.peer.peerId}`);
     }
 
-    //
     this.onConnectionStateChanged?.removeListener();
     const pub = this.skyWay.publication;
     if (pub) {
@@ -188,13 +185,11 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       });
     }
 
-    //
     this.subscription = subscription;
     this.refresh();
   }
 
   private async initializeSubscription() {
-    //
     const member = this.member;
     if (!member) {
       Logger.warn(`[SkyWay] メンバーが見つかりません: ${this.peer.peerId}`);
@@ -205,7 +200,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       (publication) => publication.contentType === 'data' && publication.metadata === 'udonarium-data-stream'
     );
 
-    //
     if (!publication) {
       this.onStreamPublished?.removeListener();
       const room = this.skyWay.room;
@@ -224,20 +218,17 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       return;
     }
 
-    //
     this.refresh();
     try {
       const roomPerson = this.skyWay.roomPerson;
       if (!roomPerson) return;
       const { subscription } = await roomPerson.subscribe<RemoteDataStream>(publication.id);
 
-      //
       this.onConnectionStateChanged?.removeListener();
       this.onConnectionStateChanged = subscription.onConnectionStateChanged.add((state) => {
         this.onStateChanged(state);
       });
 
-      //
       this.subscription = subscription;
 
       this.refresh();

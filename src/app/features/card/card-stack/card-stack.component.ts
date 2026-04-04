@@ -266,7 +266,7 @@ export class CardStackComponent {
   private drawCard(): Card | null {
     const card = this.cardStack().drawCard();
     if (card) {
-      this.cardStack().update(); // todo
+      this.cardStack().update();
       card.location.x += 100 + Math.random() * 50;
       card.location.y += 25 + Math.random() * 50;
       card.setLocation(this.cardStack().location.name);

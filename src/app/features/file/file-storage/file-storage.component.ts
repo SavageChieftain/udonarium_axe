@@ -5,7 +5,7 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { emitSelectFile } from '@axe/domain/domain-events';
 import { ImageTag } from '@axe/domain/media/image-tag';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe'; //本家PR #92より
+import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
@@ -47,7 +47,6 @@ export class FileStorageComponent {
       const identifier = imageFile.context.identifier;
 
       if (ImageTag.get(identifier)) {
-        //
         const tag: string = ImageTag.get(identifier).tag;
         if (tag == this.selectTag()) {
           imageFileList.push(imageFile);
@@ -124,7 +123,6 @@ export class FileStorageComponent {
     //  処理なし
   }
 
-  //本家PR #92より
   constructor() {
     queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));
   }
@@ -139,7 +137,7 @@ export class FileStorageComponent {
   onSelectedFile(file: ImageFile) {
     emitSelectFile({ fileIdentifier: file.identifier });
 
-    this.selectedFile = file; //本家PR #92より
+    this.selectedFile = file;
   }
 
   imgBlockClick(identifier: string) {
