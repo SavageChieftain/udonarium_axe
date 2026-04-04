@@ -12,12 +12,6 @@ div.color {
   cursor: pointer;
 }
 
-button.color:focus {
-  outline: none;
-}
-button.color:hover {
-}
-
 .table {
   box-sizing: border-box;
   padding: 5px;
