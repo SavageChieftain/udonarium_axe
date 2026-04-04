@@ -468,7 +468,7 @@
       </div>
     }
     @if (tabletopObject.detailDataElement) {
-      @for (childElement of tabletopObject.detailDataElement.children; track childElement) {
+      @for (childElement of tabletopObject.detailDataElement.children; track childElement.identifier) {
         <div class="flex-item">
           <div class="table">
             <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>

@@ -92,7 +92,7 @@
               @if (buffEl) {
                 <div class="is-3d">
                   @if (buffEl.children.length === 1) {
-                    @for (child of buffEl.children; track child) {
+                    @for (child of buffEl.children; track child.identifier) {
                       @if (child.children.length > 0) {
                         <div
                           style=""
@@ -107,7 +107,7 @@
                           <div [hidden]="foldingBuff()">
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
                             <div class="!table is-3d">
-                              @for (childElement of buffEl.children; track childElement) {
+                              @for (childElement of buffEl.children; track childElement.identifier) {
                                 <div class="flex-item is-3d">
                                   <div
                                     class="table-row fornt-tag is-3d"
@@ -154,7 +154,7 @@
                           <div [hidden]="foldingBuff()">
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
                             <div class="table is-3d">
-                              @for (childElement of buffEl.children; track childElement) {
+                              @for (childElement of buffEl.children; track childElement.identifier) {
                                 <div class="flex-item is-3d">
                                   <div
                                     class="table-row fornt-tag is-3d"

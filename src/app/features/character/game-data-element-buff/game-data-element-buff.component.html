@@ -83,7 +83,7 @@ name="data-elm-name"
         </div>
         @if (gameDataElement().children.length) {
           <div class="table">
-            @for (childElement of gameDataElement().children; track childElement) {
+            @for (childElement of gameDataElement().children; track childElement.identifier) {
               <div
                 game-data-element-buff
                 class="table-row"
@@ -112,7 +112,7 @@ name="data-elm-name"
     }
   }
   @if (gameDataElement().children.length) {
-    @for (childElement of gameDataElement().children; track childElement) {
+    @for (childElement of gameDataElement().children; track childElement.identifier) {
       <div
         game-data-element-buff
         class="table-row"

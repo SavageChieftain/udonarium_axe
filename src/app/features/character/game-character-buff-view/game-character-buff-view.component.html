@@ -2,7 +2,7 @@
   <div class="controller">
     @if (character()!.buffDataElement) {
       <div class="table">
-        @for (childElement of character()!.buffDataElement!.children; track childElement) {
+        @for (childElement of character()!.buffDataElement!.children; track childElement.identifier) {
           <div class="flex-item">
             <div
               class="table-row"

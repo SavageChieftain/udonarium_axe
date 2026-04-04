@@ -241,7 +241,7 @@
       </div>
       @if (gameDataElement().children.length) {
         <div class="table">
-          @for (childElement of gameDataElement().children; track childElement; let i = $index) {
+          @for (childElement of gameDataElement().children; track childElement.identifier; let i = $index) {
             <div
               game-data-element
               class="table-row"
