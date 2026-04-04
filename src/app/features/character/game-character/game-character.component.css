@@ -136,7 +136,7 @@
   height: auto;
   vertical-align: bottom;
 }
-/*entyu_5*/
+
 .buff-tag {
   box-sizing: border-box;
   padding: 3px 9px;
@@ -377,7 +377,7 @@
   left: -10px;
   box-sizing: border-box;
   position: absolute;
-  margin-top:;
+  margin-top: 1px;
 }
 
 .target-icon-buff2 {
@@ -387,7 +387,7 @@
   left: -20px;
   box-sizing: border-box;
   position: absolute;
-  margin-top:;
+  margin-top: 1px;
 }
 
 .scrolldown5 {

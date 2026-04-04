@@ -12,9 +12,7 @@
   font: 24px bold 'Vollkorn';
   color: #444;
   cursor: pointer;
-  /*entyu_2 #92*/
   margin-bottom: 5px;
-  /**/
 }
 
 .large-font {
@@ -27,15 +25,12 @@
 
 .image {
   font-size: 0;
-  /*entyu_2*/
   display: inline-block;
   padding: 2px;
   border: transparent 2px solid;
   border-top: transparent 6px solid;
-  /**/
 }
 
-/*entyu_2 #92*/
 .image img {
   vertical-align: bottom;
 }
@@ -66,9 +61,7 @@
 .sticky-top input {
   width: calc(100% - 75px);
 }
-/**/
 
-/*entyu_2*/
 .image-chg {
   padding: 5px;
   user-select: none;

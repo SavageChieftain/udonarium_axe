@@ -80,6 +80,13 @@ export class TextNoteComponent {
     this.destroyRef.onDestroy(() => {
       if (this._transitionTimeout) clearTimeout(this._transitionTimeout);
       if (this._fallTimeout) clearTimeout(this._fallTimeout);
+      if (this.textUpdateTimer) clearTimeout(this.textUpdateTimer);
+    });
+    effect(() => {
+      const note = this.textNote();
+      this.objectChange.versionOf(note.identifier)();
+      this._text.set(note.text);
+      this._fontSize.set(note.fontSize);
     });
   }
 
@@ -105,15 +112,29 @@ export class TextNoteComponent {
     this.textNote().isLock = isLock;
   }
 
+  private readonly _text = signal('');
+  private readonly _fontSize = signal(9);
+  private textUpdateTimer: ReturnType<typeof setTimeout> | null = null;
+
   get text(): string {
-    return this.textNote().text;
+    return this._text();
   }
   set text(text: string) {
-    this.textNote().text = text;
-    this.calcFitHeightIfNeeded();
+    this._text.set(text);
+    this.setTextUpdateTimer();
   }
   get fontSize(): number {
-    return this.textNote().fontSize;
+    return this._fontSize();
+  }
+
+  private setTextUpdateTimer() {
+    if (this.textUpdateTimer) clearTimeout(this.textUpdateTimer);
+    this.textUpdateTimer = setTimeout(() => {
+      const note = this.textNote();
+      if (note.text !== this._text()) note.text = this._text();
+      this.textUpdateTimer = null;
+      this.calcFitHeightIfNeeded();
+    }, 66);
   }
 
   readonly imageFile = computed(() => {
@@ -304,9 +325,6 @@ export class TextNoteComponent {
   calcFitHeight() {
     const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
 
-    //    if( ( this.oldScrollHeight == 0 ) && ( this.oldOffsetHeight == 0)){
-    //      textArea.style.height = '0';
-    //    }
     textArea.style.height = '0';
     if (!this.textNote().limitHeight) {
       if (textArea.scrollHeight > textArea.offsetHeight) {

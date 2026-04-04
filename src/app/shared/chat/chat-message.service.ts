@@ -297,7 +297,6 @@ export class ChatMessageService {
     return '';
   }
 
-  // entyu
   private findImagePos(identifier: string): number {
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
@@ -306,7 +305,7 @@ export class ChatMessageService {
     }
     return -1;
   }
-  //
+
   private calcTimeStamp(chatTab: ChatTab): number {
     const now = this.getTime();
     const latest = chatTab.latestTimeStamp;

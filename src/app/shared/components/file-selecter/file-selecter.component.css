@@ -19,7 +19,6 @@
   height: 100px;
 }
 
-/*entyu_2 #92*/
 .sticky-top {
   padding: 5px;
   position: sticky;
@@ -32,9 +31,7 @@
 .sticky-top input {
   width: calc(100% - 75px);
 }
-/**/
 
-/*entyu_2*/
 .image-chg {
   padding: 5px;
   user-select: none;
@@ -73,4 +70,3 @@
   background: #555;
   color: #ccc;
 }
-/**/

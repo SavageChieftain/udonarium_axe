@@ -1,4 +1,3 @@
-//entyu_2 #92
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
