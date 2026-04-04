@@ -89,12 +89,14 @@ export class ChatWindowComponent {
   });
 
   /** 全タブの unreadLength 変化に反応させるための computed signal。
-   *  collectionOf('chat-tab') でタブ追加/削除、versionOf(tab.identifier) でメッセージ追加を検知する。 */
+   *  collectionOf('chat-tab') でタブ追加/削除、versionOf でメッセージ追加・子の変更を検知する。
+   *  _children は同一参照が返るため、スプレッドで新配列を返して Angular の Object.is() 比較を突破する。 */
   readonly chatTabsVersion = computed(() => {
     this.objectChange.collectionOf('chat-tab')();
+    this.objectChange.versionOf(ChatTabList.instance.identifier)();
     const tabs = this.chatMessageService.chatTabs;
     for (const tab of tabs) this.objectChange.versionOf(tab.identifier)();
-    return tabs;
+    return [...tabs];
   });
 
   private isAutoScroll = true;

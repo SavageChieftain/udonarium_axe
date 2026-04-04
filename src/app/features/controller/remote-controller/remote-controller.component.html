@@ -4,7 +4,7 @@
       <div class="is-caret" style="flex-grow: 0">
         <form name="remote-controller-chat-tab">
           <div class="chat-tab">
-            @for (chatTab of chatMessageService.chatTabs; track chatTab) {
+            @for (chatTab of chatTabsVersion(); track chatTab) {
               <label>
                 <input
                   name="chat-tab"

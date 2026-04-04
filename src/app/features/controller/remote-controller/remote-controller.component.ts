@@ -18,6 +18,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
@@ -98,6 +99,14 @@ export class RemoteControllerComponent {
     this.objectChange.versionOf(this.chatTabidentifier())();
     this.objectChange.collectionOf('chat-tab')();
     return this.objectStore.get<ChatTab>(this.chatTabidentifier())!;
+  });
+
+  readonly chatTabsVersion = computed(() => {
+    this.objectChange.collectionOf('chat-tab')();
+    this.objectChange.versionOf(ChatTabList.instance.identifier)();
+    const tabs = this.chatMessageService.chatTabs;
+    for (const tab of tabs) this.objectChange.versionOf(tab.identifier)();
+    return [...tabs];
   });
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

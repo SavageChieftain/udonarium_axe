@@ -16,6 +16,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatPalette, PaletteIndex } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
@@ -87,9 +88,10 @@ export class ChatPaletteComponent {
   /** 全タブの unreadLength 変化に反応させるための computed signal。 */
   readonly chatTabsVersion = computed(() => {
     this.objectChange.collectionOf('chat-tab')();
+    this.objectChange.versionOf(ChatTabList.instance.identifier)();
     const tabs = this.chatMessageService.chatTabs;
     for (const tab of tabs) this.objectChange.versionOf(tab.identifier)();
-    return tabs;
+    return [...tabs];
   });
 
   private doubleClickTimer: NodeJS.Timeout | null = null;
