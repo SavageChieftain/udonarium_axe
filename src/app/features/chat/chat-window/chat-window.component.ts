@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -124,7 +125,7 @@ export class ChatWindowComponent {
     this.objectChange.objectChanged$.subscribe((event) => {
       const object = this.objectStore.get(event.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
-        if (this._chatTabidentifier() && !this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
+        if (!this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
           const chatTabs = this.chatMessageService.chatTabs;
           this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
@@ -138,6 +139,15 @@ export class ChatWindowComponent {
       }
     }, this.destroyRef);
     queueMicrotask(() => this.updatePanelTitle());
+    effect(() => {
+      const tab = this.chatTab();
+      if (!tab) {
+        const chatTabs = this.chatMessageService.chatTabs;
+        if (chatTabs.length > 0) {
+          this.chatTabidentifier = chatTabs[0].identifier;
+        }
+      }
+    });
     afterNextRender(() => {
       queueMicrotask(() => this.scrollToBottom(true));
       if (this.panelService.scrollablePanel) {

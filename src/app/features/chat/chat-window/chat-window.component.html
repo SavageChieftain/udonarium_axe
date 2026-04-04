@@ -4,11 +4,6 @@
     @if (chatTab()) {
       <chat-tab [chatTab]="chatTab()" (addMessage)="scrollToBottom()"></chat-tab>
     }
-    @if (!chatTab()) {
-      <div>
-        ※チャットタブの内容が更新されました。チャットタブを選択しなおすか、このチャットウィンドウを開きなおしてください。
-      </div>
-    }
   </div>
   <div class="sticky-bottom">
     @if (!isNearBottom()) {
