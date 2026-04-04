@@ -1,4 +1,5 @@
 import { inject, TestBed } from '@angular/core/testing';
+import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -60,5 +61,41 @@ describe('SaveDataService', () => {
 
     const files = saveAsyncSpy.mock.calls[0][0] as File[];
     expect(files.some((file: File) => file.name.startsWith('image-null-blob.'))).toBe(false);
+  });
+
+  describe('saveAsync → FileArchiver.saveAsync の委譲', () => {
+    it('updateCallback が percent=100 で呼ばれる', async () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+
+      const fileArchiver = TestBed.inject(FileArchiver);
+      vi.spyOn(fileArchiver, 'saveAsync').mockImplementation(async (_files, _zipName, cb) => {
+        cb?.({ percent: 0, currentFile: '' });
+        cb?.({ percent: 100, currentFile: '' });
+      });
+
+      const callback = vi.fn();
+      await privateApi.saveAsync([], 'test', callback);
+
+      expect(callback).toHaveBeenCalledWith(0);
+      expect(callback).toHaveBeenCalledWith(100);
+    });
+
+    it('同じpercentが連続しても callback は1回だけ呼ばれる', async () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+
+      const fileArchiver = TestBed.inject(FileArchiver);
+      vi.spyOn(fileArchiver, 'saveAsync').mockImplementation(async (_files, _zipName, cb) => {
+        cb?.({ percent: 50, currentFile: '' });
+        cb?.({ percent: 50, currentFile: '' }); // 重複
+        cb?.({ percent: 100, currentFile: '' });
+      });
+
+      const callback = vi.fn();
+      await privateApi.saveAsync([], 'test', callback);
+
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -86,6 +87,76 @@ describe('GameTableMaskComponent', () => {
       expect(() => {
         component.scratched();
       }).not.toThrow();
+    });
+  });
+
+  describe('scratched() — symmetric difference (xor native 実装)', () => {
+    let mask: GameTableMask;
+
+    beforeEach(() => {
+      mask = GameTableMask.create('testMask', 10, 10, 1);
+      fixture.componentRef.setInput('gameTableMask', mask);
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      mask.destroy();
+    });
+
+    it('gameTableMask が null のとき scratched() は何もしない', () => {
+      fixture.componentRef.setInput('gameTableMask', null);
+      fixture.detectChanges();
+      expect(() => component.scratched()).not.toThrow();
+    });
+
+    it('スクラッチ済みなし + スクラッチ追加 → 追加されたグリッドのみ残る', () => {
+      mask.scratchedGrids = '';
+      mask.scratchingGrids = '0:0,1:1';
+      (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = new Set([
+        '0:0',
+        '1:1',
+      ]);
+
+      component.scratched();
+
+      expect(mask.scratchedGrids).toBe('0:0,1:1');
+    });
+
+    it('全て既存と同じ → 対称差が空になる', () => {
+      mask.scratchedGrids = '0:0,1:1';
+      mask.scratchingGrids = '0:0,1:1';
+      (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = new Set([
+        '0:0',
+        '1:1',
+      ]);
+
+      component.scratched();
+
+      expect(mask.scratchedGrids).toBe('');
+    });
+
+    it('一部重複 → 非重複部分のみ残る', () => {
+      mask.scratchedGrids = '0:0,1:1';
+      mask.scratchingGrids = '1:1,2:2';
+      (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = new Set([
+        '1:1',
+        '2:2',
+      ]);
+
+      component.scratched();
+
+      expect(mask.scratchedGrids).toBe('0:0,2:2');
+    });
+
+    it('_currentScratchingSet が null のときは scratchingGrids をそのまま使用', () => {
+      mask.scratchedGrids = '0:0';
+      mask.scratchingGrids = '0:0';
+      (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = null;
+
+      component.scratched();
+
+      // 対称差: {0:0} xor {0:0} = {}
+      expect(mask.scratchedGrids).toBe('');
     });
   });
 });
