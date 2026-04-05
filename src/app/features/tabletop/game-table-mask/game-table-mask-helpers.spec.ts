@@ -1,3 +1,4 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import {
   buildMaskCss,
   buildScratchingGridInfos,
@@ -11,6 +12,7 @@ describe('game-table-mask-helpers', () => {
       const css = buildMaskCss({
         currentScratchingSet: new Set(['1:0']),
         gridSize: 50,
+        gridType: GridType.SQUARE,
         height: 1,
         isNonScratched: false,
         isPreviewMode: true,
@@ -26,6 +28,7 @@ describe('game-table-mask-helpers', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
+        gridType: GridType.SQUARE,
         height: 1,
         isNonScratched: false,
         isPreviewMode: false,
@@ -41,6 +44,7 @@ describe('game-table-mask-helpers', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
+        gridType: GridType.SQUARE,
         height: 1,
         isNonScratched: false,
         isPreviewMode: true,
@@ -56,6 +60,7 @@ describe('game-table-mask-helpers', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
+        gridType: GridType.SQUARE,
         height: 2,
         isNonScratched: true,
         isPreviewMode: false,
@@ -72,6 +77,8 @@ describe('game-table-mask-helpers', () => {
     it('scratched のみなら scrached 状態を返すこと', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: null,
+        gridSize: 50,
+        gridType: GridType.SQUARE,
         hasGameTableMask: true,
         height: 1,
         isNonScratched: false,
@@ -81,12 +88,14 @@ describe('game-table-mask-helpers', () => {
         width: 1,
       });
 
-      expect(infos).toEqual([{ state: 'scrached', x: 0, y: 0 } satisfies ScratchGridInfo]);
+      expect(infos).toEqual([{ cx: 25, cy: 25, state: 'scrached', x: 0, y: 0 } satisfies ScratchGridInfo]);
     });
 
     it('scratching のみなら scraching 状態を返すこと', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: new Set(['0:0']),
+        gridSize: 50,
+        gridType: GridType.SQUARE,
         hasGameTableMask: true,
         height: 1,
         isNonScratched: true,
@@ -96,12 +105,14 @@ describe('game-table-mask-helpers', () => {
         width: 1,
       });
 
-      expect(infos).toEqual([{ state: 'scraching', x: 0, y: 0 } satisfies ScratchGridInfo]);
+      expect(infos).toEqual([{ cx: 25, cy: 25, state: 'scraching', x: 0, y: 0 } satisfies ScratchGridInfo]);
     });
 
     it('scratched と scratching の重複は restore 状態を返すこと', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: new Set(['0:0']),
+        gridSize: 50,
+        gridType: GridType.SQUARE,
         hasGameTableMask: true,
         height: 1,
         isNonScratched: false,
@@ -111,13 +122,15 @@ describe('game-table-mask-helpers', () => {
         width: 1,
       });
 
-      expect(infos).toEqual([{ state: 'restore', x: 0, y: 0 } satisfies ScratchGridInfo]);
+      expect(infos).toEqual([{ cx: 25, cy: 25, state: 'restore', x: 0, y: 0 } satisfies ScratchGridInfo]);
     });
 
     it('mask が無いか変化が無い場合は空配列を返すこと', () => {
       expect(
         buildScratchingGridInfos({
           currentScratchingSet: null,
+          gridSize: 50,
+          gridType: GridType.SQUARE,
           hasGameTableMask: false,
           height: 1,
           isNonScratched: true,
@@ -127,6 +140,124 @@ describe('game-table-mask-helpers', () => {
           width: 1,
         })
       ).toEqual([]);
+    });
+  });
+
+  describe('buildMaskCss (hex)', () => {
+    it('HEX_VERTICAL で scratched 済みセルを除外した SVG マスクを生成すること', () => {
+      const css = buildMaskCss({
+        currentScratchingSet: null,
+        gridSize: 50,
+        gridType: GridType.HEX_VERTICAL,
+        height: 1,
+        isNonScratched: false,
+        isPreviewMode: false,
+        scratchedGrids: '0:0',
+        scratchingGrids: '',
+        width: 1,
+      });
+
+      expect(css).toContain('data:image/svg+xml');
+      expect(css).toContain('polygon');
+      // 0:0 はスクラッチ済みなので SVG に含まれないが、他のセルがあるので空にはならない
+    });
+
+    it('HEX_HORIZONTAL で全セルスクラッチ済みなら空マスクを返すこと', () => {
+      // 1×1 の小さいマスクで全ヘクスセルをスクラッチ済みにする
+      const css = buildMaskCss({
+        currentScratchingSet: null,
+        gridSize: 50,
+        gridType: GridType.HEX_HORIZONTAL,
+        height: 1,
+        isNonScratched: false,
+        isPreviewMode: false,
+        scratchedGrids: '0:0,1:0,0:1,1:1',
+        scratchingGrids: '',
+        width: 1,
+      });
+
+      // すべてスクラッチ済みなら空マスクになるか、SVGにpolygonが含まれない
+      expect(css).toSatisfy((v: string) => v.includes('0px 0px / 0px 0px') || !v.includes('<polygon'));
+    });
+
+    it('hex 未スクラッチ時は空文字を返すこと', () => {
+      const css = buildMaskCss({
+        currentScratchingSet: null,
+        gridSize: 50,
+        gridType: GridType.HEX_VERTICAL,
+        height: 2,
+        isNonScratched: true,
+        isPreviewMode: false,
+        scratchedGrids: '',
+        scratchingGrids: '',
+        width: 2,
+      });
+
+      expect(css).toBe('');
+    });
+  });
+
+  describe('buildScratchingGridInfos (hex)', () => {
+    it('HEX_VERTICAL で scratched セルに hexPoints が含まれること', () => {
+      const infos = buildScratchingGridInfos({
+        currentScratchingSet: null,
+        gridSize: 50,
+        gridType: GridType.HEX_VERTICAL,
+        hasGameTableMask: true,
+        height: 1,
+        isNonScratched: false,
+        isNonScratching: true,
+        scratchedGrids: '0:0',
+        scratchingGrids: '',
+        width: 1,
+      });
+
+      expect(infos).toHaveLength(1);
+      expect(infos[0].state).toBe('scrached');
+      expect(infos[0].hexPoints).toBeDefined();
+      expect(infos[0].hexPoints!.split(' ')).toHaveLength(6);
+      expect(infos[0].cx).toBeCloseTo(0, 5);
+      expect(infos[0].cy).toBeCloseTo(0, 5);
+    });
+
+    it('HEX_HORIZONTAL で col=1 のセル中心がオフセットされること', () => {
+      const infos = buildScratchingGridInfos({
+        currentScratchingSet: null,
+        gridSize: 50,
+        gridType: GridType.HEX_HORIZONTAL,
+        hasGameTableMask: true,
+        height: 2,
+        isNonScratched: false,
+        isNonScratching: true,
+        scratchedGrids: '0:1',
+        scratchingGrids: '',
+        width: 2,
+      });
+
+      expect(infos).toHaveLength(1);
+      // pointy-top row=1 (odd) → x offset by colSpacing/2
+      expect(infos[0].cx).toBeCloseTo(25, 5);
+      expect(infos[0].hexPoints).toBeDefined();
+    });
+
+    it('hex の scraching 状態にも hexPoints が設定されること', () => {
+      const infos = buildScratchingGridInfos({
+        currentScratchingSet: new Set(['1:0']),
+        gridSize: 50,
+        gridType: GridType.HEX_VERTICAL,
+        hasGameTableMask: true,
+        height: 1,
+        isNonScratched: true,
+        isNonScratching: false,
+        scratchedGrids: '',
+        scratchingGrids: '',
+        width: 2,
+      });
+
+      const scraching = infos.find((i) => i.x === 1 && i.y === 0);
+      expect(scraching).toBeDefined();
+      expect(scraching!.state).toBe('scraching');
+      expect(scraching!.hexPoints).toBeDefined();
     });
   });
 });

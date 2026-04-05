@@ -361,7 +361,8 @@ describe('CutInLauncher', () => {
       const startSpy = vi.spyOn(launcher, 'startSelfCutIn').mockImplementation(() => {});
 
       // 自分の userId と異なる sendTo
-      vi.spyOn(Network.peerContext, 'userId', 'get').mockReturnValue('my-user');
+      const origUserId = Network.peerContext.userId;
+      (Network.peerContext as { userId: string }).userId = 'my-user';
 
       const ctx2 = launcher.toContext();
       ctx2.syncData = {
@@ -373,6 +374,7 @@ describe('CutInLauncher', () => {
       launcher.apply(ctx2);
 
       expect(startSpy).not.toHaveBeenCalled();
+      (Network.peerContext as { userId: string }).userId = origUserId;
     });
 
     it('stopBlankTagCutInTimeStamp が変わると stopCutInByBgm$ が emit される', () => {

@@ -8,6 +8,7 @@ import {
   hexVertices,
   isFlatTopGrid,
   isHexGrid,
+  pixelToHexCell,
   strokeHexPath,
 } from '@axe/domain/tabletop/hex-geometry';
 
@@ -150,6 +151,36 @@ describe('hex-geometry', () => {
       expect(ctx.lineTo).toHaveBeenCalledTimes(5);
       expect(ctx.closePath).toHaveBeenCalledOnce();
       expect(ctx.fill).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('pixelToHexCell', () => {
+    it('flat-top (0,0) のセル中心に最も近いセルは (0,0) であること', () => {
+      const result = pixelToHexCell(0, 0, 50, true);
+      expect(result).toEqual({ col: 0, row: 0 });
+    });
+
+    it('flat-top で colSpacing の 1.5 倍地点は col=1 に近いこと', () => {
+      const { colSpacing } = hexSpacing(50, true);
+      const result = pixelToHexCell(colSpacing * 1.1, 0, 50, true);
+      expect(result.col).toBe(1);
+    });
+
+    it('pointy-top (0,0) のセル中心に最も近いセルは (0,0) であること', () => {
+      const result = pixelToHexCell(0, 0, 50, false);
+      expect(result).toEqual({ col: 0, row: 0 });
+    });
+
+    it('pointy-top で rowSpacing の 1.5 倍地点は row=1 に近いこと', () => {
+      const { rowSpacing } = hexSpacing(50, false);
+      const result = pixelToHexCell(0, rowSpacing * 1.1, 50, false);
+      expect(result.row).toBe(1);
+    });
+
+    it('flat-top でマスク領域内の任意地点が正の col/row を返すこと', () => {
+      const result = pixelToHexCell(200, 150, 50, true);
+      expect(result.col).toBeGreaterThanOrEqual(0);
+      expect(result.row).toBeGreaterThanOrEqual(0);
     });
   });
 });

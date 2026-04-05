@@ -52,138 +52,250 @@
               #elementToDetach
             >
               @for (gridInfo of scratchingGridInfos; track gridInfo.x + '_' + gridInfo.y) {
-                <g
-                  class="rotate-state"
-                  [style.transform-origin]="
-                    (gridInfo.x + 0.5) * gridSize + 'px ' + (gridInfo.y + 0.5) * gridSize + 'px'
-                  "
-                >
+                <g class="rotate-state" [style.transform-origin]="gridInfo.cx + 'px ' + gridInfo.cy + 'px'">
                   <desc>{{ gridInfo.state }}</desc>
                   <ng-container>
-                    @switch (gridInfo.state) {
-                      @case ('scrached') {
-                        <ng-container>
-                          <rect
-                            [attr.x]="gridInfo.x * gridSize + 5"
-                            [attr.y]="gridInfo.y * gridSize + 5"
-                            [attr.width]="gridSize - 10"
-                            [attr.height]="gridSize - 10"
-                            fill="none"
-                            stroke="#22222288"
-                            stroke-width="5"
-                            stroke-linejoin="round"
-                          />
-                          <rect
-                            [attr.x]="gridInfo.x * gridSize + 5"
-                            [attr.y]="gridInfo.y * gridSize + 5"
-                            [attr.width]="gridSize - 10"
-                            [attr.height]="gridSize - 10"
-                            fill="none"
-                            stroke="#ff3e3e"
-                            stroke-width="4"
-                            stroke-linejoin="round"
-                          />
-                        </ng-container>
+                    @if (gridInfo.hexPoints) {
+                      @switch (gridInfo.state) {
+                        @case ('scrached') {
+                          <ng-container>
+                            <polygon
+                              [attr.points]="gridInfo.hexPoints"
+                              fill="none"
+                              stroke="#22222288"
+                              stroke-width="5"
+                              stroke-linejoin="round"
+                            />
+                            <polygon
+                              [attr.points]="gridInfo.hexPoints"
+                              fill="none"
+                              stroke="#ff3e3e"
+                              stroke-width="4"
+                              stroke-linejoin="round"
+                            />
+                          </ng-container>
+                        }
+                        @case ('scraching') {
+                          <ng-container>
+                            <line
+                              [attr.x1]="gridInfo.cx - hexMarkerR"
+                              [attr.y1]="gridInfo.cy - hexMarkerR"
+                              [attr.x2]="gridInfo.cx + hexMarkerR"
+                              [attr.y2]="gridInfo.cy + hexMarkerR"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx + hexMarkerR"
+                              [attr.y1]="gridInfo.cy - hexMarkerR"
+                              [attr.x2]="gridInfo.cx - hexMarkerR"
+                              [attr.y2]="gridInfo.cy + hexMarkerR"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx - hexMarkerR"
+                              [attr.y1]="gridInfo.cy - hexMarkerR"
+                              [attr.x2]="gridInfo.cx + hexMarkerR"
+                              [attr.y2]="gridInfo.cy + hexMarkerR"
+                              stroke="#ff3e3e"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx + hexMarkerR"
+                              [attr.y1]="gridInfo.cy - hexMarkerR"
+                              [attr.x2]="gridInfo.cx - hexMarkerR"
+                              [attr.y2]="gridInfo.cy + hexMarkerR"
+                              stroke="#ff3e3e"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                          </ng-container>
+                        }
+                        @case ('restore') {
+                          <ng-container>
+                            <polygon
+                              [attr.points]="gridInfo.hexPoints"
+                              fill="none"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linejoin="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx - hexMarkerR"
+                              [attr.y1]="gridInfo.cy"
+                              [attr.x2]="gridInfo.cx + hexMarkerR"
+                              [attr.y2]="gridInfo.cy"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx"
+                              [attr.y1]="gridInfo.cy - hexMarkerR"
+                              [attr.x2]="gridInfo.cx"
+                              [attr.y2]="gridInfo.cy + hexMarkerR"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <polygon
+                              [attr.points]="gridInfo.hexPoints"
+                              fill="none"
+                              stroke="#8098ff"
+                              stroke-width="4"
+                              stroke-linejoin="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx - hexMarkerR"
+                              [attr.y1]="gridInfo.cy"
+                              [attr.x2]="gridInfo.cx + hexMarkerR"
+                              [attr.y2]="gridInfo.cy"
+                              stroke="#8098ff"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.cx"
+                              [attr.y1]="gridInfo.cy - hexMarkerR"
+                              [attr.x2]="gridInfo.cx"
+                              [attr.y2]="gridInfo.cy + hexMarkerR"
+                              stroke="#8098ff"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                          </ng-container>
+                        }
                       }
-                      @case ('scraching') {
-                        <ng-container>
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + 5"
-                            [attr.y1]="gridInfo.y * gridSize + 5"
-                            [attr.x2]="gridInfo.x * gridSize + (gridSize - 5)"
-                            [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
-                            stroke="#22222288"
-                            stroke-width="6"
-                            stroke-linecap="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + (gridSize - 5)"
-                            [attr.y1]="gridInfo.y * gridSize + 5"
-                            [attr.x2]="gridInfo.x * gridSize + 5"
-                            [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
-                            stroke="#22222288"
-                            stroke-width="6"
-                            stroke-linecap="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + 5"
-                            [attr.y1]="gridInfo.y * gridSize + 5"
-                            [attr.x2]="gridInfo.x * gridSize + (gridSize - 5)"
-                            [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
-                            stroke="#ff3e3e"
-                            stroke-width="4"
-                            stroke-linecap="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + (gridSize - 5)"
-                            [attr.y1]="gridInfo.y * gridSize + 5"
-                            [attr.x2]="gridInfo.x * gridSize + 5"
-                            [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
-                            stroke="#ff3e3e"
-                            stroke-width="4"
-                            stroke-linecap="round"
-                          />
-                        </ng-container>
-                      }
-                      @case ('restore') {
-                        <ng-container>
-                          <rect
-                            [attr.x]="gridInfo.x * gridSize + 5"
-                            [attr.y]="gridInfo.y * gridSize + 5"
-                            [attr.width]="gridSize - 10"
-                            [attr.height]="gridSize - 10"
-                            fill="none"
-                            stroke="#22222288"
-                            stroke-width="6"
-                            stroke-linejoin="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + 15"
-                            [attr.y1]="gridInfo.y * gridSize + 25"
-                            [attr.x2]="gridInfo.x * gridSize + 35"
-                            [attr.y2]="gridInfo.y * gridSize + 25"
-                            stroke="#22222288"
-                            stroke-width="6"
-                            stroke-linecap="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + 25"
-                            [attr.y1]="gridInfo.y * gridSize + 15"
-                            [attr.x2]="gridInfo.x * gridSize + 25"
-                            [attr.y2]="gridInfo.y * gridSize + 35"
-                            stroke="#22222288"
-                            stroke-width="6"
-                            stroke-linecap="round"
-                          />
-                          <rect
-                            [attr.x]="gridInfo.x * gridSize + 5"
-                            [attr.y]="gridInfo.y * gridSize + 5"
-                            [attr.width]="gridSize - 10"
-                            [attr.height]="gridSize - 10"
-                            fill="none"
-                            stroke="#8098ff"
-                            stroke-width="4"
-                            stroke-linejoin="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + 15"
-                            [attr.y1]="gridInfo.y * gridSize + 25"
-                            [attr.x2]="gridInfo.x * gridSize + 35"
-                            [attr.y2]="gridInfo.y * gridSize + 25"
-                            stroke="#8098ff"
-                            stroke-width="4"
-                            stroke-linecap="round"
-                          />
-                          <line
-                            [attr.x1]="gridInfo.x * gridSize + 25"
-                            [attr.y1]="gridInfo.y * gridSize + 15"
-                            [attr.x2]="gridInfo.x * gridSize + 25"
-                            [attr.y2]="gridInfo.y * gridSize + 35"
-                            stroke="#8098ff"
-                            stroke-width="4"
-                            stroke-linecap="round"
-                          />
-                        </ng-container>
+                    } @else {
+                      @switch (gridInfo.state) {
+                        @case ('scrached') {
+                          <ng-container>
+                            <rect
+                              [attr.x]="gridInfo.x * gridSize + 5"
+                              [attr.y]="gridInfo.y * gridSize + 5"
+                              [attr.width]="gridSize - 10"
+                              [attr.height]="gridSize - 10"
+                              fill="none"
+                              stroke="#22222288"
+                              stroke-width="5"
+                              stroke-linejoin="round"
+                            />
+                            <rect
+                              [attr.x]="gridInfo.x * gridSize + 5"
+                              [attr.y]="gridInfo.y * gridSize + 5"
+                              [attr.width]="gridSize - 10"
+                              [attr.height]="gridSize - 10"
+                              fill="none"
+                              stroke="#ff3e3e"
+                              stroke-width="4"
+                              stroke-linejoin="round"
+                            />
+                          </ng-container>
+                        }
+                        @case ('scraching') {
+                          <ng-container>
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + 5"
+                              [attr.y1]="gridInfo.y * gridSize + 5"
+                              [attr.x2]="gridInfo.x * gridSize + (gridSize - 5)"
+                              [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + (gridSize - 5)"
+                              [attr.y1]="gridInfo.y * gridSize + 5"
+                              [attr.x2]="gridInfo.x * gridSize + 5"
+                              [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + 5"
+                              [attr.y1]="gridInfo.y * gridSize + 5"
+                              [attr.x2]="gridInfo.x * gridSize + (gridSize - 5)"
+                              [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
+                              stroke="#ff3e3e"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + (gridSize - 5)"
+                              [attr.y1]="gridInfo.y * gridSize + 5"
+                              [attr.x2]="gridInfo.x * gridSize + 5"
+                              [attr.y2]="gridInfo.y * gridSize + (gridSize - 5)"
+                              stroke="#ff3e3e"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                          </ng-container>
+                        }
+                        @case ('restore') {
+                          <ng-container>
+                            <rect
+                              [attr.x]="gridInfo.x * gridSize + 5"
+                              [attr.y]="gridInfo.y * gridSize + 5"
+                              [attr.width]="gridSize - 10"
+                              [attr.height]="gridSize - 10"
+                              fill="none"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linejoin="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + 15"
+                              [attr.y1]="gridInfo.y * gridSize + 25"
+                              [attr.x2]="gridInfo.x * gridSize + 35"
+                              [attr.y2]="gridInfo.y * gridSize + 25"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + 25"
+                              [attr.y1]="gridInfo.y * gridSize + 15"
+                              [attr.x2]="gridInfo.x * gridSize + 25"
+                              [attr.y2]="gridInfo.y * gridSize + 35"
+                              stroke="#22222288"
+                              stroke-width="6"
+                              stroke-linecap="round"
+                            />
+                            <rect
+                              [attr.x]="gridInfo.x * gridSize + 5"
+                              [attr.y]="gridInfo.y * gridSize + 5"
+                              [attr.width]="gridSize - 10"
+                              [attr.height]="gridSize - 10"
+                              fill="none"
+                              stroke="#8098ff"
+                              stroke-width="4"
+                              stroke-linejoin="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + 15"
+                              [attr.y1]="gridInfo.y * gridSize + 25"
+                              [attr.x2]="gridInfo.x * gridSize + 35"
+                              [attr.y2]="gridInfo.y * gridSize + 25"
+                              stroke="#8098ff"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                            <line
+                              [attr.x1]="gridInfo.x * gridSize + 25"
+                              [attr.y1]="gridInfo.y * gridSize + 15"
+                              [attr.x2]="gridInfo.x * gridSize + 25"
+                              [attr.y2]="gridInfo.y * gridSize + 35"
+                              stroke="#8098ff"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                            />
+                          </ng-container>
+                        }
                       }
                     }
                   </ng-container>

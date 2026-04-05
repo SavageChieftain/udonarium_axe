@@ -16,10 +16,22 @@ import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
+import {
+  hexCircumradius,
+  hexSpacing,
+  isFlatTopGrid,
+  isHexGrid,
+  pixelToHexCell,
+} from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
-import { buildMaskCss, buildScratchingGridInfos } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
+import {
+  buildMaskCss,
+  buildScratchingGridInfos,
+  type ScratchGridInfo,
+} from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
 import { MovableDirective } from '@axe/shared/directives/movable.directive';
@@ -198,6 +210,7 @@ export class GameTableMaskComponent {
     return buildMaskCss({
       currentScratchingSet: this._currentScratchingSet,
       gridSize: this.gridSize,
+      gridType: this.gridType,
       height: this.height,
       isNonScratched: this.isNonScratched,
       isPreviewMode: this.isPreviewMode,
@@ -207,9 +220,11 @@ export class GameTableMaskComponent {
     });
   }
 
-  get scratchingGridInfos(): { x: number; y: number; state: string }[] {
+  get scratchingGridInfos(): ScratchGridInfo[] {
     return buildScratchingGridInfos({
       currentScratchingSet: this._currentScratchingSet,
+      gridSize: this.gridSize,
+      gridType: this.gridType,
       hasGameTableMask: !!this.gameTableMask(),
       height: this.height,
       isNonScratched: this.isNonScratched,
@@ -273,6 +288,14 @@ export class GameTableMaskComponent {
   readonly gridSize = 50;
   math = Math;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+
+  get gridType(): GridType {
+    return this.tableSelecter.viewTable?.gridType ?? GridType.SQUARE;
+  }
+
+  get hexMarkerR(): number {
+    return hexCircumradius(this.gridSize) * 0.5;
+  }
 
   readonly movableOption = signal<MovableOption>({});
 
@@ -365,8 +388,23 @@ export class GameTableMaskComponent {
     }
     if (offsetX < 0 || mask.width * this.gridSize <= offsetX || offsetY < 0 || mask.height * this.gridSize <= offsetY)
       return;
-    const gridX = Math.floor(offsetX / this.gridSize);
-    const gridY = Math.floor(offsetY / this.gridSize);
+
+    let gridX: number;
+    let gridY: number;
+    const gridType = this.gridType;
+    if (isHexGrid(gridType)) {
+      const isFlatTop = isFlatTopGrid(gridType);
+      const { col, row } = pixelToHexCell(offsetX, offsetY, this.gridSize, isFlatTop);
+      const { colSpacing, rowSpacing } = hexSpacing(this.gridSize, isFlatTop);
+      const hexCols = Math.ceil((this.width * this.gridSize) / colSpacing) + 1;
+      const hexRows = Math.ceil((this.height * this.gridSize) / rowSpacing) + 1;
+      if (col < 0 || col >= hexCols || row < 0 || row >= hexRows) return;
+      gridX = col;
+      gridY = row;
+    } else {
+      gridX = Math.floor(offsetX / this.gridSize);
+      gridY = Math.floor(offsetY / this.gridSize);
+    }
 
     if (!isStart && this._scratchingGridX === gridX && this._scratchingGridY === gridY) return;
     const tempScratching = `${gridX}:${gridY}`;

@@ -95,6 +95,38 @@ export function hexVertices(cx: number, cy: number, s: number, startAngle: numbe
 }
 
 /**
+ * ピクセル座標から最近接ヘクスセルの (col, row) を返す。
+ * 近傍セル中心の全探索で正確に判定する。
+ */
+export function pixelToHexCell(
+  px: number,
+  py: number,
+  gridSize: number,
+  isFlatTop: boolean
+): { col: number; row: number } {
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+  const colEst = px / colSpacing;
+  const rowEst = py / rowSpacing;
+  let bestCol = 0;
+  let bestRow = 0;
+  let bestDist = Infinity;
+  for (let col = Math.floor(colEst) - 1; col <= Math.ceil(colEst) + 1; col++) {
+    for (let row = Math.floor(rowEst) - 1; row <= Math.ceil(rowEst) + 1; row++) {
+      const { x, y } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      const dx = px - x;
+      const dy = py - y;
+      const dist = dx * dx + dy * dy;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestCol = col;
+        bestRow = row;
+      }
+    }
+  }
+  return { col: bestCol, row: bestRow };
+}
+
+/**
  * Canvas 上にヘクスの枠線を描画する (stroke)。
  */
 export function strokeHexPath(
