@@ -155,7 +155,11 @@ export class AudioSharingSystem {
     };
     task.onfinish = (task, data) => {
       this.stopReceiveTask(task.identifier);
-      if (data) localDispatch('UPDATE_AUDIO_RESOURE', [data]);
+      if (data) {
+        if (data.blob) data.blob = new Blob([data.blob], { type: data.type });
+        AudioStorage.instance.add(data);
+        localDispatch('UPDATE_AUDIO_RESOURE', [data]);
+      }
       AudioStorage.instance.synchronize();
     };
 
