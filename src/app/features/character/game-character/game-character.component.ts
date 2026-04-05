@@ -204,16 +204,28 @@ export class GameCharacterComponent {
   /** ヘクスマップ時のジオメトリパラメータ。スクエアマップ時は null。 */
   readonly pedestalHexParams = computed<{
     gridType: GridType;
-    s: number;
-    n: number;
-    L: number;
+    R: number; // 外接円半径
+    W: number; // ペデスタル要素の幅
+    H: number; // ペデスタル要素の高さ
+    L: number; // 親要素の辺 (size * gridSize)
   } | null>(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
+    const char = this.gameCharacter();
+    if (!char) return null;
+    this.objectChange.versionOf(char.identifier)();
     const gridType = this.tabletopService.currentTable.gridType;
     if (gridType !== GridType.HEX_VERTICAL && gridType !== GridType.HEX_HORIZONTAL) return null;
     const g = this.gridSize;
-    return { gridType, s: g / Math.sqrt(3), n: this.size, L: this.size * g };
+    const s = g / Math.sqrt(3);
+    const n = this.size;
+    const L = n * g;
+    const R = n * s;
+    const isFlatTop = gridType === GridType.HEX_VERTICAL;
+    // flat-top: 幅 2R > L, 高さ = L。pointy-top: 幅 = L, 高さ 2R > L。
+    const W = isFlatTop ? 2 * R : L;
+    const H = isFlatTop ? L : 2 * R;
+    return { gridType, R, W, H, L };
   });
 
   /**
@@ -221,28 +233,26 @@ export class GameCharacterComponent {
    * border ではなく background + ring clip で描くことで、ヘクスの辺に沿ったきれいな装飾を実現する。
    */
   private buildHexRingClipPath(
-    params: { gridType: GridType; s: number; n: number; L: number },
+    params: { gridType: GridType; R: number; W: number; H: number },
     borderWidth: number
   ): string {
-    const { gridType, s, n, L } = params;
-    const cx = L / 2;
-    const cy = L / 2;
+    const { gridType, R, W, H } = params;
+    const cx = W / 2;
+    const cy = H / 2;
     const sqrt3 = Math.sqrt(3);
-    const si = s - (2 * borderWidth) / sqrt3; // inset circumradius
+    // ボーダー幅分だけ内側にインセット（サイズに比例させない）
+    const Ri = R - (2 * borderWidth) / sqrt3;
     const f = (v: number): string => v.toFixed(2);
 
     if (gridType === GridType.HEX_VERTICAL) {
-      // flat-top: R=横方向外接円半径, Hh=縦方向の半分
-      const R = n * s;
-      const Hh = L / 2;
-      const Ri = n * si;
-      const Hhi = (n * sqrt3 * si) / 2;
+      // flat-top: 縦半分 = √3*R/2 = L/2
+      const Hh = (sqrt3 * R) / 2;
+      const Hhi = (sqrt3 * Ri) / 2;
       const outer =
         `M ${f(cx + R)} ${f(cy)} ` +
         `L ${f(cx + R / 2)} ${f(cy - Hh)} L ${f(cx - R / 2)} ${f(cy - Hh)} ` +
         `L ${f(cx - R)} ${f(cy)} ` +
         `L ${f(cx - R / 2)} ${f(cy + Hh)} L ${f(cx + R / 2)} ${f(cy + Hh)} Z`;
-      // 内側は逆回り (CCW) で穴を作る
       const inner =
         `M ${f(cx + Ri)} ${f(cy)} ` +
         `L ${f(cx + Ri / 2)} ${f(cy + Hhi)} L ${f(cx - Ri / 2)} ${f(cy + Hhi)} ` +
@@ -250,11 +260,9 @@ export class GameCharacterComponent {
         `L ${f(cx - Ri / 2)} ${f(cy - Hhi)} L ${f(cx + Ri / 2)} ${f(cy - Hhi)} Z`;
       return `path(evenodd, "${outer} ${inner}")`;
     } else {
-      // pointy-top: R=縦方向外接円半径, Wh=横方向の半分
-      const R = n * s;
-      const Wh = L / 2;
-      const Ri = n * si;
-      const Whi = (n * sqrt3 * si) / 2;
+      // pointy-top: 横半分 = √3*R/2 = L/2
+      const Wh = (sqrt3 * R) / 2;
+      const Whi = (sqrt3 * Ri) / 2;
       const outer =
         `M ${f(cx)} ${f(cy - R)} ` +
         `L ${f(cx + Wh)} ${f(cy - R / 2)} L ${f(cx + Wh)} ${f(cy + R / 2)} ` +
@@ -272,8 +280,18 @@ export class GameCharacterComponent {
   pedestalStyle(borderColor: string): Record<string, string> {
     const params = this.pedestalHexParams();
     if (params) {
+      const { W, H, L } = params;
       const clipPath = this.buildHexRingClipPath(params, 6);
-      return { background: borderColor, clipPath, border: 'none', borderRadius: '0' };
+      return {
+        background: borderColor,
+        clipPath,
+        border: 'none',
+        borderRadius: '0',
+        width: `${W}px`,
+        height: `${H}px`,
+        left: `${-(W - L) / 2}px`,
+        top: `${-(H - L) / 2}px`,
+      };
     }
     return { border: `solid 6px ${borderColor}` };
   }
@@ -281,8 +299,18 @@ export class GameCharacterComponent {
   get pedestalOuterStyle(): Record<string, string> {
     const params = this.pedestalHexParams();
     if (params) {
+      const { W, H, L } = params;
       const clipPath = this.buildHexRingClipPath(params, 2);
-      return { background: '#212121', clipPath, border: 'none', borderRadius: '0' };
+      return {
+        background: '#212121',
+        clipPath,
+        border: 'none',
+        borderRadius: '0',
+        width: `${W}px`,
+        height: `${H}px`,
+        left: `${-(W - L) / 2}px`,
+        top: `${-(H - L) / 2}px`,
+      };
     }
     return {};
   }
