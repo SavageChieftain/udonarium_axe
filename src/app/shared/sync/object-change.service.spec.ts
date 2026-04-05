@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
+import { fileLoaded$ } from '@axe/domain/domain-events';
 import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from '@axe/shared/sync/object-change.service';
 
 function nextEvent<T>(channel: { subscribe(fn: (e: T) => void): () => void }): Promise<T> {
@@ -333,6 +334,64 @@ describe('ObjectChangeService', () => {
 
       expect(sigTarget()).toBe(1);
       expect(sigOther()).toBe(0);
+    });
+  });
+
+  describe('fileVersion throttle', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('最初のファイルイベントで即座に fileVersion が increment される（leading edge）', () => {
+      expect(service.fileVersion()).toBe(0);
+
+      fileLoaded$.emit();
+
+      expect(service.fileVersion()).toBe(1);
+    });
+
+    it('100ms 以内の連続イベントでは leading edge のみ即座に反映される', () => {
+      fileLoaded$.emit(); // leading
+      expect(service.fileVersion()).toBe(1);
+
+      fileLoaded$.emit(); // throttled
+      expect(service.fileVersion()).toBe(1);
+
+      fileLoaded$.emit(); // throttled
+      expect(service.fileVersion()).toBe(1);
+    });
+
+    it('100ms 経過後に trailing edge が発火する', () => {
+      fileLoaded$.emit(); // leading
+      fileLoaded$.emit(); // pending
+
+      vi.advanceTimersByTime(100);
+
+      expect(service.fileVersion()).toBe(2); // trailing
+    });
+
+    it('trailing edge 後にクールダウンが終われば新しい leading edge が発火できる', () => {
+      fileLoaded$.emit(); // leading → 1
+      fileLoaded$.emit(); // pending
+
+      vi.advanceTimersByTime(100); // trailing → 2 (starts new cooldown)
+      vi.advanceTimersByTime(100); // cooldown expires (no pending → no trailing)
+
+      fileLoaded$.emit(); // leading → 3
+      expect(service.fileVersion()).toBe(3);
+    });
+
+    it('単発イベントでは trailing edge は発火しない', () => {
+      fileLoaded$.emit(); // leading → 1
+      expect(service.fileVersion()).toBe(1);
+
+      vi.advanceTimersByTime(100);
+
+      expect(service.fileVersion()).toBe(1); // no trailing
     });
   });
 });

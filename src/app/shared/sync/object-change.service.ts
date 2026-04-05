@@ -167,7 +167,7 @@ export class ObjectChangeService {
   readonly loadConfig$ = loadConfig$;
   readonly domainFileResourceUpdated$ = domainFileResourceUpdated$;
 
-  /** Signal that updates when any file-related event occurs (debounced 100ms). */
+  /** Signal that updates when any file-related event occurs (throttled 100ms, leading + trailing). */
   readonly fileVersion = signal<number>(0);
 
   /** Signal that updates when network peer events occur (debounced 100ms). */
@@ -215,14 +215,24 @@ export class ObjectChangeService {
     });
     this.destroyRef.onDestroy(offNetworkBindings);
 
-    // --- Debounced fileVersion signal ---
+    // --- Throttled fileVersion signal (leading + trailing, 100ms) ---
     let fileTimer: ReturnType<typeof setTimeout> | null = null;
-    const bumpFileVersion = () => {
-      if (fileTimer !== null) clearTimeout(fileTimer);
-      fileTimer = setTimeout(() => {
-        fileTimer = null;
+    let filePending = false;
+    const flushFileVersion = () => {
+      fileTimer = null;
+      if (filePending) {
+        filePending = false;
         this.fileVersion.update((v) => v + 1);
-      }, 100);
+        fileTimer = setTimeout(flushFileVersion, 100);
+      }
+    };
+    const bumpFileVersion = () => {
+      if (fileTimer === null) {
+        this.fileVersion.update((v) => v + 1);
+        fileTimer = setTimeout(flushFileVersion, 100);
+      } else {
+        filePending = true;
+      }
     };
     this._fileSyncList$.subscribe(bumpFileVersion, this.destroyRef);
     this._fileResourceUpdated$.subscribe(bumpFileVersion, this.destroyRef);
