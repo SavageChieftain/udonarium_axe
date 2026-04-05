@@ -1,4 +1,3 @@
-import { ColorPicker } from '@acrodata/color-picker';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -19,6 +18,7 @@ import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
+import { ColorSwatchComponent } from '@axe/shared/components/color-swatch/color-swatch.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -31,7 +31,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   styleUrls: ['./game-character-sheet.component.css'],
-  imports: [FormsModule, GameDataElementComponent, SafePipe, ColorPicker],
+  imports: [FormsModule, GameDataElementComponent, SafePipe, ColorSwatchComponent],
 })
 export class GameCharacterSheetComponent {
   private readonly saveDataService = inject(SaveDataService);

@@ -1,4 +1,3 @@
-import { ColorPicker } from '@acrodata/color-picker';
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +11,7 @@ import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/domain/domain
 import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { ColorSwatchComponent } from '@axe/shared/components/color-swatch/color-swatch.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -24,7 +24,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
   styleUrls: ['./game-table-setting.component.css'],
-  imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe, ColorPicker],
+  imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe, ColorSwatchComponent],
 })
 export class GameTableSettingComponent {
   private readonly modalService = inject(ModalService);

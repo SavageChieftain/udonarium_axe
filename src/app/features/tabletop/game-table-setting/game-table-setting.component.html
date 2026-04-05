@@ -101,12 +101,11 @@
           <option value="2">ヘクス（横揃え）</option>
         </select>
         グリッド色:
-        <color-picker
-          [(ngModel)]="tableGridColor"
-          [hideAlpha]="true"
-          format="hex"
+        <color-swatch
+          [value]="tableGridColor"
           [disabled]="!isEditable"
-        ></color-picker>
+          (valueChange)="tableGridColor = $event"
+        ></color-swatch>
       </div>
       <div>
         背景フィルタ

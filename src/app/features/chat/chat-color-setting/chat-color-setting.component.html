@@ -2,31 +2,16 @@
   <div class="table">
     <div class="table-cell">
       <div>第1色</div>
-      <color-picker
-        [value]="chatColorCode(0)"
-        [hideAlpha]="true"
-        format="hex"
-        (valueChange)="onChangeColor($event, 0)"
-      ></color-picker>
+      <color-swatch [value]="chatColorCode(0)" (valueChange)="onChangeColor($event, 0)"></color-swatch>
     </div>
     <div class="table-cell">
       <div>第2色</div>
-      <color-picker
-        [value]="chatColorCode(1)"
-        [hideAlpha]="true"
-        format="hex"
-        (valueChange)="onChangeColor($event, 1)"
-      ></color-picker>
+      <color-swatch [value]="chatColorCode(1)" (valueChange)="onChangeColor($event, 1)"></color-swatch>
     </div>
 
     <div class="table-cell">
       <div>第3色</div>
-      <color-picker
-        [value]="chatColorCode(2)"
-        [hideAlpha]="true"
-        format="hex"
-        (valueChange)="onChangeColor($event, 2)"
-      ></color-picker>
+      <color-swatch [value]="chatColorCode(2)" (valueChange)="onChangeColor($event, 2)"></color-swatch>
     </div>
   </div>
 </div>
