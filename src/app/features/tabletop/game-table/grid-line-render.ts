@@ -1,8 +1,5 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 
-type StrokeGridFunc = (w: number, h: number, gridSize: number) => GridPosition;
-type GridPosition = { gx: number; gy: number };
-
 export class GridLineRender {
   constructor(readonly canvasElement: HTMLCanvasElement) {}
 
@@ -11,8 +8,7 @@ export class GridLineRender {
     gridSize: number,
     gridColor: string,
     gridFontColor: string
-  ): CanvasRenderingContext2D {
-    // 座標描画用brush設定
+  ): void {
     context.strokeStyle = gridColor;
     context.fillStyle = gridFontColor;
     context.lineWidth = 1;
@@ -21,7 +17,6 @@ export class GridLineRender {
     context.font = `bold ${fontSize}px sans-serif`;
     context.textBaseline = 'top';
     context.textAlign = 'center';
-    return context;
   }
 
   render(
@@ -41,80 +36,111 @@ export class GridLineRender {
 
     if (gridType < 0) return;
 
+    this.makeBrush(context, gridSize, gridColor, gridFontColor);
+
+    switch (gridType) {
+      case GridType.SQUARE:
+        this.renderSquareGrid(context, width, height, gridSize, overTerrain, offsetTop, offsetLeft);
+        break;
+      case GridType.HEX_VERTICAL:
+      case GridType.HEX_HORIZONTAL:
+        this.renderHexGrid(context, width, height, gridSize, gridType, overTerrain, offsetTop, offsetLeft);
+        break;
+    }
+  }
+
+  private renderSquareGrid(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    gridSize: number,
+    overTerrain: boolean,
+    offsetTop: number,
+    offsetLeft: number
+  ) {
     const offTop = overTerrain ? Math.floor(offsetTop / gridSize) + 1 : 0;
     const offLeft = overTerrain ? Math.floor(offsetLeft / gridSize) + 1 : 0;
 
-    const calcGridPosition: StrokeGridFunc = this.generateCalcGridPositionFunc(gridType);
-    this.makeBrush(context, gridSize, gridColor, gridFontColor);
     for (let h = 0; h <= height; h++) {
       for (let w = 0; w <= width; w++) {
-        const { gx, gy } = calcGridPosition(w, h, gridSize);
-        this.strokeSquare(context, gx, gy, gridSize);
-
-        let hexOffsetTop = 0;
-        let hexOffsetLeft = 0;
-
-        if (overTerrain && gridType == GridType.HEX_VERTICAL) {
-          hexOffsetTop = offLeft % 2 == 1 && (w + 1 + offLeft) % 2 == 1 ? -1 : 0;
-        }
-        if (overTerrain && gridType == GridType.HEX_HORIZONTAL) {
-          hexOffsetLeft = offTop % 2 == 1 && (h + 1 + offTop) % 2 == 1 ? -1 : 0;
-        }
-
-        context.fillText(
-          (w + 1 + offLeft + hexOffsetLeft).toString() + '-' + (h + 1 + offTop + hexOffsetTop).toString(),
-          gx + gridSize / 2,
-          gy + gridSize / 2
-        );
+        const gx = w * gridSize;
+        const gy = h * gridSize;
+        context.beginPath();
+        context.strokeRect(gx, gy, gridSize, gridSize);
+        context.fillText(w + 1 + offLeft + '-' + (h + 1 + offTop), gx + gridSize / 2, gy + gridSize / 2);
       }
     }
   }
 
-  private generateCalcGridPositionFunc(gridType: GridType): StrokeGridFunc {
-    switch (gridType) {
-      case GridType.HEX_VERTICAL: // ヘクス縦揃え
-        return (w, h, gridSize) => {
-          if (w % 2 === 1) {
-            return { gx: w * gridSize, gy: h * gridSize };
-          } else {
-            return { gx: w * gridSize, gy: h * gridSize + gridSize / 2 };
-          }
-        };
+  private renderHexGrid(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    gridSize: number,
+    gridType: GridType,
+    overTerrain: boolean,
+    offsetTop: number,
+    offsetLeft: number
+  ) {
+    const s = gridSize / Math.sqrt(3); // circumradius
+    const canvasW = width * gridSize;
+    const canvasH = height * gridSize;
 
-      case GridType.HEX_HORIZONTAL: // ヘクス横揃え(どどんとふ互換)
-        return (w, h, gridSize) => {
-          if (h % 2 === 1) {
-            return { gx: w * gridSize, gy: h * gridSize };
-          } else {
-            return { gx: w * gridSize + gridSize / 2, gy: h * gridSize };
-          }
-        };
+    // HEX_VERTICAL(縦揃え) = flat-top hex: 列が縦に直線、偶数列が下にずれる
+    // HEX_HORIZONTAL(横揃え) = pointy-top hex: 行が横に直線、偶数行が右にずれる
+    const isFlatTop = gridType === GridType.HEX_VERTICAL;
 
-      default: // スクエア(default)
-        return (w, h, gridSize) => {
-          return { gx: w * gridSize, gy: h * gridSize };
-        };
+    let colSpacing: number;
+    let rowSpacing: number;
+    let startAngle: number;
+
+    if (isFlatTop) {
+      colSpacing = 1.5 * s;
+      rowSpacing = gridSize; // √3 * s
+      startAngle = 0;
+    } else {
+      colSpacing = gridSize; // √3 * s
+      rowSpacing = 1.5 * s;
+      startAngle = -Math.PI / 2;
+    }
+
+    const numCols = Math.ceil(canvasW / colSpacing) + 2;
+    const numRows = Math.ceil(canvasH / rowSpacing) + 2;
+
+    const offCol = overTerrain ? Math.floor(offsetLeft / colSpacing) + 1 : 0;
+    const offRow = overTerrain ? Math.floor(offsetTop / rowSpacing) + 1 : 0;
+
+    context.textBaseline = 'middle';
+
+    for (let row = 0; row < numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        let cx: number;
+        let cy: number;
+
+        if (isFlatTop) {
+          cx = col * colSpacing;
+          cy = row * rowSpacing + (col % 2 === 1 ? gridSize / 2 : 0);
+        } else {
+          cx = col * colSpacing + (row % 2 === 1 ? gridSize / 2 : 0);
+          cy = row * rowSpacing;
+        }
+
+        if (cx < -gridSize || cx > canvasW + gridSize || cy < -gridSize || cy > canvasH + gridSize) continue;
+
+        this.strokeHexAt(context, cx, cy, s, startAngle);
+        context.fillText(col + 1 + offCol + '-' + (row + 1 + offRow), cx, cy);
+      }
     }
   }
 
-  private strokeSquare(context: CanvasRenderingContext2D, gx: number, gy: number, gridSize: number) {
-    context.beginPath();
-    context.strokeRect(gx, gy, gridSize, gridSize);
-  }
-
-  private strokeHex(context: CanvasRenderingContext2D, gx: number, gy: number, gridSize: number, gridType: GridType) {
-    let deg = gridType === GridType.HEX_HORIZONTAL ? -30 : 0;
-    const radius = gridSize / Math.sqrt(3);
-    const cx = gx + gridSize / 2;
-    const cy = gy + gridSize / 2;
-
+  private strokeHexAt(context: CanvasRenderingContext2D, cx: number, cy: number, s: number, startAngle: number) {
     context.beginPath();
     for (let i = 0; i < 6; i++) {
-      deg += 60;
-      const radian = (Math.PI / 180) * deg;
-      const x = Math.cos(radian) * radius + cx;
-      const y = Math.sin(radian) * radius + cy;
-      context.lineTo(x, y);
+      const angle = startAngle + (i * Math.PI) / 3;
+      const x = cx + s * Math.cos(angle);
+      const y = cy + s * Math.sin(angle);
+      if (i === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
     }
     context.closePath();
     context.stroke();
