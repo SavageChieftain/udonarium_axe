@@ -2,7 +2,7 @@ import { ClipAreaCorn, RangeRenderSetting } from '@axe/features/tabletop/range/r
 import {
   calcGridOffsets,
   chkOuterProduct,
-  fillSquare,
+  fillCell,
   generateCalcGridPositionFunc,
   makeBrush,
 } from '@axe/features/tabletop/range/range-render-util';
@@ -43,7 +43,7 @@ export function renderCircle(
         const gcx = gx + adjX;
         const gcy = gy + adjY;
         if (radiusSq >= gcx * gcx + gcy * gcy) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
+          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
         }
       }
     }
@@ -169,7 +169,7 @@ export function renderCorn(
           chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
           chkOuterProduct(p2x, p2y, cx, cy, gcx, gcy)
         ) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
+          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
         }
       }
     }

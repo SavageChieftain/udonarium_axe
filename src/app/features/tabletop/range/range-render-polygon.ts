@@ -7,7 +7,7 @@ import {
 import {
   calcGridOffsets,
   chkOuterProduct,
-  fillSquare,
+  fillCell,
   generateCalcGridPositionFunc,
   makeBrush,
 } from '@axe/features/tabletop/range/range-render-util';
@@ -95,7 +95,7 @@ export function renderLine(
           chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
           chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
         ) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
+          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
         }
       }
     }
@@ -182,7 +182,7 @@ export function renderSquare(
         const gcx = gx + adjX;
         const gcy = gy + adjY;
         if (gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
+          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
         }
       }
     }
@@ -274,7 +274,7 @@ export function renderDiamond(
         const gcx = gx + adjX;
         const gcy = gy + adjY;
         if (Math.abs(gcx) + Math.abs(gcy) <= halfRange) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
+          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
         }
       }
     }

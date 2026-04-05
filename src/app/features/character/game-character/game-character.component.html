@@ -19,12 +19,12 @@
         (rotable.ondragend)="onMoved()"
       >
         @if (!this.gameCharacter()!.hideInventory) {
-          <div class="pedestal-inner is-3d" [style]="{ border: 'solid 6px #FFCC80' }"></div>
+          <div class="pedestal-inner is-3d" [ngStyle]="pedestalStyle('#FFCC80')"></div>
         }
         @if (this.gameCharacter()!.hideInventory) {
-          <div class="pedestal-inner is-3d" [style]="{ border: 'solid 6px #A0E0FF' }"></div>
+          <div class="pedestal-inner is-3d" [ngStyle]="pedestalStyle('#A0E0FF')"></div>
         }
-        <div class="pedestal-outer"></div>
+        <div class="pedestal-outer" [ngStyle]="pedestalOuterStyle"></div>
         <!--床回転アイコン-->
         @if (!isLock) {
           <div class="pedestal-grab rotate-grab will-change">

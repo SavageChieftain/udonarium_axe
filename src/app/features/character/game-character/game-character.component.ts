@@ -16,6 +16,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -28,6 +29,7 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
@@ -54,6 +56,7 @@ export class GameCharacterComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly isTargeted = computed(() => {
@@ -197,6 +200,65 @@ export class GameCharacterComponent {
   private input: InputHandler | null = null;
 
   readonly rotableOption = signal<RotableOption>({});
+
+  /** ヘクスマップ時の台座 clip-path を返す。スクエアマップ時は null。 */
+  readonly pedestalHexClipPath = computed<string | null>(() => {
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    const gridType = this.tabletopService.currentTable.gridType;
+    if (gridType !== GridType.HEX_VERTICAL && gridType !== GridType.HEX_HORIZONTAL) return null;
+
+    // GridLineRender と同じ計算: s = circumradius = gridSize / sqrt(3)
+    const g = this.gridSize;
+    const s = g / Math.sqrt(3);
+    const n = this.size; // セル数
+    const L = n * g; // 要素の辺 (width/height)
+
+    if (gridType === GridType.HEX_VERTICAL) {
+      // flat-top ヘクス: 横幅 = 2s, 縦幅 = g (= sqrt(3)*s)
+      // size=1 のとき要素は g×g の正方形。六角形の外接円 = s で上下中央に描く
+      // size=n のとき辺長を n 倍にスケール
+      const R = n * s; // 外接円半径（横方向）
+      const H = n * g; // 縦全体 (= L)
+      const cx = L / 2;
+      const cy = L / 2;
+      return (
+        `polygon(${cx + R}px ${cy}px, ` +
+        `${cx + R / 2}px ${cy - H / 2}px, ` +
+        `${cx - R / 2}px ${cy - H / 2}px, ` +
+        `${cx - R}px ${cy}px, ` +
+        `${cx - R / 2}px ${cy + H / 2}px, ` +
+        `${cx + R / 2}px ${cy + H / 2}px)`
+      );
+    } else {
+      // pointy-top ヘクス: 縦幅 = 2s, 横幅 = g (= sqrt(3)*s)
+      const R = n * s; // 外接円半径（縦方向）
+      const W = n * g; // 横全体 (= L)
+      const cx = L / 2;
+      const cy = L / 2;
+      return (
+        `polygon(${cx}px ${cy - R}px, ` +
+        `${cx + W / 2}px ${cy - R / 2}px, ` +
+        `${cx + W / 2}px ${cy + R / 2}px, ` +
+        `${cx}px ${cy + R}px, ` +
+        `${cx - W / 2}px ${cy + R / 2}px, ` +
+        `${cx - W / 2}px ${cy - R / 2}px)`
+      );
+    }
+  });
+
+  pedestalStyle(borderColor: string): Record<string, string> {
+    const clipPath = this.pedestalHexClipPath();
+    if (clipPath) {
+      return { border: `solid 6px ${borderColor}`, clipPath, borderRadius: '0' };
+    }
+    return { border: `solid 6px ${borderColor}` };
+  }
+
+  get pedestalOuterStyle(): Record<string, string> {
+    const clipPath = this.pedestalHexClipPath();
+    if (clipPath) return { clipPath, borderRadius: '0' };
+    return {};
+  }
 
   private highlightTimer: ReturnType<typeof setTimeout> | undefined;
   private unhighlightTimer: ReturnType<typeof setTimeout> | undefined;

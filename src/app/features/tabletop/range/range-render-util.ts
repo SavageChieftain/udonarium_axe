@@ -123,3 +123,41 @@ export function chkInCircle(radius: number, pchkx: number, pchky: number): boole
 export function fillSquare(context: CanvasRenderingContext2D, gx: number, gy: number, gridSize: number): void {
   context.fillRect(gx, gy, gridSize, gridSize);
 }
+
+function fillHex(
+  context: CanvasRenderingContext2D,
+  gx: number,
+  gy: number,
+  gridSize: number,
+  gridType: GridType
+): void {
+  const R = gridSize / Math.sqrt(3);
+  const cx = gx + gridSize / 2;
+  const cy = gy + gridSize / 2;
+  const startAngle = gridType === GridType.HEX_VERTICAL ? 0 : -Math.PI / 2;
+  context.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = startAngle + (i * Math.PI) / 3;
+    const x = cx + R * Math.cos(angle);
+    const y = cy + R * Math.sin(angle);
+    if (i === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  }
+  context.closePath();
+  context.fill();
+}
+
+/** セル形状を gridType に応じて塗りつぶす。ヘクスマップでは六角形、それ以外は正方形。 */
+export function fillCell(
+  context: CanvasRenderingContext2D,
+  gx: number,
+  gy: number,
+  gridSize: number,
+  gridType: GridType
+): void {
+  if (gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL) {
+    fillHex(context, gx, gy, gridSize, gridType);
+  } else {
+    fillSquare(context, gx, gy, gridSize);
+  }
+}
