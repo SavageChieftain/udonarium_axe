@@ -20,6 +20,7 @@ export class Jukebox extends GameObject {
 
   private audioPlayer: AudioPlayer = new AudioPlayer();
   private audioUpdateCleanup: (() => void) | null = null;
+  private isInitialSync = true;
 
   get config(): Config {
     return ObjectStore.instance.get<Config>('Config')!;
@@ -98,8 +99,12 @@ export class Jukebox extends GameObject {
   }
 
   private playAfterFileUpdate() {
+    if (this.audioUpdateCleanup) return;
     this.audioUpdateCleanup = updateAudioResource$.subscribe(() => {
-      this._play();
+      if (!this.audio || !this.audio.isReady) return;
+      this.unregisterEvent();
+      this.audioPlayer.loop = true;
+      this.audioPlayer.play(this.audio);
     });
   }
 
@@ -123,6 +128,10 @@ export class Jukebox extends GameObject {
     const audioIdentifier = this.audioIdentifier;
     const isPlaying = this.isPlaying;
     super.apply(context);
+    if (this.isInitialSync) {
+      this.isInitialSync = false;
+      return;
+    }
     if ((audioIdentifier !== this.audioIdentifier || !isPlaying) && this.isPlaying) {
       this._play();
     } else if (isPlaying !== this.isPlaying && !this.isPlaying) {

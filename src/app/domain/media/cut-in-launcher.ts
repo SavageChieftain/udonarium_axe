@@ -17,6 +17,7 @@ export class CutInLauncher extends GameObject {
   @SyncVar() sendTo: string = '';
 
   reloadDummy = 5;
+  private isInitialSync = true;
 
   get jukebox(): Jukebox {
     return ObjectStore.instance.get<Jukebox>('Jukebox')!;
@@ -125,6 +126,11 @@ export class CutInLauncher extends GameObject {
     const launchTimeStamp = this.launchTimeStamp;
     const stopBlankTagCutInTimeStamp = this.stopBlankTagCutInTimeStamp;
     super.apply(context);
+
+    if (this.isInitialSync) {
+      this.isInitialSync = false;
+      return;
+    }
 
     if (this.launchMySelf) {
       return;
