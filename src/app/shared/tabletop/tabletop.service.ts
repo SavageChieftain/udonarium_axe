@@ -136,6 +136,14 @@ export class TabletopService {
         this.refreshCache(aliasName);
       }
     }, this.destroyRef);
+    this.objectChange.objectRemoved$.subscribe((e) => {
+      const aliasName = e.aliasName;
+      if (!aliasName) {
+        this.refreshCacheAll();
+      } else {
+        this.refreshCache(aliasName);
+      }
+    }, this.destroyRef);
     this.objectChange.xmlLoaded$.subscribe((event) => {
       const xmlElement: Element = event.xmlElement;
 

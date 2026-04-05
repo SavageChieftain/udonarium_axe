@@ -73,6 +73,8 @@ export class ObjectChangeService {
   readonly childrenChanged$: ReadableChannel<ChildrenChangeEvent> = childrenChanged$;
   /** Emitted synchronously when an object is added to ObjectStore. */
   readonly objectAdded$: ReadableChannel<ObjectStoreEvent> = objectAdded$;
+  /** Emitted synchronously when an object is removed from ObjectStore. */
+  readonly objectRemoved$: ReadableChannel<ObjectStoreEvent> = objectRemoved$;
 
   // --- Per-identifier version signals ---
   private readonly _versions = new Map<string, WritableSignal<number>>();
