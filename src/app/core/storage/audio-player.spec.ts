@@ -176,6 +176,9 @@ describe('AudioPlayer', () => {
     it('AUDITION は 1', () => {
       expect(VolumeType.AUDITION).toBe(1);
     });
+    it('SE は 2', () => {
+      expect(VolumeType.SE).toBe(2);
+    });
   });
 
   // ─── static audioContext ─────────────────────────────────────────────────
@@ -433,6 +436,17 @@ describe('AudioPlayer', () => {
       const src = audioCtxMock.createMediaElementSource.mock.results[0].value;
       const masterGain = audioCtxMock.createGain.mock.results[0].value as GainNodeMock;
       expect(src.connect).toHaveBeenCalledWith(masterGain);
+    });
+
+    it('play() は volumeType SE で seNode に接続する', () => {
+      const player = new AudioPlayer();
+      player.volumeType = VolumeType.SE;
+      const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'se1' });
+      // play() 前に seNode を参照して gainNode インスタンスを先に取得
+      const seNodeRef = AudioPlayer.seNode;
+      player.play(af);
+      const src = audioCtxMock.createMediaElementSource.mock.results[0].value;
+      expect(src.connect).toHaveBeenCalledWith(seNodeRef);
     });
 
     it('audioElm 生成時に _volume と _loop がセットされる', () => {

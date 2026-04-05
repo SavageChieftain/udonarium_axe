@@ -58,6 +58,14 @@ describe('ObjectChangeService', () => {
     expect(service.networkOpen$).toBeTruthy();
   });
 
+  it('should expose objectAdded$ observable', () => {
+    expect(service.objectAdded$).toBeTruthy();
+  });
+
+  it('should expose objectRemoved$ observable', () => {
+    expect(service.objectRemoved$).toBeTruthy();
+  });
+
   it('should emit on objectChanged$ when objectChanged$ fires', async () => {
     const testData = { identifier: 'test-id', aliasName: 'TestAlias', isSendFromSelf: false };
     const promise = nextEvent(service.objectChanged$);
