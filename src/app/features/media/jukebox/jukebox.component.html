@@ -46,16 +46,20 @@
         <button (click)="stop()" [disabled]="!audio.isReady">試聴/停止</button>
       }
       @if (audio !== jukebox.audio) {
-        <button (click)="playBGM(audio)" [disabled]="!audio.isReady">BGM/再生</button>
+        <button (click)="playBGM(audio)" [disabled]="!audio.isReady">
+          {{ getTagOf(audio) === 'SE' ? 'SE' : 'BGM' }}/再生
+        </button>
       }
       @if (audio === jukebox.audio) {
-        <button (click)="stopBGM(audio)" [disabled]="!audio.isReady">BGM/停止</button>
+        <button (click)="stopBGM(audio)" [disabled]="!audio.isReady">
+          {{ getTagOf(audio) === 'SE' ? 'SE' : 'BGM' }}/停止
+        </button>
       }
       @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
         <span>【試聴中】</span>
       }
       @if (audio === jukebox.audio) {
-        <span>【BGM】</span>
+        <span>【{{ getTagOf(audio) === 'SE' ? 'SE' : 'BGM' }}】</span>
       }
       <span>{{ audio.name }}</span>
       <select class="tag-select" [ngModel]="getTagOf(audio)" (ngModelChange)="setTagOf(audio, $event)">

@@ -141,7 +141,8 @@ export class JukeboxComponent {
     //BGM駆動のためのインスタンスを別にしているため現状この処理で止める
     this.cutInLauncher.stopBlankTagCutIn();
 
-    this.jukebox.play(audio.identifier, true);
+    const isSE = this.getTagOf(audio) === 'SE';
+    this.jukebox.play(audio.identifier, !isSE);
   }
 
   stopBGM(audio: AudioFile) {

@@ -1,10 +1,11 @@
 import { AudioFile } from '@axe/core/storage/audio-file';
-import { AudioPlayer } from '@axe/core/storage/audio-player';
+import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { updateAudioResource$ } from '@axe/domain/domain-events';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Config } from '@axe/domain/peer/config';
 
 @SyncObject('jukebox')
@@ -83,7 +84,9 @@ export class Jukebox extends GameObject {
       this.playAfterFileUpdate();
       return;
     }
-    this.audioPlayer.loop = true;
+    const isSE = AudioTag.get(this.audioIdentifier)?.tag === 'SE';
+    this.audioPlayer.volumeType = isSE ? VolumeType.SE : VolumeType.MASTER;
+    this.audioPlayer.loop = !isSE && this.isLoop;
     this.audioPlayer.play(this.audio);
   }
 
@@ -103,7 +106,9 @@ export class Jukebox extends GameObject {
     this.audioUpdateCleanup = updateAudioResource$.subscribe(() => {
       if (!this.audio || !this.audio.isReady) return;
       this.unregisterEvent();
-      this.audioPlayer.loop = true;
+      const isSE = AudioTag.get(this.audioIdentifier)?.tag === 'SE';
+      this.audioPlayer.volumeType = isSE ? VolumeType.SE : VolumeType.MASTER;
+      this.audioPlayer.loop = !isSE && this.isLoop;
       this.audioPlayer.play(this.audio);
     });
   }

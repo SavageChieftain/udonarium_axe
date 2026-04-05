@@ -5,6 +5,7 @@ import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 export enum VolumeType {
   MASTER,
   AUDITION,
+  SE,
 }
 
 declare global {
@@ -220,6 +221,8 @@ export class AudioPlayer {
     switch (this.volumeType) {
       case VolumeType.AUDITION:
         return AudioPlayer.auditionNode;
+      case VolumeType.SE:
+        return AudioPlayer.seNode;
       default:
         return AudioPlayer.rootNode;
     }
