@@ -175,7 +175,7 @@ export function buildHexRingClipPath(outline: Point[], bbox: BoundingBox, border
  * ヘクスフラワーのアウトラインから HexFlowerParams を計算する。
  */
 export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: boolean): HexFlowerParams {
-  const n = Math.min(size, 6);
+  const n = Math.min(Math.max(Math.round(size), 1), 6);
   const L = size * gridSize;
   const outline = buildHexFlowerOutline(n, gridSize, isFlatTop);
   let minX = Infinity;
