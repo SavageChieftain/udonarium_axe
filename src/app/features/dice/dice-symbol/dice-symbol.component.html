@@ -90,9 +90,7 @@
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
                     height: +imageHeignt + 'px',
-                    display: 'block',
-                    'margin-left': 'auto',
-                    'margin-right': 'auto',
+                    transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)',
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                   [ngClass]="{ 'is-black-mask': !isVisible, 'is-harf-black-mask': isMine }"
