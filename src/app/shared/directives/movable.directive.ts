@@ -1,11 +1,13 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import {
   applyPointerEvents,
+  calcHexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
   registerLayer,
@@ -215,8 +217,19 @@ export class MovableDirective {
   }
 
   snapToGrid(gridSize: number = 25) {
-    this.posX = calcSnapNum(this.posX, gridSize);
-    this.posY = calcSnapNum(this.posY, gridSize);
+    const table = this.tableSelecter.viewTable;
+    const effectiveGridSize = table?.gridSize ?? gridSize;
+    const gridType = table?.gridType ?? GridType.SQUARE;
+
+    if (gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL) {
+      const center = { x: this.posX + this.width / 2, y: this.posY + this.height / 2 };
+      const snapped = calcHexSnapPosition(center.x, center.y, effectiveGridSize, gridType);
+      this.posX = snapped.x;
+      this.posY = snapped.y;
+    } else {
+      this.posX = calcSnapNum(this.posX, effectiveGridSize);
+      this.posY = calcSnapNum(this.posY, effectiveGridSize);
+    }
   }
 
   private setPosition(object: TabletopObject) {

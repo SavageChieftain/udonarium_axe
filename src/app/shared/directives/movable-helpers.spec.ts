@@ -1,6 +1,8 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   applyPointerEvents,
+  calcHexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
   shouldTransitionTo,
@@ -81,6 +83,65 @@ describe('movable-helpers', () => {
       applyPointerEvents([a, b], true);
       expect(a.style.pointerEvents).toBe('auto');
       expect(b.style.pointerEvents).toBe('auto');
+    });
+  });
+
+  describe('calcHexSnapPosition', () => {
+    const gridSize = 50;
+    const s = gridSize / Math.sqrt(3);
+
+    describe('flat-top (HEX_VERTICAL)', () => {
+      const colSpacing = 1.5 * s;
+
+      it('原点付近のポイントを (0,0) ヘクス中心にスナップ', () => {
+        const result = calcHexSnapPosition(5, 5, gridSize, GridType.HEX_VERTICAL);
+        expect(result.x).toBeCloseTo(-gridSize / 2);
+        expect(result.y).toBeCloseTo(-gridSize / 2);
+      });
+
+      it('col=1 のヘクス中心にスナップ（奇数列は半行オフセット）', () => {
+        const cx = colSpacing;
+        const cy = gridSize / 2;
+        const result = calcHexSnapPosition(cx, cy, gridSize, GridType.HEX_VERTICAL);
+        expect(result.x).toBeCloseTo(cx - gridSize / 2);
+        expect(result.y).toBeCloseTo(cy - gridSize / 2);
+      });
+
+      it('2つのヘクスの中間点は近い方にスナップ', () => {
+        const cx0 = 0;
+        const cx1 = colSpacing;
+        const midX = (cx0 + cx1) / 2 - 1;
+        const result = calcHexSnapPosition(midX, 0, gridSize, GridType.HEX_VERTICAL);
+        expect(result.x).toBeCloseTo(cx0 - gridSize / 2);
+        expect(result.y).toBeCloseTo(-gridSize / 2);
+      });
+    });
+
+    describe('pointy-top (HEX_HORIZONTAL)', () => {
+      const rowSpacing = 1.5 * s;
+
+      it('原点付近のポイントを (0,0) ヘクス中心にスナップ', () => {
+        const result = calcHexSnapPosition(5, 5, gridSize, GridType.HEX_HORIZONTAL);
+        expect(result.x).toBeCloseTo(-gridSize / 2);
+        expect(result.y).toBeCloseTo(-gridSize / 2);
+      });
+
+      it('row=1 のヘクス中心にスナップ（奇数行は半列オフセット）', () => {
+        const cx = gridSize / 2;
+        const cy = rowSpacing;
+        const result = calcHexSnapPosition(cx, cy, gridSize, GridType.HEX_HORIZONTAL);
+        expect(result.x).toBeCloseTo(cx - gridSize / 2);
+        expect(result.y).toBeCloseTo(cy - gridSize / 2);
+      });
+
+      it('2つのヘクスの中間点は近い方にスナップ', () => {
+        const cy0 = 0;
+        const cy1 = rowSpacing;
+        const midY = (cy0 + cy1) / 2 - 1;
+        const result = calcHexSnapPosition(0, midY, gridSize, GridType.HEX_HORIZONTAL);
+        expect(result.x).toBeCloseTo(-gridSize / 2);
+        expect(result.y).toBeCloseTo(cy0 - gridSize / 2);
+      });
     });
   });
 });

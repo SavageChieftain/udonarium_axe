@@ -1,3 +1,4 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export type MovableLayerItem = {
@@ -9,6 +10,52 @@ export function calcSnapNum(num: number, interval: number): number {
   if (interval <= 0) return num;
   const adjusted = num < 0 ? num - interval / 2 : num + interval / 2;
   return adjusted - (adjusted % interval);
+}
+
+export function calcHexSnapPosition(
+  posX: number,
+  posY: number,
+  gridSize: number,
+  gridType: GridType
+): { x: number; y: number } {
+  const s = gridSize / Math.sqrt(3);
+  const isFlatTop = gridType === GridType.HEX_VERTICAL;
+
+  const colSpacing = isFlatTop ? 1.5 * s : gridSize;
+  const rowSpacing = isFlatTop ? gridSize : 1.5 * s;
+
+  const colEst = posX / colSpacing;
+  const rowEst = posY / rowSpacing;
+
+  let bestX = 0;
+  let bestY = 0;
+  let bestDist = Infinity;
+
+  for (let col = Math.floor(colEst) - 1; col <= Math.ceil(colEst) + 1; col++) {
+    for (let row = Math.floor(rowEst) - 1; row <= Math.ceil(rowEst) + 1; row++) {
+      let hx: number;
+      let hy: number;
+
+      if (isFlatTop) {
+        hx = col * colSpacing;
+        hy = row * rowSpacing + (col % 2 !== 0 ? gridSize / 2 : 0);
+      } else {
+        hx = col * colSpacing + (row % 2 !== 0 ? gridSize / 2 : 0);
+        hy = row * rowSpacing;
+      }
+
+      const dx = posX - hx;
+      const dy = posY - hy;
+      const dist = dx * dx + dy * dy;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestX = hx;
+        bestY = hy;
+      }
+    }
+  }
+
+  return { x: bestX - gridSize / 2, y: bestY - gridSize / 2 };
 }
 
 export function toTransformCss(posX: number, posY: number, posZ: number, transformCssOffset: string): string {
