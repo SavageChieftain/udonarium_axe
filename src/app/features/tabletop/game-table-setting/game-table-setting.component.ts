@@ -46,17 +46,6 @@ export class GameTableSettingComponent {
     DiceBot.getHelpMessage(gameType).then(() => {});
   }
 
-  get roomGridDispAlways(): boolean {
-    const conf = this.objectStore.get<Config>('Config');
-    return conf ? conf.roomGridDispAlways : false;
-  }
-
-  set roomGridDispAlways(disp: boolean) {
-    const conf = this.objectStore.get<Config>('Config');
-    this.tableGridDummy = !this.tableGridDummy;
-    if (conf) conf.roomGridDispAlways = disp;
-  }
-
   get config(): Config {
     return this.objectStore.get<Config>('Config')!;
   }
@@ -78,14 +67,6 @@ export class GameTableSettingComponent {
     this.objectChange.fileVersion();
     if (this.selectedTable) this.objectChange.versionOf(this.selectedTable.identifier)();
     return this.imageService.getEmptyOr(this.selectedTable ? this.selectedTable.backgroundImageIdentifier : '');
-  }
-
-  // 全体強制ONしたときのグリッド表示信号発行のためのダミー
-  get tableGridDummy(): boolean {
-    return this.tableSelecter.tableGridDummy;
-  }
-  set tableGridDummy(dummy: boolean) {
-    this.tableSelecter.tableGridDummy = dummy;
   }
 
   get tableName(): string {

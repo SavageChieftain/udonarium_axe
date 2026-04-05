@@ -16,7 +16,6 @@ export class TableSelecter extends GameObject {
   }
 
   @SyncVar() viewTableIdentifier: string = '';
-  @SyncVar() tableGridDummy: boolean = false;
   private cleanups: (() => void)[] = [];
 
   // GameObject Lifecycle

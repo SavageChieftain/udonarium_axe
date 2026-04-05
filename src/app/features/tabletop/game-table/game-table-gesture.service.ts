@@ -36,7 +36,6 @@ export class GameTableGestureService {
   private gameObjectsEl!: HTMLElement;
   private gridCanvasEl!: HTMLCanvasElement;
   private getGridShow!: () => boolean;
-  private getRoomGridDispAlways!: () => boolean;
 
   /**
    * afterNextRender() から呼び出す。ジェスチャーハンドラーを設定し、破棄時の後処理も登録する。
@@ -46,14 +45,12 @@ export class GameTableGestureService {
     gameTableEl: HTMLElement,
     gameObjectsEl: HTMLElement,
     gridCanvasEl: HTMLCanvasElement,
-    getGridShow: () => boolean,
-    getRoomGridDispAlways: () => boolean
+    getGridShow: () => boolean
   ): void {
     this.gameTableEl = gameTableEl;
     this.gameObjectsEl = gameObjectsEl;
     this.gridCanvasEl = gridCanvasEl;
     this.getGridShow = getGridShow;
-    this.getRoomGridDispAlways = getRoomGridDispAlways;
 
     this.touchGesture = new TableTouchGesture(rootEl);
     this.touchGesture.onstart = () => this.onTableTouchStart();
@@ -75,7 +72,7 @@ export class GameTableGestureService {
     this.mouseGesture?.cancel();
     this.isTableTransformMode = true;
     this.pointerDeviceService.isDragging = false;
-    const opacity = this.getGridShow() || this.getRoomGridDispAlways() ? 1.0 : 0.0;
+    const opacity = this.getGridShow() ? 1.0 : 0.0;
     this.gridCanvasEl.style.opacity = opacity + '';
   }
 

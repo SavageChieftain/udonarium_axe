@@ -9,7 +9,6 @@ import { Jukebox } from '@axe/domain/media/jukebox';
 export class Config extends ObjectNode implements InnerXml {
   @SyncVar('_defaultDiceBot') private _defaultDiceBot: string = 'DiceBot';
   @SyncVar('_roomVolume') private _roomVolume: number = 1.0;
-  @SyncVar('_roomGridDispAlways') private _roomGridDispAlways: boolean = false;
 
   get defaultDiceBot(): string {
     if (this._defaultDiceBot == '') {
@@ -31,13 +30,6 @@ export class Config extends ObjectNode implements InnerXml {
   // 共通設定保存の都合でのため全体ボリュームはこちらにある
   get jukebox(): Jukebox {
     return ObjectStore.instance.get<Jukebox>('Jukebox')!;
-  }
-
-  get roomGridDispAlways(): boolean {
-    return this._roomGridDispAlways;
-  }
-  set roomGridDispAlways(roomGridDispAlways: boolean) {
-    this._roomGridDispAlways = roomGridDispAlways;
   }
 
   private static _instance: Config;

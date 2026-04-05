@@ -38,9 +38,5 @@ describe('TableSelecter', () => {
     it('viewTableIdentifier がデフォルト空文字', () => {
       expect(TableSelecter.instance.viewTableIdentifier).toBe('');
     });
-
-    it('tableGridDummy がデフォルト false', () => {
-      expect(TableSelecter.instance.tableGridDummy).toBe(false);
-    });
   });
 });

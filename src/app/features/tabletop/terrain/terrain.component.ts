@@ -17,7 +17,6 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { Config } from '@axe/domain/peer/config';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
@@ -78,9 +77,6 @@ export class TerrainComponent {
       this.uiSignalService.terrainGridEndVersion();
       let opacity: number = 0.0;
       if (this.terrain().isGrid) {
-        if (this.roomGridDispAlways) {
-          opacity = 1.0;
-        }
         if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;
         }
@@ -218,16 +214,6 @@ export class TerrainComponent {
   readonly isVisibleFloor = computed(() => 0 < this.width() * this.depth());
   readonly isVisibleWallTopBottom = computed(() => 0 < this.width() * this.height());
   readonly isVisibleWallLeftRight = computed(() => 0 < this.depth() * this.height());
-
-  get roomGridDispAlways(): boolean {
-    const conf = this.objectStore.get<Config>('Config');
-    return conf ? conf.roomGridDispAlways : false;
-  }
-
-  set roomGridDispAlways(disp: boolean) {
-    const conf = this.objectStore.get<Config>('Config');
-    if (conf) conf.roomGridDispAlways = disp;
-  }
 
   readonly gridSize = 50;
 
@@ -373,9 +359,6 @@ export class TerrainComponent {
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
       if (this.terrain().isGrid) {
-        if (this.roomGridDispAlways) {
-          opacity = 1.0;
-        }
         if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;
         }

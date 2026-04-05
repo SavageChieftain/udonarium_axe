@@ -15,7 +15,6 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { CardComponent } from '@axe/features/card/card/card.component';
@@ -140,8 +139,7 @@ export class GameTableComponent {
         this.gameTable().nativeElement,
         this.gameObjects().nativeElement,
         this.gridCanvas().nativeElement,
-        () => this.currentTable.gridShow,
-        () => this.roomGridDispAlways
+        () => this.currentTable.gridShow
       );
       this.gestureService.cancelInput();
 
@@ -182,16 +180,6 @@ export class GameTableComponent {
 
   get backgroundFilterType(): FilterType {
     return this.currentTable.backgroundFilterType;
-  }
-
-  get roomGridDispAlways(): boolean {
-    const conf = this.objectStore.get<Config>('Config');
-    return conf ? conf.roomGridDispAlways : false;
-  }
-
-  set roomGridDispAlways(disp: boolean) {
-    const conf = this.objectStore.get<Config>('Config');
-    if (conf) conf.roomGridDispAlways = disp;
   }
 
   get isPointerDragging(): boolean {
@@ -286,10 +274,7 @@ export class GameTableComponent {
 
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
-      let opacity: number = this.currentTable.gridShow ? 1.0 : 0.0;
-      if (this.roomGridDispAlways) {
-        opacity = 1.0;
-      }
+      const opacity: number = this.currentTable.gridShow ? 1.0 : 0.0;
       this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });
   }

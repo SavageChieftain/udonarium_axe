@@ -59,15 +59,4 @@ describe('Config', () => {
       expect(Config.instance.roomVolume).toBe(0.5);
     });
   });
-
-  describe('roomGridDispAlways', () => {
-    it('デフォルト値は false', () => {
-      expect(Config.instance.roomGridDispAlways).toBe(false);
-    });
-
-    it('設定した値を返す', () => {
-      Config.instance.roomGridDispAlways = true;
-      expect(Config.instance.roomGridDispAlways).toBe(true);
-    });
-  });
 });
