@@ -1,3 +1,4 @@
+import { ColorPicker } from '@acrodata/color-picker';
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +24,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
   styleUrls: ['./game-table-setting.component.css'],
-  imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe],
+  imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe, ColorPicker],
 })
 export class GameTableSettingComponent {
   private readonly modalService = inject(ModalService);

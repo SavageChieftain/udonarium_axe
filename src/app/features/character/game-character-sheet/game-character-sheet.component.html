@@ -356,21 +356,19 @@
     @if (scratchMask) {
       <div>
         カラー
-        <input
-          type="color"
-          name="color11"
-          list="color-list_11"
-          (change)="onChangeMaskFillColor($event)"
-          value="{{ scratchMask.color }}"
-        />
+        <color-picker
+          [value]="scratchMask.color"
+          [hideAlpha]="true"
+          format="hex"
+          (valueChange)="onChangeMaskFillColor($event)"
+        ></color-picker>
         更新部カラー
-        <input
-          type="color"
-          name="color12"
-          list="color-list_12"
-          (change)="onChangeMaskChangeColor($event)"
-          value="{{ scratchMask.changeColor }}"
-        />
+        <color-picker
+          [value]="scratchMask.changeColor"
+          [hideAlpha]="true"
+          format="hex"
+          (valueChange)="onChangeMaskChangeColor($event)"
+        ></color-picker>
       </div>
       <br />
       ※width、height項目は最大50
@@ -378,21 +376,19 @@
     @if (rangeArea) {
       <div>
         境界線
-        <input
-          type="color"
-          name="color01"
-          list="color-list_01"
-          (change)="onChangeRangeColor($event)"
-          value="{{ rangeArea.rangeColor }}"
-        />
+        <color-picker
+          [value]="rangeArea.rangeColor"
+          [hideAlpha]="true"
+          format="hex"
+          (valueChange)="onChangeRangeColor($event)"
+        ></color-picker>
         塗りつぶし
-        <input
-          type="color"
-          name="color02"
-          list="color-list_02"
-          (change)="onChangeGridColor($event)"
-          value="{{ rangeArea.gridColor }}"
-        />
+        <color-picker
+          [value]="rangeArea.gridColor"
+          [hideAlpha]="true"
+          format="hex"
+          (valueChange)="onChangeGridColor($event)"
+        ></color-picker>
       </div>
       @if (rangeArea.type !== 'CIRCLE') {
         <div>

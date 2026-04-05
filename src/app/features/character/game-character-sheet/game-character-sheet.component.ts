@@ -1,3 +1,4 @@
+import { ColorPicker } from '@acrodata/color-picker';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -30,7 +31,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   styleUrls: ['./game-character-sheet.component.css'],
-  imports: [FormsModule, GameDataElementComponent, SafePipe],
+  imports: [FormsModule, GameDataElementComponent, SafePipe, ColorPicker],
 })
 export class GameCharacterSheetComponent {
   private readonly saveDataService = inject(SaveDataService);
@@ -343,16 +344,16 @@ export class GameCharacterSheetComponent {
   onSetLocation(event: Event): void {
     this.setLocation((event.target as HTMLInputElement).value);
   }
-  onChangeMaskFillColor(event: Event): void {
-    this.changeMaskFillColor((event.target as HTMLInputElement).value);
+  onChangeMaskFillColor(value: string): void {
+    this.changeMaskFillColor(value);
   }
-  onChangeMaskChangeColor(event: Event): void {
-    this.changeMaskChangeColor((event.target as HTMLInputElement).value);
+  onChangeMaskChangeColor(value: string): void {
+    this.changeMaskChangeColor(value);
   }
-  onChangeRangeColor(event: Event): void {
-    this.changeRangeColor((event.target as HTMLInputElement).value);
+  onChangeRangeColor(value: string): void {
+    this.changeRangeColor(value);
   }
-  onChangeGridColor(event: Event): void {
-    this.changeGridColor((event.target as HTMLInputElement).value);
+  onChangeGridColor(value: string): void {
+    this.changeGridColor(value);
   }
 }

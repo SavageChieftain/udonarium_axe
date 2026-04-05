@@ -1,3 +1,4 @@
+import { ColorPicker } from '@acrodata/color-picker';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -10,6 +11,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   templateUrl: './chat-color-setting.component.html',
   styleUrls: ['./chat-color-setting.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ColorPicker],
 })
 export class ChatColorSettingComponent {
   private readonly panelService = inject(PanelService);
@@ -51,7 +53,7 @@ export class ChatColorSettingComponent {
     }
   }
 
-  onChangeColor(event: Event, index: number): void {
-    this.changeColor((event.target as HTMLInputElement).value, index);
+  onChangeColor(value: string, index: number): void {
+    this.changeColor(value, index);
   }
 }
