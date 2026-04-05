@@ -18,7 +18,6 @@ import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
-import { ColorSwatchComponent } from '@axe/shared/components/color-swatch/color-swatch.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -31,7 +30,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   styleUrls: ['./game-character-sheet.component.css'],
-  imports: [FormsModule, GameDataElementComponent, SafePipe, ColorSwatchComponent],
+  imports: [FormsModule, GameDataElementComponent, SafePipe],
 })
 export class GameCharacterSheetComponent {
   private readonly saveDataService = inject(SaveDataService);
@@ -344,16 +343,16 @@ export class GameCharacterSheetComponent {
   onSetLocation(event: Event): void {
     this.setLocation((event.target as HTMLInputElement).value);
   }
-  onChangeMaskFillColor(value: string): void {
-    this.changeMaskFillColor(value);
+  onChangeMaskFillColor(event: Event): void {
+    this.changeMaskFillColor((event.target as HTMLInputElement).value);
   }
-  onChangeMaskChangeColor(value: string): void {
-    this.changeMaskChangeColor(value);
+  onChangeMaskChangeColor(event: Event): void {
+    this.changeMaskChangeColor((event.target as HTMLInputElement).value);
   }
-  onChangeRangeColor(value: string): void {
-    this.changeRangeColor(value);
+  onChangeRangeColor(event: Event): void {
+    this.changeRangeColor((event.target as HTMLInputElement).value);
   }
-  onChangeGridColor(value: string): void {
-    this.changeGridColor(value);
+  onChangeGridColor(event: Event): void {
+    this.changeGridColor((event.target as HTMLInputElement).value);
   }
 }

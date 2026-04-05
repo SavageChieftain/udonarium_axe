@@ -356,9 +356,21 @@
     @if (scratchMask) {
       <div>
         カラー
-        <color-swatch [value]="scratchMask.color" (valueChange)="onChangeMaskFillColor($event)"></color-swatch>
+        <input
+          type="color"
+          name="color11"
+          list="color-list_11"
+          (change)="onChangeMaskFillColor($event)"
+          value="{{ scratchMask.color }}"
+        />
         更新部カラー
-        <color-swatch [value]="scratchMask.changeColor" (valueChange)="onChangeMaskChangeColor($event)"></color-swatch>
+        <input
+          type="color"
+          name="color12"
+          list="color-list_12"
+          (change)="onChangeMaskChangeColor($event)"
+          value="{{ scratchMask.changeColor }}"
+        />
       </div>
       <br />
       ※width、height項目は最大50
@@ -366,9 +378,21 @@
     @if (rangeArea) {
       <div>
         境界線
-        <color-swatch [value]="rangeArea.rangeColor" (valueChange)="onChangeRangeColor($event)"></color-swatch>
+        <input
+          type="color"
+          name="color01"
+          list="color-list_01"
+          (change)="onChangeRangeColor($event)"
+          value="{{ rangeArea.rangeColor }}"
+        />
         塗りつぶし
-        <color-swatch [value]="rangeArea.gridColor" (valueChange)="onChangeGridColor($event)"></color-swatch>
+        <input
+          type="color"
+          name="color02"
+          list="color-list_02"
+          (change)="onChangeGridColor($event)"
+          value="{{ rangeArea.gridColor }}"
+        />
       </div>
       @if (rangeArea.type !== 'CIRCLE') {
         <div>

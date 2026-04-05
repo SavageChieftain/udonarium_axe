@@ -101,11 +101,13 @@
           <option value="2">ヘクス（横揃え）</option>
         </select>
         グリッド色:
-        <color-swatch
-          [value]="tableGridColor"
-          [disabled]="!isEditable"
-          (valueChange)="tableGridColor = $event"
-        ></color-swatch>
+        <input
+          type="color"
+          [(ngModel)]="tableGridColor"
+          name="tableGridColor"
+          list="table-grid-color-list"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
       </div>
       <div>
         背景フィルタ
