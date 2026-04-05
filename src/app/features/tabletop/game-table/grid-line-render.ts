@@ -1,4 +1,11 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import {
+  hexCellCenter,
+  hexCircumradius,
+  hexSpacing,
+  hexStartAngle,
+  strokeHexPath,
+} from '@axe/domain/tabletop/hex-geometry';
 
 export class GridLineRender {
   constructor(readonly canvasElement: HTMLCanvasElement) {}
@@ -82,27 +89,13 @@ export class GridLineRender {
     offsetTop: number,
     offsetLeft: number
   ) {
-    const s = gridSize / Math.sqrt(3); // circumradius
+    const s = hexCircumradius(gridSize);
     const canvasW = width * gridSize;
     const canvasH = height * gridSize;
 
-    // HEX_VERTICAL(縦揃え) = flat-top hex: 列が縦に直線、偶数列が下にずれる
-    // HEX_HORIZONTAL(横揃え) = pointy-top hex: 行が横に直線、偶数行が右にずれる
     const isFlatTop = gridType === GridType.HEX_VERTICAL;
-
-    let colSpacing: number;
-    let rowSpacing: number;
-    let startAngle: number;
-
-    if (isFlatTop) {
-      colSpacing = 1.5 * s;
-      rowSpacing = gridSize; // √3 * s
-      startAngle = 0;
-    } else {
-      colSpacing = gridSize; // √3 * s
-      rowSpacing = 1.5 * s;
-      startAngle = -Math.PI / 2;
-    }
+    const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+    const startAngle = hexStartAngle(isFlatTop);
 
     const numCols = Math.ceil(canvasW / colSpacing) + 2;
     const numRows = Math.ceil(canvasH / rowSpacing) + 2;
@@ -114,35 +107,13 @@ export class GridLineRender {
 
     for (let row = 0; row < numRows; row++) {
       for (let col = 0; col < numCols; col++) {
-        let cx: number;
-        let cy: number;
-
-        if (isFlatTop) {
-          cx = col * colSpacing;
-          cy = row * rowSpacing + (col % 2 === 1 ? gridSize / 2 : 0);
-        } else {
-          cx = col * colSpacing + (row % 2 === 1 ? gridSize / 2 : 0);
-          cy = row * rowSpacing;
-        }
+        const { x: cx, y: cy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
 
         if (cx < -gridSize || cx > canvasW + gridSize || cy < -gridSize || cy > canvasH + gridSize) continue;
 
-        this.strokeHexAt(context, cx, cy, s, startAngle);
+        strokeHexPath(context, cx, cy, s, startAngle);
         context.fillText(col + 1 + offCol + '-' + (row + 1 + offRow), cx, cy);
       }
     }
-  }
-
-  private strokeHexAt(context: CanvasRenderingContext2D, cx: number, cy: number, s: number, startAngle: number) {
-    context.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = startAngle + (i * Math.PI) / 3;
-      const x = cx + s * Math.cos(angle);
-      const y = cy + s * Math.sin(angle);
-      if (i === 0) context.moveTo(x, y);
-      else context.lineTo(x, y);
-    }
-    context.closePath();
-    context.stroke();
   }
 }

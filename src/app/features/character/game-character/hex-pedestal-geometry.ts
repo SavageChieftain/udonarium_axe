@@ -3,6 +3,8 @@
  * UIフレームワーク非依存の純粋関数群。
  */
 
+import { hexCircumradius, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
+
 export interface HexFlowerParams {
   outline: Point[];
   bbox: BoundingBox;
@@ -28,7 +30,7 @@ interface BoundingBox {
  * パスは画面上で CW (時計回り)。
  */
 export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop: boolean): Point[] {
-  const s = gridSize / Math.sqrt(3);
+  const s = hexCircumradius(gridSize);
   const g = gridSize;
   const d = size - 1;
 
@@ -70,7 +72,7 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
         [0, -1],
       ];
 
-  const startAngle = isFlatTop ? 0 : -Math.PI / 2;
+  const startAngle = hexStartAngle(isFlatTop);
   const hexVertex = (cx: number, cy: number, i: number): Point => {
     const angle = startAngle + (i * Math.PI) / 3;
     return { x: cx + s * Math.cos(angle), y: cy + s * Math.sin(angle) };

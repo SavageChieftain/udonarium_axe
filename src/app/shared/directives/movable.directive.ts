@@ -2,6 +2,7 @@ import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, inp
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { InputHandler } from '@axe/shared/directives/input-handler';
@@ -221,7 +222,7 @@ export class MovableDirective {
     const effectiveGridSize = table?.gridSize ?? gridSize;
     const gridType = table?.gridType ?? GridType.SQUARE;
 
-    if (gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL) {
+    if (isHexGrid(gridType)) {
       const center = { x: this.posX + this.width / 2, y: this.posY + this.height / 2 };
       const snapped = calcHexSnapPosition(
         center.x,

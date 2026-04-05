@@ -1,4 +1,5 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { hexCellCenter, hexSpacing } from '@axe/domain/tabletop/hex-geometry';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export type MovableLayerItem = {
@@ -20,11 +21,8 @@ export function calcHexSnapPosition(
   halfWidth: number = gridSize / 2,
   halfHeight: number = gridSize / 2
 ): { x: number; y: number } {
-  const s = gridSize / Math.sqrt(3);
   const isFlatTop = gridType === GridType.HEX_VERTICAL;
-
-  const colSpacing = isFlatTop ? 1.5 * s : gridSize;
-  const rowSpacing = isFlatTop ? gridSize : 1.5 * s;
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
 
   const colEst = posX / colSpacing;
   const rowEst = posY / rowSpacing;
@@ -35,16 +33,7 @@ export function calcHexSnapPosition(
 
   for (let col = Math.floor(colEst) - 1; col <= Math.ceil(colEst) + 1; col++) {
     for (let row = Math.floor(rowEst) - 1; row <= Math.ceil(rowEst) + 1; row++) {
-      let hx: number;
-      let hy: number;
-
-      if (isFlatTop) {
-        hx = col * colSpacing;
-        hy = row * rowSpacing + (col % 2 !== 0 ? gridSize / 2 : 0);
-      } else {
-        hx = col * colSpacing + (row % 2 !== 0 ? gridSize / 2 : 0);
-        hy = row * rowSpacing;
-      }
+      const { x: hx, y: hy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
 
       const dx = posX - hx;
       const dy = posY - hy;

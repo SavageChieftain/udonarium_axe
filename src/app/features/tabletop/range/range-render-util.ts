@@ -1,4 +1,12 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import {
+  fillHexPath,
+  hexCellCenter,
+  hexCircumradius,
+  hexSpacing,
+  hexStartAngle,
+  isHexGrid as isHexGridType,
+} from '@axe/domain/tabletop/hex-geometry';
 import { GridPosition, RangeRenderSetting, StrokeGridFunc } from '@axe/features/tabletop/range/range-render-types';
 
 export interface GridOffsets {
@@ -125,20 +133,7 @@ export function fillSquare(context: CanvasRenderingContext2D, gx: number, gy: nu
 }
 
 export function isHexGrid(gridType: GridType): boolean {
-  return gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL;
-}
-
-function fillHexAt(context: CanvasRenderingContext2D, cx: number, cy: number, s: number, startAngle: number): void {
-  context.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const angle = startAngle + (i * Math.PI) / 3;
-    const x = cx + s * Math.cos(angle);
-    const y = cy + s * Math.sin(angle);
-    if (i === 0) context.moveTo(x, y);
-    else context.lineTo(x, y);
-  }
-  context.closePath();
-  context.fill();
+  return isHexGridType(gridType);
 }
 
 /**
@@ -153,11 +148,10 @@ function fillHexGridCells(
   hitTest: (gcx: number, gcy: number) => boolean
 ): void {
   const gridSize = setting.gridSize;
-  const s = gridSize / Math.sqrt(3); // circumradius — GridLineRender と同値
+  const s = hexCircumradius(gridSize);
   const isFlatTop = setting.gridType === GridType.HEX_VERTICAL;
 
-  const colSpacing = isFlatTop ? 1.5 * s : gridSize;
-  const rowSpacing = isFlatTop ? gridSize : 1.5 * s;
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
 
   const canvasW = setting.areaWidth * gridSize;
   const canvasH = setting.areaHeight * gridSize;
@@ -175,25 +169,17 @@ function fillHexGridCells(
   const rowMax = Math.ceil((cy0 + canvasH / 2) / rowSpacing) + 1;
 
   makeBrush(context, gridSize, setting.gridColor);
-  const startAngle = isFlatTop ? 0 : -Math.PI / 2;
+  const startAngle = hexStartAngle(isFlatTop);
 
   for (let col = colMin; col <= colMax; col++) {
     for (let row = rowMin; row <= rowMax; row++) {
-      let hx: number;
-      let hy: number;
-      if (isFlatTop) {
-        hx = col * colSpacing;
-        hy = row * rowSpacing + (Math.abs(col % 2) === 1 ? rowSpacing / 2 : 0);
-      } else {
-        hx = col * colSpacing + (Math.abs(row % 2) === 1 ? colSpacing / 2 : 0);
-        hy = row * rowSpacing;
-      }
+      const { x: hx, y: hy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
 
       const gcx = hx - cx0;
       const gcy = hy - cy0;
 
       if (hitTest(gcx, gcy)) {
-        fillHexAt(context, gcx + offsetX, gcy + offsetY, s, startAngle);
+        fillHexPath(context, gcx + offsetX, gcy + offsetY, s, startAngle);
       }
     }
   }

@@ -16,7 +16,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { GridType } from '@axe/domain/tabletop/game-table';
+import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import {
   buildHexRingClipPath,
@@ -217,8 +217,8 @@ export class GameCharacterComponent {
     if (!char) return null;
     this.objectChange.versionOf(char.identifier)();
     const gridType = this.tabletopService.currentTable.gridType;
-    if (gridType !== GridType.HEX_VERTICAL && gridType !== GridType.HEX_HORIZONTAL) return null;
-    return calcHexFlowerParams(this.size, this.gridSize, gridType === GridType.HEX_VERTICAL);
+    if (!isHexGrid(gridType)) return null;
+    return calcHexFlowerParams(this.size, this.gridSize, isFlatTopGrid(gridType));
   });
 
   pedestalStyle(borderColor: string): Record<string, string> {
