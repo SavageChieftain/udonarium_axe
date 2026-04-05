@@ -8,6 +8,7 @@ import {
   ElementRef,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -67,7 +68,7 @@ export class RemoteControllerComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   get palette(): ChatPalette | null {
-    return this.character?.remoteController ?? null;
+    return this.character()?.remoteController ?? null;
   }
 
   private _gameSystem!: GameSystemClass;
@@ -78,14 +79,15 @@ export class RemoteControllerComponent {
   set gameType(gameType: string) {
     DiceBot.loadGameSystemAsync(gameType).then((gameSystem) => {
       this._gameSystem = gameSystem;
-      if (this.character?.remoteController) {
-        this.character.remoteController.dicebot = gameSystem.ID;
+      const char = this.character();
+      if (char?.remoteController) {
+        char.remoteController.dicebot = gameSystem.ID;
       }
     });
   }
 
   get sendFrom(): string {
-    return this.character?.identifier ?? '';
+    return this.character()?.identifier ?? '';
   }
   set sendFrom(sendFrom: string) {
     this.onSelectedCharacter(sendFrom);
@@ -121,9 +123,14 @@ export class RemoteControllerComponent {
     });
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
-    this.gameType = this.character?.remoteController ? this.character.remoteController.dicebot : '';
+    effect(() => {
+      const dicebot = this.character()?.remoteController?.dicebot ?? '';
+      if (0 < dicebot.length) {
+        untracked(() => (this.gameType = dicebot));
+      }
+    });
     this.objectChange.objectDeleted$.subscribe((e) => {
-      if (this.character && this.character.identifier === e.identifier) {
+      if (this.character() && this.character()!.identifier === e.identifier) {
         this.panelService.close();
       }
       if (this.chatTabidentifier() === e.identifier) {
@@ -173,7 +180,7 @@ export class RemoteControllerComponent {
   }
   readonly controllerInputComponent = viewChild.required<ControllerInputComponent>('controllerInput');
   readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
-  character: GameCharacter | null = null;
+  readonly character = signal<GameCharacter | null>(null);
   errorMessageBuff = '';
   errorMessageController = '';
 
@@ -255,7 +262,8 @@ export class RemoteControllerComponent {
   }
 
   updatePanelTitle() {
-    this.panelService.title = this.character ? this.character.name + ' のリモコン' : 'リモコン';
+    const char = this.character();
+    this.panelService.title = char ? char.name + ' のリモコン' : 'リモコン';
   }
 
   onSelectedCharacter(identifier: string) {
@@ -264,8 +272,8 @@ export class RemoteControllerComponent {
     }
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
-      this.character = object;
-      const gameType = this.character.remoteController ? this.character.remoteController.dicebot : '';
+      this.character.set(object);
+      const gameType = object.remoteController ? object.remoteController.dicebot : '';
       if (0 < gameType.length) {
         this.gameType = gameType;
       }

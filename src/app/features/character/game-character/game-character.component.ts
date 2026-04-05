@@ -433,7 +433,7 @@ export class GameCharacterComponent {
           (m) => m.RemoteControllerComponent
         ),
       option,
-      (component) => (component.character = gameObject)
+      (component) => component.character.set(gameObject)
     );
   }
 

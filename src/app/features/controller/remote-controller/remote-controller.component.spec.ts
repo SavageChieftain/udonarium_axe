@@ -51,7 +51,7 @@ describe('RemoteControllerComponent', () => {
         }
       },
       initialize: (opened) => {
-        opened.character = createChar('テスト');
+        opened.character.set(createChar('テスト'));
       },
     });
   });
