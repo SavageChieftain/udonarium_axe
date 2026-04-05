@@ -6,6 +6,7 @@ import {
   effect,
   ElementRef,
   inject,
+  linkedSignal,
   signal,
   viewChild,
 } from '@angular/core';
@@ -56,17 +57,17 @@ export class ChatPaletteComponent {
     return this.character()?.chatPalette ?? null;
   }
 
-  private _gameType: string = '';
+  private readonly _gameType = linkedSignal(() => this.character()?.chatPalette?.dicebot ?? '');
   private _paletteIndex: PaletteIndex[] = [];
   private _timeId: string = '';
   private _autoCompleteEnable = false;
   private _completeIndex = -1;
 
   get gameType(): string {
-    return this._gameType;
+    return this._gameType();
   }
   set gameType(gameType: string) {
-    this._gameType = gameType;
+    this._gameType.set(gameType);
     const char = this.character();
     if (char?.chatPalette) char.chatPalette.dicebot = gameType;
   }
@@ -112,8 +113,6 @@ export class ChatPaletteComponent {
   constructor() {
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
-    const char = this.character();
-    this.gameType = char?.chatPalette ? char.chatPalette.dicebot : '';
     this._timeId = Date.now() + '_chat-palette';
     this.objectChange.objectDeleted$.subscribe((e) => {
       if (this.character() && this.character()!.identifier === e.identifier) {
