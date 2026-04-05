@@ -392,7 +392,7 @@ export class GameCharacterComponent {
   pedestalStyle(borderColor: string): Record<string, string> {
     const params = this.pedestalHexParams();
     if (params) {
-      const { bbox, g } = params;
+      const { bbox, L } = params;
       const W = bbox.maxX - bbox.minX;
       const H = bbox.maxY - bbox.minY;
       const clipPath = this.buildHexRingClipPath(params, 6);
@@ -403,8 +403,8 @@ export class GameCharacterComponent {
         borderRadius: '0',
         width: `${W}px`,
         height: `${H}px`,
-        left: `${bbox.minX + g / 2}px`,
-        top: `${bbox.minY + g / 2}px`,
+        left: `${bbox.minX + L / 2}px`,
+        top: `${bbox.minY + L / 2}px`,
       };
     }
     return { border: `solid 6px ${borderColor}` };
@@ -413,7 +413,7 @@ export class GameCharacterComponent {
   get pedestalOuterStyle(): Record<string, string> {
     const params = this.pedestalHexParams();
     if (params) {
-      const { bbox, g } = params;
+      const { bbox, L } = params;
       const W = bbox.maxX - bbox.minX;
       const H = bbox.maxY - bbox.minY;
       const clipPath = this.buildHexRingClipPath(params, 2);
@@ -424,8 +424,42 @@ export class GameCharacterComponent {
         borderRadius: '0',
         width: `${W}px`,
         height: `${H}px`,
-        left: `${bbox.minX + g / 2}px`,
-        top: `${bbox.minY + g / 2}px`,
+        left: `${bbox.minX + L / 2}px`,
+        top: `${bbox.minY + L / 2}px`,
+      };
+    }
+    return {};
+  }
+
+  get pedestalGrabStyle(): Record<string, string> {
+    const params = this.pedestalHexParams();
+    if (params) {
+      const { bbox, L } = params;
+      // 花形を包む円の半径 = bboxの中心からの最大距離 + マージン
+      const halfW = (bbox.maxX - bbox.minX) / 2;
+      const halfH = (bbox.maxY - bbox.minY) / 2;
+      const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 12;
+      const diameter = radius * 2;
+      return {
+        width: `${diameter}px`,
+        height: `${diameter}px`,
+        left: `${L / 2 - radius}px`,
+        top: `${L / 2 - radius}px`,
+        borderRadius: '50%',
+      };
+    }
+    return {};
+  }
+
+  get pedestalGrabBorderStyle(): Record<string, string> {
+    const params = this.pedestalHexParams();
+    if (params) {
+      return {
+        borderTop: 'solid 16px #999',
+        borderLeft: 'solid 16px #999',
+        borderRight: 'solid 16px #ccc',
+        borderBottom: 'solid 16px #ccc',
+        borderRadius: '50%',
       };
     }
     return {};

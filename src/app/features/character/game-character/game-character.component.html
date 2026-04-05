@@ -27,8 +27,8 @@
         <div class="pedestal-outer" [ngStyle]="pedestalOuterStyle"></div>
         <!--床回転アイコン-->
         @if (!isLock) {
-          <div class="pedestal-grab rotate-grab will-change">
-            <div class="pedestal-grab-border">
+          <div class="pedestal-grab rotate-grab will-change" [ngStyle]="pedestalGrabStyle">
+            <div class="pedestal-grab-border" [ngStyle]="pedestalGrabBorderStyle">
               <div class="material-icons of-front">autorenew</div>
               <div class="material-icons of-back">autorenew</div>
             </div>
