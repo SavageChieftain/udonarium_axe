@@ -154,13 +154,16 @@ export class GameCharacterComponent {
     const char = this.gameCharacter();
     if (char) char.altitude = altitude;
   }
-  readonly imageFile = computed(() => {
-    this.objectChange.fileVersion();
-    const char = this.gameCharacter();
-    if (!char) throw new Error('gameCharacter is not set');
-    this.objectChange.versionOf(char.identifier)();
-    return char.imageFile;
-  });
+  readonly imageFile = computed(
+    () => {
+      this.objectChange.fileVersion();
+      const char = this.gameCharacter();
+      if (!char) throw new Error('gameCharacter is not set');
+      this.objectChange.versionOf(char.identifier)();
+      return char.imageFile;
+    },
+    { equal: () => false }
+  );
   get rotate(): number {
     const char = this.gameCharacter();
     return char?.rotate ?? 0;

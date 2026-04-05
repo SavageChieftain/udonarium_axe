@@ -96,12 +96,15 @@ export class DiceSymbolComponent {
   get faces(): string[] {
     return this.diceSymbol().faces;
   }
-  readonly imageFile = computed(() => {
-    this.objectChange.fileVersion();
-    const diceSymbol = this.diceSymbol();
-    this.objectChange.versionOf(diceSymbol.identifier)();
-    return this.imageService.getEmptyOr(diceSymbol.imageFile);
-  });
+  readonly imageFile = computed(
+    () => {
+      this.objectChange.fileVersion();
+      const diceSymbol = this.diceSymbol();
+      this.objectChange.versionOf(diceSymbol.identifier)();
+      return this.imageService.getEmptyOr(diceSymbol.imageFile);
+    },
+    { equal: () => false }
+  );
 
   get isMine(): boolean {
     return this.diceSymbol().isMine;
