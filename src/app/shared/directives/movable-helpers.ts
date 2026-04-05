@@ -16,7 +16,9 @@ export function calcHexSnapPosition(
   posX: number,
   posY: number,
   gridSize: number,
-  gridType: GridType
+  gridType: GridType,
+  halfWidth: number = gridSize / 2,
+  halfHeight: number = gridSize / 2
 ): { x: number; y: number } {
   const s = gridSize / Math.sqrt(3);
   const isFlatTop = gridType === GridType.HEX_VERTICAL;
@@ -55,7 +57,7 @@ export function calcHexSnapPosition(
     }
   }
 
-  return { x: bestX - gridSize / 2, y: bestY - gridSize / 2 };
+  return { x: bestX - halfWidth, y: bestY - halfHeight };
 }
 
 export function toTransformCss(posX: number, posY: number, posZ: number, transformCssOffset: string): string {

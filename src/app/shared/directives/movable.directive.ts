@@ -223,7 +223,14 @@ export class MovableDirective {
 
     if (gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL) {
       const center = { x: this.posX + this.width / 2, y: this.posY + this.height / 2 };
-      const snapped = calcHexSnapPosition(center.x, center.y, effectiveGridSize, gridType);
+      const snapped = calcHexSnapPosition(
+        center.x,
+        center.y,
+        effectiveGridSize,
+        gridType,
+        this.width / 2,
+        this.height / 2
+      );
       this.posX = snapped.x;
       this.posY = snapped.y;
     } else {

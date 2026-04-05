@@ -147,7 +147,7 @@ function fillHexAt(context: CanvasRenderingContext2D, cx: number, cy: number, s:
  * hitTest に合格したセルのみ描画する。
  * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
  */
-export function fillHexGridCells(
+function fillHexGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,
   hitTest: (gcx: number, gcy: number) => boolean
@@ -196,5 +196,56 @@ export function fillHexGridCells(
         fillHexAt(context, gcx + offsetX, gcy + offsetY, s, startAngle);
       }
     }
+  }
+}
+
+/**
+ * スクエアグリッド上のセルを塗りつぶす。
+ * hitTest に合格したセルのみ描画する。
+ * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
+ */
+function fillSquareGridCells(
+  context: CanvasRenderingContext2D,
+  setting: RangeRenderSetting,
+  offsets: GridOffsets,
+  hitTest: (gcx: number, gcy: number) => boolean
+): void {
+  const { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px } = offsets;
+  const calcGridPosition = generateCalcGridPositionFunc(
+    setting.gridType,
+    setting.centerX,
+    setting.centerY,
+    setting.areaWidth,
+    setting.areaHeight,
+    gridSize
+  );
+  makeBrush(context, gridSize, setting.gridColor);
+  const adjX = gridOffX + gridSize / 2 - offSetX_px;
+  const adjY = gridOffY + gridSize / 2 - offSetY_px;
+  for (let h = 0; h <= setting.areaHeight + 1; h++) {
+    for (let w = 0; w <= setting.areaWidth + 1; w++) {
+      const { gx, gy } = calcGridPosition(w, h);
+      if (hitTest(gx + adjX, gy + adjY)) {
+        fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
+      }
+    }
+  }
+}
+
+/**
+ * グリッド種別に応じたセル塗りつぶしを行う統合関数。
+ * ヘクスグリッドなら fillHexGridCells、スクエアグリッドなら fillSquareGridCells にディスパッチする。
+ * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
+ */
+export function fillGridCells(
+  context: CanvasRenderingContext2D,
+  setting: RangeRenderSetting,
+  offsets: GridOffsets,
+  hitTest: (gcx: number, gcy: number) => boolean
+): void {
+  if (isHexGrid(setting.gridType)) {
+    fillHexGridCells(context, setting, hitTest);
+  } else {
+    fillSquareGridCells(context, setting, offsets, hitTest);
   }
 }

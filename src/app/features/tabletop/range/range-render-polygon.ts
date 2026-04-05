@@ -7,10 +7,7 @@ import {
 import {
   calcGridOffsets,
   chkOuterProduct,
-  fillHexGridCells,
-  fillSquare,
-  generateCalcGridPositionFunc,
-  isHexGrid,
+  fillGridCells,
   makeBrush,
 } from '@axe/features/tabletop/range/range-render-util';
 
@@ -19,7 +16,8 @@ export function renderLine(
   canvasElementRange: HTMLCanvasElement,
   setting: RangeRenderSetting
 ): ClipAreaLine {
-  const { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px } = calcGridOffsets(setting);
+  const offsets = calcGridOffsets(setting);
+  const { gridSize, offSetX_px, offSetY_px } = offsets;
 
   canvasElement.width = setting.areaWidth * gridSize;
   canvasElement.height = setting.areaHeight * gridSize;
@@ -65,14 +63,6 @@ export function renderLine(
     clip04y: clip04x_ * Math.sin(rad) + clip04y_ * Math.cos(rad),
   };
 
-  const calcGridPosition = generateCalcGridPositionFunc(
-    setting.gridType,
-    setting.centerX,
-    setting.centerY,
-    setting.areaWidth,
-    setting.areaHeight,
-    gridSize
-  );
   makeBrush(context, gridSize, setting.gridColor);
 
   if (setting.fillOutLine) {
@@ -83,34 +73,17 @@ export function renderLine(
     context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
-  } else if (isHexGrid(setting.gridType)) {
-    fillHexGridCells(
+  } else {
+    fillGridCells(
       context,
       setting,
+      offsets,
       (gcx, gcy) =>
         chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
         chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
         chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
         chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
     );
-  } else {
-    const adjX = gridOffX + gridSize / 2 - offSetX_px;
-    const adjY = gridOffY + gridSize / 2 - offSetY_px;
-    for (let h = 0; h <= setting.areaHeight + 1; h++) {
-      for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + adjX;
-        const gcy = gy + adjY;
-        if (
-          chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
-          chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
-          chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
-          chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
-        ) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-        }
-      }
-    }
   }
 
   canvasElementRange.width = setting.areaWidth * gridSize;
@@ -139,7 +112,8 @@ export function renderSquare(
   canvasElementRange: HTMLCanvasElement,
   setting: RangeRenderSetting
 ): ClipAreaSquare {
-  const { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px } = calcGridOffsets(setting);
+  const offsets = calcGridOffsets(setting);
+  const { gridSize, offSetX_px, offSetY_px } = offsets;
 
   canvasElement.width = setting.areaWidth * gridSize;
   canvasElement.height = setting.areaHeight * gridSize;
@@ -166,14 +140,6 @@ export function renderSquare(
     clip04y: p4y + gridSize * 1.0,
   };
 
-  const calcGridPosition = generateCalcGridPositionFunc(
-    setting.gridType,
-    setting.centerX,
-    setting.centerY,
-    setting.areaWidth,
-    setting.areaHeight,
-    gridSize
-  );
   makeBrush(context, gridSize, setting.gridColor);
 
   if (setting.fillOutLine) {
@@ -184,27 +150,14 @@ export function renderSquare(
     context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
-  } else if (isHexGrid(setting.gridType)) {
+  } else {
     const halfRange = setting.range * gridSize;
-    fillHexGridCells(
+    fillGridCells(
       context,
       setting,
+      offsets,
       (gcx, gcy) => gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange
     );
-  } else {
-    const adjX = gridOffX + gridSize / 2 - offSetX_px;
-    const adjY = gridOffY + gridSize / 2 - offSetY_px;
-    const halfRange = setting.range * gridSize;
-    for (let h = 0; h <= setting.areaHeight + 1; h++) {
-      for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + adjX;
-        const gcy = gy + adjY;
-        if (gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-        }
-      }
-    }
   }
 
   canvasElementRange.width = setting.areaWidth * gridSize;
@@ -238,7 +191,8 @@ export function renderDiamond(
   canvasElementRange: HTMLCanvasElement,
   setting: RangeRenderSetting
 ): ClipAreaDiamond {
-  const { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px } = calcGridOffsets(setting);
+  const offsets = calcGridOffsets(setting);
+  const { gridSize, offSetX_px, offSetY_px } = offsets;
 
   canvasElement.width = setting.areaWidth * gridSize;
   canvasElement.height = setting.areaHeight * gridSize;
@@ -265,14 +219,6 @@ export function renderDiamond(
     clip04y: p4y + gridSize * 1.2,
   };
 
-  const calcGridPosition = generateCalcGridPositionFunc(
-    setting.gridType,
-    setting.centerX,
-    setting.centerY,
-    setting.areaWidth,
-    setting.areaHeight,
-    gridSize
-  );
   makeBrush(context, gridSize, setting.gridColor);
 
   if (setting.fillOutLine) {
@@ -283,23 +229,9 @@ export function renderDiamond(
     context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
-  } else if (isHexGrid(setting.gridType)) {
-    const halfRange = setting.range * gridSize;
-    fillHexGridCells(context, setting, (gcx, gcy) => Math.abs(gcx) + Math.abs(gcy) <= halfRange);
   } else {
-    const adjX = gridOffX + gridSize / 2 - offSetX_px;
-    const adjY = gridOffY + gridSize / 2 - offSetY_px;
     const halfRange = setting.range * gridSize;
-    for (let h = 0; h <= setting.areaHeight + 1; h++) {
-      for (let w = 0; w <= setting.areaWidth + 1; w++) {
-        const { gx, gy } = calcGridPosition(w, h);
-        const gcx = gx + adjX;
-        const gcy = gy + adjY;
-        if (Math.abs(gcx) + Math.abs(gcy) <= halfRange) {
-          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
-        }
-      }
-    }
+    fillGridCells(context, setting, offsets, (gcx, gcy) => Math.abs(gcx) + Math.abs(gcy) <= halfRange);
   }
 
   canvasElementRange.width = setting.areaWidth * gridSize;
