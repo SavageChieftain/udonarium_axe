@@ -124,22 +124,16 @@ export function fillSquare(context: CanvasRenderingContext2D, gx: number, gy: nu
   context.fillRect(gx, gy, gridSize, gridSize);
 }
 
-function fillHex(
-  context: CanvasRenderingContext2D,
-  gx: number,
-  gy: number,
-  gridSize: number,
-  gridType: GridType
-): void {
-  const R = gridSize / Math.sqrt(3);
-  const cx = gx + gridSize / 2;
-  const cy = gy + gridSize / 2;
-  const startAngle = gridType === GridType.HEX_VERTICAL ? 0 : -Math.PI / 2;
+export function isHexGrid(gridType: GridType): boolean {
+  return gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL;
+}
+
+function fillHexAt(context: CanvasRenderingContext2D, cx: number, cy: number, s: number, startAngle: number): void {
   context.beginPath();
   for (let i = 0; i < 6; i++) {
     const angle = startAngle + (i * Math.PI) / 3;
-    const x = cx + R * Math.cos(angle);
-    const y = cy + R * Math.sin(angle);
+    const x = cx + s * Math.cos(angle);
+    const y = cy + s * Math.sin(angle);
     if (i === 0) context.moveTo(x, y);
     else context.lineTo(x, y);
   }
@@ -147,17 +141,60 @@ function fillHex(
   context.fill();
 }
 
-/** セル形状を gridType に応じて塗りつぶす。ヘクスマップでは六角形、それ以外は正方形。 */
-export function fillCell(
+/**
+ * ヘクスグリッド上のセルを塗りつぶす。
+ * GridLineRender と同じジオメトリ (circumradius = gridSize / √3) でタイリングし、
+ * hitTest に合格したセルのみ描画する。
+ * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
+ */
+export function fillHexGridCells(
   context: CanvasRenderingContext2D,
-  gx: number,
-  gy: number,
-  gridSize: number,
-  gridType: GridType
+  setting: RangeRenderSetting,
+  hitTest: (gcx: number, gcy: number) => boolean
 ): void {
-  if (gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL) {
-    fillHex(context, gx, gy, gridSize, gridType);
-  } else {
-    fillSquare(context, gx, gy, gridSize);
+  const gridSize = setting.gridSize;
+  const s = gridSize / Math.sqrt(3); // circumradius — GridLineRender と同値
+  const isFlatTop = setting.gridType === GridType.HEX_VERTICAL;
+
+  const colSpacing = isFlatTop ? 1.5 * s : gridSize;
+  const rowSpacing = isFlatTop ? gridSize : 1.5 * s;
+
+  const canvasW = setting.areaWidth * gridSize;
+  const canvasH = setting.areaHeight * gridSize;
+  const offsetX = canvasW / 2;
+  const offsetY = canvasH / 2;
+
+  // レンジのテーブル上位置
+  const cx0 = setting.centerX;
+  const cy0 = setting.centerY;
+
+  // キャンバス全域をカバーするイテレーション範囲
+  const colMin = Math.floor((cx0 - canvasW / 2) / colSpacing) - 1;
+  const colMax = Math.ceil((cx0 + canvasW / 2) / colSpacing) + 1;
+  const rowMin = Math.floor((cy0 - canvasH / 2) / rowSpacing) - 1;
+  const rowMax = Math.ceil((cy0 + canvasH / 2) / rowSpacing) + 1;
+
+  makeBrush(context, gridSize, setting.gridColor);
+  const startAngle = isFlatTop ? 0 : -Math.PI / 2;
+
+  for (let col = colMin; col <= colMax; col++) {
+    for (let row = rowMin; row <= rowMax; row++) {
+      let hx: number;
+      let hy: number;
+      if (isFlatTop) {
+        hx = col * colSpacing;
+        hy = row * rowSpacing + (Math.abs(col % 2) === 1 ? rowSpacing / 2 : 0);
+      } else {
+        hx = col * colSpacing + (Math.abs(row % 2) === 1 ? colSpacing / 2 : 0);
+        hy = row * rowSpacing;
+      }
+
+      const gcx = hx - cx0;
+      const gcy = hy - cy0;
+
+      if (hitTest(gcx, gcy)) {
+        fillHexAt(context, gcx + offsetX, gcy + offsetY, s, startAngle);
+      }
+    }
   }
 }

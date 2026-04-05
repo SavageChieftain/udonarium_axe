@@ -204,6 +204,7 @@ export class GameCharacterComponent {
   /** ヘクスマップ時の台座 clip-path を返す。スクエアマップ時は null。 */
   readonly pedestalHexClipPath = computed<string | null>(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
     const gridType = this.tabletopService.currentTable.gridType;
     if (gridType !== GridType.HEX_VERTICAL && gridType !== GridType.HEX_HORIZONTAL) return null;
 

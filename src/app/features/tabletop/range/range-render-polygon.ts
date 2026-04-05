@@ -7,8 +7,10 @@ import {
 import {
   calcGridOffsets,
   chkOuterProduct,
-  fillCell,
+  fillHexGridCells,
+  fillSquare,
   generateCalcGridPositionFunc,
+  isHexGrid,
   makeBrush,
 } from '@axe/features/tabletop/range/range-render-util';
 
@@ -81,6 +83,16 @@ export function renderLine(
     context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
+  } else if (isHexGrid(setting.gridType)) {
+    fillHexGridCells(
+      context,
+      setting,
+      (gcx, gcy) =>
+        chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
+        chkOuterProduct(p2x, p2y, p3x, p3y, gcx, gcy) &&
+        chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
+        chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
+    );
   } else {
     const adjX = gridOffX + gridSize / 2 - offSetX_px;
     const adjY = gridOffY + gridSize / 2 - offSetY_px;
@@ -95,7 +107,7 @@ export function renderLine(
           chkOuterProduct(p3x, p3y, p4x, p4y, gcx, gcy) &&
           chkOuterProduct(p4x, p4y, p1x, p1y, gcx, gcy)
         ) {
-          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
+          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
     }
@@ -172,6 +184,13 @@ export function renderSquare(
     context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
+  } else if (isHexGrid(setting.gridType)) {
+    const halfRange = setting.range * gridSize;
+    fillHexGridCells(
+      context,
+      setting,
+      (gcx, gcy) => gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange
+    );
   } else {
     const adjX = gridOffX + gridSize / 2 - offSetX_px;
     const adjY = gridOffY + gridSize / 2 - offSetY_px;
@@ -182,7 +201,7 @@ export function renderSquare(
         const gcx = gx + adjX;
         const gcy = gy + adjY;
         if (gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange) {
-          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
+          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
     }
@@ -264,6 +283,9 @@ export function renderDiamond(
     context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
     context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
     context.fill();
+  } else if (isHexGrid(setting.gridType)) {
+    const halfRange = setting.range * gridSize;
+    fillHexGridCells(context, setting, (gcx, gcy) => Math.abs(gcx) + Math.abs(gcy) <= halfRange);
   } else {
     const adjX = gridOffX + gridSize / 2 - offSetX_px;
     const adjY = gridOffY + gridSize / 2 - offSetY_px;
@@ -274,7 +296,7 @@ export function renderDiamond(
         const gcx = gx + adjX;
         const gcy = gy + adjY;
         if (Math.abs(gcx) + Math.abs(gcy) <= halfRange) {
-          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
+          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
     }

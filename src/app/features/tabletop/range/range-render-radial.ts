@@ -2,8 +2,10 @@ import { ClipAreaCorn, RangeRenderSetting } from '@axe/features/tabletop/range/r
 import {
   calcGridOffsets,
   chkOuterProduct,
-  fillCell,
+  fillHexGridCells,
+  fillSquare,
   generateCalcGridPositionFunc,
+  isHexGrid,
   makeBrush,
 } from '@axe/features/tabletop/range/range-render-util';
 
@@ -32,6 +34,9 @@ export function renderCircle(
     context.beginPath();
     context.arc(offSetX_px, offSetY_px, setting.range * gridSize, 0, 2 * Math.PI, true);
     context.fill();
+  } else if (isHexGrid(setting.gridType)) {
+    const radiusSq = (setting.range * gridSize) ** 2;
+    fillHexGridCells(context, setting, (gcx, gcy) => radiusSq >= gcx * gcx + gcy * gcy);
   } else {
     makeBrush(context, gridSize, setting.gridColor);
     const adjX = gridOffX + gridSize / 2 - offSetX_px;
@@ -43,7 +48,7 @@ export function renderCircle(
         const gcx = gx + adjX;
         const gcy = gy + adjY;
         if (radiusSq >= gcx * gcx + gcy * gcy) {
-          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
+          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
     }
@@ -155,6 +160,15 @@ export function renderCorn(
     context.lineTo(p2x + offSetX_px, p2y + offSetY_px);
     context.lineTo(cx + offSetX_px, cy + offSetY_px);
     context.fill();
+  } else if (isHexGrid(setting.gridType)) {
+    fillHexGridCells(
+      context,
+      setting,
+      (gcx, gcy) =>
+        chkOuterProduct(cx, cy, p1x, p1y, gcx, gcy) &&
+        chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
+        chkOuterProduct(p2x, p2y, cx, cy, gcx, gcy)
+    );
   } else {
     makeBrush(context, gridSize, setting.gridColor);
     const adjX = gridOffX + gridSize / 2 - offSetX_px;
@@ -169,7 +183,7 @@ export function renderCorn(
           chkOuterProduct(p1x, p1y, p2x, p2y, gcx, gcy) &&
           chkOuterProduct(p2x, p2y, cx, cy, gcx, gcy)
         ) {
-          fillCell(context, gx + gridOffX, gy + gridOffY, gridSize, setting.gridType);
+          fillSquare(context, gx + gridOffX, gy + gridOffY, gridSize);
         }
       }
     }
