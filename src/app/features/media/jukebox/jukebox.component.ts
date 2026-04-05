@@ -71,6 +71,7 @@ export class JukeboxComponent {
 
   readonly audios = computed(() => {
     this.objectChange.fileVersion();
+    this.objectChange.collectionOf('audio-tag')();
     const all = this.audioStorage.audios.filter((audio) => !audio.isHidden);
     const tag = this.selectTag();
     if (tag === '全て') return all;
@@ -85,6 +86,7 @@ export class JukeboxComponent {
 
   readonly tagList = computed((): string[] => {
     this.objectChange.fileVersion();
+    this.objectChange.collectionOf('audio-tag')();
     const tags = new Set<string>(JukeboxComponent.PRESET_TAGS);
     for (const audio of this.audioStorage.audios) {
       if (audio.isHidden) continue;
@@ -106,6 +108,7 @@ export class JukeboxComponent {
     let audioTag = AudioTag.get(audio.identifier);
     if (!audioTag) audioTag = AudioTag.create(audio.identifier);
     audioTag.tag = tag;
+    this.objectChange.notifyCollectionChanged('audio-tag');
   }
   get jukebox(): Jukebox {
     return this.objectStore.get<Jukebox>('Jukebox')!;
