@@ -97,6 +97,13 @@ export class GameTableSettingComponent {
     if (this.isEditable && this.selectedTable) this.selectedTable.gridColor = tableGridColor + 'e6';
   }
 
+  get tableGridFontColor(): string {
+    return this.selectedTable?.gridFontColor.substring(0, 7) ?? '#000000';
+  }
+  set tableGridFontColor(tableGridFontColor: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.gridFontColor = tableGridFontColor + 'e6';
+  }
+
   get tableGridShow(): boolean {
     return this.selectedTable?.gridShow ?? false;
   }

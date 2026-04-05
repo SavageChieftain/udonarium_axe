@@ -115,6 +115,12 @@ describe('GameTable', () => {
       expect(table.gridColor).toBe('#000000e6');
     });
 
+    it('gridFontColor がデフォルト "#000000e6"', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.gridFontColor).toBe('#000000e6');
+    });
+
     it('gridShow がデフォルト false', () => {
       const table = new GameTable();
       table.initialize();

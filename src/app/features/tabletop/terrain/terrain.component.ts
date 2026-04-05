@@ -106,7 +106,8 @@ export class TerrainComponent {
         this.depth(),
         this.gridSize,
         this.currentTable.gridType,
-        this.currentTable.gridColor
+        this.currentTable.gridColor,
+        this.currentTable.gridFontColor
       );
     }, this.destroyRef);
     afterNextRender(() => {
@@ -117,7 +118,8 @@ export class TerrainComponent {
         this.depth(),
         this.gridSize,
         this.currentTable.gridType,
-        this.currentTable.gridColor
+        this.currentTable.gridColor,
+        this.currentTable.gridFontColor
       );
     });
     this.destroyRef.onDestroy(() => {
@@ -347,14 +349,15 @@ export class TerrainComponent {
     height: number,
     gridSize: number = 50,
     gridType: GridType = GridType.SQUARE,
-    gridColor: string = '#000000e6'
+    gridColor: string = '#000000e6',
+    gridFontColor: string = gridColor
   ) {
     const render = new GridLineRender(this.gridCanvas().nativeElement);
 
     const leftPx = this.terrain().location.x - width / 2;
     const topPx = this.terrain().location.y - height / 2;
 
-    render.render(width, height, gridSize, gridType, gridColor, true, topPx, leftPx);
+    render.render(width, height, gridSize, gridType, gridColor, gridFontColor, true, topPx, leftPx);
     let opacity: number = 0.0;
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため

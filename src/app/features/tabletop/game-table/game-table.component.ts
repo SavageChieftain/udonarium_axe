@@ -125,7 +125,8 @@ export class GameTableComponent {
           this.currentTable.height,
           this.currentTable.gridSize,
           this.currentTable.gridType,
-          this.currentTable.gridColor
+          this.currentTable.gridColor,
+          this.currentTable.gridFontColor
         );
       }
     }, this.destroyRef);
@@ -148,7 +149,8 @@ export class GameTableComponent {
         this.currentTable.height,
         this.currentTable.gridSize,
         this.currentTable.gridType,
-        this.currentTable.gridColor
+        this.currentTable.gridColor,
+        this.currentTable.gridFontColor
       );
       this.gestureService.setTransform(0, 0, 0, 0, 0, 0);
       this.coordinateService.tabletopOriginElement = this.gameObjects().nativeElement;
@@ -264,13 +266,14 @@ export class GameTableComponent {
     height: number,
     gridSize: number = 50,
     gridType: GridType = GridType.SQUARE,
-    gridColor: string = '#000000e6'
+    gridColor: string = '#000000e6',
+    gridFontColor: string = gridColor
   ) {
     this.gameTable().nativeElement.style.width = width * gridSize + 'px';
     this.gameTable().nativeElement.style.height = height * gridSize + 'px';
 
     const render = new GridLineRender(this.gridCanvas().nativeElement);
-    render.render(width, height, gridSize, gridType, gridColor);
+    render.render(width, height, gridSize, gridType, gridColor, gridFontColor);
 
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため

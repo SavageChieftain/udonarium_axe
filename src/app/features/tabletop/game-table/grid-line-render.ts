@@ -6,10 +6,15 @@ type GridPosition = { gx: number; gy: number };
 export class GridLineRender {
   constructor(readonly canvasElement: HTMLCanvasElement) {}
 
-  private makeBrush(context: CanvasRenderingContext2D, gridSize: number, gridColor: string): CanvasRenderingContext2D {
+  private makeBrush(
+    context: CanvasRenderingContext2D,
+    gridSize: number,
+    gridColor: string,
+    gridFontColor: string
+  ): CanvasRenderingContext2D {
     // 座標描画用brush設定
     context.strokeStyle = gridColor;
-    context.fillStyle = context.strokeStyle;
+    context.fillStyle = gridFontColor;
     context.lineWidth = 1;
 
     const fontSize: number = Math.floor(gridSize / 5);
@@ -25,6 +30,7 @@ export class GridLineRender {
     gridSize: number = 50,
     gridType: GridType = GridType.SQUARE,
     gridColor: string = '#000000e6',
+    gridFontColor: string = gridColor,
     overTerrain = false,
     offsetTop: number = 0,
     offsetLeft: number = 0
@@ -39,7 +45,7 @@ export class GridLineRender {
     const offLeft = overTerrain ? Math.floor(offsetLeft / gridSize) + 1 : 0;
 
     const calcGridPosition: StrokeGridFunc = this.generateCalcGridPositionFunc(gridType);
-    this.makeBrush(context, gridSize, gridColor);
+    this.makeBrush(context, gridSize, gridColor, gridFontColor);
     for (let h = 0; h <= height; h++) {
       for (let w = 0; w <= width; w++) {
         const { gx, gy } = calcGridPosition(w, h, gridSize);

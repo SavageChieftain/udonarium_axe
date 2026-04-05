@@ -108,6 +108,14 @@
           list="table-grid-color-list"
           [attr.disabled]="!isEditable ? '' : null"
         />
+        座標色:
+        <input
+          type="color"
+          [(ngModel)]="tableGridFontColor"
+          name="tableGridFontColor"
+          list="table-grid-color-list"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
       </div>
       <div>
         背景フィルタ

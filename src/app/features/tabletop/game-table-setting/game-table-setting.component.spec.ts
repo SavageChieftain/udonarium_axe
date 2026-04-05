@@ -44,6 +44,7 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableWidth).toBe(10);
       expect(component.tableHeight).toBe(10);
       expect(component.tableGridColor).toBe('#000000');
+      expect(component.tableGridFontColor).toBe('#000000');
       expect(component.tableGridType).toBe(0 as GridType);
       expect(component.tableDistanceviewFilter).toBe(FilterType.NONE);
     });
@@ -54,6 +55,7 @@ describe('GameTableSettingComponent', () => {
         component.tableWidth = 20;
         component.tableHeight = 20;
         component.tableGridColor = '#ffffff';
+        component.tableGridFontColor = '#ff0000';
         component.tableGridType = 1 as GridType;
         component.tableDistanceviewFilter = FilterType.WHITE;
       }).not.toThrow();
