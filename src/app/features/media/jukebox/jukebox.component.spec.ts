@@ -1,10 +1,34 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AudioFile } from '@axe/core/storage/audio-file';
+import { AudioPlayer } from '@axe/core/storage/audio-player';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+function makeReadyAudio(identifier: string, name?: string): AudioFile {
+  const audio = AudioFile.createEmpty(identifier);
+  const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
+  ctx['blob'] = new Blob(['x']);
+  ctx['url'] = 'blob:x';
+  ctx['name'] = name ?? identifier;
+  return audio;
+}
+
+function ensureJukeboxAndLauncher() {
+  if (!ObjectStore.instance.get<Jukebox>('Jukebox')) {
+    const jukebox = new Jukebox('Jukebox');
+    jukebox.initialize();
+  }
+  if (!ObjectStore.instance.get<CutInLauncher>('CutInLauncher')) {
+    const cutInLauncher = new CutInLauncher('CutInLauncher');
+    cutInLauncher.initialize();
+  }
+}
 
 describe('JukeboxComponent', () => {
   let component: JukeboxComponent;
@@ -18,8 +42,16 @@ describe('JukeboxComponent', () => {
   });
 
   beforeEach(() => {
+    ensureJukeboxAndLauncher();
     fixture = TestBed.createComponent(JukeboxComponent);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
+    const allTags = ObjectStore.instance.getObjects(AudioTag);
+    allTags.forEach((t) => ObjectStore.instance.delete(t, false));
+    vi.restoreAllMocks();
   });
 
   it('should be created', () => {
@@ -29,14 +61,104 @@ describe('JukeboxComponent', () => {
   it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
     await expectPanelDragRecovery(JukeboxComponent, {
       beforeOpen: () => {
-        if (!ObjectStore.instance.get<Jukebox>('Jukebox')) {
-          new Jukebox('Jukebox');
-        }
-        if (!ObjectStore.instance.get<CutInLauncher>('CutInLauncher')) {
-          const cutInLauncher = new CutInLauncher('CutInLauncher');
-          cutInLauncher.initialize();
-        }
+        ensureJukeboxAndLauncher();
       },
+    });
+  });
+
+  describe('getTagOf / setTagOf', () => {
+    it('AudioTag が未設定の場合デフォルトは BGM', () => {
+      const audio = makeReadyAudio('tag-test-01');
+      AudioStorage.instance.add(audio);
+
+      expect(component.getTagOf(audio)).toBe('BGM');
+    });
+
+    it('AudioTag が設定済みならそのタグを返す', () => {
+      const audio = makeReadyAudio('tag-test-02');
+      AudioStorage.instance.add(audio);
+      const tag = AudioTag.create('tag-test-02');
+      tag.tag = 'SE';
+
+      expect(component.getTagOf(audio)).toBe('SE');
+    });
+
+    it('setTagOf で新しいタグを設定できる', () => {
+      const audio = makeReadyAudio('tag-test-03');
+      AudioStorage.instance.add(audio);
+
+      component.setTagOf(audio, '環境音');
+
+      const tag = AudioTag.get('tag-test-03');
+      expect(tag).toBeTruthy();
+      expect(tag!.tag).toBe('環境音');
+    });
+
+    it('setTagOf で既存タグを変更できる', () => {
+      const audio = makeReadyAudio('tag-test-04');
+      AudioStorage.instance.add(audio);
+      AudioTag.create('tag-test-04');
+
+      component.setTagOf(audio, 'SE');
+      expect(AudioTag.get('tag-test-04')!.tag).toBe('SE');
+    });
+  });
+
+  describe('playBGM / stopBGM', () => {
+    it('playBGM で cutInLauncher.stopBlankTagCutIn と jukebox.play が呼ばれる', () => {
+      const audio = makeReadyAudio('play-bgm-01');
+      AudioStorage.instance.add(audio);
+
+      const stopBlankSpy = vi.spyOn(component.cutInLauncher, 'stopBlankTagCutIn').mockImplementation(() => {});
+      const playSpy = vi.spyOn(component.jukebox, 'play').mockImplementation(() => {});
+
+      component.playBGM(audio);
+
+      expect(stopBlankSpy).toHaveBeenCalledOnce();
+      expect(playSpy).toHaveBeenCalledWith('play-bgm-01', true); // BGM → loop=true
+    });
+
+    it('playBGM で SE タグなら loop=false で再生する', () => {
+      const audio = makeReadyAudio('play-se-01');
+      AudioStorage.instance.add(audio);
+      const tag = AudioTag.create('play-se-01');
+      tag.tag = 'SE';
+
+      vi.spyOn(component.cutInLauncher, 'stopBlankTagCutIn').mockImplementation(() => {});
+      const playSpy = vi.spyOn(component.jukebox, 'play').mockImplementation(() => {});
+
+      component.playBGM(audio);
+
+      expect(playSpy).toHaveBeenCalledWith('play-se-01', false); // SE → loop=false
+    });
+
+    it('stopBGM で再生中の audio が一致する場合のみ停止する', () => {
+      const audio = makeReadyAudio('stop-bgm-01');
+      AudioStorage.instance.add(audio);
+
+      vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
+      vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
+
+      // jukebox.audio が一致する場合
+      component.jukebox.audioIdentifier = 'stop-bgm-01';
+      const stopSpy = vi.spyOn(component.jukebox, 'stop').mockImplementation(() => {});
+
+      component.stopBGM(audio);
+      expect(stopSpy).toHaveBeenCalledOnce();
+    });
+
+    it('stopBGM で再生中の audio が異なる場合は停止しない', () => {
+      const audio = makeReadyAudio('stop-bgm-02');
+      AudioStorage.instance.add(audio);
+
+      component.jukebox.audioIdentifier = 'other-audio'; // 異なる identifier
+      const otherAudio = makeReadyAudio('other-audio');
+      AudioStorage.instance.add(otherAudio);
+
+      const stopSpy = vi.spyOn(component.jukebox, 'stop').mockImplementation(() => {});
+
+      component.stopBGM(audio);
+      expect(stopSpy).not.toHaveBeenCalled();
     });
   });
 });
