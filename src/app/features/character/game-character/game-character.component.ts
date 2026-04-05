@@ -201,63 +201,89 @@ export class GameCharacterComponent {
 
   readonly rotableOption = signal<RotableOption>({});
 
-  /** ヘクスマップ時の台座 clip-path を返す。スクエアマップ時は null。 */
-  readonly pedestalHexClipPath = computed<string | null>(() => {
+  /** ヘクスマップ時のジオメトリパラメータ。スクエアマップ時は null。 */
+  readonly pedestalHexParams = computed<{
+    gridType: GridType;
+    s: number;
+    n: number;
+    L: number;
+  } | null>(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
     const gridType = this.tabletopService.currentTable.gridType;
     if (gridType !== GridType.HEX_VERTICAL && gridType !== GridType.HEX_HORIZONTAL) return null;
-
-    // GridLineRender と同じ計算: s = circumradius = gridSize / sqrt(3)
     const g = this.gridSize;
-    const s = g / Math.sqrt(3);
-    const n = this.size; // セル数
-    const L = n * g; // 要素の辺 (width/height)
-
-    if (gridType === GridType.HEX_VERTICAL) {
-      // flat-top ヘクス: 横幅 = 2s, 縦幅 = g (= sqrt(3)*s)
-      // size=1 のとき要素は g×g の正方形。六角形の外接円 = s で上下中央に描く
-      // size=n のとき辺長を n 倍にスケール
-      const R = n * s; // 外接円半径（横方向）
-      const H = n * g; // 縦全体 (= L)
-      const cx = L / 2;
-      const cy = L / 2;
-      return (
-        `polygon(${cx + R}px ${cy}px, ` +
-        `${cx + R / 2}px ${cy - H / 2}px, ` +
-        `${cx - R / 2}px ${cy - H / 2}px, ` +
-        `${cx - R}px ${cy}px, ` +
-        `${cx - R / 2}px ${cy + H / 2}px, ` +
-        `${cx + R / 2}px ${cy + H / 2}px)`
-      );
-    } else {
-      // pointy-top ヘクス: 縦幅 = 2s, 横幅 = g (= sqrt(3)*s)
-      const R = n * s; // 外接円半径（縦方向）
-      const W = n * g; // 横全体 (= L)
-      const cx = L / 2;
-      const cy = L / 2;
-      return (
-        `polygon(${cx}px ${cy - R}px, ` +
-        `${cx + W / 2}px ${cy - R / 2}px, ` +
-        `${cx + W / 2}px ${cy + R / 2}px, ` +
-        `${cx}px ${cy + R}px, ` +
-        `${cx - W / 2}px ${cy + R / 2}px, ` +
-        `${cx - W / 2}px ${cy - R / 2}px)`
-      );
-    }
+    return { gridType, s: g / Math.sqrt(3), n: this.size, L: this.size * g };
   });
 
+  /**
+   * evenodd SVG パスで外側ヘクスから内側ヘクスを抜いたリング clip-path を返す。
+   * border ではなく background + ring clip で描くことで、ヘクスの辺に沿ったきれいな装飾を実現する。
+   */
+  private buildHexRingClipPath(
+    params: { gridType: GridType; s: number; n: number; L: number },
+    borderWidth: number
+  ): string {
+    const { gridType, s, n, L } = params;
+    const cx = L / 2;
+    const cy = L / 2;
+    const sqrt3 = Math.sqrt(3);
+    const si = s - (2 * borderWidth) / sqrt3; // inset circumradius
+    const f = (v: number): string => v.toFixed(2);
+
+    if (gridType === GridType.HEX_VERTICAL) {
+      // flat-top: R=横方向外接円半径, Hh=縦方向の半分
+      const R = n * s;
+      const Hh = L / 2;
+      const Ri = n * si;
+      const Hhi = (n * sqrt3 * si) / 2;
+      const outer =
+        `M ${f(cx + R)} ${f(cy)} ` +
+        `L ${f(cx + R / 2)} ${f(cy - Hh)} L ${f(cx - R / 2)} ${f(cy - Hh)} ` +
+        `L ${f(cx - R)} ${f(cy)} ` +
+        `L ${f(cx - R / 2)} ${f(cy + Hh)} L ${f(cx + R / 2)} ${f(cy + Hh)} Z`;
+      // 内側は逆回り (CCW) で穴を作る
+      const inner =
+        `M ${f(cx + Ri)} ${f(cy)} ` +
+        `L ${f(cx + Ri / 2)} ${f(cy + Hhi)} L ${f(cx - Ri / 2)} ${f(cy + Hhi)} ` +
+        `L ${f(cx - Ri)} ${f(cy)} ` +
+        `L ${f(cx - Ri / 2)} ${f(cy - Hhi)} L ${f(cx + Ri / 2)} ${f(cy - Hhi)} Z`;
+      return `path(evenodd, "${outer} ${inner}")`;
+    } else {
+      // pointy-top: R=縦方向外接円半径, Wh=横方向の半分
+      const R = n * s;
+      const Wh = L / 2;
+      const Ri = n * si;
+      const Whi = (n * sqrt3 * si) / 2;
+      const outer =
+        `M ${f(cx)} ${f(cy - R)} ` +
+        `L ${f(cx + Wh)} ${f(cy - R / 2)} L ${f(cx + Wh)} ${f(cy + R / 2)} ` +
+        `L ${f(cx)} ${f(cy + R)} ` +
+        `L ${f(cx - Wh)} ${f(cy + R / 2)} L ${f(cx - Wh)} ${f(cy - R / 2)} Z`;
+      const inner =
+        `M ${f(cx)} ${f(cy - Ri)} ` +
+        `L ${f(cx - Whi)} ${f(cy - Ri / 2)} L ${f(cx - Whi)} ${f(cy + Ri / 2)} ` +
+        `L ${f(cx)} ${f(cy + Ri)} ` +
+        `L ${f(cx + Whi)} ${f(cy + Ri / 2)} L ${f(cx + Whi)} ${f(cy - Ri / 2)} Z`;
+      return `path(evenodd, "${outer} ${inner}")`;
+    }
+  }
+
   pedestalStyle(borderColor: string): Record<string, string> {
-    const clipPath = this.pedestalHexClipPath();
-    if (clipPath) {
-      return { border: `solid 6px ${borderColor}`, clipPath, borderRadius: '0' };
+    const params = this.pedestalHexParams();
+    if (params) {
+      const clipPath = this.buildHexRingClipPath(params, 6);
+      return { background: borderColor, clipPath, border: 'none', borderRadius: '0' };
     }
     return { border: `solid 6px ${borderColor}` };
   }
 
   get pedestalOuterStyle(): Record<string, string> {
-    const clipPath = this.pedestalHexClipPath();
-    if (clipPath) return { clipPath, borderRadius: '0' };
+    const params = this.pedestalHexParams();
+    if (params) {
+      const clipPath = this.buildHexRingClipPath(params, 2);
+      return { background: '#212121', clipPath, border: 'none', borderRadius: '0' };
+    }
     return {};
   }
 
