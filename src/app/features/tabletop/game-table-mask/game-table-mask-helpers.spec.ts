@@ -1,5 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import {
+  buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
   type ScratchGridInfo,
@@ -180,7 +181,7 @@ describe('game-table-mask-helpers', () => {
       expect(css).toSatisfy((v: string) => v.includes('0px 0px / 0px 0px') || !v.includes('<polygon'));
     });
 
-    it('hex 未スクラッチ時は空文字を返すこと', () => {
+    it('hex 未スクラッチ時もヘクス型マスクを返すこと', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -193,7 +194,8 @@ describe('game-table-mask-helpers', () => {
         width: 2,
       });
 
-      expect(css).toBe('');
+      expect(css).toContain('data:image/svg+xml');
+      expect(css).toContain('polygon');
     });
   });
 
@@ -258,6 +260,28 @@ describe('game-table-mask-helpers', () => {
       expect(scraching).toBeDefined();
       expect(scraching!.state).toBe('scraching');
       expect(scraching!.hexPoints).toBeDefined();
+    });
+  });
+
+  describe('buildHexOutlineMask', () => {
+    it('HEX_VERTICAL で SVG マスクを返すこと', () => {
+      const mask = buildHexOutlineMask(50, GridType.HEX_VERTICAL, 2, 2);
+      expect(mask).toContain('data:image/svg+xml');
+      expect(mask).toContain('polygon');
+    });
+
+    it('HEX_HORIZONTAL で SVG マスクを返すこと', () => {
+      const mask = buildHexOutlineMask(50, GridType.HEX_HORIZONTAL, 2, 2);
+      expect(mask).toContain('data:image/svg+xml');
+      expect(mask).toContain('polygon');
+    });
+
+    it('SQUARE では空文字を返すこと', () => {
+      expect(buildHexOutlineMask(50, GridType.SQUARE, 2, 2)).toBe('');
+    });
+
+    it('NONE では空文字を返すこと', () => {
+      expect(buildHexOutlineMask(50, GridType.NONE, 2, 2)).toBe('');
     });
   });
 });

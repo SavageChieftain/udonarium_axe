@@ -115,10 +115,42 @@ function buildHexMaskSvg(params: BuildMaskCssParams): string {
   return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}") 0px 0px / ${pixelW}px ${pixelH}px no-repeat`;
 }
 
-export function buildMaskCss(params: BuildMaskCssParams): string {
-  if (!params.isPreviewMode && params.isNonScratched) return '';
+export function buildHexOutlineMask(gridSize: number, gridType: GridType, width: number, height: number): string {
+  if (!isHexGrid(gridType)) return '';
+  const isFlatTop = isFlatTopGrid(gridType);
+  const s = hexCircumradius(gridSize);
+  const maskS = s + 1;
+  const startAngle = hexStartAngle(isFlatTop);
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+  const { cols, rows } = hexGridDimensions(width, height, gridSize, isFlatTop);
+  const pixelW = width * gridSize;
+  const pixelH = height * gridSize;
 
+  const vertOffsets: { x: number; y: number }[] = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = startAngle + (i * Math.PI) / 3;
+    vertOffsets.push({ x: maskS * Math.cos(angle), y: maskS * Math.sin(angle) });
+  }
+
+  const polygons: string[] = [];
+  for (let col = 0; col < cols; col++) {
+    for (let row = 0; row < rows; row++) {
+      const { x: cx, y: cy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      if (cx < -maskS || cx > pixelW + maskS || cy < -maskS || cy > pixelH + maskS) continue;
+      const points = vertOffsets.map((v) => `${cx + v.x},${cy + v.y}`).join(' ');
+      polygons.push(`<polygon points="${points}"/>`);
+    }
+  }
+
+  if (!polygons.length) return '';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelW}" height="${pixelH}"><g fill="#000">${polygons.join('')}</g></svg>`;
+  return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}") 0px 0px / ${pixelW}px ${pixelH}px no-repeat`;
+}
+
+export function buildMaskCss(params: BuildMaskCssParams): string {
   if (isHexGrid(params.gridType)) return buildHexMaskSvg(params);
+
+  if (!params.isPreviewMode && params.isNonScratched) return '';
 
   const masks: string[] = [];
   const scratchedSet = splitGridSet(params.scratchedGrids);

@@ -21,7 +21,10 @@
       [ngClass]="{ fall: altitude === 0 }"
       [ngStyle]="{ transform: 'translateZ(' + altitude * gridSize + 'px)' }"
     >
-      <div class="is-fit-full is-3d">
+      <div
+        class="is-fit-full is-3d"
+        [ngStyle]="hexOutlineMask ? { '-webkit-mask': hexOutlineMask, mask: hexOutlineMask } : null"
+      >
         <div
           class="is-fit-full is-3d chrome-smooth-image-trick"
           style="pointer-events: auto; position: absolute; backface-visibility: hidden"

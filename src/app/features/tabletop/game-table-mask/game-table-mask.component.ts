@@ -28,6 +28,7 @@ import {
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
 import {
+  buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
   type ScratchGridInfo,
@@ -295,6 +296,10 @@ export class GameTableMaskComponent {
 
   get hexMarkerR(): number {
     return hexCircumradius(this.gridSize) * 0.5;
+  }
+
+  get hexOutlineMask(): string {
+    return buildHexOutlineMask(this.gridSize, this.gridType, this.width, this.height);
   }
 
   readonly movableOption = signal<MovableOption>({});
