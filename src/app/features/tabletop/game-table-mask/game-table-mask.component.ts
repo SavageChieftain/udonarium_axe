@@ -73,10 +73,12 @@ export class GameTableMaskComponent {
     effect(() => {
       const mask = this.gameTableMask();
       if (!mask) return;
+      const geo = computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType());
       this.movableOption.set({
         tabletopObject: mask,
         transformCssOffset: 'translateZ(0.10px)',
         colideLayers: ['terrain'],
+        snapOrigin: geo ? { x: geo.offsetX, y: geo.offsetY } : undefined,
       });
     });
     afterNextRender(() => {
@@ -206,7 +208,7 @@ export class GameTableMaskComponent {
     return buildMaskCss({
       currentScratchingSet: this._currentScratchingSet,
       gridSize: this.gridSize,
-      gridType: this.gridType,
+      gridType: this.gridType(),
       height: this.height,
       isNonScratched: this.isNonScratched,
       isPreviewMode: this.isPreviewMode,
@@ -220,7 +222,7 @@ export class GameTableMaskComponent {
     return buildScratchingGridInfos({
       currentScratchingSet: this._currentScratchingSet,
       gridSize: this.gridSize,
-      gridType: this.gridType,
+      gridType: this.gridType(),
       hasGameTableMask: !!this.gameTableMask(),
       height: this.height,
       isNonScratched: this.isNonScratched,
@@ -285,28 +287,31 @@ export class GameTableMaskComponent {
   math = Math;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
-  get gridType(): GridType {
-    return this.tableSelecter.viewTable?.gridType ?? GridType.SQUARE;
-  }
+  readonly gridType = computed(() => {
+    const table = this.tableSelecter.viewTable;
+    if (!table) return GridType.SQUARE;
+    this.objectChange.versionOf(table.identifier)();
+    return table.gridType;
+  });
 
   get hexMarkerR(): number {
     return hexCircumradius(this.gridSize) * 0.5;
   }
 
   get hexOutlineMask(): string {
-    return buildHexOutlineMask(this.gridSize, this.gridType, this.width, this.height);
+    return buildHexOutlineMask(this.gridSize, this.gridType(), this.width, this.height);
   }
 
   get pixelWidth(): number {
     return (
-      computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType)?.pixelW ??
+      computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType())?.pixelW ??
       this.width * this.gridSize
     );
   }
 
   get pixelHeight(): number {
     return (
-      computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType)?.pixelH ??
+      computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType())?.pixelH ??
       this.height * this.gridSize
     );
   }
@@ -404,7 +409,7 @@ export class GameTableMaskComponent {
 
     let gridX: number;
     let gridY: number;
-    const gridType = this.gridType;
+    const gridType = this.gridType();
     if (isHexGrid(gridType)) {
       const isFlatTop = isFlatTopGrid(gridType);
       const geo = computeHexMaskGeometry(this.width, this.height, this.gridSize, gridType);
