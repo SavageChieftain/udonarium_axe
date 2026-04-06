@@ -311,6 +311,43 @@ export class TerrainComponent {
     return `polygon(${points})`;
   });
 
+  /**
+   * ヘクスマップ時の壁面ジオメトリ。
+   * outline の各辺に対して壁パネルの位置・回転・明度を計算する。
+   */
+  readonly hexWalls = computed<{ edgeLength: number; px: number; py: number; angle: number; brightness: number }[]>(
+    () => {
+      const params = this.pedestalHexParams();
+      if (!params) return [];
+      const { outline } = params;
+      const containerW = this.width() * this.gridSize;
+      const containerH = this.depth() * this.gridSize;
+      const useSurfaceShading = this.isSurfaceShading();
+
+      return outline.map((v1, i) => {
+        const v2 = outline[(i + 1) % outline.length];
+        const dx = v2.x - v1.x;
+        const dy = v2.y - v1.y;
+        const edgeLength = Math.sqrt(dx * dx + dy * dy);
+        const edgeAngle = Math.atan2(dy, dx);
+
+        // 明度: 辺の外向き法線方向に基づく
+        //   背面(ny=-1)=0.3, 正面(ny=1)=1.0, 左(nx=-1)=0.5, 右(nx=1)=0.8
+        const brightness = useSurfaceShading
+          ? Math.max(0.3, Math.min(1.0, 0.65 - 0.35 * Math.cos(edgeAngle) + 0.15 * Math.sin(edgeAngle)))
+          : 1.0;
+
+        return {
+          edgeLength,
+          px: containerW / 2 + v2.x,
+          py: containerH / 2 + v2.y,
+          angle: edgeAngle + Math.PI,
+          brightness,
+        };
+      });
+    }
+  );
+
   math = Math;
   slopeDirectionState = SlopeDirection;
 

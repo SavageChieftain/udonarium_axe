@@ -62,72 +62,90 @@
         #gridCanvas
       ></canvas>
       @if (hasWall() && 0 < wallImage().url.length) {
-        @if (slopeDirection() !== slopeDirectionState.TOP) {
-          @if (isVisibleWallTopBottom()) {
+        @if (isHex()) {
+          @for (wall of hexWalls(); track $index) {
             <div
-              [ngClass]="{
-                'blinking-animation': !isLocked(),
-                'no-shadow': !isSurfaceShading(),
-                'is-slope': slopeDirection() === slopeDirectionState.LEFT,
-                'is-inverse-slope': slopeDirection() === slopeDirectionState.RIGHT,
-              }"
-              class="is-3d texture of-wall-top chrome-smooth-image-trick"
+              class="is-3d hex-wall chrome-smooth-image-trick"
+              [ngClass]="{ 'blinking-animation': !isLocked() }"
               [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-              [style.width.px]="width() * gridSize"
+              [style.width.px]="wall.edgeLength"
               [style.height.px]="height() * gridSize"
-              style="transform: translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1)"
+              [ngStyle]="{
+                transform:
+                  'translate(' + wall.px + 'px, ' + wall.py + 'px) rotateZ(' + wall.angle + 'rad) rotateX(-90deg)',
+                filter: 'brightness(' + wall.brightness + ')',
+              }"
             ></div>
           }
         }
-        @if (slopeDirection() !== slopeDirectionState.BOTTOM) {
-          @if (isVisibleWallTopBottom()) {
-            <div
-              [ngClass]="{
-                'blinking-animation': !isLocked(),
-                'no-shadow': !isSurfaceShading(),
-                'is-slope': slopeDirection() === slopeDirectionState.LEFT,
-                'is-inverse-slope': slopeDirection() === slopeDirectionState.RIGHT,
-              }"
-              class="is-3d texture of-wall-bottom chrome-smooth-image-trick"
-              [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-              [style.width.px]="width() * gridSize"
-              [style.height.px]="height() * gridSize"
-              style="transform: rotateX(-90deg)"
-            ></div>
+        @if (!isHex()) {
+          @if (slopeDirection() !== slopeDirectionState.TOP) {
+            @if (isVisibleWallTopBottom()) {
+              <div
+                [ngClass]="{
+                  'blinking-animation': !isLocked(),
+                  'no-shadow': !isSurfaceShading(),
+                  'is-slope': slopeDirection() === slopeDirectionState.LEFT,
+                  'is-inverse-slope': slopeDirection() === slopeDirectionState.RIGHT,
+                }"
+                class="is-3d texture of-wall-top chrome-smooth-image-trick"
+                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                [style.width.px]="width() * gridSize"
+                [style.height.px]="height() * gridSize"
+                style="transform: translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1)"
+              ></div>
+            }
           }
-        }
-        @if (slopeDirection() !== slopeDirectionState.LEFT) {
-          @if (isVisibleWallLeftRight()) {
-            <div
-              [ngClass]="{
-                'blinking-animation': !isLocked(),
-                'no-shadow': !isSurfaceShading(),
-                'is-slope': slopeDirection() === slopeDirectionState.BOTTOM,
-                'is-inverse-slope': slopeDirection() === slopeDirectionState.TOP,
-              }"
-              class="is-3d texture of-wall-left chrome-smooth-image-trick"
-              [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-              [style.width.px]="depth() * gridSize"
-              [style.height.px]="height() * gridSize"
-              style="transform: rotateZ(90deg) rotateX(-90deg) scaleX(-1) translateX(-100%) translateY(-100%)"
-            ></div>
+          @if (slopeDirection() !== slopeDirectionState.BOTTOM) {
+            @if (isVisibleWallTopBottom()) {
+              <div
+                [ngClass]="{
+                  'blinking-animation': !isLocked(),
+                  'no-shadow': !isSurfaceShading(),
+                  'is-slope': slopeDirection() === slopeDirectionState.LEFT,
+                  'is-inverse-slope': slopeDirection() === slopeDirectionState.RIGHT,
+                }"
+                class="is-3d texture of-wall-bottom chrome-smooth-image-trick"
+                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                [style.width.px]="width() * gridSize"
+                [style.height.px]="height() * gridSize"
+                style="transform: rotateX(-90deg)"
+              ></div>
+            }
           }
-        }
-        @if (slopeDirection() !== slopeDirectionState.RIGHT) {
-          @if (isVisibleWallLeftRight()) {
-            <div
-              [ngClass]="{
-                'blinking-animation': !isLocked(),
-                'no-shadow': !isSurfaceShading(),
-                'is-slope': slopeDirection() === slopeDirectionState.BOTTOM,
-                'is-inverse-slope': slopeDirection() === slopeDirectionState.TOP,
-              }"
-              class="is-3d texture of-wall-right chrome-smooth-image-trick"
-              [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-              [style.width.px]="depth() * gridSize"
-              [style.height.px]="height() * gridSize"
-              style="transform: rotateZ(-90deg) rotateX(-90deg) translateY(-100%)"
-            ></div>
+          @if (slopeDirection() !== slopeDirectionState.LEFT) {
+            @if (isVisibleWallLeftRight()) {
+              <div
+                [ngClass]="{
+                  'blinking-animation': !isLocked(),
+                  'no-shadow': !isSurfaceShading(),
+                  'is-slope': slopeDirection() === slopeDirectionState.BOTTOM,
+                  'is-inverse-slope': slopeDirection() === slopeDirectionState.TOP,
+                }"
+                class="is-3d texture of-wall-left chrome-smooth-image-trick"
+                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                [style.width.px]="depth() * gridSize"
+                [style.height.px]="height() * gridSize"
+                style="transform: rotateZ(90deg) rotateX(-90deg) scaleX(-1) translateX(-100%) translateY(-100%)"
+              ></div>
+            }
+          }
+          @if (slopeDirection() !== slopeDirectionState.RIGHT) {
+            @if (isVisibleWallLeftRight()) {
+              <div
+                [ngClass]="{
+                  'blinking-animation': !isLocked(),
+                  'no-shadow': !isSurfaceShading(),
+                  'is-slope': slopeDirection() === slopeDirectionState.BOTTOM,
+                  'is-inverse-slope': slopeDirection() === slopeDirectionState.TOP,
+                }"
+                class="is-3d texture of-wall-right chrome-smooth-image-trick"
+                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                [style.width.px]="depth() * gridSize"
+                [style.height.px]="height() * gridSize"
+                style="transform: rotateZ(-90deg) rotateX(-90deg) translateY(-100%)"
+              ></div>
+            }
           }
         }
       }
