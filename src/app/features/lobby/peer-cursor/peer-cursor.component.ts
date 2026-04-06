@@ -83,43 +83,42 @@ export class PeerCursorComponent {
   }
 
   constructor() {
-    if (!this.isMine) {
-      this.objectChange.cursorMove$.subscribe((event) => {
-        if (event.sendFrom !== this.cursor().peerId) return;
-        this.batchService.add(() => {
-          this.stopTransition();
-          this.setAnimatedTransition();
-          this.setPosition(event.x, event.y, event.z);
-          this.resetFadeOut();
-        }, this);
-      }, this.destroyRef);
+    this.objectChange.cursorMove$.subscribe((event) => {
+      if (event.sendFrom !== this.cursor().peerId) return;
+      if (!this.cursorElement) return;
+      this.batchService.add(() => {
+        this.stopTransition();
+        this.setAnimatedTransition();
+        this.setPosition(event.x, event.y, event.z);
+        this.resetFadeOut();
+      }, this);
+    }, this.destroyRef);
 
-      this.objectChange.heartBeat$.subscribe((event) => {
-        if (event.sendFrom !== this.cursor().peerId) return;
+    this.objectChange.heartBeat$.subscribe((event) => {
+      if (event.sendFrom !== this.cursor().peerId) return;
 
-        this.batchService.add(() => {
-          this.cursor().timestampSend = event.timestamp;
-          this.cursor().timestampReceive = Date.now();
-          this.cursor().timeDiffDown =
-            this.cursor().timestampReceive - this.cursor().timestampSend + PeerCursor.myCursor.debugReceiveDelay;
+      this.batchService.add(() => {
+        this.cursor().timestampSend = event.timestamp;
+        this.cursor().timestampReceive = Date.now();
+        this.cursor().timeDiffDown =
+          this.cursor().timestampReceive - this.cursor().timestampSend + PeerCursor.myCursor.debugReceiveDelay;
 
-          const messId = event.id;
-          const diffUp = event.diffDown;
-          this.cursor().lastTimeSignNo = event.secdCounter;
-          if (this.cursor().firstTimeSignNo < 0) {
-            this.cursor().firstTimeSignNo = event.secdCounter;
+        const messId = event.id;
+        const diffUp = event.diffDown;
+        this.cursor().lastTimeSignNo = event.secdCounter;
+        if (this.cursor().firstTimeSignNo < 0) {
+          this.cursor().firstTimeSignNo = event.secdCounter;
+        }
+        this.cursor().totalTimeSignNum++;
+
+        if (messId == PeerCursor.myCursor.peerId) {
+          if (diffUp != null) {
+            this.cursor().timeDiffUp = diffUp;
+            this.cursor().timeLatency = diffUp + this.cursor().timeDiffDown;
           }
-          this.cursor().totalTimeSignNum++;
-
-          if (messId == PeerCursor.myCursor.peerId) {
-            if (diffUp != null) {
-              this.cursor().timeDiffUp = diffUp;
-              this.cursor().timeLatency = diffUp + this.cursor().timeDiffDown;
-            }
-          }
-        }, this);
-      }, this.destroyRef);
-    }
+        }
+      }, this);
+    }, this.destroyRef);
 
     afterNextRender(() => {
       if (this.isMine) {
