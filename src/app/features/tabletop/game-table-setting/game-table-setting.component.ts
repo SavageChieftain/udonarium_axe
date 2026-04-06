@@ -9,7 +9,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
-import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
@@ -120,6 +120,13 @@ export class GameTableSettingComponent {
   set tableGridSnap(tableGridSnap: boolean) {
     if (!this.selectedTable) return;
     this.selectedTable.gridSnap = tableGridSnap;
+  }
+
+  get tableGridSnapStyle(): GridSnapStyle {
+    return this.selectedTable?.gridSnapStyle ?? GridSnapStyle.CENTER;
+  }
+  set tableGridSnapStyle(snapStyle: GridSnapStyle) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.gridSnapStyle = Number(snapStyle);
   }
 
   get tableGridType(): GridType {

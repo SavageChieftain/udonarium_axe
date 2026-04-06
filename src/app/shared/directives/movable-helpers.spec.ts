@@ -3,6 +3,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   applyPointerEvents,
   calcHexSnapPosition,
+  calcHexVertexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
   shouldTransitionTo,
@@ -141,6 +142,47 @@ describe('movable-helpers', () => {
         const result = calcHexSnapPosition(0, midY, gridSize, GridType.HEX_HORIZONTAL);
         expect(result.x).toBeCloseTo(-gridSize / 2);
         expect(result.y).toBeCloseTo(cy0 - gridSize / 2);
+      });
+    });
+  });
+
+  describe('calcHexVertexSnapPosition', () => {
+    const gridSize = 50;
+    const s = gridSize / Math.sqrt(3);
+
+    describe('flat-top (HEX_VERTICAL)', () => {
+      it('原点付近のポイントをセル中心ではなく頂点にスナップ', () => {
+        // flat-top (0,0) hex center is at (0,0), vertex at angle 0 is at (s,0)
+        const result = calcHexVertexSnapPosition(s, 0, gridSize, GridType.HEX_VERTICAL);
+        expect(result.x).toBeCloseTo(s - gridSize / 2);
+        expect(result.y).toBeCloseTo(0 - gridSize / 2);
+      });
+
+      it('セル中心位置でも最近接頂点にスナップ', () => {
+        // (0,0) hex center → nearest vertex is at distance s
+        const result = calcHexVertexSnapPosition(0, 0, gridSize, GridType.HEX_VERTICAL);
+        // Should snap to one of the 6 vertices of (0,0) hex, distance s from center
+        const snappedCenterX = result.x + gridSize / 2;
+        const snappedCenterY = result.y + gridSize / 2;
+        const dist = Math.sqrt(snappedCenterX * snappedCenterX + snappedCenterY * snappedCenterY);
+        expect(dist).toBeCloseTo(s);
+      });
+    });
+
+    describe('pointy-top (HEX_HORIZONTAL)', () => {
+      it('原点付近のポイントをセル中心ではなく頂点にスナップ', () => {
+        // pointy-top (0,0) hex center is at (0,0), vertex at angle -90° is at (0,-s)
+        const result = calcHexVertexSnapPosition(0, -s, gridSize, GridType.HEX_HORIZONTAL);
+        expect(result.x).toBeCloseTo(0 - gridSize / 2);
+        expect(result.y).toBeCloseTo(-s - gridSize / 2);
+      });
+
+      it('セル中心位置でも最近接頂点にスナップ', () => {
+        const result = calcHexVertexSnapPosition(0, 0, gridSize, GridType.HEX_HORIZONTAL);
+        const snappedCenterX = result.x + gridSize / 2;
+        const snappedCenterY = result.y + gridSize / 2;
+        const dist = Math.sqrt(snappedCenterX * snappedCenterX + snappedCenterY * snappedCenterY);
+        expect(dist).toBeCloseTo(s);
       });
     });
   });

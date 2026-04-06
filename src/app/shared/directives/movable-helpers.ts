@@ -1,5 +1,5 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { hexCellCenter, hexSpacing } from '@axe/domain/tabletop/hex-geometry';
+import { hexCellCenter, hexCircumradius, hexSpacing, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export type MovableLayerItem = {
@@ -42,6 +42,48 @@ export function calcHexSnapPosition(
         bestDist = dist;
         bestX = hx;
         bestY = hy;
+      }
+    }
+  }
+
+  return { x: bestX - halfWidth, y: bestY - halfHeight };
+}
+
+export function calcHexVertexSnapPosition(
+  posX: number,
+  posY: number,
+  gridSize: number,
+  gridType: GridType,
+  halfWidth: number = gridSize / 2,
+  halfHeight: number = gridSize / 2
+): { x: number; y: number } {
+  const isFlatTop = gridType === GridType.HEX_VERTICAL;
+  const s = hexCircumradius(gridSize);
+  const startAngle = hexStartAngle(isFlatTop);
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+
+  const colEst = posX / colSpacing;
+  const rowEst = posY / rowSpacing;
+
+  let bestX = 0;
+  let bestY = 0;
+  let bestDist = Infinity;
+
+  for (let col = Math.floor(colEst) - 1; col <= Math.ceil(colEst) + 1; col++) {
+    for (let row = Math.floor(rowEst) - 1; row <= Math.ceil(rowEst) + 1; row++) {
+      const { x: cx, y: cy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      for (let k = 0; k < 6; k++) {
+        const angle = startAngle + (k * Math.PI) / 3;
+        const vx = cx + s * Math.cos(angle);
+        const vy = cy + s * Math.sin(angle);
+        const dx = posX - vx;
+        const dy = posY - vy;
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestX = vx;
+          bestY = vy;
+        }
       }
     }
   }

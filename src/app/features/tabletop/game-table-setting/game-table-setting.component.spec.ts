@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
@@ -46,6 +46,7 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableGridColor).toBe('#000000');
       expect(component.tableGridFontColor).toBe('#000000');
       expect(component.tableGridType).toBe(0 as GridType);
+      expect(component.tableGridSnapStyle).toBe(GridSnapStyle.CENTER);
       expect(component.tableDistanceviewFilter).toBe(FilterType.NONE);
     });
 
@@ -57,6 +58,7 @@ describe('GameTableSettingComponent', () => {
         component.tableGridColor = '#ffffff';
         component.tableGridFontColor = '#ff0000';
         component.tableGridType = 1 as GridType;
+        component.tableGridSnapStyle = GridSnapStyle.VERTEX;
         component.tableDistanceviewFilter = FilterType.WHITE;
       }).not.toThrow();
     });

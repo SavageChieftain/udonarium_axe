@@ -1,7 +1,7 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { GridType } from '@axe/domain/tabletop/game-table';
+import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -9,6 +9,7 @@ import { InputHandler } from '@axe/shared/directives/input-handler';
 import {
   applyPointerEvents,
   calcHexSnapPosition,
+  calcHexVertexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
   registerLayer,
@@ -224,17 +225,28 @@ export class MovableDirective {
     const table = this.tableSelecter.viewTable;
     const effectiveGridSize = table?.gridSize ?? gridSize;
     const gridType = table?.gridType ?? GridType.SQUARE;
+    const snapStyle = table?.gridSnapStyle ?? GridSnapStyle.CENTER;
 
     if (isHexGrid(gridType)) {
       const originX = this.snapOrigin?.x ?? this.width / 2;
       const originY = this.snapOrigin?.y ?? this.height / 2;
       const anchor = { x: this.posX + originX, y: this.posY + originY };
-      const snapped = calcHexSnapPosition(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY);
+      const snapped =
+        snapStyle === GridSnapStyle.VERTEX
+          ? calcHexVertexSnapPosition(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY)
+          : calcHexSnapPosition(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY);
       this.posX = snapped.x;
       this.posY = snapped.y;
     } else {
-      this.posX = calcSnapNum(this.posX, effectiveGridSize);
-      this.posY = calcSnapNum(this.posY, effectiveGridSize);
+      if (snapStyle === GridSnapStyle.VERTEX) {
+        const centerX = this.posX + this.width / 2;
+        const centerY = this.posY + this.height / 2;
+        this.posX = calcSnapNum(centerX, effectiveGridSize) - this.width / 2;
+        this.posY = calcSnapNum(centerY, effectiveGridSize) - this.height / 2;
+      } else {
+        this.posX = calcSnapNum(this.posX, effectiveGridSize);
+        this.posY = calcSnapNum(this.posY, effectiveGridSize);
+      }
     }
   }
 

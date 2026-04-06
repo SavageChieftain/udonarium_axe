@@ -12,6 +12,11 @@ export enum GridType {
   HEX_HORIZONTAL = 2,
 }
 
+export enum GridSnapStyle {
+  CENTER = 0,
+  VERTEX = 1,
+}
+
 export enum FilterType {
   NONE = '',
   WHITE = 'white',
@@ -33,6 +38,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridFontColor: string = '#000000e6';
   @SyncVar() gridShow: boolean = false;
   @SyncVar() gridSnap: boolean = true;
+  @SyncVar() gridSnapStyle: GridSnapStyle = GridSnapStyle.CENTER;
 
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {
