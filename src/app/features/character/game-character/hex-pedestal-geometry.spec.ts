@@ -162,7 +162,13 @@ describe('hex-pedestal-geometry', () => {
 
     it('小数の size は頂点クラスターアウトラインを使用する', () => {
       const p = calcHexFlowerParams(1.5, 50, true);
-      const cluster = buildVertexClusterOutline(50, true);
+      const cluster = buildVertexClusterOutline(1.5, 50, true);
+      expect(p.outline.length).toBe(cluster.length);
+    });
+
+    it('size 2.5 は6セルクラスターアウトラインを使用する', () => {
+      const p = calcHexFlowerParams(2.5, 50, true);
+      const cluster = buildVertexClusterOutline(2.5, 50, true);
       expect(p.outline.length).toBe(cluster.length);
     });
 
@@ -200,24 +206,52 @@ describe('hex-pedestal-geometry', () => {
   });
 
   describe('buildVertexClusterOutline', () => {
-    it('3ヘクスの外周パスを返す（12頂点）', () => {
-      const outline = buildVertexClusterOutline(50, true);
+    it('size 1.5: 3ヘクスの外周パスを返す（12頂点）', () => {
+      const outline = buildVertexClusterOutline(1.5, 50, true);
       // 3 hexes sharing a vertex: 3*6=18 edges - 3*2=6 shared edges = 12 boundary edges
       expect(outline).toHaveLength(12);
     });
 
+    it('size 2.5: 6ヘクスクラスターの外周パスを返す（18頂点）', () => {
+      const flat = buildVertexClusterOutline(2.5, 50, true);
+      // 6 cells: 6*6=36 edges - 2*9=18 shared = 18 boundary edges
+      expect(flat).toHaveLength(18);
+      const pointy = buildVertexClusterOutline(2.5, 50, false);
+      expect(pointy).toHaveLength(18);
+    });
+
+    it('size 3.5: 12ヘクスクラスターの外周パスを返す（24頂点）', () => {
+      const flat = buildVertexClusterOutline(3.5, 50, true);
+      // 12 cells: 12*6=72 edges - 2*24=48 shared = 24 boundary edges
+      expect(flat).toHaveLength(24);
+      const pointy = buildVertexClusterOutline(3.5, 50, false);
+      expect(pointy).toHaveLength(24);
+    });
+
     it('flat-top と pointy-top で同じ頂点数', () => {
-      const flat = buildVertexClusterOutline(50, true);
-      const pointy = buildVertexClusterOutline(50, false);
-      expect(flat.length).toBe(pointy.length);
+      for (const size of [1.5, 2.5, 3.5, 4.5]) {
+        const flat = buildVertexClusterOutline(size, 50, true);
+        const pointy = buildVertexClusterOutline(size, 50, false);
+        expect(flat.length).toBe(pointy.length);
+      }
     });
 
     it('アウトラインの重心が原点付近にある', () => {
-      const outline = buildVertexClusterOutline(50, true);
-      const cx = outline.reduce((s, v) => s + v.x, 0) / outline.length;
-      const cy = outline.reduce((s, v) => s + v.y, 0) / outline.length;
-      expect(Math.abs(cx)).toBeLessThan(5);
-      expect(Math.abs(cy)).toBeLessThan(5);
+      for (const size of [1.5, 2.5, 3.5]) {
+        const outline = buildVertexClusterOutline(size, 50, true);
+        const cx = outline.reduce((s, v) => s + v.x, 0) / outline.length;
+        const cy = outline.reduce((s, v) => s + v.y, 0) / outline.length;
+        expect(Math.abs(cx)).toBeLessThan(5);
+        expect(Math.abs(cy)).toBeLessThan(5);
+      }
+    });
+
+    it('サイズが大きくなるほど頂点数が増える', () => {
+      const v15 = buildVertexClusterOutline(1.5, 50, true).length;
+      const v25 = buildVertexClusterOutline(2.5, 50, true).length;
+      const v35 = buildVertexClusterOutline(3.5, 50, true).length;
+      expect(v25).toBeGreaterThan(v15);
+      expect(v35).toBeGreaterThan(v25);
     });
   });
 });

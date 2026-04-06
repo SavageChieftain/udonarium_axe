@@ -180,7 +180,7 @@ export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: b
   const L = size * gridSize;
   const outline =
     size % 1 !== 0
-      ? buildVertexClusterOutline(gridSize, isFlatTop)
+      ? buildVertexClusterOutline(size, gridSize, isFlatTop)
       : buildHexFlowerOutline(Math.min(Math.max(Math.round(size), 1), 6), gridSize, isFlatTop);
   let minX = Infinity;
   let minY = Infinity;
@@ -196,26 +196,23 @@ export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: b
 }
 
 /**
- * 頂点（3ヘクス交差点）に配置されるユニットのアウトラインを計算する。
- * 座標は頂点 (0,0) 基準。頂点を共有する3つのヘクスの外周パスを返す。
+ * 頂点（ヘクス交差点）中心のクラスターアウトラインを計算する。
+ * 座標は頂点 (0,0) 基準。size に応じた距離ティアのセル群の外周パスを返す。
+ *
+ * ティア構成（flat-topの場合）:
+ *   Tier 1 (d²= s²): 3セル  → size 1.5
+ *   Tier 2 (d²=4s²): +3セル → size 2.5 (計6)
+ *   Tier 3 (d²=7s²): +6セル → size 3.5 (計12)
+ *   Tier 4 (d²=13s²): +6セル → size 4.5 (計18)
+ *   Tier 5 (d²=16s²): +3セル → size 5.5 (計21)
  */
-export function buildVertexClusterOutline(gridSize: number, isFlatTop: boolean): Point[] {
+export function buildVertexClusterOutline(size: number, gridSize: number, isFlatTop: boolean): Point[] {
   const s = hexCircumradius(gridSize);
   const g = gridSize;
   const startAngle = hexStartAngle(isFlatTop);
 
-  // 頂点0を共有する3つのヘクスのキューブ座標
-  const cubes: [number, number][] = isFlatTop
-    ? [
-        [0, 0],
-        [1, 0],
-        [1, -1],
-      ]
-    : [
-        [0, 0],
-        [1, -1],
-        [0, -1],
-      ];
+  // 含めるティア数（size 1.5→1, 2.5→2, 3.5→3, …）
+  const tierCount = Math.max(1, Math.floor(size));
 
   const cubeToPixel = (q: number, r: number): Point =>
     isFlatTop ? { x: 1.5 * s * q, y: (g / 2) * q + g * r } : { x: g * q + (g / 2) * r, y: 1.5 * s * r };
@@ -223,6 +220,34 @@ export function buildVertexClusterOutline(gridSize: number, isFlatTop: boolean):
   // 頂点0のピクセル座標（原点からのオフセット）
   const vertexPos: Point = isFlatTop ? { x: s, y: 0 } : { x: 0, y: -s };
 
+  // 十分な範囲の候補セルを生成し、頂点からの正規化距離でソート
+  const maxRange = tierCount + 2;
+  const candidates: { q: number; r: number; ndist: number }[] = [];
+  const s2 = s * s;
+  for (let q = -maxRange; q <= maxRange + 1; q++) {
+    for (let r = -maxRange; r <= maxRange + 1; r++) {
+      const { x, y } = cubeToPixel(q, r);
+      const dx = x - vertexPos.x;
+      const dy = y - vertexPos.y;
+      candidates.push({ q, r, ndist: Math.round((dx * dx + dy * dy) / s2) });
+    }
+  }
+  candidates.sort((a, b) => a.ndist - b.ndist);
+
+  // 距離ティアごとにグループ化し、tierCount 分のセルを選択
+  const cubes: [number, number][] = [];
+  let tiersFound = 0;
+  let prevNdist = -1;
+  for (const c of candidates) {
+    if (c.ndist !== prevNdist) {
+      tiersFound++;
+      if (tiersFound > tierCount) break;
+      prevNdist = c.ndist;
+    }
+    cubes.push([c.q, c.r]);
+  }
+
+  // 境界辺トレースで外周パスを構築
   const cells = new Set(cubes.map(([q, r]) => `${q},${r}`));
 
   const neighborDirs: number[][] = isFlatTop
