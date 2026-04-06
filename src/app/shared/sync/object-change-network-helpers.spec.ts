@@ -74,6 +74,49 @@ describe('object-change-network-helpers', () => {
     }
   });
 
+  it('HEART_BEAT メッセージが正しく heartBeat$ に変換される', () => {
+    const targets = makeTargets();
+    const offBindings = subscribeNetworkBindings(networkMessage$, targets);
+
+    let received: HeartBeatEvent | undefined;
+    const offHeart = targets.heartBeat$.subscribe((e) => (received = e));
+
+    try {
+      const now = Date.now();
+      localDispatch('HEART_BEAT', [now, 'target-peer', 42, 5], 'sender-peer');
+
+      expect(received).toEqual({
+        timestamp: now,
+        id: 'target-peer',
+        diffDown: 42,
+        secdCounter: 5,
+        sendFrom: 'sender-peer',
+      });
+    } finally {
+      offHeart();
+      offBindings();
+    }
+  });
+
+  it('HEART_BEAT の diffDown が null でも正しく伝搬される', () => {
+    const targets = makeTargets();
+    const offBindings = subscribeNetworkBindings(networkMessage$, targets);
+
+    let received: HeartBeatEvent | undefined;
+    const offHeart = targets.heartBeat$.subscribe((e) => (received = e));
+
+    try {
+      localDispatch('HEART_BEAT', [1000, 'peer-1', null, 0], 'peer-2');
+
+      expect(received).toBeDefined();
+      expect(received!.diffDown).toBeNull();
+      expect(received!.sendFrom).toBe('peer-2');
+    } finally {
+      offHeart();
+      offBindings();
+    }
+  });
+
   it('cleanup 関数を呼ぶと購読が解除される', () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);

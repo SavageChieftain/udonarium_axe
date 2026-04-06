@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BatchService } from '@axe/shared/ui/batch.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -33,6 +35,7 @@ describe('PeerCursorComponent', () => {
     PeerCursor.myCursor = null!;
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();
+    (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 
   it('should create', () => {
@@ -74,6 +77,132 @@ describe('PeerCursorComponent', () => {
       localDispatch('HEART_BEAT', [Date.now(), 'other', null, 1], 'other-peer');
 
       expect(addSpy).not.toHaveBeenCalled();
+    });
+
+    it('異なるピアからのハートビートはフィルタされる', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const addSpy = vi.spyOn(batchService, 'add');
+
+      localDispatch('HEART_BEAT', [Date.now(), 'my-peer', null, 1], 'different-peer');
+
+      expect(addSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('カーソル移動購読', () => {
+    it('異なるピアからのカーソル移動はフィルタされる', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const addSpy = vi.spyOn(batchService, 'add');
+
+      localDispatch('CURSOR_MOVE', [10, 20, 30], 'different-peer');
+
+      expect(addSpy).not.toHaveBeenCalled();
+    });
+
+    it('cursorElement が null のときは batchService に追加されない', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const priv = component as unknown as { cursorElement: HTMLElement | null };
+      priv.cursorElement = null;
+
+      const addSpy = vi.spyOn(batchService, 'add');
+
+      localDispatch('CURSOR_MOVE', [10, 20, 30], 'remote-peer');
+
+      expect(addSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('chkDisConnect', () => {
+    it('タイムアウト超過時にピアを切断状態にする', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+      // ChatTabList singleton must exist in ObjectStore for chkDisConnect()
+      void ChatTabList.instance;
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+      remoteCursor.isDisConnect = false;
+      remoteCursor.timestampReceive = Date.now() - 50_000;
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const priv = component as unknown as { chkDisConnect: () => void };
+      priv.chkDisConnect();
+
+      expect(remoteCursor.isDisConnect).toBe(true);
+    });
+
+    it('タイムアウト以内ならピアを接続状態にする', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+      void ChatTabList.instance;
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+      remoteCursor.isDisConnect = true;
+      remoteCursor.timestampReceive = Date.now();
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const priv = component as unknown as { chkDisConnect: () => void };
+      priv.chkDisConnect();
+
+      expect(remoteCursor.isDisConnect).toBe(false);
+    });
+
+    it('既に切断状態のピアは再度切断にならない（重複メッセージ防止）', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+      void ChatTabList.instance;
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+      remoteCursor.isDisConnect = true;
+      remoteCursor.timestampReceive = Date.now() - 50_000;
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const chatService = TestBed.inject(ChatMessageService);
+      const chatSpy = vi.spyOn(chatService, 'sendSystemMessageOnePlayer');
+
+      const priv = component as unknown as { chkDisConnect: () => void };
+      priv.chkDisConnect();
+
+      expect(remoteCursor.isDisConnect).toBe(true);
+      expect(chatSpy).not.toHaveBeenCalled();
     });
   });
 
