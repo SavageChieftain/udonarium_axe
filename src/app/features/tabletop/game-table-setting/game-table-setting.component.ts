@@ -129,6 +129,28 @@ export class GameTableSettingComponent {
     if (this.isEditable && this.selectedTable) this.selectedTable.gridSnapStyle = Number(snapStyle);
   }
 
+  get tableSnapMode(): string {
+    if (!this.tableGridSnap) return 'off';
+    switch (this.tableGridSnapStyle) {
+      case GridSnapStyle.VERTEX:
+        return 'vertex';
+      case GridSnapStyle.BOTH:
+        return 'both';
+      default:
+        return 'center';
+    }
+  }
+  set tableSnapMode(mode: string) {
+    if (!this.selectedTable) return;
+    if (mode === 'off') {
+      this.selectedTable.gridSnap = false;
+    } else {
+      this.selectedTable.gridSnap = true;
+      this.selectedTable.gridSnapStyle =
+        mode === 'vertex' ? GridSnapStyle.VERTEX : mode === 'both' ? GridSnapStyle.BOTH : GridSnapStyle.CENTER;
+    }
+  }
+
   get tableGridType(): GridType {
     return this.selectedTable?.gridType ?? 0;
   }

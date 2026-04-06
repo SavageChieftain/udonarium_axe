@@ -47,6 +47,7 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableGridFontColor).toBe('#000000');
       expect(component.tableGridType).toBe(0 as GridType);
       expect(component.tableGridSnapStyle).toBe(GridSnapStyle.CENTER);
+      expect(component.tableSnapMode).toBe('center');
       expect(component.tableDistanceviewFilter).toBe(FilterType.NONE);
     });
 

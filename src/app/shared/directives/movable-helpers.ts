@@ -91,6 +91,25 @@ export function calcHexVertexSnapPosition(
   return { x: bestX - halfWidth, y: bestY - halfHeight };
 }
 
+export function calcHexBothSnapPosition(
+  posX: number,
+  posY: number,
+  gridSize: number,
+  gridType: GridType,
+  halfWidth: number = gridSize / 2,
+  halfHeight: number = gridSize / 2
+): { x: number; y: number } {
+  const center = calcHexSnapPosition(posX, posY, gridSize, gridType, halfWidth, halfHeight);
+  const vertex = calcHexVertexSnapPosition(posX, posY, gridSize, gridType, halfWidth, halfHeight);
+
+  const dcx = posX - (center.x + halfWidth);
+  const dcy = posY - (center.y + halfHeight);
+  const dvx = posX - (vertex.x + halfWidth);
+  const dvy = posY - (vertex.y + halfHeight);
+
+  return dcx * dcx + dcy * dcy <= dvx * dvx + dvy * dvy ? center : vertex;
+}
+
 export function toTransformCss(posX: number, posY: number, posZ: number, transformCssOffset: string): string {
   return 'translate3d(' + posX + 'px,' + posY + 'px,' + posZ + 'px) ' + transformCssOffset;
 }

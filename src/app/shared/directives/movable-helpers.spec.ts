@@ -2,6 +2,7 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   applyPointerEvents,
+  calcHexBothSnapPosition,
   calcHexSnapPosition,
   calcHexVertexSnapPosition,
   calcSnapNum,
@@ -184,6 +185,27 @@ describe('movable-helpers', () => {
         const dist = Math.sqrt(snappedCenterX * snappedCenterX + snappedCenterY * snappedCenterY);
         expect(dist).toBeCloseTo(s);
       });
+    });
+  });
+
+  describe('calcHexBothSnapPosition', () => {
+    const gridSize = 50;
+
+    it('セル中心に近い場合はセル中心にスナップ', () => {
+      // (0,0) hex center → should snap to center
+      const result = calcHexBothSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
+      const centerResult = calcHexSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
+      expect(result.x).toBeCloseTo(centerResult.x);
+      expect(result.y).toBeCloseTo(centerResult.y);
+    });
+
+    it('頂点に近い場合は頂点にスナップ', () => {
+      const s = gridSize / Math.sqrt(3);
+      // flat-top vertex at (s, 0) — very close to vertex
+      const result = calcHexBothSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
+      const vertexResult = calcHexVertexSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
+      expect(result.x).toBeCloseTo(vertexResult.x);
+      expect(result.y).toBeCloseTo(vertexResult.y);
     });
   });
 });

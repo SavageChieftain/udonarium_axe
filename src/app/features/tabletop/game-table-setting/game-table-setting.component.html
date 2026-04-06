@@ -137,17 +137,13 @@
           >グリッドを常に表示:
           <input type="checkbox" [(ngModel)]="tableGridShow" name="tableGridShow" />
         </label>
-        <label
-          >スナップ:
-          <input type="checkbox" [(ngModel)]="tableGridSnap" name="tableGridSnap" />
-        </label>
-        <label
-          >スタイル:
-          <select [(ngModel)]="tableGridSnapStyle" name="tableGridSnapStyle" [attr.disabled]="!isEditable ? '' : null">
-            <option value="0">セル</option>
-            <option value="1">交差点</option>
-          </select>
-        </label>
+        スナップ:
+        <select [(ngModel)]="tableSnapMode" name="tableSnapMode" [attr.disabled]="!isEditable ? '' : null">
+          <option value="off">なし</option>
+          <option value="center">セル</option>
+          <option value="vertex">交差点</option>
+          <option value="both">セル+交差点</option>
+        </select>
         <hr />
         @if (!isDeleted) {
           <button [disabled]="isSaving()" (click)="save()">

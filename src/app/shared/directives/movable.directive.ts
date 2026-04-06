@@ -8,6 +8,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import {
   applyPointerEvents,
+  calcHexBothSnapPosition,
   calcHexSnapPosition,
   calcHexVertexSnapPosition,
   calcSnapNum,
@@ -231,18 +232,39 @@ export class MovableDirective {
       const originX = this.snapOrigin?.x ?? this.width / 2;
       const originY = this.snapOrigin?.y ?? this.height / 2;
       const anchor = { x: this.posX + originX, y: this.posY + originY };
-      const snapped =
+      const hexSnap =
         snapStyle === GridSnapStyle.VERTEX
-          ? calcHexVertexSnapPosition(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY)
-          : calcHexSnapPosition(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY);
+          ? calcHexVertexSnapPosition
+          : snapStyle === GridSnapStyle.BOTH
+            ? calcHexBothSnapPosition
+            : calcHexSnapPosition;
+      const snapped = hexSnap(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY);
       this.posX = snapped.x;
       this.posY = snapped.y;
     } else {
-      if (snapStyle === GridSnapStyle.VERTEX) {
+      if (snapStyle === GridSnapStyle.VERTEX || snapStyle === GridSnapStyle.BOTH) {
         const centerX = this.posX + this.width / 2;
         const centerY = this.posY + this.height / 2;
-        this.posX = calcSnapNum(centerX, effectiveGridSize) - this.width / 2;
-        this.posY = calcSnapNum(centerY, effectiveGridSize) - this.height / 2;
+        const snappedX = calcSnapNum(centerX, effectiveGridSize);
+        const snappedY = calcSnapNum(centerY, effectiveGridSize);
+        if (snapStyle === GridSnapStyle.BOTH) {
+          const cellX = calcSnapNum(this.posX, effectiveGridSize);
+          const cellY = calcSnapNum(this.posY, effectiveGridSize);
+          const dcx = this.posX - cellX;
+          const dcy = this.posY - cellY;
+          const dvx = this.posX - (snappedX - this.width / 2);
+          const dvy = this.posY - (snappedY - this.height / 2);
+          if (dcx * dcx + dcy * dcy <= dvx * dvx + dvy * dvy) {
+            this.posX = cellX;
+            this.posY = cellY;
+          } else {
+            this.posX = snappedX - this.width / 2;
+            this.posY = snappedY - this.height / 2;
+          }
+        } else {
+          this.posX = snappedX - this.width / 2;
+          this.posY = snappedY - this.height / 2;
+        }
       } else {
         this.posX = calcSnapNum(this.posX, effectiveGridSize);
         this.posY = calcSnapNum(this.posY, effectiveGridSize);
