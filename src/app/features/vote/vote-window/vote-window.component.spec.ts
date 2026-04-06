@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
 import { PanelService } from '@axe/shared/ui/panel.service';
@@ -49,5 +50,35 @@ describe('VoteWindowComponent', () => {
     objectChanged$.emit({ identifier: vote.identifier, aliasName: vote.aliasName, isSendFromSelf: false });
 
     expect(closeSpy).toHaveBeenCalled();
+  });
+
+  it('PeerCursor の変更で vote computed が再評価されること', () => {
+    // Set up myCursor for the test
+    const myCursor = PeerCursor.createMyCursor();
+
+    const peerA = new PeerCursor();
+    peerA.isDisConnect = false;
+    peerA.initialize();
+    vote.targetPeerId = [peerA.peerId];
+    vote.choices = ['賛成', '反対'];
+    vote.voteId = 1;
+
+    fixture.detectChanges();
+
+    const before = component.vote();
+    expect(before.votedTotalNum()).toBe(0);
+
+    // Simulate remote peer voting: update PeerCursor and emit change
+    peerA.voteAnswer = 0;
+    peerA.voteId = 1;
+    objectChanged$.emit({ identifier: peerA.identifier, aliasName: 'PeerCursor', isSendFromSelf: false });
+
+    // Re-read the computed — it should pick up the new PeerCursor version
+    const after = component.vote();
+    expect(after.votedTotalNum()).toBe(1);
+
+    ObjectStore.instance.remove(peerA);
+    ObjectStore.instance.remove(myCursor);
+    PeerCursor.myCursor = null!;
   });
 });

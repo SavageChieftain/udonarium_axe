@@ -26,10 +26,18 @@ export class VoteWindowComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private timestamp = 0;
-  readonly vote = computed(() => {
-    this.objectChange.versionOf('Vote')();
-    return this.objectStore.get<Vote>('Vote')!;
-  });
+  readonly vote = computed(
+    () => {
+      this.objectChange.versionOf('Vote')();
+      const vote = this.objectStore.get<Vote>('Vote')!;
+      for (const peerId of vote.targetPeerId) {
+        const cursor = PeerCursor.findByPeerId(peerId);
+        if (cursor) this.objectChange.versionOf(cursor.identifier)();
+      }
+      return vote;
+    },
+    { equal: () => false }
+  );
   get answerList(): number[] {
     return this.vote().voteAnswer;
   }
