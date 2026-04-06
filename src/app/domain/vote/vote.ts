@@ -25,18 +25,16 @@ export class Vote extends GameObject {
   voteAnswerByPeerId(peerId: string): number {
     const peer = PeerCursor.findByPeerId(peerId);
     if (peer) {
-      if (peer.isDisConnect) {
-        return -2; // 切断中は棄権扱い
-      }
       if (peer.voteId == this.voteId) {
         return peer.voteAnswer;
-      } else {
-        return -1; // 未投票
       }
+      if (peer.isDisConnect) {
+        return -2;
+      }
+      return -1;
     } else {
       return -2; // 棄権扱いにする
     }
-    return -1;
   }
 
   get voteAnswer(): number[] {

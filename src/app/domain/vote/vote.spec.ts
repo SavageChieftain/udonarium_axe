@@ -115,17 +115,35 @@ describe('Vote', () => {
 
     it('peerのvoteIdが不一致なら-1(未投票)', () => {
       vote.voteId = 5;
-      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 3, voteAnswer: 0 } as unknown as PeerCursor);
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
+        voteId: 3,
+        voteAnswer: 0,
+        isDisConnect: false,
+      } as unknown as PeerCursor);
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(-1);
     });
 
     it('peerのvoteIdが一致すればvoteAnswerを返す', () => {
       vote.voteId = 5;
-      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 5, voteAnswer: 2 } as unknown as PeerCursor);
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
+        voteId: 5,
+        voteAnswer: 2,
+        isDisConnect: false,
+      } as unknown as PeerCursor);
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(2);
     });
 
-    it('peerが切断中なら-2(棄権扱い)', () => {
+    it('peerが切断中でも投票済みなら投票結果を返す', () => {
+      vote.voteId = 5;
+      vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
+        voteId: 5,
+        voteAnswer: 0,
+        isDisConnect: true,
+      } as unknown as PeerCursor);
+      expect(vote.voteAnswerByPeerId('peer-1')).toBe(0);
+    });
+
+    it('peerが切断中かつ未投票なら-2(棄権扱い)', () => {
       vote.voteId = 5;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
         voteId: 0,
@@ -482,14 +500,14 @@ describe('Vote', () => {
   });
 
   describe('自分を点呼に含む（リグレッション）', () => {
-    it('isDisConnect=true の自分は棄権扱いになる（切断時の期待動作）', () => {
-      // myCursor が isDisConnect=true のとき voteAnswerByPeerId は -2 を返す
+    it('isDisConnect=true でも投票済みなら投票結果を返す', () => {
+      // myCursor が isDisConnect=true でも voteId が一致していれば投票結果を優先する
       vote.voteId = 1;
       vi.spyOn(PeerCursor, 'findByPeerId').mockImplementation((peerId: string) => {
         if (peerId === 'my-peer-id') return { voteId: 1, voteAnswer: 0, isDisConnect: true } as unknown as PeerCursor;
         return null!;
       });
-      expect(vote.voteAnswerByPeerId('my-peer-id')).toBe(-2);
+      expect(vote.voteAnswerByPeerId('my-peer-id')).toBe(0);
     });
 
     it('自分が接続中（isDisConnect=false）なら実際の投票値を返す', () => {
