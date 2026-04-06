@@ -36,6 +36,7 @@ export interface MovableOption {
   readonly colideLayers?: string[];
   readonly transformCssOffset?: string;
   readonly snapOrigin?: { x: number; y: number };
+  readonly snapStyle?: GridSnapStyle;
 }
 
 @Directive({ selector: '[appMovable]' })
@@ -56,6 +57,7 @@ export class MovableDirective {
   private colideLayers: string[] = [];
   private transformCssOffset: string = '';
   private snapOrigin: { x: number; y: number } | undefined;
+  private snapStyle: GridSnapStyle | undefined;
 
   readonly option = input.required<MovableOption>({ alias: 'movable.option' });
   readonly isDisable = input(false, { alias: 'movable.disable' });
@@ -124,6 +126,7 @@ export class MovableDirective {
       if (opt.colideLayers != null) this.colideLayers = opt.colideLayers;
       if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
       this.snapOrigin = opt.snapOrigin;
+      this.snapStyle = opt.snapStyle;
     });
     afterNextRender(() => {
       this.batchService.add(() => this.initialize(), this.elementRef);
@@ -226,7 +229,7 @@ export class MovableDirective {
     const table = this.tableSelecter.viewTable;
     const effectiveGridSize = table?.gridSize ?? gridSize;
     const gridType = table?.gridType ?? GridType.SQUARE;
-    const snapStyle = table?.gridSnapStyle ?? GridSnapStyle.CENTER;
+    const snapStyle = this.snapStyle ?? table?.gridSnapStyle ?? GridSnapStyle.CENTER;
 
     if (isHexGrid(gridType)) {
       const originX = this.snapOrigin?.x ?? this.width / 2;

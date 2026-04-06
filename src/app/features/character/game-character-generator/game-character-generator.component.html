@@ -5,8 +5,8 @@
 <input [(ngModel)]="name" placeholder="Name" name="name" />
 <div>
   <div>
-    <input [(ngModel)]="size" type="range" min="{{ minSize }}" max="{{ maxSize }}" name="size" /> Size :
-    <input name="size-number" [(ngModel)]="size" type="number" min="{{ minSize }}" max="{{ maxSize }}" />
+    <input [(ngModel)]="size" type="range" min="{{ minSize }}" max="{{ maxSize }}" step="0.5" name="size" /> Size :
+    <input name="size-number" [(ngModel)]="size" type="number" min="{{ minSize }}" max="{{ maxSize }}" step="0.5" />
   </div>
   <button (click)="createGameCharacter()">キャラクターを作る</button>
   <button (click)="createGameTableMask()">マップマスクを作る</button>

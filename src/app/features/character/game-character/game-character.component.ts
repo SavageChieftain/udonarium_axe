@@ -16,6 +16,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import {
@@ -106,6 +107,7 @@ export class GameCharacterComponent {
         tabletopObject: char,
         transformCssOffset: 'translateZ(1.0px)',
         colideLayers: ['terrain'],
+        snapStyle: char.size % 1 !== 0 ? GridSnapStyle.VERTEX : undefined,
       });
       this.rotableOption.set({
         tabletopObject: char,

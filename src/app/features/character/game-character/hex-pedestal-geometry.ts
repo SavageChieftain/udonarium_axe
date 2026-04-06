@@ -177,9 +177,11 @@ export function buildHexRingClipPath(outline: Point[], bbox: BoundingBox, border
  * ヘクスフラワーのアウトラインから HexFlowerParams を計算する。
  */
 export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: boolean): HexFlowerParams {
-  const n = Math.min(Math.max(Math.round(size), 1), 6);
   const L = size * gridSize;
-  const outline = buildHexFlowerOutline(n, gridSize, isFlatTop);
+  const outline =
+    size % 1 !== 0
+      ? buildVertexClusterOutline(gridSize, isFlatTop)
+      : buildHexFlowerOutline(Math.min(Math.max(Math.round(size), 1), 6), gridSize, isFlatTop);
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -191,4 +193,92 @@ export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: b
     if (v.y > maxY) maxY = v.y;
   }
   return { outline, bbox: { minX, minY, maxX, maxY }, L, g: gridSize };
+}
+
+/**
+ * 頂点（3ヘクス交差点）に配置されるユニットのアウトラインを計算する。
+ * 座標は頂点 (0,0) 基準。頂点を共有する3つのヘクスの外周パスを返す。
+ */
+export function buildVertexClusterOutline(gridSize: number, isFlatTop: boolean): Point[] {
+  const s = hexCircumradius(gridSize);
+  const g = gridSize;
+  const startAngle = hexStartAngle(isFlatTop);
+
+  // 頂点0を共有する3つのヘクスのキューブ座標
+  const cubes: [number, number][] = isFlatTop
+    ? [
+        [0, 0],
+        [1, 0],
+        [1, -1],
+      ]
+    : [
+        [0, 0],
+        [1, -1],
+        [0, -1],
+      ];
+
+  const cubeToPixel = (q: number, r: number): Point =>
+    isFlatTop ? { x: 1.5 * s * q, y: (g / 2) * q + g * r } : { x: g * q + (g / 2) * r, y: 1.5 * s * r };
+
+  // 頂点0のピクセル座標（原点からのオフセット）
+  const vertexPos: Point = isFlatTop ? { x: s, y: 0 } : { x: 0, y: -s };
+
+  const cells = new Set(cubes.map(([q, r]) => `${q},${r}`));
+
+  const neighborDirs: number[][] = isFlatTop
+    ? [
+        [1, 0],
+        [0, 1],
+        [-1, 1],
+        [-1, 0],
+        [0, -1],
+        [1, -1],
+      ]
+    : [
+        [1, -1],
+        [1, 0],
+        [0, 1],
+        [-1, 1],
+        [-1, 0],
+        [0, -1],
+      ];
+
+  const hexVertex = (cx: number, cy: number, i: number): Point => {
+    const angle = startAngle + (i * Math.PI) / 3;
+    return { x: cx + s * Math.cos(angle), y: cy + s * Math.sin(angle) };
+  };
+
+  type Segment = { from: Point; to: Point };
+  const segments: Segment[] = [];
+  const fromMap = new Map<string, number>();
+  const vtxKey = (p: Point): string => `${Math.round(p.x * 1000)},${Math.round(p.y * 1000)}`;
+
+  for (const [q, r] of cubes) {
+    const { x: px, y: py } = cubeToPixel(q, r);
+    const cx = px - vertexPos.x;
+    const cy = py - vertexPos.y;
+    for (let e = 0; e < 6; e++) {
+      const [dq, dr] = neighborDirs[e];
+      if (!cells.has(`${q + dq},${r + dr}`)) {
+        const from = hexVertex(cx, cy, e);
+        const to = hexVertex(cx, cy, (e + 1) % 6);
+        const idx = segments.length;
+        segments.push({ from, to });
+        fromMap.set(vtxKey(from), idx);
+      }
+    }
+  }
+
+  const path: Point[] = [];
+  const visited = new Array(segments.length).fill(false);
+  let current = 0;
+  for (let i = 0; i < segments.length; i++) {
+    visited[current] = true;
+    path.push(segments[current].from);
+    const next = fromMap.get(vtxKey(segments[current].to));
+    if (next === undefined || visited[next]) break;
+    current = next;
+  }
+
+  return path;
 }

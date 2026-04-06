@@ -1,6 +1,7 @@
 import {
   buildHexFlowerOutline,
   buildHexRingClipPath,
+  buildVertexClusterOutline,
   calcHexFlowerParams,
   insetPolygon,
 } from '@axe/features/character/game-character/hex-pedestal-geometry';
@@ -159,10 +160,10 @@ describe('hex-pedestal-geometry', () => {
       expect(p7.outline.length).toBe(calcHexFlowerParams(6, 50, true).outline.length);
     });
 
-    it('小数の size は四捨五入される', () => {
-      const p = calcHexFlowerParams(2.7, 50, true);
-      // round(2.7) = 3
-      expect(p.outline.length).toBe(calcHexFlowerParams(3, 50, true).outline.length);
+    it('小数の size は頂点クラスターアウトラインを使用する', () => {
+      const p = calcHexFlowerParams(1.5, 50, true);
+      const cluster = buildVertexClusterOutline(50, true);
+      expect(p.outline.length).toBe(cluster.length);
     });
 
     it('L = size * gridSize', () => {
@@ -195,6 +196,28 @@ describe('hex-pedestal-geometry', () => {
       // flat-top の幅 ≈ pointy-top の高さ、flat-top の高さ ≈ pointy-top の幅
       expect(flatW).toBeCloseTo(pointyH, 5);
       expect(flatH).toBeCloseTo(pointyW, 5);
+    });
+  });
+
+  describe('buildVertexClusterOutline', () => {
+    it('3ヘクスの外周パスを返す（12頂点）', () => {
+      const outline = buildVertexClusterOutline(50, true);
+      // 3 hexes sharing a vertex: 3*6=18 edges - 3*2=6 shared edges = 12 boundary edges
+      expect(outline).toHaveLength(12);
+    });
+
+    it('flat-top と pointy-top で同じ頂点数', () => {
+      const flat = buildVertexClusterOutline(50, true);
+      const pointy = buildVertexClusterOutline(50, false);
+      expect(flat.length).toBe(pointy.length);
+    });
+
+    it('アウトラインの重心が原点付近にある', () => {
+      const outline = buildVertexClusterOutline(50, true);
+      const cx = outline.reduce((s, v) => s + v.x, 0) / outline.length;
+      const cy = outline.reduce((s, v) => s + v.y, 0) / outline.length;
+      expect(Math.abs(cx)).toBeLessThan(5);
+      expect(Math.abs(cy)).toBeLessThan(5);
     });
   });
 });
