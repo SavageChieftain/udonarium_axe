@@ -45,7 +45,12 @@
             />
           }
         </div>
-        <div class="is-fit-full is-3d scratching-area border" style="pointer-events: none; backface-visibility: hidden">
+        <div
+          class="is-fit-full is-3d scratching-area"
+          [class.border]="!hexOutlineMask"
+          [ngStyle]="hexOuterBorder ? { background: hexOuterBorder } : null"
+          style="pointer-events: none; backface-visibility: hidden"
+        >
           @if (isScratching) {
             <svg
               class="fade-in"

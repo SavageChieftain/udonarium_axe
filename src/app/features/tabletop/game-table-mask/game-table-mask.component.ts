@@ -22,6 +22,7 @@ import { hexCircumradius, isFlatTopGrid, isHexGrid, pixelToHexCell } from '@axe/
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
 import {
+  buildHexOuterBorderSvg,
   buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
@@ -300,6 +301,10 @@ export class GameTableMaskComponent {
 
   get hexOutlineMask(): string {
     return buildHexOutlineMask(this.gridSize, this.gridType(), this.width, this.height);
+  }
+
+  get hexOuterBorder(): string {
+    return buildHexOuterBorderSvg(this.gridSize, this.gridType(), this.width, this.height);
   }
 
   get pixelWidth(): number {

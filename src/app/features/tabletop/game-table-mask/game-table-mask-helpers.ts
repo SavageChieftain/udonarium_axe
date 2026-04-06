@@ -200,6 +200,109 @@ export function buildHexOutlineMask(gridSize: number, gridType: GridType, width:
 }
 
 // ---------------------------------------------------------------------------
+// Hex outer border SVG
+// ---------------------------------------------------------------------------
+
+/**
+ * 隣接セルの (col, row) オフセットを辺インデックスで返す。
+ *
+ * 辺インデックスは hexVertOffsets の頂点 i→i+1 に対応する。
+ */
+function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop: boolean): readonly [number, number] {
+  if (isFlatTop) {
+    /* flat-top: 偶数列はオフセットなし、奇数列は +rowSpacing/2 */
+    const even = col % 2 === 0;
+    //                  edge: 0       1       2        3        4       5
+    return even
+      ? (
+          [
+            [1, 0],
+            [0, 1],
+            [-1, 0],
+            [-1, -1],
+            [0, -1],
+            [1, -1],
+          ] as const
+        )[edgeIdx]
+      : (
+          [
+            [1, 1],
+            [0, 1],
+            [-1, 1],
+            [-1, 0],
+            [0, -1],
+            [1, 0],
+          ] as const
+        )[edgeIdx];
+  }
+  /* pointy-top: 偶数行はオフセットなし、奇数行は +colSpacing/2 */
+  const even = row % 2 === 0;
+  //                  edge: 0       1        2       3        4        5
+  return even
+    ? (
+        [
+          [0, 1],
+          [-1, 1],
+          [-1, 0],
+          [-1, -1],
+          [0, -1],
+          [1, 0],
+        ] as const
+      )[edgeIdx]
+    : (
+        [
+          [1, 1],
+          [0, 1],
+          [-1, 0],
+          [0, -1],
+          [1, -1],
+          [1, 0],
+        ] as const
+      )[edgeIdx];
+}
+
+/**
+ * ヘクスグリッドの外周境界線のみを SVG で返す。
+ *
+ * 全セルを走査し、隣接セルが存在しない辺だけを `<line>` として出力する。
+ * CSS background-image 用の data URI 文字列を返す。
+ */
+export function buildHexOuterBorderSvg(gridSize: number, gridType: GridType, width: number, height: number): string {
+  const geo = computeHexMaskGeometry(width, height, gridSize, gridType);
+  if (!geo) return '';
+  const isFlatTop = isFlatTopGrid(gridType);
+  const s = hexCircumradius(gridSize);
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+  const verts = hexVertOffsets(s, isFlatTop);
+
+  const lines: string[] = [];
+  for (let col = 0; col < width; col++) {
+    for (let row = 0; row < height; row++) {
+      const { x, y } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      const cx = x + geo.offsetX;
+      const cy = y + geo.offsetY;
+
+      for (let i = 0; i < 6; i++) {
+        const [dq, dr] = hexNeighborOffset(col, row, i, isFlatTop);
+        const nq = col + dq;
+        const nr = row + dr;
+        if (nq >= 0 && nq < width && nr >= 0 && nr < height) continue;
+
+        const v1 = verts[i];
+        const v2 = verts[(i + 1) % 6];
+        lines.push(`<line x1="${cx + v1.x}" y1="${cy + v1.y}" x2="${cx + v2.x}" y2="${cy + v2.y}"/>`);
+      }
+    }
+  }
+
+  if (!lines.length) return '';
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${geo.pixelW}" height="${geo.pixelH}">` +
+    `<g stroke="%23ccc" stroke-width="2" stroke-linecap="round">${lines.join('')}</g></svg>`;
+  return `url("data:image/svg+xml;charset=utf-8,${svg}") 0px 0px / ${geo.pixelW}px ${geo.pixelH}px no-repeat`;
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 

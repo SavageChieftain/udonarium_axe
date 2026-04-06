@@ -1,5 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import {
+  buildHexOuterBorderSvg,
   buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
@@ -317,6 +318,47 @@ describe('game-table-mask-helpers', () => {
       const geo = computeHexMaskGeometry(1, 4, 50, GridType.HEX_VERTICAL)!;
       // cols=1 → no odd column → pixelH = rows * gridSize
       expect(geo.pixelH).toBeCloseTo(4 * 50, 5);
+    });
+  });
+
+  describe('buildHexOuterBorderSvg', () => {
+    it('HEX_VERTICAL で外周の line 要素を含む data URI を返すこと', () => {
+      const svg = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 3, 3);
+      expect(svg).toContain('data:image/svg+xml');
+      expect(svg).toContain('line');
+      expect(svg).toContain('stroke');
+    });
+
+    it('HEX_HORIZONTAL で外周の line 要素を含む data URI を返すこと', () => {
+      const svg = buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 3, 3);
+      expect(svg).toContain('data:image/svg+xml');
+      expect(svg).toContain('line');
+    });
+
+    it('SQUARE では空文字を返すこと', () => {
+      expect(buildHexOuterBorderSvg(50, GridType.SQUARE, 3, 3)).toBe('');
+    });
+
+    it('NONE では空文字を返すこと', () => {
+      expect(buildHexOuterBorderSvg(50, GridType.NONE, 3, 3)).toBe('');
+    });
+
+    it('1x1 グリッドでは全6辺が外周になること', () => {
+      const svg = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1);
+      // 1 cell × 6 edges = 6 <line> elements
+      const lineCount = (svg.match(/<line /g) || []).length;
+      expect(lineCount).toBe(6);
+    });
+
+    it('2x2 グリッドでは内部辺が除外されること', () => {
+      const svg1 = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1);
+      const svg2 = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 2, 2);
+      const count1 = (svg1.match(/<line /g) || []).length;
+      const count2 = (svg2.match(/<line /g) || []).length;
+      // 2x2 has fewer outer edges per cell than 1x1 (interior edges removed)
+      // 4 cells × 6 edges = 24 total, minus shared internal edges
+      expect(count2).toBeLessThan(4 * 6);
+      expect(count2).toBeGreaterThan(count1);
     });
   });
 });
