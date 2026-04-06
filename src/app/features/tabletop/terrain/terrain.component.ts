@@ -18,8 +18,14 @@ import { ImageService } from '@axe/core/storage/image.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
+import {
+  buildHexRingClipPath,
+  calcHexFlowerParams,
+  HexFlowerParams,
+} from '@axe/features/character/game-character/hex-pedestal-geometry';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
@@ -231,6 +237,79 @@ export class TerrainComponent {
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
+
+  /** ヘクスマップ時のジオメトリパラメータ。スクエアマップ時は null。 */
+  readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
+    this.terrainVersion();
+    const gridType = this.currentTable.gridType;
+    if (!isHexGrid(gridType)) return null;
+    const hexSize = Math.min(this.width(), this.depth());
+    if (hexSize < 1) return null;
+    return calcHexFlowerParams(hexSize, this.gridSize, isFlatTopGrid(gridType));
+  });
+
+  readonly isHex = computed(() => this.pedestalHexParams() !== null);
+
+  pedestalStyle(): Record<string, string> {
+    const params = this.pedestalHexParams();
+    if (params) {
+      const { outline, bbox, L } = params;
+      const W = bbox.maxX - bbox.minX;
+      const H = bbox.maxY - bbox.minY;
+      const clipPath = buildHexRingClipPath(outline, bbox, 7);
+      return {
+        background: '#ccc',
+        clipPath,
+        border: 'none',
+        borderRadius: '0',
+        width: `${W}px`,
+        height: `${H}px`,
+        left: `${bbox.minX + L / 2}px`,
+        top: `${bbox.minY + L / 2}px`,
+      };
+    }
+    return {};
+  }
+
+  get pedestalGrabStyle(): Record<string, string> {
+    const params = this.pedestalHexParams();
+    if (params) {
+      const { bbox, L } = params;
+      const halfW = (bbox.maxX - bbox.minX) / 2;
+      const halfH = (bbox.maxY - bbox.minY) / 2;
+      const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 14;
+      const diameter = radius * 2;
+      return {
+        width: `${diameter}px`,
+        height: `${diameter}px`,
+        left: `${L / 2 - radius}px`,
+        top: `${L / 2 - radius}px`,
+        borderRadius: '50%',
+      };
+    }
+    return {};
+  }
+
+  /** ヘクスマップ時のフロアテクスチャ用クリップパス */
+  readonly hexFloorClipPath = computed<string | null>(() => {
+    const params = this.pedestalHexParams();
+    if (!params) return null;
+    const { outline } = params;
+    // コンテナ要素のサイズ（width * gridSize × depth * gridSize）に対する百分率座標
+    const containerW = this.width() * this.gridSize;
+    const containerH = this.depth() * this.gridSize;
+    // outline は (0,0) 中心 → コンテナ中心 (L/2, L/2) にシフト
+    const points = outline
+      .map((v) => {
+        const px = v.x + containerW / 2;
+        const py = v.y + containerH / 2;
+        return `${((px / containerW) * 100).toFixed(2)}% ${((py / containerH) * 100).toFixed(2)}%`;
+      })
+      .join(', ');
+    return `polygon(${points})`;
+  });
 
   math = Math;
   slopeDirectionState = SlopeDirection;
