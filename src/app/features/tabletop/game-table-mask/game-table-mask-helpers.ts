@@ -8,6 +8,59 @@ import {
   isHexGrid,
 } from '@axe/domain/tabletop/hex-geometry';
 
+// ---------------------------------------------------------------------------
+// Hex mask geometry
+// ---------------------------------------------------------------------------
+
+/**
+ * ヘクスグリッドマスクのピクセルバウンディングボックスとオフセット。
+ *
+ * width/height をヘクスのセル数として扱い、各セルが完全にSVG内に
+ * 収まるようオフセットする。
+ */
+export interface HexMaskGeometry {
+  /** オフセット済みピクセル幅 */
+  pixelW: number;
+  /** オフセット済みピクセル高さ */
+  pixelH: number;
+  /** 最初のセル中心の X オフセット */
+  offsetX: number;
+  /** 最初のセル中心の Y オフセット */
+  offsetY: number;
+}
+
+export function computeHexMaskGeometry(
+  cols: number,
+  rows: number,
+  gridSize: number,
+  gridType: GridType
+): HexMaskGeometry | null {
+  if (!isHexGrid(gridType) || cols <= 0 || rows <= 0) return null;
+  const isFlatTop = isFlatTopGrid(gridType);
+  const s = hexCircumradius(gridSize);
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+
+  if (isFlatTop) {
+    const offsetX = s;
+    const offsetY = gridSize / 2;
+    const pixelW = 2 * s + (cols - 1) * colSpacing;
+    const hasOddCol = cols >= 2;
+    const pixelH = hasOddCol ? rows * gridSize + gridSize / 2 : rows * gridSize;
+    return { pixelW, pixelH, offsetX, offsetY };
+  } else {
+    const offsetX = gridSize / 2;
+    const offsetY = s;
+    const hasOddRow = rows >= 2;
+    const pixelW = hasOddRow ? cols * gridSize + gridSize / 2 : cols * gridSize;
+    const pixelH = 2 * s + (rows - 1) * rowSpacing;
+    return { pixelW, pixelH, offsetX, offsetY };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Interfaces
+// ---------------------------------------------------------------------------
+
 export interface BuildMaskCssParams {
   currentScratchingSet: Set<string> | null;
   gridSize: number;
@@ -42,6 +95,10 @@ export interface ScratchGridInfo {
   y: number;
 }
 
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
 function splitGridSet(value: string): Set<string> {
   return new Set(value.split(/,/g));
 }
@@ -61,91 +118,90 @@ function isCellVisible(
   return true;
 }
 
-function hexGridDimensions(
-  width: number,
-  height: number,
-  gridSize: number,
-  isFlatTop: boolean
-): { cols: number; rows: number } {
-  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
-  return {
-    cols: Math.ceil((width * gridSize) / colSpacing) + 1,
-    rows: Math.ceil((height * gridSize) / rowSpacing) + 1,
-  };
-}
-
-const EMPTY_MASK = 'radial-gradient(#000, #000) 0px 0px / 0px 0px no-repeat';
-
-function buildHexMaskSvg(params: BuildMaskCssParams): string {
-  const isFlatTop = isFlatTopGrid(params.gridType);
-  const s = hexCircumradius(params.gridSize);
-  const maskS = s + 1;
+function hexVertOffsets(s: number, isFlatTop: boolean): { x: number; y: number }[] {
   const startAngle = hexStartAngle(isFlatTop);
-  const { colSpacing, rowSpacing } = hexSpacing(params.gridSize, isFlatTop);
-  const { cols, rows } = hexGridDimensions(params.width, params.height, params.gridSize, isFlatTop);
-  const pixelW = params.width * params.gridSize;
-  const pixelH = params.height * params.gridSize;
-
-  const scratchedSet = splitGridSet(params.scratchedGrids);
-  const scratchingSet = params.currentScratchingSet ?? splitGridSet(params.scratchingGrids);
-
-  const vertOffsets: { x: number; y: number }[] = [];
+  const offsets: { x: number; y: number }[] = [];
   for (let i = 0; i < 6; i++) {
     const angle = startAngle + (i * Math.PI) / 3;
-    vertOffsets.push({ x: maskS * Math.cos(angle), y: maskS * Math.sin(angle) });
+    offsets.push({ x: s * Math.cos(angle), y: s * Math.sin(angle) });
   }
+  return offsets;
+}
 
-  const polygons: string[] = [];
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const gridStr = `${col}:${row}`;
-      if (!isCellVisible(gridStr, scratchedSet, scratchingSet, params.isPreviewMode)) continue;
-
-      const { x: cx, y: cy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
-      if (cx < -maskS || cx > pixelW + maskS || cy < -maskS || cy > pixelH + maskS) continue;
-
-      const points = vertOffsets.map((v) => `${cx + v.x},${cy + v.y}`).join(' ');
-      polygons.push(`<polygon points="${points}"/>`);
-    }
-  }
-
+function buildHexSvgMask(polygons: string[], pixelW: number, pixelH: number): string {
   if (!polygons.length) return EMPTY_MASK;
-
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelW}" height="${pixelH}"><g fill="#000">${polygons.join('')}</g></svg>`;
   return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}") 0px 0px / ${pixelW}px ${pixelH}px no-repeat`;
 }
 
+const EMPTY_MASK = 'radial-gradient(#000, #000) 0px 0px / 0px 0px no-repeat';
+
+// ---------------------------------------------------------------------------
+// Hex mask SVG (scratching-aware)
+// ---------------------------------------------------------------------------
+
+function buildHexMaskSvg(params: BuildMaskCssParams): string {
+  const geo = computeHexMaskGeometry(params.width, params.height, params.gridSize, params.gridType);
+  if (!geo) return EMPTY_MASK;
+  const isFlatTop = isFlatTopGrid(params.gridType);
+  const s = hexCircumradius(params.gridSize);
+  const maskS = s + 1;
+  const { colSpacing, rowSpacing } = hexSpacing(params.gridSize, isFlatTop);
+
+  const scratchedSet = splitGridSet(params.scratchedGrids);
+  const scratchingSet = params.currentScratchingSet ?? splitGridSet(params.scratchingGrids);
+
+  const verts = hexVertOffsets(maskS, isFlatTop);
+
+  const polygons: string[] = [];
+  for (let col = 0; col < params.width; col++) {
+    for (let row = 0; row < params.height; row++) {
+      const gridStr = `${col}:${row}`;
+      if (!isCellVisible(gridStr, scratchedSet, scratchingSet, params.isPreviewMode)) continue;
+
+      const { x, y } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      const cx = x + geo.offsetX;
+      const cy = y + geo.offsetY;
+      const points = verts.map((v) => `${cx + v.x},${cy + v.y}`).join(' ');
+      polygons.push(`<polygon points="${points}"/>`);
+    }
+  }
+
+  return buildHexSvgMask(polygons, geo.pixelW, geo.pixelH);
+}
+
+// ---------------------------------------------------------------------------
+// Hex outline mask (full outline for clipping)
+// ---------------------------------------------------------------------------
+
 export function buildHexOutlineMask(gridSize: number, gridType: GridType, width: number, height: number): string {
-  if (!isHexGrid(gridType)) return '';
+  const geo = computeHexMaskGeometry(width, height, gridSize, gridType);
+  if (!geo) return '';
   const isFlatTop = isFlatTopGrid(gridType);
   const s = hexCircumradius(gridSize);
   const maskS = s + 1;
-  const startAngle = hexStartAngle(isFlatTop);
   const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
-  const { cols, rows } = hexGridDimensions(width, height, gridSize, isFlatTop);
-  const pixelW = width * gridSize;
-  const pixelH = height * gridSize;
 
-  const vertOffsets: { x: number; y: number }[] = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = startAngle + (i * Math.PI) / 3;
-    vertOffsets.push({ x: maskS * Math.cos(angle), y: maskS * Math.sin(angle) });
-  }
+  const verts = hexVertOffsets(maskS, isFlatTop);
 
   const polygons: string[] = [];
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const { x: cx, y: cy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
-      if (cx < -maskS || cx > pixelW + maskS || cy < -maskS || cy > pixelH + maskS) continue;
-      const points = vertOffsets.map((v) => `${cx + v.x},${cy + v.y}`).join(' ');
+  for (let col = 0; col < width; col++) {
+    for (let row = 0; row < height; row++) {
+      const { x, y } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      const cx = x + geo.offsetX;
+      const cy = y + geo.offsetY;
+      const points = verts.map((v) => `${cx + v.x},${cy + v.y}`).join(' ');
       polygons.push(`<polygon points="${points}"/>`);
     }
   }
 
   if (!polygons.length) return '';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelW}" height="${pixelH}"><g fill="#000">${polygons.join('')}</g></svg>`;
-  return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}") 0px 0px / ${pixelW}px ${pixelH}px no-repeat`;
+  return buildHexSvgMask(polygons, geo.pixelW, geo.pixelH);
 }
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export function buildMaskCss(params: BuildMaskCssParams): string {
   if (isHexGrid(params.gridType)) return buildHexMaskSvg(params);
@@ -179,14 +235,14 @@ export function buildScratchingGridInfos(params: BuildScratchingGridInfosParams)
 
   const hex = isHexGrid(params.gridType);
   const isFlatTop = hex ? isFlatTopGrid(params.gridType) : false;
-  const { colSpacing, rowSpacing } = hex ? hexSpacing(params.gridSize, isFlatTop) : { colSpacing: 0, rowSpacing: 0 };
 
   let cols: number;
   let rows: number;
+  let geo: HexMaskGeometry | null = null;
   if (hex) {
-    const dim = hexGridDimensions(params.width, params.height, params.gridSize, isFlatTop);
-    cols = dim.cols;
-    rows = dim.rows;
+    geo = computeHexMaskGeometry(params.width, params.height, params.gridSize, params.gridType);
+    cols = params.width;
+    rows = params.height;
   } else {
     cols = Math.ceil(params.width);
     rows = Math.ceil(params.height);
@@ -196,13 +252,10 @@ export function buildScratchingGridInfos(params: BuildScratchingGridInfosParams)
   if (hex) {
     const s = hexCircumradius(params.gridSize);
     const insetS = Math.max(s - 5, s * 0.7);
-    const startAngle = hexStartAngle(isFlatTop);
-    insetVertOffsets = [];
-    for (let i = 0; i < 6; i++) {
-      const angle = startAngle + (i * Math.PI) / 3;
-      insetVertOffsets.push({ x: insetS * Math.cos(angle), y: insetS * Math.sin(angle) });
-    }
+    insetVertOffsets = hexVertOffsets(insetS, isFlatTop);
   }
+
+  const { colSpacing, rowSpacing } = hex ? hexSpacing(params.gridSize, isFlatTop) : { colSpacing: 0, rowSpacing: 0 };
 
   for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
@@ -219,10 +272,10 @@ export function buildScratchingGridInfos(params: BuildScratchingGridInfosParams)
       let cy: number;
       let hexPoints: string | undefined;
 
-      if (hex) {
+      if (hex && geo) {
         const center = hexCellCenter(x, y, colSpacing, rowSpacing, isFlatTop);
-        cx = center.x;
-        cy = center.y;
+        cx = center.x + geo.offsetX;
+        cy = center.y + geo.offsetY;
         hexPoints = insetVertOffsets!.map((v) => `${cx + v.x},${cy + v.y}`).join(' ');
       } else {
         cx = (x + 0.5) * params.gridSize;

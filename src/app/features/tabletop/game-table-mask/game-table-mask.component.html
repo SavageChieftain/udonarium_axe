@@ -7,8 +7,8 @@
       'is-border': true,
     }"
     style="pointer-events: none"
-    [style.width.px]="width * gridSize"
-    [style.height.px]="height * gridSize"
+    [style.width.px]="pixelWidth"
+    [style.height.px]="pixelHeight"
     appMovable
     [movable.option]="movableOption()"
     [movable.disable]="isLock || isScratching"
@@ -49,9 +49,9 @@
           @if (isScratching) {
             <svg
               class="fade-in"
-              [attr.width]="width * gridSize"
-              [attr.height]="height * gridSize"
-              [attr.viewBox]="'0, 0, ' + width * gridSize + ', ' + height * gridSize"
+              [attr.width]="pixelWidth"
+              [attr.height]="pixelHeight"
+              [attr.viewBox]="'0, 0, ' + pixelWidth + ', ' + pixelHeight"
               #elementToDetach
             >
               @for (gridInfo of scratchingGridInfos; track gridInfo.x + '_' + gridInfo.y) {

@@ -3,6 +3,7 @@ import {
   buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
+  computeHexMaskGeometry,
   type ScratchGridInfo,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { describe, expect, it } from 'vitest';
@@ -155,12 +156,12 @@ describe('game-table-mask-helpers', () => {
         isPreviewMode: false,
         scratchedGrids: '0:0',
         scratchingGrids: '',
-        width: 1,
+        width: 2,
       });
 
       expect(css).toContain('data:image/svg+xml');
       expect(css).toContain('polygon');
-      // 0:0 はスクラッチ済みなので SVG に含まれないが、他のセルがあるので空にはならない
+      // 0:0 はスクラッチ済みなので SVG に含まれないが、1:0 が残るので空にはならない
     });
 
     it('HEX_HORIZONTAL で全セルスクラッチ済みなら空マスクを返すこと', () => {
@@ -218,8 +219,10 @@ describe('game-table-mask-helpers', () => {
       expect(infos[0].state).toBe('scrached');
       expect(infos[0].hexPoints).toBeDefined();
       expect(infos[0].hexPoints!.split(' ')).toHaveLength(6);
-      expect(infos[0].cx).toBeCloseTo(0, 5);
-      expect(infos[0].cy).toBeCloseTo(0, 5);
+      // オフセット (s, gridSize/2) が加算される
+      const s = 50 / Math.sqrt(3);
+      expect(infos[0].cx).toBeCloseTo(s, 5);
+      expect(infos[0].cy).toBeCloseTo(25, 5);
     });
 
     it('HEX_HORIZONTAL で col=1 のセル中心がオフセットされること', () => {
@@ -237,8 +240,8 @@ describe('game-table-mask-helpers', () => {
       });
 
       expect(infos).toHaveLength(1);
-      // pointy-top row=1 (odd) → x offset by colSpacing/2
-      expect(infos[0].cx).toBeCloseTo(25, 5);
+      // pointy-top row=1 (odd) → x offset by colSpacing/2 + geometry offsetX (gridSize/2)
+      expect(infos[0].cx).toBeCloseTo(50, 5);
       expect(infos[0].hexPoints).toBeDefined();
     });
 
@@ -282,6 +285,38 @@ describe('game-table-mask-helpers', () => {
 
     it('NONE では空文字を返すこと', () => {
       expect(buildHexOutlineMask(50, GridType.NONE, 2, 2)).toBe('');
+    });
+  });
+
+  describe('computeHexMaskGeometry', () => {
+    it('SQUARE では null を返すこと', () => {
+      expect(computeHexMaskGeometry(4, 4, 50, GridType.SQUARE)).toBeNull();
+    });
+
+    it('HEX_VERTICAL (flat-top) で正しいピクセルサイズを計算すること', () => {
+      const geo = computeHexMaskGeometry(4, 4, 50, GridType.HEX_VERTICAL)!;
+      const s = 50 / Math.sqrt(3);
+      expect(geo.offsetX).toBeCloseTo(s, 5);
+      expect(geo.offsetY).toBeCloseTo(25, 5);
+      expect(geo.pixelW).toBeCloseTo(2 * s + 3 * 1.5 * s, 5);
+      // cols >= 2 → pixelH = rows * gridSize + gridSize / 2
+      expect(geo.pixelH).toBeCloseTo(4 * 50 + 25, 5);
+    });
+
+    it('HEX_HORIZONTAL (pointy-top) で正しいピクセルサイズを計算すること', () => {
+      const geo = computeHexMaskGeometry(4, 4, 50, GridType.HEX_HORIZONTAL)!;
+      const s = 50 / Math.sqrt(3);
+      expect(geo.offsetX).toBeCloseTo(25, 5);
+      expect(geo.offsetY).toBeCloseTo(s, 5);
+      // rows >= 2 → pixelW = cols * gridSize + gridSize / 2
+      expect(geo.pixelW).toBeCloseTo(4 * 50 + 25, 5);
+      expect(geo.pixelH).toBeCloseTo(2 * s + 3 * 1.5 * s, 5);
+    });
+
+    it('cols=1 のとき奇数列オフセットが不要なこと (flat-top)', () => {
+      const geo = computeHexMaskGeometry(1, 4, 50, GridType.HEX_VERTICAL)!;
+      // cols=1 → no odd column → pixelH = rows * gridSize
+      expect(geo.pixelH).toBeCloseTo(4 * 50, 5);
     });
   });
 });

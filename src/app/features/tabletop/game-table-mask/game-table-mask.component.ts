@@ -18,19 +18,14 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
-import {
-  hexCircumradius,
-  hexSpacing,
-  isFlatTopGrid,
-  isHexGrid,
-  pixelToHexCell,
-} from '@axe/domain/tabletop/hex-geometry';
+import { hexCircumradius, isFlatTopGrid, isHexGrid, pixelToHexCell } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
 import {
   buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
+  computeHexMaskGeometry,
   type ScratchGridInfo,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { InputHandler } from '@axe/shared/directives/input-handler';
@@ -302,6 +297,20 @@ export class GameTableMaskComponent {
     return buildHexOutlineMask(this.gridSize, this.gridType, this.width, this.height);
   }
 
+  get pixelWidth(): number {
+    return (
+      computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType)?.pixelW ??
+      this.width * this.gridSize
+    );
+  }
+
+  get pixelHeight(): number {
+    return (
+      computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType)?.pixelH ??
+      this.height * this.gridSize
+    );
+  }
+
   readonly movableOption = signal<MovableOption>({});
 
   private input: InputHandler | null = null;
@@ -391,19 +400,17 @@ export class GameTableMaskComponent {
       offsetX = scratchingPosition.x - mask.location.x;
       offsetY = scratchingPosition.y - mask.location.y;
     }
-    if (offsetX < 0 || mask.width * this.gridSize <= offsetX || offsetY < 0 || mask.height * this.gridSize <= offsetY)
-      return;
+    if (offsetX < 0 || this.pixelWidth <= offsetX || offsetY < 0 || this.pixelHeight <= offsetY) return;
 
     let gridX: number;
     let gridY: number;
     const gridType = this.gridType;
     if (isHexGrid(gridType)) {
       const isFlatTop = isFlatTopGrid(gridType);
-      const { col, row } = pixelToHexCell(offsetX, offsetY, this.gridSize, isFlatTop);
-      const { colSpacing, rowSpacing } = hexSpacing(this.gridSize, isFlatTop);
-      const hexCols = Math.ceil((this.width * this.gridSize) / colSpacing) + 1;
-      const hexRows = Math.ceil((this.height * this.gridSize) / rowSpacing) + 1;
-      if (col < 0 || col >= hexCols || row < 0 || row >= hexRows) return;
+      const geo = computeHexMaskGeometry(this.width, this.height, this.gridSize, gridType);
+      if (!geo) return;
+      const { col, row } = pixelToHexCell(offsetX - geo.offsetX, offsetY - geo.offsetY, this.gridSize, isFlatTop);
+      if (col < 0 || col >= this.width || row < 0 || row >= this.height) return;
       gridX = col;
       gridY = row;
     } else {
