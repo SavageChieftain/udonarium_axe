@@ -23,8 +23,11 @@ export class EventChannel<T = void> implements ReadableChannel<T> {
   }
 
   emit(event: T): void {
-    for (const listener of this._listeners) {
-      listener(event);
+    const snapshot = [...this._listeners];
+    for (const listener of snapshot) {
+      if (this._listeners.has(listener)) {
+        listener(event);
+      }
     }
   }
 
