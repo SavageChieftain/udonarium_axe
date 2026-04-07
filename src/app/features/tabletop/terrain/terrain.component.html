@@ -72,7 +72,13 @@
               [style.height.px]="height() * gridSize"
               [ngStyle]="{
                 transform:
-                  'translate(' + wall.px + 'px, ' + wall.py + 'px) rotateZ(' + wall.angle + 'rad) rotateX(-90deg)',
+                  'translate(' +
+                  wall.px +
+                  'px, ' +
+                  wall.py +
+                  'px) rotateZ(' +
+                  wall.angle +
+                  'rad) rotateX(-90deg) translateY(-100%)',
                 filter: 'brightness(' + wall.brightness + ')',
               }"
             ></div>
