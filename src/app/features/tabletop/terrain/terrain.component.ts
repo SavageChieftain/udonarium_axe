@@ -296,19 +296,35 @@ export class TerrainComponent {
   readonly hexFloorClipPath = computed<string | null>(() => {
     const params = this.pedestalHexParams();
     if (!params) return null;
-    const { outline } = params;
-    // コンテナ要素のサイズ（width * gridSize × depth * gridSize）に対する百分率座標
-    const containerW = this.width() * this.gridSize;
-    const containerH = this.depth() * this.gridSize;
-    // outline は (0,0) 中心 → コンテナ中心 (L/2, L/2) にシフト
+    const { outline, bbox } = params;
+    const W = bbox.maxX - bbox.minX;
+    const H = bbox.maxY - bbox.minY;
+    // bbox 座標系に変換して百分率ポリゴンを生成
     const points = outline
       .map((v) => {
-        const px = v.x + containerW / 2;
-        const py = v.y + containerH / 2;
-        return `${((px / containerW) * 100).toFixed(2)}% ${((py / containerH) * 100).toFixed(2)}%`;
+        const px = v.x - bbox.minX;
+        const py = v.y - bbox.minY;
+        return `${((px / W) * 100).toFixed(2)}% ${((py / H) * 100).toFixed(2)}%`;
       })
       .join(', ');
     return `polygon(${points})`;
+  });
+
+  /** ヘクスマップ時のフロア要素のスタイル（bbox に合わせたサイズ・位置） */
+  readonly hexFloorDimStyle = computed<Record<string, string>>(() => {
+    const params = this.pedestalHexParams();
+    if (!params) return {} as Record<string, string>;
+    const { bbox } = params;
+    const containerW = this.width() * this.gridSize;
+    const containerH = this.depth() * this.gridSize;
+    const W = bbox.maxX - bbox.minX;
+    const H = bbox.maxY - bbox.minY;
+    return {
+      width: `${W}px`,
+      height: `${H}px`,
+      left: `${containerW / 2 + bbox.minX}px`,
+      top: `${containerH / 2 + bbox.minY}px`,
+    };
   });
 
   /**

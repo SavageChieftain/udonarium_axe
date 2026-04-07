@@ -30,6 +30,7 @@
           [ngClass]="{ 'blinking-animation': !isLocked() }"
           [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
           [style.clip-path]="hexFloorClipPath()"
+          [ngStyle]="hexFloorDimStyle()"
         ></div>
       }
     }
@@ -47,6 +48,7 @@
             'backface-visibility': isSlope() ? 'visible' : 'hidden',
             transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
             filter: 'brightness(' + floorBrightness() + ')',
+            ...hexFloorDimStyle(),
           }"
           [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
           [style.clip-path]="hexFloorClipPath()"
