@@ -338,7 +338,7 @@ export class TerrainComponent {
           : 1.0;
 
         return {
-          edgeLength,
+          edgeLength: edgeLength + 1, // +1px で隣接パネル間の隙間を防ぐ
           px: containerW / 2 + v2.x,
           py: containerH / 2 + v2.y,
           angle: edgeAngle + Math.PI,
