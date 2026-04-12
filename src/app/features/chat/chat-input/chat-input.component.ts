@@ -364,6 +364,7 @@ export class ChatInputComponent {
 
     if (!this.text.length) return;
     if (event && (event as KeyboardEvent).key !== 'Enter') return;
+    if (event && (event as KeyboardEvent).isComposing) return;
 
     if (this.autoCompleteIndex() >= 0) {
       this.autoCompleteDo.emit(this.autoCompleteIndex());
