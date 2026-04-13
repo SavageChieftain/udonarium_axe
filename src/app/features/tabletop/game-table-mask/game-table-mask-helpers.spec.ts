@@ -344,15 +344,15 @@ describe('game-table-mask-helpers', () => {
     });
 
     it('1x1 グリッドでは全6辺が外周になること', () => {
-      const svg = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1);
+      const svg = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1));
       // 1 cell × 6 edges = 6 <line> elements
       const lineCount = (svg.match(/<line /g) || []).length;
       expect(lineCount).toBe(6);
     });
 
     it('2x2 グリッドでは内部辺が除外されること', () => {
-      const svg1 = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1);
-      const svg2 = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 2, 2);
+      const svg1 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1));
+      const svg2 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 2, 2));
       const count1 = (svg1.match(/<line /g) || []).length;
       const count2 = (svg2.match(/<line /g) || []).length;
       // 2x2 has fewer outer edges per cell than 1x1 (interior edges removed)

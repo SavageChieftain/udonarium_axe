@@ -298,8 +298,8 @@ export function buildHexOuterBorderSvg(gridSize: number, gridType: GridType, wid
   if (!lines.length) return '';
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${geo.pixelW}" height="${geo.pixelH}">` +
-    `<g stroke="%23ccc" stroke-width="2" stroke-linecap="round">${lines.join('')}</g></svg>`;
-  return `url("data:image/svg+xml;charset=utf-8,${svg}") 0px 0px / ${geo.pixelW}px ${geo.pixelH}px no-repeat`;
+    `<g stroke="#ccc" stroke-width="2" stroke-linecap="round">${lines.join('')}</g></svg>`;
+  return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}") 0px 0px / ${geo.pixelW}px ${geo.pixelH}px no-repeat`;
 }
 
 // ---------------------------------------------------------------------------
