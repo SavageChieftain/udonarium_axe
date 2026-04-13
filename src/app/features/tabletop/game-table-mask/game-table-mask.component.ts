@@ -14,6 +14,7 @@ import {
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -122,13 +123,16 @@ export class GameTableMaskComponent {
     const mask = this.gameTableMask();
     return mask?.opacity ?? 0;
   }
-  readonly imageFile = computed(() => {
-    const mask = this.gameTableMask();
-    this.objectChange.fileVersion();
-    if (!mask) throw new Error('gameTableMask is not set');
-    this.objectChange.versionOf(mask.identifier)();
-    return mask.imageFile;
-  });
+  readonly imageFile = computed(
+    () => {
+      const mask = this.gameTableMask();
+      this.objectChange.fileVersion();
+      if (!mask) throw new Error('gameTableMask is not set');
+      this.objectChange.versionOf(mask.identifier)();
+      return mask.imageFile;
+    },
+    { equal: imageFileEqual() }
+  );
   get isLock(): boolean {
     const mask = this.gameTableMask();
     return mask?.isLock ?? false;

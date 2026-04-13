@@ -15,6 +15,7 @@ import {
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
+import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
@@ -166,16 +167,22 @@ export class TerrainComponent {
     return this.terrain().hasFloor;
   });
 
-  readonly wallImage = computed(() => {
-    this.objectChange.fileVersion();
-    this.terrainVersion();
-    return this.imageService.getSkeletonOr(this.terrain().wallImage);
-  });
-  readonly floorImage = computed(() => {
-    this.objectChange.fileVersion();
-    this.terrainVersion();
-    return this.imageService.getSkeletonOr(this.terrain().floorImage);
-  });
+  readonly wallImage = computed(
+    () => {
+      this.objectChange.fileVersion();
+      this.terrainVersion();
+      return this.imageService.getSkeletonOr(this.terrain().wallImage);
+    },
+    { equal: imageFileEqual() }
+  );
+  readonly floorImage = computed(
+    () => {
+      this.objectChange.fileVersion();
+      this.terrainVersion();
+      return this.imageService.getSkeletonOr(this.terrain().floorImage);
+    },
+    { equal: imageFileEqual() }
+  );
 
   readonly height = computed(() => {
     this.terrainVersion();

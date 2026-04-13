@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
+import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { callRollDiceSymbol } from '@axe/domain/domain-events';
@@ -103,7 +104,7 @@ export class DiceSymbolComponent {
       this.objectChange.versionOf(diceSymbol.identifier)();
       return this.imageService.getEmptyOr(diceSymbol.imageFile);
     },
-    { equal: () => false }
+    { equal: imageFileEqual() }
   );
 
   get isMine(): boolean {

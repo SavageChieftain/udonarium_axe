@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
-import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card, CardState } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -125,12 +125,15 @@ export class CardComponent {
     return this.card().ownerName;
   }
 
-  readonly imageFile = computed(() => {
-    this.objectChange.fileVersion();
-    const card = this.card();
-    this.objectChange.versionOf(card.identifier)();
-    return this.imageService.getSkeletonOr(card.imageFile);
-  });
+  readonly imageFile = computed(
+    () => {
+      this.objectChange.fileVersion();
+      const card = this.card();
+      this.objectChange.versionOf(card.identifier)();
+      return this.imageService.getSkeletonOr(card.imageFile);
+    },
+    { equal: imageFileEqual() }
+  );
   get frontImage(): ImageFile {
     return this.imageService.getSkeletonOr(this.card().frontImage);
   }

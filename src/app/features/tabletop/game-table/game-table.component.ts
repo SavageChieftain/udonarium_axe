@@ -13,7 +13,7 @@ import {
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
-import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -169,12 +169,15 @@ export class GameTableComponent {
     return this.tabletopService.currentTable;
   }
 
-  readonly tableImage = computed(() => {
-    this.objectChangeService.fileVersion();
-    this.objectChangeService.versionOf(this.currentTable.identifier)();
-    this.objectChangeService.versionOf(this.tableSelecter.identifier)();
-    return this.imageService.getEmptyOr(this.currentTable.imageIdentifier);
-  });
+  readonly tableImage = computed(
+    () => {
+      this.objectChangeService.fileVersion();
+      this.objectChangeService.versionOf(this.currentTable.identifier)();
+      this.objectChangeService.versionOf(this.tableSelecter.identifier)();
+      return this.imageService.getEmptyOr(this.currentTable.imageIdentifier);
+    },
+    { equal: imageFileEqual() }
+  );
 
   get backgroundImage(): ImageFile {
     return this.imageService.getEmptyOr(this.currentTable.backgroundImageIdentifier);

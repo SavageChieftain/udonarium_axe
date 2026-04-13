@@ -13,6 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -164,7 +165,7 @@ export class GameCharacterComponent {
       this.objectChange.versionOf(char.identifier)();
       return char.imageFile;
     },
-    { equal: () => false }
+    { equal: imageFileEqual() }
   );
   get rotate(): number {
     const char = this.gameCharacter();

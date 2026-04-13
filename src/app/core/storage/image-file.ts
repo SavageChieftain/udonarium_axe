@@ -197,3 +197,21 @@ export class ImageFile {
 
   static Empty: ImageFile = ImageFile.createEmpty('null');
 }
+
+/**
+ * ImageFile はミュータブルで、サムネイル→フル解像度への遷移時に
+ * 同一インスタンスの url が変化する。
+ * デフォルトの Object.is 等値では同一参照 = 変化なしと判定されるため、
+ * URL 文字列をクロージャでスナップショットして比較する。
+ *
+ * 使い方: `computed(() => ..., { equal: imageFileEqual() })`
+ */
+export function imageFileEqual(): (a: ImageFile, b: ImageFile) => boolean {
+  let lastUrl: string | null = null;
+  return (_a, b) => {
+    const url = b.url;
+    const same = url === lastUrl;
+    lastUrl = url;
+    return same;
+  };
+}

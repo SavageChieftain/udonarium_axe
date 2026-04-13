@@ -14,6 +14,7 @@ import {
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageService } from '@axe/core/storage/image.service';
+import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -107,12 +108,15 @@ export class CardStackComponent {
   get topCard(): Card | null {
     return this.cardStack().topCard;
   }
-  readonly imageFile = computed(() => {
-    this.objectChange.fileVersion();
-    const cardStack = this.cardStack();
-    this.objectChange.versionOf(cardStack.identifier)();
-    return this.imageService.getSkeletonOr(cardStack.imageFile);
-  });
+  readonly imageFile = computed(
+    () => {
+      this.objectChange.fileVersion();
+      const cardStack = this.cardStack();
+      this.objectChange.versionOf(cardStack.identifier)();
+      return this.imageService.getSkeletonOr(cardStack.imageFile);
+    },
+    { equal: imageFileEqual() }
+  );
 
   readonly animeState = signal<'active' | 'inactive'>('inactive');
   private readonly cardsVersion = signal(0);
