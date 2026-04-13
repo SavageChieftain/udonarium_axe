@@ -27,6 +27,7 @@ import {
   HexFlowerParams,
 } from '@axe/features/character/game-character/hex-pedestal-geometry';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
+import { computeHexSlopeSteps, HexSlopeStepData } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -252,6 +253,26 @@ export class TerrainComponent {
 
   readonly isHex = computed(() => this.pedestalHexParams() !== null);
 
+  /** ヘクスマップかつ傾斜が有効で、ステップ描画が適用可能な場合 true */
+  readonly isHexSlope = computed(() => this.isHex() && this.isSlope() && this.slopeDirection() !== SlopeDirection.NONE);
+
+  /** ヘクス傾斜の段差フロア・壁データ */
+  readonly hexSlopeSteps = computed<HexSlopeStepData>(() => {
+    const params = this.pedestalHexParams();
+    if (!params || !this.isHexSlope()) return { floors: [], walls: [] };
+    return computeHexSlopeSteps(
+      Math.min(this.width(), this.depth()),
+      this.gridSize,
+      isFlatTopGrid(this.currentTable.gridType),
+      this.slopeDirection(),
+      this.height(),
+      this.isSurfaceShading(),
+      this.width() * this.gridSize,
+      this.depth() * this.gridSize,
+      params.bbox
+    );
+  });
+
   pedestalStyle(): Record<string, string> {
     const params = this.pedestalHexParams();
     if (params) {
@@ -407,6 +428,7 @@ export class TerrainComponent {
   }
 
   readonly floorModCss = computed(() => {
+    if (this.isHex()) return ''; // ヘクスは段差フロアで傾斜を表現するため回転しない
     let ret = '';
     let tmp: number;
     switch (this.slopeDirection()) {

@@ -41,18 +41,36 @@
       [ngStyle]="{ transform: 'translateZ(' + altitude() * gridSize + 'px)' }"
     >
       @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
-        <div
-          class="is-3d texture chrome-smooth-image-trick"
-          [ngClass]="{ 'blinking-animation': !isLocked() }"
-          [ngStyle]="{
-            'backface-visibility': isSlope() ? 'visible' : 'hidden',
-            transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
-            filter: 'brightness(' + floorBrightness() + ')',
-            ...hexFloorDimStyle(),
-          }"
-          [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
-          [style.clip-path]="hexFloorClipPath()"
-        ></div>
+        @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
+          @for (step of hexSlopeSteps().floors; track $index) {
+            <div
+              class="is-3d texture chrome-smooth-image-trick"
+              [ngClass]="{ 'blinking-animation': !isLocked() }"
+              [ngStyle]="{
+                'backface-visibility': 'visible',
+                transform: 'translateZ(' + step.heightPx + 'px)',
+                filter: 'brightness(' + floorBrightness() + ')',
+                '-webkit-mask': step.mask,
+                mask: step.mask,
+                ...hexFloorDimStyle(),
+              }"
+              [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
+            ></div>
+          }
+        } @else {
+          <div
+            class="is-3d texture chrome-smooth-image-trick"
+            [ngClass]="{ 'blinking-animation': !isLocked() }"
+            [ngStyle]="{
+              'backface-visibility': isSlope() ? 'visible' : 'hidden',
+              transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
+              filter: 'brightness(' + floorBrightness() + ')',
+              ...hexFloorDimStyle(),
+            }"
+            [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
+            [style.clip-path]="hexFloorClipPath()"
+          ></div>
+        }
       }
       <canvas
         class="grid-canvas is-fill"
@@ -64,7 +82,30 @@
         #gridCanvas
       ></canvas>
       @if (hasWall() && 0 < wallImage().url.length) {
-        @if (isHex()) {
+        @if (isHexSlope() && hexSlopeSteps().walls.length > 0) {
+          @for (wall of hexSlopeSteps().walls; track $index) {
+            <div
+              class="is-3d hex-wall chrome-smooth-image-trick"
+              [ngClass]="{ 'blinking-animation': !isLocked() }"
+              [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+              [style.width.px]="wall.edgeLength"
+              [style.height.px]="wall.wallHeightPx"
+              [ngStyle]="{
+                transform:
+                  'translate3d(' +
+                  wall.px +
+                  'px, ' +
+                  wall.py +
+                  'px, ' +
+                  wall.basePx +
+                  'px) rotateZ(' +
+                  wall.angle +
+                  'rad) rotateX(-90deg) translateY(-100%)',
+                filter: 'brightness(' + wall.brightness + ')',
+              }"
+            ></div>
+          }
+        } @else if (isHex()) {
           @for (wall of hexWalls(); track $index) {
             <div
               class="is-3d hex-wall chrome-smooth-image-trick"
