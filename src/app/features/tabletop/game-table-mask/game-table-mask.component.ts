@@ -338,6 +338,12 @@ export class GameTableMaskComponent {
     e.preventDefault();
   }
 
+  onMaskMouseDown(e: MouseEvent) {
+    if (this.isLock && !this.isScratching) {
+      e.stopPropagation();
+    }
+  }
+
   onInputStart(e: MouseEvent | TouchEvent) {
     const mask = this.gameTableMask();
     if (!mask) return;

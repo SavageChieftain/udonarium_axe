@@ -139,7 +139,13 @@ export class GameTableGestureService {
 
   private onTableMouseStart(e: TouchEvent | MouseEvent | PointerEvent): void {
     const me = e as MouseEvent;
-    if ((me.target as HTMLElement).contains(this.gameObjectsEl) || me.button === 1 || me.button === 2) {
+    const target = me.target as HTMLElement;
+    if (
+      target.contains(this.gameObjectsEl) ||
+      me.button === 1 ||
+      me.button === 2 ||
+      target.closest('[data-table-passthrough]') != null
+    ) {
       this.isTableTransformMode = true;
     } else {
       this.isTableTransformMode = false;
