@@ -135,7 +135,7 @@ export class Jukebox extends GameObject {
     super.apply(context);
     if (this.isInitialSync) {
       this.isInitialSync = false;
-      if (this.isPlaying) this.playAfterFileUpdate();
+      if (this.isPlaying) this._play();
       return;
     }
     if ((audioIdentifier !== this.audioIdentifier || !isPlaying) && this.isPlaying) {

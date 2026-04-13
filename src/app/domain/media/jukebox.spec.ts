@@ -271,13 +271,13 @@ describe('Jukebox', () => {
   });
 
   describe('apply() — P2P 同期', () => {
-    it('初回 sync (isInitialSync) では isPlaying=true なら playAfterFileUpdate が呼ばれる', () => {
+    it('初回 sync (isInitialSync) では isPlaying=true なら _play が呼ばれる', () => {
       stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      const playAfterSpy = vi.spyOn(jukebox as unknown as { playAfterFileUpdate: () => void }, 'playAfterFileUpdate');
+      const playSpy = vi.spyOn(jukebox as unknown as { _play: () => void }, '_play');
 
       // 初期コンテキストを取得
       const context = jukebox.toContext();
@@ -286,7 +286,53 @@ describe('Jukebox', () => {
 
       jukebox.apply(context);
 
-      expect(playAfterSpy).toHaveBeenCalledOnce();
+      expect(playSpy).toHaveBeenCalledOnce();
+    });
+
+    it('初回 sync で audio が ready なら即座に再生される', () => {
+      const playSpy = stubAudioPlayerPlay();
+      stubAudioPlayerStop();
+      const jukebox = new Jukebox();
+      jukebox.initialize();
+
+      // ready なオーディオを事前に追加
+      const audio = makeReadyAudio('bgm-ready');
+      AudioStorage.instance.add(audio);
+
+      const context = jukebox.toContext();
+      context.syncData = { ...context.syncData, audioIdentifier: 'bgm-ready', isPlaying: true };
+
+      jukebox.apply(context);
+
+      // AudioPlayer.play() が直接呼ばれている（イベント待ちではない）
+      expect(playSpy).toHaveBeenCalledOnce();
+    });
+
+    it('初回 sync で audio が未 ready なら updateAudioResource$ 後に再生される', () => {
+      const playSpy = stubAudioPlayerPlay();
+      stubAudioPlayerStop();
+      const jukebox = new Jukebox();
+      jukebox.initialize();
+
+      // 未 ready なオーディオを追加
+      const audio = makeAudioFile({ identifier: 'bgm-lazy' });
+      AudioStorage.instance.add(audio);
+
+      const context = jukebox.toContext();
+      context.syncData = { ...context.syncData, audioIdentifier: 'bgm-lazy', isPlaying: true };
+
+      jukebox.apply(context);
+
+      // まだ再生されていない
+      expect(playSpy).not.toHaveBeenCalled();
+
+      // オーディオを ready にしてイベント発火
+      const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
+      ctx['blob'] = new Blob(['data']);
+      ctx['url'] = 'blob:data';
+      updateAudioResource$.emit();
+
+      expect(playSpy).toHaveBeenCalledOnce();
     });
 
     it('初回 sync で isPlaying=false なら再生しない', () => {
