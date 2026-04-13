@@ -1,6 +1,6 @@
 {
   "name": "udonarium_axe",
-  "version": "0.202.2",
+  "version": "0.210.1",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -15,18 +15,18 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^21.2.5",
-    "@angular/common": "^21.2.5",
-    "@angular/compiler": "^21.2.5",
-    "@angular/core": "^21.2.5",
-    "@angular/forms": "^21.2.5",
-    "@angular/platform-browser": "^21.2.5",
-    "@angular/platform-browser-dynamic": "^21.2.5",
-    "@angular/router": "^21.2.5",
-    "@angular/youtube-player": "^21.2.3",
+    "@angular/animations": "^21.2.8",
+    "@angular/common": "^21.2.8",
+    "@angular/compiler": "^21.2.8",
+    "@angular/core": "^21.2.8",
+    "@angular/forms": "^21.2.8",
+    "@angular/platform-browser": "^21.2.8",
+    "@angular/platform-browser-dynamic": "^21.2.8",
+    "@angular/router": "^21.2.8",
+    "@angular/youtube-player": "^21.2.6",
     "@msgpack/msgpack": "^3.1.3",
     "@ng-select/ng-select": "^21.5.2",
-    "@skyway-sdk/core": "^2.4.1",
+    "@skyway-sdk/core": "^2.4.3",
     "base-x": "^5.0.1",
     "bcdice": "^4.6.0",
     "entities": "^8.0.0",
@@ -40,16 +40,16 @@
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.3.1",
-    "@angular-devkit/build-angular": "^21.2.5",
+    "@angular-devkit/build-angular": "^21.2.7",
     "@angular-eslint/builder": "^21.3.1",
     "@angular-eslint/eslint-plugin": "^21.3.1",
     "@angular-eslint/eslint-plugin-template": "^21.3.1",
     "@angular-eslint/schematics": "^21.3.1",
     "@angular-eslint/template-parser": "^21.3.1",
-    "@angular/build": "^21.2.5",
-    "@angular/cli": "^21.2.5",
-    "@angular/compiler-cli": "^21.2.5",
-    "@angular/language-service": "^21.2.5",
+    "@angular/build": "^21.2.7",
+    "@angular/cli": "^21.2.7",
+    "@angular/compiler-cli": "^21.2.8",
+    "@angular/language-service": "^21.2.8",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.0",
@@ -73,6 +73,7 @@
   },
   "overrides": {
     "undici": "7.24.5",
-    "lodash": "4.18.1"
+    "lodash": "4.18.1",
+    "axios": "1.15.0"
   }
 }
