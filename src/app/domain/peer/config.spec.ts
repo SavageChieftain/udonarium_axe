@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { waitZeroTimeout } from '@axe/core/util/zero-timeout';
 import { Config } from '@axe/domain/peer/config';
 
 describe('Config', () => {
@@ -14,7 +15,11 @@ describe('Config', () => {
     (Config as unknown as { _instance: Config | undefined })._instance = undefined;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Config.instance → initialize() → ObjectStore.add() が setZeroTimeout 経由で
+    // Network.sendQueue / ObjectStore.updateQueue を非同期スケジュールする。
+    // オブジェクト削除前にこれらを排出しないと、テスト終了後にエラーが発生しうる。
+    await waitZeroTimeout();
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
