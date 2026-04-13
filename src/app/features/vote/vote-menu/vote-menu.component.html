@@ -68,12 +68,7 @@
         <div class="object-name" style="width: 6em">送信対象</div>
         <div style="height: 64px" class="message">
           <div>
-            <input
-              type="checkbox"
-              [checked]="checkedPeers.has(peer.peerId)"
-              (change)="voteBlockClick(peer.peerId)"
-              name="vote_chk"
-            />
+            <input type="checkbox" [checked]="checkedPeers.has(peer.peerId)" name="vote_chk" />
           </div>
         </div>
       </div>
