@@ -51,6 +51,7 @@ export class SkyWayConnection implements Connection {
 
   private readonly trustedPeerIds: Set<PeerId> = new Set();
   private readonly relayingPeerIds: Map<string, string[]> = new Map();
+  private readonly pendingRelayMapUpdates: Map<string, Promise<void>> = new Map();
   private readonly maybeUnavailablePeerIds: Set<string> = new Set();
 
   configure(config: Record<string, unknown>) {
@@ -268,6 +269,7 @@ export class SkyWayConnection implements Connection {
     const closed = this.streams.remove(stream);
 
     this.relayingPeerIds.delete(stream.peer.peerId);
+    this.pendingRelayMapUpdates.delete(stream.peer.peerId);
     for (const [key, peerIds] of this.relayingPeerIds) {
       this.relayingPeerIds.set(
         key,
@@ -279,8 +281,28 @@ export class SkyWayConnection implements Connection {
   }
 
   private onData(stream: SkyWayDataStream, container: DataContainer) {
-    if (container.users && container.users.length > 0) this.onUpdateUserIds(stream, container.users);
-    if (container.ttl > 0) this.onRelay(stream, container);
+    if (container.users && container.users.length > 0) {
+      const updateDone = this.onUpdateUserIds(stream, container.users);
+      this.pendingRelayMapUpdates.set(stream.peer.peerId, updateDone);
+      updateDone
+        .finally(() => {
+          if (this.pendingRelayMapUpdates.get(stream.peer.peerId) === updateDone) {
+            this.pendingRelayMapUpdates.delete(stream.peer.peerId);
+          }
+        })
+        .catch(() => {});
+    }
+    if (container.ttl > 0) {
+      const pending = this.pendingRelayMapUpdates.get(stream.peer.peerId);
+      if (pending) {
+        pending.then(
+          () => this.onRelay(stream, container),
+          () => this.onRelay(stream, container)
+        );
+      } else {
+        this.onRelay(stream, container);
+      }
+    }
     if (!this.callback.onData) return;
     const byteLength = container.data.byteLength;
     this.bandwidthUsage += byteLength;
