@@ -12,9 +12,14 @@ export class SkyWayBackend {
   }
 }
 
+function resolveApi(base: string, path: string): URL {
+  const normalized = base.endsWith('/') ? base : base + '/';
+  return new URL(path, normalized);
+}
+
 async function fetchStatus(url: string): Promise<boolean> {
   try {
-    const api = new URL('/v1/status', url);
+    const api = resolveApi(url, 'v1/status');
     const response = await fetch(api);
 
     return response.ok;
@@ -26,7 +31,7 @@ async function fetchStatus(url: string): Promise<boolean> {
 
 async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: string): Promise<string> {
   try {
-    const api = new URL('/v1/skyway2023/token', url);
+    const api = resolveApi(url, 'v1/skyway2023/token');
 
     const body = JSON.stringify({
       formatVersion: 1,

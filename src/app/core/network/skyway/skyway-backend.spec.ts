@@ -131,4 +131,18 @@ describe('SkyWayBackend', () => {
     const token = await backend.createSkyWayAuthToken('channel', 'peer-1');
     expect(token).toBe('');
   });
+
+  it('サブディレクトリURLでもAPIパスが正しく解決される', async () => {
+    const backend = new SkyWayBackend('https://example.com/backend');
+    await backend.alive();
+    const calledUrl = (fetchSpy.mock.calls[0][0] as URL).toString();
+    expect(calledUrl).toBe('https://example.com/backend/v1/status');
+  });
+
+  it('末尾スラッシュ付きサブディレクトリURLでもAPIパスが正しく解決される', async () => {
+    const backend = new SkyWayBackend('https://example.com/backend/');
+    await backend.alive();
+    const calledUrl = (fetchSpy.mock.calls[0][0] as URL).toString();
+    expect(calledUrl).toBe('https://example.com/backend/v1/status');
+  });
 });
