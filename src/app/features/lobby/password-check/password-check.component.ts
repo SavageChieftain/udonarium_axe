@@ -57,7 +57,10 @@ export class PasswordCheckComponent {
   }
 
   async submit() {
-    if (await this.targetPeerContext.verifyPassword(this.password())) this.modalService.resolve(this.password());
+    if (await this.targetPeerContext.verifyPassword(this.password())) {
+      this.modalService.resolve(this.password());
+      return;
+    }
     this.help.set('パスワードが違います');
   }
 }
