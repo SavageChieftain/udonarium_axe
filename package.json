@@ -74,6 +74,7 @@
   "overrides": {
     "undici": "7.24.5",
     "lodash": "4.18.1",
-    "axios": "1.15.0"
+    "axios": "1.15.0",
+    "postcss": "8.5.10"
   }
 }
