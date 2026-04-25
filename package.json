@@ -54,6 +54,7 @@
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.0",
     "@playwright/test": "^1.0.0",
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "^25.5.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
@@ -67,6 +68,7 @@
     "happy-dom": "^20.8.4",
     "lefthook": "^2.1.4",
     "prettier": "^3.0.0",
+    "tailwindcss": "^4.2.4",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.0.0",
     "vitest": "^4.0.0"
