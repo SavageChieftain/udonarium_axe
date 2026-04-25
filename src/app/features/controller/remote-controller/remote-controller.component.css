@@ -158,11 +158,13 @@
 
 input[type='number'] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 input[type='number']:hover,
 input[type='number']:focus {
   -moz-appearance: number-input;
+  appearance: auto;
 }
 
 .tab {
