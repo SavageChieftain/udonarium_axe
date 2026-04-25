@@ -16,6 +16,7 @@ export enum GridSnapStyle {
   CENTER = 0,
   VERTEX = 1,
   BOTH = 2,
+  ALL = 3,
 }
 
 export enum FilterType {

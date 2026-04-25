@@ -136,6 +136,8 @@ export class GameTableSettingComponent {
         return 'vertex';
       case GridSnapStyle.BOTH:
         return 'both';
+      case GridSnapStyle.ALL:
+        return 'all';
       default:
         return 'center';
     }
@@ -147,7 +149,13 @@ export class GameTableSettingComponent {
     } else {
       this.selectedTable.gridSnap = true;
       this.selectedTable.gridSnapStyle =
-        mode === 'vertex' ? GridSnapStyle.VERTEX : mode === 'both' ? GridSnapStyle.BOTH : GridSnapStyle.CENTER;
+        mode === 'vertex'
+          ? GridSnapStyle.VERTEX
+          : mode === 'both'
+            ? GridSnapStyle.BOTH
+            : mode === 'all'
+              ? GridSnapStyle.ALL
+              : GridSnapStyle.CENTER;
     }
   }
 

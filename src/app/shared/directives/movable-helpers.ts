@@ -110,6 +110,77 @@ export function calcHexBothSnapPosition(
   return dcx * dcx + dcy * dcy <= dvx * dvx + dvy * dvy ? center : vertex;
 }
 
+export function calcHexEdgeMidpointSnapPosition(
+  posX: number,
+  posY: number,
+  gridSize: number,
+  gridType: GridType,
+  halfWidth: number = gridSize / 2,
+  halfHeight: number = gridSize / 2
+): { x: number; y: number } {
+  const isFlatTop = gridType === GridType.HEX_VERTICAL;
+  const startAngle = hexStartAngle(isFlatTop);
+  const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+  // inradius = gridSize / 2
+  const edgeDist = gridSize / 2;
+
+  const colEst = posX / colSpacing;
+  const rowEst = posY / rowSpacing;
+
+  let bestX = 0;
+  let bestY = 0;
+  let bestDist = Infinity;
+
+  for (let col = Math.floor(colEst) - 1; col <= Math.ceil(colEst) + 1; col++) {
+    for (let row = Math.floor(rowEst) - 1; row <= Math.ceil(rowEst) + 1; row++) {
+      const { x: cx, y: cy } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+      for (let k = 0; k < 6; k++) {
+        const angle = startAngle + (k + 0.5) * (Math.PI / 3);
+        const mx = cx + edgeDist * Math.cos(angle);
+        const my = cy + edgeDist * Math.sin(angle);
+        const dx = posX - mx;
+        const dy = posY - my;
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestX = mx;
+          bestY = my;
+        }
+      }
+    }
+  }
+
+  return { x: bestX - halfWidth, y: bestY - halfHeight };
+}
+
+export function calcHexAllSnapPosition(
+  posX: number,
+  posY: number,
+  gridSize: number,
+  gridType: GridType,
+  halfWidth: number = gridSize / 2,
+  halfHeight: number = gridSize / 2
+): { x: number; y: number } {
+  const center = calcHexSnapPosition(posX, posY, gridSize, gridType, halfWidth, halfHeight);
+  const vertex = calcHexVertexSnapPosition(posX, posY, gridSize, gridType, halfWidth, halfHeight);
+  const edge = calcHexEdgeMidpointSnapPosition(posX, posY, gridSize, gridType, halfWidth, halfHeight);
+
+  const dcx = posX - (center.x + halfWidth);
+  const dcy = posY - (center.y + halfHeight);
+  const dvx = posX - (vertex.x + halfWidth);
+  const dvy = posY - (vertex.y + halfHeight);
+  const dex = posX - (edge.x + halfWidth);
+  const dey = posY - (edge.y + halfHeight);
+
+  const dc = dcx * dcx + dcy * dcy;
+  const dv = dvx * dvx + dvy * dvy;
+  const de = dex * dex + dey * dey;
+
+  if (dc <= dv && dc <= de) return center;
+  if (dv <= de) return vertex;
+  return edge;
+}
+
 export function toTransformCss(posX: number, posY: number, posZ: number, transformCssOffset: string): string {
   return 'translate3d(' + posX + 'px,' + posY + 'px,' + posZ + 'px) ' + transformCssOffset;
 }

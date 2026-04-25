@@ -2,7 +2,9 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   applyPointerEvents,
+  calcHexAllSnapPosition,
   calcHexBothSnapPosition,
+  calcHexEdgeMidpointSnapPosition,
   calcHexSnapPosition,
   calcHexVertexSnapPosition,
   calcSnapNum,
@@ -206,6 +208,69 @@ describe('movable-helpers', () => {
       const vertexResult = calcHexVertexSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
       expect(result.x).toBeCloseTo(vertexResult.x);
       expect(result.y).toBeCloseTo(vertexResult.y);
+    });
+  });
+
+  describe('calcHexEdgeMidpointSnapPosition', () => {
+    const gridSize = 50;
+    // inradius = gridSize / 2 = 25
+
+    it('flat-top: 30°方向の辺中点にスナップ', () => {
+      // flat-top の 30° 方向の辺中点: (inradius*cos30°, inradius*sin30°)
+      const inradius = gridSize / 2;
+      const mx = inradius * Math.cos(Math.PI / 6);
+      const my = inradius * Math.sin(Math.PI / 6);
+      const result = calcHexEdgeMidpointSnapPosition(mx - 0.5, my, gridSize, GridType.HEX_VERTICAL);
+      expect(result.x + gridSize / 2).toBeCloseTo(mx);
+      expect(result.y + gridSize / 2).toBeCloseTo(my);
+    });
+
+    it('pointy-top: 0°方向の辺中点にスナップ', () => {
+      // pointy-top の 0° 方向の辺中点: (inradius, 0) = (25, 0)
+      const inradius = gridSize / 2;
+      const result = calcHexEdgeMidpointSnapPosition(inradius - 0.5, 0, gridSize, GridType.HEX_HORIZONTAL);
+      expect(result.x + gridSize / 2).toBeCloseTo(inradius);
+      expect(result.y + gridSize / 2).toBeCloseTo(0);
+    });
+
+    it('スナップ後の辺中点はセル中心から inradius の距離にある', () => {
+      const inradius = gridSize / 2;
+      const mx = inradius * Math.cos(Math.PI / 6);
+      const my = inradius * Math.sin(Math.PI / 6);
+      const result = calcHexEdgeMidpointSnapPosition(mx, my, gridSize, GridType.HEX_VERTICAL);
+      const cx = result.x + gridSize / 2;
+      const cy = result.y + gridSize / 2;
+      expect(Math.sqrt(cx * cx + cy * cy)).toBeCloseTo(inradius);
+    });
+  });
+
+  describe('calcHexAllSnapPosition', () => {
+    const gridSize = 50;
+
+    it('セル中心に近い場合はセル中心にスナップ', () => {
+      const result = calcHexAllSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
+      const centerResult = calcHexSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
+      expect(result.x).toBeCloseTo(centerResult.x);
+      expect(result.y).toBeCloseTo(centerResult.y);
+    });
+
+    it('頂点に近い場合は頂点にスナップ', () => {
+      const s = gridSize / Math.sqrt(3);
+      const result = calcHexAllSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
+      const vertexResult = calcHexVertexSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
+      expect(result.x).toBeCloseTo(vertexResult.x);
+      expect(result.y).toBeCloseTo(vertexResult.y);
+    });
+
+    it('辺中点に近い場合は辺中点にスナップ', () => {
+      // flat-top 30° 方向の辺中点付近
+      const inradius = gridSize / 2;
+      const mx = inradius * Math.cos(Math.PI / 6);
+      const my = inradius * Math.sin(Math.PI / 6);
+      const result = calcHexAllSnapPosition(mx - 0.5, my, gridSize, GridType.HEX_VERTICAL);
+      const edgeResult = calcHexEdgeMidpointSnapPosition(mx - 0.5, my, gridSize, GridType.HEX_VERTICAL);
+      expect(result.x).toBeCloseTo(edgeResult.x);
+      expect(result.y).toBeCloseTo(edgeResult.y);
     });
   });
 });

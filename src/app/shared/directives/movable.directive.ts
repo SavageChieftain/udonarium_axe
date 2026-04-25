@@ -8,6 +8,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import {
   applyPointerEvents,
+  calcHexAllSnapPosition,
   calcHexBothSnapPosition,
   calcHexSnapPosition,
   calcHexVertexSnapPosition,
@@ -240,12 +241,58 @@ export class MovableDirective {
           ? calcHexVertexSnapPosition
           : snapStyle === GridSnapStyle.BOTH
             ? calcHexBothSnapPosition
-            : calcHexSnapPosition;
+            : snapStyle === GridSnapStyle.ALL
+              ? calcHexAllSnapPosition
+              : calcHexSnapPosition;
       const snapped = hexSnap(anchor.x, anchor.y, effectiveGridSize, gridType, originX, originY);
       this.posX = snapped.x;
       this.posY = snapped.y;
     } else {
-      if (snapStyle === GridSnapStyle.VERTEX || snapStyle === GridSnapStyle.BOTH) {
+      if (snapStyle === GridSnapStyle.ALL) {
+        const centerX = this.posX + this.width / 2;
+        const centerY = this.posY + this.height / 2;
+        const half = effectiveGridSize / 2;
+        // Cell: top-left snapped to grid
+        const cellX = calcSnapNum(this.posX, effectiveGridSize);
+        const cellY = calcSnapNum(this.posY, effectiveGridSize);
+        // Vertex: center snapped to grid intersection
+        const vCX = calcSnapNum(centerX, effectiveGridSize);
+        const vCY = calcSnapNum(centerY, effectiveGridSize);
+        const vertexX = vCX - this.width / 2;
+        const vertexY = vCY - this.height / 2;
+        // Edge H: center-x snapped to half-grid, center-y to grid intersection
+        const eHCX = calcSnapNum(centerX - half, effectiveGridSize) + half;
+        const eHCY = calcSnapNum(centerY, effectiveGridSize);
+        const edgeHX = eHCX - this.width / 2;
+        const edgeHY = eHCY - this.height / 2;
+        // Edge V: center-x to grid intersection, center-y snapped to half-grid
+        const eVCX = calcSnapNum(centerX, effectiveGridSize);
+        const eVCY = calcSnapNum(centerY - half, effectiveGridSize) + half;
+        const edgeVX = eVCX - this.width / 2;
+        const edgeVY = eVCY - this.height / 2;
+
+        const candidates = [
+          { x: cellX, y: cellY },
+          { x: vertexX, y: vertexY },
+          { x: edgeHX, y: edgeHY },
+          { x: edgeVX, y: edgeVY },
+        ];
+        let bestX = cellX;
+        let bestY = cellY;
+        let bestDist = Infinity;
+        for (const c of candidates) {
+          const dx = this.posX - c.x;
+          const dy = this.posY - c.y;
+          const dist = dx * dx + dy * dy;
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestX = c.x;
+            bestY = c.y;
+          }
+        }
+        this.posX = bestX;
+        this.posY = bestY;
+      } else if (snapStyle === GridSnapStyle.VERTEX || snapStyle === GridSnapStyle.BOTH) {
         const centerX = this.posX + this.width / 2;
         const centerY = this.posY + this.height / 2;
         const snappedX = calcSnapNum(centerX, effectiveGridSize);

@@ -1,6 +1,6 @@
 {
   "name": "udonarium_axe",
-  "version": "0.210.2",
+  "version": "0.213.0",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
