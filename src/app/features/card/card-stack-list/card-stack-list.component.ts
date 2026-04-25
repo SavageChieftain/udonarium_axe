@@ -12,7 +12,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 @Component({
   selector: 'card-stack-list',
   templateUrl: './card-stack-list.component.html',
-  styleUrls: ['./card-stack-list.component.css'],
+  host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TooltipDirective, SafePipe],
 })

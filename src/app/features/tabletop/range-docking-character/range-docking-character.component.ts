@@ -15,7 +15,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 @Component({
   selector: 'range-docking-character',
   templateUrl: './range-docking-character.component.html',
-  styleUrls: ['./range-docking-character.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })

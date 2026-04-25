@@ -18,7 +18,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'card-stack-list-img',
   templateUrl: './card-stack-list-img.component.html',
-  styleUrls: ['./card-stack-list-img.component.css'],
 })
 export class CardStackListImageComponent {
   chatMessageService = inject(ChatMessageService);

@@ -1,1 +1,7 @@
-<div class="badge" [class.bouncing]="animeState() === 'active'" (animationend)="onBounceEnd()">{{ count() }}</div>
+<div
+  class="min-w-[8px] min-h-[8px] text-[8px] px-1 py-0.5 rounded-full text-center text-[#eee] bg-[rgb(207,82,82)]"
+  [class.bouncing]="animeState() === 'active'"
+  (animationend)="onBounceEnd()"
+>
+  {{ count() }}
+</div>

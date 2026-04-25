@@ -1,5 +1,5 @@
-<div class="flex-container">
-  <div class="flex-item no-grow">
+<div class="flex flex-row flex-wrap justify-start items-stretch">
+  <div class="m-[5px] flex-[1_0_auto] box-border grow-0 max-w-full">
     <div>
       <button (click)="create()">チャットタブを作る</button>
     </div>
@@ -20,7 +20,7 @@
     </div>
     <div style="width: 10em; overflow: hidden; font-size: 14px">現在システム表示先：<br />{{ systemTab()?.name }}</div>
   </div>
-  <div class="flex-item">
+  <div class="m-[5px] flex-[1_0_auto] box-border grow max-w-full">
     @if (!isEmpty && selectedTab()) {
       <div>
         タブ名 :
@@ -41,9 +41,11 @@
           <button (click)="downTabIndex()">↓</button>
           <button [disabled]="isSaving()" (click)="save()">
             <div style="position: relative">
-              <div [ngClass]="{ 'is-hidden': isSaving() }">保存</div>
+              <div [class.invisible]="isSaving()">保存</div>
               @if (isSaving()) {
-                <div class="progress">{{ progressPercent() }}%</div>
+                <div class="flex items-center justify-center absolute inset-0 text-[0.9em]">
+                  {{ progressPercent() }}%
+                </div>
               }
             </div>
           </button>

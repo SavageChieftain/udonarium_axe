@@ -12,7 +12,79 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 @Component({
   selector: 'file-selector',
   templateUrl: './file-selecter.component.html',
-  styleUrls: ['./file-selecter.component.css'],
+  host: { class: 'block' },
+  styles: [
+    `
+      .image {
+        font-size: 0;
+      }
+
+      .image img {
+        vertical-align: bottom;
+      }
+
+      .empty {
+        line-height: 120px;
+        vertical-align: middle;
+      }
+
+      .empty button {
+        height: 100px;
+      }
+
+      .sticky-top {
+        padding: 5px;
+        position: sticky;
+        top: 0;
+        background-color: rgba(240, 218, 189, 0.8);
+        border-top: 1px dotted #666;
+        border-bottom: 1px dotted #666;
+      }
+
+      .sticky-top input {
+        width: calc(100% - 75px);
+      }
+
+      .image-chg {
+        padding: 5px;
+        user-select: none;
+      }
+
+      .image-chg label {
+        display: inline-block;
+        position: relative;
+      }
+
+      .image-chg input[type='radio'] {
+        display: none;
+      }
+
+      .image-chg input[type='radio'] + div {
+        display: inline-block;
+        vertical-align: middle;
+        outline: 0;
+        font-size: 12px;
+        background-color: transparent;
+        color: #444;
+        border: solid 1px #555;
+        padding: 2px 8px;
+        margin: 2px;
+        border-radius: 100px;
+        cursor: pointer;
+      }
+
+      .image-chg input[type='radio'] + div:hover {
+        background-color: #888;
+        color: #eee;
+        border: solid 1px #555;
+      }
+
+      .image-chg input[type='radio']:checked + div {
+        background: #555;
+        color: #ccc;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, SafePipe],
 })

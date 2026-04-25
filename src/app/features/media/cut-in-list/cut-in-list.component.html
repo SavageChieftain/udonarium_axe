@@ -1,5 +1,5 @@
-<div class="flex-container">
-  <div class="flex-item no-grow">
+<div class="flex flex-row flex-wrap justify-start items-stretch">
+  <div class="m-[5px] flex-[1_0_auto] box-border grow-0 max-w-full">
     <div>
       <button (click)="createCutIn()">新しいカットインを作る</button>
     </div>
@@ -15,7 +15,7 @@
       }
     </select>
   </div>
-  <div class="flex-item" style="width: 380px">
+  <div class="m-[5px] flex-[1_0_auto] box-border grow max-w-full" style="width: 380px">
     @if (!isEmpty || selectedCutIn) {
       <cut-in-editor [cutIn]="selectedCutIn" [isEditable]="isEditable" />
       <hr />

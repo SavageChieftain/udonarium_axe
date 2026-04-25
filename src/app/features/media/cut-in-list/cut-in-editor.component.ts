@@ -18,7 +18,6 @@ import { ModalService } from '@axe/shared/ui/modal.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'cut-in-editor',
   templateUrl: './cut-in-editor.component.html',
-  styleUrls: ['./cut-in-editor.component.css'],
   imports: [FormsModule, SafePipe],
 })
 export class CutInEditorComponent {

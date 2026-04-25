@@ -4,28 +4,30 @@
     <button (click)="showRoomSetting()">新しいルームを作成する</button>
     <hr />
     @if (rooms().length) {
-      <table class="room-list">
+      <table class="text-xs [border-spacing:0] p-0 w-full max-w-full whitespace-nowrap">
         <tr>
-          <th>ルームID</th>
-          <th class="room-name">ルーム名</th>
-          <th>パスワード</th>
-          <th>参加者</th>
-          <th></th>
+          <th class="py-[1px] px-[0.5em] text-center">ルームID</th>
+          <th class="whitespace-normal break-words min-w-[50%] py-[1px] px-[0.5em] text-center">ルーム名</th>
+          <th class="py-[1px] px-[0.5em] text-center">パスワード</th>
+          <th class="py-[1px] px-[0.5em] text-center">参加者</th>
+          <th class="py-[1px] px-[0.5em] text-center"></th>
         </tr>
         @for (room of rooms(); track room) {
           <tr>
-            <td class="is-small-font">{{ room.peerContexts[0]?.roomId }}</td>
-            <td class="room-name">{{ room.roomName }}</td>
+            <td class="text-[10px] py-[1px] px-[0.5em] text-center">{{ room.peerContexts[0]?.roomId }}</td>
+            <td class="whitespace-normal break-words min-w-[50%] py-[1px] px-[0.5em] text-center">
+              {{ room.roomName }}
+            </td>
             @if (room.peerContexts[0].hasPassword) {
-              <td>
+              <td class="py-[1px] px-[0.5em] text-center">
                 <i class="material-icons" style="vertical-align: middle; font-size: 0.9rem">lock</i>
               </td>
             }
             @if (!room.peerContexts[0].hasPassword) {
-              <td>-</td>
+              <td class="py-[1px] px-[0.5em] text-center">-</td>
             }
-            <td>{{ room.peerContexts.length }}人</td>
-            <td>
+            <td class="py-[1px] px-[0.5em] text-center">{{ room.peerContexts.length }}人</td>
+            <td class="py-[1px] px-[0.5em] text-center">
               @if (0 < room.alias.length) {
                 <button
                   [disabled]="room.peerContexts[0]?.roomId === currentRoom"

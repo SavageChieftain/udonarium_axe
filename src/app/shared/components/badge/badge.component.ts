@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angu
 @Component({
   selector: 'badge',
   templateUrl: './badge.component.html',
-  styleUrls: ['./badge.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BadgeComponent {

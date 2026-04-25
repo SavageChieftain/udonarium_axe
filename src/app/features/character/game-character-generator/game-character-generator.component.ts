@@ -16,7 +16,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-generator',
   templateUrl: './game-character-generator.component.html',
-  styleUrls: ['./game-character-generator.component.css'],
   imports: [FormsModule, SafePipe],
 })
 export class GameCharacterGeneratorComponent {

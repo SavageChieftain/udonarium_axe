@@ -6,7 +6,7 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'network-indicator',
   templateUrl: './network-indicator.component.html',
-  styleUrls: ['./network-indicator.component.css'],
+  host: { class: 'block' },
 })
 export class NetworkIndicatorComponent {
   private readonly destroyRef = inject(DestroyRef);

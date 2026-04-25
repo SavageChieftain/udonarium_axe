@@ -3,19 +3,19 @@
     <button (click)="changeIcon()">アイコンを変更する</button>
   </div>
 }
-<div class="user">
-  <div class="user_icon">
+<div class="table">
+  <div class="table-cell align-top w-[160px]">
     @if (myPeer) {
       @if (myPeer.image) {
         <div
-          class="image cover"
+          class="table-cell align-top w-32 h-32 bg-top bg-no-repeat bg-cover"
           [style.background-image]="'url(' + myPeer.image.url + ')' | safe: 'style'"
           (click)="changeIcon()"
         ></div>
       }
     }
   </div>
-  <div class="user_info">
+  <div class="table-cell align-bottom">
     @if (myPeer) {
       <span>あなたのニックネーム：</span>
     }

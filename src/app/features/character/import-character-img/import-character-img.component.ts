@@ -14,7 +14,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 @Component({
   selector: 'import-character-img',
   templateUrl: './import-character-img.component.html',
-  styleUrls: ['./import-character-img.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
 })

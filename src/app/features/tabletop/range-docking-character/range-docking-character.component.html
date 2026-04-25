@@ -1,4 +1,4 @@
-<div class="table">
+<div class="box-border p-[5px] table w-full">
   <div class="table-cell" style="width: 7em">
     <div style="text-align: center">接続先＞</div>
   </div>
@@ -17,15 +17,15 @@
     </ng-select>
   </div>
 </div>
-<div class="table">
-  <div class="table-cell imagebox">
+<div class="box-border p-[5px] table w-full">
+  <div class="inline-block w-[100px] h-[100px] max-w-[50px] max-h-[50px] align-top text-center table-cell">
     @if (imageFile().url) {
-      <img class="image" [src]="imageFile().url | safe: 'resourceUrl'" />
+      <img class="h-full align-bottom object-cover" [src]="imageFile().url | safe: 'resourceUrl'" />
     }
   </div>
 </div>
 <br />
-<div class="table">
+<div class="box-border p-[5px] table w-full">
   <button (click)="followring()" style="width: 9em">接続実行</button>
   <button (click)="cancel()" style="width: 9em; margin-left: 3em">キャンセル</button>
 </div>

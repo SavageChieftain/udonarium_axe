@@ -1,4 +1,3 @@
-import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -18,8 +17,8 @@ import GameSystemClass from 'bcdice/lib/game_system';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-chat-tab-setting',
   templateUrl: './chat-tab-setting.component.html',
-  styleUrls: ['./chat-tab-setting.component.css'],
-  imports: [FormsModule, NgClass],
+  host: { class: 'block' },
+  imports: [FormsModule],
 })
 export class ChatTabSettingComponent {
   private readonly modalService = inject(ModalService);

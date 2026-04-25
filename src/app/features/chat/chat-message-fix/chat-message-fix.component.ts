@@ -14,7 +14,6 @@ import GameSystemClass from 'bcdice/lib/game_system';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-message-fix',
   templateUrl: './chat-message-fix.component.html',
-  styleUrls: ['./chat-message-fix.component.css'],
   imports: [FormsModule],
 })
 export class ChatMessageFixComponent {

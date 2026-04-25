@@ -1,5 +1,5 @@
-<div class="flex-container">
-  <div class="flex-item no-grow">
+<div class="flex flex-row flex-wrap justify-start items-stretch">
+  <div class="m-[5px] flex-none box-border max-w-full">
     <div>
       <button (click)="createGameTable()">新しいテーブルを作る</button>
     </div>
@@ -16,9 +16,9 @@
       }
     </select>
   </div>
-  <div class="flex-item">
+  <div class="m-[5px] flex-[1_0_auto] box-border max-w-full">
     @if (!isEmpty || selectedTable) {
-      <div class="images-select">
+      <div class="flex">
         <div>
           画像
           @if (!tableBackgroundImage.url) {
@@ -149,9 +149,11 @@
         @if (!isDeleted) {
           <button [disabled]="isSaving()" (click)="save()">
             <div style="position: relative">
-              <div [ngClass]="{ 'is-hidden': isSaving() }">保存</div>
+              <div [class.invisible]="isSaving()">保存</div>
               @if (isSaving()) {
-                <div class="progress">{{ progressPercent() }}%</div>
+                <div class="flex items-center justify-center absolute inset-0 text-[0.9em]">
+                  {{ progressPercent() }}%
+                </div>
               }
             </div>
           </button>

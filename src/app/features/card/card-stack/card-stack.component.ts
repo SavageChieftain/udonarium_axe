@@ -36,10 +36,188 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
 @Component({
   selector: 'card-stack',
   templateUrl: './card-stack.component.html',
-  styleUrls: ['./card-stack.component.css'],
+  styles: [
+    `
+      .is-grab {
+        cursor: -moz-grab;
+        cursor: -webkit-grab;
+        cursor: grab;
+      }
+
+      .is-grabbing {
+        cursor: -moz-grabbing;
+        cursor: -webkit-grabbing;
+        cursor: grabbing;
+      }
+
+      .is-transition {
+        -webkit-transition: -webkit-transform 132ms linear;
+        transition: transform 132ms linear;
+      }
+
+      .is-3d {
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+      }
+
+      .will-change {
+        will-change: opacity;
+      }
+
+      .is-pointer-events-none {
+        pointer-events: none;
+      }
+
+      .is-pointer-events-auto {
+        pointer-events: auto;
+      }
+
+      .is-empty {
+        height: 100px;
+        width: 100px;
+      }
+
+      .component {
+        position: absolute;
+        backface-visibility: hidden;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+
+        -moz-user-drag: none;
+        -webkit-user-drag: none;
+      }
+
+      .component-content {
+        height: 100%;
+        width: 100%;
+        margin-top: -5px;
+        margin-left: -5px;
+        border: solid 5px #cccccc;
+        border-radius: 5px;
+        background-color: #cccccc;
+        backface-visibility: hidden;
+      }
+
+      .card-image {
+        display: block;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin: auto;
+        height: auto;
+        width: 100%;
+      }
+
+      .lock-icon-mark {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        box-sizing: border-box;
+        z-index: 1;
+        padding: 2px;
+        background-color: #444;
+        border-radius: 100%;
+        color: #ccc;
+        font-size: 8px;
+        top: 5px;
+      }
+
+      .rotate-grab {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        box-sizing: border-box;
+        cursor: -moz-default;
+        cursor: -webkit-default;
+        cursor: default;
+        z-index: 1;
+        padding: 2px;
+        background-color: #cccccc;
+        border-radius: 100%;
+        color: #444;
+        font-size: 8px;
+      }
+
+      .rotate-grab {
+        display: none;
+        z-index: 11;
+      }
+
+      .component:hover .rotate-grab {
+        display: block;
+        opacity: 0.5;
+      }
+
+      .component:active .rotate-grab {
+        display: none;
+      }
+
+      .component .rotate-grab:hover,
+      .component .rotate-grab:active {
+        display: block;
+        opacity: 1;
+      }
+
+      .of-left-top {
+        top: -14px;
+        left: -14px;
+      }
+
+      .of-left-bottom {
+        bottom: -14px;
+        left: -14px;
+      }
+
+      .of-right-bottom {
+        bottom: -14px;
+        right: -14px;
+      }
+
+      .of-right-top {
+        top: -14px;
+        right: -14px;
+      }
+
+      .name-tag {
+        box-sizing: border-box;
+        font-size: 15px;
+        padding: 3px 9px;
+        border-radius: 24px;
+        position: absolute;
+        top: 50%;
+      }
+
+      .has-length-limit {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 18em;
+      }
+
+      .is-nowrap {
+        white-space: nowrap;
+      }
+
+      .is-black-background {
+        color: #ccc;
+        background-color: rgba(30, 30, 30, 0.8);
+      }
+
+      .material-icons {
+        display: none;
+      }
+      .component:hover .material-icons,
+      .component:active .material-icons {
+        display: inline;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, RotableDirective, NgStyle, SafePipe],
   host: {
+    class: 'block',
     '(carddrop)': 'onCardDrop($event)',
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',

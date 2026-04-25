@@ -29,7 +29,7 @@
   <button (click)="openCutInList()" [disabled]="0">カットイン編集</button>
 }
 <hr />
-<div class="tag-filter">
+<div class="mb-1">
   タグ：<select [ngModel]="selectTag()" (ngModelChange)="selectTag.set($event)">
     @for (tag of tagList(); track tag) {
       <option [value]="tag">{{ tag }}</option>
@@ -38,7 +38,7 @@
 </div>
 <div>
   @for (audio of audios(); track audio.identifier) {
-    <div class="box">
+    <div class="border-b border-dotted border-[#888]">
       @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
         <button (click)="play(audio)" [disabled]="!audio.isReady">試聴/再生</button>
       }

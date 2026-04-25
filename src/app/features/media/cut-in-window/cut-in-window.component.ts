@@ -25,7 +25,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-window',
   templateUrl: './cut-in-window.component.html',
-  styleUrls: ['./cut-in-window.component.css'],
   imports: [YouTubePlayer, SafePipe],
 })
 export class CutInWindowComponent {

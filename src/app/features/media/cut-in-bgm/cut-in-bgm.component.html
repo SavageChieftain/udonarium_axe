@@ -1,6 +1,6 @@
 <div>
   @for (audio of audios(); track audio.identifier) {
-    <div class="box">
+    <div class="border-b border-dotted border-[#888]">
       <button (click)="selectBgm(audio)">登録</button>
       @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
         <button (click)="play(audio)" [disabled]="!audio.isReady">試聴/再生</button>

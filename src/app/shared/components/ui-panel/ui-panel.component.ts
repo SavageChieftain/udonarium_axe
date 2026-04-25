@@ -25,7 +25,85 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'ui-panel',
   templateUrl: './ui-panel.component.html',
-  styleUrls: ['./ui-panel.component.css'],
+  host: { class: 'block' },
+  styles: [
+    `
+      .draggable-panel {
+        box-sizing: border-box;
+        overflow: visible;
+        position: absolute;
+
+        color: #444;
+        background: linear-gradient(-30deg, rgba(240, 218, 189, 0.9), rgba(255, 244, 232, 0.9));
+        border: solid 1px #999;
+
+        padding: 0px;
+        top: 200px;
+
+        height: 200px;
+        width: 300px;
+        max-height: 100%;
+        max-width: 100%;
+      }
+
+      .scrollable-panel {
+        box-sizing: border-box;
+        overflow: auto;
+        position: absolute;
+        top: 25px;
+        bottom: 0;
+        width: 100%;
+        padding: 8px;
+        overscroll-behavior: contain;
+      }
+
+      .cut-in--panel {
+        box-sizing: border-box;
+        overflow: auto;
+        position: absolute;
+        top: 25px;
+        bottom: 0;
+        width: 100%;
+        padding: 0px;
+        overscroll-behavior: contain;
+      }
+
+      .title {
+        overflow: hidden;
+        white-space: nowrap;
+        box-sizing: border-box;
+        font-size: 12px;
+        height: 25px;
+        padding: 2px 5px;
+        width: 100%;
+        background-color: #555;
+        color: #ccc;
+        user-select: none;
+      }
+
+      .title-button {
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      .title button {
+        background: none;
+        border: none;
+        border-radius: 0;
+        outline: none;
+        color: #ccc;
+      }
+
+      .title button[disabled] {
+        opacity: 0.3;
+      }
+
+      .pointer-events-none {
+        pointer-events: none;
+      }
+    `,
+  ],
   providers: [PanelService],
   imports: [
     DraggableDirective,

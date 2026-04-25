@@ -17,7 +17,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'peer-menu',
   templateUrl: './peer-menu.component.html',
-  styleUrls: ['./peer-menu.component.css'],
   imports: [FormsModule, DatePipe, SafePipe],
 })
 export class PeerMenuComponent {

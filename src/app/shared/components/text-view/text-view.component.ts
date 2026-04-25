@@ -6,7 +6,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'text-view',
   templateUrl: './text-view.component.html',
-  styleUrls: ['./text-view.component.css'],
+  host: { class: 'block' },
 })
 export class TextViewComponent {
   private readonly panelService = inject(PanelService);

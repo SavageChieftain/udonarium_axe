@@ -8,7 +8,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-buff-view',
   templateUrl: './game-character-buff-view.component.html',
-  styleUrls: ['./game-character-buff-view.component.css'],
   imports: [GameDataElementBuffComponent],
 })
 export class GameCharacterBuffViewComponent {

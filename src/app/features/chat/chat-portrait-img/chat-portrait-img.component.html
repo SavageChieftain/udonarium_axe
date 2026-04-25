@@ -1,13 +1,13 @@
 <div>
   <div id="portrait-component_">
-    <div class="portrait-image-box" #portraitArea style="height:0px,width:100%">
+    <div class="" #portraitArea style="height:0px,width:100%">
       @if (chatTab) {
         @if (chatTab.portraitDisplayFlag) {
           @if (isPortraitDispMode) {
             @for (slot of portraitSlots(); track slot.pos) {
               @if (slot.imageFileUrl) {
                 <img
-                  [class]="'portrait-image pos' + (slot.pos < 10 ? '0' : '') + slot.pos"
+                  [class]="'absolute h-[250px] p-0 align-bottom z-[1] pos' + (slot.pos < 10 ? '0' : '') + slot.pos"
                   [src]="slot.imageFileUrl | safe: 'resourceUrl'"
                   [ngStyle]="{
                     transform:

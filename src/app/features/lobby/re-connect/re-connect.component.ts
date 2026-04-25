@@ -41,7 +41,7 @@ export function isReconnectCompleted(expectedPeerIds: Set<string>, observedPeerI
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 're-connect',
   templateUrl: './re-connect.component.html',
-  styleUrls: ['./re-connect.component.css'],
+  host: { class: 'block' },
 })
 export class ReConnectComponent {
   private readonly panelService = inject(PanelService);

@@ -1,4 +1,3 @@
-import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
@@ -7,8 +6,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'open-url',
   templateUrl: './open-url.component.html',
-  styleUrls: ['./open-url.component.css'],
-  imports: [NgClass],
 })
 export class OpenUrlComponent {
   private readonly panelService = inject(PanelService);

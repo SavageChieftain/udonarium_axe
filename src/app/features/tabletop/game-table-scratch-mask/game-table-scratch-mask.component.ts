@@ -13,7 +13,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 @Component({
   selector: 'game-table-scratch-mask',
   templateUrl: './game-table-scratch-mask.component.html',
-  styleUrls: ['./game-table-scratch-mask.component.css'],
+  host: { class: 'block absolute' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective],
 })

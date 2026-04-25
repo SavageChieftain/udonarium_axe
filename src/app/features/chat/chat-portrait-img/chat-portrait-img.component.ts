@@ -39,7 +39,6 @@ export interface PortraitSlot {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-portrait-img',
   templateUrl: './chat-portrait-img.component.html',
-  styleUrls: ['./chat-portrait-img.component.css'],
   imports: [NgStyle, SafePipe],
 })
 export class ChatPortraitImageComponent {

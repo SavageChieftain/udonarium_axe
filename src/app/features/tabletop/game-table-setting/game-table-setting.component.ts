@@ -1,4 +1,3 @@
-import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/core/storage/image.service';
@@ -22,8 +21,8 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
-  styleUrls: ['./game-table-setting.component.css'],
-  imports: [FormsModule, NgClass, NgSelectComponent, NgOptionComponent, SafePipe],
+  host: { class: 'block' },
+  imports: [FormsModule, NgSelectComponent, NgOptionComponent, SafePipe],
 })
 export class GameTableSettingComponent {
   private readonly modalService = inject(ModalService);

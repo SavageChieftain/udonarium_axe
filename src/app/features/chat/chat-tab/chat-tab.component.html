@@ -1,5 +1,9 @@
-<div class="log" [style.minHeight.px]="minScrollHeight" #logContainer>
-  <div class="virtual-scroll-container" [style.marginBottom.px]="bottomSpace" #messageContainer>
+<div
+  class="relative flex flex-col justify-end items-end w-full h-full"
+  [style.minHeight.px]="minScrollHeight"
+  #logContainer
+>
+  <div class="shrink-0 w-full" [style.marginBottom.px]="bottomSpace" #messageContainer>
     @if (chatMessages.length) {
       @for (chatMessage of chatMessages; track trackByChatMessage($index, chatMessage)) {
         @if (chatMessage.isDisplayable) {
