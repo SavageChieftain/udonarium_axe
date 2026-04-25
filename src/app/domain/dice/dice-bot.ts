@@ -102,8 +102,8 @@ export class DiceBot extends GameObject {
   private static initializeDiceBotQueue(): PromiseQueue {
     const queue = new PromiseQueue('DiceBotQueue');
     queue.add(async () => {
-      const { default: StaticLoaderImpl } = await import('bcdice/lib/loader/static_loader');
-      DiceBot.loader = new StaticLoaderImpl();
+      const { default: BCDiceLoader } = await import('./bcdice/bcdice-loader');
+      DiceBot.loader = new BCDiceLoader();
       DiceBot.diceBotInfos = DiceBot.listAvailableGameSystems().sort((a, b) => {
         if (a.sortKey < b.sortKey) return -1;
         if (a.sortKey > b.sortKey) return 1;
