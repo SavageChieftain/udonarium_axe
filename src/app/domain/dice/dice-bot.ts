@@ -20,7 +20,7 @@ import {
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
 import GameSystemClass from 'bcdice/lib/game_system';
-import StaticLoader from 'bcdice/lib/loader/static_loader';
+import type StaticLoader from 'bcdice/lib/loader/static_loader';
 
 @SyncObject('dice-bot')
 export class DiceBot extends GameObject {
@@ -102,7 +102,8 @@ export class DiceBot extends GameObject {
   private static initializeDiceBotQueue(): PromiseQueue {
     const queue = new PromiseQueue('DiceBotQueue');
     queue.add(async () => {
-      DiceBot.loader = new StaticLoader();
+      const { default: StaticLoaderImpl } = await import('bcdice/lib/loader/static_loader');
+      DiceBot.loader = new StaticLoaderImpl();
       DiceBot.diceBotInfos = DiceBot.listAvailableGameSystems().sort((a, b) => {
         if (a.sortKey < b.sortKey) return -1;
         if (a.sortKey > b.sortKey) return 1;
