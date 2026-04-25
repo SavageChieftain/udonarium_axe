@@ -1,6 +1,50 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* @import はすべて最初にまとめる */
 @import '@ng-select/ng-select/themes/default.theme.css';
+
+/* Tailwind v4 — Preflight を除いた最小インポート（既存スタイルと共存） */
+@import 'tailwindcss/theme' layer(theme);
+@import 'tailwindcss/utilities' layer(utilities);
+
+/* Tailwind がスキャンするソースディレクトリ */
+@source '../src/**/*.{ts,html}';
+
+/* デザイントークン */
+@theme {
+  --color-surface: hsl(220 14% 18%);
+  --color-panel: hsl(220 14% 22%);
+  --color-border: hsl(220 14% 32%);
+  --color-primary: hsl(200 80% 50%);
+  --color-primary-hover: hsl(200 80% 42%);
+  --color-danger: hsl(0 65% 55%);
+  --color-danger-hover: hsl(0 65% 45%);
+  --color-text-muted: hsl(220 10% 60%);
+  --font-family-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
+}
+
+/* badge bounce animation (moved from component CSS) */
+@keyframes bounce {
+  0% {
+    transform: scale3d(0.5, 0.5, 0.5);
+  }
+  50% {
+    transform: scale3d(2, 2, 2);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.bouncing {
+  animation: bounce 600ms ease;
+}
 
 .ng-select.ud-select {
   display: inline-block;
@@ -244,4 +288,222 @@ input[type='range']::-moz-range-thumb {
   border-radius: 2em;
   background: #ddd;
   cursor: pointer;
+}
+
+/* ── Global CSS Animations ──────────────────────────────────── */
+
+/* panel/modal enter animations */
+@keyframes flyIn {
+  from {
+    transform: scale(0.8, 0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
+}
+
+@keyframes bgFadeIn {
+  from {
+    background-color: rgba(30, 30, 30, 0);
+  }
+  to {
+    background-color: rgba(30, 30, 30, 0.4);
+  }
+}
+
+.fly-in {
+  animation: flyIn 100ms ease-out;
+}
+
+.bg-fade-in {
+  animation: bgFadeIn 200ms ease-out forwards;
+}
+
+/* object show/hide animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rotateOut {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(-90deg);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 100ms ease-out;
+}
+
+.rotate-state {
+  animation: rotateOut 132ms ease-in-out;
+}
+
+/* terrain blink */
+@keyframes blink {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.blinking-animation {
+  animation: blink 1s linear infinite alternate;
+}
+
+/* bounce / card / dice roll */
+@keyframes bounceIn {
+  0% {
+    transform: scale3d(0, 0, 0);
+  }
+  50% {
+    transform: scale3d(1.5, 1.5, 1.5);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes shuffle {
+  0% {
+    transform: scale3d(0, 0, 0) rotateZ(0deg);
+  }
+  50% {
+    transform: scale3d(1.2, 1.2, 1.2) rotateZ(360deg);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75) rotateZ(520deg);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125) rotateZ(630deg);
+  }
+  100% {
+    transform: scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+@keyframes diceRoll {
+  0% {
+    transform: scale3d(0.8, 0.8, 0.8) rotateZ(0deg);
+  }
+  50% {
+    transform: scale3d(1.2, 1.2, 1.2) rotateZ(360deg);
+  }
+  75% {
+    transform: scale3d(0.75, 0.75, 0.75) rotateZ(520deg);
+  }
+  87.5% {
+    transform: scale3d(1.125, 1.125, 1.125) rotateZ(630deg);
+  }
+  100% {
+    transform: scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+.bounce-in {
+  animation: bounceIn 600ms ease;
+}
+
+.shuffling {
+  animation: shuffle 800ms ease;
+}
+
+.dice-rolling {
+  animation: diceRoll 800ms ease;
+}
+
+/* chat message animations */
+@keyframes chatSlideIn {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes chatFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-slide-in {
+  animation: chatSlideIn 200ms ease-out;
+}
+
+.chat-fade-in {
+  animation: chatFadeIn 200ms ease-out;
+}
+
+/* game-character focus/arrow animations */
+@keyframes focused {
+  0% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow:
+      0px 0px 10px 5px #ff0,
+      inset 0px 0px 10px 5px #ff0;
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+@keyframes arrowmove {
+  0% {
+    top: -80px;
+  }
+  100% {
+    top: -60px;
+  }
+}
+
+@keyframes arrowmove2 {
+  0% {
+    top: -50px;
+  }
+  100% {
+    top: -30px;
+  }
+}
+
+/* app-level vibration */
+@keyframes vibration {
+  0% {
+    transform: scale(1, 1) translate(0%, 0%);
+  }
+  50% {
+    transform: scale(1.02, 0.95) translate(0%, 5%);
+  }
+  100% {
+    transform: scale(1, 1) translate(0%, 0%);
+  }
+}
+
+.vibration-amine {
+  animation: vibration 0.2s infinite;
 }
