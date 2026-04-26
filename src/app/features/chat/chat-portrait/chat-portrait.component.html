@@ -12,54 +12,61 @@
         [dispByMouse]="true"
       ></chat-portrait-img>
     </div>
-    <div
-      class="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-1.5 text-xs text-[var(--ui-text-muted)] border-b border-[var(--ui-panel-border)]"
-    >
-      <label class="flex items-center gap-1 cursor-pointer">
-        <span>立ち絵</span>
-        @if (chatTab) {
-          <input
-            type="checkbox"
-            value="portraitDisplayFlag"
-            [(ngModel)]="chatTab.portraitDisplayFlag"
-            name="portraitDisplayFlag"
-          />
-        }
-        @if (!chatTab) {
-          <input type="checkbox" name="portraitDisplayFlag" disabled />
-        }
-      </label>
-      <label class="flex items-center gap-1">
-        <span>サイズ</span>
-        <input
-          class="w-16"
-          [(ngModel)]="chatTabList.portraitHeight"
-          type="number"
-          min="{{ chatTabList.minPortraitSize }}"
-          max="{{ chatTabList.maxPortraitSize }}"
-          name="portraitHeight"
-          (change)="onChkHeight($event)"
-        />
-      </label>
-      <label class="flex items-center gap-1 cursor-pointer">
-        <span>簡易表示</span>
-        @if (chatTab) {
-          <input
-            type="checkbox"
-            value="chatSimpleDispFlag"
-            [(ngModel)]="chatTab.chatSimpleDispFlag"
-            name="chatSimpleDispFlag"
-            (click)="changeSimpleDisp()"
-          />
-        }
-      </label>
-      <button
-        type="button"
-        class="flex items-center gap-0.5 bg-transparent text-[var(--ui-text-muted)] border border-[var(--ui-panel-border)] px-1.5 py-0.5 rounded-[var(--ui-radius-sm)] cursor-pointer hover:bg-[var(--ui-hover)] hover:text-[var(--ui-accent)] hover:border-[var(--ui-accent)] text-xs transition-colors"
-        (click)="showMessageSetting()"
+    <details class="portrait-settings">
+      <summary class="portrait-settings-summary">
+        <i class="material-icons" style="font-size: 13px; vertical-align: middle">tune</i>
+        立ち絵・表示設定
+        <i class="portrait-chevron material-icons" style="font-size: 13px; vertical-align: middle">expand_more</i>
+      </summary>
+      <div
+        class="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-1.5 text-xs text-[var(--ui-text-muted)] border-b border-[var(--ui-panel-border)]"
       >
-        <i class="material-icons" style="font-size: 13px; vertical-align: middle">settings</i>詳細
-      </button>
-    </div>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <span>立ち絵</span>
+          @if (chatTab) {
+            <input
+              type="checkbox"
+              value="portraitDisplayFlag"
+              [(ngModel)]="chatTab.portraitDisplayFlag"
+              name="portraitDisplayFlag"
+            />
+          }
+          @if (!chatTab) {
+            <input type="checkbox" name="portraitDisplayFlag" disabled />
+          }
+        </label>
+        <label class="flex items-center gap-1">
+          <span>サイズ</span>
+          <input
+            class="w-16"
+            [(ngModel)]="chatTabList.portraitHeight"
+            type="number"
+            min="{{ chatTabList.minPortraitSize }}"
+            max="{{ chatTabList.maxPortraitSize }}"
+            name="portraitHeight"
+            (change)="onChkHeight($event)"
+          />
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <span>簡易表示</span>
+          @if (chatTab) {
+            <input
+              type="checkbox"
+              value="chatSimpleDispFlag"
+              [(ngModel)]="chatTab.chatSimpleDispFlag"
+              name="chatSimpleDispFlag"
+              (click)="changeSimpleDisp()"
+            />
+          }
+        </label>
+        <button
+          type="button"
+          class="flex items-center gap-0.5 bg-transparent text-[var(--ui-text-muted)] border border-[var(--ui-panel-border)] px-1.5 py-0.5 rounded-[var(--ui-radius-sm)] cursor-pointer hover:bg-[var(--ui-hover)] hover:text-[var(--ui-accent)] hover:border-[var(--ui-accent)] text-xs transition-colors"
+          (click)="showMessageSetting()"
+        >
+          <i class="material-icons" style="font-size: 13px; vertical-align: middle">settings</i>詳細設定
+        </button>
+      </div>
+    </details>
   </form>
 </div>

@@ -18,35 +18,56 @@
     <form name="chat-window">
       <chat-portrait [chatTabidentifier]="chatTabidentifier"></chat-portrait>
       <div class="chat-tab">
-        @for (chatTab of chatTabsVersion(); track trackByChatTab($index, chatTab)) {
-          <label>
-            <input
-              name="chat-tab"
-              type="radio"
-              value="{{ chatTab.identifier }}"
-              ng-control="options"
-              [(ngModel)]="chatTabidentifier"
-            />
-            <div>
-              {{ chatTab.name }}
-              @if (chatTab.hasUnread) {
-                <badge class="badge" [count]="chatTab.unreadLength"></badge>
-              }
-            </div>
-          </label>
-        }
-        <button type="button" class="tab-setting small-font" (click)="showTabSetting()">
-          <i class="material-icons small-font">settings</i>タブ設定
-        </button>
-        <button type="button" class="tab-setting small-font" (click)="showDiceTableSetting()">
-          <i class="material-icons small-font">settings</i>ダイス表設定
-        </button>
-        <button type="button" class="tab-setting small-font" (click)="showVoteMenu()">
-          <i class="material-icons small-font">group</i>点呼
-        </button>
-        <button type="button" class="tab-setting small-font" (click)="showAlarmMenu()">
-          <i class="material-icons small-font">alarm</i>
-        </button>
+        <!-- タブピル -->
+        <div class="chat-tab-pills">
+          @for (chatTab of chatTabsVersion(); track trackByChatTab($index, chatTab)) {
+            <label>
+              <input
+                name="chat-tab"
+                type="radio"
+                value="{{ chatTab.identifier }}"
+                ng-control="options"
+                [(ngModel)]="chatTabidentifier"
+              />
+              <div>
+                {{ chatTab.name }}
+                @if (chatTab.hasUnread) {
+                  <badge class="badge" [count]="chatTab.unreadLength"></badge>
+                }
+              </div>
+            </label>
+          }
+        </div>
+
+        <!-- 操作ボタン（点呼・アラーム） -->
+        <div class="chat-tab-actions">
+          <button type="button" class="tab-action-btn" title="点呼" (click)="showVoteMenu()">
+            <i class="material-icons small-font">group</i>
+            <span class="tab-action-label">点呼</span>
+          </button>
+          <button type="button" class="tab-action-btn" title="アラーム" (click)="showAlarmMenu()">
+            <i class="material-icons small-font">alarm</i>
+          </button>
+        </div>
+
+        <!-- 設定ドロップダウン（⚙ タブ設定 / ダイス表設定） -->
+        <details #chatSettings class="chat-settings-dropdown">
+          <summary class="tab-action-btn tab-settings-summary" title="チャット設定">
+            <i class="material-icons small-font">settings</i>
+          </summary>
+          <div class="chat-settings-menu">
+            <button type="button" class="chat-settings-item" (click)="showTabSetting(); chatSettings.open = false">
+              <i class="material-icons">tab</i>タブ設定
+            </button>
+            <button
+              type="button"
+              class="chat-settings-item"
+              (click)="showDiceTableSetting(); chatSettings.open = false"
+            >
+              <i class="material-icons">casino</i>ダイス表設定
+            </button>
+          </div>
+        </details>
       </div>
     </form>
     <chat-input

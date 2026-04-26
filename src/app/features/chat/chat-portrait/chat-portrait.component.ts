@@ -15,6 +15,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-portrait',
   templateUrl: './chat-portrait.component.html',
+  styleUrl: './chat-portrait.component.css',
   imports: [FormsModule, NgStyle, ChatPortraitImageComponent_1],
 })
 export class ChatPortraitComponent {

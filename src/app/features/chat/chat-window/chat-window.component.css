@@ -136,3 +136,141 @@
   color: var(--ui-accent);
   box-shadow: 0 0 0 2px var(--ui-accent-glow);
 }
+
+/* ── タブ行レイアウト ── */
+.chat-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chat-tab::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-tab-pills {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chat-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--ui-panel-border);
+  padding-left: 6px;
+  margin-left: 2px;
+}
+
+/* 操作ボタン（点呼・アラーム） */
+.tab-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  color: var(--ui-text-muted);
+  border: 1px solid transparent;
+  padding: 3px 6px;
+  border-radius: 100px;
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+}
+
+.tab-action-btn:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+  border-color: var(--ui-panel-border);
+  box-shadow: none;
+}
+
+.tab-action-label {
+  font-size: 11px;
+}
+
+/* ── 設定ドロップダウン ── */
+.chat-settings-dropdown {
+  position: relative;
+  flex-shrink: 0;
+  border-left: 1px solid var(--ui-panel-border);
+  padding-left: 6px;
+  margin-left: 2px;
+}
+
+.chat-settings-dropdown summary {
+  list-style: none;
+}
+
+.chat-settings-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.tab-settings-summary {
+  cursor: pointer;
+}
+
+.tab-settings-summary:hover {
+  color: var(--ui-accent);
+  border-color: var(--ui-accent);
+}
+
+.chat-settings-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  background: var(--ui-menu-bg);
+  border: 1px solid var(--ui-menu-border);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  box-shadow: var(--ui-shadow-lg);
+  border-radius: var(--ui-radius);
+  padding: 4px 0;
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+.chat-settings-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 16px;
+  background: transparent;
+  color: var(--ui-text);
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
+  box-shadow: none;
+}
+
+.chat-settings-item:hover {
+  background: var(--ui-menu-hover);
+  color: var(--ui-accent);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.chat-settings-item .material-icons {
+  font-size: 15px;
+  opacity: 0.8;
+}

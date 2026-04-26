@@ -1,0 +1,40 @@
+/* ── 立ち絵・表示設定 折りたたみ ── */
+.portrait-settings {
+  border-bottom: 1px solid var(--ui-panel-border);
+}
+
+.portrait-settings summary {
+  list-style: none;
+}
+
+.portrait-settings summary::-webkit-details-marker {
+  display: none;
+}
+
+.portrait-settings-summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--ui-text-dim);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color var(--ui-transition),
+    background var(--ui-transition);
+}
+
+.portrait-settings-summary:hover {
+  color: var(--ui-text-muted);
+  background: var(--ui-hover);
+}
+
+.portrait-chevron {
+  margin-left: auto;
+  transition: transform var(--ui-transition);
+}
+
+details[open] .portrait-chevron {
+  transform: rotate(180deg);
+}
