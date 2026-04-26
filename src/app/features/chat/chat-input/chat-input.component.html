@@ -1,6 +1,35 @@
-<div class="flex flex-col gap-1 px-2 py-2" [ngClass]="{ 'direct-message': isDirect }">
+<div class="grid grid-cols-[72px_1fr] gap-y-1 gap-x-2 px-2 py-2" [ngClass]="{ 'direct-message': isDirect }">
+  <!-- アバター（2行スパン、立ち絵ナビゲーションオーバーレイ） -->
+  <div class="imagebox row-span-2">
+    @if (0 < imageFile.url.length) {
+      <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
+    }
+    @if (1 <= portraitCount) {
+      <div class="portrait-nav">
+        <button
+          type="button"
+          class="portrait-nav-btn"
+          [disabled]="portraitIndex <= 0"
+          (click)="stepPortrait(-1)"
+          aria-label="前の立ち絵"
+        >
+          <i class="material-icons">chevron_left</i>
+        </button>
+        <span class="portrait-nav-label" [title]="portraitLabel">{{ portraitLabel }}</span>
+        <button
+          type="button"
+          class="portrait-nav-btn"
+          [disabled]="portraitIndex >= portraitCount - 1"
+          (click)="stepPortrait(1)"
+          aria-label="次の立ち絵"
+        >
+          <i class="material-icons">chevron_right</i>
+        </button>
+      </div>
+    }
+  </div>
   <!-- 送信元/宛先/DiceBot/カラー 行 -->
-  <div class="flex flex-wrap items-center gap-1">
+  <div class="flex items-center gap-1 justify-end flex-nowrap min-w-0">
     <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
       @if (!onlyCharacters()) {
         <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
@@ -32,12 +61,12 @@
         <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
       }
     </ng-select>
-    <button class="px-1.5 py-0.5 text-xs" (click)="showDicebotHelp()">?</button>
+    <button class="px-1.5 py-0.5 text-xs shrink-0" (click)="showDicebotHelp()">?</button>
     @if (!isGameTypeInList()) {
-      <span class="text-[var(--ui-danger)] text-xs">※ダイスボットが見つかりません</span>
+      <span class="text-[var(--ui-danger)] text-xs shrink-0">※ダイスボットが見つかりません</span>
     }
     <!-- カラー設定（チャット設定） -->
-    <div class="color-box-tag ml-auto">
+    <div class="color-box-tag ml-auto shrink-0">
       @for (i of [0, 1, 2]; track i) {
         <div
           class="color"
@@ -52,39 +81,8 @@
     </button>
   </div>
 
-  <!-- 立ち絵＋アバター + テキストエリア + SEND -->
-  <form name="chat-input" class="flex gap-2 items-end">
-    <!-- アバター列（立ち絵スライダー → アバター画像） -->
-    <div class="avatar-col">
-      @if (1 <= portraitCount) {
-        <div class="portrait-nav">
-          <button
-            type="button"
-            class="portrait-nav-btn"
-            [disabled]="portraitIndex <= 0"
-            (click)="stepPortrait(-1)"
-            aria-label="前の立ち絵"
-          >
-            <i class="material-icons">chevron_left</i>
-          </button>
-          <span class="portrait-nav-label" [title]="portraitLabel">{{ portraitLabel }}</span>
-          <button
-            type="button"
-            class="portrait-nav-btn"
-            [disabled]="portraitIndex >= portraitCount - 1"
-            (click)="stepPortrait(1)"
-            aria-label="次の立ち絵"
-          >
-            <i class="material-icons">chevron_right</i>
-          </button>
-        </div>
-      }
-      <div class="imagebox">
-        @if (0 < imageFile.url.length) {
-          <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
-        }
-      </div>
-    </div>
+  <!-- テキストエリア + SEND -->
+  <form name="chat-input" class="flex gap-2 items-center">
     <textarea
       name="chat-input-text"
       class="chat-input flex-1"
@@ -108,7 +106,7 @@
 
   <!-- 入力中インジケーター -->
   @if (0 < writingPeerNames().length) {
-    <div class="writing-info">
+    <div class="writing-info col-span-full">
       @for (peerName of writingPeerNames(); track peerName; let i = $index) {
         <span class="font-bold"
           >&gt;{{ peerName }}
