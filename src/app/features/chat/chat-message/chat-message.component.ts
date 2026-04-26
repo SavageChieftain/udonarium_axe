@@ -8,6 +8,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/chat-message-fix.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
+import { ChatColorStylePipe } from '@axe/shared/pipes/chat-color-style.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
@@ -18,7 +19,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   host: { class: 'block' },
   styleUrls: ['./chat-message.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, SafePipe],
+  imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, ChatColorStylePipe, SafePipe],
 })
 export class ChatMessageComponent {
   private readonly chatMessageService = inject(ChatMessageService);
