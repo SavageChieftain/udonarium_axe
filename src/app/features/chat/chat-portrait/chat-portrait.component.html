@@ -12,44 +12,53 @@
         [dispByMouse]="true"
       ></chat-portrait-img>
     </div>
-    <div>
-      立ち絵表示:
-      @if (chatTab) {
+    <div
+      class="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-1.5 text-xs text-[var(--ui-text-muted)] border-b border-[var(--ui-panel-border)]"
+    >
+      <label class="flex items-center gap-1 cursor-pointer">
+        <span>立ち絵</span>
+        @if (chatTab) {
+          <input
+            type="checkbox"
+            value="portraitDisplayFlag"
+            [(ngModel)]="chatTab.portraitDisplayFlag"
+            name="portraitDisplayFlag"
+          />
+        }
+        @if (!chatTab) {
+          <input type="checkbox" name="portraitDisplayFlag" disabled />
+        }
+      </label>
+      <label class="flex items-center gap-1">
+        <span>サイズ</span>
         <input
-          type="checkbox"
-          value="portraitDisplayFlag"
-          [(ngModel)]="chatTab.portraitDisplayFlag"
-          name="portraitDisplayFlag"
+          class="w-16"
+          [(ngModel)]="chatTabList.portraitHeight"
+          type="number"
+          min="{{ chatTabList.minPortraitSize }}"
+          max="{{ chatTabList.maxPortraitSize }}"
+          name="portraitHeight"
+          (change)="onChkHeight($event)"
         />
-      }
-      @if (!chatTab) {
-        <input type="checkbox" name="portraitDisplayFlag" disabled />
-      }
-      /サイズ:
-      <input
-        [(ngModel)]="chatTabList.portraitHeight"
-        type="number"
-        min="{{ chatTabList.minPortraitSize }}"
-        max="{{ chatTabList.maxPortraitSize }}"
-        name="portraitHeight"
-        (change)="onChkHeight($event)"
-      />
-      チャット簡易表示:
-      @if (chatTab) {
-        <input
-          type="checkbox"
-          value="chatSimpleDispFlag"
-          [(ngModel)]="chatTab.chatSimpleDispFlag"
-          name="chatSimpleDispFlag"
-          (click)="changeSimpleDisp()"
-        />
-      }
+      </label>
+      <label class="flex items-center gap-1 cursor-pointer">
+        <span>簡易表示</span>
+        @if (chatTab) {
+          <input
+            type="checkbox"
+            value="chatSimpleDispFlag"
+            [(ngModel)]="chatTab.chatSimpleDispFlag"
+            name="chatSimpleDispFlag"
+            (click)="changeSimpleDisp()"
+          />
+        }
+      </label>
       <button
         type="button"
-        class="bg-transparent text-[#444] border border-solid border-[#555] px-1 py-0.5 rounded-[5px] cursor-pointer hover:bg-[#888] hover:text-[#eee] text-xs align-middle"
+        class="flex items-center gap-0.5 bg-transparent text-[var(--ui-text-muted)] border border-[var(--ui-panel-border)] px-1.5 py-0.5 rounded-[var(--ui-radius-sm)] cursor-pointer hover:bg-[var(--ui-hover)] hover:text-[var(--ui-accent)] hover:border-[var(--ui-accent)] text-xs transition-colors"
         (click)="showMessageSetting()"
       >
-        <i class="material-icons text-xs align-middle">settings</i>詳細
+        <i class="material-icons" style="font-size: 13px; vertical-align: middle">settings</i>詳細
       </button>
     </div>
   </form>

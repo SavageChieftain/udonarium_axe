@@ -1,130 +1,114 @@
-@if (myPeer) {
-  <div>
-    <button (click)="changeIcon()">アイコンを変更する</button>
-  </div>
-}
-<div class="table">
-  <div class="table-cell align-top w-[160px]">
-    @if (myPeer) {
-      @if (myPeer.image?.url) {
-        <img
-          class="block w-32 h-32 object-cover object-top cursor-pointer"
-          [src]="myPeer.image!.url | safe: 'resourceUrl'"
-          (click)="changeIcon()"
-        />
-      }
-    }
-  </div>
-  <div class="table-cell align-bottom">
-    @if (myPeer) {
-      <span>あなたのニックネーム：</span>
-    }
-    <input name="peer-name" [(ngModel)]="myPeer.name" placeholder="ニックネーム" /><br />
-    <span>ID：</span>
-    @if (networkService.isOpen) {
-      <span class="font-bold">{{ networkService.peerContext.userId }}</span>
-    }
-    @if (!networkService.isOpen) {
-      <span class="font-bold">???</span>
-    }
-    <br />
-    <div>
-      <span>ブラウザ時刻：</span>
-      <span>{{ myTime() | date: 'yy/MM/dd HH:mm:ss' }}</span>
-    </div>
-  </div>
-</div>
-@if (networkService.peerContext.isRoom) {
-  <hr />
-  <div>
-    <span
-      >ルーム名：
-      @if (networkService.isOpen) {
-        <span class="font-bold">{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span>
-      }
-    </span>
-  </div>
-  <div>
-    <span
-      >パスワード：
-      @if (networkService.peerContext.hasPassword) {
-        <span>
-          @if (networkService.isOpen) {
-            <span class="font-bold">{{ isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●' }}</span>
-          }
-          <button class="p-[2px] ml-[1em] text-[1em]" (click)="togglePasswordVisibility()">
-            <span class="material-icons text-[1em] align-text-bottom">{{
-              isPasswordVisible() ? 'visibility' : 'visibility_off'
-            }}</span>
-          </button>
-        </span>
-      }
-    </span>
-  </div>
-  <div>
-    @if (shouldShowReconnectButton) {
-      <button (click)="showReConnect()" class="danger">
-        <span>再接続</span>
+<!-- プロフィール行 -->
+<div class="flex gap-3 p-3">
+  <!-- アバター -->
+  <div class="flex-shrink-0">
+    @if (myPeer?.image?.url) {
+      <img
+        class="block w-24 h-24 object-cover object-top cursor-pointer rounded-[var(--ui-radius)]"
+        [src]="myPeer.image!.url | safe: 'resourceUrl'"
+        (click)="changeIcon()"
+        title="アイコンを変更する"
+      />
+    } @else {
+      <button
+        class="w-24 h-24 flex items-center justify-center rounded-[var(--ui-radius)] bg-[var(--ui-elevated)] border border-dashed border-[var(--ui-panel-border)] text-[var(--ui-text-muted)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-accent)] text-xs"
+        (click)="changeIcon()"
+      >
+        <i class="material-icons">add_photo_alternate</i>
       </button>
     }
   </div>
+  <!-- 情報 -->
+  <div class="flex flex-col gap-1.5 justify-center min-w-0">
+    <label class="text-xs text-[var(--ui-text-muted)]">ニックネーム</label>
+    <input class="w-full" name="peer-name" [(ngModel)]="myPeer.name" placeholder="ニックネーム" />
+    <div class="text-xs text-[var(--ui-text-muted)] space-y-0.5">
+      <div>
+        <span>ID：</span>
+        @if (networkService.isOpen) {
+          <span class="font-bold text-[var(--ui-accent)]">{{ networkService.peerContext.userId }}</span>
+        } @else {
+          <span class="font-bold text-[var(--ui-text-dim)]">???</span>
+        }
+      </div>
+      <div class="text-[var(--ui-text-dim)]">{{ myTime() | date: 'yy/MM/dd HH:mm:ss' }}</div>
+    </div>
+  </div>
+</div>
+
+@if (networkService.peerContext.isRoom) {
+  <hr class="border-[var(--ui-panel-border)] mx-3" />
+  <div class="px-3 py-2 space-y-1 text-sm text-[var(--ui-text-muted)]">
+    <div>
+      ルーム名：
+      @if (networkService.isOpen) {
+        <span class="font-bold text-[var(--ui-text)]"
+          >{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span
+        >
+      }
+    </div>
+    @if (networkService.peerContext.hasPassword) {
+      <div class="flex items-center gap-2">
+        <span>パスワード：</span>
+        @if (networkService.isOpen) {
+          <span class="font-bold text-[var(--ui-text)]">{{
+            isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●'
+          }}</span>
+        }
+        <button class="p-0.5 text-[var(--ui-text-muted)]" (click)="togglePasswordVisibility()">
+          <span class="material-icons text-[1em] align-text-bottom">{{
+            isPasswordVisible() ? 'visibility' : 'visibility_off'
+          }}</span>
+        </button>
+      </div>
+    }
+    @if (shouldShowReconnectButton) {
+      <button (click)="showReConnect()" class="danger">再接続</button>
+    }
+  </div>
 }
-<hr />
-<div>
-  <span
-    ><input name="peer-timeout" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
-    秒以上通信できない参加者情報をチャットに表示</span
-  ><br />
-  <span
-    >詳細を表示<input
+
+<hr class="border-[var(--ui-panel-border)] mx-3" />
+
+<div class="px-3 py-2 space-y-2 text-xs text-[var(--ui-text-muted)]">
+  <label class="flex items-center gap-2">
+    <input class="w-16" name="peer-timeout" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
+    <span>秒以上通信できない参加者情報をチャットに表示</span>
+  </label>
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input
       name="disp-detail-flag"
       type="checkbox"
       value="dispDetailFlag"
       [ngModel]="dispDetailFlag()"
-      (ngModelChange)="dispDetailFlag.set($event)" /></span
-  ><br />
+      (ngModelChange)="dispDetailFlag.set($event)"
+    />
+    <span>詳細を表示</span>
+  </label>
 </div>
+
 @for (context of networkService.peerContexts; track context) {
-  <div class="text-[15px]">
-    <div>
-      @if (!context.isOpen) {
-        <span>[接続中]</span>
-      }
-      <span>他の参加者：{{ findUserId(context.peerId) }} [{{ findPeerName(context.peerId) }}] </span>
-      @if (findPeerTimeReceive(context.peerId) <= 0) {
-        <span>接続確認：[-:--:--]</span>
-      }
-      @if (findPeerTimeReceive(context.peerId) > 0) {
-        <span>接続確認：[{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}]</span>
-      }
-      <br />
-      @if (dispDetailFlag()) {
-        <div>
-          @if (findPeerTimeReceive(context.peerId) > 0) {
-            <span>往復通信時間：{{ findPeerTimeLatency(context.peerId) }}秒</span>
-          }
-          <br />
-        </div>
-      }
-      @if (myPeer.name === '円柱_') {
-        <div>
-          <span
-            >伝送時間+時計誤差合計　受信：{{ findPeerTimeDiffDown(context.peerId) }}ms 送信：{{
-              findPeerTimeDiffUp(context.peerId)
-            }}ms</span
-          ><br />
-          <span>相手の生存信号到着割合：{{ findPeerDegreeOfSuccess(context.peerId) }}</span
-          ><br />
-        </div>
-      }
-    </div>
+  <div class="px-3 py-1 text-xs text-[var(--ui-text-muted)] border-t border-[var(--ui-panel-border)]">
+    @if (!context.isOpen) {
+      <span class="text-[var(--ui-accent)]">[接続中] </span>
+    }
+    <span>{{ findUserId(context.peerId) }} [{{ findPeerName(context.peerId) }}]</span>
+    @if (findPeerTimeReceive(context.peerId) <= 0) {
+      <span class="ml-2 text-[var(--ui-text-dim)]">[-:--:--]</span>
+    } @else {
+      <span class="ml-2 text-[var(--ui-text-dim)]">{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}</span>
+    }
+    @if (dispDetailFlag() && findPeerTimeReceive(context.peerId) > 0) {
+      <span class="ml-2">往復：{{ findPeerTimeLatency(context.peerId) }}秒</span>
+    }
   </div>
 }
-<div>
+
+<div class="px-3 py-2">
   @if (networkService.peerIds.length <= 1) {
-    <button (click)="showLobby()" [disabled]="!networkService.isOpen">ロビー（ルーム一覧）を表示</button>
+    <button class="w-full" (click)="showLobby()" [disabled]="!networkService.isOpen">ロビー（ルーム一覧）を表示</button>
   }
 </div>
-<div>
-  <span class="text-xs">{{ help() }}</span>
+<div class="px-3 pb-2">
+  <span class="text-xs text-[var(--ui-text-dim)]">{{ help() }}</span>
 </div>

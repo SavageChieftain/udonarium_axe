@@ -1,7 +1,55 @@
+/* ダイレクトメッセージモード */
 .direct-message {
   background: var(--ui-accent-bg);
   color: var(--ui-text);
   border-top: 1px solid var(--ui-accent);
+}
+
+/* アバター画像 */
+.imagebox {
+  width: 32px;
+  flex-shrink: 0;
+  align-self: flex-end;
+  padding-bottom: 2px;
+}
+
+.image {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  object-position: 50% 0%;
+  border-radius: var(--ui-radius-sm);
+  display: block;
+}
+
+/* カラースウォッチ行 */
+.color-box-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    transform var(--ui-transition),
+    box-shadow var(--ui-transition);
+  flex-shrink: 0;
+}
+
+.color:hover {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 2px var(--ui-accent-glow);
+}
+
+/* 色設定ボタン列 */
+.color-setting-tag {
+  flex-shrink: 0;
 }
 
 .color-setting {
@@ -10,6 +58,9 @@
   border: 1px solid var(--ui-panel-border);
   border-radius: var(--ui-radius-sm);
   cursor: pointer;
+  font-size: 11px;
+  padding: 2px 6px;
+  white-space: nowrap;
   transition:
     background var(--ui-transition),
     color var(--ui-transition),
@@ -20,4 +71,46 @@
   background: var(--ui-hover);
   color: var(--ui-accent);
   border-color: var(--ui-accent);
+}
+
+/* 立ち絵スライダー列 */
+.portrait-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ui-text-muted);
+  flex-shrink: 0;
+}
+
+/* テキストエリア */
+.chat-input {
+  width: 100%;
+  resize: none;
+  min-height: 40px;
+  max-height: 100px;
+  background: var(--ui-input-bg);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-input-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.4;
+  vertical-align: bottom;
+  box-sizing: border-box;
+  transition: border-color var(--ui-transition);
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 0 2px var(--ui-accent-glow);
+}
+
+.writing-info {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+  padding: 2px 6px;
+  min-height: 16px;
 }

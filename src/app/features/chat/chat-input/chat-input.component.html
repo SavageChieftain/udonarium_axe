@@ -1,20 +1,23 @@
-<div class="table" [ngClass]="{ 'direct-message': isDirect }">
-  <div class="table-cell imagebox">
+<div class="flex gap-2 px-2 pt-2" [ngClass]="{ 'direct-message': isDirect }">
+  <!-- アバター -->
+  <div class="imagebox">
     @if (0 < imageFile.url.length) {
       <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
     }
   </div>
-  <div class="table-cell w-full">
-    <div>
+
+  <div class="flex flex-col gap-1 w-full min-w-0">
+    <!-- 送信元/宛先/DiceBot 行 -->
+    <div class="flex flex-wrap items-center gap-1">
       <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
         @if (!onlyCharacters()) {
           <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
         }
         @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
-          <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }} </ng-option>
+          <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }}</ng-option>
         }
       </ng-select>
-      ＞
+      <span class="text-[var(--ui-text-muted)] text-xs">▶</span>
       <ng-select name="send-to" class="ud-select w-[10em]" [(ngModel)]="sendTo" [clearable]="false">
         <ng-option [value]="''">全員</ng-option>
         @for (peer of otherPeers; track peer) {
@@ -28,7 +31,7 @@
       </ng-select>
       <ng-select
         name="game-type"
-        class="ud-select w-[15em] ml-[0.1em]"
+        class="ud-select w-[15em]"
         (change)="loadDiceBot($event)"
         [(ngModel)]="gameType"
         [clearable]="false"
@@ -37,25 +40,22 @@
           <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
         }
       </ng-select>
-      <button (click)="showDicebotHelp()">?</button>
-    </div>
-    <div>
+      <button class="px-1.5 py-0.5 text-xs" (click)="showDicebotHelp()">?</button>
       @if (!isGameTypeInList()) {
-        <font size="1.5" color="#FF0000"
-          >※ダイスボットが見つかりません(おそらくバージョン違いです)再選択してください。</font
-        >
+        <span class="text-[var(--ui-danger)] text-xs">※ダイスボットが見つかりません</span>
       }
     </div>
-    <div class="table">
-      <div class="table-cell color-box-tag">
+
+    <!-- カラー / 色設定 / 立ち絵 行 -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="color-box-tag">
         @if (!isGameCharacter) {
           <div
             class="color"
             (click)="setColorNum(0)"
             [ngStyle]="{
               'background-color': playerChatColor(0),
-              border: 'solid ' + colorSelectorBoxBorder(0) + ' #666666',
-              'border-radius': colorSelectorRadius(0),
+              'box-shadow': colorSelectorBoxBorder(0) + ' 0 0 0 2px',
             }"
           ></div>
           <div
@@ -63,8 +63,7 @@
             (click)="setColorNum(1)"
             [ngStyle]="{
               'background-color': playerChatColor(1),
-              border: 'solid ' + colorSelectorBoxBorder(1) + ' #666666',
-              'border-radius': colorSelectorRadius(1),
+              'box-shadow': colorSelectorBoxBorder(1) + ' 0 0 0 2px',
             }"
           ></div>
           <div
@@ -72,8 +71,7 @@
             (click)="setColorNum(2)"
             [ngStyle]="{
               'background-color': playerChatColor(2),
-              border: 'solid ' + colorSelectorBoxBorder(2) + ' #666666',
-              'border-radius': colorSelectorRadius(2),
+              'box-shadow': colorSelectorBoxBorder(2) + ' 0 0 0 2px',
             }"
           ></div>
         }
@@ -83,8 +81,7 @@
             (click)="setColorNum(0)"
             [ngStyle]="{
               'background-color': charactorChatColor(0),
-              border: 'solid ' + colorSelectorBoxBorder(0) + ' #666666',
-              'border-radius': colorSelectorRadius(0),
+              'box-shadow': colorSelectorBoxBorder(0) + ' 0 0 0 2px',
             }"
           ></div>
           <div
@@ -92,8 +89,7 @@
             (click)="setColorNum(1)"
             [ngStyle]="{
               'background-color': charactorChatColor(1),
-              border: 'solid ' + colorSelectorBoxBorder(1) + ' #666666',
-              'border-radius': colorSelectorRadius(1),
+              'box-shadow': colorSelectorBoxBorder(1) + ' 0 0 0 2px',
             }"
           ></div>
           <div
@@ -101,85 +97,76 @@
             (click)="setColorNum(2)"
             [ngStyle]="{
               'background-color': charactorChatColor(2),
-              border: 'solid ' + colorSelectorBoxBorder(2) + ' #666666',
-              'border-radius': colorSelectorRadius(2),
+              'box-shadow': colorSelectorBoxBorder(2) + ' 0 0 0 2px',
             }"
           ></div>
         }
       </div>
-      <div class="table-cell color-setting-tag">
-        <button class="color-setting small-font" (click)="showColorSetting()">
-          <i class="material-icons small-font">settings</i>色設定
+      <div class="color-setting-tag">
+        <button class="color-setting" (click)="showColorSetting()">
+          <i class="material-icons" style="font-size: 13px; vertical-align: middle">settings</i>色設定
         </button>
       </div>
-
-      <!-- 立ち絵ここから-->
-      <div class="table-cell portrait-tag">
+      <!-- 立ち絵スライダー -->
+      <div class="portrait-tag">
         @if (1 > portraitCount) {
-          <input
-            type="range"
-            [style]="
-              'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                | safe: 'style'
-            "
-            min="0"
-            max="0"
-            name="portrait-num"
-            [(ngModel)]="portraitIndex"
-          />
-          0/0 立ち絵
+          <input type="range" class="w-24" min="0" max="0" name="portrait-num" [(ngModel)]="portraitIndex" />
+          <span>0/0 立ち絵</span>
         }
         @if (1 <= portraitCount) {
           <input
             type="range"
-            [style]="
-              'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                | safe: 'style'
-            "
+            class="w-24"
             min="0"
             max="{{ portraitCount - 1 }}"
             name="portrait-num"
             [(ngModel)]="portraitIndex"
           />
-          {{ portraitIndex }}/{{ portraitCount - 1 }} 立ち絵
+          <span>{{ portraitIndex }}/{{ portraitCount - 1 }} 立ち絵</span>
           @if (selectedPortrait; as portrait) {
             @if (portrait.currentValue) {
-              {{ portrait.currentValue }}
+              <span class="text-[var(--ui-text-dim)]">{{ portrait.currentValue }}</span>
             }
           }
         }
       </div>
-      <div class="table-cell"></div>
     </div>
-    <!-- ここまで-->
-    <div>
-      <form name="chat-input">
-        <textarea
-          name="chat-input-text"
-          class="chat-input"
-          placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
-          [(ngModel)]="text"
-          [ngModelOptions]="{ standalone: true }"
-          (input)="onInput()"
-          (keydown.enter)="sendChat($event)"
-          (keydown.control.arrowup)="moveHistory($event, -1)"
-          (keydown.control.arrowdown)="moveHistory($event, 1)"
-          (keydown.arrowup)="selectAutoComplete($event, -1)"
-          (keydown.arrowdown)="selectAutoComplete($event, 1)"
-          (keydown.control.arrowleft)="tabSwitchAction($event, -1)"
-          (keydown.control.arrowright)="tabSwitchAction($event, 1)"
-          #textArea
-        ></textarea>
-        <button type="submit" (click)="sendChat(null)">SEND</button>
-      </form>
-    </div>
+
+    <!-- テキストエリア + SEND -->
+    <form name="chat-input" class="flex gap-2 items-end pb-2">
+      <textarea
+        name="chat-input-text"
+        class="chat-input flex-1"
+        placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
+        [(ngModel)]="text"
+        [ngModelOptions]="{ standalone: true }"
+        (input)="onInput()"
+        (keydown.enter)="sendChat($event)"
+        (keydown.control.arrowup)="moveHistory($event, -1)"
+        (keydown.control.arrowdown)="moveHistory($event, 1)"
+        (keydown.arrowup)="selectAutoComplete($event, -1)"
+        (keydown.arrowdown)="selectAutoComplete($event, 1)"
+        (keydown.control.arrowleft)="tabSwitchAction($event, -1)"
+        (keydown.control.arrowright)="tabSwitchAction($event, 1)"
+        #textArea
+      ></textarea>
+      <button
+        type="submit"
+        class="px-4 py-2 self-end text-sm font-semibold bg-[var(--ui-accent)] text-[#0d1117] border-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] rounded-[var(--ui-radius-sm)]"
+        (click)="sendChat(null)"
+      >
+        SEND
+      </button>
+    </form>
+
+    <!-- 入力中インジケーター -->
     <div class="writing-info">
       @if (0 < writingPeerNames().length) {
         @for (peerName of writingPeerNames(); track peerName; let i = $index) {
-          <span class="font-bold">
-            >{{ peerName }}
+          <span class="font-bold"
+            >&gt;{{ peerName }}
             @if (writingPeerNames().length !== i + 1) {
-              <span>, </span>
+              ,
             }
           </span>
         }
