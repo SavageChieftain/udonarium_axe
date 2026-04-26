@@ -1,0 +1,172 @@
+/* テーブルリスト */
+.table-list {
+  width: 10em;
+  flex-shrink: 0;
+}
+
+.table-list select {
+  width: 100%;
+  background: var(--ui-input-bg);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-input-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 2px 4px;
+  font-size: 13px;
+}
+
+/* 設定フォームエリア */
+.settings-pane {
+  flex: 1 0 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* セクション */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--ui-text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--ui-panel-border);
+  padding-bottom: 3px;
+  margin-bottom: 2px;
+}
+
+/* 画像サムネイル */
+.image-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.image-label {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+}
+
+.image-thumb {
+  width: 96px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid var(--ui-panel-border);
+  cursor: pointer;
+  transition: border-color var(--ui-transition);
+}
+
+.image-thumb:hover {
+  border-color: var(--ui-accent);
+}
+
+.image-add-btn {
+  width: 96px;
+  height: 72px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px;
+  line-height: 1.3;
+}
+
+/* フォームフィールド（ラベル + コントロール） */
+.field {
+  display: grid;
+  grid-template-columns: 6em 1fr;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.field-label {
+  font-size: 12px;
+  color: var(--ui-text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* スライダー付きフィールド */
+.field-slider {
+  display: grid;
+  grid-template-columns: 6em 1fr auto;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.field-slider input[type='range'] {
+  width: 100%;
+  accent-color: var(--ui-accent);
+}
+
+.field-slider input[type='number'] {
+  width: 4.5em;
+  text-align: right;
+}
+
+/* カラーピッカー行 */
+.color-row {
+  display: grid;
+  grid-template-columns: 6em auto 1fr auto auto;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.color-input {
+  width: 32px;
+  height: 24px;
+  padding: 1px;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid var(--ui-input-border);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* チェックボックスラベル */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ui-text);
+  user-select: none;
+}
+
+.checkbox-label input[type='checkbox'] {
+  accent-color: var(--ui-accent);
+  width: 14px;
+  height: 14px;
+}
+
+/* アクションボタン行 */
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* ダイスボットセクション */
+.dicebot-section {
+  border-top: 1px solid var(--ui-panel-border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dicebot-note {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+  line-height: 1.5;
+}
