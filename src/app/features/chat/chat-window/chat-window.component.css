@@ -26,12 +26,13 @@
   padding: 6px 6px 4px;
   user-select: none;
   display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
+  flex-wrap: nowrap;
+  gap: 4px;
   align-items: center;
   border-bottom: 1px solid var(--ui-panel-border);
   position: relative;
   z-index: 10;
+  overflow: visible;
 }
 
 .chat-tab label {
@@ -138,20 +139,6 @@
   background: var(--ui-accent-bg);
   color: var(--ui-accent);
   box-shadow: 0 0 0 2px var(--ui-accent-glow);
-}
-
-/* ── タブ行レイアウト ── */
-.chat-tab {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.chat-tab::-webkit-scrollbar {
-  display: none;
 }
 
 .chat-tab-pills {
