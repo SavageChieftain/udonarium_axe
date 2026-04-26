@@ -1,109 +1,138 @@
-<div class="flex flex-row flex-wrap justify-start items-stretch">
-  <div class="m-[5px] flex-[1_0_auto] box-border grow-0 max-w-full">
-    <div>
-      <button (click)="create()">チャットタブを作る</button>
+<div class="tab-setting-layout">
+  <!-- ── 左カラム: タブリスト ── -->
+  <aside class="tab-list-col">
+    <div class="tab-list-header">
+      <span class="col-heading">チャットタブ</span>
+      <button type="button" class="icon-btn" title="タブを追加" (click)="create()">
+        <i class="material-icons">add</i>
+      </button>
     </div>
-    <select
-      class="w-[10em]"
-      size="10"
-      (change)="onSelectTab($event)"
-      name="chat-tab-select"
-      name="chat-tab-select"
-      [ngModel]="selectedTab()?.identifier"
-    >
-      @for (chatTab of chatTabs; track chatTab) {
-        <option value="{{ chatTab.identifier }}">{{ chatTab.name }}</option>
+
+    <ul class="tab-list" role="listbox">
+      @for (chatTab of chatTabs; track chatTab.identifier) {
+        <li
+          class="tab-list-item"
+          [class.selected]="selectedTab()?.identifier === chatTab.identifier"
+          (click)="onChangeSelectTab(chatTab.identifier)"
+          role="option"
+          [attr.aria-selected]="selectedTab()?.identifier === chatTab.identifier"
+        >
+          <i class="material-icons tab-item-icon">chat_bubble_outline</i>
+          <span class="tab-item-name">{{ chatTab.name }}</span>
+        </li>
       }
-    </select>
-    <div class="text-xs">
-      <button (click)="onChangeSystemTab()">システム表示先指定</button>
-    </div>
-    <div class="w-[10em] overflow-hidden text-[14px]">現在システム表示先：<br />{{ systemTab()?.name }}</div>
-  </div>
-  <div class="m-[5px] flex-[1_0_auto] box-border grow max-w-full">
-    @if (!isEmpty && selectedTab()) {
-      <div>
-        タブ名 :
-        <input name="tab-name" [(ngModel)]="tabName" placeholder="Name" [attr.disabled]="!isEditable ? '' : null" />
+    </ul>
+
+    <div class="system-tab-info">
+      <button type="button" class="text-btn" (click)="onChangeSystemTab()">
+        <i class="material-icons">settings_input_component</i>
+        システム表示先を設定
+      </button>
+      <div class="system-tab-current">
+        <i class="material-icons">info_outline</i>
+        現在: {{ systemTab()?.name ?? '—' }}
       </div>
-      <hr />
-      <div>
-        @if (!isDeleted) {
-          <div class="pl-[45px]">
-            タブ削除を有効にする<input
-              name="allow-delete-tab"
-              type="checkbox"
-              value="allowDeleteTab"
-              [(ngModel)]="allowDeleteTab"
-            />
-          </div>
-          <button (click)="upTabIndex()">↑</button>
-          <button (click)="downTabIndex()">↓</button>
-          <button [disabled]="isSaving()" (click)="save()">
-            <div class="relative">
-              <div [class.invisible]="isSaving()">保存</div>
-              @if (isSaving()) {
-                <div class="flex items-center justify-center absolute inset-0 text-[0.9em]">
-                  {{ progressPercent() }}%
-                </div>
-              }
-            </div>
-          </button>
-          <span class="inline-block w-[2em]"></span>
-          <button
-            class="danger"
-            (click)="delete()"
-            [attr.disabled]="chatTabs.length <= 1 ? '' : null"
-            [attr.disabled]="!allowDeleteTab ? '' : null"
-          >
-            選択タブ削除</button
-          ><br />
-        }
-        @if (isDeleted) {
-          <button (click)="restore()">元に戻す</button>
-        }
-        @if (!isDeleted) {
-          <hr />
-          <button (click)="saveLog()" class="w-[9em]">ログ保存</button
-          ><span class="text-xs">リストから選んだログを保存</span><br />
-          <button (click)="saveAllLog()" class="w-[9em]">全タブログ保存</button
-          ><span class="text-xs">時系列順にまとめて保存</span><br />
-          <span>CoCログ形式にする</span
-          ><input name="mode-coc-log" type="checkbox" value="modeCocLog" [(ngModel)]="modeCocLog" /><br />
-        }
-        <hr />
-        <br /><br />
-        @if (!isDeleted) {
-          ログの消去機能を有効にする<input
-            name="allow-delete-log"
-            type="checkbox"
-            value="allowDeleteLog"
-            [(ngModel)]="allowDeleteLog"
-          /><br />
-          <button
-            class="danger"
-            (click)="deleteLog()"
-            [attr.disabled]="chatTabs.length <= 1 ? '' : null"
-            class="w-[9em]"
-            [attr.disabled]="!allowDeleteLog ? '' : null"
-          >
-            選択ログ消去
-          </button>
-          <button
-            class="danger w-[9em]"
-            (click)="deleteLogALL()"
-            [attr.disabled]="chatTabs.length <= 1 ? '' : null"
-            [attr.disabled]="!allowDeleteLog ? '' : null"
-          >
-            全ログ消去
-          </button>
-        }
+    </div>
+  </aside>
+
+  <!-- ── 右カラム: タブ詳細 ── -->
+  <main class="tab-detail-col">
+    @if (isEmpty) {
+      <div class="empty-state">
+        <i class="material-icons">tab</i>
+        <p>チャットタブが存在しません</p>
+        <button type="button" class="primary-btn" (click)="create()">タブを作成</button>
       </div>
     }
-  </div>
+
+    @if (!isEmpty && selectedTab()) {
+      <!-- タブ名 -->
+      <div class="detail-section">
+        <label class="field-label">タブ名</label>
+        <div class="name-row">
+          <input
+            class="name-input"
+            name="tab-name"
+            [(ngModel)]="tabName"
+            placeholder="タブ名を入力"
+            [attr.disabled]="!isEditable ? '' : null"
+          />
+          <button type="button" class="icon-btn" title="上に移動" (click)="upTabIndex()" [disabled]="isDeleted">
+            <i class="material-icons">arrow_upward</i>
+          </button>
+          <button type="button" class="icon-btn" title="下に移動" (click)="downTabIndex()" [disabled]="isDeleted">
+            <i class="material-icons">arrow_downward</i>
+          </button>
+        </div>
+      </div>
+
+      @if (isDeleted) {
+        <div class="deleted-notice">
+          <i class="material-icons">undo</i>
+          このタブは削除されています
+          <button type="button" class="primary-btn" (click)="restore()">元に戻す</button>
+        </div>
+      }
+
+      @if (!isDeleted) {
+        <!-- 保存 / 削除 -->
+        <div class="detail-section">
+          <div class="action-row">
+            <button type="button" class="primary-btn save-btn" [disabled]="isSaving()" (click)="save()">
+              @if (isSaving()) {
+                <i class="material-icons spin">sync</i>{{ progressPercent() }}%
+              } @else {
+                <i class="material-icons">save</i>保存
+              }
+            </button>
+            <label class="check-label">
+              <input type="checkbox" name="allow-delete-tab" [(ngModel)]="allowDeleteTab" />
+              削除を有効化
+            </label>
+            <button type="button" class="danger-btn" [disabled]="!allowDeleteTab" (click)="delete()">
+              <i class="material-icons">delete</i>タブ削除
+            </button>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- ログ保存 -->
+        <div class="detail-section">
+          <div class="section-label">ログ保存</div>
+          <div class="log-row">
+            <button type="button" class="secondary-btn" (click)="saveLog()">
+              <i class="material-icons">download</i>このタブ
+            </button>
+            <button type="button" class="secondary-btn" (click)="saveAllLog()">
+              <i class="material-icons">download_for_offline</i>全タブ
+            </button>
+          </div>
+          <label class="check-label">
+            <input type="checkbox" name="mode-coc-log" [(ngModel)]="modeCocLog" />
+            CoCログ形式で出力
+          </label>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- ログ消去 -->
+        <div class="detail-section">
+          <div class="section-label">ログ消去</div>
+          <div class="log-row">
+            <label class="check-label">
+              <input type="checkbox" name="allow-delete-log" [(ngModel)]="allowDeleteLog" />
+              消去を有効化
+            </label>
+            <button type="button" class="danger-btn" [disabled]="!allowDeleteLog" (click)="deleteLog()">
+              <i class="material-icons">delete_sweep</i>このタブ
+            </button>
+            <button type="button" class="danger-btn" [disabled]="!allowDeleteLog" (click)="deleteLogALL()">
+              <i class="material-icons">delete_forever</i>全タブ
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </main>
 </div>
-@if (isEmpty) {
-  <div class="text-xs">
-    ※チャットタブが１つも作成されていません。「チャットタブを作る」からチャットタブを作成することができます。
-  </div>
-}

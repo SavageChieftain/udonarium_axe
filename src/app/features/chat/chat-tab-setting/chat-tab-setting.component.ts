@@ -17,7 +17,8 @@ import GameSystemClass from 'bcdice/lib/game_system';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-chat-tab-setting',
   templateUrl: './chat-tab-setting.component.html',
-  host: { class: 'block' },
+  styleUrl: './chat-tab-setting.component.css',
+  host: { class: 'block h-full' },
   imports: [FormsModule],
 })
 export class ChatTabSettingComponent {
