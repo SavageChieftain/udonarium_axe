@@ -27,11 +27,11 @@ function relativeLuminance(hex: string): number | null {
  * チャットカラー用スタイルオブジェクトを生成するパイプ。
  *
  * ユーザーが設定した色（color）はそのまま尊重しつつ、
- * 色の輝度に応じた text-shadow を付与することで、
+ * 色の輝度に応じた text-shadow 縁取りを付与することで、
  * ダーク／ライト両テーマで見やすさを確保する。
  *
- * - 明るい色（輝度 > 0.18）: 暗いハローを追加 → ライト背景でも読める
- * - 暗い色（輝度 ≤ 0.18）: 明るいハローを追加 → ダーク背景でも読める
+ * - 明るい色（輝度 > 0.18）: 黒縁取り → ライト背景でも読める
+ * - 暗い色（輝度 ≤ 0.18）: 白縁取り → ダーク背景でも読める
  */
 @Pipe({ name: 'chatColorStyle', pure: true })
 export class ChatColorStylePipe implements PipeTransform {
@@ -41,12 +41,23 @@ export class ChatColorStylePipe implements PipeTransform {
     const lum = relativeLuminance(color);
     if (lum === null) return { color, 'text-shadow': 'none' };
 
-    // 明るい色 → 暗いハローで、ライト背景での視認性を補助
-    // 暗い色  → 明るいハローで、ダーク背景での視認性を補助
-    const shadow =
-      lum > 0.18
-        ? '0 0 4px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.4)'
-        : '0 0 5px rgba(255,255,255,0.65), 0 0 3px rgba(255,255,255,0.5)';
+    // 4方向 + 斜め4方向の計8方向シャドウで縁取りを形成
+    const outline = (r: number, g: number, b: number, a: number) => {
+      const c = `rgba(${r},${g},${b},${a})`;
+      return [
+        `-1px -1px 0 ${c}`,
+        ` 1px -1px 0 ${c}`,
+        `-1px  1px 0 ${c}`,
+        ` 1px  1px 0 ${c}`,
+        `-1px  0   0 ${c}`,
+        ` 1px  0   0 ${c}`,
+        ` 0   -1px 0 ${c}`,
+        ` 0    1px 0 ${c}`,
+      ].join(', ');
+    };
+
+    // 明るい色 → 黒縁取り、暗い色 → 白縁取り
+    const shadow = lum > 0.18 ? outline(0, 0, 0, 0.75) : outline(255, 255, 255, 0.8);
 
     return { color, 'text-shadow': shadow };
   }
