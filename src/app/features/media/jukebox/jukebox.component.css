@@ -1,0 +1,23 @@
+.drop-zone {
+  border: 2px dashed #555;
+  border-radius: 5px;
+  padding: 25px;
+  text-align: center;
+  font: 24px bold 'Vollkorn';
+  color: #444;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.large-font {
+  font-size: 64px;
+}
+
+.small-font {
+  font-size: 12px;
+}
+
+.tag-select {
+  font-size: 12px;
+  vertical-align: middle;
+}
