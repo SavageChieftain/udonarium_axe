@@ -15,14 +15,20 @@
   position: sticky;
   bottom: 0;
   width: 100%;
-  background-color: rgba(240, 218, 189, 0.8);
-  border-top: 1px dotted #666;
+  background: var(--ui-titlebar-bg);
+  border-top: 1px solid var(--ui-panel-border);
   margin-bottom: 0;
 }
 
+/* チャットタブ — ピル形状 */
 .chat-tab {
-  padding: 5px;
+  padding: 6px 6px 4px;
   user-select: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  border-bottom: 1px solid var(--ui-panel-border);
 }
 
 .chat-tab label {
@@ -38,25 +44,33 @@
   display: inline-block;
   vertical-align: middle;
   outline: 0;
-  font-size: 12px;
-  background-color: transparent;
-  color: #444;
-  border: solid 1px #555;
-  padding: 2px 8px;
-  margin: 2px;
+  font-size: 11px;
+  background: transparent;
+  color: var(--ui-text-muted);
+  border: 1px solid var(--ui-panel-border);
+  padding: 3px 10px;
   border-radius: 100px;
   cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition),
+    box-shadow var(--ui-transition);
+  white-space: nowrap;
 }
 
 .chat-tab input[type='radio'] + div:hover {
-  background-color: #888;
-  color: #eee;
-  border: solid 1px #555;
+  background: var(--ui-hover);
+  color: var(--ui-text);
+  border-color: var(--ui-accent);
 }
 
 .chat-tab input[type='radio']:checked + div {
-  background: #555;
-  color: #ccc;
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 0 1px var(--ui-accent-glow);
+  font-weight: 500;
 }
 
 .badge {
@@ -66,18 +80,23 @@
 }
 
 .tab-setting {
-  background-color: transparent;
-  color: #444;
-  border: solid 1px #555;
-  padding: 2px 4px;
-  border-radius: 5px;
+  background: transparent;
+  color: var(--ui-text-dim);
+  border: 1px solid var(--ui-panel-border);
+  padding: 3px 6px;
+  border-radius: 100px;
   cursor: pointer;
+  font-size: 11px;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
 }
 
 .tab-setting:hover {
-  background-color: #888;
-  color: #eee;
-  border: solid 1px #555;
+  background: var(--ui-hover);
+  color: var(--ui-text);
+  border-color: var(--ui-accent);
 }
 
 .small-font {
@@ -100,26 +119,20 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  padding: 0;
-  border: 1px solid #ccc;
   border-radius: 50%;
-  background-color: #555;
-  color: #ccc;
+  background: var(--ui-elevated);
+  border: 1px solid var(--ui-panel-border);
+  box-shadow: var(--ui-shadow-sm);
+  color: var(--ui-text-muted);
   cursor: pointer;
-  transition: opacity 0.15s;
-  opacity: 0.7;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    box-shadow var(--ui-transition);
 }
 
 .scroll-to-bottom-btn:hover {
-  opacity: 1;
-}
-
-.scroll-to-bottom-btn.has-new-message {
-  opacity: 1;
-  border-width: 2px;
-}
-
-.scroll-to-bottom-btn .material-icons {
-  font-size: 20px;
-  line-height: 1;
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  box-shadow: 0 0 0 2px var(--ui-accent-glow);
 }

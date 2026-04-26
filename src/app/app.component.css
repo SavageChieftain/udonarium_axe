@@ -12,41 +12,58 @@ img {
 
 nav ul {
   list-style: none;
-  padding: 0px;
-  margin: 0px;
+  padding: 4px 0;
+  margin: 0;
 }
 
 nav ul > li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 5px;
-  color: #ccc;
-  color: #444;
-
-  cursor: -moz-pointer;
-  cursor: -webkit-pointer;
+  padding: 8px 4px;
+  color: var(--ui-text-muted);
   cursor: pointer;
+  border-radius: var(--ui-radius);
+  margin: 2px 6px;
+  transition:
+    color var(--ui-transition),
+    background var(--ui-transition),
+    box-shadow var(--ui-transition);
+  position: relative;
 }
 
 nav ul > li:hover {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-accent);
+  background: var(--ui-accent-bg);
+  box-shadow: 0 0 0 1px var(--ui-accent-glow);
 }
 
 nav ul > li > a {
-  height: 128px;
-  width: 128px;
-  font-size: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
   user-select: none;
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
 }
 
 nav ul > li > a > label {
-  cursor: -moz-pointer;
-  cursor: -webkit-pointer;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: inherit;
+  font-size: 9px;
 }
 
 nav ul i {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 nav ul a,
@@ -57,7 +74,7 @@ nav ul a:visited {
 }
 
 .icon-size {
-  font-size: 40px;
+  font-size: 22px;
 }
 
 .side-menu {
@@ -66,12 +83,16 @@ nav ul a:visited {
   box-sizing: border-box;
   overflow: auto;
   position: absolute;
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
-  border: solid 1px #999;
+  color: var(--ui-text-muted);
+  background: var(--ui-panel-bg);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: none;
+  border-right: 1px solid var(--ui-panel-border);
+  box-shadow: var(--ui-shadow-sm);
   padding: 0px;
   height: 100%;
-  width: 300px;
+  width: 80px;
 }
 
 .networkIndicator {

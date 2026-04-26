@@ -3,11 +3,16 @@
   overflow: visible;
   position: absolute;
 
-  background: linear-gradient(-30deg, rgba(240, 218, 189, 0.9), rgba(255, 244, 232, 0.9));
-  border: solid 1px #999;
-  padding: 0px;
+  background: var(--ui-menu-bg);
+  border: 1px solid var(--ui-menu-border);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow: var(--ui-shadow-lg);
+  border-radius: var(--ui-radius);
+  padding: 4px 0;
 
   white-space: nowrap;
+  color: var(--ui-text);
 
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -38,12 +43,14 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   max-width: 18em;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-align: center;
-  padding: 4px 16px;
-  margin: 0 2px;
-  color: #444;
-  border-bottom: 1px solid #aaa;
+  padding: 4px 16px 6px;
+  margin: 0;
+  color: var(--ui-text-muted);
+  border-bottom: 1px solid var(--ui-menu-separator);
 }
 
 .menu-title {
@@ -60,34 +67,33 @@ input.altitude {
   direction: rtl;
   width: 8px;
   height: 200px;
-
   padding: 3px;
 }
 
 .disabled .menu-title,
 .disabled .material-icons {
-  color: gray;
+  color: var(--ui-text-dim);
 }
 
 .altitude-view {
-  color: black;
+  color: var(--ui-text);
   vertical-align: top;
   width: 3em;
   text-align: right;
 }
 
 .ruler {
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: small;
   padding-left: 4px;
   padding-right: 2px;
 }
 
 hr.separator {
-  margin: 0.1em -12px;
+  margin: 4px 0;
   height: 1px;
   border: 0;
-  background-color: #aaa;
+  background-color: var(--ui-menu-separator);
 }
 
 .sub-menu-arrow {
@@ -106,16 +112,18 @@ ul {
 
 ul > li {
   position: relative;
-  cursor: -moz-default;
-  cursor: -webkit-default;
   cursor: default;
-
-  padding: 2px 20px;
+  padding: 5px 20px;
   font-size: 12px;
-  color: #444;
+  color: var(--ui-text);
+  border-radius: var(--ui-radius-sm);
+  margin: 0 4px;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
 }
 
 ul > li.hasHighlight:hover {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-accent);
+  background: var(--ui-menu-hover);
 }

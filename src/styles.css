@@ -10,17 +10,126 @@
 /* Tailwind がスキャンするソースディレクトリ (このCSSファイルからの相対パス) */
 @source './app/**/*.{ts,html}';
 
-/* デザイントークン */
+/* ── Tailwind デザイントークン (ユーティリティ生成用) ───────────── */
 @theme {
   --color-surface: hsl(220 14% 18%);
   --color-panel: hsl(220 14% 22%);
   --color-border: hsl(220 14% 32%);
-  --color-primary: hsl(200 80% 50%);
-  --color-primary-hover: hsl(200 80% 42%);
-  --color-danger: hsl(0 65% 55%);
-  --color-danger-hover: hsl(0 65% 45%);
+  --color-primary: hsl(210 100% 68%);
+  --color-primary-hover: hsl(210 100% 56%);
+  --color-danger: hsl(0 90% 62%);
+  --color-danger-hover: hsl(0 90% 74%);
   --color-text-muted: hsl(220 10% 60%);
   --font-family-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
+}
+
+/* ── UIデザイントークン ─────────────────────────────────────────
+   ダークテーマ (デフォルト / システム設定がダークの場合)
+   GitHub Dark Dimmed をベースにした 2026 年モダンデザイン
+── */
+:root {
+  /* ベース背景 */
+  --ui-bg: #0d1117;
+  --ui-surface: #161b22;
+  --ui-elevated: #21262d;
+
+  /* パネル (グラスモーフィズム) */
+  --ui-panel-bg: rgba(22, 27, 34, 0.9);
+  --ui-panel-border: rgba(48, 54, 61, 0.8);
+  --ui-panel-glow: rgba(56, 189, 248, 0.04);
+  --ui-titlebar-bg: #1c2128;
+  --ui-titlebar-border: rgba(48, 54, 61, 0.6);
+  --ui-hover: rgba(255, 255, 255, 0.07);
+  --ui-selected: rgba(56, 189, 248, 0.15);
+
+  /* コンテキストメニュー */
+  --ui-menu-bg: rgba(13, 17, 23, 0.96);
+  --ui-menu-border: rgba(58, 65, 74, 0.8);
+  --ui-menu-hover: rgba(56, 189, 248, 0.12);
+  --ui-menu-separator: rgba(48, 54, 61, 0.8);
+
+  /* テキスト */
+  --ui-text: #e6edf3;
+  --ui-text-muted: #8b949e;
+  --ui-text-dim: #484f58;
+
+  /* アクセント (エレクトリックブルー) */
+  --ui-accent: #58a6ff;
+  --ui-accent-hover: #79c0ff;
+  --ui-accent-glow: rgba(88, 166, 255, 0.3);
+  --ui-accent-bg: rgba(88, 166, 255, 0.1);
+
+  /* 危険/エラー */
+  --ui-danger: #f85149;
+  --ui-danger-hover: #ff7b72;
+  --ui-danger-glow: rgba(248, 81, 73, 0.3);
+  --ui-danger-bg: rgba(248, 81, 73, 0.1);
+
+  /* 成功 */
+  --ui-success: #3fb950;
+
+  /* 入力欄 */
+  --ui-input-bg: rgba(13, 17, 23, 0.8);
+  --ui-input-border: rgba(48, 54, 61, 0.8);
+
+  /* シャドウ */
+  --ui-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --ui-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.65), 0 1px 4px rgba(0, 0, 0, 0.4);
+  --ui-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.5);
+
+  /* 丸み */
+  --ui-radius-sm: 4px;
+  --ui-radius: 8px;
+  --ui-radius-lg: 12px;
+  --ui-radius-xl: 16px;
+
+  /* トランジション */
+  --ui-transition: 150ms ease;
+}
+
+/* ── ライトテーマ (システム設定に追従) ──────────────────────────── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --ui-bg: #f3f4f6;
+    --ui-surface: #ffffff;
+    --ui-elevated: #eef1f5;
+
+    --ui-panel-bg: rgba(255, 255, 255, 0.92);
+    --ui-panel-border: rgba(0, 0, 0, 0.1);
+    --ui-panel-glow: rgba(9, 105, 218, 0.04);
+    --ui-titlebar-bg: #f0f4f8;
+    --ui-titlebar-border: rgba(0, 0, 0, 0.07);
+    --ui-hover: rgba(0, 0, 0, 0.05);
+    --ui-selected: rgba(9, 105, 218, 0.1);
+
+    --ui-menu-bg: rgba(255, 255, 255, 0.97);
+    --ui-menu-border: rgba(0, 0, 0, 0.1);
+    --ui-menu-hover: rgba(9, 105, 218, 0.08);
+    --ui-menu-separator: rgba(0, 0, 0, 0.1);
+
+    --ui-text: #1c2128;
+    --ui-text-muted: #57606a;
+    --ui-text-dim: #8c959f;
+
+    --ui-accent: #0969da;
+    --ui-accent-hover: #0550ae;
+    --ui-accent-glow: rgba(9, 105, 218, 0.22);
+    --ui-accent-bg: rgba(9, 105, 218, 0.08);
+
+    --ui-danger: #cf222e;
+    --ui-danger-hover: #a40e26;
+    --ui-danger-glow: rgba(207, 34, 46, 0.22);
+    --ui-danger-bg: rgba(207, 34, 46, 0.08);
+
+    --ui-success: #1a7f37;
+
+    --ui-input-bg: #ffffff;
+    --ui-input-border: rgba(0, 0, 0, 0.2);
+
+    --ui-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --ui-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06);
+    --ui-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
 }
 
 /* badge bounce animation (moved from component CSS) */
@@ -98,52 +207,126 @@
 /* ボタンデフォルトは @layer base に配置: Tailwind ユーティリティ (@layer utilities) が優先して上書きできる */
 @layer base {
   button {
-    background-color: #eee;
-    color: #444;
-    border: solid 1px #ccc;
-    padding: 0.35em 0.7em;
+    background: var(--ui-elevated);
+    color: var(--ui-text);
+    border: 1px solid var(--ui-panel-border);
+    padding: 0.3em 0.75em;
     margin: 0 2px;
-    border-radius: 4px;
+    border-radius: var(--ui-radius-sm);
     cursor: pointer;
+    font-size: 0.875em;
+    font-family: inherit;
+    transition:
+      background var(--ui-transition),
+      border-color var(--ui-transition),
+      color var(--ui-transition),
+      box-shadow var(--ui-transition),
+      transform var(--ui-transition);
+    user-select: none;
+    line-height: 1.4;
   }
   button:hover {
-    background-color: #cfd8dc;
+    background: var(--ui-hover);
+    border-color: var(--ui-accent);
+    color: var(--ui-accent);
+    box-shadow: 0 0 0 3px var(--ui-accent-glow);
+  }
+  button:active {
+    transform: scale(0.97);
   }
   button:disabled {
-    background-color: #eee;
-    color: #aaa;
-    cursor: auto;
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
   }
   button.danger {
-    background-color: rgb(207, 82, 82);
-    color: #eee;
-    border: solid 1px rgb(184, 59, 59);
+    background: var(--ui-danger-bg);
+    color: var(--ui-danger);
+    border-color: var(--ui-danger);
   }
   button.danger:hover {
-    background-color: rgb(160, 32, 32);
-    color: #f5f5f5;
+    background: var(--ui-danger);
+    color: #fff;
+    border-color: var(--ui-danger);
+    box-shadow: 0 0 0 3px var(--ui-danger-glow);
   }
   button.danger:disabled {
-    background-color: rgb(224, 131, 131);
-    border: solid 1px rgb(187, 55, 55);
-    color: #eee;
+    background: var(--ui-danger-bg);
+    color: var(--ui-danger);
+    opacity: 0.38;
   }
 
   /* Tailwind v4 preflight は background-color: transparent と border: 0 solid を
      input/textarea/select に適用するため、ブラウザデフォルトを明示的に復元する */
   input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='color']) {
-    border: 1px solid #aaa;
-    padding: 1px 2px;
-    background-color: white;
+    border: 1px solid var(--ui-input-border);
+    padding: 2px 6px;
+    background-color: var(--ui-input-bg);
+    color: var(--ui-text);
+    border-radius: var(--ui-radius-sm);
+    outline: none;
+    transition:
+      border-color var(--ui-transition),
+      box-shadow var(--ui-transition);
+  }
+  input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='color']):focus {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 3px var(--ui-accent-glow);
   }
   textarea {
-    border: 1px solid #aaa;
-    padding: 1px 2px;
-    background-color: white;
+    border: 1px solid var(--ui-input-border);
+    padding: 4px 6px;
+    background-color: var(--ui-input-bg);
+    color: var(--ui-text);
+    border-radius: var(--ui-radius-sm);
+    outline: none;
+    transition:
+      border-color var(--ui-transition),
+      box-shadow var(--ui-transition);
+  }
+  textarea:focus {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 3px var(--ui-accent-glow);
   }
   select {
-    border: 1px solid #aaa;
-    background-color: white;
+    border: 1px solid var(--ui-input-border);
+    background-color: var(--ui-input-bg);
+    color: var(--ui-text);
+    border-radius: var(--ui-radius-sm);
+    padding: 1px 4px;
+    outline: none;
+    transition: border-color var(--ui-transition);
+  }
+  select:focus {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 3px var(--ui-accent-glow);
+  }
+
+  /* スクロールバー — 細くスタイリッシュに */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--ui-text-dim);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ui-text-muted);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-text-dim) transparent;
+  }
+
+  /* テーブル hr デフォルト */
+  hr {
+    border: none;
+    border-top: 1px solid var(--ui-panel-border);
+    margin: 0.5em 0;
   }
 }
 
@@ -154,13 +337,15 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: hsl(0, 0%, 97%);
+  background-color: var(--ui-bg);
   touch-action: manipulation;
+  color-scheme: dark light;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
   position: relative;
+  color: var(--ui-text);
 }
 
 .sk-cube-grid {
