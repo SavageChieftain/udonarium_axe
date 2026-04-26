@@ -11,9 +11,9 @@
   </div>
 </div>
 <div class="box-border p-[5px] table w-full">
-  <div class="inline-block w-[100px] h-[100px] max-w-[50px] max-h-[50px] align-top text-center">
+  <div class="table-cell align-top text-center" style="width: 50px">
     @if (imageFile.url) {
-      <img class="h-full align-bottom object-cover" [src]="imageFile.url | safe: 'resourceUrl'" />
+      <img class="w-[50px] h-[50px] object-cover" [src]="imageFile.url | safe: 'resourceUrl'" />
     }
   </div>
   <div class="table-cell">登録枚数:{{ portraitCount }}</div>
