@@ -55,6 +55,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 
       .img-box {
         border: 2px dotted #666;
+        overflow: hidden;
       }
 
       .selected {
