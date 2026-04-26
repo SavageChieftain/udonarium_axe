@@ -1,121 +1,117 @@
-<div class="flex gap-2 px-2 py-2" [ngClass]="{ 'direct-message': isDirect }">
-  <!-- アバター -->
-  <div class="imagebox">
-    @if (0 < imageFile.url.length) {
-      <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
-    }
-  </div>
-
-  <div class="flex flex-col gap-1 w-full min-w-0">
-    <!-- 送信元/宛先/DiceBot 行 -->
-    <div class="flex flex-wrap items-center gap-1">
-      <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
-        @if (!onlyCharacters()) {
-          <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
-        }
-        @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
-          <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }}</ng-option>
-        }
-      </ng-select>
-      <span class="text-[var(--ui-text-muted)] text-xs">▶</span>
-      <ng-select name="send-to" class="ud-select w-[10em]" [(ngModel)]="sendTo" [clearable]="false">
-        <ng-option [value]="''">全員</ng-option>
-        @for (peer of otherPeers; track peer) {
-          <ng-option [value]="peer.identifier"
-            >{{ peer.name }}
-            @if (peer === myPeer) {
-              （あなた）
-            }
-          </ng-option>
-        }
-      </ng-select>
-      <ng-select
-        name="game-type"
-        class="ud-select w-[15em]"
-        (change)="loadDiceBot($event)"
-        [(ngModel)]="gameType"
-        [clearable]="false"
-      >
-        @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
-          <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
-        }
-      </ng-select>
-      <button class="px-1.5 py-0.5 text-xs" (click)="showDicebotHelp()">?</button>
-      @if (!isGameTypeInList()) {
-        <span class="text-[var(--ui-danger)] text-xs">※ダイスボットが見つかりません</span>
+<div class="flex flex-col gap-1 px-2 py-2" [ngClass]="{ 'direct-message': isDirect }">
+  <!-- 送信元/宛先/DiceBot 行 -->
+  <div class="flex flex-wrap items-center gap-1">
+    <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
+      @if (!onlyCharacters()) {
+        <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
       }
-    </div>
-
-    <!-- カラー / 色設定 / 立ち絵 行 -->
-    <div class="flex items-center gap-2 flex-wrap">
-      <div class="color-box-tag">
-        @for (i of [0, 1, 2]; track i) {
-          <div
-            class="color"
-            [class.color-selected]="colorSelectNo() === i"
-            (click)="setColorNum(i)"
-            [ngStyle]="{ 'background-color': chatColor(i) }"
-          ></div>
-        }
-      </div>
-      <button class="color-setting" (click)="showColorSetting()">
-        <i class="material-icons color-setting-icon">settings</i>色設定
-      </button>
-      <!-- 立ち絵スライダー -->
-      @if (1 <= portraitCount) {
-        <div class="portrait-tag">
-          <input
-            type="range"
-            class="w-24"
-            min="0"
-            [attr.max]="portraitCount - 1"
-            name="portrait-num"
-            [(ngModel)]="portraitIndex"
-          />
-          <span>{{ portraitIndex }}/{{ portraitCount - 1 }} 立ち絵</span>
-          @if (selectedPortrait; as portrait) {
-            @if (portrait.currentValue) {
-              <span class="text-[var(--ui-text-dim)]">{{ portrait.currentValue }}</span>
-            }
+      @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
+        <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }}</ng-option>
+      }
+    </ng-select>
+    <span class="text-[var(--ui-text-muted)] text-xs">▶</span>
+    <ng-select name="send-to" class="ud-select w-[10em]" [(ngModel)]="sendTo" [clearable]="false">
+      <ng-option [value]="''">全員</ng-option>
+      @for (peer of otherPeers; track peer) {
+        <ng-option [value]="peer.identifier"
+          >{{ peer.name }}
+          @if (peer === myPeer) {
+            （あなた）
           }
-        </div>
+        </ng-option>
+      }
+    </ng-select>
+    <ng-select
+      name="game-type"
+      class="ud-select w-[15em]"
+      (change)="loadDiceBot($event)"
+      [(ngModel)]="gameType"
+      [clearable]="false"
+    >
+      @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
+        <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
+      }
+    </ng-select>
+    <button class="px-1.5 py-0.5 text-xs" (click)="showDicebotHelp()">?</button>
+    @if (!isGameTypeInList()) {
+      <span class="text-[var(--ui-danger)] text-xs">※ダイスボットが見つかりません</span>
+    }
+  </div>
+
+  <!-- カラー / 色設定 / 立ち絵 行 -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <div class="color-box-tag">
+      @for (i of [0, 1, 2]; track i) {
+        <div
+          class="color"
+          [class.color-selected]="colorSelectNo() === i"
+          (click)="setColorNum(i)"
+          [ngStyle]="{ 'background-color': chatColor(i) }"
+        ></div>
       }
     </div>
-
-    <!-- テキストエリア + SEND -->
-    <form name="chat-input" class="flex gap-2 items-center">
-      <textarea
-        name="chat-input-text"
-        class="chat-input flex-1"
-        placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
-        [(ngModel)]="text"
-        [ngModelOptions]="{ standalone: true }"
-        (input)="onInput()"
-        (keydown.enter)="sendChat($event)"
-        (keydown.control.arrowup)="moveHistory($event, -1)"
-        (keydown.control.arrowdown)="moveHistory($event, 1)"
-        (keydown.arrowup)="selectAutoComplete($event, -1)"
-        (keydown.arrowdown)="selectAutoComplete($event, 1)"
-        (keydown.control.arrowleft)="tabSwitchAction($event, -1)"
-        (keydown.control.arrowright)="tabSwitchAction($event, 1)"
-        #textArea
-      ></textarea>
-      <button type="submit" class="send-btn" (click)="sendChat(null)">SEND</button>
-    </form>
-
-    <!-- 入力中インジケーター -->
-    @if (0 < writingPeerNames().length) {
-      <div class="writing-info">
-        @for (peerName of writingPeerNames(); track peerName; let i = $index) {
-          <span class="font-bold"
-            >&gt;{{ peerName }}
-            @if (writingPeerNames().length !== i + 1) {
-              ,
-            }
-          </span>
+    <button class="color-setting" (click)="showColorSetting()">
+      <i class="material-icons color-setting-icon">settings</i>色設定
+    </button>
+    <!-- 立ち絵スライダー -->
+    @if (1 <= portraitCount) {
+      <div class="portrait-tag">
+        <input
+          type="range"
+          class="w-24"
+          min="0"
+          [attr.max]="portraitCount - 1"
+          name="portrait-num"
+          [(ngModel)]="portraitIndex"
+        />
+        <span>{{ portraitIndex }}/{{ portraitCount - 1 }} 立ち絵</span>
+        @if (selectedPortrait; as portrait) {
+          @if (portrait.currentValue) {
+            <span class="text-[var(--ui-text-dim)]">{{ portrait.currentValue }}</span>
+          }
         }
-        <span> が入力中...</span>
       </div>
     }
   </div>
+
+  <!-- アバター + テキストエリア + SEND -->
+  <form name="chat-input" class="flex gap-2 items-end">
+    <div class="imagebox">
+      @if (0 < imageFile.url.length) {
+        <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
+      }
+    </div>
+    <textarea
+      name="chat-input-text"
+      class="chat-input flex-1"
+      placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
+      [(ngModel)]="text"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="onInput()"
+      (keydown.enter)="sendChat($event)"
+      (keydown.control.arrowup)="moveHistory($event, -1)"
+      (keydown.control.arrowdown)="moveHistory($event, 1)"
+      (keydown.arrowup)="selectAutoComplete($event, -1)"
+      (keydown.arrowdown)="selectAutoComplete($event, 1)"
+      (keydown.control.arrowleft)="tabSwitchAction($event, -1)"
+      (keydown.control.arrowright)="tabSwitchAction($event, 1)"
+      #textArea
+    ></textarea>
+    <button type="submit" class="send-btn" (click)="sendChat(null)">SEND</button>
+  </form>
+
+  <!-- 入力中インジケーター -->
+  @if (0 < writingPeerNames().length) {
+    <div class="writing-info">
+      @for (peerName of writingPeerNames(); track peerName; let i = $index) {
+        <span class="font-bold"
+          >&gt;{{ peerName }}
+          @if (writingPeerNames().length !== i + 1) {
+            ,
+          }
+        </span>
+      }
+      <span> が入力中...</span>
+    </div>
+  }
 </div>

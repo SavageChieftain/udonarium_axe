@@ -9,7 +9,6 @@
 .imagebox {
   width: 52px;
   flex-shrink: 0;
-  align-self: center;
 }
 
 .image {
@@ -118,7 +117,6 @@
 /* SEND ボタン */
 .send-btn {
   padding: 3px 10px;
-  align-self: center;
   font-size: 12px;
   font-weight: 600;
   background: var(--ui-accent);
