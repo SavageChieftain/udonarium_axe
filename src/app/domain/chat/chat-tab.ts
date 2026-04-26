@@ -168,14 +168,18 @@ export class ChatTab extends ObjectNode implements InnerXml {
             this.replacePortraitZIndex(this.pos_num);
             this.imageDispFlag[this.pos_num] = true;
 
-            chat.setAttribute(key, (message as Record<string, unknown>)[key] as string | number);
+            chat.imagePos = (message as Record<string, unknown>)[key] as number;
           }
           this.imageIdentifierDummy = message.imageIdentifier ?? ''; // 同期方法が無理やり感がある、後日
         }
         continue;
       }
 
-      chat.setAttribute(key, (message as Record<string, unknown>)[key] as string | number);
+      if (key === 'timestamp') {
+        chat.setAttribute(key, (message as Record<string, unknown>)[key] as string | number);
+      } else {
+        (chat as unknown as Record<string, unknown>)[key] = (message as Record<string, unknown>)[key];
+      }
     }
     chat.initialize();
 
