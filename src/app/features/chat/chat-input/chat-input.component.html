@@ -1,4 +1,4 @@
-<div class="flex gap-2 px-2 pt-2" [ngClass]="{ 'direct-message': isDirect }">
+<div class="flex gap-2 px-2 py-2" [ngClass]="{ 'direct-message': isDirect }">
   <!-- アバター -->
   <div class="imagebox">
     @if (0 < imageFile.url.length) {
@@ -83,7 +83,7 @@
     </div>
 
     <!-- テキストエリア + SEND -->
-    <form name="chat-input" class="flex gap-2 items-end pb-2">
+    <form name="chat-input" class="flex gap-2 items-end">
       <textarea
         name="chat-input-text"
         class="chat-input flex-1"
@@ -104,8 +104,8 @@
     </form>
 
     <!-- 入力中インジケーター -->
-    <div class="writing-info">
-      @if (0 < writingPeerNames().length) {
+    @if (0 < writingPeerNames().length) {
+      <div class="writing-info">
         @for (peerName of writingPeerNames(); track peerName; let i = $index) {
           <span class="font-bold"
             >&gt;{{ peerName }}
@@ -115,7 +115,7 @@
           </span>
         }
         <span> が入力中...</span>
-      }
-    </div>
+      </div>
+    }
   </div>
 </div>
