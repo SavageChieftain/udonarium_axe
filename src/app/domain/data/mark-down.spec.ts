@@ -70,7 +70,8 @@ describe('MarkDown', () => {
       const input = '|列1|列2|\n|データ1|データ2|';
       const result = markDown.markDownTable(input);
       expect(result).toContain('markdown_table');
-      expect(result).toContain('display: table');
+      expect(result).toContain('markdown_table_row');
+      expect(result).toContain('markdown_table_cell');
       expect(result).toContain('列1');
       expect(result).toContain('列2');
     });

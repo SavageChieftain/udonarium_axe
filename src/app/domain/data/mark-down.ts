@@ -59,70 +59,57 @@ export class MarkDown extends GameObject {
   }
 
   markDownCheckBox(text: string, baseId: string) {
-    let textOut = '';
-    const text2 = text
+    const escaped = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
-    const text3 = text2
-      .replace(/[[［][xXｘＸ][\]］]/g, '<input type="checkbox" checked="checked" class="markDounBox" />')
-      .replace(/[[［][\]］]/g, '<input type="checkbox" class="markDounBox" />');
+    const withCheckboxes = escaped
+      .replace(/[[［][xXｘＸ][\]］]/g, '<input type="checkbox" checked="checked" class="markdown_checkbox" />')
+      .replace(/[[［][\]］]/g, '<input type="checkbox" class="markdown_checkbox" />');
 
-    const splitText = text3.split('<input ');
-    for (let i = 0; i < splitText.length; i++) {
-      textOut += splitText[i];
-      if (i < splitText.length - 1) {
-        const num = ('00000000' + i).slice(-8);
-        textOut += `<input id="${baseId}_mark_${num}" `;
-      }
-      if (i >= 99999999) {
-        break;
-      }
-    }
-
-    return textOut;
+    const parts = withCheckboxes.split('<input ');
+    return parts
+      .map((part, i) => {
+        if (i === 0) return part;
+        const num = String(i - 1).padStart(8, '0');
+        return `<input id="${baseId}_mark_${num}" ${part}`;
+      })
+      .join('');
   }
 
   markDownTable(text: string) {
-    const splitLine = text.split('\n');
-    let textOut = '';
+    const lines = text.split('\n');
+    const out: string[] = [];
+    let inTable = false;
 
-    let tableMaking = false;
-    for (let i = 0; i < splitLine.length; i++) {
-      const splitVar = splitLine[i].split(/[|｜]/);
-      if (splitVar.length == 1) {
-        if (!tableMaking) {
-          textOut += `${splitLine[i]}\n`;
-        } else {
-          textOut += '</div>';
-          textOut += `${splitLine[i]}\n`;
-          tableMaking = false;
+    for (const line of lines) {
+      const cols = line.split(/[|｜]/);
+      if (cols.length === 1) {
+        if (inTable) {
+          out.push('</div>');
+          inTable = false;
         }
+        out.push(`${line}\n`);
       } else {
-        if (!tableMaking) {
-          textOut += splitVar[0];
-          textOut +=
-            '<div class="markdown_table" style="display: table; table-layout: fixed; border: 1px solid #000000;">';
-          textOut += '  <div class="markdown_table_row" style="display: table-row; border: 1px solid #000000;">';
-          for (let j = 1; j < splitVar.length - 1; j++) {
-            textOut += `    <div class="markdown_table_cell" style="display: table-cell; border: 1px solid #000000;">${splitVar[j]}</div>`;
-          }
-          textOut += '  </div>';
-          tableMaking = true;
-        } else {
-          textOut += '  <div class="markdown_table_row" style="display: table-row; border: 1px solid #000000;">';
-          for (let j = 1; j < splitVar.length - 1; j++) {
-            textOut += `    <div class="markdown_table_cell" style="display: table-cell; border: 1px solid #000000;">${splitVar[j]}</div>`;
-          }
-          textOut += '  </div>';
+        if (!inTable) {
+          out.push(cols[0]);
+          out.push('<div class="markdown_table">');
+          inTable = true;
         }
+        out.push(this.buildTableRow(cols));
       }
     }
-    if (tableMaking) {
-      textOut += '</div>';
-    }
-    return textOut;
+    if (inTable) out.push('</div>');
+    return out.join('');
+  }
+
+  private buildTableRow(cols: string[]): string {
+    const cells = cols
+      .slice(1, -1)
+      .map((col) => `<div class="markdown_table_cell">${col}</div>`)
+      .join('');
+    return `<div class="markdown_table_row">${cells}</div>`;
   }
 }
