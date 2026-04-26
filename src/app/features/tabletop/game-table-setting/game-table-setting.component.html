@@ -1,28 +1,54 @@
-<div class="flex flex-row flex-nowrap gap-3 px-3 py-3 items-start">
-  <!-- テーブルリスト列 -->
-  <div class="table-list flex flex-col gap-2">
-    <button (click)="createGameTable()">新しいテーブルを作る</button>
-    <select
-      size="10"
-      (change)="onSelectGameTable($event)"
-      name="game-table-select"
-      [ngModel]="selectedTable?.identifier"
-    >
-      @for (gameTable of getGameTables(); track gameTable) {
-        <option value="{{ gameTable.identifier }}">{{ gameTable.name }}</option>
+<div class="gt-layout">
+  <!-- ── 左カラム: テーブルリスト ── -->
+  <aside class="table-list-col">
+    <div class="list-header">
+      <span class="col-heading">テーブル</span>
+      <button type="button" class="icon-btn" title="新しいテーブルを作る" (click)="createGameTable()">
+        <i class="material-icons">add</i>
+      </button>
+    </div>
+    <ul class="table-list" role="listbox">
+      @for (gameTable of getGameTables(); track gameTable.identifier) {
+        <li
+          class="table-list-item"
+          [class.selected]="selectedTable?.identifier === gameTable.identifier"
+          (click)="selectGameTable(gameTable.identifier)"
+          role="option"
+          [attr.aria-selected]="selectedTable?.identifier === gameTable.identifier"
+        >
+          <i class="material-icons table-item-icon">table_view</i>
+          <span class="table-item-name">{{ gameTable.name }}</span>
+        </li>
       }
-    </select>
-  </div>
+    </ul>
+  </aside>
 
-  <!-- 設定フォーム列 -->
-  <div class="settings-pane">
-    @if (!isEmpty || selectedTable) {
-      <!-- 画像セクション -->
-      <div class="section">
-        <div class="section-title">画像</div>
-        <div class="flex gap-4">
+  <!-- ── 右カラム: 詳細設定 ── -->
+  <main class="table-detail-col">
+    @if (getGameTables().length === 0) {
+      <div class="empty-state">
+        <i class="material-icons">table_view</i>
+        <p>テーブルがありません</p>
+        <button type="button" class="primary-btn" (click)="createGameTable()">
+          <i class="material-icons">add</i>テーブルを作成
+        </button>
+      </div>
+    }
+
+    @if (getGameTables().length > 0 && !selectedTable) {
+      <div class="empty-state">
+        <i class="material-icons">touch_app</i>
+        <p>左のリストからテーブルを選択してください</p>
+      </div>
+    }
+
+    @if (selectedTable) {
+      <!-- 画像 -->
+      <div class="detail-section">
+        <span class="field-label">画像</span>
+        <div class="image-row">
           <div class="image-cell">
-            <span class="image-label">テーブル</span>
+            <span class="image-sub-label">テーブル</span>
             @if (tableBackgroundImage.url) {
               <img
                 class="image-thumb"
@@ -31,11 +57,11 @@
                 alt="テーブル画像"
               />
             } @else {
-              <button class="image-add-btn" (click)="openBgImageModal()">テーブル画像を追加</button>
+              <button type="button" class="image-add-btn" (click)="openBgImageModal()">テーブル画像を追加</button>
             }
           </div>
           <div class="image-cell">
-            <span class="image-label">背景</span>
+            <span class="image-sub-label">背景</span>
             @if (tableDistanceviewImage.url) {
               <img
                 class="image-thumb"
@@ -44,179 +70,204 @@
                 alt="背景画像"
               />
             } @else {
-              <button class="image-add-btn" (click)="openDistanceViewImageModal()">背景画像を追加</button>
+              <button type="button" class="image-add-btn" (click)="openDistanceViewImageModal()">背景画像を追加</button>
             }
           </div>
         </div>
       </div>
 
-      <!-- 基本設定セクション -->
-      <div class="section">
-        <div class="section-title">基本設定</div>
-        <div class="field">
-          <span class="field-label">テーブル名</span>
+      <hr class="divider" />
+
+      <!-- 基本設定 -->
+      <div class="detail-section">
+        <label class="field-label">テーブル名</label>
+        <input
+          class="field-input"
+          name="table-name"
+          [(ngModel)]="tableName"
+          placeholder="テーブル名を入力"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+      </div>
+
+      <div class="detail-section">
+        <label class="field-label">Width</label>
+        <div class="slider-row">
           <input
-            name="table-name"
-            [(ngModel)]="tableName"
-            placeholder="Name"
-            [attr.disabled]="!isEditable ? '' : null"
-          />
-        </div>
-        <div class="field-slider">
-          <span class="field-label">Width</span>
-          <input
-            [(ngModel)]="tableWidth"
             type="range"
+            [(ngModel)]="tableWidth"
             min="{{ minSize }}"
             max="{{ maxSize }}"
             name="tableWidth"
             [attr.disabled]="!isEditable ? '' : null"
           />
           <input
-            name="table-width"
+            type="number"
             [(ngModel)]="tableWidth"
-            type="number"
             min="{{ minSize }}"
             max="{{ maxSize }}"
+            name="table-width"
             [attr.disabled]="!isEditable ? '' : null"
           />
         </div>
-        <div class="field-slider">
-          <span class="field-label">Height</span>
+      </div>
+
+      <div class="detail-section">
+        <label class="field-label">Height</label>
+        <div class="slider-row">
           <input
-            name="table-height-one"
-            [(ngModel)]="tableHeight"
             type="range"
-            min="{{ minSize }}"
-            max="{{ maxSize }}"
-            [attr.disabled]="!isEditable ? '' : null"
-          />
-          <input
-            name="table-height-two"
             [(ngModel)]="tableHeight"
-            type="number"
             min="{{ minSize }}"
             max="{{ maxSize }}"
+            name="table-height-range"
+            [attr.disabled]="!isEditable ? '' : null"
+          />
+          <input
+            type="number"
+            [(ngModel)]="tableHeight"
+            min="{{ minSize }}"
+            max="{{ maxSize }}"
+            name="table-height-num"
             [attr.disabled]="!isEditable ? '' : null"
           />
         </div>
       </div>
 
-      <!-- グリッドセクション -->
-      <div class="section">
-        <div class="section-title">グリッド</div>
-        <div class="field">
-          <span class="field-label">種類</span>
-          <select [(ngModel)]="tableGridType" name="tableGridType" [attr.disabled]="!isEditable ? '' : null">
-            <option value="-1">なし</option>
-            <option value="0">スクエア</option>
-            <option value="1">ヘクス（縦揃え）</option>
-            <option value="2">ヘクス（横揃え）</option>
-          </select>
-        </div>
-        <div class="color-row">
-          <span class="field-label">グリッド色</span>
-          <input
-            type="color"
-            class="color-input"
-            [(ngModel)]="tableGridColor"
-            name="tableGridColor"
-            list="table-grid-color-list"
-            [attr.disabled]="!isEditable ? '' : null"
-          />
-          <span></span>
-          <span class="field-label">座標色</span>
-          <input
-            type="color"
-            class="color-input"
-            [(ngModel)]="tableGridFontColor"
-            name="tableGridFontColor"
-            list="table-grid-color-list"
-            [attr.disabled]="!isEditable ? '' : null"
-          />
-        </div>
-        <div class="field">
-          <span class="field-label">常に表示</span>
-          <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="tableGridShow" name="tableGridShow" />
-            グリッドを常に表示
-          </label>
-        </div>
-        <div class="field">
-          <span class="field-label">スナップ</span>
-          <select [(ngModel)]="tableSnapMode" name="tableSnapMode" [attr.disabled]="!isEditable ? '' : null">
-            <option value="off">なし</option>
-            <option value="center">セル</option>
-            <option value="vertex">交差点</option>
-            <option value="both">セル+交差点</option>
-            <option value="all">セル+交差点+辺</option>
-          </select>
+      <hr class="divider" />
+
+      <!-- グリッド -->
+      <div class="detail-section">
+        <label class="field-label">グリッド種類</label>
+        <select
+          class="field-select"
+          [(ngModel)]="tableGridType"
+          name="tableGridType"
+          [attr.disabled]="!isEditable ? '' : null"
+        >
+          <option value="-1">なし</option>
+          <option value="0">スクエア</option>
+          <option value="1">ヘクス（縦揃え）</option>
+          <option value="2">ヘクス（横揃え）</option>
+        </select>
+      </div>
+
+      <div class="detail-section">
+        <label class="field-label">グリッドカラー</label>
+        <div class="color-pair-row">
+          <div class="color-pair-item">
+            <span class="color-pair-sub-label">グリッド</span>
+            <input
+              type="color"
+              class="color-input"
+              [(ngModel)]="tableGridColor"
+              name="tableGridColor"
+              list="table-grid-color-list"
+              [attr.disabled]="!isEditable ? '' : null"
+            />
+          </div>
+          <div class="color-pair-item">
+            <span class="color-pair-sub-label">座標</span>
+            <input
+              type="color"
+              class="color-input"
+              [(ngModel)]="tableGridFontColor"
+              name="tableGridFontColor"
+              list="table-grid-color-list"
+              [attr.disabled]="!isEditable ? '' : null"
+            />
+          </div>
         </div>
       </div>
 
-      <!-- 背景セクション -->
-      <div class="section">
-        <div class="section-title">背景</div>
-        <div class="field">
-          <span class="field-label">フィルタ</span>
-          <select
-            [(ngModel)]="tableDistanceviewFilter"
-            name="tableDistanceviewFilter"
-            [attr.disabled]="!isEditable ? '' : null"
-          >
-            <option value="">なし</option>
-            <option value="white">ホワイト</option>
-            <option value="black">ブラック</option>
-          </select>
-        </div>
+      <div class="detail-section">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="tableGridShow" name="tableGridShow" />
+          グリッドを常に表示
+        </label>
       </div>
+
+      <div class="detail-section">
+        <label class="field-label">スナップ</label>
+        <select
+          class="field-select"
+          [(ngModel)]="tableSnapMode"
+          name="tableSnapMode"
+          [attr.disabled]="!isEditable ? '' : null"
+        >
+          <option value="off">なし</option>
+          <option value="center">セル</option>
+          <option value="vertex">交差点</option>
+          <option value="both">セル＋交差点</option>
+          <option value="all">セル＋交差点＋辺</option>
+        </select>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- 背景 -->
+      <div class="detail-section">
+        <label class="field-label">背景フィルタ</label>
+        <select
+          class="field-select"
+          [(ngModel)]="tableDistanceviewFilter"
+          name="tableDistanceviewFilter"
+          [attr.disabled]="!isEditable ? '' : null"
+        >
+          <option value="">なし</option>
+          <option value="white">ホワイト</option>
+          <option value="black">ブラック</option>
+        </select>
+      </div>
+
+      <hr class="divider" />
 
       <!-- アクション -->
-      <div class="action-row">
+      <div class="detail-section">
         @if (!isDeleted) {
-          <button [disabled]="isSaving()" (click)="save()">
-            <div class="relative">
-              <div [class.invisible]="isSaving()">保存</div>
+          <div class="action-row">
+            <button type="button" class="primary-btn" [disabled]="isSaving()" (click)="save()">
               @if (isSaving()) {
-                <div class="flex items-center justify-center absolute inset-0 text-[0.9em]">
-                  {{ progressPercent() }}%
-                </div>
+                <i class="material-icons">sync</i>{{ progressPercent() }}%
+              } @else {
+                <i class="material-icons">save</i>保存
               }
-            </div>
-          </button>
-          <button class="danger" (click)="delete()" [attr.disabled]="getGameTables().length <= 1 ? '' : null">
-            削除
-          </button>
+            </button>
+            <button
+              type="button"
+              class="danger-btn"
+              (click)="delete()"
+              [attr.disabled]="getGameTables().length <= 1 ? '' : null"
+            >
+              <i class="material-icons">delete</i>削除
+            </button>
+          </div>
         }
         @if (isDeleted) {
-          <button (click)="restore()">元に戻す</button>
+          <div class="action-row">
+            <button type="button" class="primary-btn" (click)="restore()">
+              <i class="material-icons">undo</i>元に戻す
+            </button>
+          </div>
         }
       </div>
     }
+  </main>
 
-    @if (isEmpty) {
-      <p class="text-[12px] text-[var(--ui-text-muted)]">
-        ※テーブルが１つも作成されていません。「新しいテーブルを作る」から新しいテーブルを作成することができます。
-      </p>
-    }
-
-    <!-- ダイスボット -->
-    <div class="dicebot-section">
-      <p class="dicebot-note">
-        標準のダイスボット（部屋接続時に選択されるダイスボットになります）。<br />
-        ※テーブル毎の設定ではなく部屋全体の設定です。
-      </p>
-      <ng-select
-        class="ud-select w-[15em]"
-        (change)="loadDiceBot($event)"
-        [(ngModel)]="gameType"
-        [ngModelOptions]="{ standalone: true }"
-        [clearable]="false"
-      >
-        @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
-          <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
-        }
-      </ng-select>
-    </div>
-  </div>
+  <!-- ── フッター: 部屋全体設定 ── -->
+  <footer class="room-footer">
+    <span class="room-footer-label">標準ダイスボット</span>
+    <ng-select
+      class="ud-select w-[15em]"
+      (change)="loadDiceBot($event)"
+      [(ngModel)]="gameType"
+      [ngModelOptions]="{ standalone: true }"
+      [clearable]="false"
+    >
+      @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
+        <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
+      }
+    </ng-select>
+    <span class="room-footer-note">部屋接続時に選択されるダイスボットです（テーブル毎ではなく部屋全体の設定）</span>
+  </footer>
 </div>
