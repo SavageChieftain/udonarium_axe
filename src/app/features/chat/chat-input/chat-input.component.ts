@@ -224,13 +224,13 @@ export class ChatInputComponent {
   }
 
   get selectChatColor() {
-    const n = this.colorSelectNo();
+    return this.chatColor(this.colorSelectNo());
+  }
+
+  chatColor(num: number): string {
     const object = this.objectStore.get(this.sendFrom);
-    if (object instanceof GameCharacter) {
-      return this.charactorChatColor(n);
-    } else {
-      return this.playerChatColor(n);
-    }
+    if (object instanceof GameCharacter) return this.charactorChatColor(num);
+    return this.playerChatColor(num);
   }
 
   playerChatColor(num: number) {
