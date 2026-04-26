@@ -50,7 +50,7 @@ export class ChatPortraitComponent {
     return 0;
   }
 
-  shoeMessageSetting() {
+  showMessageSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const title = 'チャット詳細設定';
     const option: PanelOption = {

@@ -6,12 +6,12 @@
 <div class="table">
   <div class="table-cell align-top w-[160px]">
     @if (myPeer) {
-      @if (myPeer.image) {
-        <div
-          class="table-cell align-top w-32 h-32 bg-top bg-no-repeat bg-cover"
-          [style.background-image]="'url(' + myPeer.image.url + ')' | safe: 'style'"
+      @if (myPeer.image?.url) {
+        <img
+          class="block w-32 h-32 object-cover object-top cursor-pointer"
+          [src]="myPeer.image!.url | safe: 'resourceUrl'"
           (click)="changeIcon()"
-        ></div>
+        />
       }
     }
   </div>
