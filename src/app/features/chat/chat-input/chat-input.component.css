@@ -5,6 +5,15 @@
   border-top: 1px solid var(--ui-accent);
 }
 
+/* アバター列（立ち絵スライダー + アバター画像） */
+.avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 /* アバター画像 */
 .imagebox {
   width: 52px;

@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-1 px-2 py-2" [ngClass]="{ 'direct-message': isDirect }">
-  <!-- 送信元/宛先/DiceBot 行 -->
+  <!-- 送信元/宛先/DiceBot/カラー 行 -->
   <div class="flex flex-wrap items-center gap-1">
     <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
       @if (!onlyCharacters()) {
@@ -36,11 +36,8 @@
     @if (!isGameTypeInList()) {
       <span class="text-[var(--ui-danger)] text-xs">※ダイスボットが見つかりません</span>
     }
-  </div>
-
-  <!-- カラー / 色設定 / 立ち絵 行 -->
-  <div class="flex items-center gap-2 flex-wrap">
-    <div class="color-box-tag">
+    <!-- カラー設定（チャット設定） -->
+    <div class="color-box-tag ml-auto">
       @for (i of [0, 1, 2]; track i) {
         <div
           class="color"
@@ -53,33 +50,37 @@
     <button class="color-setting" (click)="showColorSetting()">
       <i class="material-icons color-setting-icon">settings</i>色設定
     </button>
-    <!-- 立ち絵スライダー -->
-    @if (1 <= portraitCount) {
-      <div class="portrait-tag">
-        <input
-          type="range"
-          class="w-24"
-          min="0"
-          [attr.max]="portraitCount - 1"
-          name="portrait-num"
-          [(ngModel)]="portraitIndex"
-        />
-        <span>{{ portraitIndex }}/{{ portraitCount - 1 }} 立ち絵</span>
-        @if (selectedPortrait; as portrait) {
-          @if (portrait.currentValue) {
-            <span class="text-[var(--ui-text-dim)]">{{ portrait.currentValue }}</span>
-          }
-        }
-      </div>
-    }
   </div>
 
-  <!-- アバター + テキストエリア + SEND -->
+  <!-- 立ち絵＋アバター + テキストエリア + SEND -->
   <form name="chat-input" class="flex gap-2 items-end">
-    <div class="imagebox">
-      @if (0 < imageFile.url.length) {
-        <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
+    <!-- アバター列（立ち絵スライダー → アバター画像） -->
+    <div class="avatar-col">
+      @if (1 <= portraitCount) {
+        <div class="flex flex-col items-center gap-0.5">
+          <input
+            type="range"
+            class="w-[52px]"
+            min="0"
+            [attr.max]="portraitCount - 1"
+            name="portrait-num"
+            [(ngModel)]="portraitIndex"
+          />
+          <span class="text-[10px] text-[var(--ui-text-muted)]">{{ portraitIndex }}/{{ portraitCount - 1 }}</span>
+          @if (selectedPortrait; as portrait) {
+            @if (portrait.currentValue) {
+              <span class="max-w-[52px] truncate text-[9px] text-[var(--ui-text-dim)]">{{
+                portrait.currentValue
+              }}</span>
+            }
+          }
+        </div>
       }
+      <div class="imagebox">
+        @if (0 < imageFile.url.length) {
+          <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
+        }
+      </div>
     </div>
     <textarea
       name="chat-input-text"
