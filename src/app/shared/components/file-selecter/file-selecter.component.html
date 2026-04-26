@@ -1,46 +1,41 @@
-<form name="file-selecter">
-  <div class="image-chg">
+<div class="fs-layout">
+  <div class="tag-bar">
     @for (tag of tagList; track tag) {
-      <label>
+      <label class="tag-pill">
         <input
           name="image-chg"
           type="radio"
-          value="{{ tag }}"
+          [value]="tag"
           [ngModel]="selectTag()"
           (ngModelChange)="selectTag.set($event)"
           (change)="resetBtn()"
         />
-        @if (tag.length === 0) {
-          <div>未設定</div>
-        }
-        @if (tag) {
-          <div>{{ tag }}</div>
-        }
+        <span>{{ tag.length === 0 ? '未設定' : tag }}</span>
       </label>
     }
   </div>
-</form>
-<div id="file-list">
-  @if (isAllowedEmpty) {
-    <span class="empty">
-      <button (click)="onSelectedFile(empty)">画像なし</button>
-    </span>
-  }
-  @for (file of images(); track file) {
-    <span class="image">
-      <div class="float-left">
+  <div class="image-grid">
+    @if (isAllowedEmpty) {
+      <button class="image-cell empty-cell" (click)="onSelectedFile(empty)">
+        <i class="material-icons">hide_image</i>
+        <span class="cell-name">画像なし</span>
+      </button>
+    }
+    @for (file of images(); track file) {
+      <button class="image-cell" (click)="onSelectedFile(file)">
         @if (file.url) {
-          <img
-            [src]="file.url | safe: 'resourceUrl'"
-            [alt]="file.name"
-            class="w-[120px] h-[120px] object-contain"
-            (click)="onSelectedFile(file)"
-          />
+          <img [src]="file.url | safe: 'resourceUrl'" [alt]="file.name" />
+        } @else {
+          <div class="cell-loading"><i class="material-icons">hourglass_empty</i></div>
         }
-        @if (!file.url) {
-          <img src="assets/images/loading.gif" alt="{{ file.name }}" />
-        }
+        <span class="cell-name">{{ file.name }}</span>
+      </button>
+    }
+    @if (images().length === 0 && !isAllowedEmpty) {
+      <div class="empty-state">
+        <i class="material-icons">collections</i>
+        <p>この分類に画像はありません</p>
       </div>
-    </span>
-  }
+    }
+  </div>
 </div>
