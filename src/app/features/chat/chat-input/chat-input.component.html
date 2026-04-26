@@ -75,7 +75,7 @@
   </div>
 
   <!-- アバター + テキストエリア + SEND -->
-  <form name="chat-input" class="flex gap-2 items-stretch">
+  <form name="chat-input" class="flex gap-2 items-end">
     <div class="imagebox">
       @if (0 < imageFile.url.length) {
         <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />
@@ -97,7 +97,9 @@
       (keydown.control.arrowright)="tabSwitchAction($event, 1)"
       #textArea
     ></textarea>
-    <button type="submit" class="send-btn" (click)="sendChat(null)">SEND</button>
+    <button type="submit" class="send-btn" (click)="sendChat(null)" aria-label="送信">
+      <i class="material-icons">send</i>
+    </button>
   </form>
 
   <!-- 入力中インジケーター -->

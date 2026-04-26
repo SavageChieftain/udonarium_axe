@@ -116,20 +116,28 @@
 
 /* SEND ボタン */
 .send-btn {
-  padding: 0 14px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  align-self: stretch;
-  min-width: 52px;
   background: var(--ui-accent);
   color: #0d1117;
   border: 1px solid var(--ui-accent);
-  border-radius: var(--ui-radius-sm);
+  border-radius: 50%;
   cursor: pointer;
-  white-space: nowrap;
   transition:
     background var(--ui-transition),
     border-color var(--ui-transition);
+}
+
+.send-btn i {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .send-btn:hover {
