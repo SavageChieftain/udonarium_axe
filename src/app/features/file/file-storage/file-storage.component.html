@@ -45,7 +45,7 @@
           <img
             [src]="file.url | safe: 'resourceUrl'"
             [alt]="file.name"
-            style="height: 120px"
+            style="width: 120px; height: 120px; object-fit: cover"
             (click)="onSelectedFile(file)"
           />
         }

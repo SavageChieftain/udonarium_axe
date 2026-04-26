@@ -7,7 +7,7 @@
       }
     }
     <div (click)="openCutInImageModal()" style="height: 120px" class="grow">
-      <img style="height: 120px" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
+      <img style="width: 120px; height: 120px; object-fit: cover" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
       <i style="font-size: 32px; margin-left: -28px" class="material-icons">{{ isYouTubeCutIn() ? 'movie' : '' }}</i>
     </div>
   </div>
