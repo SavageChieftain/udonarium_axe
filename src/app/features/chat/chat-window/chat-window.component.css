@@ -18,6 +18,7 @@
   background: var(--ui-titlebar-bg);
   border-top: 1px solid var(--ui-panel-border);
   margin-bottom: 0;
+  z-index: 10;
 }
 
 /* チャットタブ — ピル形状 */
@@ -29,6 +30,8 @@
   gap: 3px;
   align-items: center;
   border-bottom: 1px solid var(--ui-panel-border);
+  position: relative;
+  z-index: 10;
 }
 
 .chat-tab label {
@@ -229,7 +232,7 @@
 
 .chat-settings-menu {
   position: absolute;
-  bottom: calc(100% + 6px);
+  top: calc(100% + 4px);
   right: 0;
   z-index: 100;
   background: var(--ui-menu-bg);
