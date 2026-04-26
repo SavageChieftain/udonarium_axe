@@ -1,139 +1,162 @@
-<div class="table w-full box-border">
-  <div class="table-cell align-top box-border w-[13em]">
-    <div>
-      <button (click)="createDiceTable()" [attr.disabled]="isEdit() ? '' : null">新しい表を作る</button>
-    </div>
-    <select
-      class="w-full"
-      size="15;padding-right:5px"
-      (change)="onSelectDiceTable($event)"
-      name="dice-table-select"
-      name="dice-table-select"
-      [ngModel]="selectedTable?.identifier"
-      [attr.disabled]="isEdit() ? '' : null"
-    >
-      @for (diceTable of getDiceTables(); track diceTable) {
-        <option value="{{ diceTable.identifier }}">{{ diceTable.name }}</option>
-      }
-    </select>
-  </div>
-  <div class="table-cell align-top box-border w-[5px] max-w-[5px]"></div>
-  <div class="table-cell align-top box-border">
-    <div class="table w-full box-border">
-      <div class="table-cell align-top box-border w-[7em]">
-        <span class="w-[7em] inline-block">表タイトル :</span>
-      </div>
-      <div class="table-cell align-top box-border w-full pr-[10px]">
-        <input
-          name="dice-table-name"
-          name="dice-table-name"
-          [(ngModel)]="tableName"
-          placeholder="Name"
-          class="w-full"
-          [attr.disabled]="!isEditable ? '' : null"
-        />
-      </div>
-    </div>
-    <div class="table w-full box-border">
-      <div class="table-cell align-top box-border w-[7em]">
-        <span class="w-[7em] inline-block">ダイス :</span>
-      </div>
-      <div class="table-cell align-top box-border w-full pr-[10px]">
-        <input
-          name="dice-table-dice"
-          name="dice-table-dice"
-          [(ngModel)]="tableDice"
-          placeholder="Dice"
-          class="w-full"
-          [attr.disabled]="!isEditable ? '' : null"
-        />
-      </div>
-    </div>
-    <div>
-      <div class="table-cell align-top box-border w-[7em]">
-        <span class="w-[7em] inline-block">コマンド :</span>
-      </div>
-      <div class="table-cell align-top box-border w-full pr-[10px]">
-        <input
-          name="dice-table-command"
-          name="dice-table-command"
-          [(ngModel)]="tableCommand"
-          placeholder="Command"
-          class="w-full"
-          [attr.disabled]="!isEditable ? '' : null"
-        />
-      </div>
-    </div>
-    <div>
-      <ng-select
-        class="ud-select w-[12em]"
-        (change)="loadDiceBot($event)"
-        [(ngModel)]="gameType"
-        [ngModelOptions]="{ standalone: true }"
-        [attr.disabled]="!isEditable ? '' : null"
-        [clearable]="false"
-      >
-        @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
-          <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
-        }
-      </ng-select>
-    </div>
-
-    @if (isEdit()) {
-      <div class="w-full text-center text-[#ccc] bg-[rgba(30,30,30,0.8)]">
-        <i class="material-icons align-bottom text-[0.8rem]">info_outline</i> ダイス表編集中です
-      </div>
-    }
-    <!--入力部 -->
-    @if (!isEdit()) {
-      <div class="grow h-0 min-h-[150px]">
-        <select class="box-border font-sans w-full h-full overflow-y-auto" size="5">
-          @if (selectedTable) {
-            @if (selectedTable.diceTablePalette) {
-              @for (palette of selectedTable.diceTablePalette.getPalette(); track palette) {
-                <option value="{{ palette }}">{{ palette }}</option>
-              }
-            }
-          }
-        </select>
-      </div>
-    }
-    @if (isEdit()) {
-      <div class="grow h-0 min-h-[150px]">
-        <textarea
-          class="box-border font-sans w-full h-full resize-none"
-          name="dice-table-palette"
-          name="dice-table-palette"
-          [ngModel]="editPalette()"
-          (ngModelChange)="editPalette.set($event)"
-          placeholder="ダイス表"
-        ></textarea>
-      </div>
-    }
-    <div class="grow-0">
-      <button type="submit" (click)="toggleEditMode()" [attr.disabled]="!isEditable ? '' : null">
-        @if (!isEdit()) {
-          <span>ダイス表の編集</span>
-        }
-        @if (isEdit()) {
-          <span>ダイス表を確定</span>
-        }
+<div class="dice-table-layout">
+  <!-- ── 左カラム: 表リスト ── -->
+  <aside class="table-list-col">
+    <div class="list-header">
+      <span class="col-heading">ダイス表</span>
+      <button type="button" class="icon-btn" title="新しい表を作る" (click)="createDiceTable()" [disabled]="isEdit()">
+        <i class="material-icons">add</i>
       </button>
     </div>
-    <hr />
-    <div>
-      @if (!isDeleted) {
-        <button (click)="save()">保存</button>
-        <button class="danger" (click)="delete()" [attr.disabled]="getDiceTables().length <= 0 ? '' : null">
-          削除
-        </button>
+
+    <ul class="table-list" role="listbox">
+      @for (diceTable of getDiceTables(); track diceTable.identifier) {
+        <li
+          class="table-list-item"
+          [class.selected]="selectedTable?.identifier === diceTable.identifier"
+          [class.disabled]="isEdit()"
+          (click)="!isEdit() && selectDiceTable(diceTable.identifier)"
+          role="option"
+          [attr.aria-selected]="selectedTable?.identifier === diceTable.identifier"
+        >
+          <i class="material-icons table-item-icon">casino</i>
+          <span class="table-item-name">{{ diceTable.name }}</span>
+        </li>
       }
-    </div>
-    @if (isEmpty) {
-      <div class="text-[12px]">
-        ※ダイス表が１つも作成されていません。「新しい表を作る」から新しいダイス表を作成することができます。
+    </ul>
+  </aside>
+
+  <!-- ── 右カラム: 詳細 ── -->
+  <main class="table-detail-col">
+    @if (getDiceTables().length === 0) {
+      <div class="empty-state">
+        <i class="material-icons">casino</i>
+        <p>ダイス表がありません</p>
+        <button type="button" class="primary-btn" (click)="createDiceTable()">表を作成</button>
       </div>
     }
-  </div>
-  <!--入力部ここまで -->
+
+    @if (getDiceTables().length > 0 && !selectedTable) {
+      <div class="empty-state">
+        <i class="material-icons">touch_app</i>
+        <p>左のリストから表を選択してください</p>
+      </div>
+    }
+
+    @if (selectedTable && !isDeleted) {
+      <!-- フィールド -->
+      <div class="detail-section">
+        <label class="field-label">表タイトル</label>
+        <input
+          class="field-input"
+          name="dice-table-name"
+          [(ngModel)]="tableName"
+          placeholder="タイトルを入力"
+          [attr.disabled]="!isEditable ? '' : null"
+        />
+      </div>
+
+      <div class="field-row">
+        <div class="detail-section">
+          <label class="field-label">ダイス</label>
+          <input
+            class="field-input"
+            name="dice-table-dice"
+            [(ngModel)]="tableDice"
+            placeholder="例: 1d6"
+            [attr.disabled]="!isEditable ? '' : null"
+          />
+        </div>
+        <div class="detail-section">
+          <label class="field-label">コマンド</label>
+          <input
+            class="field-input"
+            name="dice-table-command"
+            [(ngModel)]="tableCommand"
+            placeholder="コマンド"
+            [attr.disabled]="!isEditable ? '' : null"
+          />
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <label class="field-label">ゲームシステム</label>
+        <ng-select
+          class="ud-select sys-select"
+          (change)="loadDiceBot($event)"
+          [(ngModel)]="gameType"
+          [ngModelOptions]="{ standalone: true }"
+          [disabled]="!isEditable"
+          [clearable]="false"
+        >
+          @for (diceBotInfo of diceBotInfos; track diceBotInfo) {
+            <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
+          }
+        </ng-select>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- パレット -->
+      <div class="detail-section palette-section">
+        <div class="palette-header">
+          <span class="section-label">ダイス表</span>
+          @if (isEdit()) {
+            <span class="edit-badge"> <i class="material-icons">edit</i>編集中 </span>
+          }
+          <button
+            type="button"
+            [class]="isEdit() ? 'primary-btn palette-toggle-btn' : 'secondary-btn palette-toggle-btn'"
+            (click)="toggleEditMode()"
+            [disabled]="!isEditable"
+          >
+            @if (!isEdit()) {
+              <i class="material-icons">edit</i>編集
+            } @else {
+              <i class="material-icons">check</i>確定
+            }
+          </button>
+        </div>
+
+        @if (!isEdit()) {
+          <div class="palette-view">
+            @if (selectedTable.diceTablePalette) {
+              @for (palette of selectedTable.diceTablePalette.getPalette(); track palette) {
+                <div class="palette-row">{{ palette }}</div>
+              } @empty {
+                <div class="palette-empty">（エントリなし）</div>
+              }
+            }
+          </div>
+        }
+
+        @if (isEdit()) {
+          <textarea
+            class="palette-editor"
+            name="dice-table-palette"
+            [ngModel]="editPalette()"
+            (ngModelChange)="editPalette.set($event)"
+            placeholder="ダイス表を1行ずつ入力..."
+          ></textarea>
+        }
+      </div>
+
+      <hr class="divider" />
+
+      <!-- アクション -->
+      <div class="detail-section">
+        <div class="action-row">
+          <button type="button" class="primary-btn" [disabled]="isSaving() || isEdit()" (click)="save()">
+            @if (isSaving()) {
+              <i class="material-icons spin">sync</i>{{ progressPercent() }}%
+            } @else {
+              <i class="material-icons">save</i>保存
+            }
+          </button>
+          <button type="button" class="danger-btn" [disabled]="isEdit()" (click)="delete()">
+            <i class="material-icons">delete</i>削除
+          </button>
+        </div>
+      </div>
+    }
+  </main>
 </div>
