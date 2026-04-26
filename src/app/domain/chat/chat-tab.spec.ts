@@ -145,6 +145,27 @@ describe('ChatTab', () => {
       expect(tab.hasUnread).toBe(true);
     });
 
+    it('addMessage で messColor が SyncVar に正しく保存される', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      const msg = tab.addMessage({ text: 'hello', name: 'user1', messColor: '#0099FF' });
+      expect(msg.messColor).toBe('#0099FF');
+    });
+
+    it('addMessage で name が SyncVar に正しく保存される', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      const msg = tab.addMessage({ text: 'hello', name: 'テストプレイヤー' });
+      expect(msg.name).toBe('テストプレイヤー');
+    });
+
+    it('addMessage で from が SyncVar に正しく保存される', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      const msg = tab.addMessage({ text: 'hello', name: 'user', from: 'user-id-123' });
+      expect(msg.from).toBe('user-id-123');
+    });
+
     it('複数メッセージ追加で unreadLength が累積する', () => {
       const tab = new ChatTab();
       tab.initialize();
