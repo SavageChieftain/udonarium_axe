@@ -111,6 +111,15 @@
   background: var(--ui-elevated);
 }
 
+/* エディタコンポーネントが残り高さを埋めてスクロール可能になるようにする */
+cut-in-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Empty state ── */
 .empty-state {
   flex: 1;
