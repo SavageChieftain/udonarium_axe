@@ -65,7 +65,29 @@ import GameSystemClass from 'bcdice/lib/game_system';
         box-sizing: border-box;
         font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, sans-serif;
         width: 100%;
+      }
+
+      textarea.palette {
+        min-height: 100px;
         height: 100%;
+      }
+
+      select.palette {
+        height: auto;
+      }
+
+      .controller-input {
+        font-family: inherit;
+        font-size: 13px;
+        width: 100%;
+        min-height: calc(1em + 7px);
+        max-height: calc(6em + 7px);
+        resize: none;
+        overflow: auto;
+        padding: 1px;
+        margin: 2px 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
       }
 
       .remote-controller-wrapper {
