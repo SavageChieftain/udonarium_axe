@@ -162,6 +162,44 @@
   margin-left: 2px;
 }
 
+/* タブスクロール矢印ボタン */
+.tab-scroll-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 24px;
+  flex-shrink: 0;
+  background: var(--ui-panel-bg);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+}
+
+.tab-scroll-btn:hover {
+  background: var(--ui-hover);
+  color: var(--ui-accent);
+  border-color: var(--ui-accent);
+}
+
+.tab-scroll-btn .material-icons {
+  font-size: 16px;
+}
+
+.tab-scroll-btn--left {
+  margin-right: 2px;
+}
+
+.tab-scroll-btn--right {
+  margin-left: 2px;
+}
+
 /* 操作ボタン（点呼・アラーム） */
 .tab-action-btn {
   display: flex;

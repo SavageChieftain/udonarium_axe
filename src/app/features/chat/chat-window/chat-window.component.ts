@@ -5,8 +5,10 @@ import {
   computed,
   DestroyRef,
   effect,
+  ElementRef,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -62,7 +64,43 @@ export class ChatWindowComponent {
     this.updatePanelTitle();
     if (hasChanged) {
       this.scrollToBottom(true);
+      queueMicrotask(() => this.scrollActiveTabIntoView());
     }
+  }
+
+  private readonly tabPillsContainer = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
+  readonly canScrollLeft = signal(false);
+  readonly canScrollRight = signal(false);
+
+  updateTabScrollState(): void {
+    const el = this.tabPillsContainer()?.nativeElement;
+    if (!el) return;
+    this.canScrollLeft.set(el.scrollLeft > 0);
+    this.canScrollRight.set(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }
+
+  onTabPillsScroll(): void {
+    this.updateTabScrollState();
+  }
+
+  scrollTabsLeft(): void {
+    const el = this.tabPillsContainer()?.nativeElement;
+    if (el) el.scrollBy({ left: -120, behavior: 'smooth' });
+  }
+
+  scrollTabsRight(): void {
+    const el = this.tabPillsContainer()?.nativeElement;
+    if (el) el.scrollBy({ left: 120, behavior: 'smooth' });
+  }
+
+  private scrollActiveTabIntoView(): void {
+    const el = this.tabPillsContainer()?.nativeElement;
+    if (!el) return;
+    const activeInput = el.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+    if (activeInput?.parentElement) {
+      activeInput.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+    this.updateTabScrollState();
   }
 
   chatTabSwitchRelative(direction: number) {
@@ -151,8 +189,13 @@ export class ChatWindowComponent {
         }
       }
     });
+    effect(() => {
+      this.chatTabsVersion();
+      queueMicrotask(() => this.updateTabScrollState());
+    });
     afterNextRender(() => {
       queueMicrotask(() => this.scrollToBottom(true));
+      queueMicrotask(() => this.updateTabScrollState());
       if (this.panelService.scrollablePanel) {
         this.scrollListener = () => this.onScrollPositionChange();
         this.panelService.scrollablePanel.addEventListener('scroll', this.scrollListener, { passive: true });

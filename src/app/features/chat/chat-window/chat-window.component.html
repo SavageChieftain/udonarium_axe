@@ -18,8 +18,21 @@
     <form name="chat-window">
       <chat-portrait [chatTabidentifier]="chatTabidentifier"></chat-portrait>
       <div class="chat-tab">
+        <!-- 左スクロール矢印 -->
+        @if (canScrollLeft()) {
+          <button
+            type="button"
+            class="tab-scroll-btn tab-scroll-btn--left"
+            (click)="scrollTabsLeft()"
+            tabindex="-1"
+            title="左にスクロール"
+          >
+            <i class="material-icons">chevron_left</i>
+          </button>
+        }
+
         <!-- タブピル -->
-        <div class="chat-tab-pills">
+        <div class="chat-tab-pills" #tabPillsContainer (scroll)="onTabPillsScroll()">
           @for (chatTab of chatTabsVersion(); track trackByChatTab($index, chatTab)) {
             <label>
               <input
@@ -38,6 +51,19 @@
             </label>
           }
         </div>
+
+        <!-- 右スクロール矢印 -->
+        @if (canScrollRight()) {
+          <button
+            type="button"
+            class="tab-scroll-btn tab-scroll-btn--right"
+            (click)="scrollTabsRight()"
+            tabindex="-1"
+            title="右にスクロール"
+          >
+            <i class="material-icons">chevron_right</i>
+          </button>
+        }
 
         <!-- 操作ボタン（点呼・アラーム） -->
         <div class="chat-tab-actions">
