@@ -88,14 +88,49 @@
   vertical-align: middle;
 }
 
-/* 立ち絵スライダー列 */
-.portrait-tag {
+/* 立ち絵ナビゲーション */
+.portrait-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  justify-content: space-between;
+  width: 52px;
+  gap: 1px;
+}
+
+.portrait-nav-btn {
+  background: transparent;
+  border: none;
   color: var(--ui-text-muted);
-  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color var(--ui-transition);
+}
+
+.portrait-nav-btn i {
+  font-size: 16px;
+}
+
+.portrait-nav-btn:hover:not(:disabled) {
+  color: var(--ui-accent);
+}
+
+.portrait-nav-btn:disabled {
+  color: var(--ui-text-dim);
+  cursor: default;
+}
+
+.portrait-nav-label {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--ui-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* テキストエリア */

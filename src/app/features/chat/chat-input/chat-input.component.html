@@ -57,23 +57,26 @@
     <!-- アバター列（立ち絵スライダー → アバター画像） -->
     <div class="avatar-col">
       @if (1 <= portraitCount) {
-        <div class="flex flex-col items-center gap-0.5">
-          <input
-            type="range"
-            class="w-[52px]"
-            min="0"
-            [attr.max]="portraitCount - 1"
-            name="portrait-num"
-            [(ngModel)]="portraitIndex"
-          />
-          <span class="text-[10px] text-[var(--ui-text-muted)]">{{ portraitIndex }}/{{ portraitCount - 1 }}</span>
-          @if (selectedPortrait; as portrait) {
-            @if (portrait.currentValue) {
-              <span class="max-w-[52px] truncate text-[9px] text-[var(--ui-text-dim)]">{{
-                portrait.currentValue
-              }}</span>
-            }
-          }
+        <div class="portrait-nav">
+          <button
+            type="button"
+            class="portrait-nav-btn"
+            [disabled]="portraitIndex <= 0"
+            (click)="stepPortrait(-1)"
+            aria-label="前の立ち絵"
+          >
+            <i class="material-icons">chevron_left</i>
+          </button>
+          <span class="portrait-nav-label" [title]="portraitLabel">{{ portraitLabel }}</span>
+          <button
+            type="button"
+            class="portrait-nav-btn"
+            [disabled]="portraitIndex >= portraitCount - 1"
+            (click)="stepPortrait(1)"
+            aria-label="次の立ち絵"
+          >
+            <i class="material-icons">chevron_right</i>
+          </button>
         </div>
       }
       <div class="imagebox">
