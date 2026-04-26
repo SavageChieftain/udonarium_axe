@@ -75,7 +75,7 @@
   </div>
 
   <!-- アバター + テキストエリア + SEND -->
-  <form name="chat-input" class="flex gap-2 items-end">
+  <form name="chat-input" class="flex gap-2 items-stretch">
     <div class="imagebox">
       @if (0 < imageFile.url.length) {
         <img class="image" [src]="imageFile.url | safe: 'resourceUrl'" />

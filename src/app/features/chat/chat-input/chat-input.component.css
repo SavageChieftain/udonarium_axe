@@ -116,9 +116,11 @@
 
 /* SEND ボタン */
 .send-btn {
-  padding: 3px 10px;
+  padding: 0 14px;
   font-size: 12px;
   font-weight: 600;
+  align-self: stretch;
+  min-width: 52px;
   background: var(--ui-accent);
   color: #0d1117;
   border: 1px solid var(--ui-accent);
