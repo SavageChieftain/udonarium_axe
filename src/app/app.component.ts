@@ -30,6 +30,7 @@ import { UIPanelComponent } from '@axe/shared/components/ui-panel/ui-panel.compo
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { ThemeService } from '@axe/shared/ui/theme.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   imports: [GameTableComponent, UIPanelComponent, NetworkIndicatorComponent],
 })
 export class AppComponent {
+  readonly theme = inject(ThemeService);
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);

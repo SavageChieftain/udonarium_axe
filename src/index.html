@@ -9,6 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <!-- テーマフラッシュ防止: Angular起動前に data-theme を適用 -->
+    <script>
+      (function () {
+        var t = localStorage.getItem('ui-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
   </head>
 
   <body>

@@ -1,7 +1,7 @@
 <div id="app-table-layer" class="absolute w-full h-full overflow-hidden">
   <game-table></game-table>
 </div>
-<ui-panel [top]="0" [left]="0" [width]="80" [height]="560" [title]="'メニュー'" [showTitleButtons]="false">
+<ui-panel [top]="0" [left]="0" [width]="80" [height]="615" [title]="'メニュー'" [showTitleButtons]="false">
   <nav>
     <ul>
       <li (click)="open('PeerMenuComponent')">
@@ -77,6 +77,24 @@
           </a>
         </li>
       }
+      <li (click)="theme.cycle()">
+        <a>
+          @switch (theme.theme()) {
+            @case ('auto') {
+              <div><i class="material-icons">brightness_auto</i></div>
+              <div>自動</div>
+            }
+            @case ('dark') {
+              <div><i class="material-icons">dark_mode</i></div>
+              <div>ダーク</div>
+            }
+            @case ('light') {
+              <div><i class="material-icons">light_mode</i></div>
+              <div>ライト</div>
+            }
+          }
+        </a>
+      </li>
     </ul>
   </nav>
 </ui-panel>

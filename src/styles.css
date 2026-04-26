@@ -87,9 +87,9 @@
   --ui-transition: 150ms ease;
 }
 
-/* ── ライトテーマ (システム設定に追従) ──────────────────────────── */
+/* ── ライトテーマ (システム設定がライトで data-theme="dark" 未指定 / またはユーザーがライト強制選択) */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme='dark']) {
     --ui-bg: #f3f4f6;
     --ui-surface: #ffffff;
     --ui-elevated: #eef1f5;
@@ -130,6 +130,49 @@
     --ui-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06);
     --ui-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
   }
+}
+
+/* ユーザーがライトモードを強制選択 */
+:root[data-theme='light'] {
+  --ui-bg: #f3f4f6;
+  --ui-surface: #ffffff;
+  --ui-elevated: #eef1f5;
+
+  --ui-panel-bg: rgba(255, 255, 255, 0.92);
+  --ui-panel-border: rgba(0, 0, 0, 0.1);
+  --ui-panel-glow: rgba(9, 105, 218, 0.04);
+  --ui-titlebar-bg: #f0f4f8;
+  --ui-titlebar-border: rgba(0, 0, 0, 0.07);
+  --ui-hover: rgba(0, 0, 0, 0.05);
+  --ui-selected: rgba(9, 105, 218, 0.1);
+
+  --ui-menu-bg: rgba(255, 255, 255, 0.97);
+  --ui-menu-border: rgba(0, 0, 0, 0.1);
+  --ui-menu-hover: rgba(9, 105, 218, 0.08);
+  --ui-menu-separator: rgba(0, 0, 0, 0.1);
+
+  --ui-text: #1c2128;
+  --ui-text-muted: #57606a;
+  --ui-text-dim: #8c959f;
+
+  --ui-accent: #0969da;
+  --ui-accent-hover: #0550ae;
+  --ui-accent-glow: rgba(9, 105, 218, 0.22);
+  --ui-accent-bg: rgba(9, 105, 218, 0.08);
+
+  --ui-danger: #cf222e;
+  --ui-danger-hover: #a40e26;
+  --ui-danger-glow: rgba(207, 34, 46, 0.22);
+  --ui-danger-bg: rgba(207, 34, 46, 0.08);
+
+  --ui-success: #1a7f37;
+
+  --ui-input-bg: #ffffff;
+  --ui-input-border: rgba(0, 0, 0, 0.2);
+
+  --ui-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --ui-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06);
+  --ui-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* badge bounce animation (moved from component CSS) */
