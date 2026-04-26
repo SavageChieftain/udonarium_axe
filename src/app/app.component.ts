@@ -20,6 +20,7 @@ import { FileStorageComponent } from '@axe/features/file/file-storage/file-stora
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator/network-indicator.component';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
+import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
@@ -70,6 +71,7 @@ export class AppComponent {
       | 'FileStorageComponent'
       | 'GameCharacterSheetComponent'
       | 'JukeboxComponent'
+      | 'CutInListComponent'
       | 'GameCharacterGeneratorComponent'
       | 'GameObjectInventoryComponent'
   ) {
@@ -95,6 +97,10 @@ export class AppComponent {
         break;
       case 'JukeboxComponent':
         component = JukeboxComponent;
+        break;
+      case 'CutInListComponent':
+        component = CutInListComponent;
+        option = { width: 650, height: 740, left: 100 };
         break;
       case 'GameCharacterGeneratorComponent':
         component = GameCharacterGeneratorComponent;

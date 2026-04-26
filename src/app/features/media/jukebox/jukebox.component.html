@@ -1,94 +1,158 @@
-<div>
-  試聴音量：<input name="audition-volume" [(ngModel)]="auditionVolume" type="range" min="0" max="1" step="0.01" />
-</div>
-<div>BGM音量：<input name="bgm-volume" [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" /></div>
-<div>SE音量：<input name="se-volume" [(ngModel)]="seVolume" type="range" min="0" max="1" step="0.01" /></div>
-<hr />
-<div>
-  全体音量：<input
-    name="room-volume"
-    [(ngModel)]="roomVolume"
-    type="range"
-    min="0"
-    max="2"
-    step="0.01"
-    disabled="{{ !roomVolumeChange }}"
-  /><br />
-  <span class="text-[12px]"
-    >※全プレイヤー共通 GM制御用：変更を有効にする<input
-      type="checkbox"
-      id="roomVolumeChange"
-      value="roomVolumeChange"
-      name="room-volume-change"
-      name="room-volume-change"
-      [(ngModel)]="roomVolumeChange"
-  /></span>
-</div>
-<hr />
-@if (1) {
-  <button (click)="openCutInList()" [disabled]="0">カットイン編集</button>
-}
-<hr />
-<div class="mb-1">
-  タグ：<select [ngModel]="selectTag()" (ngModelChange)="selectTag.set($event)">
-    @for (tag of tagList(); track tag) {
-      <option [value]="tag">{{ tag }}</option>
+<div class="jb-layout">
+  <!-- ── Now Playing ── -->
+  <div class="now-playing">
+    <div class="now-playing-icon">
+      @if (jukebox.audio && jukebox.isPlaying) {
+        <i class="material-icons playing-anim">music_note</i>
+      } @else {
+        <i class="material-icons">music_note</i>
+      }
+    </div>
+    <div class="now-playing-info">
+      <div class="now-playing-label">NOW PLAYING</div>
+      @if (jukebox.audio) {
+        <div class="now-playing-title">{{ jukebox.audio.name }}</div>
+        <div class="now-playing-tag">{{ getTagOf(jukebox.audio) }}</div>
+      } @else {
+        <div class="now-playing-title now-playing-idle">— 停止中 —</div>
+      }
+    </div>
+    @if (jukebox.audio) {
+      <button class="transport-stop" (click)="stopBGM(jukebox.audio)" title="BGM/SE 停止">
+        <i class="material-icons">stop</i>
+      </button>
     }
-  </select>
-</div>
-<div>
-  @for (audio of audios(); track audio.identifier) {
-    <div class="border-b border-dotted border-[#888]">
-      @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
-        <button (click)="play(audio)" [disabled]="!audio.isReady">試聴/再生</button>
-      }
-      @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-        <button (click)="stop()" [disabled]="!audio.isReady">試聴/停止</button>
-      }
-      @if (audio !== jukebox.audio) {
-        <button (click)="playBGM(audio)" [disabled]="!audio.isReady">
-          {{ getTagOf(audio) === 'SE' ? 'SE' : 'BGM' }}/再生
-        </button>
-      }
-      @if (audio === jukebox.audio) {
-        <button (click)="stopBGM(audio)" [disabled]="!audio.isReady">
-          {{ getTagOf(audio) === 'SE' ? 'SE' : 'BGM' }}/停止
-        </button>
-      }
-      @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-        <span>【試聴中】</span>
-      }
-      @if (audio === jukebox.audio) {
-        <span>【{{ getTagOf(audio) === 'SE' ? 'SE' : 'BGM' }}】</span>
-      }
-      <span>{{ audio.name }}</span>
-      <select class="tag-select" [ngModel]="getTagOf(audio)" (ngModelChange)="setTagOf(audio, $event)">
-        @for (tag of tagList(); track tag) {
-          @if (tag !== '全て') {
-            <option [value]="tag">{{ tag }}</option>
-          }
-        }
-      </select>
-    </div>
-  }
-  @if (!audios().length) {
-    <div>アップロードされた音楽ファイルはここに表示されます。</div>
-  }
-</div>
-
-<label>
-  <div class="drop-zone">
-    <div>
-      <i class="material-icons large-font">playlist_add</i>
-    </div>
-    <div>ここに音楽をドロップ</div>
-    <div class="small-font">またはここをクリックして選択</div>
-    <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
-    <div class="small-font"><br />１ファイルにつき10MBまで</div>
   </div>
-</label>
-<div class="text-[12px]">※「試聴」は自分のスピーカーだけで音楽を1回再生します。</div>
-<div class="text-[12px]">※「BGM」はルーム内の全員で1つの音楽をループ再生します。</div>
-<div class="text-[12px]">
-  ※現行バージョンのセーブデータ（zip）には音楽ファイルは含まれません。（毎回アップロードが必要です）
+
+  <!-- ── Volume Controls ── -->
+  <div class="volume-section">
+    <div class="vol-row">
+      <i class="material-icons vol-icon" title="試聴">headphones</i>
+      <span class="vol-label">試聴</span>
+      <input
+        class="vol-slider"
+        name="audition-volume"
+        [(ngModel)]="auditionVolume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+      />
+    </div>
+    <div class="vol-row">
+      <i class="material-icons vol-icon" title="BGM">library_music</i>
+      <span class="vol-label">BGM</span>
+      <input class="vol-slider" name="bgm-volume" [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" />
+    </div>
+    <div class="vol-row">
+      <i class="material-icons vol-icon" title="SE">star</i>
+      <span class="vol-label">SE</span>
+      <input class="vol-slider" name="se-volume" [(ngModel)]="seVolume" type="range" min="0" max="1" step="0.01" />
+    </div>
+    <div class="vol-row vol-row--room">
+      <i class="material-icons vol-icon" title="全体（GM制御）">group</i>
+      <span class="vol-label">全体</span>
+      <input
+        class="vol-slider"
+        name="room-volume"
+        [(ngModel)]="roomVolume"
+        type="range"
+        min="0"
+        max="2"
+        step="0.01"
+        [disabled]="!roomVolumeChange"
+      />
+      <label class="gm-toggle" title="全プレイヤー共通 GM制御">
+        <input type="checkbox" name="room-volume-change" [(ngModel)]="roomVolumeChange" />
+        <span>GM</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── Tag Filter ── -->
+  <div class="tag-bar">
+    @for (tag of tagList(); track tag) {
+      <button class="tag-pill" [class.is-active]="selectTag() === tag" (click)="selectTag.set(tag)">{{ tag }}</button>
+    }
+  </div>
+
+  <!-- ── Playlist ── -->
+  <div class="playlist">
+    @for (audio of audios(); track audio.identifier) {
+      <div
+        class="track-row"
+        [class.is-playing]="audio === jukebox.audio"
+        [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused"
+      >
+        <div class="track-status">
+          @if (audio === jukebox.audio) {
+            <i class="material-icons track-status-icon playing">{{
+              getTagOf(audio) === 'SE' ? 'star' : 'library_music'
+            }}</i>
+          } @else if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
+            <i class="material-icons track-status-icon auditioning">headphones</i>
+          } @else {
+            <i class="material-icons track-status-icon idle">music_note</i>
+          }
+        </div>
+        <div class="track-info">
+          <div class="track-name">{{ audio.name }}</div>
+          <select class="track-tag-select" [ngModel]="getTagOf(audio)" (ngModelChange)="setTagOf(audio, $event)">
+            @for (tag of tagList(); track tag) {
+              @if (tag !== '全て') {
+                <option [value]="tag">{{ tag }}</option>
+              }
+            }
+          </select>
+        </div>
+        <div class="track-actions">
+          @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
+            <button class="action-btn" (click)="play(audio)" [disabled]="!audio.isReady" title="試聴">
+              <i class="material-icons">headphones</i>
+            </button>
+          } @else {
+            <button class="action-btn is-active" (click)="stop()" title="試聴停止">
+              <i class="material-icons">stop</i>
+            </button>
+          }
+          @if (audio !== jukebox.audio) {
+            <button
+              class="action-btn"
+              (click)="playBGM(audio)"
+              [disabled]="!audio.isReady"
+              title="{{ getTagOf(audio) === 'SE' ? 'SE再生' : 'BGM再生' }}"
+            >
+              <i class="material-icons">{{ getTagOf(audio) === 'SE' ? 'star' : 'play_arrow' }}</i>
+            </button>
+          } @else {
+            <button class="action-btn is-active" (click)="stopBGM(audio)" title="停止">
+              <i class="material-icons">stop</i>
+            </button>
+          }
+        </div>
+      </div>
+    }
+    @if (!audios().length) {
+      <div class="playlist-empty">
+        <i class="material-icons">queue_music</i>
+        <span>この分類に音楽ファイルはありません</span>
+      </div>
+    }
+  </div>
+
+  <!-- ── Drop Zone ── -->
+  <label class="drop-zone">
+    <i class="material-icons drop-zone-icon">playlist_add</i>
+    <span class="drop-zone-main">ここに音楽をドロップ</span>
+    <span class="drop-zone-sub">またはここをクリックして選択</span>
+    <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
+    <span class="drop-zone-limit">１ファイルにつき10MBまで</span>
+  </label>
+
+  <!-- ── Notes ── -->
+  <div class="jb-notes">
+    <p>※「試聴」は自分のスピーカーだけで1回再生します。</p>
+    <p>※「BGM/SE」はルーム内全員で再生します。</p>
+    <p>※セーブデータ（zip）に音楽ファイルは含まれません。</p>
+  </div>
 </div>

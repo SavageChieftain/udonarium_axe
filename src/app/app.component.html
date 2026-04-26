@@ -1,7 +1,7 @@
 <div id="app-table-layer" class="absolute w-full h-full overflow-hidden">
   <game-table></game-table>
 </div>
-<ui-panel [top]="0" [left]="0" [width]="80" [height]="490" [title]="'メニュー'" [showTitleButtons]="false">
+<ui-panel [top]="0" [left]="0" [width]="80" [height]="560" [title]="'メニュー'" [showTitleButtons]="false">
   <nav>
     <ul>
       <li (click)="open('PeerMenuComponent')">
@@ -32,6 +32,12 @@
         <a routerLink="/" routerLinkActive="active">
           <div><i class="material-icons">queue_music</i></div>
           <div>音楽</div>
+        </a>
+      </li>
+      <li (click)="open('CutInListComponent')">
+        <a routerLink="/" routerLinkActive="active">
+          <div><i class="material-icons icon-size">slideshow</i></div>
+          <div>カットイン</div>
         </a>
       </li>
       <li (click)="open('GameObjectInventoryComponent')">
