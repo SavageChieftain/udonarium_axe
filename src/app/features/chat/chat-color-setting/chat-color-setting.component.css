@@ -1,0 +1,38 @@
+:host {
+  display: block;
+  padding: 10px 12px;
+}
+
+.color-panel {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.color-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-label {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
+}
+
+.color-input {
+  width: 44px;
+  height: 30px;
+  padding: 2px 3px;
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+  transition: border-color var(--ui-transition);
+}
+
+.color-input:hover {
+  border-color: var(--ui-accent);
+}

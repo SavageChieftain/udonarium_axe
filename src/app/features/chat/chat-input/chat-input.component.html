@@ -104,7 +104,7 @@
       </div>
       <div class="color-setting-tag">
         <button class="color-setting" (click)="showColorSetting()">
-          <i class="material-icons" style="font-size: 13px; vertical-align: middle">settings</i>色設定
+          <i class="material-icons color-setting-icon">settings</i>色設定
         </button>
       </div>
       <!-- 立ち絵スライダー -->
@@ -150,13 +150,7 @@
         (keydown.control.arrowright)="tabSwitchAction($event, 1)"
         #textArea
       ></textarea>
-      <button
-        type="submit"
-        class="px-4 py-2 self-end text-sm font-semibold bg-[var(--ui-accent)] text-[#0d1117] border-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] rounded-[var(--ui-radius-sm)]"
-        (click)="sendChat(null)"
-      >
-        SEND
-      </button>
+      <button type="submit" class="send-btn" (click)="sendChat(null)">SEND</button>
     </form>
 
     <!-- 入力中インジケーター -->

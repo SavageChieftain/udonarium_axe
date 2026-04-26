@@ -9,6 +9,7 @@ import {
   input,
   linkedSignal,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -202,7 +203,7 @@ export class ChatInputComponent {
     return this.sendTo != null && this.sendTo.length > 0;
   }
 
-  private _colorSelectNo = 0;
+  private readonly _colorSelectNo = signal(0);
 
   get isGameCharacter(): boolean {
     const object = this.objectStore.get(this.sendFrom);
@@ -213,25 +214,25 @@ export class ChatInputComponent {
   }
 
   get colorSelectNo() {
-    return this._colorSelectNo;
+    return this._colorSelectNo();
   }
 
   set colorSelectNo(num: number) {
     if (num < 0) {
-      this._colorSelectNo = 0;
+      this._colorSelectNo.set(0);
     } else if (num > 2) {
-      this._colorSelectNo = 2;
+      this._colorSelectNo.set(2);
     } else {
-      this._colorSelectNo = num;
+      this._colorSelectNo.set(num);
     }
   }
 
   colorSelectorBoxBorder(n: number): string {
-    return n === this.colorSelectNo ? '3px' : '1px';
+    return n === this._colorSelectNo() ? '3px' : '1px';
   }
 
   colorSelectorRadius(n: number): string {
-    return n === this.colorSelectNo ? '9px' : '0px';
+    return n === this._colorSelectNo() ? '9px' : '0px';
   }
 
   charactorChatColor(num: number) {

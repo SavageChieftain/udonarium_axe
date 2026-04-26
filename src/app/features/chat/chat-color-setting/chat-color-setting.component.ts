@@ -8,6 +8,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 @Component({
   selector: 'chat-color-setting',
   templateUrl: './chat-color-setting.component.html',
+  styleUrl: './chat-color-setting.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatColorSettingComponent {

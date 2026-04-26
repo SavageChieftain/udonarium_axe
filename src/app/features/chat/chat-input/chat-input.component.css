@@ -7,18 +7,19 @@
 
 /* アバター画像 */
 .imagebox {
-  width: 32px;
+  width: 36px;
   flex-shrink: 0;
-  align-self: flex-end;
-  padding-bottom: 2px;
+  align-self: flex-start;
+  padding-top: 2px;
 }
 
 .image {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: cover;
   object-position: 50% 0%;
   border-radius: var(--ui-radius-sm);
+  border: 1px solid var(--ui-panel-border);
   display: block;
 }
 
@@ -73,6 +74,11 @@
   border-color: var(--ui-accent);
 }
 
+.color-setting-icon {
+  font-size: 13px;
+  vertical-align: middle;
+}
+
 /* 立ち絵スライダー列 */
 .portrait-tag {
   display: flex;
@@ -106,6 +112,27 @@
   outline: none;
   border-color: var(--ui-accent);
   box-shadow: 0 0 0 2px var(--ui-accent-glow);
+}
+
+/* SEND ボタン */
+.send-btn {
+  padding: 6px 16px;
+  align-self: flex-end;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--ui-accent);
+  color: #0d1117;
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--ui-transition),
+    border-color var(--ui-transition);
+}
+
+.send-btn:hover {
+  filter: brightness(1.1);
 }
 
 .writing-info {
