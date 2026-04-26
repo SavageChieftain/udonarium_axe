@@ -11,8 +11,7 @@
           <div>
             <ng-select
               name="send-from"
-              class="ud-select"
-              style="width: 10em"
+              class="ud-select w-[10em]"
               [ngModel]="sendFrom()"
               (ngModelChange)="sendFrom.set($event)"
               [searchable]="false"
@@ -36,9 +35,9 @@
           </div>
         </div>
         <div class="table-cell">
-          <div style="font-size: 0.8em; text-align: right">
+          <div class="text-[0.8em] text-right">
             選択数：{{ selectNum() }}<br />
-            <button class="color-setting small-font" (click)="allBoxCheck()" style="width: 7em">
+            <button class="color-setting small-font w-[7em]" (click)="allBoxCheck()">
               @if (0 !== selectNum()) {
                 全解除口→
               }
@@ -93,9 +92,9 @@
   </div>
 
   <hr />
-  <div style="width: 100%">
+  <div class="w-full">
     バフ/デバッファー
-    <div style="float: right; text-align: right">
+    <div class="float-right text-right">
       隠す
       <input name="buff_hide_chk" type="checkbox" (change)="onBuffHideChkChange($event)" />
     </div>

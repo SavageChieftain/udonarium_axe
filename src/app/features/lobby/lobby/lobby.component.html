@@ -20,7 +20,7 @@
             </td>
             @if (room.peerContexts[0].hasPassword) {
               <td class="py-[1px] px-[0.5em] text-center">
-                <i class="material-icons" style="vertical-align: middle; font-size: 0.9rem">lock</i>
+                <i class="material-icons align-middle text-[0.9rem]">lock</i>
               </td>
             }
             @if (!room.peerContexts[0].hasPassword) {
@@ -43,11 +43,11 @@
       </table>
     }
     @if (rooms().length < 1) {
-      <span style="font-size: 12px">{{ help() }}</span>
+      <span class="text-xs">{{ help() }}</span>
     }
   </div>
 } @else {
-  <span style="font-size: 12px"
+  <span class="text-xs"
     >別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）</span
   >
 }

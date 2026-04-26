@@ -1,0 +1,172 @@
+.portrait-button {
+  background-color: #eee;
+  color: #444;
+  font-size: 1em;
+  margin: 5px 0px;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 6em;
+}
+
+.portrait-button:hover {
+  background-color: #ccc;
+  color: #444;
+}
+
+.sub-image {
+  height: 120px;
+  display: inline-block;
+  max-height: 120px;
+  vertical-align: top;
+  text-align: center;
+}
+
+.sub-image-box {
+  width: 120px;
+  height: 120px;
+}
+
+.sub-table {
+  width: calc(100% - 120px);
+}
+
+.table-cell-2 {
+  display: table-cell;
+}
+
+.table-2 {
+  display: table;
+  width: 100%;
+}
+
+.game-data-element {
+  margin-left: 10px;
+}
+
+.table {
+  display: table;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.table-row {
+  padding-top: 10px;
+  display: table-row;
+  box-sizing: border-box;
+}
+
+.table-cell {
+  display: table-cell;
+  vertical-align: bottom;
+  padding: 0.5em 0em 0.1em 0.5em;
+  border-bottom: 1px dotted #888;
+  box-sizing: border-box;
+}
+
+.table-cell_solid {
+  width: 10px;
+  white-space: nowrap;
+}
+
+.table-cell_inner-table {
+  display: table-cell;
+  vertical-align: bottom;
+  padding: 0.2em 0em 0.1em 0.5em;
+  border: none;
+  box-sizing: border-box;
+}
+
+.table-cell_inner-table-title {
+  border-bottom: 1px solid #444;
+  border-left: 8px solid #444;
+  padding-left: 8px;
+}
+
+.box {
+  display: inline-block;
+  margin: 10px;
+}
+
+.hidden-spacer {
+  visibility: hidden;
+  height: 0;
+  max-width: 20em;
+  overflow: hidden;
+  padding: 0 3px;
+  box-sizing: border-box;
+}
+
+.textarea-url {
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+
+  color: #444;
+  font-family: Cambria, Georgia;
+  padding: 2px;
+  box-sizing: border-box;
+
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.textarea-markdown {
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+
+  color: #444;
+  font-family: Cambria, Georgia;
+  padding: 2px;
+  box-sizing: border-box;
+
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+input,
+button,
+textarea,
+select {
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+
+  color: #444;
+  font-family: Cambria, Georgia;
+  font-size: 1em;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  background: #eee;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background: #fff;
+}
+
+button i {
+  font-size: 1rem;
+}
+
+button:hover {
+  background: #444;
+  color: #ccc;
+}
+
+.table-cell button {
+  font-size: 0.5rem;
+}

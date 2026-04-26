@@ -2,7 +2,7 @@
   class="component is-3d"
   [ngClass]="{ 'is-grab': !isLock }"
   appMovable
-  style="pointer-events: none"
+  class="pointer-events-none"
   [movable.option]="movableOption()"
   [movable.disable]="isLock"
   (movable.ondragstart)="onMove()"
@@ -14,13 +14,12 @@
     [ngClass]="{ fall: altitude === 0 }"
   >
     <div
-      class="is-3d"
-      style="position: absolute; pointer-events: auto"
+      class="is-3d absolute pointer-events-auto"
       [style.width.px]="0"
       [style.height.px]="0"
       [style.clip-path]="clipPathText"
     >
-      <div style="position: absolute" [style.top.px]="0" [style.left.px]="-1 * areaQuadrantSize * gridSize">
+      <div class="absolute" [style.top.px]="0" [style.left.px]="-1 * areaQuadrantSize * gridSize">
         <div class="image-box" [appTooltip]="range()">
           <canvas class="is-fill" #gridCanvas></canvas>
           <canvas class="is-fill" #rangeCanvas></canvas>
@@ -33,7 +32,7 @@
         (rotable.ondragstart)="onMove()"
         (rotable.ondragend)="onMoved()"
         [rotable.disable]="isLock"
-        style="transform: rotateZ(0deg)"
+        class="[transform:rotateZ(0deg)]"
         #rotate
       >
         @if (isLock) {
@@ -42,10 +41,9 @@
           </div>
         }
         @if (!isLock && range().type !== 'CIRCLE' && range().type !== 'SQUARE' && range().type !== 'DIAMOND') {
-          <div style="position: absolute; width: 28px">
+          <div class="absolute w-7">
             <div
-              class="rotate-grab of-corn-tip rotate-grab-icon is-3d will-change"
-              style="position: absolute"
+              class="absolute rotate-grab of-corn-tip rotate-grab-icon is-3d will-change"
               [style.left.px]="1 * range().length * gridSize"
             >
               <i class="material-icons">autorenew</i>
@@ -63,14 +61,7 @@
   </div>
   @if (isAltitudeIndicate && (altitude <= -0.5 || 0.5 <= altitude)) {
     <div
-      class="is-3d"
-      style="
-        display: flex;
-        flex-flow: column nowrap;
-        justify-content: space-between;
-        border-left: 2px dashed black;
-        transform-origin: top left;
-      "
+      class="is-3d flex flex-col flex-nowrap justify-between border-l-2 border-dashed border-black origin-top-left"
       [style.border-left-color]="range().rangeColor"
       [style.height.px]="math.abs(altitude * gridSize) - (altitude > 0 ? 0 : 0)"
       [ngStyle]="{
@@ -84,15 +75,13 @@
     >
       <div class="is-3d" [style.visibility]="altitude > 0 ? 'visible' : 'hidden'">
         <span
-          class="elevation-indicator is-3d"
-          style="position: absolute"
+          class="absolute elevation-indicator is-3d"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
         >
         <span
-          class="elevation-indicator is-3d"
-          style="position: absolute; transform: rotateY(-180deg)"
+          class="absolute [transform:rotateY(-180deg)] elevation-indicator is-3d"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
@@ -100,15 +89,13 @@
       </div>
       <div class="is-3d">
         <span
-          class="altitude-indicator is-3d"
-          style="position: absolute"
+          class="absolute altitude-indicator is-3d"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           >{{ math.abs(altitude) }}</span
         >
         <span
-          class="altitude-indicator is-3d"
-          style="position: absolute; transform: rotateY(-180deg)"
+          class="absolute [transform:rotateY(-180deg)] altitude-indicator is-3d"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           >{{ math.abs(altitude) }}</span
@@ -122,15 +109,13 @@
         }"
       >
         <span
-          class="elevation-indicator is-3d"
-          style="position: absolute"
+          class="absolute elevation-indicator is-3d"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
         >
         <span
-          class="elevation-indicator is-3d"
-          style="position: absolute; transform: rotateY(-180deg)"
+          class="absolute [transform:rotateY(-180deg)] elevation-indicator is-3d"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
@@ -141,7 +126,7 @@
   <div
     class="is-3d"
     [style.visibility]="altitude !== 0 ? 'visible' : 'hidden'"
-    style="position: absolute; z-index: 0"
+    class="absolute z-0"
     [style.top.px]="0"
     [style.left.px]="-1 * areaQuadrantSize * gridSize"
   >

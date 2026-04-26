@@ -18,7 +18,7 @@
   }
 
   @if (selectTab() === 'graveyard') {
-    <div style="padding-top: 6px">
+    <div class="pt-[6px]">
       <button class="danger" (click)="cleanInventory()" [attr.disabled]="objects.length < 1 ? '' : null">
         墓場を空にする
       </button>
@@ -48,7 +48,7 @@
 <ng-template #inventoryViewSetting>
   @if (isEdit()) {
     <div>
-      <div style="font-size: 12px">並び順第1</div>
+      <div class="text-xs">並び順第1</div>
       <input name="sort-tag" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
       <select name="sort-order" name="sort-order" [(ngModel)]="sortOrder">
         <option value="ASC">昇順</option>
@@ -56,39 +56,39 @@
       </select>
     </div>
     <div>
-      <div style="font-size: 12px">並び順第2</div>
+      <div class="text-xs">並び順第2</div>
       <input name="sort-tag-2nd" name="sort-tag-2nd" [(ngModel)]="sortTag2nd" placeholder="タグ名" />
       <select name="sort-order-2nd" name="sort-order-2nd" [(ngModel)]="sortOrder2nd">
         <option value="ASC">昇順</option>
         <option value="DESC">降順</option>
       </select>
     </div>
-    <div style="font-size: 12px; padding-top: 6px">表示項目</div>
+    <div class="text-xs pt-[6px]">表示項目</div>
     <input
-      style="width: 100%; box-sizing: border-box"
+      class="w-full box-border"
       name="data-tag"
       name="data-tag"
       [(ngModel)]="dataTag"
       placeholder="スペース区切りでタグ名 スラッシュで改行 ex.「HP MP / メモ」"
     />
-    <div style="padding-top: 6px">
+    <div class="pt-[6px]">
       <button class="tab-setting small-font" (click)="toggleEdit()">
         <i class="material-icons small-font">settings</i>完了
       </button>
     </div>
   } @else {
-    <table style="font-size: 0.8em">
+    <table class="text-[0.8em]">
       <tr>
-        <th style="vertical-align: middle">並び順 第1:</th>
-        <td style="vertical-align: middle">
+        <th class="align-middle">並び順 第1:</th>
+        <td class="align-middle">
           @if (sortTag) {
             {{ sortTag }} ({{ sortOrderName }})
           } @else {
             -
           }
         </td>
-        <th style="vertical-align: middle">第2:</th>
-        <td style="vertical-align: middle">
+        <th class="align-middle">第2:</th>
+        <td class="align-middle">
           @if (sortTag2nd) {
             {{ sortTag2nd }} ({{ sortOrderName2nd }})
           } @else {
@@ -106,8 +106,8 @@
 </ng-template>
 <ng-template #inventoryMultiMove>
   @if (isMultiMove()) {
-    <div style="font-size: 0.8em">
-      <span style="font-weight: bold">一括移動:</span>
+    <div class="text-[0.8em]">
+      <span class="font-bold">一括移動:</span>
       <button class="tab-setting small-font" (click)="allTabBoxCheck()">
         @if (existsMultiMoveSelectedInTab()) {
           全解除口↓
@@ -135,8 +135,8 @@
     <div class="object-name">
       {{ gameObject.name }}
       @if (selectedIdentifier() === gameObject.identifier) {
-        <button style="font-size: 0.8em; padding: 2px 5px" (click)="onContextMenu($event, gameObject)">
-          <i class="material-icons" style="font-size: 1em">settings</i>
+        <button class="text-[0.8em] p-[2px_5px]" (click)="onContextMenu($event, gameObject)">
+          <i class="material-icons text-[1em]">settings</i>
         </button>
       }
     </div>
@@ -178,7 +178,7 @@
       @switch (dataElm.attributes['type']) {
         @case ('numberResource') {
           <div class="resource-tag">
-            <div style="font-size: 0.8em; display: inline-block; margin-right: 0.5em">{{ dataElm.name }}</div>
+            <div class="text-[0.8em] inline-block mr-[0.5em]">{{ dataElm.name }}</div>
             <input
               class="input resource-value"
               type="number"
@@ -212,8 +212,8 @@
         }
         @case ('check') {
           <div class="tag-name">{{ dataElm.name }}</div>
-          <div style="text-align: center; margin: 2px 0px 0px 0px">
-            <div style="display: inline-block">
+          <div class="text-center mt-[2px]">
+            <div class="inline-block">
               <div class="tag-value-box">
                 @if (dataElm.value !== 0) {
                   <input type="checkbox" checked (click)="dataElm.value = 0" />
@@ -227,10 +227,10 @@
         @case ('markdown') {}
         @default {
           <div class="tag-name">{{ dataElm.name }}</div>
-          <div style="text-align: center">
-            <div style="display: inline-block">
+          <div class="text-center">
+            <div class="inline-block">
               <div class="tag-value-box">
-                <div class="hidden-spacer" style="font-weight: bold">{{ dataElm.value }}</div>
+                <div class="hidden-spacer font-bold">{{ dataElm.value }}</div>
                 <input
                   class="input tag-value"
                   size="1"

@@ -4,7 +4,7 @@
       <button (click)="create()">チャットタブを作る</button>
     </div>
     <select
-      style="width: 10em"
+      class="w-[10em]"
       size="10"
       (change)="onSelectTab($event)"
       name="chat-tab-select"
@@ -15,10 +15,10 @@
         <option value="{{ chatTab.identifier }}">{{ chatTab.name }}</option>
       }
     </select>
-    <div style="font-size: 12px">
+    <div class="text-xs">
       <button (click)="onChangeSystemTab()">システム表示先指定</button>
     </div>
-    <div style="width: 10em; overflow: hidden; font-size: 14px">現在システム表示先：<br />{{ systemTab()?.name }}</div>
+    <div class="w-[10em] overflow-hidden text-[14px]">現在システム表示先：<br />{{ systemTab()?.name }}</div>
   </div>
   <div class="m-[5px] flex-[1_0_auto] box-border grow max-w-full">
     @if (!isEmpty && selectedTab()) {
@@ -29,7 +29,7 @@
       <hr />
       <div>
         @if (!isDeleted) {
-          <div style="padding-left: 45px">
+          <div class="pl-[45px]">
             タブ削除を有効にする<input
               name="allow-delete-tab"
               type="checkbox"
@@ -40,7 +40,7 @@
           <button (click)="upTabIndex()">↑</button>
           <button (click)="downTabIndex()">↓</button>
           <button [disabled]="isSaving()" (click)="save()">
-            <div style="position: relative">
+            <div class="relative">
               <div [class.invisible]="isSaving()">保存</div>
               @if (isSaving()) {
                 <div class="flex items-center justify-center absolute inset-0 text-[0.9em]">
@@ -49,7 +49,7 @@
               }
             </div>
           </button>
-          <span style="display: inline-block; width: 2em"></span>
+          <span class="inline-block w-[2em]"></span>
           <button
             class="danger"
             (click)="delete()"
@@ -64,10 +64,10 @@
         }
         @if (!isDeleted) {
           <hr />
-          <button (click)="saveLog()" style="width: 9em">ログ保存</button
-          ><span style="font-size: 12px">リストから選んだログを保存</span><br />
-          <button (click)="saveAllLog()" style="width: 9em">全タブログ保存</button
-          ><span style="font-size: 12px">時系列順にまとめて保存</span><br />
+          <button (click)="saveLog()" class="w-[9em]">ログ保存</button
+          ><span class="text-xs">リストから選んだログを保存</span><br />
+          <button (click)="saveAllLog()" class="w-[9em]">全タブログ保存</button
+          ><span class="text-xs">時系列順にまとめて保存</span><br />
           <span>CoCログ形式にする</span
           ><input name="mode-coc-log" type="checkbox" value="modeCocLog" [(ngModel)]="modeCocLog" /><br />
         }
@@ -84,16 +84,15 @@
             class="danger"
             (click)="deleteLog()"
             [attr.disabled]="chatTabs.length <= 1 ? '' : null"
-            style="width: 9em"
+            class="w-[9em]"
             [attr.disabled]="!allowDeleteLog ? '' : null"
           >
             選択ログ消去
           </button>
           <button
-            class="danger"
+            class="danger w-[9em]"
             (click)="deleteLogALL()"
             [attr.disabled]="chatTabs.length <= 1 ? '' : null"
-            style="width: 9em"
             [attr.disabled]="!allowDeleteLog ? '' : null"
           >
             全ログ消去
@@ -104,7 +103,7 @@
   </div>
 </div>
 @if (isEmpty) {
-  <div style="font-size: 12px">
+  <div class="text-xs">
     ※チャットタブが１つも作成されていません。「チャットタブを作る」からチャットタブを作成することができます。
   </div>
 }

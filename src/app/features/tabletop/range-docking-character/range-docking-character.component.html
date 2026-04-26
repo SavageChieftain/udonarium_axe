@@ -1,12 +1,11 @@
 <div class="box-border p-[5px] table w-full">
-  <div class="table-cell" style="width: 7em">
-    <div style="text-align: center">接続先＞</div>
+  <div class="table-cell w-[7em]">
+    <div class="text-center">接続先＞</div>
   </div>
   <div class="table-cell">
     <ng-select
       name="send-from"
-      class="ud-select"
-      style="width: 12em"
+      class="ud-select w-[12em]"
       [ngModel]="sendFrom()"
       (ngModelChange)="sendFrom.set($event)"
       [clearable]="false"
@@ -18,7 +17,7 @@
   </div>
 </div>
 <div class="box-border p-[5px] table w-full">
-  <div class="table-cell align-top text-center" style="width: 50px">
+  <div class="table-cell align-top text-center w-[50px]">
     @if (imageFile().url) {
       <img class="w-[50px] h-[50px] object-cover" [src]="imageFile().url | safe: 'resourceUrl'" />
     }
@@ -26,6 +25,6 @@
 </div>
 <br />
 <div class="box-border p-[5px] table w-full">
-  <button (click)="followring()" style="width: 9em">接続実行</button>
-  <button (click)="cancel()" style="width: 9em; margin-left: 3em">キャンセル</button>
+  <button (click)="followring()" class="w-[9em]">接続実行</button>
+  <button (click)="cancel()" class="w-[9em] ml-[3em]">キャンセル</button>
 </div>

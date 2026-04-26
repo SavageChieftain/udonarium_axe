@@ -18,12 +18,12 @@
     @if (title !== 'メニュー') {
       <div class="title-button">
         <button [disabled]="isFullScreen()" (click)="toggleMinimize()">
-          <i class="material-icons" style="font-size: 14px">minimize</i>
+          <i class="material-icons text-[14px]">minimize</i>
         </button>
         <button [disabled]="isMinimized()" (click)="toggleFullScreen()">
-          <i class="material-icons" style="font-size: 14px">fullscreen</i>
+          <i class="material-icons text-[14px]">fullscreen</i>
         </button>
-        <button (click)="close()"><i class="material-icons" style="font-size: 14px">close</i></button>
+        <button (click)="close()"><i class="material-icons text-[14px]">close</i></button>
       </div>
     }
     {{ panelService.title }}

@@ -15,8 +15,8 @@
     <button (click)="clone()">コピーを作る</button>
     <button (click)="saveToXML()">保存</button>
     @if (diceSymbol) {
-      <div class="extra-setting" style="display: table">
-        <div class="extra-setting" style="width: 50%; display: table-cell">
+      <div class="extra-setting table">
+        <div class="extra-setting w-[50%] table-cell">
           コマ画像の高さを指定
           <input
             type="checkbox"
@@ -42,12 +42,7 @@
             <input
               [(ngModel)]="diceSymbol.komaImageHeight"
               type="number"
-              style="width: 12em"
-              min="50"
-              max="750"
-              name="popWidth"
-              (change)="onChkDiceKomaSize($event)"
-              style="color: #555"
+              class="w-[12em] text-[#555]"
               [disabled]="!diceSymbol.specifyKomaImageFlag"
             />
           </div>
@@ -55,31 +50,8 @@
       </div>
     }
     @if (cardStack) {
-      <div class="extra-setting" style="width: 400px">
-        <div>
-          ポップアップ横幅
-          <input
-            type="range"
-            [style]="
-              'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                | safe: 'style'
-            "
-            min="250"
-            max="1000"
-            name="overview-width-range"
-            [(ngModel)]="cardStack.overViewWidth"
-          />
-          <input
-            name="overview-width-range"
-            [(ngModel)]="cardStack.overViewWidth"
-            type="number"
-            min="250"
-            max="1000"
-            name="popWidth"
-            (change)="onChkPopWidth($event)"
-            style="color: #555"
-          />
-        </div>
+      <div class="extra-setting w-[400px]">
+        <div>ポップアップ横幅 /></div>
         <div>
           ポップアップ縦幅最大
           <input
@@ -101,13 +73,13 @@
             max="1000"
             name="popWidth"
             (change)="onChkPopMaxHeight($event)"
-            style="color: #555"
+            class="text-[#555]"
           />
         </div>
       </div>
     }
     @if (card) {
-      <div class="extra-setting" style="width: 400px">
+      <div class="extra-setting w-[400px]">
         <div>
           ポップアップ横幅
           <input
@@ -129,7 +101,7 @@
             max="1000"
             name="popWidth"
             (change)="onChkPopWidth($event)"
-            style="color: #555"
+            class="text-[#555]"
           />
         </div>
         <div>
@@ -153,15 +125,15 @@
             max="1000"
             name="popWidth"
             (change)="onChkPopMaxHeight($event)"
-            style="color: #555"
+            class="text-[#555]"
           />
         </div>
       </div>
     }
     @if (terrain) {
-      <div class="extra-setting" style="display: table">
-        <div class="extra-setting" style="width: 30%; display: table-cell; text-align: right"></div>
-        <div class="extra-setting" style="width: 70%; display: table-cell; text-align: right">
+      <div class="extra-setting table">
+        <div class="extra-setting w-[30%] table-cell text-right"></div>
+        <div class="extra-setting w-[70%] table-cell text-right">
           床にグリッドを表示
           <input
             type="checkbox"
@@ -180,8 +152,8 @@
         <option value="{{ networkService.peerId }}">個人インベントリ</option>
         <option value="graveyard">墓地</option>
       </select>
-      <div class="extra-setting" style="display: table">
-        <div class="extra-setting" style="width: 50%; display: table-cell">
+      <div class="extra-setting table">
+        <div class="extra-setting w-[50%] table-cell">
           <div>
             テーブルインベントリ非表示
             <input
@@ -219,12 +191,11 @@
               name="overview-width-range"
               [(ngModel)]="character.overViewWidth"
               type="number"
-              style="width: 12em"
+              class="w-[12em] text-[#555]"
               min="270"
               max="1000"
               name="popWidth"
               (change)="onChkPopWidth($event)"
-              style="color: #555"
             />
           </div>
           <div>
@@ -244,16 +215,15 @@
               name="overview-height-range"
               [(ngModel)]="character.overViewMaxHeight"
               type="number"
-              style="width: 12em"
+              class="w-[12em] text-[#555]"
               min="250"
               max="1000"
               name="popHeight"
               (change)="onChkPopMaxHeight($event)"
-              style="color: #555"
             />
           </div>
         </div>
-        <div class="extra-setting" style="width: 50%; display: table-cell">
+        <div class="extra-setting w-[50%] table-cell">
           コマ画像の高さを指定
           <input
             type="checkbox"
@@ -279,12 +249,11 @@
             <input
               [(ngModel)]="character.komaImageHeight"
               type="number"
-              style="width: 12em"
+              class="w-[12em] text-[#555]"
               min="50"
               max="750"
               name="popWidth"
               (change)="onChkKomaSize($event)"
-              style="color: #555"
               [disabled]="!character.specifyKomaImageFlag"
             />
           </div>
@@ -292,7 +261,7 @@
       </div>
     }
     @if (textNote) {
-      <div class="extra-setting" style="width: 400px">
+      <div class="extra-setting w-[400px]">
         <div>
           height設定値に高さを制限
           <input
@@ -324,7 +293,7 @@
             max="1000"
             name="popWidth"
             (change)="onChkPopWidth($event)"
-            style="color: #555"
+            class="text-[#555]"
           />
         </div>
         <div>
@@ -348,7 +317,7 @@
             max="1000"
             name="popWidth"
             (change)="onChkPopMaxHeight($event)"
-            style="color: #555"
+            class="text-[#555]"
           />
         </div>
       </div>
@@ -480,14 +449,14 @@
             ></div>
           </div>
           @if (character) {
-            <button style="width: 300px; color: #555" (click)="showImportImages()">画像を他のコマからインポート</button>
+            <button class="w-[300px] text-[#555]" (click)="showImportImages()">画像を他のコマからインポート</button>
           }
         </div>
       }
     }
     @if (isEdit()) {
       <div class="flex-item">
-        <button style="width: 100%; color: #555" (click)="addDataElement()">新しい項目を追加</button>
+        <button class="w-full text-[#555]" (click)="addDataElement()">新しい項目を追加</button>
       </div>
     }
   </div>

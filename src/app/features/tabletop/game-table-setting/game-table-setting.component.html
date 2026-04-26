@@ -4,7 +4,7 @@
       <button (click)="createGameTable()">新しいテーブルを作る</button>
     </div>
     <select
-      style="width: 10em"
+      class="w-[10em]"
       size="10"
       (change)="onSelectGameTable($event)"
       name="game-table-select"
@@ -23,7 +23,7 @@
           画像
           @if (!tableBackgroundImage.url) {
             <div>
-              <button (click)="openBgImageModal()" style="height: 120px">テーブル画像を追加</button>
+              <button (click)="openBgImageModal()" class="h-[120px]">テーブル画像を追加</button>
             </div>
           }
           @if (tableBackgroundImage.url) {
@@ -36,7 +36,7 @@
           背景
           @if (!tableDistanceviewImage.url) {
             <div>
-              <button (click)="openDistanceViewImageModal()" style="height: 120px">背景画像を追加</button>
+              <button (click)="openDistanceViewImageModal()" class="h-[120px]">背景画像を追加</button>
             </div>
           }
           @if (tableDistanceviewImage.url) {
@@ -70,7 +70,7 @@
           type="number"
           min="{{ minSize }}"
           max="{{ maxSize }}"
-          style="width: 5em"
+          class="w-[5em]"
           [attr.disabled]="!isEditable ? '' : null"
         />
       </div>
@@ -91,7 +91,7 @@
           type="number"
           min="{{ minSize }}"
           max="{{ maxSize }}"
-          style="width: 5em"
+          class="w-[5em]"
           [attr.disabled]="!isEditable ? '' : null"
         />
       </div>
@@ -151,7 +151,7 @@
         <hr />
         @if (!isDeleted) {
           <button [disabled]="isSaving()" (click)="save()">
-            <div style="position: relative">
+            <div class="relative">
               <div [class.invisible]="isSaving()">保存</div>
               @if (isSaving()) {
                 <div class="flex items-center justify-center absolute inset-0 text-[0.9em]">
@@ -172,7 +172,7 @@
   </div>
 </div>
 @if (isEmpty) {
-  <div style="font-size: 12px">
+  <div class="text-[12px]">
     ※テーブルが１つも作成されていません。「新しいテーブルを作る」から新しいテーブルを作成することができます。
   </div>
 }
@@ -181,8 +181,7 @@
   標準のダイスボット(部屋接続時に選択されるダイスボットになります)。<br />
   ※テーブル毎の設定ではなく部屋全体の設定です。
   <ng-select
-    class="ud-select"
-    style="width: 15em; margin-left: 0.1em"
+    class="ud-select w-[15em] ml-[0.1em]"
     (change)="loadDiceBot($event)"
     [(ngModel)]="gameType"
     [ngModelOptions]="{ standalone: true }"

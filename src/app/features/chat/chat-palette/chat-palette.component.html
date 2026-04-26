@@ -1,5 +1,5 @@
 <div class="flex-container" #root>
-  <div style="flex-grow: 0">
+  <div class="grow-0">
     <form name="chat-palette">
       <div class="chat-tab">
         @for (chatTab of chatTabsVersion(); track chatTab) {
@@ -36,23 +36,22 @@
       (tabSwitch)="chatTabSwitchRelative($event)"
       #chatInput
     ></chat-input>
-    <div style="position: absolute; margin-top: -2em">
+    <div class="absolute -mt-[2em]">
       <button class="tab-setting small-font" (click)="indexBtn()">
         ＜<i class="material-icons small-font">bookmarks</i>
       </button>
     </div>
     @if (isEdit()) {
       <div class="edit-info">
-        <i class="material-icons" style="vertical-align: bottom; size: 0.8rem">info_outline</i>
+        <i class="material-icons align-bottom text-[0.8rem]">info_outline</i>
         チャットパレット編集中です
       </div>
     }
     <div class="complete-box">
       @if ((autoCompleteList().length === 1 && autoCompleteList()[0] !== text) || autoCompleteList().length > 1) {
         <select
-          class="complete"
+          class="complete overflow-y-auto"
           #completeSelect
-          style="overflow-y: auto"
           size="5"
           (input)="onSelectAutoComplete(text, $event)"
           (click)="onSelectAutoComplete(text, $event)"
@@ -64,10 +63,9 @@
       }
     </div>
   </div>
-  <div [hidden]="isEdit()" style="flex-grow: 1; height: 0; min-height: 100px">
+  <div [hidden]="isEdit()" class="grow h-0 min-h-[100px]">
     <select
-      class="palette"
-      style="overflow-y: auto"
+      class="palette overflow-y-auto"
       size="5"
       (input)="onSelectPalette($event)"
       (click)="onClickPalette($event)"
@@ -81,18 +79,17 @@
       }
     </select>
   </div>
-  <div [hidden]="!isEdit()" style="flex-grow: 1; height: 0; min-height: 100px">
+  <div [hidden]="!isEdit()" class="grow h-0 min-h-[100px]">
     <textarea
       name="edit-palette"
-      class="palette"
+      class="palette resize-none"
       #editText
-      style="resize: none"
       [ngModel]="editPalette()"
       (ngModelChange)="editPalette.set($event)"
       placeholder="チャットパレット"
     ></textarea>
   </div>
-  <div style="flex-grow: 0">
+  <div class="grow-0">
     <button type="submit" (click)="toggleEditMode()">
       @if (!isEdit()) {
         <span>チャットパレットの編集</span>

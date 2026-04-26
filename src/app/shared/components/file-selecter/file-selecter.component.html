@@ -28,7 +28,7 @@
   }
   @for (file of images(); track file) {
     <span class="image">
-      <div style="float: left">
+      <div class="float-left">
         @if (file.url) {
           <img
             [src]="file.url | safe: 'resourceUrl'"

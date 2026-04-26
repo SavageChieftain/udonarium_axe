@@ -22,10 +22,10 @@
     <input name="peer-name" [(ngModel)]="myPeer.name" placeholder="ニックネーム" /><br />
     <span>ID：</span>
     @if (networkService.isOpen) {
-      <span style="font-weight: bold">{{ networkService.peerContext.userId }}</span>
+      <span class="font-bold">{{ networkService.peerContext.userId }}</span>
     }
     @if (!networkService.isOpen) {
-      <span style="font-weight: bold">???</span>
+      <span class="font-bold">???</span>
     }
     <br />
     <div>
@@ -40,9 +40,7 @@
     <span
       >ルーム名：
       @if (networkService.isOpen) {
-        <span style="font-weight: bold"
-          >{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span
-        >
+        <span class="font-bold">{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span>
       }
     </span>
   </div>
@@ -52,12 +50,10 @@
       @if (networkService.peerContext.hasPassword) {
         <span>
           @if (networkService.isOpen) {
-            <span style="font-weight: bold">{{
-              isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●'
-            }}</span>
+            <span class="font-bold">{{ isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●' }}</span>
           }
-          <button style="padding: 2px; margin-left: 1em; font-size: 1em" (click)="togglePasswordVisibility()">
-            <span class="material-icons" style="font-size: 1em; vertical-align: text-bottom">{{
+          <button class="p-[2px] ml-[1em] text-[1em]" (click)="togglePasswordVisibility()">
+            <span class="material-icons text-[1em] align-text-bottom">{{
               isPasswordVisible() ? 'visibility' : 'visibility_off'
             }}</span>
           </button>
@@ -89,7 +85,7 @@
   ><br />
 </div>
 @for (context of networkService.peerContexts; track context) {
-  <div style="font-size: 15px">
+  <div class="text-[15px]">
     <div>
       @if (!context.isOpen) {
         <span>[接続中]</span>
@@ -130,5 +126,5 @@
   }
 </div>
 <div>
-  <span style="font-size: 12px">{{ help() }}</span>
+  <span class="text-xs">{{ help() }}</span>
 </div>

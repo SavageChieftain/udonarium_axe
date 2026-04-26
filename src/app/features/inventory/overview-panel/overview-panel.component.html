@@ -38,7 +38,7 @@
     [ngStyle]="{ width: overViewCardWidth + 'px' }"
   >
     @if (hasImage()) {
-      <div style="position: relative">
+      <div class="relative">
         <img class="card-image" [src]="imageUrl() | safe: 'resourceUrl'" />
         <button class="zoom-button" (click)="chanageImageView(true)">
           <i class="material-icons">zoom_in</i>
@@ -94,7 +94,7 @@
       class="component-background text-note-container"
       [ngStyle]="{ width: overViewNoteWidth + 'px', 'max-height': overViewNoteMaxHeight + 'px' }"
     >
-      <div style="position: relative; width: 100%">
+      <div class="relative w-full">
         <div class="is-fill">
           <textarea
             class="textarea"
@@ -216,7 +216,7 @@
 
 <ng-template #dataElement let-dataElm="dataElm">
   @if (dataElm.children.length) {
-    <div class="section" style="padding-top: 0.5em">
+    <div class="section pt-[0.5em]">
       @if (dataElm.name.trim()) {
         <div class="section-text">{{ dataElm.name }}</div>
       }
@@ -240,7 +240,7 @@
               />
             </span>
           </div>
-          <div class="note" style="position: relative">
+          <div class="note relative">
             <div class="is-fill">
               <textarea
                 class="textarea"
@@ -264,7 +264,7 @@
       @case ('markdown') {
         <div class="section">
           <div>{{ dataElm.name }}</div>
-          <div class="note" style="position: relative">
+          <div class="note relative">
             <div class="is-fill">
               <span
                 class="textarea-markdown"
@@ -288,8 +288,8 @@
       @case ('numberResource') {
         <div class="tag">{{ dataElm.name }}</div>
         <div class="value">
-          <div style="display: inline-block; width: min-content">
-            <div class="hidden-spacer" style="margin-right: 2em">{{ dataElm.currentValue }}</div>
+          <div class="inline-block w-min">
+            <div class="hidden-spacer mr-[2em]">{{ dataElm.currentValue }}</div>
             <input
               class="input"
               type="number"
@@ -300,9 +300,9 @@
               [(ngModel)]="dataElm.currentValue"
             />
           </div>
-          <div style="display: inline">/ {{ dataElm.value }}</div>
+          <div class="inline">/ {{ dataElm.value }}</div>
         </div>
-        <div class="section" style="line-height: 1em">
+        <div class="section leading-[1em]">
           <input
             type="range"
             [style]="

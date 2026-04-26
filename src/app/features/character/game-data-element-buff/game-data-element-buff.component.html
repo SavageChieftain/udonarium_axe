@@ -3,16 +3,16 @@
     @if (!gameDataElement().children.length) {
       @switch (gameDataElement().type) {
         @case ('numberResource') {
-          <div class="table-cell" style="border-bottom: none">
-            <button (click)="deletBuff(gameDataElement())" style="width: 5em">削除</button>
+          <div class="table-cell border-b-0">
+            <button (click)="deletBuff(gameDataElement())" class="w-[5em]">削除</button>
           </div>
-          <div class="table table-cell" style="" style="border-bottom: none">
-            <div class="table-cell" style="width: 60%">
+          <div class="table table-cell border-b-0">
+            <div class="table-cell w-[60%]">
               @if (!isTagLocked()) {
                 <!-- NAME -->
-                <div class="hidden-spacer" style="font-family: Cambria, Georgia; font-size: 0.9rem">{{ name }}</div>
+                <div class="hidden-spacer font-[Cambria,Georgia] text-[0.9rem]">{{ name }}</div>
                 <input
-                  style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 0.9rem"
+                  class="w-full min-w-[10px] font-[Cambria,Georgia] text-[0.9rem]"
                   size="1"
                   name="data-elm-name"
                   name="data-elm-name"
@@ -21,35 +21,19 @@
                 />
               }
             </div>
-            <div class="table-cell" style="width: 0px">/</div>
-            <div class="table-cell" style="width: 30%">
-              <input
-                style="width: 100%"
-                size="1"
-                type="string"
-                name="data-current-value"
-                name="data-current-value"
-                [(ngModel)]="currentValue"
-                placeholder="Value"
-              />
+            <div class="table-cell w-0">/</div>
+            <div class="table-cell w-[30%]">
+              <input class="w-full" [(ngModel)]="currentValue" placeholder="Value" />
             </div>
-            <div class="table-cell" style="width: 0px">/</div>
+            <div class="table-cell w-0">/</div>
             <div class="table-cell">
-              <input
-                style="width: 3em"
-                size="1"
-                type="number"
-                name="data-value"
-                name="data-value"
-                [(ngModel)]="value"
-                placeholder="Value"
-              />
+              <input class="w-[3em]" [(ngModel)]="value" placeholder="Value" />
             </div>
             <div class="table-cell">R</div>
           </div>
         }
         @default {
-          <div class="table" style="width: 100%">
+          <div class="table w-full">
             <div class="table-cell_inner-table-title">
               @if (!isTagLocked()) {
                 <div class="inputLock">{{ gameDataElement().name }}</div>
@@ -60,7 +44,7 @@
       }
     }
     @if (gameDataElement().children.length) {
-      <div class="table" style="width: 100%">
+      <div class="table w-full">
         <div class="table-cell_inner-table-title">
           @if (!isTagLocked()) {
             <div class="inputLock">{{ gameDataElement().name }}</div>
@@ -88,7 +72,7 @@
   @if (!gameDataElement().children.length) {
     @switch (gameDataElement().type) {
       @case ('numberResource') {
-        <span style="font-family: Cambria, Georgia; font-size: 12px">
+        <span class="font-[Cambria,Georgia] text-[12px]">
           {{ gameDataElement().name }} / {{ gameDataElement().currentValue }} / {{ gameDataElement().value }}R
         </span>
       }

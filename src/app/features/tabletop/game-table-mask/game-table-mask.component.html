@@ -6,7 +6,7 @@
       'is-scratching': isScratching && gameTableMask()!.isMine,
       'is-border': true,
     }"
-    style="pointer-events: none"
+    class="pointer-events-none"
     [style.width.px]="pixelWidth"
     [style.height.px]="pixelHeight"
     appMovable
@@ -17,7 +17,7 @@
   >
     <div
       class="is-fit-full is-3d"
-      style="pointer-events: none"
+      class="pointer-events-none"
       [ngClass]="{ fall: altitude === 0 }"
       [ngStyle]="{ transform: 'translateZ(' + altitude * gridSize + 'px)' }"
     >
@@ -28,7 +28,7 @@
         <div
           class="is-fit-full is-3d chrome-smooth-image-trick"
           [attr.data-table-passthrough]="isLock && !isScratching ? '' : null"
-          style="pointer-events: auto; position: absolute; backface-visibility: hidden"
+          class="absolute pointer-events-auto backface-hidden"
           (mousedown)="onMaskMouseDown($event)"
           [ngStyle]="{
             opacity: operateOpacity,
@@ -41,7 +41,7 @@
           @if (imageFile().url.length >= 1) {
             <img
               class="is-fit-full is-3d chrome-smooth-image-trick"
-              style="pointer-events: none; position: absolute"
+              class="absolute pointer-events-none"
               [style.mix-blend-mode]="blendType === 1 ? null : 'hard-light'"
               [src]="imageFile().url | safe: 'resourceUrl'"
             />
@@ -51,7 +51,7 @@
           class="is-fit-full is-3d scratching-area"
           [class.border]="!hexOutlineMask"
           [ngStyle]="hexOuterBorder ? { background: hexOuterBorder } : null"
-          style="pointer-events: none; backface-visibility: hidden"
+          class="pointer-events-none backface-hidden"
         >
           @if (isScratching) {
             <svg
@@ -315,24 +315,20 @@
           }
         </div>
       </div>
-      <div style="pointer-events: none; z-index: 10; backface-visibility: hidden">
+      <div class="pointer-events-none z-10 backface-hidden">
         @if (isLock && dispLockMark) {
           <div class="lock-icon is-center is-3d">
-            <i class="material-icons" style="pointer-events: none; backface-visibility: hidden">lock</i>
+            <i class="material-icons pointer-events-none backface-hidden">lock</i>
           </div>
         }
       </div>
       @if (isScratching && ownerIsOnline) {
-        <div
-          class="scratching is-center is-3d"
-          style="pointer-events: none; z-index: 10; top: -10px; left: 1px; backface-visibility: hidden"
-        >
+        <div class="scratching is-center is-3d" class="pointer-events-none z-10 -top-[10px] left-[1px] backface-hidden">
           <div
-            class="name-tag has-length-limit is-nowrap is-black-background"
-            style="color: whitesmoke"
+            class="name-tag has-length-limit is-nowrap is-black-background text-[whitesmoke]"
             [ngStyle]="{ 'background-color': ownerColor + 'E6' }"
           >
-            <span style="display: inline-block" [ngClass]="{ 'is-inverse': isInverse }"
+            <span class="inline-block" [ngClass]="{ 'is-inverse': isInverse }"
               ><b>{{ ownerName }}</b> が操作中
               @if (gameTableMask()!.isMine) {
                 <button
@@ -364,13 +360,7 @@
     @if (isAltitudeIndicate && math.abs(gameTableMaskAltitude) >= 0.5) {
       <div
         class="is-3d"
-        style="
-          display: flex;
-          align-items: center;
-          border-left: 2px dashed blanchedalmond;
-          transform-origin: top left;
-          pointer-events: none;
-        "
+        class="flex items-center border-l-2 border-dashed border-l-[blanchedalmond] origin-top-left pointer-events-none"
         [style.height.px]="math.abs(gameTableMaskAltitude * gridSize)"
         [ngStyle]="{
           transform:
@@ -385,15 +375,13 @@
             'deg)',
         }"
       >
-        <div class="is-3d" style="pointer-events: none">
-          <span class="altitude-indicator is-3d" style="position: absolute; pointer-events: none">{{
+        <div class="is-3d pointer-events-none">
+          <span class="altitude-indicator is-3d" class="absolute pointer-events-none">{{
             math.abs(gameTableMaskAltitude)
           }}</span>
-          <span
-            class="altitude-indicator is-3d"
-            style="position: absolute; pointer-events: none; transform: rotateY(-180deg)"
-            >{{ gameTableMaskAltitude }}</span
-          >
+          <span class="altitude-indicator is-3d" class="absolute pointer-events-none [transform:rotateY(-180deg)]">{{
+            gameTableMaskAltitude
+          }}</span>
         </div>
       </div>
     }

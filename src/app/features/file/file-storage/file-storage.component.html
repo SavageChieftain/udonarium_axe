@@ -27,7 +27,7 @@
     </div>
     <div>ここに画像をドロップ</div>
     <div class="small-font">またはここをクリックして選択</div>
-    <input type="file" style="display: none" (change)="handleFileSelect($event)" multiple accept="image/*" />
+    <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="image/*" />
     <div class="small-font"><br />１ファイルにつき2MBまで</div>
   </div>
 </label>
@@ -40,7 +40,7 @@
 <div id="file-list">
   @for (file of images(); track file) {
     <span class="image_">
-      <div class="img-box" style="float: left" (click)="imgBlockClick(file.identifier)">
+      <div class="img-box float-left" (click)="imgBlockClick(file.identifier)">
         @if (file.url) {
           <img
             [src]="file.url | safe: 'resourceUrl'"

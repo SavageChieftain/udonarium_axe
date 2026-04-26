@@ -1,10 +1,10 @@
 <div class="table w-full box-border">
-  <div class="table-cell align-top box-border" style="width: 13em">
+  <div class="table-cell align-top box-border w-[13em]">
     <div>
       <button (click)="createDiceTable()" [attr.disabled]="isEdit() ? '' : null">新しい表を作る</button>
     </div>
     <select
-      style="width: 100%"
+      class="w-full"
       size="15;padding-right:5px"
       (change)="onSelectDiceTable($event)"
       name="dice-table-select"
@@ -17,57 +17,56 @@
       }
     </select>
   </div>
-  <div class="table-cell align-top box-border" style="width: 5px; max-width: 5px"></div>
+  <div class="table-cell align-top box-border w-[5px] max-w-[5px]"></div>
   <div class="table-cell align-top box-border">
     <div class="table w-full box-border">
-      <div class="table-cell align-top box-border" style="width: 7em">
-        <span style="width: 7em; display: inline-block">表タイトル :</span>
+      <div class="table-cell align-top box-border w-[7em]">
+        <span class="w-[7em] inline-block">表タイトル :</span>
       </div>
-      <div class="table-cell align-top box-border" style="width: 100%; padding-right: 10px">
+      <div class="table-cell align-top box-border w-full pr-[10px]">
         <input
           name="dice-table-name"
           name="dice-table-name"
           [(ngModel)]="tableName"
           placeholder="Name"
-          style="width: 100%"
+          class="w-full"
           [attr.disabled]="!isEditable ? '' : null"
         />
       </div>
     </div>
     <div class="table w-full box-border">
-      <div class="table-cell align-top box-border" style="width: 7em">
-        <span style="width: 7em; display: inline-block">ダイス :</span>
+      <div class="table-cell align-top box-border w-[7em]">
+        <span class="w-[7em] inline-block">ダイス :</span>
       </div>
-      <div class="table-cell align-top box-border" style="width: 100%; padding-right: 10px">
+      <div class="table-cell align-top box-border w-full pr-[10px]">
         <input
           name="dice-table-dice"
           name="dice-table-dice"
           [(ngModel)]="tableDice"
           placeholder="Dice"
-          style="width: 100%"
+          class="w-full"
           [attr.disabled]="!isEditable ? '' : null"
         />
       </div>
     </div>
     <div>
-      <div class="table-cell align-top box-border" style="width: 7em">
-        <span style="width: 7em; display: inline-block">コマンド :</span>
+      <div class="table-cell align-top box-border w-[7em]">
+        <span class="w-[7em] inline-block">コマンド :</span>
       </div>
-      <div class="table-cell align-top box-border" style="width: 100%; padding-right: 10px">
+      <div class="table-cell align-top box-border w-full pr-[10px]">
         <input
           name="dice-table-command"
           name="dice-table-command"
           [(ngModel)]="tableCommand"
           placeholder="Command"
-          style="width: 100%"
+          class="w-full"
           [attr.disabled]="!isEditable ? '' : null"
         />
       </div>
     </div>
     <div>
       <ng-select
-        class="ud-select"
-        style="width: 12em"
+        class="ud-select w-[12em]"
         (change)="loadDiceBot($event)"
         [(ngModel)]="gameType"
         [ngModelOptions]="{ standalone: true }"
@@ -82,13 +81,13 @@
 
     @if (isEdit()) {
       <div class="w-full text-center text-[#ccc] bg-[rgba(30,30,30,0.8)]">
-        <i class="material-icons" style="vertical-align: bottom; size: 0.8rem">info_outline</i> ダイス表編集中です
+        <i class="material-icons align-bottom text-[0.8rem]">info_outline</i> ダイス表編集中です
       </div>
     }
     <!--入力部 -->
     @if (!isEdit()) {
-      <div style="flex-grow: 1; height: 0; min-height: 150px">
-        <select class="box-border font-sans w-full h-full" style="overflow-y: auto" size="5">
+      <div class="grow h-0 min-h-[150px]">
+        <select class="box-border font-sans w-full h-full overflow-y-auto" size="5">
           @if (selectedTable) {
             @if (selectedTable.diceTablePalette) {
               @for (palette of selectedTable.diceTablePalette.getPalette(); track palette) {
@@ -100,10 +99,9 @@
       </div>
     }
     @if (isEdit()) {
-      <div style="flex-grow: 1; height: 0; min-height: 150px">
+      <div class="grow h-0 min-h-[150px]">
         <textarea
-          class="box-border font-sans w-full h-full"
-          style="resize: none"
+          class="box-border font-sans w-full h-full resize-none"
           name="dice-table-palette"
           name="dice-table-palette"
           [ngModel]="editPalette()"
@@ -112,7 +110,7 @@
         ></textarea>
       </div>
     }
-    <div style="flex-grow: 0">
+    <div class="grow-0">
       <button type="submit" (click)="toggleEditMode()" [attr.disabled]="!isEditable ? '' : null">
         @if (!isEdit()) {
           <span>ダイス表の編集</span>
@@ -132,7 +130,7 @@
       }
     </div>
     @if (isEmpty) {
-      <div style="font-size: 12px">
+      <div class="text-[12px]">
         ※ダイス表が１つも作成されていません。「新しい表を作る」から新しいダイス表を作成することができます。
       </div>
     }

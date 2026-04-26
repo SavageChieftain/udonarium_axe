@@ -28,18 +28,18 @@
     <div class="table-cell table-cell_solid">
       @if (isTagLocked()) {
         @if (!isImage()) {
-          <div style="font-family: Cambria, Georgia; font-size: 0.9rem">
+          <div class="font-[Cambria,Georgia] text-[0.9rem]">
             {{ name }}
           </div>
         }
       }
       @if (!isTagLocked()) {
         @if (!isImage()) {
-          <div class="hidden-spacer" style="font-family: Cambria, Georgia; font-size: 0.9rem">
+          <div class="hidden-spacer font-[Cambria,Georgia] text-[0.9rem]">
             {{ name }}
           </div>
           <input
-            style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 0.9rem"
+            class="w-full min-w-[10px] font-[Cambria,Georgia] text-[0.9rem]"
             size="1"
             name="data-elm-name"
             name="data-elm-name"
@@ -69,7 +69,7 @@
           />
           <br />
           <input
-            style="width: 5em; text-align: right"
+            class="w-[5em] text-right"
             size="1"
             type="number"
             name="data-current-value"
@@ -79,7 +79,7 @@
           />
           /
           <input
-            style="width: 5em"
+            class="w-[5em]"
             size="1"
             type="number"
             name="data-value"
@@ -89,7 +89,7 @@
           />
         }
         @case ('note') {
-          <span [hidden]="!isUrlText(value)" style="font-size: 0.8em">
+          <span [hidden]="!isUrlText(value)" class="text-[0.8em]">
             &nbsp;&nbsp;URL編集:<input
               type="checkbox"
               [checked]="editCheckedIds.has(gameDataElement().myIdentifer + '_elm')"
@@ -97,8 +97,7 @@
             />
           </span>
           <textarea
-            class="textarea-url"
-            style="width: 100%; height: 5em; min-width: 50px; resize: none; font-size: 0.8em"
+            class="textarea-url w-full h-[5em] min-w-[50px] resize-none text-[0.8em]"
             name="data-value"
             name="data-value"
             [(ngModel)]="value"
@@ -109,17 +108,16 @@
           </textarea>
           <div
             [hidden]="isEditUrl(gameDataElement().myIdentifer + '_elm') || !isUrlText(gameDataElement().value)"
-            style="width: 100%; max-width: 200px; min-width: 50px"
+            class="w-full max-w-[200px] min-w-[50px]"
           >
             <span
-              class="textarea-url"
-              style="width: 100%; min-width: 50px; font-size: 0.8em"
+              class="textarea-url w-full min-w-[50px] text-[0.8em]"
               [innerHTML]="escapeHtml(value) | linkify"
             ></span>
           </div>
         }
         @case ('markdown') {
-          <span style="font-size: 0.8em">
+          <span class="text-[0.8em]">
             &nbsp;&nbsp;内容編集:<input
               type="checkbox"
               [checked]="editCheckedIds.has(gameDataElement().myIdentifer + '_elm')"
@@ -127,8 +125,7 @@
             />
           </span>
           <textarea
-            class="textarea-markdown"
-            style="width: 100%; height: 5em; min-width: 50px; resize: none; font-size: 0.8em"
+            class="textarea-markdown w-full h-[5em] min-w-[50px] resize-none text-[0.8em]"
             name="data-value"
             name="data-value"
             [(ngModel)]="value"
@@ -139,11 +136,10 @@
           </textarea>
           <div
             [hidden]="isEditMarkDown(gameDataElement().myIdentifer + '_elm')"
-            style="width: 100%; max-width: 200px; min-width: 50px"
+            class="w-full max-w-[200px] min-w-[50px]"
           >
             <div
-              class="textarea-markdown"
-              style="width: 100%; min-width: 50px; font-size: 0.8em"
+              class="textarea-markdown w-full min-w-[50px] text-[0.8em]"
               [innerHTML]="escapeHtmlMarkDown(gameDataElement().value, gameDataElement().myIdentifer)"
             ></div>
           </div>
@@ -158,11 +154,11 @@
         }
         @default {
           @if (!isImage()) {
-            <div class="hidden-spacer" style="font-size: 1em; font-family: Cambria, Georgia">
+            <div class="hidden-spacer text-[1em] font-[Cambria,Georgia]">
               {{ value }}
             </div>
             <input
-              style="width: 100%; min-width: 10px"
+              class="w-full min-w-[10px]"
               size="1"
               name="data-value"
               name="data-value"
@@ -180,14 +176,14 @@
               <div class="table-cell-2 sub-table">
                 <span>立ち絵番号{{ indexNum() }}: </span
                 ><input
-                  style="width: 100%; min-width: 10px"
+                  class="w-full min-w-[10px]"
                   size="1"
                   name="data-current-value"
                   name="data-current-value"
                   [(ngModel)]="currentValue"
                   placeholder="立ち絵名"
                 />
-                <button class="portrait-button" (click)="openModal('imageIdentifier', true)" style="font-size: 1em">
+                <button class="portrait-button text-[1em]" (click)="openModal('imageIdentifier', true)">
                   画像変更
                 </button>
               </div>
@@ -199,7 +195,7 @@
   }
   @if (gameDataElement().children.length) {
     @if (isEdit()) {
-      <div class="table-cell table-cell_solid" style="vertical-align: top">
+      <div class="table-cell table-cell_solid align-top">
         @if (isImage()) {
           <ng-container *ngTemplateOutlet="editButtonsImageTitle"></ng-container>
         }
@@ -208,17 +204,17 @@
         }
       </div>
     }
-    <div class="table-cell table-cell_inner-table" style="padding: 0; width: 0"></div>
+    <div class="table-cell table-cell_inner-table p-0 w-0"></div>
     <div class="table-cell_inner-table">
       <div class="table-cell_inner-table-title">
         @if (isTagLocked()) {
-          <div style="padding: 2px; font-family: Cambria, Georgia; font-size: 1rem; font-weight: bold">
+          <div class="p-[2px] font-[Cambria,Georgia] text-[1rem] font-bold">
             {{ name }}
           </div>
         }
         @if (!isTagLocked()) {
           <input
-            style="width: 100%; min-width: 10px; font-family: Cambria, Georgia; font-size: 1rem; font-weight: bold"
+            class="w-full min-w-[10px] font-[Cambria,Georgia] text-[1rem] font-bold"
             size="1"
             name="data-elm-name"
             name="data-elm-name"
@@ -262,14 +258,7 @@
 </ng-template>
 
 <ng-template #editButtonsImageTop>
-  <button class="dummy" style="visibility: hidden">
-    <i class="material-icons">remove_circle_outline</i>
-  </button>
-  <button (click)="upElement()">
-    <i class="material-icons">arrow_upward</i>
-  </button>
-  <br />
-  <button (click)="deleteImageElement()">
+  <button class="dummy invisible">
     <i class="material-icons">remove_circle_outline</i>
   </button>
   <button (click)="downElement()">
@@ -277,14 +266,14 @@
   </button>
 </ng-template>
 <ng-template #editButtonsImageMiddle>
-  <button class="dummy" style="visibility: hidden">
+  <button class="dummy invisible">
     <i class="material-icons">remove_circle_outline</i>
   </button>
   <button (click)="upElement()">
     <i class="material-icons">arrow_upward</i>
   </button>
   <br />
-  <button class="dummy" style="visibility: hidden">
+  <button class="dummy invisible">
     <i class="material-icons">remove_circle_outline</i>
   </button>
   <button (click)="downElement()">

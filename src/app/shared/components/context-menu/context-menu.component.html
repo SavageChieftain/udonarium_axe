@@ -7,15 +7,12 @@
   @if (title) {
     <div class="title">{{ title }}</div>
   }
-  <div style="display: flex; align-items: top">
+  <div class="flex items-start">
     @if (altitudeHande) {
-      <div
-        class="altitude ruler"
-        style="display: flex; align-self: stretch; flex-direction: column; align-content: center"
-      >
-        <div style="margin-top: 2em">高</div>
-        <div style="align-self: center; margin-top: auto; margin-bottom: auto">0</div>
-        <div style="margin-bottom: 2em">低</div>
+      <div class="altitude ruler flex self-stretch flex-col content-center">
+        <div class="mt-[2em]">高</div>
+        <div class="self-center my-auto">0</div>
+        <div class="mb-[2em]">低</div>
       </div>
     }
     @if (altitudeHande) {
@@ -35,18 +32,18 @@
         />
       </div>
     }
-    <div style="flex-grow: 1">
+    <div class="grow">
       @if (altitudeHande) {
         <div>
           <div class="title" [style.color]="titleColor()" [style.font-weight]="titleBold() ? 'bolder' : 'normal'">
             @if (altitudeHande) {
-              <span style="font-size: small">
+              <span class="text-[small]">
                 (高度
                 <input
                   name="altitude-number"
                   type="number"
                   step="0.1"
-                  style="font-size: small; width: 3.6em; text-align: right"
+                  class="text-[small] w-[3.6em] text-right"
                   [(ngModel)]="altitudeHande.altitude"
                 />)</span
               >
@@ -99,7 +96,7 @@
     </div>
     @if (action.subActions) {
       <div class="sub-menu-arrow">
-        <i class="material-icons" style="font-size: 1em; vertical-align: bottom">arrow_forward_ios</i>
+        <i class="material-icons text-[1em] align-bottom">arrow_forward_ios</i>
       </div>
     }
     @if (subMenu && parentMenu === action) {

@@ -4,7 +4,7 @@
     <div>自分しか部屋にいません</div>
   }
   @for (peer of peerList; track peer) {
-    <div style="font-size: 15px" [ngClass]="{ box: true }">
+    <div class="text-[15px] box">
       <ng-container *ngTemplateOutlet="alarmTargets; context: { peer: peer }"></ng-container>
     </div>
   }
@@ -13,8 +13,8 @@
 <ng-template #alarmTop>
   <form class="is-sticky-top" name="alarm-menu">
     <div class="tab">
-      <div style="display: table">
-        <div style="display: table-cell">
+      <div class="table">
+        <div class="table-cell">
           <input
             type="checkbox"
             value="includSelf"
@@ -23,26 +23,24 @@
             (click)="changeIncludSelf()"
           /><span>自分を含める</span>
         </div>
-        <div style="display: table-cell; align: left">
-          <div style="text-align: left">
-            <span style="display: inline-block; width: 5em; margin-left: 0.5em">タイトル:</span
-            ><input [(ngModel)]="alarmTitle" placeholder="アラーム" name="alarmTitle" style="width: 15em" /><br />
-            <span style="display: inline-block; width: 5em; margin-left: 0.5em">時間:</span
-            ><input
-              type="number"
-              [(ngModel)]="alarmTime"
-              placeholder=""
-              (change)="changeAlarmTime()"
-              name="alarmTime"
-              style="width: 5em"
-            />秒
-          </div>
+        <div class="table-cell text-left">
+          <span class="inline-block w-[5em] ml-[0.5em]">タイトル:</span
+          ><input [(ngModel)]="alarmTitle" placeholder="アラーム" name="alarmTitle" class="w-[15em]" /><br />
+          <span class="inline-block w-[5em] ml-[0.5em]">時間:</span
+          ><input
+            type="number"
+            [(ngModel)]="alarmTime"
+            placeholder=""
+            (change)="changeAlarmTime()"
+            name="alarmTime"
+            class="w-[5em]"
+          />秒
         </div>
-        <div style="display: table-cell">
+        <div class="table-cell">
           <button type="button" (click)="send()" [attr.disabled]="selectedNum() === 0 ? '' : null">送信</button><br />
-          <span style="display: inline-block; margin-left: 0.5em">人数:{{ selectedNum() }}</span>
+          <span class="inline-block ml-[0.5em]">人数:{{ selectedNum() }}</span>
         </div>
-        <div style="display: table-cell; align: left">
+        <div class="table-cell">
           <input type="checkbox" value="isSound" [(ngModel)]="isSound" name="isSound" (click)="changeIsSound()" /><span
             >音</span
           >
@@ -59,8 +57,8 @@
   <div class="inventory-object" (click)="voteBlockClick(peer.peerId)">
     <div class="object-tags-box">
       <div class="table-cell">
-        <div class="object-name" style="width: 6em">送信対象</div>
-        <div style="height: 64px" class="message">
+        <div class="object-name w-[6em]">送信対象</div>
+        <div class="message h-[64px]">
           <div>
             <input type="checkbox" [checked]="checkedPeers.has(peer.peerId)" name="vote_chk" />
           </div>
