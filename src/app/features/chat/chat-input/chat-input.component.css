@@ -48,6 +48,11 @@
   box-shadow: 0 0 0 2px var(--ui-accent-glow);
 }
 
+.color.color-selected {
+  box-shadow: 0 0 0 2px var(--ui-accent);
+  transform: scale(1.15);
+}
+
 /* 色設定ボタン列 */
 .color-setting-tag {
   flex-shrink: 0;

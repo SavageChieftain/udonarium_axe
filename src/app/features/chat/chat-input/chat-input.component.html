@@ -52,53 +52,41 @@
         @if (!isGameCharacter) {
           <div
             class="color"
+            [class.color-selected]="colorSelectNo() === 0"
             (click)="setColorNum(0)"
-            [ngStyle]="{
-              'background-color': playerChatColor(0),
-              'box-shadow': colorSelectorBoxBorder(0) + ' 0 0 0 2px',
-            }"
+            [ngStyle]="{ 'background-color': playerChatColor(0) }"
           ></div>
           <div
             class="color"
+            [class.color-selected]="colorSelectNo() === 1"
             (click)="setColorNum(1)"
-            [ngStyle]="{
-              'background-color': playerChatColor(1),
-              'box-shadow': colorSelectorBoxBorder(1) + ' 0 0 0 2px',
-            }"
+            [ngStyle]="{ 'background-color': playerChatColor(1) }"
           ></div>
           <div
             class="color"
+            [class.color-selected]="colorSelectNo() === 2"
             (click)="setColorNum(2)"
-            [ngStyle]="{
-              'background-color': playerChatColor(2),
-              'box-shadow': colorSelectorBoxBorder(2) + ' 0 0 0 2px',
-            }"
+            [ngStyle]="{ 'background-color': playerChatColor(2) }"
           ></div>
         }
         @if (isGameCharacter) {
           <div
             class="color"
+            [class.color-selected]="colorSelectNo() === 0"
             (click)="setColorNum(0)"
-            [ngStyle]="{
-              'background-color': charactorChatColor(0),
-              'box-shadow': colorSelectorBoxBorder(0) + ' 0 0 0 2px',
-            }"
+            [ngStyle]="{ 'background-color': charactorChatColor(0) }"
           ></div>
           <div
             class="color"
+            [class.color-selected]="colorSelectNo() === 1"
             (click)="setColorNum(1)"
-            [ngStyle]="{
-              'background-color': charactorChatColor(1),
-              'box-shadow': colorSelectorBoxBorder(1) + ' 0 0 0 2px',
-            }"
+            [ngStyle]="{ 'background-color': charactorChatColor(1) }"
           ></div>
           <div
             class="color"
+            [class.color-selected]="colorSelectNo() === 2"
             (click)="setColorNum(2)"
-            [ngStyle]="{
-              'background-color': charactorChatColor(2),
-              'box-shadow': colorSelectorBoxBorder(2) + ' 0 0 0 2px',
-            }"
+            [ngStyle]="{ 'background-color': charactorChatColor(2) }"
           ></div>
         }
       </div>

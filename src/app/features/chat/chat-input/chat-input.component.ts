@@ -203,7 +203,7 @@ export class ChatInputComponent {
     return this.sendTo != null && this.sendTo.length > 0;
   }
 
-  private readonly _colorSelectNo = signal(0);
+  readonly colorSelectNo = signal(0);
 
   get isGameCharacter(): boolean {
     const object = this.objectStore.get(this.sendFrom);
@@ -211,28 +211,6 @@ export class ChatInputComponent {
       return true;
     }
     return false;
-  }
-
-  get colorSelectNo() {
-    return this._colorSelectNo();
-  }
-
-  set colorSelectNo(num: number) {
-    if (num < 0) {
-      this._colorSelectNo.set(0);
-    } else if (num > 2) {
-      this._colorSelectNo.set(2);
-    } else {
-      this._colorSelectNo.set(num);
-    }
-  }
-
-  colorSelectorBoxBorder(n: number): string {
-    return n === this._colorSelectNo() ? '3px' : '1px';
-  }
-
-  colorSelectorRadius(n: number): string {
-    return n === this._colorSelectNo() ? '9px' : '0px';
   }
 
   charactorChatColor(num: number) {
@@ -246,11 +224,12 @@ export class ChatInputComponent {
   }
 
   get selectChatColor() {
+    const n = this.colorSelectNo();
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
-      return this.charactorChatColor(this.colorSelectNo);
+      return this.charactorChatColor(n);
     } else {
-      return this.playerChatColor(this.colorSelectNo);
+      return this.playerChatColor(n);
     }
   }
 
@@ -260,7 +239,8 @@ export class ChatInputComponent {
   }
 
   setColorNum(num: number) {
-    this.colorSelectNo = num;
+    const clamped = Math.min(2, Math.max(0, num));
+    this.colorSelectNo.set(clamped);
   }
 
   get selectedPortrait(): DataElement | null {
