@@ -42,7 +42,12 @@
     <span class="image_">
       <div class="img-box" style="float: left" (click)="imgBlockClick(file.identifier)">
         @if (file.url) {
-          <img [src]="file.url | safe: 'resourceUrl'" [alt]="file.name" height="120" (click)="onSelectedFile(file)" />
+          <img
+            [src]="file.url | safe: 'resourceUrl'"
+            [alt]="file.name"
+            style="height: 120px"
+            (click)="onSelectedFile(file)"
+          />
         }
         @if (!file.url) {
           <img src="assets/images/loading.gif" alt="{{ file.name }}" />

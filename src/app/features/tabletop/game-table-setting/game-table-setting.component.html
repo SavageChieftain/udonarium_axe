@@ -28,7 +28,7 @@
           }
           @if (tableBackgroundImage.url) {
             <div (click)="openBgImageModal()">
-              <img height="120" [src]="tableBackgroundImage.url | safe: 'resourceUrl'" />
+              <img style="height: 120px" [src]="tableBackgroundImage.url | safe: 'resourceUrl'" />
             </div>
           }
         </div>
@@ -41,7 +41,7 @@
           }
           @if (tableDistanceviewImage.url) {
             <div (click)="openDistanceViewImageModal()">
-              <img height="120" [src]="tableDistanceviewImage.url | safe: 'resourceUrl'" />
+              <img style="height: 120px" [src]="tableDistanceviewImage.url | safe: 'resourceUrl'" />
             </div>
           }
         </div>
