@@ -1,196 +1,275 @@
-<div class="images-select">
-  <div>
-    画像
-    @if (isEditable()) {
+<div class="editor-scroll">
+  <!-- ── プレビュー & 名称 ── -->
+  <div class="editor-preview-row">
+    <div
+      class="preview-thumb"
+      [class.youtube]="isYouTubeCutIn()"
+      (click)="openCutInImageModal()"
+      title="画像を選択"
+      role="button"
+    >
+      <img [src]="cutInImageUrl() | safe: 'resourceUrl'" alt="プレビュー" />
       @if (isYouTubeCutIn()) {
-        <span>：YouTube有効</span>
+        <i class="material-icons yt-badge">movie</i>
       }
-    }
-    <div (click)="openCutInImageModal()" class="grow h-[120px]">
-      <img class="w-[120px] h-[120px] object-contain" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
-      <i class="text-[32px] -ml-[28px] material-icons">{{ isYouTubeCutIn() ? 'movie' : '' }}</i>
+      <div class="preview-overlay"><i class="material-icons">photo_camera</i></div>
+    </div>
+
+    <div class="preview-meta">
+      <div class="detail-section">
+        <label class="field-label">名称</label>
+        <input
+          class="field-input"
+          name="cut-in-name"
+          [(ngModel)]="cutInName"
+          placeholder="カットイン名"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+      </div>
+
+      <!-- 再生コントロール -->
+      <div class="transport-row">
+        <button type="button" class="transport-btn" (click)="playCutIn()" title="全員に再生">
+          <i class="material-icons">play_arrow</i>
+          <span>全員再生</span>
+        </button>
+        <button type="button" class="transport-btn" (click)="previewCutIn()" title="自分だけ再生">
+          <i class="material-icons">person_play</i>
+          <span>自分だけ</span>
+        </button>
+        <button type="button" class="transport-btn stop" (click)="stopCutIn()" title="停止">
+          <i class="material-icons">stop</i>
+          <span>停止</span>
+        </button>
+      </div>
     </div>
   </div>
-</div>
-<div>
-  名称 :
-  <input name="cut-in-name" [(ngModel)]="cutInName" placeholder="Name" [attr.disabled]="!isEditable() ? '' : null" />
-</div>
-<div>
-  <button (click)="playCutIn()" [disabled]="">カットイン再生</button>
-  <button (click)="stopCutIn()" [disabled]="">カットイン停止</button>
-  <button (click)="previewCutIn()" [disabled]="">自分だけ再生</button><br />
-</div>
-<div class="ml-[20px]">
-  音楽データ :
-  <button (click)="openCutInBgmModal()">設定</button><br />
-  LINK:
-  @if (isCutInBgmUploaded()) {
-    <span>OK：</span>
+
+  <hr class="divider" />
+
+  <!-- ── 表示設定 ── -->
+  <div class="section-heading">表示設定</div>
+
+  <div class="detail-section">
+    <label class="field-label checkbox-label">
+      <input
+        type="checkbox"
+        [(ngModel)]="cutInOriginalSize"
+        name="cutInOriginalSize"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <span>{{ cutIn()?.videoId ? '標準サイズで表示' : '元サイズで表示' }}</span>
+    </label>
+  </div>
+
+  <div class="field-row">
+    <div class="detail-section">
+      <label class="field-label">Width</label>
+      <input
+        class="field-input"
+        name="cut-in-width"
+        [(ngModel)]="cutInWidth"
+        type="number"
+        [min]="minSizeWidth"
+        [max]="maxSizeWidth"
+        [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
+      />
+    </div>
+    <div class="detail-section">
+      <label class="field-label">Height</label>
+      <input
+        class="field-input"
+        name="cut-in-height"
+        [(ngModel)]="cutInHeight"
+        type="number"
+        [min]="minSizeHeight"
+        [max]="maxSizeHeight"
+        [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
+      />
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <label class="field-label checkbox-label">
+      <input
+        type="checkbox"
+        [(ngModel)]="keepImageAspect"
+        name="keepImageAspect"
+        [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
+        (click)="chkImageAspect()"
+      />
+      <span>縦横比を維持</span>
+    </label>
+  </div>
+
+  <div class="detail-section">
+    <label class="field-label">X 位置</label>
+    <div class="slider-row">
+      <input
+        class="slider"
+        name="cut-in-x-pos"
+        [(ngModel)]="cutInX_Pos"
+        type="range"
+        min="0"
+        max="100"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <input
+        class="field-input num-input"
+        name="cut-in-x-pos-num"
+        [(ngModel)]="cutInX_Pos"
+        type="number"
+        min="0"
+        max="100"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <label class="field-label">Y 位置</label>
+    <div class="slider-row">
+      <input
+        class="slider"
+        name="cut-in-y-pos"
+        [(ngModel)]="cutInY_Pos"
+        type="range"
+        min="0"
+        max="100"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <input
+        class="field-input num-input"
+        name="cut-in-y-pos-num"
+        [(ngModel)]="cutInY_Pos"
+        type="number"
+        min="0"
+        max="100"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── 再生設定 ── -->
+  <div class="section-heading">再生設定</div>
+
+  <div class="field-row">
+    <div class="detail-section">
+      <label class="field-label checkbox-label">
+        <input
+          type="checkbox"
+          [(ngModel)]="cutInIsLoop"
+          name="cutInIsLoop"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <span>ループ再生</span>
+      </label>
+    </div>
+    <div class="detail-section">
+      <label class="field-label">再生時間 (秒)</label>
+      <input
+        class="field-input"
+        name="cut-in-out-time"
+        [(ngModel)]="cutInOutTime"
+        type="number"
+        min="0"
+        [attr.disabled]="!isEditable() || cutInIsLoop ? '' : null"
+      />
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── タグ & トリガー ── -->
+  <div class="section-heading">タグ & トリガー</div>
+
+  <div class="field-row">
+    <div class="detail-section flex2">
+      <label class="field-label">タグ名称</label>
+      <input
+        class="field-input"
+        name="cut-in-tag-name"
+        [(ngModel)]="cutInTagName"
+        placeholder="（空欄可）"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+    </div>
+    <div class="detail-section">
+      <label class="field-label checkbox-label top-pad">
+        <input
+          type="checkbox"
+          [(ngModel)]="chatActivate"
+          name="chatActivate"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <span>チャット末尾発動</span>
+      </label>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── 音楽設定 ── -->
+  <div class="section-heading">音楽設定</div>
+
+  <div class="detail-section bgm-row">
+    <button type="button" class="secondary-btn" (click)="openCutInBgmModal()">
+      <i class="material-icons">music_note</i>BGM 設定
+    </button>
+    <span class="bgm-status" [class.ok]="isCutInBgmUploaded()" [class.ng]="!isCutInBgmUploaded()">
+      @if (isCutInBgmUploaded()) {
+        <i class="material-icons">check_circle</i>{{ cutInAudioName }}
+      }
+      @if (!isCutInBgmUploaded()) {
+        <i class="material-icons">cancel</i>
+        {{ cutInAudioName ? '音楽ファイルがアップされていません' : '音楽ファイルが設定されていません' }}
+      }
+    </span>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── YouTube 設定 ── -->
+  <div class="section-heading">YouTube 設定</div>
+
+  <div class="detail-section">
+    <label class="field-label checkbox-label">
+      <input
+        type="checkbox"
+        [(ngModel)]="cutInIsVideo"
+        name="cutInIsVideo"
+        [attr.disabled]="!isEditable() ? '' : null"
+        (change)="changeYouTubeInfo()"
+      />
+      <span>YouTube 再生を使用</span>
+    </label>
+  </div>
+
+  @if (cutInIsVideo) {
+    <div class="detail-section">
+      <label class="field-label">YouTube URL</label>
+      <input
+        class="field-input"
+        name="cut-in-video-url"
+        [(ngModel)]="cutInVideoURL"
+        placeholder="https://www.youtube.com/watch?v=..."
+        [attr.disabled]="!isEditable() ? '' : null"
+        (input)="changeYouTubeInfo()"
+      />
+    </div>
+    <p class="yt-terms">
+      <a href="https://www.youtube.com/terms" target="_blank" (click)="openYouTubeTerms()">YouTube 利用規約</a
+      >をご確認の上ご利用ください。
+    </p>
   }
-  @if (!isCutInBgmUploaded()) {
-    <span>NG：</span>
-  }
-  <br />
-  @if (!isCutInBgmUploaded()) {
-    @if (cutInAudioName) {
-      <span>音楽ファイルがアップされていません</span>
-    }
-    @if (!cutInAudioName) {
-      <span>音楽ファイルが設定されていません</span>
-    }
-  }
-  @if (isCutInBgmUploaded()) {
-    @if (isEditable()) {
-      <span>{{ cutInAudioName }}</span>
-    }
-    @if (!isEditable()) {
-      <span></span>
-    }
-  }
-</div>
-<div>
-  @if (isEditable()) {
-    @if (cutIn()?.videoId) {
-      <span>標準サイズで表示：</span>
-    }
-    @if (!cutIn()?.videoId) {
-      <span>元サイズで表示：</span>
-    }
-  }
-  <input
-    type="checkbox"
-    [(ngModel)]="cutInOriginalSize"
-    name="cutInOriginalSize"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-</div>
-<div>
-  Width :<input
-    name="cut-in-width"
-    [(ngModel)]="cutInWidth"
-    type="number"
-    min="{{ minSizeWidth }}"
-    max="{{ maxSizeWidth }}"
-    class="w-[5em]"
-    [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
-  />
-  縦横比を維持 :<input
-    type="checkbox"
-    [(ngModel)]="keepImageAspect"
-    name="keepImageAspect"
-    [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
-    (click)="chkImageAspect()"
-  />
-</div>
-<div>
-  Height :<input
-    name="cut-in-height"
-    [(ngModel)]="cutInHeight"
-    type="number"
-    min="{{ minSizeHeight }}"
-    max="{{ maxSizeHeight }}"
-    class="w-[5em]"
-    [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
-  />
-</div>
-<div>
-  <input
-    name="cut-in-x-pos"
-    [(ngModel)]="cutInX_Pos"
-    type="range"
-    min="0"
-    max="100"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-  X位置 :<input
-    name="cut-in-x-pos-num"
-    [(ngModel)]="cutInX_Pos"
-    type="number"
-    min="0"
-    max="100"
-    class="w-[5em]"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-</div>
-<div>
-  <input
-    name="cut-in-y-pos"
-    [(ngModel)]="cutInY_Pos"
-    type="range"
-    min="0"
-    max="100"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-  Y位置 :<input
-    name="cut-in-y-pos-num"
-    [(ngModel)]="cutInY_Pos"
-    type="number"
-    min="0"
-    max="100"
-    class="w-[5em]"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-</div>
-<div>
-  ループ再生：<input
-    type="checkbox"
-    [(ngModel)]="cutInIsLoop"
-    name="cutInIsLoop"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-</div>
-<div>
-  再生時間 :<input
-    name="cut-in-out-time"
-    [(ngModel)]="cutInOutTime"
-    type="number"
-    min="0"
-    class="w-[5em]"
-    [attr.disabled]="!isEditable() || cutInIsLoop ? '' : null"
-  />
-</div>
-<div>
-  タグ名称 :<input
-    name="cut-in-tag-name"
-    [(ngModel)]="cutInTagName"
-    placeholder=""
-    class="w-[5em]"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-  チャット末尾発動：<input
-    type="checkbox"
-    [(ngModel)]="chatActivate"
-    name="chatActivate"
-    [attr.disabled]="!isEditable() ? '' : null"
-  />
-</div>
-<div>
-  YouTube再生 :<input
-    type="checkbox"
-    [(ngModel)]="cutInIsVideo"
-    name="cutInIsVideo"
-    [attr.disabled]="!isEditable() ? '' : null"
-    (change)="changeYouTubeInfo()"
-  />
-  URL :<input
-    name="cut-in-video-url"
-    [(ngModel)]="cutInVideoURL"
-    placeholder="URL"
-    [attr.disabled]="!isEditable() ? '' : null"
-    (input)="changeYouTubeInfo()"
-  /><br />
-  <a href="https://www.youtube.com/terms" target="_blank" class="outer-link" (click)="openYouTubeTerms()"
-    >YouTube 利用規約</a
-  >
-  :機能使用前に確認ください
-</div>
-<div>
-  <p class="text-[0.4em]">
-    ※カットインの挙動<br />
-    タグ名称が同名のカットインは先に再生しているものを停止します(タグ空欄含む)<br />
-    タグ名称が空欄で音楽が設定されている場合、ジュークボックスのBGMを停止します<br />
-    また、そのようなカットインはジュークボックスでBGMを再生すると停止します<br />
-    銃撃音のSE等、BGMと同時再生したいカットインはタグを設定してください<br />
+
+  <hr class="divider" />
+
+  <!-- ── 注釈 ── -->
+  <p class="note-text">
+    ※
+    タグ名称が同名のカットインは先行するものを停止します（空欄含む）。タグ空欄かつ音楽設定ありの場合はジュークボックスのBGMを停止します。同時再生したいSEにはタグを設定してください。
   </p>
 </div>
