@@ -18,6 +18,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
+import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
 import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
@@ -238,6 +239,19 @@ export class ChatWindowComponent {
         ),
       option
     );
+  }
+
+  showChatSetting() {
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const option: PanelOption = {
+      title: 'チャット設定',
+      left: coordinate.x + 50,
+      top: coordinate.y - 300,
+      width: 340,
+      height: 320,
+    };
+    const component = this.panelService.open<ChatMessageSettingComponent>(ChatMessageSettingComponent, option);
+    component.chatTabidentifier = this.chatTabidentifier;
   }
 
   showVoteMenu() {
