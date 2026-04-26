@@ -123,9 +123,7 @@
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
                             <div class="table is-3d">
                               <div class="flex-item is-3d">
-                                <div class="table-row fornt-tag is-3d" class="buff-text">
-                                  簡易表示中/バフ{{ buffNum }}個
-                                </div>
+                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum }}個</div>
                               </div>
                             </div>
                           </div>
@@ -166,9 +164,7 @@
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
                             <div class="table is-3d">
                               <div class="flex-item is-3d">
-                                <div class="table-row fornt-tag is-3d" class="buff-text">
-                                  簡易表示中/バフ{{ buffNum }}個
-                                </div>
+                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum }}個</div>
                               </div>
                             </div>
                           </div>
@@ -309,8 +305,7 @@
       </div>
       @if (isAltitudeIndicate && (altitude <= -0.5 || 0.5 <= altitude)) {
         <div
-          class="is-3d"
-          class="flex flex-col justify-between border-l-2 border-dashed border-l-black origin-top-left"
+          class="is-3d flex flex-col justify-between border-l-2 border-dashed border-l-black origin-top-left"
           [style.height.px]="math.abs(altitude * gridSize) - (altitude > 0 ? 0 : 0)"
           [ngStyle]="{
             transform:
@@ -329,15 +324,13 @@
             <span class="elevation-indicator is-3d absolute"
               ><i>{{ elevation }}</i></span
             >
-            <span class="elevation-indicator is-3d" class="absolute [transform:rotateY(-180deg)]"
+            <span class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
               ><i>{{ elevation }}</i></span
             >
           </div>
           <div class="is-3d">
-            <span class="altitude-indicator is-3d" class="absolute">{{ math.abs(altitude) }}</span>
-            <span class="altitude-indicator is-3d" class="absolute [transform:rotateY(-180deg)]">{{
-              math.abs(altitude)
-            }}</span>
+            <span class="altitude-indicator is-3d absolute">{{ math.abs(altitude) }}</span>
+            <span class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]">{{ math.abs(altitude) }}</span>
           </div>
           <div
             class="is-3d"
@@ -347,7 +340,7 @@
             <span class="elevation-indicator is-3d absolute"
               ><i>{{ elevation }}</i></span
             >
-            <span class="elevation-indicator is-3d" class="absolute [transform:rotateY(-180deg)]"
+            <span class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
               ><i>{{ elevation }}</i></span
             >
           </div>

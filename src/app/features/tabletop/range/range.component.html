@@ -1,8 +1,7 @@
 <div
-  class="component is-3d"
+  class="component is-3d pointer-events-none"
   [ngClass]="{ 'is-grab': !isLock }"
   appMovable
-  class="pointer-events-none"
   [movable.option]="movableOption()"
   [movable.disable]="isLock"
   (movable.ondragstart)="onMove()"
@@ -26,13 +25,12 @@
         </div>
       </div>
       <div
-        class="component-content is-3d"
+        class="component-content is-3d [transform:rotateZ(0deg)]"
         appRotable
         [rotable.option]="rotableOption()"
         (rotable.ondragstart)="onMove()"
         (rotable.ondragend)="onMoved()"
         [rotable.disable]="isLock"
-        class="[transform:rotateZ(0deg)]"
         #rotate
       >
         @if (isLock) {
@@ -124,9 +122,8 @@
     </div>
   }
   <div
-    class="is-3d"
+    class="is-3d absolute z-0"
     [style.visibility]="altitude !== 0 ? 'visible' : 'hidden'"
-    class="absolute z-0"
     [style.top.px]="0"
     [style.left.px]="-1 * areaQuadrantSize * gridSize"
   >

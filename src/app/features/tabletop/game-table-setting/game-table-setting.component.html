@@ -8,7 +8,6 @@
       size="10"
       (change)="onSelectGameTable($event)"
       name="game-table-select"
-      name="game-table-select"
       [ngModel]="selectedTable?.identifier"
     >
       @for (gameTable of getGameTables(); track gameTable) {
@@ -65,7 +64,6 @@
         Width :
         <input
           name="table-width"
-          name="table-width"
           [(ngModel)]="tableWidth"
           type="number"
           min="{{ minSize }}"
@@ -76,6 +74,7 @@
       </div>
       <div>
         <input
+          name="table-height-one"
           [(ngModel)]="tableHeight"
           type="range"
           min="{{ minSize }}"
@@ -85,8 +84,7 @@
         />
         Height :
         <input
-          name="table-height"
-          name="table-height"
+          name="table-height-two"
           [(ngModel)]="tableHeight"
           type="number"
           min="{{ minSize }}"
