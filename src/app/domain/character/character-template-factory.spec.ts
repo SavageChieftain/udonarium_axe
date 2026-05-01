@@ -79,7 +79,7 @@ describe('CharacterTemplateFactory', () => {
 
       const ninjutsu = character.detailDataElement!.getFirstElementByName('忍術');
       expect(ninjutsu).toBeTruthy();
-      expect(ninjutsu!.type).toBe(DataElementType.MARKDOWN);
+      expect(ninjutsu!.type).toBe(DataElementType.CHECK_TABLE);
       expect(ninjutsu!.value).toContain('テーブル表');
     });
 
@@ -91,7 +91,7 @@ describe('CharacterTemplateFactory', () => {
 
       const parts = character.detailDataElement!.getFirstElementByName('ネクロニカ的パーツ');
       expect(parts).toBeTruthy();
-      expect(parts!.type).toBe(DataElementType.MARKDOWN);
+      expect(parts!.type).toBe(DataElementType.CHECK_TABLE);
     });
 
     it('overViewWidthとoverViewMaxHeightがカスタム値に設定される', () => {

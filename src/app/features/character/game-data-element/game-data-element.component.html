@@ -76,6 +76,9 @@
             ></span>
           </div>
         }
+        @case ('checktable') {
+          <app-check-table [element]="gameDataElement()" [isEdit]="isEdit()" />
+        }
         @case ('markdown') {
           @if (isEdit()) {
             <textarea
@@ -90,7 +93,7 @@
             <div class="elm-markdown-view">
               <div
                 class="textarea-markdown text-[0.8em]"
-                [innerHTML]="escapeHtmlMarkDown(gameDataElement().value, gameDataElement().myIdentifer)"
+                [innerHTML]="legacyEscapeHtmlMarkDown(gameDataElement().value, gameDataElement().myIdentifer)"
               ></div>
             </div>
           }
@@ -155,8 +158,9 @@
             <ng-option value="">通常</ng-option>
             <ng-option value="numberResource">リソース</ng-option>
             <ng-option value="note">ノート</ng-option>
-            <ng-option value="markdown">チェック/表</ng-option>
+            <ng-option value="checktable">チェック/表</ng-option>
             <ng-option value="check">単一チェック</ng-option>
+            <ng-option value="markdown">チェック/表（旧）</ng-option>
           </ng-select>
           <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
             <i class="material-icons">add</i>

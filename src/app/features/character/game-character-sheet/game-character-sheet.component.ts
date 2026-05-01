@@ -17,7 +17,7 @@ import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -703,5 +703,33 @@ export class GameCharacterSheetComponent {
     const char = this.character;
     if (!char) return;
     char.overViewDataTags = [];
+  }
+
+  /** 旧 markdown タイプの要素数（移行バナー表示判定用） */
+  legacyMarkdownCount(): number {
+    const char = this.character;
+    if (!char?.detailDataElement) return 0;
+    let count = 0;
+    const scan = (elements: readonly DataElement[]) => {
+      for (const elm of elements) {
+        if (elm.type === DataElementType.MARKDOWN) count++;
+        if (elm.children.length) scan(elm.children);
+      }
+    };
+    scan(char.detailDataElement.children);
+    return count;
+  }
+
+  /** 旧 markdown → checktable に一括変換 */
+  migrateMarkdownToCheckTable(): void {
+    const char = this.character;
+    if (!char?.detailDataElement) return;
+    const migrate = (elements: readonly DataElement[]) => {
+      for (const elm of elements) {
+        if (elm.type === DataElementType.MARKDOWN) elm.setAttribute('type', DataElementType.CHECK_TABLE);
+        if (elm.children.length) migrate(elm.children);
+      }
+    };
+    migrate(char.detailDataElement.children);
   }
 }

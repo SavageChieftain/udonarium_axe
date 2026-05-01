@@ -549,6 +549,19 @@
             </div>
           </div>
 
+          <!-- データ移行 -->
+          @if (legacyMarkdownCount() > 0) {
+            <div class="cs-settings-section cs-settings-section--full">
+              <div class="cs-sec-title"><i class="material-icons">upgrade</i>データ移行</div>
+              <div class="cs-migrate-row">
+                <span class="cs-field-label">チェック/表（旧）が {{ legacyMarkdownCount() }} 件あります</span>
+                <button class="cs-migrate-btn" type="button" (click)="migrateMarkdownToCheckTable()">
+                  <i class="material-icons">auto_fix_high</i>新形式に一括変換
+                </button>
+              </div>
+            </div>
+          }
+
           <!-- ポップアップ設定 -->
           <div class="cs-settings-section cs-settings-section--full">
             <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ設定</div>

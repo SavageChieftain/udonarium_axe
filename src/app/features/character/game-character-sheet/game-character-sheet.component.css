@@ -1130,6 +1130,34 @@ input {
   color: var(--ui-accent);
 }
 
+.cs-migrate-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.cs-migrate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78em;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-accent);
+  cursor: pointer;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.cs-migrate-btn .material-icons {
+  font-size: 14px;
+}
+.cs-migrate-btn:hover {
+  background: rgba(56, 189, 248, 0.12);
+}
+
 .cs-popup-hint {
   font-size: 0.78em;
   color: color-mix(in srgb, var(--ui-text) 55%, transparent);

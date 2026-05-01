@@ -1,0 +1,71 @@
+/* 編集モード: テキストエリア */
+.ct-textarea {
+  width: 100%;
+  min-height: 6em;
+  resize: vertical;
+  background: transparent;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  outline: none;
+  color: var(--ui-text);
+  font-family: inherit;
+  font-size: 0.8em;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.ct-textarea:focus {
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 0 1px var(--ui-accent-glow, var(--ui-accent));
+}
+
+/* ビューモード: レンダリング */
+.ct-view {
+  overflow-x: auto;
+  max-width: min(560px, 60vw);
+  font-size: 0.8em;
+  color: var(--ui-text);
+}
+
+/* テーブル */
+.ct-table {
+  display: table;
+  border-collapse: collapse;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: 3px;
+  margin: 2px 0;
+}
+
+.ct-row {
+  display: table-row;
+}
+
+.ct-row:nth-child(even) .ct-cell {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ct-cell {
+  display: table-cell;
+  border: 1px solid var(--ui-panel-border);
+  padding: 2px 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  color: var(--ui-text);
+}
+
+/* プレーンテキスト行 */
+.ct-plain {
+  padding: 1px 0;
+  color: var(--ui-text);
+  white-space: pre-wrap;
+}
+
+/* チェックボックス */
+.ct-check {
+  cursor: pointer;
+  accent-color: var(--ui-accent);
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin: 1px 2px;
+}

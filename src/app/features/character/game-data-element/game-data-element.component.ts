@@ -5,6 +5,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
+import { CheckTableComponent } from '@axe/features/character/check-table/check-table.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
@@ -18,7 +19,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   templateUrl: './game-data-element.component.html',
   styleUrls: ['./game-data-element.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, LinkifyPipe, SafePipe, NgSelectComponent, NgOptionComponent],
+  imports: [FormsModule, LinkifyPipe, SafePipe, NgSelectComponent, NgOptionComponent, CheckTableComponent],
   host: {
     '(click)': 'click($event)',
   },
@@ -237,40 +238,33 @@ export class GameDataElementComponent {
       .replace(/'/g, '&#039;');
   }
 
-  get markdown(): MarkDown {
-    // 'markdwon' is the legacy identifier; keep as fallback for old peers in P2P sessions
+  /** 旧 markdown タイプ用レンダラー（後方互換） */
+  get legacyMarkdown(): MarkDown {
     return (this.objectStore.get<MarkDown>('markdown') ?? this.objectStore.get<MarkDown>('markdwon'))!;
   }
 
-  escapeHtmlMarkDown(text: string | number, baseId: string): SafeHtml {
-    text = String(text);
-    const textCheckBox = this.markdown.markDownCheckBox(text, baseId);
-    const textTable = this.markdown.markDownTable(textCheckBox);
-
-    return this.domSanitizer.bypassSecurityTrustHtml('<div>' + textTable + '</div>');
+  legacyEscapeHtmlMarkDown(text: string | number, baseId: string): SafeHtml {
+    const md = this.legacyMarkdown;
+    if (!md) return this.domSanitizer.bypassSecurityTrustHtml('');
+    const withCheckboxes = md.markDownCheckBox(String(text), baseId);
+    const withTable = md.markDownTable(withCheckboxes);
+    return this.domSanitizer.bypassSecurityTrustHtml('<div>' + withTable + '</div>');
   }
 
   click(event: MouseEvent) {
-    if (this.markdown) {
-      this.markdown.changeMarkDownCheckBox((event.target as HTMLElement)?.id, event.timeStamp);
-    }
-  }
-
-  protected editCheckedIds = new Set<string>();
-
-  isEditMarkDown(dataElmIdentifier: string) {
-    return this.editCheckedIds.has(dataElmIdentifier);
-  }
-
-  isEditUrl(dataElmIdentifier: string) {
-    return this.editCheckedIds.has(dataElmIdentifier);
+    const md = this.legacyMarkdown;
+    if (md) md.changeMarkDownCheckBox((event.target as HTMLElement)?.id, event.timeStamp);
   }
 
   isUrlText(text: string | number): boolean {
     if (typeof text !== 'string') return false;
-    if (text.match(/^https:\/\//)) return true;
-    if (text.match(/^http:\/\//)) return true;
-    return false;
+    return text.startsWith('https://') || text.startsWith('http://');
+  }
+
+  protected editCheckedIds = new Set<string>();
+
+  isEditUrl(dataElmIdentifier: string) {
+    return this.editCheckedIds.has(dataElmIdentifier);
   }
 
   changeChk(dataElmIdentifier: string) {

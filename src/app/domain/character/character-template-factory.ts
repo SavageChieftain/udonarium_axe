@@ -91,7 +91,7 @@ export class CharacterTemplateFactory {
 |　|[]掘削術|　|[]怪力|　|[]第六感|　|[]経済力|　|[]人脈|　|[]呪術|12|
 `;
     infoElement.appendChild(
-      DataElement.create('忍術', textMarkDown, { type: DataElementType.MARKDOWN }, `忍術${character.identifier}`)
+      DataElement.create('忍術', textMarkDown, { type: DataElementType.CHECK_TABLE }, `忍術${character.identifier}`)
     );
 
     const textMarkDownNecro = `|損傷|使用|タイミング|コスト|射程|効果|
@@ -101,7 +101,7 @@ export class CharacterTemplateFactory {
       DataElement.create(
         'ネクロニカ的パーツ',
         textMarkDownNecro,
-        { type: DataElementType.MARKDOWN },
+        { type: DataElementType.CHECK_TABLE },
         `ネクロニカ的パーツ${character.identifier}`
       )
     );
@@ -109,7 +109,7 @@ export class CharacterTemplateFactory {
       DataElement.create(
         '宝物への依存',
         '[][][][] 幼児退行',
-        { type: DataElementType.MARKDOWN },
+        { type: DataElementType.CHECK_TABLE },
         `ネクロニカ的未練${character.identifier}`
       )
     );

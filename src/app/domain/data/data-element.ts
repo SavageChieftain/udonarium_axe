@@ -16,7 +16,9 @@ export const DataElementType = {
   TEXT: '',
   /** ノート (長文テキスト) */
   NOTE: 'note',
-  /** マークダウン */
+  /** チェック/表（新実装） */
+  CHECK_TABLE: 'checktable',
+  /** マークダウン（旧実装・移行用） */
   MARKDOWN: 'markdown',
 } as const;
 
