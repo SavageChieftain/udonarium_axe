@@ -489,6 +489,12 @@
                       title="ドラッグして並び替え"
                       >drag_indicator</span
                     >
+                    <span class="cs-card-title">
+                      @if (getCardIcon(childElement)) {
+                        <i class="material-icons cs-card-title-icon">{{ getCardIcon(childElement) }}</i>
+                      }
+                      {{ getCardName(childElement) }}
+                    </span>
                     <button
                       class="cs-icon-btn cs-colspan-btn"
                       type="button"
@@ -524,6 +530,7 @@
                       game-data-element
                       [gameDataElement]="childElement"
                       [isEdit]="isElementEditing(childElement.identifier)"
+                      [hideSectionTitle]="true"
                     ></div>
                   </div>
                 </div>

@@ -165,6 +165,16 @@ export class GameCharacterSheetComponent {
     return (el.getAttribute('cs-colspan') as string) || '1';
   }
 
+  getCardName(el: DataElement): string {
+    this.objectChange.versionOf(el.identifier)();
+    return el.name || '';
+  }
+
+  getCardIcon(el: DataElement): string {
+    this.objectChange.versionOf(el.identifier)();
+    return (el.getAttribute('cs-icon') as string) || '';
+  }
+
   cycleCardColspan(el: DataElement) {
     const cur = this.getCardColspan(el);
     const idx = GameCharacterSheetComponent.COLSPAN_CYCLE.indexOf(

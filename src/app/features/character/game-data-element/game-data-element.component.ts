@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -18,7 +17,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   templateUrl: './game-data-element.component.html',
   styleUrls: ['./game-data-element.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, LinkifyPipe, SafePipe],
+  imports: [FormsModule, LinkifyPipe, SafePipe],
   host: {
     '(click)': 'click($event)',
   },
@@ -38,6 +37,8 @@ export class GameDataElementComponent {
 
   readonly isImage = input(false);
   readonly indexNum = input(0);
+  /** trueのとき最上位セクションのタイトルバーを非表示（ツールバー側に表示するため）*/
+  readonly hideSectionTitle = input(false);
 
   private readonly _name = signal<string>('');
   get name(): string {

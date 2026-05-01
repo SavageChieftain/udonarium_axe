@@ -177,84 +177,86 @@
   }
   @if (gameDataElement().children.length) {
     <div class="table-cell_inner-table">
-      <div class="table-cell_inner-table-title" [class.table-cell_inner-table-title--editing]="isEdit()">
-        @if (!isTagLocked() && isEdit()) {
-          <div class="title-edit-row">
-            <div class="icon-picker-wrap">
-              <button
-                type="button"
-                class="icon-picker-btn"
-                (click)="iconPickerOpen.update(v => !v)"
-                title="アイコンを選択"
-              >
-                @if (icon) {
-                  <i class="material-icons">{{ icon }}</i>
-                } @else {
-                  <i class="material-icons icon-placeholder">category</i>
-                }
-              </button>
-              @if (iconPickerOpen()) {
-                <div class="icon-picker-overlay" (click)="iconPickerOpen.set(false)"></div>
-                <div class="icon-picker-popup">
-                  <div class="icon-picker-header">
-                    <span>アイコン選択</span>
-                    @if (icon) {
-                      <button type="button" class="icon-clear-btn" (click)="clearIcon()">クリア</button>
-                    }
-                  </div>
-                  @for (group of iconGroups; track group.label) {
-                    <div class="icon-picker-group-label">{{ group.label }}</div>
-                    <div class="icon-picker-grid">
-                      @for (iconName of group.icons; track iconName) {
-                        <button
-                          type="button"
-                          class="icon-picker-item"
-                          [class.icon-picker-item--active]="icon === iconName"
-                          (click)="selectIcon(iconName)"
-                          [title]="iconName"
-                        >
-                          <i class="material-icons">{{ iconName }}</i>
-                        </button>
+      @if (!hideSectionTitle()) {
+        <div class="table-cell_inner-table-title" [class.table-cell_inner-table-title--editing]="isEdit()">
+          @if (!isTagLocked() && isEdit()) {
+            <div class="title-edit-row">
+              <div class="icon-picker-wrap">
+                <button
+                  type="button"
+                  class="icon-picker-btn"
+                  (click)="iconPickerOpen.update(v => !v)"
+                  title="アイコンを選択"
+                >
+                  @if (icon) {
+                    <i class="material-icons">{{ icon }}</i>
+                  } @else {
+                    <i class="material-icons icon-placeholder">category</i>
+                  }
+                </button>
+                @if (iconPickerOpen()) {
+                  <div class="icon-picker-overlay" (click)="iconPickerOpen.set(false)"></div>
+                  <div class="icon-picker-popup">
+                    <div class="icon-picker-header">
+                      <span>アイコン選択</span>
+                      @if (icon) {
+                        <button type="button" class="icon-clear-btn" (click)="clearIcon()">クリア</button>
                       }
                     </div>
-                  }
-                </div>
+                    @for (group of iconGroups; track group.label) {
+                      <div class="icon-picker-group-label">{{ group.label }}</div>
+                      <div class="icon-picker-grid">
+                        @for (iconName of group.icons; track iconName) {
+                          <button
+                            type="button"
+                            class="icon-picker-item"
+                            [class.icon-picker-item--active]="icon === iconName"
+                            (click)="selectIcon(iconName)"
+                            [title]="iconName"
+                          >
+                            <i class="material-icons">{{ iconName }}</i>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              <input
+                class="w-full min-w-[10px]"
+                size="1"
+                name="data-elm-name"
+                [(ngModel)]="name"
+                placeholder="見出し名"
+              />
+              @if (isImage()) {
+                <button class="elm-act-btn" type="button" (click)="addImageElement()" title="画像を追加">
+                  <i class="material-icons">add</i>
+                </button>
+              } @else {
+                <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
+                  <i class="material-icons">add</i>
+                </button>
               }
+              <button
+                class="elm-act-btn elm-act-btn--danger"
+                type="button"
+                (click)="deleteElement()"
+                title="このセクションを削除"
+              >
+                <i class="material-icons">delete_outline</i>
+              </button>
             </div>
-            <input
-              class="w-full min-w-[10px]"
-              size="1"
-              name="data-elm-name"
-              [(ngModel)]="name"
-              placeholder="見出し名"
-            />
-            @if (isImage()) {
-              <button class="elm-act-btn" type="button" (click)="addImageElement()" title="画像を追加">
-                <i class="material-icons">add</i>
-              </button>
-            } @else {
-              <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
-                <i class="material-icons">add</i>
-              </button>
-            }
-            <button
-              class="elm-act-btn elm-act-btn--danger"
-              type="button"
-              (click)="deleteElement()"
-              title="このセクションを削除"
-            >
-              <i class="material-icons">delete_outline</i>
-            </button>
-          </div>
-        } @else {
-          <div class="title-view-row">
-            @if (icon) {
-              <i class="material-icons title-icon">{{ icon }}</i>
-            }
-            <span class="title-text">{{ name }}</span>
-          </div>
-        }
-      </div>
+          } @else {
+            <div class="title-view-row">
+              @if (icon) {
+                <i class="material-icons title-icon">{{ icon }}</i>
+              }
+              <span class="title-text">{{ name }}</span>
+            </div>
+          }
+        </div>
+      }
       @if (gameDataElement().children.length) {
         <div class="table">
           @for (childElement of gameDataElement().children; track childElement.identifier; let i = $index) {
