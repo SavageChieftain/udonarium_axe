@@ -92,8 +92,70 @@ export class GameCharacterSheetComponent {
       | null
   ) {
     this._tabletopObject.set(value);
+    this.editingIds.set(new Set());
   }
   readonly isEdit = signal(false);
+
+  // ── キャラクターシート: カード単位編集状態 ──
+  readonly editingIds = signal(new Set<string>());
+
+  isElementEditing(id: string): boolean {
+    return this.editingIds().has(id);
+  }
+
+  toggleElementEdit(id: string) {
+    this.editingIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  // ── 詳細カード drag-and-drop ──
+  readonly dragOverId = signal<string | null>(null);
+  private _draggedId: string | null = null;
+
+  onDragStart(event: DragEvent, id: string) {
+    this._draggedId = id;
+    event.dataTransfer?.setData('text/plain', id);
+    event.stopPropagation();
+  }
+
+  onDragEnd() {
+    this._draggedId = null;
+    this.dragOverId.set(null);
+  }
+
+  onDragOver(event: DragEvent, id: string) {
+    if (!this._draggedId || this._draggedId === id) return;
+    event.preventDefault();
+    this.dragOverId.set(id);
+  }
+
+  onDragLeave(id: string) {
+    if (this.dragOverId() === id) this.dragOverId.set(null);
+  }
+
+  onDrop(event: DragEvent, targetId: string) {
+    event.preventDefault();
+    this.dragOverId.set(null);
+    const draggedId = this._draggedId;
+    this._draggedId = null;
+    if (!draggedId || draggedId === targetId) return;
+    this.moveDetailElement(draggedId, targetId);
+  }
+
+  private moveDetailElement(draggedId: string, targetId: string) {
+    const char = this.character;
+    if (!char?.detailDataElement) return;
+    const children = char.detailDataElement.children;
+    const draggedEl = children.find((e) => e.identifier === draggedId);
+    const targetEl = children.find((e) => e.identifier === targetId);
+    if (!draggedEl || !targetEl) return;
+    char.detailDataElement.insertBefore(draggedEl, targetEl);
+    char.update();
+  }
 
   // Typed accessors for template type narrowing via instanceof
   get diceSymbol(): DiceSymbol | null {

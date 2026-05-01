@@ -1,6 +1,8 @@
 @if (tabletopObject) {
   <div class="top-header">
-    <button (click)="toggleEditMode()">編集切り替え</button>
+    @if (!character) {
+      <button (click)="toggleEditMode()">編集切り替え</button>
+    }
     @if (card) {
       <button (click)="openModal('front')">表面の画像を変更</button>
       <button (click)="openModal('back')">裏面の画像を変更</button>
@@ -441,12 +443,25 @@
         <div class="cs-data-col">
           @if (tabletopObject.commonDataElement) {
             <div class="cs-data-card cs-data-card--common">
+              <div class="cs-card-toolbar cs-card-toolbar--common">
+                <button
+                  class="cs-icon-btn"
+                  type="button"
+                  title="編集"
+                  (click)="toggleElementEdit(tabletopObject.commonDataElement.identifier)"
+                >
+                  <i class="material-icons">{{
+                    isElementEditing(tabletopObject.commonDataElement.identifier) ? 'edit_off' : 'edit'
+                  }}</i>
+                </button>
+              </div>
               <div class="table">
                 <div
                   class="table-row"
                   game-data-element
                   [gameDataElement]="tabletopObject.commonDataElement"
                   [isTagLocked]="true"
+                  [isEdit]="isElementEditing(tabletopObject.commonDataElement.identifier)"
                 ></div>
               </div>
             </div>
@@ -456,19 +471,48 @@
           @if (detailElements().length > 0) {
             <div class="cs-data-section">
               @for (childElement of detailElements(); track childElement.identifier) {
-                <div class="cs-data-card">
+                <div
+                  class="cs-data-card"
+                  [class.cs-drag-over]="dragOverId() === childElement.identifier"
+                  (dragover)="onDragOver($event, childElement.identifier)"
+                  (dragleave)="onDragLeave(childElement.identifier)"
+                  (drop)="onDrop($event, childElement.identifier)"
+                >
+                  <div class="cs-card-toolbar">
+                    <span
+                      class="cs-drag-handle material-icons"
+                      draggable="true"
+                      (dragstart)="onDragStart($event, childElement.identifier)"
+                      (dragend)="onDragEnd()"
+                      title="ドラッグして並び替え"
+                      >drag_indicator</span
+                    >
+                    <button
+                      class="cs-icon-btn"
+                      type="button"
+                      title="編集"
+                      (click)="toggleElementEdit(childElement.identifier)"
+                    >
+                      <i class="material-icons">{{
+                        isElementEditing(childElement.identifier) ? 'edit_off' : 'edit'
+                      }}</i>
+                    </button>
+                  </div>
                   <div class="table">
-                    <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
+                    <div
+                      class="table-row"
+                      game-data-element
+                      [gameDataElement]="childElement"
+                      [isEdit]="isElementEditing(childElement.identifier)"
+                    ></div>
                   </div>
                 </div>
               }
             </div>
           }
-          @if (isEdit()) {
-            <div class="cs-add-item-row">
-              <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
-            </div>
-          }
+          <div class="cs-add-item-row">
+            <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
+          </div>
         </div>
       </div>
     </div>
