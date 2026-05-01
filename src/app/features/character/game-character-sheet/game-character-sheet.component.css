@@ -1018,3 +1018,83 @@ input {
   padding: 1px 4px;
   font-size: 0.9em;
 }
+
+/* ── タブバー ── */
+.cs-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--ui-panel-border);
+  padding: 0 8px;
+  gap: 2px;
+  background: var(--ui-base);
+}
+
+.cs-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+  white-space: nowrap;
+}
+
+.cs-tab .material-icons {
+  font-size: 14px;
+}
+
+.cs-tab:hover {
+  color: var(--ui-text);
+}
+
+.cs-tab--active {
+  color: var(--ui-accent);
+  border-bottom-color: var(--ui-accent);
+}
+
+/* ── 設定タブパネル ── */
+.cs-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 14px;
+}
+
+.cs-settings-section {
+  background: var(--ui-elevated);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 2カラム並列（チャット位置 + コマ設定）*/
+.cs-settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ポップアップ設定内のフィールドグループ */
+.cs-settings-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* range が settings-section の幅に収まるよう */
+.cs-settings-panel input[type='range'] {
+  flex: 1 1 0;
+  min-width: 0;
+}

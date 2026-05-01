@@ -266,155 +266,281 @@
          TRPG キャラクターシート レイアウト
     ════════════════════════════════════════════ -->
     <div class="cs-sheet">
-      <!-- ポートレート | キャラクターデータ -->
-      <div class="cs-identity">
-        <!-- ── 左: ポートレート列 ── -->
-        <div class="cs-portrait-col">
-          <!-- ① ポートレート -->
-          <div class="cs-sec-title"><i class="material-icons">portrait</i>ポートレート</div>
-          <div class="cs-portrait-hero" (click)="changePortrait(komaImageIndex())" title="クリックして画像を差し替え">
-            @if (komaImageFile().url) {
-              <img [src]="komaImageFile().url | safe: 'resourceUrl'" alt="ポートレート" />
-            } @else {
-              <div class="cs-portrait-empty">
-                <i class="material-icons">person</i>
-              </div>
-            }
-            <div class="cs-portrait-overlay">
-              <i class="material-icons">edit</i>
-            </div>
-          </div>
+      <!-- タブヘッダー -->
+      <div class="cs-tabs">
+        <button
+          class="cs-tab"
+          [class.cs-tab--active]="activeTab() === 'sheet'"
+          type="button"
+          (click)="activeTab.set('sheet')"
+        >
+          <i class="material-icons">article</i>シート
+        </button>
+        <button
+          class="cs-tab"
+          [class.cs-tab--active]="activeTab() === 'settings'"
+          type="button"
+          (click)="activeTab.set('settings')"
+        >
+          <i class="material-icons">settings</i>設定
+        </button>
+      </div>
 
-          <!-- ② 立ち絵リスト -->
-          <div class="cs-sec-title" style="margin-top: 8px"><i class="material-icons">photo_library</i>立ち絵</div>
-          <div class="cs-portrait-strip">
-            @for (portrait of portraitImages(); track portrait.index) {
-              <div
-                class="cs-strip-item"
-                [class.cs-strip-item--active]="portrait.index === komaImageIndex()"
-                (click)="setKomaIndex(portrait.index)"
-                [title]="'立ち絵 ' + (portrait.index + 1)"
-              >
-                @if (portrait.imageFile.url) {
-                  <img [src]="portrait.imageFile.url | safe: 'resourceUrl'" alt="" />
-                } @else {
-                  <i class="material-icons">image</i>
-                }
-                @if (portrait.index === komaImageIndex()) {
-                  <div class="cs-strip-badge"><i class="material-icons">person_pin</i></div>
-                }
+      <!-- ── シートタブ ── -->
+      @if (activeTab() === 'sheet') {
+        <div class="cs-identity">
+          <!-- 左: ポートレート + 立ち絵 -->
+          <div class="cs-portrait-col">
+            <!-- ① ポートレート -->
+            <div class="cs-sec-title"><i class="material-icons">portrait</i>ポートレート</div>
+            <div class="cs-portrait-hero" (click)="changePortrait(komaImageIndex())" title="クリックして画像を差し替え">
+              @if (komaImageFile().url) {
+                <img [src]="komaImageFile().url | safe: 'resourceUrl'" alt="ポートレート" />
+              } @else {
+                <div class="cs-portrait-empty">
+                  <i class="material-icons">person</i>
+                </div>
+              }
+              <div class="cs-portrait-overlay">
+                <i class="material-icons">edit</i>
               </div>
-            }
-            <button class="cs-strip-add" type="button" title="立ち絵を追加" (click)="addPortrait()">
-              <i class="material-icons">add</i>
-            </button>
-          </div>
-          <div class="cs-portrait-btns">
-            @if (portraitImages().length > 1) {
-              <button
-                class="cs-btn cs-btn--danger"
-                type="button"
-                title="現在の立ち絵を削除"
-                (click)="removePortrait(komaImageIndex())"
-              >
-                <i class="material-icons">delete</i>
+            </div>
+
+            <!-- ② 立ち絵リスト -->
+            <div class="cs-sec-title" style="margin-top: 8px"><i class="material-icons">photo_library</i>立ち絵</div>
+            <div class="cs-portrait-strip">
+              @for (portrait of portraitImages(); track portrait.index) {
+                <div
+                  class="cs-strip-item"
+                  [class.cs-strip-item--active]="portrait.index === komaImageIndex()"
+                  (click)="setKomaIndex(portrait.index)"
+                  [title]="'立ち絵 ' + (portrait.index + 1)"
+                >
+                  @if (portrait.imageFile.url) {
+                    <img [src]="portrait.imageFile.url | safe: 'resourceUrl'" alt="" />
+                  } @else {
+                    <i class="material-icons">image</i>
+                  }
+                  @if (portrait.index === komaImageIndex()) {
+                    <div class="cs-strip-badge"><i class="material-icons">person_pin</i></div>
+                  }
+                </div>
+              }
+              <button class="cs-strip-add" type="button" title="立ち絵を追加" (click)="addPortrait()">
+                <i class="material-icons">add</i>
               </button>
-            }
-            <button class="cs-btn" type="button" (click)="showImportImages()">
-              <i class="material-icons">file_copy</i>インポート
-            </button>
+            </div>
+            <div class="cs-portrait-btns">
+              @if (portraitImages().length > 1) {
+                <button
+                  class="cs-btn cs-btn--danger"
+                  type="button"
+                  title="現在の立ち絵を削除"
+                  (click)="removePortrait(komaImageIndex())"
+                >
+                  <i class="material-icons">delete</i>
+                </button>
+              }
+              <button class="cs-btn" type="button" (click)="showImportImages()">
+                <i class="material-icons">file_copy</i>インポート
+              </button>
+            </div>
           </div>
 
-          <!-- ③ チャット表示位置 -->
-          <div class="cs-setting-block">
-            <div class="cs-sec-title"><i class="material-icons">chat</i>チャット表示位置</div>
-            <div class="cs-field-row">
-              <div class="cs-slot-stepper">
-                <button
-                  type="button"
-                  class="cs-step-btn"
-                  (click)="setPortraitPos(portraitPosIndex() - 1)"
-                  [disabled]="portraitPosIndex() <= 0"
-                >
-                  ‹
-                </button>
-                <span class="cs-slot-num">{{ portraitPosIndex() }}</span>
-                <button
-                  type="button"
-                  class="cs-step-btn"
-                  (click)="setPortraitPos(portraitPosIndex() + 1)"
-                  [disabled]="portraitPosIndex() >= 11"
-                >
-                  ›
-                </button>
+          <!-- 右: キャラクターデータ -->
+          <div class="cs-data-col">
+            <!-- 詳細データ（ステータス・スキル等）-->
+            @if (detailElements().length > 0) {
+              <div class="cs-data-section">
+                @for (childElement of detailElements(); track childElement.identifier) {
+                  <div
+                    class="cs-data-card"
+                    [class.cs-data-card--span2]="getCardColspan(childElement) === '2'"
+                    [class.cs-data-card--full]="getCardColspan(childElement) === 'full'"
+                    [class.cs-drag-over]="dragOverId() === childElement.identifier"
+                    (dragover)="onDragOver($event, childElement.identifier)"
+                    (dragleave)="onDragLeave(childElement.identifier)"
+                    (drop)="onDrop($event, childElement.identifier)"
+                  >
+                    <div class="cs-card-toolbar">
+                      <span
+                        class="cs-drag-handle material-icons"
+                        draggable="true"
+                        (dragstart)="onDragStart($event, childElement.identifier)"
+                        (dragend)="onDragEnd()"
+                        title="ドラッグして並び替え"
+                        >drag_indicator</span
+                      >
+                      <span class="cs-card-title">
+                        @if (getCardIcon(childElement)) {
+                          <i class="material-icons cs-card-title-icon">{{ getCardIcon(childElement) }}</i>
+                        }
+                        {{ getCardName(childElement) }}
+                      </span>
+                      <button
+                        class="cs-icon-btn cs-colspan-btn"
+                        type="button"
+                        title="カラム幅を切り替え"
+                        (click)="cycleCardColspan(childElement)"
+                      >
+                        <span>{{ getCardColspan(childElement) === 'full' ? '全' : getCardColspan(childElement) }}</span>
+                      </button>
+                      @if (isElementEditing(childElement.identifier)) {
+                        <button
+                          class="cs-icon-btn cs-icon-btn--danger"
+                          type="button"
+                          title="この項目を削除"
+                          (click)="deleteTopLevelElement(childElement.identifier)"
+                        >
+                          <i class="material-icons">delete</i>
+                        </button>
+                      }
+                      <button
+                        class="cs-icon-btn"
+                        type="button"
+                        title="編集"
+                        (click)="toggleElementEdit(childElement.identifier)"
+                      >
+                        <i class="material-icons">{{
+                          isElementEditing(childElement.identifier) ? 'edit_off' : 'edit'
+                        }}</i>
+                      </button>
+                    </div>
+                    <div class="table">
+                      <div
+                        class="table-row"
+                        game-data-element
+                        [gameDataElement]="childElement"
+                        [isEdit]="isElementEditing(childElement.identifier)"
+                        [hideSectionTitle]="!isElementEditing(childElement.identifier)"
+                      ></div>
+                    </div>
+                  </div>
+                }
               </div>
-              <span class="cs-unit">/ 11</span>
+            }
+            <div class="cs-add-item-row">
+              <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── 設定タブ ── -->
+      @if (activeTab() === 'settings') {
+        <div class="cs-settings-panel">
+          <!-- 基本情報 (common) -->
+          @if (tabletopObject.commonDataElement) {
+            <div class="cs-settings-section">
+              <div class="cs-sec-title"><i class="material-icons">info</i>基本情報</div>
+              <div class="table">
+                <div
+                  class="table-row"
+                  game-data-element
+                  [gameDataElement]="tabletopObject.commonDataElement"
+                  [isTagLocked]="true"
+                  [isEdit]="false"
+                  [hideSectionTitle]="true"
+                ></div>
+              </div>
+            </div>
+          }
+
+          <!-- 2カラム: チャット表示位置 + コマ設定 -->
+          <div class="cs-settings-row">
+            <!-- チャット表示位置 -->
+            <div class="cs-settings-section">
+              <div class="cs-sec-title"><i class="material-icons">chat</i>チャット表示位置</div>
+              <div class="cs-field-row">
+                <div class="cs-slot-stepper">
+                  <button
+                    type="button"
+                    class="cs-step-btn"
+                    (click)="setPortraitPos(portraitPosIndex() - 1)"
+                    [disabled]="portraitPosIndex() <= 0"
+                  >
+                    ‹
+                  </button>
+                  <span class="cs-slot-num">{{ portraitPosIndex() }}</span>
+                  <button
+                    type="button"
+                    class="cs-step-btn"
+                    (click)="setPortraitPos(portraitPosIndex() + 1)"
+                    [disabled]="portraitPosIndex() >= 11"
+                  >
+                    ›
+                  </button>
+                </div>
+                <span class="cs-unit">/ 11</span>
+              </div>
+            </div>
+
+            <!-- コマ設定 -->
+            <div class="cs-settings-section">
+              <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
+              <label class="cs-flag-label">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="character.specifyKomaImageFlag"
+                  (change)="clickImageFlag()"
+                />コマ高さを指定
+              </label>
+              <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
+                <input
+                  type="range"
+                  min="50"
+                  max="750"
+                  [(ngModel)]="character.komaImageHeight"
+                  [disabled]="!character.specifyKomaImageFlag"
+                  (change)="onChkKomaSize($event)"
+                />
+                <input
+                  class="cs-num-input"
+                  type="number"
+                  min="50"
+                  max="750"
+                  [(ngModel)]="character.komaImageHeight"
+                  [disabled]="!character.specifyKomaImageFlag"
+                  (change)="onChkKomaSize($event)"
+                />
+                <span class="cs-unit">px</span>
+              </div>
             </div>
           </div>
 
-          <!-- ④ コマ設定 -->
-          <div class="cs-setting-block">
-            <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
-            <label class="cs-flag-label">
-              <input
-                type="checkbox"
-                [(ngModel)]="character.specifyKomaImageFlag"
-                (change)="clickImageFlag()"
-              />コマ高さを指定
-            </label>
-            <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
-              <input
-                type="range"
-                min="50"
-                max="750"
-                [(ngModel)]="character.komaImageHeight"
-                [disabled]="!character.specifyKomaImageFlag"
-                (change)="onChkKomaSize($event)"
-              />
-              <input
-                class="cs-num-input"
-                type="number"
-                min="50"
-                max="750"
-                [(ngModel)]="character.komaImageHeight"
-                [disabled]="!character.specifyKomaImageFlag"
-                (change)="onChkKomaSize($event)"
-              />
-              <span class="cs-unit">px</span>
-            </div>
-          </div>
-
-          <!-- ⑤ ポップアップ設定 -->
-          <div class="cs-setting-block">
+          <!-- ポップアップ設定 -->
+          <div class="cs-settings-section">
             <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ設定</div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">横幅</span>
-              <input type="range" min="270" max="1000" [(ngModel)]="character.overViewWidth" />
-              <input
-                class="cs-num-input"
-                type="number"
-                min="270"
-                max="1000"
-                [(ngModel)]="character.overViewWidth"
-                (change)="onChkPopWidth($event)"
-              />
-            </div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">高さ最大</span>
-              <input type="range" min="250" max="1000" [(ngModel)]="character.overViewMaxHeight" />
-              <input
-                class="cs-num-input"
-                type="number"
-                min="250"
-                max="1000"
-                [(ngModel)]="character.overViewMaxHeight"
-                (change)="onChkPopMaxHeight($event)"
-              />
+            <div class="cs-settings-fields">
+              <div class="cs-field-row">
+                <span class="cs-field-label">横幅</span>
+                <input type="range" min="270" max="1000" [(ngModel)]="character.overViewWidth" />
+                <input
+                  class="cs-num-input"
+                  type="number"
+                  min="270"
+                  max="1000"
+                  [(ngModel)]="character.overViewWidth"
+                  (change)="onChkPopWidth($event)"
+                />
+              </div>
+              <div class="cs-field-row">
+                <span class="cs-field-label">高さ最大</span>
+                <input type="range" min="250" max="1000" [(ngModel)]="character.overViewMaxHeight" />
+                <input
+                  class="cs-num-input"
+                  type="number"
+                  min="250"
+                  max="1000"
+                  [(ngModel)]="character.overViewMaxHeight"
+                  (change)="onChkPopMaxHeight($event)"
+                />
+              </div>
             </div>
           </div>
 
-          <!-- ⑥ インベントリ設定 -->
-          <div class="cs-setting-block">
+          <!-- インベントリ設定 -->
+          <div class="cs-settings-section">
             <div class="cs-sec-title"><i class="material-icons">inventory_2</i>インベントリ設定</div>
             <select
               (change)="onSetLocation($event)"
@@ -438,110 +564,7 @@
             </div>
           </div>
         </div>
-
-        <!-- ── 右: キャラクターデータ ── -->
-        <div class="cs-data-col">
-          @if (tabletopObject.commonDataElement) {
-            <div class="cs-data-card cs-data-card--common">
-              <div class="cs-card-toolbar cs-card-toolbar--common">
-                <button
-                  class="cs-icon-btn"
-                  type="button"
-                  title="編集"
-                  (click)="toggleElementEdit(tabletopObject.commonDataElement.identifier)"
-                >
-                  <i class="material-icons">{{
-                    isElementEditing(tabletopObject.commonDataElement.identifier) ? 'edit_off' : 'edit'
-                  }}</i>
-                </button>
-              </div>
-              <div class="table">
-                <div
-                  class="table-row"
-                  game-data-element
-                  [gameDataElement]="tabletopObject.commonDataElement"
-                  [isTagLocked]="true"
-                  [isEdit]="isElementEditing(tabletopObject.commonDataElement.identifier)"
-                ></div>
-              </div>
-            </div>
-          }
-
-          <!-- 詳細データ（ステータス・スキル等）-->
-          @if (detailElements().length > 0) {
-            <div class="cs-data-section">
-              @for (childElement of detailElements(); track childElement.identifier) {
-                <div
-                  class="cs-data-card"
-                  [class.cs-data-card--span2]="getCardColspan(childElement) === '2'"
-                  [class.cs-data-card--full]="getCardColspan(childElement) === 'full'"
-                  [class.cs-drag-over]="dragOverId() === childElement.identifier"
-                  (dragover)="onDragOver($event, childElement.identifier)"
-                  (dragleave)="onDragLeave(childElement.identifier)"
-                  (drop)="onDrop($event, childElement.identifier)"
-                >
-                  <div class="cs-card-toolbar">
-                    <span
-                      class="cs-drag-handle material-icons"
-                      draggable="true"
-                      (dragstart)="onDragStart($event, childElement.identifier)"
-                      (dragend)="onDragEnd()"
-                      title="ドラッグして並び替え"
-                      >drag_indicator</span
-                    >
-                    <span class="cs-card-title">
-                      @if (getCardIcon(childElement)) {
-                        <i class="material-icons cs-card-title-icon">{{ getCardIcon(childElement) }}</i>
-                      }
-                      {{ getCardName(childElement) }}
-                    </span>
-                    <button
-                      class="cs-icon-btn cs-colspan-btn"
-                      type="button"
-                      title="カラム幅を切り替え"
-                      (click)="cycleCardColspan(childElement)"
-                    >
-                      <span>{{ getCardColspan(childElement) === 'full' ? '全' : getCardColspan(childElement) }}</span>
-                    </button>
-                    @if (isElementEditing(childElement.identifier)) {
-                      <button
-                        class="cs-icon-btn cs-icon-btn--danger"
-                        type="button"
-                        title="この項目を削除"
-                        (click)="deleteTopLevelElement(childElement.identifier)"
-                      >
-                        <i class="material-icons">delete</i>
-                      </button>
-                    }
-                    <button
-                      class="cs-icon-btn"
-                      type="button"
-                      title="編集"
-                      (click)="toggleElementEdit(childElement.identifier)"
-                    >
-                      <i class="material-icons">{{
-                        isElementEditing(childElement.identifier) ? 'edit_off' : 'edit'
-                      }}</i>
-                    </button>
-                  </div>
-                  <div class="table">
-                    <div
-                      class="table-row"
-                      game-data-element
-                      [gameDataElement]="childElement"
-                      [isEdit]="isElementEditing(childElement.identifier)"
-                      [hideSectionTitle]="!isElementEditing(childElement.identifier)"
-                    ></div>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-          <div class="cs-add-item-row">
-            <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
-          </div>
-        </div>
-      </div>
+      }
     </div>
   } @else {
     <!-- 非キャラクターオブジェクト -->

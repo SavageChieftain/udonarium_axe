@@ -156,6 +156,7 @@
           <ng-select
             class="ud-select elm-type-select"
             [ngModel]="gameDataElement().type"
+            [ngModelOptions]="{ standalone: true }"
             [clearable]="false"
             [searchable]="false"
             (change)="onSetElementType($event)"

@@ -93,8 +93,12 @@ export class GameCharacterSheetComponent {
   ) {
     this._tabletopObject.set(value);
     this.editingIds.set(new Set());
+    this.activeTab.set('sheet');
   }
   readonly isEdit = signal(false);
+
+  /** キャラクターシートのアクティブタブ */
+  readonly activeTab = signal<'sheet' | 'settings'>('sheet');
 
   // ── キャラクターシート: カード単位編集状態 ──
   readonly editingIds = signal(new Set<string>());

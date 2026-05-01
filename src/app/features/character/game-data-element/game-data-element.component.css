@@ -74,7 +74,8 @@
 }
 
 .elm-name-input {
-  width: 100%;
+  width: max-content;
+  min-width: 4em;
   font-size: 0.78em;
   color: var(--ui-text);
   background: transparent;
@@ -132,6 +133,12 @@
 .elm-type-select .ng-select-container {
   min-height: 22px !important;
   height: 22px !important;
+  align-items: center;
+}
+
+.elm-type-select .ng-select-container .ng-arrow-wrapper {
+  align-self: center;
+  padding-bottom: 0;
 }
 
 .elm-act-btn {
