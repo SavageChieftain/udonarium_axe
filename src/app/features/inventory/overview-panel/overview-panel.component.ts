@@ -76,7 +76,16 @@ export class OverviewPanelComponent {
   });
 
   get inventoryDataElms(): DataElement[] {
-    return this.tabletopObject ? this.getInventoryTags(this.tabletopObject).filter((e) => e != null) : [];
+    if (!this.tabletopObject) return [];
+    const char = this.tabletopObject instanceof GameCharacter ? this.tabletopObject : null;
+    if (char && char.overViewDataTags.length > 0) {
+      const root = char.rootDataElement;
+      if (!root) return [];
+      return char.overViewDataTags
+        .map((tag) => root.getFirstElementByName(tag))
+        .filter((e): e is DataElement => e != null);
+    }
+    return this.getInventoryTags(this.tabletopObject).filter((e) => e != null);
   }
   get dataElms(): DataElement[] {
     return this.tabletopObject && this.tabletopObject.detailDataElement

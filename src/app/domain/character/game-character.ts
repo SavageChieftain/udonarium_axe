@@ -33,6 +33,7 @@ export class GameCharacter extends TabletopObject {
   @SyncVar('komaImageHeignt') komaImageHeight: number = 100;
 
   @SyncVar() chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
+  @SyncVar() overViewDataTags: string[] = [];
   @SyncVar() syncDummyCounter: number = 0;
 
   chatBubbleAltitude: number = 0;

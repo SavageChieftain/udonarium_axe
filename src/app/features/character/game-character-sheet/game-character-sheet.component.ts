@@ -638,4 +638,46 @@ export class GameCharacterSheetComponent {
   onChangeGridColor(event: Event): void {
     this.changeGridColor((event.target as HTMLInputElement).value);
   }
+
+  // ── ポップアップ表示データ設定 ──
+  get popupElements(): Array<{ name: string; depth: number }> {
+    const char = this.character;
+    if (!char?.detailDataElement) return [];
+    const result: Array<{ name: string; depth: number }> = [];
+    const seen = new Set<string>();
+    const collect = (elements: readonly DataElement[], depth: number) => {
+      for (const elm of elements) {
+        if (!elm.name || seen.has(elm.name)) continue;
+        seen.add(elm.name);
+        result.push({ name: elm.name, depth });
+        if (elm.children.length) collect(elm.children, depth + 1);
+      }
+    };
+    collect(char.detailDataElement.children, 0);
+    return result;
+  }
+
+  isInPopupTags(name: string): boolean {
+    return this.character?.overViewDataTags.includes(name) ?? false;
+  }
+
+  onTogglePopupTag(name: string, event: Event): void {
+    const char = this.character;
+    if (!char) return;
+    const checked = (event.target as HTMLInputElement).checked;
+    const tags = [...char.overViewDataTags];
+    if (checked) {
+      if (!tags.includes(name)) tags.push(name);
+    } else {
+      const idx = tags.indexOf(name);
+      if (idx >= 0) tags.splice(idx, 1);
+    }
+    char.overViewDataTags = tags;
+  }
+
+  onResetPopupTags(): void {
+    const char = this.character;
+    if (!char) return;
+    char.overViewDataTags = [];
+  }
 }

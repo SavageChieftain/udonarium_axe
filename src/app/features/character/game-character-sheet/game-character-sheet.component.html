@@ -578,6 +578,29 @@
                 />
               </div>
             </div>
+            <!-- 表示するデータ要素の設定 -->
+            <div class="cs-popup-data-header">
+              <span class="cs-field-label">表示するデータ</span>
+              @if (character.overViewDataTags.length > 0) {
+                <button class="cs-reset-btn" type="button" (click)="onResetPopupTags()">リセット</button>
+              }
+            </div>
+            @if (character.overViewDataTags.length === 0) {
+              <div class="cs-popup-hint">（未設定: インベントリタグを使用）</div>
+            }
+            @if (popupElements.length > 0) {
+              <div class="cs-popup-tag-list">
+                @for (elm of popupElements; track elm.name) {
+                  <label class="cs-flag-label cs-popup-tag-item" [style.padding-left.em]="elm.depth * 0.75 + 0.25">
+                    <input
+                      type="checkbox"
+                      [checked]="isInPopupTags(elm.name)"
+                      (change)="onTogglePopupTag(elm.name, $event)"
+                    />{{ elm.name }}
+                  </label>
+                }
+              </div>
+            }
           </div>
         </div>
       }
