@@ -82,5 +82,22 @@
         }
       </div>
     </section>
+
+    <!-- 操作 -->
+    <section class="ds-section ds-section--actions">
+      <button class="ds-btn ds-btn--ghost" type="button" (click)="clone()">
+        <i class="material-icons">content_copy</i>
+        コピーを作る
+      </button>
+      <button class="ds-btn ds-btn--primary" type="button" [disabled]="isSaving()" (click)="saveToXML()">
+        @if (isSaving()) {
+          <i class="material-icons">hourglass_empty</i>
+          保存中 {{ progressPercent() }}%
+        } @else {
+          <i class="material-icons">save</i>
+          保存
+        }
+      </button>
+    </section>
   </div>
 }

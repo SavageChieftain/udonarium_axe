@@ -227,3 +227,13 @@
   background: var(--ui-hover);
   color: var(--ui-text);
 }
+
+/* ===== 操作ボタン行 ===== */
+.ds-section--actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  background: transparent;
+  border: none;
+  padding: 0;
+}

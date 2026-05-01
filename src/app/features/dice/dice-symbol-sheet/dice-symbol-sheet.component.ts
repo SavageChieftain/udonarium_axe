@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -43,6 +45,7 @@ function getDiceImagePrefix(faces: string[]): string | null {
 export class DiceSymbolSheetComponent {
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
+  private readonly saveDataService = inject(SaveDataService);
   private readonly imageService = inject(ImageService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
@@ -81,6 +84,7 @@ export class DiceSymbolSheetComponent {
   });
 
   readonly isSaving = signal(false);
+  readonly progressPercent = signal(0);
 
   constructor() {
     this.objectChange.objectDeleted$.subscribe((e) => {
@@ -159,5 +163,30 @@ export class DiceSymbolSheetComponent {
     } else {
       el.value = '';
     }
+  }
+
+  clone() {
+    const dice = this._diceSymbol();
+    if (!dice) return;
+    const cloneObject = dice.clone();
+    cloneObject.location.x += 50;
+    cloneObject.location.y += 50;
+    if (dice.parent) dice.parent.appendChild(cloneObject);
+    cloneObject.update();
+    SoundEffect.play(PresetSound.dicePut);
+  }
+
+  async saveToXML() {
+    const dice = this._diceSymbol();
+    if (!dice || this.isSaving()) return;
+    this.isSaving.set(true);
+    this.progressPercent.set(0);
+    await this.saveDataService.saveGameObjectAsync(dice, 'xml_' + dice.name, (percent) => {
+      this.progressPercent.set(percent);
+    });
+    setTimeout(() => {
+      this.isSaving.set(false);
+      this.progressPercent.set(0);
+    }, 500);
   }
 }
