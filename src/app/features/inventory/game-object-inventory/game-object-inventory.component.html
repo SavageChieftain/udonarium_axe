@@ -1,249 +1,203 @@
-<div class="component">
+<div class="inv-layout">
   @let objects = getGameObjects(selectTab());
-  <ng-container *ngTemplateOutlet="inventoryTab"></ng-container>
-  <ng-container *ngTemplateOutlet="inventoryViewSetting"></ng-container>
-  <ng-container *ngTemplateOutlet="inventoryMultiMove"></ng-container>
-  @if (objects.length < 1) {
-    <div>{{ getTabTitle(selectTab()) }}インベントリは空です</div>
-  }
-  @for (gameObject of objects; track gameObject.identifier) {
-    <div
-      (contextmenu)="onContextMenu($event, gameObject)"
-      (click)="selectGameObject(gameObject)"
-      (dblclick)="focusToObject($event, gameObject)"
-      [ngClass]="{ box: true, selected: selectedIdentifier() === gameObject.identifier }"
-    >
-      <ng-container *ngTemplateOutlet="gameObjectTags; context: { gameObject: gameObject }"></ng-container>
+
+  <!-- ── タブバー ── -->
+  <div class="inv-tabbar">
+    <form name="game-object-inventory" class="tab-form">
+      @for (inventoryType of inventoryTypes(); track inventoryType) {
+        <label class="tab-label" [class.active]="selectTab() === inventoryType">
+          <input
+            name="tab"
+            type="radio"
+            value="{{ inventoryType }}"
+            [ngModel]="selectTab()"
+            (ngModelChange)="selectTab.set($event)"
+          />
+          <span>{{ getTabTitle(inventoryType) }}</span>
+          <span class="tab-count">{{ getInventory(inventoryType).length }}</span>
+        </label>
+      }
+    </form>
+
+    <div class="tabbar-actions">
+      @if (!isMultiMove()) {
+        <button type="button" class="icon-action-btn" title="一括移動" (click)="toggleMultiMove()">
+          <i class="material-icons">open_with</i>
+        </button>
+      }
+      <button type="button" class="icon-action-btn" [class.active]="isEdit()" title="表示設定" (click)="toggleEdit()">
+        <i class="material-icons">tune</i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 設定パネル（展開時） ── -->
+  @if (isEdit()) {
+    <div class="inv-settings-panel">
+      <div class="settings-row">
+        <div class="settings-field">
+          <label class="settings-label">並び順 第1</label>
+          <div class="settings-input-row">
+            <input class="settings-input" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
+            <select class="settings-select" name="sort-order" [(ngModel)]="sortOrder">
+              <option value="ASC">昇順</option>
+              <option value="DESC">降順</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">並び順 第2</label>
+          <div class="settings-input-row">
+            <input class="settings-input" name="sort-tag-2nd" [(ngModel)]="sortTag2nd" placeholder="タグ名" />
+            <select class="settings-select" name="sort-order-2nd" [(ngModel)]="sortOrder2nd">
+              <option value="ASC">昇順</option>
+              <option value="DESC">降順</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="settings-field">
+        <label class="settings-label">表示項目</label>
+        <input
+          class="settings-input full-width"
+          name="data-tag"
+          [(ngModel)]="dataTag"
+          placeholder="スペース区切りでタグ名、スラッシュで改行 例: HP MP / メモ"
+        />
+      </div>
+      <div class="settings-summary">
+        @if (sortTag) {
+          <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span>
+        }
+        @if (sortTag2nd) {
+          <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span>
+        }
+      </div>
     </div>
   }
 
+  <!-- ── 一括移動バー ── -->
+  @if (isMultiMove()) {
+    <div class="inv-multimove-bar">
+      <span class="multimove-label"><i class="material-icons">open_with</i>一括移動</span>
+      <button type="button" class="mm-btn" (click)="allTabBoxCheck()">
+        {{ existsMultiMoveSelectedInTab() ? '全解除' : '全選択' }}
+      </button>
+      <button type="button" class="mm-btn primary" (click)="onMultiMoveContextMenu()">
+        <i class="material-icons">done</i>実行
+      </button>
+      <button type="button" class="mm-btn" (click)="toggleMultiMove()">
+        <i class="material-icons">close</i>キャンセル
+      </button>
+    </div>
+  }
+
+  <!-- ── オブジェクトリスト ── -->
+  <div class="inv-list">
+    @if (objects.length < 1) {
+      <div class="inv-empty">
+        <i class="material-icons">inbox</i>
+        <p>{{ getTabTitle(selectTab()) }}インベントリは空です</p>
+      </div>
+    }
+
+    @for (gameObject of objects; track gameObject.identifier) {
+      <div
+        class="inv-row"
+        [class.selected]="selectedIdentifier() === gameObject.identifier"
+        (contextmenu)="onContextMenu($event, gameObject)"
+        (click)="selectGameObject(gameObject)"
+        (dblclick)="focusToObject($event, gameObject)"
+      >
+        @if (isMultiMove()) {
+          <input
+            class="mm-checkbox"
+            type="checkbox"
+            [checked]="multiMoveTargets().has(gameObject.identifier)"
+            (change)="toggleMultiMoveTarget($event, $any(gameObject))"
+          />
+        }
+
+        <div class="inv-row-thumb">
+          @if (gameObject.imageFile.url) {
+            <img [src]="gameObject.imageFile.url | safe: 'resourceUrl'" alt="" />
+          } @else {
+            <i class="material-icons no-img">person</i>
+          }
+        </div>
+
+        <div class="inv-row-body">
+          <div class="inv-row-name">{{ gameObject.name }}</div>
+          @if (gameObject.rootDataElement) {
+            <div class="inv-row-tags">
+              @for (dataElm of getInventoryTags($any(gameObject)); track dataElm?.identifier ?? $index) {
+                <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
+              }
+            </div>
+          }
+        </div>
+
+        <button class="row-menu-btn" type="button" title="メニュー" (click)="onContextMenu($event, gameObject)">
+          <i class="material-icons">more_vert</i>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ── 墓場フッター ── -->
   @if (selectTab() === 'graveyard') {
-    <div class="pt-[6px]">
-      <button class="danger" (click)="cleanInventory()" [attr.disabled]="objects.length < 1 ? '' : null">
-        墓場を空にする
+    <div class="inv-footer">
+      <button type="button" class="danger-btn" (click)="cleanInventory()" [disabled]="objects.length < 1">
+        <i class="material-icons">delete_sweep</i>墓場を空にする
       </button>
     </div>
   }
 </div>
 
-<ng-template #inventoryTab>
-  <form class="is-sticky-top" name="game-object-inventory">
-    <div class="tab">
-      @for (inventoryType of inventoryTypes(); track inventoryType) {
-        <label>
-          <input
-            name="tab"
-            type="radio"
-            value="{{ inventoryType }}"
-            ng-control="options"
-            [ngModel]="selectTab()"
-            (ngModelChange)="selectTab.set($event)"
-          />
-          <div>{{ getTabTitle(inventoryType) }} ({{ getInventory(inventoryType).length }})</div>
-        </label>
-      }
-    </div>
-  </form>
-</ng-template>
-<ng-template #inventoryViewSetting>
-  @if (isEdit()) {
-    <div>
-      <div class="text-xs">並び順第1</div>
-      <input name="sort-tag" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
-      <select name="sort-order" name="sort-order" [(ngModel)]="sortOrder">
-        <option value="ASC">昇順</option>
-        <option value="DESC">降順</option>
-      </select>
-    </div>
-    <div>
-      <div class="text-xs">並び順第2</div>
-      <input name="sort-tag-2nd" name="sort-tag-2nd" [(ngModel)]="sortTag2nd" placeholder="タグ名" />
-      <select name="sort-order-2nd" name="sort-order-2nd" [(ngModel)]="sortOrder2nd">
-        <option value="ASC">昇順</option>
-        <option value="DESC">降順</option>
-      </select>
-    </div>
-    <div class="text-xs pt-[6px]">表示項目</div>
-    <input
-      class="w-full box-border"
-      name="data-tag"
-      name="data-tag"
-      [(ngModel)]="dataTag"
-      placeholder="スペース区切りでタグ名 スラッシュで改行 ex.「HP MP / メモ」"
-    />
-    <div class="pt-[6px]">
-      <button class="tab-setting small-font" (click)="toggleEdit()">
-        <i class="material-icons small-font">settings</i>完了
-      </button>
-    </div>
-  } @else {
-    <table class="text-[0.8em]">
-      <tr>
-        <th class="align-middle">並び順 第1:</th>
-        <td class="align-middle">
-          @if (sortTag) {
-            {{ sortTag }} ({{ sortOrderName }})
-          } @else {
-            -
-          }
-        </td>
-        <th class="align-middle">第2:</th>
-        <td class="align-middle">
-          @if (sortTag2nd) {
-            {{ sortTag2nd }} ({{ sortOrderName2nd }})
-          } @else {
-            -
-          }
-        </td>
-        <td>
-          <button class="tab-setting small-font" (click)="toggleEdit()">
-            <i class="material-icons small-font">settings</i>設定
-          </button>
-        </td>
-      </tr>
-    </table>
-  }
-</ng-template>
-<ng-template #inventoryMultiMove>
-  @if (isMultiMove()) {
-    <div class="text-[0.8em]">
-      <span class="font-bold">一括移動:</span>
-      <button class="tab-setting small-font" (click)="allTabBoxCheck()">
-        @if (existsMultiMoveSelectedInTab()) {
-          全解除口↓
-        } @else {
-          全選択〆↓
-        }
-      </button>
-      <button class="tab-setting small-font" (click)="onMultiMoveContextMenu()">
-        <i class="material-icons small-font">settings</i>実行
-      </button>
-      <button class="tab-setting small-font" (click)="toggleMultiMove()">
-        <i class="material-icons small-font">settings</i>キャンセル
-      </button>
-    </div>
-  } @else {
-    <div>
-      <button class="tab-setting small-font" (click)="toggleMultiMove()">
-        <i class="material-icons small-font">settings</i>一括移動
-      </button>
-    </div>
-  }
-</ng-template>
-<ng-template #gameObjectTags let-gameObject="gameObject">
-  <div class="inventory-object">
-    <div class="object-name">
-      {{ gameObject.name }}
-      @if (selectedIdentifier() === gameObject.identifier) {
-        <button class="text-[0.8em] p-[2px_5px]" (click)="onContextMenu($event, gameObject)">
-          <i class="material-icons text-[1em]">settings</i>
-        </button>
-      }
-    </div>
-    <div class="object-tags-box">
-      @if (isMultiMove()) {
-        <div class="table-cell">
-          <input
-            type="checkbox"
-            [checked]="multiMoveTargets().has(gameObject.identifier)"
-            (change)="toggleMultiMoveTarget($event, gameObject)"
-          />
-        </div>
-      }
-      <div class="table-cell">
-        <div class="image-box">
-          @if (gameObject.imageFile.url) {
-            <img [src]="gameObject.imageFile.url | safe: 'resourceUrl'" />
-          }
-        </div>
-      </div>
-      <div class="table-cell">
-        @if (gameObject.rootDataElement) {
-          <div>
-            @for (dataElm of getInventoryTags(gameObject); track dataElm?.identifier ?? $index) {
-              <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
-            }
-          </div>
-        }
-      </div>
-    </div>
-  </div>
-</ng-template>
 <ng-template #dataElmTag let-dataElm="dataElm">
   @if (dataElm?.name === newLineString) {
-    <br />
+    <span class="tag-newline"></span>
   }
   @if (dataElm && dataElm.name !== newLineString) {
-    <div class="object-tag">
+    <span class="tag-cell">
       @switch (dataElm.attributes['type']) {
         @case ('numberResource') {
-          <div class="resource-tag">
-            <div class="text-[0.8em] inline-block mr-[0.5em]">{{ dataElm.name }}</div>
-            <input
-              class="input resource-value"
-              type="number"
-              [style]="'color:' + dataElm.nowValueColor + ';'"
-              size="1"
-              name="data-current-value"
-              name="data-current-value"
-              [(ngModel)]="dataElm.currentValue"
-              placeholder="Value"
-            />
-          </div>
-          <div class="resource-tag">
-            <input
-              type="range"
-              [style]="
-                'font-size: 0.8em; min-width: 1em; width:' +
-                  (dataElm.name.length + 4.5) +
-                  'em; --min: 0; --max: ' +
-                  dataElm.value +
-                  '; --val:' +
-                  dataElm.currentValue +
-                  ';' | safe: 'style'
-              "
-              min="0"
-              max="{{ dataElm.value }}"
-              name="data-current-value"
-              name="data-current-value"
-              [(ngModel)]="dataElm.currentValue"
-            />
-          </div>
+          <span class="tag-label">{{ dataElm.name }}</span>
+          <input
+            class="tag-input resource"
+            type="number"
+            [style]="'color:' + dataElm.nowValueColor"
+            size="1"
+            name="data-current-value"
+            [(ngModel)]="dataElm.currentValue"
+          />
+          <input
+            class="tag-range"
+            type="range"
+            min="0"
+            [max]="dataElm.value"
+            name="data-current-value"
+            [(ngModel)]="dataElm.currentValue"
+            [style]="'--min:0;--max:' + dataElm.value + ';--val:' + dataElm.currentValue + ';' | safe: 'style'"
+          />
         }
         @case ('check') {
-          <div class="tag-name">{{ dataElm.name }}</div>
-          <div class="text-center mt-[2px]">
-            <div class="inline-block">
-              <div class="tag-value-box">
-                @if (dataElm.value !== 0) {
-                  <input type="checkbox" checked (click)="dataElm.value = 0" />
-                } @else {
-                  <input type="checkbox" (click)="dataElm.value = 1" />
-                }
-              </div>
-            </div>
-          </div>
+          <span class="tag-label">{{ dataElm.name }}</span>
+          @if (dataElm.value !== 0) {
+            <input type="checkbox" checked (click)="dataElm.value = 0" />
+          } @else {
+            <input type="checkbox" (click)="dataElm.value = 1" />
+          }
         }
         @case ('markdown') {}
         @default {
-          <div class="tag-name">{{ dataElm.name }}</div>
-          <div class="text-center">
-            <div class="inline-block">
-              <div class="tag-value-box">
-                <div class="hidden-spacer font-bold">{{ dataElm.value }}</div>
-                <input
-                  class="input tag-value"
-                  size="1"
-                  name="data-value"
-                  name="data-value"
-                  [(ngModel)]="dataElm.value"
-                  placeholder=""
-                />
-              </div>
-            </div>
+          <span class="tag-label">{{ dataElm.name }}</span>
+          <div class="tag-value-wrap">
+            <div class="hidden-spacer">{{ dataElm.value }}</div>
+            <input class="tag-input" size="1" name="data-value" [(ngModel)]="dataElm.value" />
           </div>
         }
       }
-    </div>
+    </span>
   }
 </ng-template>
