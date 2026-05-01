@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageService } from '@axe/core/storage/image.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 
 @Component({
   selector: 'app-dice-symbol-sheet',
@@ -106,8 +106,8 @@ export class DiceSymbolSheetComponent {
   openFaceImageModal(faceName: string) {
     const dice = this._diceSymbol();
     if (!dice) return;
-    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
-      if (value === undefined) return;
+    this.modalService.open<string>(FileSelecterComponent).then((value) => {
+      if (!value) return;
       const el = dice.imageDataElement?.getFirstElementByName(faceName) as DataElement | null;
       if (el) el.value = value;
     });
