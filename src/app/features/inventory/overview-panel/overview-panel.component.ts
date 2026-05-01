@@ -79,9 +79,15 @@ export class OverviewPanelComponent {
     if (!this.tabletopObject) return [];
     const char = this.tabletopObject instanceof GameCharacter ? this.tabletopObject : null;
     if (char && char.overViewDataTags.length > 0) {
-      return char.overViewDataTags
+      // インベントリタグは常に先頭に表示
+      const inventoryElms = this.getInventoryTags(this.tabletopObject).filter((e): e is DataElement => e != null);
+      const inventoryIds = new Set(inventoryElms.map((e) => e.identifier));
+      // カスタム選択要素のうちインベントリタグに含まれないものを末尾に追加
+      const customElms = char.overViewDataTags
+        .filter((id) => !inventoryIds.has(id))
         .map((id) => this.objectStore.get<DataElement>(id))
         .filter((e): e is DataElement => e != null);
+      return [...inventoryElms, ...customElms];
     }
     return this.getInventoryTags(this.tabletopObject).filter((e) => e != null);
   }
