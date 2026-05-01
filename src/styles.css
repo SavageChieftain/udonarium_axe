@@ -201,23 +201,38 @@
 /* MarkDown テーブル */
 .markdown_table {
   display: table;
-  table-layout: fixed;
-  border: 1px solid #000000;
+  table-layout: auto;
+  border-collapse: collapse;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: 3px;
 }
 
 .markdown_table_row {
   display: table-row;
-  border: 1px solid #000000;
+}
+
+.markdown_table_row:nth-child(even) .markdown_table_cell {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .markdown_table_cell {
   display: table-cell;
-  border: 1px solid #000000;
+  border: 1px solid var(--ui-panel-border);
+  padding: 2px 6px;
+  vertical-align: middle;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--ui-text);
 }
 
 /* MarkDown チェックボックス */
 .markdown_checkbox {
   cursor: pointer;
+  accent-color: var(--ui-accent);
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin: 1px;
 }
 
 .ng-select.ud-select {
