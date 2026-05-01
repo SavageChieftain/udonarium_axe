@@ -99,8 +99,8 @@
         <i class="material-icons text-[1em] align-bottom">arrow_forward_ios</i>
       </div>
     }
-    @if (subMenu && parentMenu === action) {
-      <context-menu [title]="action.name" [actions]="subMenu" [isSubmenu]="true"></context-menu>
+    @if (subMenu() && parentMenu() === action) {
+      <context-menu [title]="action.name" [actions]="subMenu()!" [isSubmenu]="true"></context-menu>
     }
   </li>
 </ng-template>

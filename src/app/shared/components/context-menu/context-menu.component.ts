@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -44,8 +45,8 @@ export class ContextMenuComponent {
     return this.isSubmenu() ? this.actionsInput() : this.contextMenuService.actions;
   }
 
-  parentMenu: ContextMenuAction | undefined;
-  subMenu: ContextMenuAction[] | undefined;
+  readonly parentMenu = signal<ContextMenuAction | undefined>(undefined);
+  readonly subMenu = signal<ContextMenuAction[] | undefined>(undefined);
 
   private showSubMenuTimer: ReturnType<typeof setTimeout> | undefined;
   private hideSubMenuTimer: ReturnType<typeof setTimeout> | undefined;
@@ -179,8 +180,8 @@ export class ContextMenuComponent {
     clearTimeout(this.showSubMenuTimer);
     if (action.subActions == null || action.subActions.length === 0) return;
     this.showSubMenuTimer = setTimeout(() => {
-      this.parentMenu = action;
-      this.subMenu = action.subActions ?? [];
+      this.parentMenu.set(action);
+      this.subMenu.set(action.subActions ?? []);
       clearTimeout(this.hideSubMenuTimer);
     }, 250);
   }
@@ -188,7 +189,7 @@ export class ContextMenuComponent {
   hideSubMenu() {
     clearTimeout(this.hideSubMenuTimer);
     this.hideSubMenuTimer = setTimeout(() => {
-      this.subMenu = undefined;
+      this.subMenu.set(undefined);
     }, 1200);
   }
 
