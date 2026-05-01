@@ -91,6 +91,7 @@
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
                     height: +imageHeignt() + 'px',
+                    width: 'auto',
                     transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
