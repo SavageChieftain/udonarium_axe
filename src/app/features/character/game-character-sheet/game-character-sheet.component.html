@@ -593,19 +593,28 @@
                 @for (elm of popupElements; track elm.identifier) {
                   @if (elm.isSection) {
                     <div class="cs-popup-section-row" [style.padding-left.em]="elm.depth * 1 + 0.25">
-                      <label class="cs-flag-label cs-popup-section-label">
+                      <label
+                        class="cs-flag-label cs-popup-section-label"
+                        [class.cs-popup-locked]="isLockedPopupTag(elm.identifier)"
+                      >
                         <input
                           type="checkbox"
                           [checked]="isInPopupTags(elm.identifier)"
+                          [disabled]="isLockedPopupTag(elm.identifier)"
                           (change)="onTogglePopupTag(elm.identifier, $event)"
                         /><strong>{{ elm.name }}</strong>
                       </label>
                     </div>
                   } @else {
-                    <label class="cs-flag-label cs-popup-leaf-row" [style.padding-left.em]="elm.depth * 1 + 0.25">
+                    <label
+                      class="cs-flag-label cs-popup-leaf-row"
+                      [class.cs-popup-locked]="isLockedPopupTag(elm.identifier)"
+                      [style.padding-left.em]="elm.depth * 1 + 0.25"
+                    >
                       <input
                         type="checkbox"
                         [checked]="isInPopupTags(elm.identifier)"
+                        [disabled]="isLockedPopupTag(elm.identifier)"
                         (change)="onTogglePopupTag(elm.identifier, $event)"
                       />{{ elm.name }}
                     </label>

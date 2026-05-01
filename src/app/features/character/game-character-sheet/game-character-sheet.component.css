@@ -1158,6 +1158,11 @@ input {
   font-size: 0.85em;
 }
 
+.cs-popup-locked {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .cs-popup-tag-item {
   white-space: nowrap;
   overflow: hidden;

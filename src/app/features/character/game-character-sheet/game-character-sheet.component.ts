@@ -18,6 +18,7 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
+import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
@@ -658,13 +659,35 @@ export class GameCharacterSheetComponent {
     return result;
   }
 
+  /** インベントリタグに名前で含まれている要素の identifier セット */
+  get inventoryLockedIdentifiers(): Set<string> {
+    const char = this.character;
+    if (!char?.detailDataElement) return new Set();
+    const tags = new Set(DataSummarySetting.instance.dataTags);
+    const result = new Set<string>();
+    const scan = (elements: readonly DataElement[]) => {
+      for (const elm of elements) {
+        if (tags.has(elm.name)) result.add(elm.identifier);
+        if (elm.children.length) scan(elm.children);
+      }
+    };
+    scan(char.detailDataElement.children);
+    return result;
+  }
+
+  isLockedPopupTag(identifier: string): boolean {
+    return this.inventoryLockedIdentifiers.has(identifier);
+  }
+
   isInPopupTags(identifier: string): boolean {
+    if (this.isLockedPopupTag(identifier)) return true;
     return this.character?.overViewDataTags.includes(identifier) ?? false;
   }
 
   onTogglePopupTag(identifier: string, event: Event): void {
     const char = this.character;
     if (!char) return;
+    if (this.isLockedPopupTag(identifier)) return;
     const checked = (event.target as HTMLInputElement).checked;
     const tags = [...char.overViewDataTags];
     if (checked) {
