@@ -72,9 +72,7 @@
   @if (!childrenCount()) {
     @switch (gameDataElement().type) {
       @case ('numberResource') {
-        <span class="font-[Cambria,Georgia] text-[12px]">
-          {{ gameDataElement().name }} / {{ gameDataElement().currentValue }} / {{ gameDataElement().value }}R
-        </span>
+        <span class="font-[Cambria,Georgia] text-[12px]"> {{ name }} / {{ currentValue }} / {{ value }}R </span>
       }
     }
   }

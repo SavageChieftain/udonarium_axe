@@ -327,6 +327,7 @@ export class RemoteControllerComponent {
   }
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
+    this.objectChange.versionOf(gameObject.identifier)();
     return getInventoryTags(gameObject, this.inventoryService);
   }
 
