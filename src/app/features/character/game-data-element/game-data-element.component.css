@@ -122,20 +122,22 @@
 }
 
 .elm-type-chip {
-  appearance: none;
-  -webkit-appearance: none;
   font-size: 0.68em;
-  padding: 2px 6px;
+  padding: 1px 4px;
   border: 1px solid var(--ui-panel-border);
   border-radius: var(--ui-radius-sm);
   background: var(--ui-elevated);
-  color: var(--ui-text-muted);
+  color: var(--ui-text);
   cursor: pointer;
   margin-right: auto;
 }
 
 .elm-type-chip:hover {
   background: var(--ui-hover);
+}
+
+.elm-type-chip option {
+  background: var(--ui-elevated);
   color: var(--ui-text);
 }
 
