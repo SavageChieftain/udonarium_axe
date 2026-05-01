@@ -1,4 +1,3 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -16,7 +15,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   selector: 'app-vote-window',
   templateUrl: './vote-window.component.html',
   styleUrls: ['./vote-window.component.css'],
-  imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe],
 })
 export class VoteWindowComponent {
   private readonly modalService = inject(ModalService);

@@ -1,5 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { afterNextRender, ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
@@ -16,7 +15,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   selector: 'app-vote-menu',
   templateUrl: './vote-menu.component.html',
   styleUrls: ['./vote-menu.component.css'],
-  imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe],
 })
 export class VoteMenuComponent {
   private readonly modalService = inject(ModalService);
@@ -45,7 +44,6 @@ export class VoteMenuComponent {
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = '点呼/投票設定'));
     this.setDefaultCheck();
-    afterNextRender(() => this.setDefaultCheck());
   }
 
   isPeerIsDisConnect(peerId: string): boolean {

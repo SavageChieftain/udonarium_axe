@@ -1,4 +1,3 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -17,7 +16,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   selector: 'app-alarm-menu',
   templateUrl: './alarm-menu.component.html',
   styleUrls: ['./alarm-menu.component.css'],
-  imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe],
 })
 export class AlarmMenuComponent {
   private readonly modalService = inject(ModalService);

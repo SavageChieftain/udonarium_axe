@@ -17,8 +17,13 @@
         <div class="body" [ngStyle]="chatMessage.messColor | chatColorStyle">
           <div class="title">
             <span class="msg-name">{{ chatMessage.name }}</span>
+            <span class="tip"> | </span>
             <span class="tip msg-from">{{ chatMessage.from }}</span>
+            <span class="tip"> | </span>
             <span class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'y/M/d H:mm' }}</span>
+            @if (chatMessage.changeable) {
+              <i class="material-icons msg-edit" (click)="clickFix()">edit</i>
+            }
           </div>
           <div class="text msg-text">
             @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
@@ -31,9 +36,6 @@
             }
             @if (chatMessage.fixd) {
               &nbsp;(編集済)
-            }
-            @if (chatMessage.changeable) {
-              <div class="fix" (click)="clickFix()">&nbsp;[編集]</div>
             }
           </div>
         </div>
@@ -55,8 +57,14 @@
             @if (simpleDispFlagUserId()) {
               <font class="tip msg-from">{{ chatMessage.from }}</font>
             }
+            @if (simpleDispFlagUserId() && simpleDispFlagTime()) {
+              <span class="tip"> | </span>
+            }
             @if (simpleDispFlagTime()) {
               <font class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'H:mm' }}</font>
+            }
+            @if (simpleDispFlagUserId() || simpleDispFlagTime()) {
+              <span class="tip">　</span>
             }
             <font class="text msg-text">
               @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
@@ -68,10 +76,10 @@
                 <span>（シークレットダイス）</span>
               }
               @if (chatMessage.fixd) {
-                &nbsp;(編集済)
+                （編集済）
               }
               @if (chatMessage.changeable) {
-                <div class="fix" (click)="clickFix()">&nbsp;[編集]</div>
+                <i class="material-icons msg-edit" (click)="clickFix()">edit</i>
               }
             </font>
           </span>

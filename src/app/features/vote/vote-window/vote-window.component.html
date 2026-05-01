@@ -1,85 +1,86 @@
-<div class="component">
-  <ng-container *ngTemplateOutlet="voteTop"></ng-container>
-  @for (target of vote().targetPeerId; track target) {
-    <div class="text-[15px] box">
-      <ng-container *ngTemplateOutlet="voteAnswers; context: { target: target }"></ng-container>
+<div class="vw-root">
+  <!-- sticky header -->
+  <div class="vw-header">
+    <div class="vw-title">{{ vote().voteTitle }}</div>
+    <div class="vw-progress">
+      @if (vote().isRollCall) {
+        確認 {{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }}
+      } @else {
+        投票 {{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }}
+        <span class="vw-abstain">棄権:{{ vote().votedNumByIndex(-2) }}</span>
+      }
     </div>
-  }
-</div>
-
-<ng-template #voteTop>
-  <form class="is-sticky-top" name="vote-window">
-    <div class="tab">
-      <div>
-        {{ vote().voteTitle }}
-      </div>
-      <div>
-        投票数:{{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }} (棄権：{{ vote().votedNumByIndex(-2) }})<span
-          class="text-[12px]"
-          >※投票前に閉じると棄権</span
+    <div class="vw-choices">
+      @for (choice of vote().choices; track choice) {
+        <button
+          type="button"
+          class="vw-choice-btn"
+          [class.is-voted]="isMyVoteEnd()"
+          (click)="voteSend(choice)"
+          [disabled]="isMyVoteEnd()"
         >
-      </div>
-      <div>
-        @for (choice of vote().choices; track choice) {
-          <ng-container class="text-[15px]">
-            <button
-              type="button"
-              (click)="voteSend(choice)"
-              name="{{ choice }}"
-              id="{{ choice }}"
-              [attr.disabled]="isMyVoteEnd() ? '' : null"
-            >
-              {{ choice }}:{{ vote().votedNumByChoice(choice) }}人
-            </button>
-          </ng-container>
-        }
-      </div>
+          <span class="vw-choice-label">{{ choice }}</span>
+          <span class="vw-choice-count">{{ vote().votedNumByChoice(choice) }}人</span>
+        </button>
+      }
     </div>
-  </form>
-</ng-template>
-
-<ng-template #voteAnswers let-target="target">
-  <div class="inventory-object">
-    <div class="object-tags-box">
-      <div class="table-cell">
-        <div class="object-name">
-          {{ findPeerName(target) }}
-        </div>
-        <div class="image-box">
-          @if (findPeerImage(target); as peerImage) {
-            <div class="image cover" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
-          }
-        </div>
-      </div>
-      <div class="table-cell">
-        <div class="object-name">
-          @if (findPeerLastControlName(target)) {
-            {{ findPeerLastControlName(target) }}
-          }
-          @if (!findPeerLastControlName(target)) {
-            操作キャラなし
-          }
-        </div>
-        <div class="image-box">
-          @if (findPeerLastControlImage(target); as lastImage) {
-            <div class="image cover" [style.background-image]="'url(' + lastImage.url + ')' | safe: 'style'"></div>
-          }
-          @if (!findPeerLastControlImage(target)) {
-            <div class="image cover" [style.background-image]=""></div>
-          }
-        </div>
-      </div>
-      <div class="table-cell message">
-        @if (vote().voteAnswerByPeerId(target) === -1) {
-          未投票
-        }
-        @if (vote().voteAnswerByPeerId(target) === -2) {
-          棄権
-        }
-        @if (vote().voteAnswerByPeerId(target) >= 0) {
-          {{ vote().indexToChoice(vote().voteAnswerByPeerId(target)) }}
-        }
-      </div>
+    <div class="vw-hint">
+      <i class="material-icons">info</i>
+      @if (vote().isRollCall) {
+        点呼前に閉じると欠席扱い
+      } @else {
+        投票前に閉じると棄権
+      }
     </div>
   </div>
-</ng-template>
+
+  <!-- target list -->
+  <div class="vw-peer-list">
+    @for (target of vote().targetPeerId; track target) {
+      @let peerImage = findPeerImage(target);
+      @let controlName = findPeerLastControlName(target);
+      @let controlImage = findPeerLastControlImage(target);
+      @let answerIdx = vote().voteAnswerByPeerId(target);
+      <div class="vw-peer-card" [class.is-voted]="answerIdx >= 0" [class.is-absent]="answerIdx === -2">
+        <div class="vw-peer-avatar">
+          @if (peerImage) {
+            <div class="vw-avatar-img" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
+          } @else {
+            <div class="vw-avatar-placeholder"><i class="material-icons">person</i></div>
+          }
+        </div>
+        <div class="vw-peer-info">
+          <div class="vw-peer-name">{{ findPeerName(target) }}</div>
+          <div class="vw-peer-char">{{ controlName || '操作キャラなし' }}</div>
+        </div>
+        @if (controlImage) {
+          <div class="vw-peer-ctrl-avatar">
+            <div class="vw-avatar-img" [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"></div>
+          </div>
+        }
+        <div
+          class="vw-peer-status"
+          [class.status-pending]="answerIdx === -1"
+          [class.status-voted]="answerIdx >= 0"
+          [class.status-absent]="answerIdx === -2"
+        >
+          @if (answerIdx === -1) {
+            @if (vote().isRollCall) {
+              未確認
+            } @else {
+              未投票
+            }
+          } @else if (answerIdx === -2) {
+            @if (vote().isRollCall) {
+              欠席
+            } @else {
+              棄権
+            }
+          } @else {
+            {{ vote().indexToChoice(answerIdx) }}
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

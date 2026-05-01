@@ -120,3 +120,18 @@
   align-self: flex-start;
   padding-top: 2px;
 }
+
+.msg-edit {
+  font-size: 14px;
+  vertical-align: middle;
+  margin-left: 4px;
+  cursor: pointer;
+  color: var(--ui-text-dim);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.message:hover .msg-edit,
+.message-small:hover .msg-edit {
+  opacity: 1;
+}

@@ -1,14 +1,7 @@
-<div class="component">
-  <ng-container *ngTemplateOutlet="alarmTop"></ng-container>
+<div class="aw-root">
+  <div class="aw-card">
+    <i class="material-icons aw-icon">alarm</i>
+    <div class="aw-title">{{ title }}</div>
+    <div class="aw-time">{{ time }}秒経過しました</div>
+  </div>
 </div>
-
-<ng-template #alarmTop>
-  <form class="is-sticky-top" name="alarm-window">
-    <div class="tab">
-      <div>
-        {{ title }}
-      </div>
-      <div>{{ time }}秒経過しました</div>
-    </div>
-  </form>
-</ng-template>

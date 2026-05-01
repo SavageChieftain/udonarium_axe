@@ -2,7 +2,7 @@
 <div class="flex gap-3 p-3">
   <!-- アバター -->
   <div class="flex-shrink-0">
-    @if (myPeer?.image?.url) {
+    @if (myPeer.image?.url) {
       <img
         class="block w-24 h-24 object-cover object-top cursor-pointer rounded-[var(--ui-radius)]"
         [src]="myPeer.image!.url | safe: 'resourceUrl'"

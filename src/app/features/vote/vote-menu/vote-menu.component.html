@@ -1,99 +1,83 @@
-<div class="component">
-  <ng-container *ngTemplateOutlet="voteTop"></ng-container>
-  @if (!peerList.length) {
-    <div>自分しか部屋にいません</div>
-  }
-  @for (peer of peerList; track peer) {
-    <div class="text-[15px] box">
-      <ng-container *ngTemplateOutlet="voteTargets; context: { peer: peer }"></ng-container>
+<div class="vm-root">
+  <!-- sticky header -->
+  <div class="vm-header">
+    <div class="vm-mode-row">
+      <label class="vm-mode-btn">
+        <input type="radio" name="vm_type" [checked]="isRollCall" (change)="onChangeType('rollcall')" />
+        <span>点呼</span>
+      </label>
+      <label class="vm-mode-btn">
+        <input type="radio" name="vm_type" [checked]="!isRollCall" (change)="onChangeType('vote')" />
+        <span>投票</span>
+      </label>
+      <label class="vm-chk-label">
+        <input type="checkbox" [(ngModel)]="includSelf" name="includSelf" />
+        <span>自分を含める</span>
+      </label>
     </div>
-  }
-</div>
-
-<ng-template #voteTop>
-  <form class="is-sticky-top" name="vote-menu">
-    <div class="tab">
-      <div class="table">
-        <div class="table-cell">
+    @if (!isRollCall) {
+      <div class="vm-fields-row">
+        <label class="vm-field">
+          <span class="vm-field-label">タイトル</span>
+          <input [(ngModel)]="voteTitle" placeholder="投票" name="voteTitle" class="vm-input" />
+        </label>
+        <label class="vm-field">
+          <span class="vm-field-label">選択肢</span>
           <input
-            type="checkbox"
-            value="includSelf"
-            [(ngModel)]="includSelf"
-            name="includSelf"
-            (click)="changeIncludSelf()"
-          /><span>自分を含める</span>
-          <input
-            type="radio"
-            [checked]="true"
-            name="vote_rollcall"
-            value="rollcall"
-            (change)="onChangeType('rollcall')"
-          /><span>点呼</span>
-          <input type="radio" name="vote_rollcall" value="vote" (change)="onChangeType('vote')" /><span>投票</span>
-        </div>
-        <div class="table-cell">
-          <span class="inline-block w-[5em] ml-[0.5em]">タイトル:</span
-          ><input [(ngModel)]="voteTitle" placeholder="" name="voteTitle" class="w-[15em]" /><br />
-          <span class="inline-block w-[5em] ml-[0.5em]">選択肢:</span
-          ><input
             [(ngModel)]="voteContentsText"
             placeholder="スペース区切 未入力で賛成/反対"
             name="voteContents"
-            class="w-[15em]"
+            class="vm-input vm-input-wide"
           />
-        </div>
-        <div class="table-cell">
-          <button type="button" (click)="send()" [attr.disabled]="selectedNum() === 0 ? '' : null">送信</button><br />
-          <span class="inline-block ml-[0.5em]">人数:{{ selectedNum() }}</span>
-        </div>
+        </label>
       </div>
-    </div>
-  </form>
-</ng-template>
-
-<ng-template #voteTargets let-peer="peer">
-  @let peerImage = findPeerImage(peer.peerId);
-  @let controlName = findPeerLastControlName(peer.peerId);
-  @let controlImage = findPeerLastControlImage(peer.peerId);
-  <div class="inventory-object" (click)="voteBlockClick(peer.peerId)">
-    <div class="object-tags-box">
-      <div class="table-cell">
-        <div class="object-name w-[6em]">送信対象</div>
-        <div class="message h-[64px]">
-          <div>
-            <input type="checkbox" [checked]="checkedPeers.has(peer.peerId)" name="vote_chk" />
-          </div>
-        </div>
-      </div>
-      <div class="table-cell">
-        <div class="object-name">
-          {{ findPeerName(peer.peerId) }}
-        </div>
-        <div class="image-box">
-          @if (peerImage) {
-            <div class="image cover" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
-          }
-        </div>
-      </div>
-      <div class="table-cell">
-        <div class="object-name">
-          @if (controlName) {
-            {{ controlName }}
-          } @else {
-            操作キャラなし
-          }
-        </div>
-        <div class="image-box">
-          @if (controlImage) {
-            <div class="image cover" [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"></div>
-          } @else {
-            <div class="image cover" [style.background-image]=""></div>
-          }
-        </div>
-      </div>
-      <div class="table-cell message">
-        <div [hidden]="!isPeerIsDisConnect(peer.peerId)">現在接続が切れていると考えられる相手です</div>
-      </div>
+    }
+    <div class="vm-actions-row">
+      <span class="vm-count-label">対象 {{ selectedNum() }}人</span>
+      <button type="button" class="vm-send-btn" (click)="send()" [disabled]="selectedNum() === 0">
+        <i class="material-icons">send</i>送信
+      </button>
     </div>
   </div>
-</ng-template>
+
+  <!-- peer list -->
+  @if (!peerList.length) {
+    <div class="vm-empty">自分しか部屋にいません</div>
+  }
+  <div class="vm-peer-list">
+    @for (peer of peerList; track peer) {
+      @let peerImage = findPeerImage(peer.peerId);
+      @let controlName = findPeerLastControlName(peer.peerId);
+      @let controlImage = findPeerLastControlImage(peer.peerId);
+      <div
+        class="vm-peer-card"
+        [class.is-checked]="checkedPeers.has(peer.peerId)"
+        [class.is-disconnected]="isPeerIsDisConnect(peer.peerId)"
+        (click)="voteBlockClick(peer.peerId)"
+      >
+        <div class="vm-peer-check">
+          <input type="checkbox" [checked]="checkedPeers.has(peer.peerId)" name="vote_chk" readonly />
+        </div>
+        <div class="vm-peer-avatar">
+          @if (peerImage) {
+            <div class="vm-avatar-img" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
+          } @else {
+            <div class="vm-avatar-placeholder"><i class="material-icons">person</i></div>
+          }
+        </div>
+        <div class="vm-peer-info">
+          <div class="vm-peer-name">{{ findPeerName(peer.peerId) }}</div>
+          <div class="vm-peer-char">{{ controlName || '操作キャラなし' }}</div>
+          @if (isPeerIsDisConnect(peer.peerId)) {
+            <div class="vm-disconnected-warn"><i class="material-icons">wifi_off</i>接続切断中</div>
+          }
+        </div>
+        @if (controlImage) {
+          <div class="vm-peer-ctrl-avatar">
+            <div class="vm-avatar-img" [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"></div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

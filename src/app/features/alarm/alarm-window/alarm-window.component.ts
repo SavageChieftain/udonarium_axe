@@ -1,6 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/alarm/alarm';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
@@ -12,7 +10,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   selector: 'app-alarm-window',
   templateUrl: './alarm-window.component.html',
   styleUrls: ['./alarm-window.component.css'],
-  imports: [NgTemplateOutlet, FormsModule],
+  imports: [],
 })
 export class AlarmWindowComponent {
   private readonly modalService = inject(ModalService);
