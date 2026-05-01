@@ -25,11 +25,34 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return ObjectStore.instance.get<ReloadCheck>('ReloadCheck')!;
   }
 
-  public portraitHeight = 200;
+  private _portraitHeight = 200;
+  get portraitHeight(): number {
+    return this._portraitHeight;
+  }
+  set portraitHeight(v: number) {
+    this._portraitHeight = v;
+    this.update();
+  }
   public minPortraitSize = 100;
   public maxPortraitSize = 500;
-  public isPortraitInWindow = false;
-  public isKeepPortraitOutWindow = false;
+
+  private _isPortraitInWindow = false;
+  get isPortraitInWindow(): boolean {
+    return this._isPortraitInWindow;
+  }
+  set isPortraitInWindow(v: boolean) {
+    this._isPortraitInWindow = v;
+    this.update();
+  }
+
+  private _isKeepPortraitOutWindow = false;
+  get isKeepPortraitOutWindow(): boolean {
+    return this._isKeepPortraitOutWindow;
+  }
+  set isKeepPortraitOutWindow(v: boolean) {
+    this._isKeepPortraitOutWindow = v;
+    this.update();
+  }
 
   private static _instance: ChatTabList;
   static get instance(): ChatTabList {
@@ -48,6 +71,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   private simpleDispFlagTime_: number = 0;
   set simpleDispFlagTime(flag: number) {
     this.simpleDispFlagTime_ = flag;
+    this.update();
   }
 
   get simpleDispFlagTime(): number {
@@ -57,6 +81,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   private simpleDispFlagUserId_: number = 0;
   set simpleDispFlagUserId(flag: number) {
     this.simpleDispFlagUserId_ = flag;
+    this.update();
   }
   get simpleDispFlagUserId(): number {
     return this.simpleDispFlagUserId_;

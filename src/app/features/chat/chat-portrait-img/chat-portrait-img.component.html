@@ -3,7 +3,7 @@
     <div class="h-0 w-full" #portraitArea>
       @if (chatTab) {
         @if (chatTab.portraitDisplayFlag) {
-          @if (isPortraitDispMode) {
+          @if (isPortraitDispMode()) {
             @for (slot of portraitSlots(); track slot.pos) {
               @if (slot.imageFileUrl) {
                 <img

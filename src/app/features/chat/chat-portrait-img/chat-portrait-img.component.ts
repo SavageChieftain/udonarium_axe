@@ -72,6 +72,8 @@ export class ChatPortraitImageComponent {
 
   private readonly version = computed(() => this.objectChange.versionOf(this.chatTabidentifier())());
 
+  private readonly chatTabListVersion = computed(() => this.objectChange.versionOf('ChatTabList')());
+
   private readonly fileVer = computed(() => this.objectChange.fileVersion());
 
   get chatTab(): ChatTab {
@@ -93,26 +95,21 @@ export class ChatPortraitImageComponent {
     }
   }
 
-  get dispFlag(): boolean {
-    if (!this.chatTabList) return false;
-    if (this.isTilteTop() && !this.chatTabList.isPortraitInWindow) return true;
-    if (!this.isTilteTop() && this.chatTabList.isPortraitInWindow) return true;
-    return false;
-  }
-
-  get isPortraitDispMode(): boolean {
-    if (!this.chatTabList) return false;
-    if (this.chatTabList.isKeepPortraitOutWindow) {
-      return this.dispFlag;
-    } else {
-      return this.dispFlag && this.dispByMouse();
-    }
-  }
+  readonly isPortraitDispMode = computed<boolean>(() => {
+    this.chatTabListVersion();
+    const chatTabList = this.chatTabList;
+    if (!chatTabList) return false;
+    const isTilteTop = this.isTilteTop();
+    const dispFlag = (isTilteTop && !chatTabList.isPortraitInWindow) || (!isTilteTop && chatTabList.isPortraitInWindow);
+    if (chatTabList.isKeepPortraitOutWindow) return dispFlag;
+    return dispFlag && this.dispByMouse();
+  });
 
   // ------- 全ポジション分の描画情報を computed 配列で一括計算 -------
 
   readonly portraitSlots = computed<PortraitSlot[]>(() => {
     this.version();
+    this.chatTabListVersion();
     this.fileVer();
     const chatTab = this.chatTab;
     const chatTabList = this.chatTabList;

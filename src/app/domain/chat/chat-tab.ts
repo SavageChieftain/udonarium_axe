@@ -63,6 +63,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
   hidePortraitPos(pos: number) {
     this.imageDispFlag[pos] = false;
+    this.update();
   }
 
   isPortraitPosVisible(pos: number): boolean {
@@ -74,8 +75,23 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return index;
   }
 
-  public chatSimpleDispFlag = 0;
-  public portraitDisplayFlag = 1;
+  private _chatSimpleDispFlag = 0;
+  get chatSimpleDispFlag(): number {
+    return this._chatSimpleDispFlag;
+  }
+  set chatSimpleDispFlag(v: number) {
+    this._chatSimpleDispFlag = v;
+    this.update();
+  }
+
+  private _portraitDisplayFlag = 1;
+  get portraitDisplayFlag(): number {
+    return this._portraitDisplayFlag;
+  }
+  set portraitDisplayFlag(v: number) {
+    this._portraitDisplayFlag = v;
+    this.update();
+  }
 
   replacePortraitZIndex(toppos: number) {
     const index = this.imageIdentifierZpos.indexOf(Number(toppos));
