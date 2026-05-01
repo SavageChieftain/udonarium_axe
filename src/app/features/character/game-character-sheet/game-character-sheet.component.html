@@ -440,7 +440,7 @@
         <!-- ── 右: キャラクターデータ ── -->
         <div class="cs-data-col">
           @if (tabletopObject.commonDataElement) {
-            <div class="cs-data-card" style="margin: 0">
+            <div class="cs-data-card cs-data-card--common">
               <div class="table">
                 <div
                   class="table-row"
@@ -451,26 +451,26 @@
               </div>
             </div>
           }
-        </div>
-      </div>
 
-      <!-- 詳細データ（ステータス・スキル等）-->
-      @if (detailElements().length > 0) {
-        <div class="cs-data-section">
-          @for (childElement of detailElements(); track childElement.identifier) {
-            <div class="cs-data-card">
-              <div class="table">
-                <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
-              </div>
+          <!-- 詳細データ（ステータス・スキル等）-->
+          @if (detailElements().length > 0) {
+            <div class="cs-data-section">
+              @for (childElement of detailElements(); track childElement.identifier) {
+                <div class="cs-data-card">
+                  <div class="table">
+                    <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+          @if (isEdit()) {
+            <div class="cs-add-item-row">
+              <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
             </div>
           }
         </div>
-      }
-      @if (isEdit()) {
-        <div class="cs-add-item-row">
-          <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
-        </div>
-      }
+      </div>
     </div>
   } @else {
     <!-- 非キャラクターオブジェクト -->

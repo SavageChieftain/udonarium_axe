@@ -636,11 +636,11 @@ input {
   flex-flow: row wrap;
   justify-content: flex-start;
   align-items: stretch;
-  padding: 0 6px 6px;
+  padding: 4px 0 0;
+  gap: 4px;
 }
 
 .cs-data-card {
-  margin: 4px;
   padding: 8px 10px;
   flex: 1 0 auto;
   box-sizing: border-box;
@@ -649,6 +649,13 @@ input {
   border: 1px solid var(--ui-panel-border);
   border-radius: var(--ui-radius-sm);
   color: var(--ui-text);
+}
+
+.cs-data-card--common {
+  flex: unset;
+  min-width: unset;
+  width: 100%;
+  margin-bottom: 2px;
 }
 
 .cs-add-item-row {

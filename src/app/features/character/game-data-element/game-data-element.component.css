@@ -1,16 +1,19 @@
 .portrait-button {
-  background-color: #eee;
-  color: #444;
-  font-size: 1em;
-  margin: 5px 0px;
-  padding: 10px;
+  background-color: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  font-size: 0.82em;
+  margin: 5px 0;
+  padding: 4px 8px;
   box-sizing: border-box;
-  width: 6em;
+  width: auto;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
 }
 
 .portrait-button:hover {
-  background-color: #ccc;
-  color: #444;
+  background-color: var(--ui-hover);
+  color: var(--ui-text);
 }
 
 .sub-image {
@@ -50,17 +53,18 @@
 }
 
 .table-row {
-  padding-top: 10px;
   display: table-row;
   box-sizing: border-box;
 }
 
 .table-cell {
   display: table-cell;
-  vertical-align: bottom;
-  padding: 0.5em 0em 0.1em 0.5em;
-  border-bottom: 1px dotted #888;
+  vertical-align: middle;
+  padding: 5px 6px 5px 6px;
+  border-bottom: 1px solid var(--ui-panel-border);
   box-sizing: border-box;
+  color: var(--ui-text);
+  font-size: 0.88em;
 }
 
 .table-cell_solid {
@@ -70,16 +74,18 @@
 
 .table-cell_inner-table {
   display: table-cell;
-  vertical-align: bottom;
-  padding: 0.2em 0em 0.1em 0.5em;
+  vertical-align: top;
+  padding: 4px 4px 4px 0;
   border: none;
   box-sizing: border-box;
 }
 
 .table-cell_inner-table-title {
-  border-bottom: 1px solid #444;
-  border-left: 8px solid #444;
-  padding-left: 8px;
+  border-left: 3px solid var(--ui-accent);
+  background: var(--ui-accent-bg);
+  padding: 3px 8px;
+  margin-bottom: 2px;
+  border-radius: 0 var(--ui-radius-sm) var(--ui-radius-sm) 0;
 }
 
 .box {
@@ -97,16 +103,14 @@
 }
 
 .textarea-url {
-  background: none;
+  background: transparent;
   border: none;
-  border-radius: 2px;
+  border-radius: var(--ui-radius-sm);
   outline: none;
-
-  color: #444;
-  font-family: Cambria, Georgia;
+  color: var(--ui-text);
+  font-family: inherit;
   padding: 2px;
   box-sizing: border-box;
-
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
@@ -114,16 +118,14 @@
 }
 
 .textarea-markdown {
-  background: none;
+  background: transparent;
   border: none;
-  border-radius: 2px;
+  border-radius: var(--ui-radius-sm);
   outline: none;
-
-  color: #444;
-  font-family: Cambria, Georgia;
+  color: var(--ui-text);
+  font-family: inherit;
   padding: 2px;
   box-sizing: border-box;
-
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
@@ -134,28 +136,57 @@ input,
 button,
 textarea,
 select {
-  background: none;
+  background: transparent;
   border: none;
-  border-radius: 2px;
+  border-radius: var(--ui-radius-sm);
   outline: none;
-
-  color: #444;
-  font-family: Cambria, Georgia;
+  color: var(--ui-text);
+  font-family: inherit;
   font-size: 1em;
-  padding: 2px;
+  padding: 2px 4px;
   box-sizing: border-box;
+}
+
+button {
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+button:hover {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+
+button .material-icons {
+  font-size: 16px;
 }
 
 input:hover,
 textarea:hover,
 select:hover {
-  background: #eee;
+  background: var(--ui-hover);
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  background: #fff;
+  background: var(--ui-input-bg);
+  box-shadow: 0 0 0 1px var(--ui-accent);
+}
+
+.invisible {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dummy {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 button i {
