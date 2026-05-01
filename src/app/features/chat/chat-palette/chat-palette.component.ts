@@ -29,6 +29,15 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';
+
+export interface PaletteRow {
+  text: string;
+  kind: PaletteLineKind;
+  lineIndex: number;
+  headingName?: string;
+}
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-palette',
@@ -49,10 +58,30 @@ export class ChatPaletteComponent {
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
   readonly chatInputComponent = viewChild.required<ChatInputComponent>('chatInput');
-  readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
+  readonly paletteListRef = viewChild<ElementRef<HTMLDivElement>>('paletteList');
   readonly completeSelectRef = viewChild<ElementRef<HTMLSelectElement>>('completeSelect');
   readonly editTextRef = viewChild<ElementRef<HTMLTextAreaElement>>('editText');
   readonly character = signal<GameCharacter | null>(null);
+
+  readonly selectedLine = signal<number>(-1);
+
+  readonly paletteRows = computed((): PaletteRow[] => {
+    const char = this.character();
+    const palette = char?.chatPalette ?? null;
+    if (!palette) return [];
+    this.objectChange.versionOf(palette.identifier)();
+    return palette.getPalette().map((text, i): PaletteRow => {
+      if (/^\s*$/.test(text)) return { text, kind: 'empty', lineIndex: i };
+      const m1 = text.match(/^\/\/--[-]+(.*)$/);
+      const m2 = text.match(/^◆(.*)$/);
+      if (m1) return { text, kind: 'heading', lineIndex: i, headingName: m1[1].replace(/-+$/, '') };
+      if (m2) return { text, kind: 'heading', lineIndex: i, headingName: m2[1] };
+      if (/^\s*[/／]{2}([^=＝{}｛｝\s]+)\s*[=＝]\s*(.+)/.test(text)) {
+        return { text, kind: 'variable', lineIndex: i };
+      }
+      return { text, kind: 'command', lineIndex: i };
+    });
+  });
 
   get palette(): ChatPalette | null {
     return this.character()?.chatPalette ?? null;
@@ -320,24 +349,27 @@ export class ChatPaletteComponent {
     }
   }
 
+  onClickPaletteRow(row: PaletteRow): void {
+    this.selectedLine.set(row.lineIndex);
+    this.clickPalette(row.text);
+  }
+
   resetPaletteSelect() {
-    const el = this.chatPaletteElementRef()?.nativeElement;
-    if (!el) return;
-    el.selectedIndex = -1;
+    this.selectedLine.set(-1);
   }
 
   toggleEditMode() {
     this.isEdit.update((v) => !v);
     if (!this.palette) return;
     if (this.isEdit()) {
-      const selectEl = this.chatPaletteElementRef()?.nativeElement;
+      const listEl = this.paletteListRef()?.nativeElement;
       this.editPalette.set(this.palette.value + '');
-      const selectTop = selectEl?.scrollTop ?? 0;
-      const selectHeight = selectEl?.scrollHeight ?? 1;
+      const listTop = listEl?.scrollTop ?? 0;
+      const listHeight = listEl?.scrollHeight ?? 1;
       setTimeout(() => {
         const textEl = this.editTextRef()?.nativeElement;
         if (textEl) {
-          textEl.scrollTop = (selectTop * textEl.scrollHeight) / selectHeight;
+          textEl.scrollTop = (listTop * textEl.scrollHeight) / listHeight;
         }
       }, 10);
     } else {
@@ -355,22 +387,15 @@ export class ChatPaletteComponent {
   }
 
   japmIndex(lineNo: number) {
-    const select = this.chatPaletteElementRef()?.nativeElement;
-    if (select) {
-      select.scrollTop = select.scrollHeight;
-      select.options[lineNo].selected = false;
-      select.options[lineNo].selected = true;
-    }
+    this.selectedLine.set(lineNo);
+    const el = this.paletteListRef()?.nativeElement;
+    if (!el) return;
+    const row = el.querySelector<HTMLElement>(`[data-line="${lineNo}"]`);
+    row?.scrollIntoView({ block: 'nearest' });
   }
 
   onSelectAutoComplete(text: string, event: Event): void {
     this.selectAutoComplete(text, (event.target as HTMLInputElement).value);
-  }
-  onSelectPalette(event: Event): void {
-    this.selectPalette((event.target as HTMLInputElement).value);
-  }
-  onClickPalette(event: Event): void {
-    this.clickPalette((event.target as HTMLInputElement).value);
   }
 
   indexBtn() {

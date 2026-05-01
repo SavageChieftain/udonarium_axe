@@ -85,7 +85,7 @@ describe('GameCharacterComponent', () => {
 
     it('gameCharacterが設定されていなくてもaltitudeの設定が例外を投げないこと', () => {
       expect(() => {
-        component.altitude = 5;
+        component.setAltitude(5);
       }).not.toThrow();
     });
 

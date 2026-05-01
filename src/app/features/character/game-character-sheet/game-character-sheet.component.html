@@ -516,6 +516,7 @@
                 max="750"
                 [(ngModel)]="character.komaImageHeight"
                 [disabled]="!character.specifyKomaImageFlag"
+                (input)="onChkKomaSize($event)"
                 (change)="onChkKomaSize($event)"
               />
               <input
@@ -546,6 +547,42 @@
               <label class="cs-flag-label">
                 <input type="checkbox" [(ngModel)]="character.isDropShadow" />影の表示
               </label>
+            </div>
+            <div class="cs-field-row">
+              <span class="cs-field-label">位置 X</span>
+              <span class="cs-num-input cs-num-input--wide cs-num-readonly">{{
+                characterPieceSignals().locationX
+              }}</span>
+              <span class="cs-unit">px</span>
+            </div>
+            <div class="cs-field-row">
+              <span class="cs-field-label">位置 Y</span>
+              <span class="cs-num-input cs-num-input--wide cs-num-readonly">{{
+                characterPieceSignals().locationY
+              }}</span>
+              <span class="cs-unit">px</span>
+            </div>
+            <div class="cs-field-row">
+              <span class="cs-field-label">回転</span>
+              <input
+                class="cs-num-input cs-num-input--wide"
+                type="number"
+                [ngModel]="characterPieceSignals().rotate"
+                (change)="onChkRotate($event)"
+              />
+              <span class="cs-unit">°</span>
+              <button class="cs-reset-btn" type="button" (click)="resetRotate()">リセット</button>
+            </div>
+            <div class="cs-field-row">
+              <span class="cs-field-label">縦回転</span>
+              <input
+                class="cs-num-input cs-num-input--wide"
+                type="number"
+                [ngModel]="characterPieceSignals().roll"
+                (change)="onChkRoll($event)"
+              />
+              <span class="cs-unit">°</span>
+              <button class="cs-reset-btn" type="button" (click)="resetRoll()">リセット</button>
             </div>
           </div>
 

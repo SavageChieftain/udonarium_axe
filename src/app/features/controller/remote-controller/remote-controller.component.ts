@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -14,7 +14,6 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
@@ -49,12 +48,21 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';
+
+interface PaletteRow {
+  text: string;
+  kind: PaletteLineKind;
+  lineIndex: number;
+  headingName?: string;
+}
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'remote-controller',
   templateUrl: './remote-controller.component.html',
   styleUrls: ['./remote-controller.component.css'],
-  imports: [FormsModule, ControllerInputComponent, NgClass, NgTemplateOutlet, SafePipe],
+  imports: [FormsModule, ControllerInputComponent, NgTemplateOutlet, SafePipe],
 })
 export class RemoteControllerComponent {
   readonly chatMessageService = inject(ChatMessageService);
@@ -179,20 +187,34 @@ export class RemoteControllerComponent {
     return this.inventoryService.newLineString;
   }
   readonly controllerInputComponent = viewChild.required<ControllerInputComponent>('controllerInput');
-  readonly chatPaletteElementRef = viewChild<ElementRef<HTMLSelectElement>>('chatPalette');
+  readonly paletteListRef = viewChild<ElementRef<HTMLDivElement>>('paletteList');
   readonly character = signal<GameCharacter | null>(null);
+
+  readonly selectedLine = signal<number>(-1);
+
+  readonly paletteRows = computed((): PaletteRow[] => {
+    const char = this.character();
+    const palette = char?.remoteController ?? null;
+    if (!palette) return [];
+    this.objectChange.versionOf(palette.identifier)();
+    return palette.getPalette().map((text, i): PaletteRow => {
+      if (/^\s*$/.test(text)) return { text, kind: 'empty', lineIndex: i };
+      const m1 = text.match(/^\/\/--[-]+(.*)$/);
+      const m2 = text.match(/^◆(.*)$/);
+      if (m1) return { text, kind: 'heading', lineIndex: i, headingName: m1[1].replace(/-+$/, '') };
+      if (m2) return { text, kind: 'heading', lineIndex: i, headingName: m2[1] };
+      if (/^\s*[/／]{2}([^=＝{}｛｝\s]+)\s*[=＝]\s*(.+)/.test(text)) {
+        return { text, kind: 'variable', lineIndex: i };
+      }
+      return { text, kind: 'command', lineIndex: i };
+    });
+  });
+
   errorMessageBuff = '';
   errorMessageController = '';
 
   private _gameType = '';
   text = '';
-
-  get buffHideIsChk(): boolean {
-    return this.controllerInputComponent()?.buffHideIsChk ?? false;
-  }
-  onInput() {
-    this.controllerInputComponent()?.onInput();
-  }
 
   readonly buffAreaIsHide = signal(false);
   readonly controllerAreaIsHide = signal(false);
@@ -202,8 +224,6 @@ export class RemoteControllerComponent {
 
   recoveryLimitFlag = false;
   recoveryLimitFlagMin = false;
-  selectCharacter: GameObject | null = null;
-
   remoteControllerSelect: RemoteControllerSelect = {
     name: '',
     nowOrMax: '',
@@ -211,13 +231,10 @@ export class RemoteControllerComponent {
   };
   remoteControllerRadio = '';
 
-  remoteControlleridentifier: string[] = ['test01', 'test02'];
-  inputText = '';
   readonly isEdit = signal(false);
   editPalette = '';
 
   private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
-  charList: string[] = [];
 
   readonly inventoryTypes = signal<string[]>(['table', 'common', 'graveyard']);
   readonly selectTab = signal('table');
@@ -225,17 +242,11 @@ export class RemoteControllerComponent {
   hideChkBoxEvent(eventValue: boolean) {
     this.buffAreaIsHide.set(eventValue);
   }
-  controllerHideChkChange(eventValue: boolean) {
-    this.controllerAreaIsHide.set(eventValue);
-  }
-  recoveryLimitFlagChange(_value: boolean) {
-    // 現状特に処理なし
-  }
   onControllerHideChkChange(event: Event): void {
-    this.controllerHideChkChange((event.target as HTMLInputElement).checked);
+    this.controllerAreaIsHide.set((event.target as HTMLInputElement).checked);
   }
-  onRecoveryLimitFlagChange(event: Event): void {
-    this.recoveryLimitFlagChange((event.target as HTMLInputElement).checked);
+  onRecoveryLimitFlagChange(_event: Event): void {
+    // 現状特に処理なし
   }
 
   reverseValue() {
@@ -246,19 +257,6 @@ export class RemoteControllerComponent {
     this.remoteControllerSelect.name = name;
     this.remoteControllerSelect.nowOrMax = nowOrMax;
     this.remoteControllerSelect.dispName = dispName;
-  }
-
-  charListChange(charName: string, checked: boolean) {
-    if (checked) {
-      if (!this.charList.includes(charName)) {
-        this.charList.push(charName);
-      }
-    } else {
-      const index = this.charList.indexOf(charName);
-      if (index >= 0) {
-        this.charList.splice(index, 1);
-      }
-    }
   }
 
   updatePanelTitle() {
@@ -299,10 +297,7 @@ export class RemoteControllerComponent {
   }
 
   resetPaletteSelect() {
-    if (!this.chatPaletteElementRef()?.nativeElement) {
-      return;
-    }
-    this.chatPaletteElementRef()!.nativeElement.selectedIndex = -1;
+    this.selectedLine.set(-1);
   }
 
   toggleEditMode() {
@@ -333,11 +328,6 @@ export class RemoteControllerComponent {
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
     return getInventoryTags(gameObject, this.inventoryService);
-  }
-
-  selectGameObject(gameObject: GameObject) {
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-    this.selectCharacter = gameObject;
   }
 
   getTargetCharacters(checkedOnly: boolean): GameCharacter[] {
@@ -488,10 +478,8 @@ export class RemoteControllerComponent {
     this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
   }
 
-  onSelectPalette(event: Event): void {
-    this.selectPalette((event.target as HTMLInputElement).value);
-  }
-  onClickPalette(event: Event): void {
-    this.clickPalette((event.target as HTMLInputElement).value);
+  onClickPaletteRow(row: PaletteRow): void {
+    this.selectedLine.set(row.lineIndex);
+    this.clickPalette(row.text);
   }
 }

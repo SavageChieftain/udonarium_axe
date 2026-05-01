@@ -36,17 +36,6 @@
       (tabSwitch)="chatTabSwitchRelative($event)"
       #chatInput
     ></chat-input>
-    <div class="absolute -mt-[2em]">
-      <button class="tab-setting small-font" (click)="indexBtn()">
-        ＜<i class="material-icons small-font">bookmarks</i>
-      </button>
-    </div>
-    @if (isEdit()) {
-      <div class="edit-info">
-        <i class="material-icons align-bottom text-[0.8rem]">info_outline</i>
-        チャットパレット編集中です
-      </div>
-    }
     <div class="complete-box">
       @if ((autoCompleteList().length === 1 && autoCompleteList()[0] !== text) || autoCompleteList().length > 1) {
         <select
@@ -63,22 +52,47 @@
       }
     </div>
   </div>
-  <div [hidden]="isEdit()" class="grow h-0 min-h-[100px]">
-    <select
-      class="palette overflow-y-auto"
-      size="5"
-      (input)="onSelectPalette($event)"
-      (click)="onClickPalette($event)"
-      (focusout)="resizeChatInput()"
-      #chatPalette
-    >
-      @if (palette) {
-        @for (palette of palette.getPalette(); track $index) {
-          <option value="{{ palette }}">{{ palette }}</option>
-        }
+
+  <div class="palette-toolbar grow-0">
+    <button class="toolbar-btn" (click)="indexBtn()" title="見出し一覧へジャンプ">
+      <i class="material-icons small-font">bookmarks</i>見出し
+    </button>
+    <span class="toolbar-spacer"></span>
+    @if (isEdit()) {
+      <span class="edit-badge"> <i class="material-icons small-font">edit</i>編集中 </span>
+    }
+    <button class="toolbar-btn" [class.toolbar-btn--active]="isEdit()" (click)="toggleEditMode()">
+      @if (!isEdit()) {
+        <i class="material-icons small-font">edit</i>編集
+      } @else {
+        <i class="material-icons small-font">check</i>確定
       }
-    </select>
+    </button>
   </div>
+
+  <div [hidden]="isEdit()" class="grow h-0 min-h-[100px] overflow-y-auto palette-list" #paletteList>
+    @for (row of paletteRows(); track row.lineIndex) {
+      @if (row.kind === 'heading') {
+        <div class="palette-row palette-row--heading" [attr.data-line]="row.lineIndex">
+          <span class="palette-heading-mark">◆</span>{{ row.headingName }}
+        </div>
+      } @else if (row.kind === 'variable') {
+        <div class="palette-row palette-row--variable" [attr.data-line]="row.lineIndex">{{ row.text }}</div>
+      } @else if (row.kind === 'empty') {
+        <div class="palette-row palette-row--empty" [attr.data-line]="row.lineIndex"></div>
+      } @else {
+        <div
+          class="palette-row palette-row--command"
+          [class.palette-row--selected]="selectedLine() === row.lineIndex"
+          [attr.data-line]="row.lineIndex"
+          (click)="onClickPaletteRow(row)"
+        >
+          {{ row.text }}
+        </div>
+      }
+    }
+  </div>
+
   <div [hidden]="!isEdit()" class="grow h-0 min-h-[100px]">
     <textarea
       name="edit-palette"
@@ -89,14 +103,8 @@
       placeholder="チャットパレット"
     ></textarea>
   </div>
-  <div class="grow-0">
-    <button type="submit" (click)="toggleEditMode()">
-      @if (!isEdit()) {
-        <span>チャットパレットの編集</span>
-      }
-      @if (isEdit()) {
-        <span>チャットパレットを確定</span>
-      }
-    </button>
-  </div>
+
+  @if (!isEdit()) {
+    <div class="palette-hint grow-0">クリック: 入力 ／ 2回クリック: 送信</div>
+  }
 </div>

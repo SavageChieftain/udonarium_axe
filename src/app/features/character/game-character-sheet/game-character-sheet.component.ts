@@ -41,7 +41,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   host: { class: 'block' },
-  styleUrls: ['./game-character-sheet.component.css'],
+  styleUrls: ['./game-character-sheet.component.css', './game-character-sheet-data.component.css'],
   imports: [FormsModule, GameDataElementComponent, SafePipe],
 })
 export class GameCharacterSheetComponent {
@@ -222,6 +222,18 @@ export class GameCharacterSheetComponent {
     if (!obj) return ImageFile.Empty;
     this.objectChange.versionOf(obj.identifier)();
     return obj.imageFile;
+  });
+
+  readonly characterPieceSignals = computed(() => {
+    const char = this.character;
+    if (!char) return { roll: 0, rotate: 0, locationX: 0, locationY: 0 };
+    this.objectChange.versionOf(char.identifier)();
+    return {
+      roll: char.roll,
+      rotate: char.rotate,
+      locationX: char.location.x,
+      locationY: char.location.y,
+    };
   });
 
   readonly portraitImages = computed(() => {
@@ -617,6 +629,40 @@ export class GameCharacterSheetComponent {
     let value = (event.target as HTMLInputElement).valueAsNumber;
     if (!Number.isFinite(value)) value = 0;
     character.altitude = Math.round(value);
+  }
+  onChkLocationX(event: Event): void {
+    const character = this.tabletopObject as GameCharacter;
+    let value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) value = 0;
+    character.location = { ...character.location, x: Math.round(value) };
+  }
+  onChkLocationY(event: Event): void {
+    const character = this.tabletopObject as GameCharacter;
+    let value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) value = 0;
+    character.location = { ...character.location, y: Math.round(value) };
+  }
+  onChkRotate(event: Event): void {
+    const character = this.tabletopObject as GameCharacter;
+    let value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) value = 0;
+    character.rotate = value;
+  }
+  resetRotate(): void {
+    const character = this.tabletopObject as GameCharacter;
+    character.rotate = 0;
+    SoundEffect.play(PresetSound.sweep);
+  }
+  onChkRoll(event: Event): void {
+    const character = this.tabletopObject as GameCharacter;
+    let value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) value = 0;
+    character.roll = value;
+  }
+  resetRoll(): void {
+    const character = this.tabletopObject as GameCharacter;
+    character.roll = 0;
+    SoundEffect.play(PresetSound.sweep);
   }
   onChkPopWidth(event: Event): void {
     this.chkPopWidth((event.target as HTMLInputElement).valueAsNumber);

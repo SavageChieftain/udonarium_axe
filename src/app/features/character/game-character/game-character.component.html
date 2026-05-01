@@ -1,8 +1,8 @@
 @if (gameCharacter()) {
   <div
     class="component is-3d is-grab is-pointer-events-none"
-    [style.width.px]="size * gridSize"
-    [style.height.px]="size * gridSize"
+    [style.width.px]="size() * gridSize"
+    [style.height.px]="size() * gridSize"
     appMovable
     [movable.option]="movableOption()"
     [movable.disable]="isLock"
@@ -38,18 +38,17 @@
         <!--影-->
         @if (isDropShadow && 0 < imageFile().url.length && this.gameCharacter()!.specifyKomaImageFlag) {
           <img
-            class="image is-pointer-events-none chrome-smooth-image-trick"
+            class="is-pointer-events-none chrome-smooth-image-trick is-drop-shadow"
             [ngStyle]="{
-              height: +this.gameCharacter()!.komaImageHeight + 'px',
-              transform:
-                'translateX(-50%) translateX(' +
-                (size * gridSize) / 2 +
-                'px) scaleY(0.5) translateY(-150%) translateY(' +
-                size * gridSize +
-                'px)',
+              position: 'absolute',
+              bottom: '0',
+              left: '50%',
+              height: komaImageHeightSignal() + 'px',
+              width: 'auto',
+              maxWidth: 'none',
+              transform: 'translateX(-50%) scaleY(0.5) translateY(-150%) translateY(' + size() * gridSize + 'px)',
             }"
             [src]="imageFile().url | safe: 'resourceUrl'"
-            class="is-drop-shadow"
           />
         }
         @if (isDropShadow && 0 < imageFile().url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
@@ -59,9 +58,9 @@
               width: '100%',
               transform:
                 'translateX(-50%) translateX(' +
-                (size * gridSize) / 2 +
+                (size() * gridSize) / 2 +
                 'px) scaleY(0.5) translateY(-150%) translateY(' +
-                size * gridSize +
+                size() * gridSize +
                 'px)',
             }"
             [src]="imageFile().url | safe: 'resourceUrl'"
@@ -73,16 +72,17 @@
           [ngStyle]="{
             transform:
               'rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) translateY(-50%) translateY(' +
-              -altitude * gridSize +
+              -altitude() * gridSize +
               'px)',
           }"
         >
           <div
             class="rotate-frame is-3d"
-            [style.width.px]="size * gridSize"
-            [style.height.px]="size * gridSize"
+            [style.width.px]="size() * gridSize"
+            [style.height.px]="size() * gridSize"
             appRotable
-            [(rotable.value)]="roll"
+            [rotable.value]="rollSignal()"
+            (rotable.valueChange)="roll = $event"
             (rotable.ondragstart)="onMove()"
             (rotable.ondragend)="onMoved()"
           >
@@ -98,7 +98,8 @@
                         <div
                           class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
                           [ngStyle]="{
-                            transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) translateY(-100%)',
+                            transform:
+                              'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY(-100%)',
                           }"
                         >
                           <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
@@ -134,7 +135,7 @@
                           [ngStyle]="{
                             transform:
                               'translateX(-50%) translateX(' +
-                              (size * gridSize) / 2 +
+                              (size() * gridSize) / 2 +
                               'px) translateY(-100%) rotateY(180deg)',
                           }"
                         >
@@ -181,7 +182,7 @@
                 <div
                   class="target-icon scrolldown4"
                   [hidden]="!isTargeted()"
-                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
+                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
                 >
                   <img src="./assets/images/target/target.png" />
                 </div>
@@ -191,7 +192,7 @@
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)',
+                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
                       'background-color': 'rgba(255,255,255, 0.6)',
                       color: '#333',
                       border: 'solid 1px #555',
@@ -209,7 +210,7 @@
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) rotateY(180deg)',
+                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) rotateY(180deg)',
                       'background-color': 'rgba(255,255,255, 0.6)',
                       color: '#333',
                       border: 'solid 1px #555',
@@ -228,7 +229,7 @@
                 @if (name()) {
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
-                    [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
+                    [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
                   >
                     <div class="has-length-limit is-3d">
                       {{ name() }}
@@ -242,7 +243,7 @@
                   <div
                     class="name-tag is-nowrap is-black-background is-3d will-change backface-off"
                     [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) rotateY(180deg)',
+                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) rotateY(180deg)',
                     }"
                   >
                     <div class="has-length-limit is-3d">
@@ -260,7 +261,7 @@
                   <div
                     class="rotate-grab rotate-grab-icon of-top is-3d will-change"
                     [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px) translateY( -0px)',
+                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY( -0px)',
                     }"
                   >
                     <i class="material-icons will-change">autorenew</i>
@@ -270,10 +271,15 @@
               <!--画像-->
               @if (0 < imageFile().url.length && this.gameCharacter()!.specifyKomaImageFlag) {
                 <img
-                  class="image is-3d chrome-smooth-image-trick"
+                  class="is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
-                    height: +this.gameCharacter()!.komaImageHeight + 'px',
-                    transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)',
+                    position: 'absolute',
+                    bottom: '0',
+                    left: '50%',
+                    height: komaImageHeightSignal() + 'px',
+                    width: 'auto',
+                    maxWidth: 'none',
+                    transform: 'translateX(-50%)',
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
@@ -291,7 +297,7 @@
                   @if (!isLock) {
                     <div
                       class="rotate-grab rotate-grab-icon of-bottom is-3d will-change"
-                      [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px' }"
+                      [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px' }"
                     >
                       @if (!isLock) {
                         <i class="material-icons will-change">autorenew</i>
@@ -304,24 +310,24 @@
           </div>
         </div>
       </div>
-      @if (isAltitudeIndicate && (altitude <= -0.5 || 0.5 <= altitude)) {
+      @if (isAltitudeIndicate && (altitude() <= -0.5 || 0.5 <= altitude())) {
         <div
           class="is-3d flex flex-col justify-between border-l-2 border-dashed border-l-black origin-top-left"
-          [style.height.px]="math.abs(altitude * gridSize) - (altitude > 0 ? 0 : 0)"
+          [style.height.px]="math.abs(altitude() * gridSize) - (altitude() > 0 ? 0 : 0)"
           [ngStyle]="{
             transform:
               'translateX(' +
-              (size * gridSize) / 2 +
+              (size() * gridSize) / 2 +
               'px) translateY(' +
-              (-size * gridSize) / 2 +
+              (-size() * gridSize) / 2 +
               'px) rotateX(-90deg) translateY(' +
-              (altitude > 0 ? -altitude * gridSize : 0) +
+              (altitude() > 0 ? -altitude() * gridSize : 0) +
               'px) rotateY(' +
               viewRotateZ() +
               'deg)',
           }"
         >
-          <div class="is-3d" [style.visibility]="altitude > 0 ? 'visible' : 'hidden'">
+          <div class="is-3d" [style.visibility]="altitude() > 0 ? 'visible' : 'hidden'">
             <span class="elevation-indicator is-3d absolute"
               ><i>{{ elevation }}</i></span
             >
@@ -330,12 +336,14 @@
             >
           </div>
           <div class="is-3d">
-            <span class="altitude-indicator is-3d absolute">{{ math.abs(altitude) }}</span>
-            <span class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]">{{ math.abs(altitude) }}</span>
+            <span class="altitude-indicator is-3d absolute">{{ math.abs(altitude()) }}</span>
+            <span class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]">{{
+              math.abs(altitude())
+            }}</span>
           </div>
           <div
             class="is-3d"
-            [style.visibility]="altitude < 0 ? 'visible' : 'hidden'"
+            [style.visibility]="altitude() < 0 ? 'visible' : 'hidden'"
             [ngStyle]="{ transform: 'translateY(' + (chatBubbleAltitude + 4) + 'px)' }"
           >
             <span class="elevation-indicator is-3d absolute"

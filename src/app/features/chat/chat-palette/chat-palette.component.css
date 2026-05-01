@@ -12,6 +12,131 @@
   height: 100%;
 }
 
+/* ツールバー */
+.palette-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  background: rgba(28, 28, 28, 0.9);
+  border-top: 1px solid #383838;
+  border-bottom: 1px solid #383838;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-size: 0.78em;
+  background: transparent;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #aaa;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.5;
+}
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #eee;
+}
+.toolbar-btn--active {
+  background: rgba(60, 80, 140, 0.5);
+  border-color: #7799cc;
+  color: #aaccff;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.edit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.72em;
+  color: #88bbff;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid #446688;
+  background: rgba(30, 50, 90, 0.6);
+  user-select: none;
+}
+
+/* カスタムパレットリスト */
+.palette-list {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, sans-serif;
+  width: 100%;
+  height: 100%;
+}
+
+.palette-row {
+  box-sizing: border-box;
+  padding: 2px 8px;
+  font-size: 0.88em;
+  line-height: 1.65;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palette-row--command {
+  color: #e0e0e0;
+  cursor: pointer;
+}
+.palette-row--command:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+.palette-row--selected {
+  background: rgba(90, 130, 190, 0.3) !important;
+}
+
+.palette-row--heading {
+  color: #88bbff;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 5px 8px 2px;
+  background: rgba(30, 50, 90, 0.4);
+  border-top: 1px solid #2a3a5a;
+  cursor: default;
+  user-select: none;
+}
+.palette-row--heading:first-child {
+  border-top: none;
+}
+
+.palette-heading-mark {
+  margin-right: 3px;
+  opacity: 0.6;
+}
+
+.palette-row--variable {
+  color: #666;
+  font-size: 0.78em;
+  font-style: italic;
+  cursor: default;
+  user-select: none;
+}
+
+.palette-row--empty {
+  height: 0.55em;
+  padding: 0;
+  cursor: default;
+  user-select: none;
+}
+
+/* ヒント */
+.palette-hint {
+  padding: 2px 6px;
+  font-size: 0.68em;
+  color: #555;
+  text-align: center;
+  border-top: 1px solid #2e2e2e;
+  user-select: none;
+}
+
 .flex-container {
   display: flex;
   flex-direction: column;

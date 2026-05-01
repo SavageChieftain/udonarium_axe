@@ -146,15 +146,17 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(char.identifier)();
     return char.name;
   });
-  get size(): number {
+  readonly size = computed(() => {
     const char = this.gameCharacter();
+    this.objectChange.versionOf(char?.identifier ?? '')();
     return this.adjustMinBounds(char?.size ?? 0);
-  }
-  get altitude(): number {
+  });
+  readonly altitude = computed(() => {
     const char = this.gameCharacter();
+    this.objectChange.versionOf(char?.identifier ?? '')();
     return char?.altitude ?? 0;
-  }
-  set altitude(altitude: number) {
+  });
+  setAltitude(altitude: number) {
     const char = this.gameCharacter();
     if (char) char.altitude = altitude;
   }
@@ -184,6 +186,18 @@ export class GameCharacterComponent {
     const char = this.gameCharacter();
     if (char) char.roll = roll;
   }
+  readonly rollSignal = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return 0;
+    this.objectChange.versionOf(char.identifier)();
+    return char.roll;
+  });
+  readonly komaImageHeightSignal = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return 0;
+    this.objectChange.versionOf(char.identifier)();
+    return char.komaImageHeight;
+  });
   get isDropShadow(): boolean {
     const char = this.gameCharacter();
     return char?.isDropShadow ?? false;
@@ -222,7 +236,7 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(char.identifier)();
     const gridType = this.tabletopService.currentTable.gridType;
     if (!isHexGrid(gridType)) return null;
-    return calcHexFlowerParams(this.size, this.gridSize, isFlatTopGrid(gridType));
+    return calcHexFlowerParams(this.size(), this.gridSize, isFlatTopGrid(gridType));
   });
 
   pedestalStyle(borderColor: string): Record<string, string> {
@@ -307,7 +321,7 @@ export class GameCharacterComponent {
   get elevation(): number {
     const char = this.gameCharacter();
     if (!char) return 0;
-    return +((char.posZ + this.altitude * this.gridSize) / this.gridSize).toFixed(1);
+    return +((char.posZ + this.altitude() * this.gridSize) / this.gridSize).toFixed(1);
   }
 
   get chatBubbleAltitude(): number {
