@@ -67,14 +67,14 @@
                 <i class="material-icons">edit</i>
                 設定
               </button>
-              @if (face.imageUrl) {
+              @if (face.imageUrl || hasDiceDefault()) {
                 <button
                   class="ds-btn ds-btn--ghost ds-btn--clear"
                   type="button"
                   (click)="clearFaceImage(face.faceName); $event.stopPropagation()"
-                  title="画像をクリア"
+                  title="デフォルトに戻す"
                 >
-                  <i class="material-icons">clear</i>
+                  <i class="material-icons">restart_alt</i>
                 </button>
               }
             </div>

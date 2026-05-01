@@ -57,6 +57,12 @@ export class DiceSymbolSheetComponent {
     this._diceSymbol.set(value);
   }
 
+  readonly hasDiceDefault = computed(() => {
+    const dice = this._diceSymbol();
+    if (!dice) return false;
+    return getDiceImagePrefix(dice.faces) !== null;
+  });
+
   readonly faceImages = computed(() => {
     this.objectChange.fileVersion();
     const dice = this._diceSymbol();
@@ -131,25 +137,12 @@ export class DiceSymbolSheetComponent {
     const dice = this._diceSymbol();
     if (!dice) return;
     this.modalService.open<string>(FileSelecterComponent).then((value) => {
-      // null  = モーダルを X で閉じた → デフォルト画像に戻す
-      // undefined = 想定外 → 何もしない
+      // null/undefined = モーダルを X で閉じた・キャンセル → 何もしない
       // string 値 = 画像選択 → セット
-      if (value === undefined) return;
+      if (value == null) return;
       const el = dice.imageDataElement?.getFirstElementByName(faceName) as DataElement | null;
       if (!el) return;
-      if (!value) {
-        // デフォルト画像へ戻す
-        const prefix = getDiceImagePrefix(dice.faces);
-        if (prefix) {
-          const url = `./assets/images/dice/${prefix}/${prefix}[${faceName}].png`;
-          const image = this.imageStorage.get(url) ?? this.imageStorage.add(url);
-          el.value = image.identifier;
-        } else {
-          el.value = '';
-        }
-      } else {
-        el.value = value;
-      }
+      el.value = value;
     });
   }
 
@@ -157,6 +150,14 @@ export class DiceSymbolSheetComponent {
     const dice = this._diceSymbol();
     if (!dice) return;
     const el = dice.imageDataElement?.getFirstElementByName(faceName) as DataElement | null;
-    if (el) el.value = '';
+    if (!el) return;
+    const prefix = getDiceImagePrefix(dice.faces);
+    if (prefix) {
+      const url = `./assets/images/dice/${prefix}/${prefix}[${faceName}].png`;
+      const image = this.imageStorage.get(url) ?? this.imageStorage.add(url);
+      el.value = image.identifier;
+    } else {
+      el.value = '';
+    }
   }
 }
