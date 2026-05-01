@@ -407,6 +407,11 @@
   word-break: break-word;
 }
 
+.elm-markdown-view {
+  overflow-x: auto;
+  max-width: min(560px, calc(60vw));
+}
+
 input,
 button,
 textarea,

@@ -77,7 +77,7 @@
           </div>
         }
         @case ('markdown') {
-          @if (isEdit()) {
+          @if (!isEdit()) {
             <span class="text-[0.8em]">
               &nbsp;&nbsp;内容編集:<input
                 type="checkbox"
@@ -92,16 +92,13 @@
             name="data-value"
             [(ngModel)]="value"
             placeholder="Note"
-            [hidden]="!(isEdit() && isEditMarkDown(gameDataElement().myIdentifer + '_elm'))"
+            [hidden]="!isEdit() && !isEditMarkDown(gameDataElement().myIdentifer + '_elm')"
             (focus)="textFocus(gameDataElement().myIdentifer + '_elm')"
           >
           </textarea>
-          <div
-            [hidden]="isEdit() && isEditMarkDown(gameDataElement().myIdentifer + '_elm')"
-            class="w-full overflow-x-auto min-w-[50px]"
-          >
+          <div [hidden]="isEdit() || isEditMarkDown(gameDataElement().myIdentifer + '_elm')" class="elm-markdown-view">
             <div
-              class="textarea-markdown w-full min-w-[50px] text-[0.8em]"
+              class="textarea-markdown text-[0.8em]"
               [innerHTML]="escapeHtmlMarkDown(gameDataElement().value, gameDataElement().myIdentifer)"
             ></div>
           </div>
