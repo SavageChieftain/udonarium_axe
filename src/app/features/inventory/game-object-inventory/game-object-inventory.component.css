@@ -194,6 +194,16 @@
   cursor: pointer;
 }
 
+.inv-sort-indicator {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--ui-panel-border);
+  background: var(--ui-panel-bg);
+  flex-shrink: 0;
+}
+
 .settings-summary {
   display: flex;
   gap: 6px;

@@ -76,6 +76,16 @@
     </div>
   }
 
+  <!-- ── ソートインジケーター（設定パネル非表示かつソート設定あり） ── -->
+  @if (!isEdit() && sortTag) {
+    <div class="inv-sort-indicator">
+      <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span>
+      @if (sortTag2nd) {
+        <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span>
+      }
+    </div>
+  }
+
   <!-- ── 一括移動バー ── -->
   @if (isMultiMove()) {
     <div class="inv-multimove-bar">
