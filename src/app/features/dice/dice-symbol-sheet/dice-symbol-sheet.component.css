@@ -178,6 +178,7 @@
 .ds-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   padding: 3px 6px;
   font-size: 11px;
@@ -186,10 +187,24 @@
   cursor: pointer;
   transition: background var(--ui-transition);
   line-height: 1.2;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .ds-btn .material-icons {
   font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* 設定ボタン：×がないときは全幅、あるときはフレキシブル */
+.ds-btn--set {
+  flex: 1;
+}
+
+/* クリアボタン：アイコンのみの正方形 */
+.ds-btn--clear {
+  padding: 3px 5px;
 }
 
 .ds-btn--primary {

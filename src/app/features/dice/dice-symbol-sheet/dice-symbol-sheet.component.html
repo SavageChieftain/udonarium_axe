@@ -59,7 +59,7 @@
             </div>
             <div class="ds-face-actions">
               <button
-                class="ds-btn ds-btn--primary"
+                class="ds-btn ds-btn--primary ds-btn--set"
                 type="button"
                 (click)="openFaceImageModal(face.faceName); $event.stopPropagation()"
                 title="画像を設定"
@@ -69,7 +69,7 @@
               </button>
               @if (face.imageUrl) {
                 <button
-                  class="ds-btn ds-btn--ghost"
+                  class="ds-btn ds-btn--ghost ds-btn--clear"
                   type="button"
                   (click)="clearFaceImage(face.faceName); $event.stopPropagation()"
                   title="画像をクリア"

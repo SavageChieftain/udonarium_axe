@@ -107,9 +107,12 @@ export class DiceSymbolSheetComponent {
     const dice = this._diceSymbol();
     if (!dice) return;
     this.modalService.open<string>(FileSelecterComponent).then((value) => {
-      if (!value) return;
+      // null = modal closed with X → revert to default (clear)
+      // undefined = unexpected fallback → ignore
+      // string = image selected → set
+      if (value === undefined) return;
       const el = dice.imageDataElement?.getFirstElementByName(faceName) as DataElement | null;
-      if (el) el.value = value;
+      if (el) el.value = value ?? '';
     });
   }
 
