@@ -254,18 +254,18 @@ export class DiceSymbolComponent {
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,
-      left: coordinate.x - 300,
+      left: coordinate.x - 250,
       top: coordinate.y - 300,
-      width: 600,
+      width: 500,
       height: 600,
     };
     this.panelService.openLazy(
       () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
+        import('@axe/features/dice/dice-symbol-sheet/dice-symbol-sheet.component').then(
+          (m) => m.DiceSymbolSheetComponent
         ),
       option,
-      (component) => (component.tabletopObject = gameObject)
+      (component) => (component.diceSymbol = gameObject)
     );
   }
 

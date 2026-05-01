@@ -1,0 +1,86 @@
+@if (diceSymbol) {
+  <div class="ds-sheet">
+    <!-- 基本設定 -->
+    <section class="ds-section">
+      <h3 class="ds-section-title">
+        <i class="material-icons">casino</i>
+        基本設定
+      </h3>
+      <div class="ds-row">
+        <label class="ds-label">名前</label>
+        <input class="ds-input" type="text" [(ngModel)]="name" />
+      </div>
+      <div class="ds-row">
+        <label class="ds-label">サイズ</label>
+        <input class="ds-input ds-input--narrow" type="number" min="1" max="10" [(ngModel)]="size" />
+      </div>
+    </section>
+
+    <!-- コマ画像設定 -->
+    <section class="ds-section">
+      <h3 class="ds-section-title">
+        <i class="material-icons">straighten</i>
+        コマ画像設定
+      </h3>
+      <div class="ds-row">
+        <label class="ds-label">高さを指定</label>
+        <input type="checkbox" [(ngModel)]="specifyKomaImageFlag" />
+      </div>
+      @if (specifyKomaImageFlag) {
+        <div class="ds-row ds-row--indent">
+          <label class="ds-label">コマ高さ (px)</label>
+          <input class="ds-range" type="range" min="50" max="750" [(ngModel)]="komaImageHeight" />
+          <input class="ds-input ds-input--narrow" type="number" min="50" max="750" [(ngModel)]="komaImageHeight" />
+        </div>
+      }
+    </section>
+
+    <!-- 面ごとの画像設定 -->
+    <section class="ds-section">
+      <h3 class="ds-section-title">
+        <i class="material-icons">image</i>
+        面ごとの画像設定
+        <span class="ds-hint"
+          >現在の面: <strong>{{ diceSymbol.face }}</strong></span
+        >
+      </h3>
+      <div class="ds-faces-grid">
+        @for (face of faceImages(); track face.faceName) {
+          <div class="ds-face-card" [class.ds-face-card--current]="face.isCurrent" (click)="selectFace(face.faceName)">
+            <div class="ds-face-label">{{ face.faceName }}</div>
+            <div class="ds-face-image-wrap">
+              @if (face.imageUrl) {
+                <img class="ds-face-image" [src]="face.imageUrl | safe: 'resourceUrl'" alt="face {{ face.faceName }}" />
+              } @else {
+                <div class="ds-face-empty">
+                  <i class="material-icons">image_not_supported</i>
+                </div>
+              }
+            </div>
+            <div class="ds-face-actions">
+              <button
+                class="ds-btn ds-btn--primary"
+                type="button"
+                (click)="openFaceImageModal(face.faceName); $event.stopPropagation()"
+                title="画像を設定"
+              >
+                <i class="material-icons">edit</i>
+                設定
+              </button>
+              @if (face.imageUrl) {
+                <button
+                  class="ds-btn ds-btn--ghost"
+                  type="button"
+                  (click)="clearFaceImage(face.faceName); $event.stopPropagation()"
+                  title="画像をクリア"
+                >
+                  <i class="material-icons">clear</i>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}

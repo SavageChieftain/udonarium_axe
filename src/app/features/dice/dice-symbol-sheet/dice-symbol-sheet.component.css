@@ -1,0 +1,214 @@
+:host {
+  display: block;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100%;
+  color: var(--ui-text);
+  background: var(--ui-panel-bg);
+}
+
+/* ===== セクション ===== */
+.ds-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ds-section {
+  background: var(--ui-accent-bg);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 12px;
+}
+
+.ds-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-accent);
+  margin: 0 0 10px;
+  border-bottom: 1px solid var(--ui-panel-border);
+  padding-bottom: 6px;
+}
+
+.ds-section-title .material-icons {
+  font-size: 16px;
+}
+
+.ds-hint {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ui-text-muted);
+}
+
+/* ===== 行レイアウト ===== */
+.ds-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ds-row:last-child {
+  margin-bottom: 0;
+}
+
+.ds-row--indent {
+  padding-left: 12px;
+}
+
+.ds-label {
+  font-size: 12px;
+  color: var(--ui-text-muted);
+  min-width: 90px;
+}
+
+/* ===== インプット ===== */
+.ds-input {
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-text);
+  padding: 4px 8px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-input--narrow {
+  flex: none;
+  width: 70px;
+}
+
+.ds-range {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--ui-accent);
+}
+
+/* ===== 面グリッド ===== */
+.ds-faces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+/* ===== 面カード ===== */
+.ds-face-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border: 2px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-panel-bg);
+  cursor: pointer;
+  transition:
+    border-color var(--ui-transition),
+    box-shadow var(--ui-transition);
+}
+
+.ds-face-card:hover {
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-accent) 20%, transparent);
+}
+
+.ds-face-card--current {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-panel-bg));
+}
+
+.ds-face-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ui-text);
+  line-height: 1;
+}
+
+.ds-face-card--current .ds-face-label {
+  color: var(--ui-accent);
+}
+
+.ds-face-image-wrap {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-input-bg);
+  overflow: hidden;
+}
+
+.ds-face-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ds-face-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ui-text-muted);
+}
+
+.ds-face-empty .material-icons {
+  font-size: 28px;
+  opacity: 0.4;
+}
+
+/* ===== アクション ===== */
+.ds-face-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  justify-content: center;
+}
+
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
+  font-size: 11px;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--ui-transition);
+  line-height: 1.2;
+}
+
+.ds-btn .material-icons {
+  font-size: 13px;
+}
+
+.ds-btn--primary {
+  background: var(--ui-accent);
+  color: #fff;
+  border-color: var(--ui-accent);
+}
+
+.ds-btn--primary:hover {
+  filter: brightness(1.1);
+}
+
+.ds-btn--ghost {
+  background: transparent;
+  color: var(--ui-text-muted);
+  border-color: var(--ui-panel-border);
+}
+
+.ds-btn--ghost:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}

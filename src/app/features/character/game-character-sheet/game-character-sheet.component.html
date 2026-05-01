@@ -7,48 +7,11 @@
     } @else if (terrain) {
       <button (click)="openModal('floor')">床の画像を変更</button>
       <button (click)="openModal('wall')">壁の画像を変更</button>
-    } @else if (diceSymbol) {
-      <button (click)="openModal(diceSymbol.face)" [disabled]="!diceSymbol.isVisible">ダイス目の画像を変更</button>
     } @else if (!(cardStack || rangeArea || scratchMask)) {
       <button (click)="openModal('imageIdentifier', true)">画像変更</button>
     }
     <button (click)="clone()">コピーを作る</button>
     <button (click)="saveToXML()">保存</button>
-    @if (diceSymbol) {
-      <div class="extra-setting table">
-        <div class="extra-setting w-[50%] table-cell">
-          コマ画像の高さを指定
-          <input
-            type="checkbox"
-            value="hideInventory"
-            [(ngModel)]="diceSymbol.specifyKomaImageFlag"
-            name="specifyKomaImageFlag"
-            (click)="clickImageFlag()"
-          />
-          <div>
-            コマ画像の高さ
-            <input
-              type="range"
-              [style]="
-                'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 1 + ';'
-                  | safe: 'style'
-              "
-              min="50"
-              max="750"
-              name="koma-image-height-range"
-              [(ngModel)]="diceSymbol.komaImageHeight"
-              [disabled]="!diceSymbol.specifyKomaImageFlag"
-            />
-            <input
-              [(ngModel)]="diceSymbol.komaImageHeight"
-              type="number"
-              class="w-[12em] text-[#555]"
-              [disabled]="!diceSymbol.specifyKomaImageFlag"
-            />
-          </div>
-        </div>
-      </div>
-    }
     @if (cardStack) {
       <div class="extra-setting w-[400px]">
         <div>ポップアップ横幅 /></div>
