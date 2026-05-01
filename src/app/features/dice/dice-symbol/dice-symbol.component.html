@@ -92,6 +92,10 @@
                   [ngStyle]="{
                     height: +imageHeignt() + 'px',
                     width: 'auto',
+                    maxWidth: 'none',
+                    display: 'inline-block',
+                    left: 'auto',
+                    right: 'auto',
                     transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
