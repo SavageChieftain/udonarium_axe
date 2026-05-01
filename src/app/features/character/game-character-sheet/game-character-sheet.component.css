@@ -322,7 +322,7 @@ input {
 }
 
 /* 表示設定ブロック */
-.cs-display-settings {
+.cs-setting-block {
   display: flex;
   flex-direction: column;
   gap: 5px;

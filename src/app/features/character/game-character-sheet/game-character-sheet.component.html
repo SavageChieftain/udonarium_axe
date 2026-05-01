@@ -109,22 +109,7 @@
       </div>
     }
     @if (character) {
-      <div class="cs-topbar-placement">
-        <select
-          (change)="onSetLocation($event)"
-          name="location"
-          [ngModel]="character.location.name"
-          class="cs-location-select"
-          title="配置場所"
-        >
-          <option value="table">テーブル</option>
-          <option value="common">共有インベントリ</option>
-          <option value="{{ networkService.peerId }}">個人インベントリ</option>
-          <option value="graveyard">墓地</option>
-        </select>
-        <label class="cs-flag-label"> <input type="checkbox" [(ngModel)]="character.hideInventory" />非表示 </label>
-        <label class="cs-flag-label"> <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない </label>
-      </div>
+      <!-- インベントリ設定はキャラクターシート左列下部に移動 -->
     }
     @if (textNote) {
       <div class="extra-setting w-[400px]">
@@ -283,7 +268,8 @@
       <div class="cs-identity">
         <!-- ── 左: ポートレート列 ── -->
         <div class="cs-portrait-col">
-          <!-- 大ポートレート（現在のコマ画像） -->
+          <!-- ① ポートレート -->
+          <div class="cs-sec-title"><i class="material-icons">portrait</i>ポートレート</div>
           <div class="cs-portrait-hero" (click)="changePortrait(komaImageIndex())" title="クリックして画像を差し替え">
             @if (komaImageFile().url) {
               <img [src]="komaImageFile().url | safe: 'resourceUrl'" alt="ポートレート" />
@@ -297,7 +283,8 @@
             </div>
           </div>
 
-          <!-- サムネイルストリップ（複数画像の選択） -->
+          <!-- ② 立ち絵リスト -->
+          <div class="cs-sec-title" style="margin-top: 8px"><i class="material-icons">photo_library</i>立ち絵</div>
           <div class="cs-portrait-strip">
             @for (portrait of portraitImages(); track portrait.index) {
               <div
@@ -320,8 +307,6 @@
               <i class="material-icons">add</i>
             </button>
           </div>
-
-          <!-- ポートレート操作ボタン行 -->
           <div class="cs-portrait-btns">
             @if (portraitImages().length > 1) {
               <button
@@ -338,13 +323,10 @@
             </button>
           </div>
 
-          <!-- 表示設定（コマ・チャット・ポップアップ） -->
-          <div class="cs-display-settings">
-            <div class="cs-sec-title"><i class="material-icons">settings</i>表示設定</div>
-
-            <!-- チャット立ち絵スロット -->
+          <!-- ③ チャット表示位置 -->
+          <div class="cs-setting-block">
+            <div class="cs-sec-title"><i class="material-icons">chat</i>チャット表示位置</div>
             <div class="cs-field-row">
-              <span class="cs-field-label">チャット枠</span>
               <div class="cs-slot-stepper">
                 <button
                   type="button"
@@ -366,14 +348,17 @@
               </div>
               <span class="cs-unit">/ 11</span>
             </div>
+          </div>
 
-            <!-- コマ高さ -->
+          <!-- ④ コマ設定 -->
+          <div class="cs-setting-block">
+            <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
             <label class="cs-flag-label">
               <input
                 type="checkbox"
                 [(ngModel)]="character.specifyKomaImageFlag"
                 (change)="clickImageFlag()"
-              />コマ高さ指定
+              />コマ高さを指定
             </label>
             <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
               <input
@@ -395,10 +380,13 @@
               />
               <span class="cs-unit">px</span>
             </div>
+          </div>
 
-            <!-- ポップアップ -->
+          <!-- ⑤ ポップアップ設定 -->
+          <div class="cs-setting-block">
+            <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ設定</div>
             <div class="cs-field-row">
-              <span class="cs-field-label">ポップ幅</span>
+              <span class="cs-field-label">横幅</span>
               <input type="range" min="270" max="1000" [(ngModel)]="character.overViewWidth" />
               <input
                 class="cs-num-input"
@@ -420,6 +408,31 @@
                 [(ngModel)]="character.overViewMaxHeight"
                 (change)="onChkPopMaxHeight($event)"
               />
+            </div>
+          </div>
+
+          <!-- ⑥ インベントリ設定 -->
+          <div class="cs-setting-block">
+            <div class="cs-sec-title"><i class="material-icons">inventory_2</i>インベントリ設定</div>
+            <select
+              (change)="onSetLocation($event)"
+              name="location"
+              [ngModel]="character.location.name"
+              class="cs-location-select"
+              title="配置場所"
+            >
+              <option value="table">テーブル</option>
+              <option value="common">共有インベントリ</option>
+              <option value="{{ networkService.peerId }}">個人インベントリ</option>
+              <option value="graveyard">墓地</option>
+            </select>
+            <div class="cs-flags-row">
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.hideInventory" />非表示
+              </label>
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない
+              </label>
             </div>
           </div>
         </div>
