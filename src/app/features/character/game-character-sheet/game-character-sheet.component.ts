@@ -640,6 +640,8 @@ export class GameCharacterSheetComponent {
   }
 
   // ── ポップアップ表示データ設定 ──
+  private static readonly POPUP_HIDDEN_NAMES = new Set(['立ち絵位置', 'コマ画像', 'バフ/デバフ']);
+
   get popupElements(): Array<{ name: string; depth: number }> {
     const char = this.character;
     if (!char?.detailDataElement) return [];
@@ -647,7 +649,9 @@ export class GameCharacterSheetComponent {
     const seen = new Set<string>();
     const collect = (elements: readonly DataElement[], depth: number) => {
       for (const elm of elements) {
-        if (!elm.name || seen.has(elm.name)) continue;
+        if (!elm.name) continue;
+        if (depth === 0 && GameCharacterSheetComponent.POPUP_HIDDEN_NAMES.has(elm.name)) continue;
+        if (seen.has(elm.name)) continue;
         seen.add(elm.name);
         result.push({ name: elm.name, depth });
         if (elm.children.length) collect(elm.children, depth + 1);
