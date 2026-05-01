@@ -162,15 +162,17 @@
     <span class="tag-cell">
       @switch (dataElm.attributes['type']) {
         @case ('numberResource') {
-          <span class="tag-label">{{ dataElm.name }}</span>
-          <input
-            class="tag-input resource"
-            type="number"
-            [style]="'color:' + dataElm.nowValueColor"
-            size="1"
-            name="data-current-value"
-            [(ngModel)]="dataElm.currentValue"
-          />
+          <span class="tag-header">
+            <span class="tag-label">{{ dataElm.name }}</span>
+            <input
+              class="tag-input resource"
+              type="number"
+              [style]="'color:' + dataElm.nowValueColor"
+              size="1"
+              name="data-current-value"
+              [(ngModel)]="dataElm.currentValue"
+            />
+          </span>
           <input
             class="tag-range"
             type="range"
@@ -182,20 +184,21 @@
           />
         }
         @case ('check') {
-          <span class="tag-label">{{ dataElm.name }}</span>
-          @if (dataElm.value !== 0) {
-            <input type="checkbox" checked (click)="dataElm.value = 0" />
-          } @else {
-            <input type="checkbox" (click)="dataElm.value = 1" />
-          }
+          <span class="tag-header">
+            <span class="tag-label">{{ dataElm.name }}</span>
+            @if (dataElm.value !== 0) {
+              <input type="checkbox" checked (click)="dataElm.value = 0" />
+            } @else {
+              <input type="checkbox" (click)="dataElm.value = 1" />
+            }
+          </span>
         }
         @case ('markdown') {}
         @default {
-          <span class="tag-label">{{ dataElm.name }}</span>
-          <div class="tag-value-wrap">
-            <div class="hidden-spacer">{{ dataElm.value }}</div>
+          <span class="tag-header">
+            <span class="tag-label">{{ dataElm.name }}</span>
             <input class="tag-input" size="1" name="data-value" [(ngModel)]="dataElm.value" />
-          </div>
+          </span>
         }
       }
     </span>

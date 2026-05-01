@@ -385,10 +385,11 @@
 }
 
 .inv-row-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 3px 6px;
+  align-items: start;
+  width: 100%;
 }
 
 .row-menu-btn {
@@ -459,22 +460,32 @@
 
 /* ── Tag cells ── */
 .tag-cell {
-  display: inline-flex;
-  align-items: baseline;
+  display: flex;
+  flex-direction: column;
   gap: 2px;
-  white-space: nowrap;
+  min-width: 0;
+}
+
+.tag-header {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
 }
 
 .tag-newline {
-  display: block;
-  width: 100%;
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--ui-panel-border);
   height: 0;
+  display: block;
+  margin: 1px 0;
 }
 
 .tag-label {
   font-size: 10px;
   color: var(--ui-text-muted);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tag-input {
@@ -486,8 +497,9 @@
   font-size: 13px;
   font-weight: 700;
   font-family: inherit;
-  width: 4em;
-  text-align: center;
+  flex: 1;
+  min-width: 2em;
+  text-align: right;
   outline: none;
   padding: 0 2px;
   transition: border-color var(--ui-transition);
@@ -508,23 +520,8 @@
   display: block;
   width: 100%;
   accent-color: var(--ui-accent);
-  margin-top: 1px;
+  margin-top: 0;
+  height: 14px;
 }
 
-.tag-value-wrap {
-  position: relative;
-  display: inline-block;
-}
 
-.hidden-spacer {
-  visibility: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  min-width: 1em;
-  max-width: 8em;
-  overflow: hidden;
-  padding: 0 2px;
-  white-space: nowrap;
-  pointer-events: none;
-  height: 0;
-}
