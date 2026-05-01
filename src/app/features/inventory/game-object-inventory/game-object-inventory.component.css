@@ -386,8 +386,8 @@
 
 .inv-row-tags {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 3px 6px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px 8px;
   align-items: start;
   width: 100%;
 }
@@ -523,5 +523,3 @@
   margin-top: 0;
   height: 14px;
 }
-
-
