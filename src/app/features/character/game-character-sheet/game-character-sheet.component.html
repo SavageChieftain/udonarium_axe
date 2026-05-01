@@ -530,7 +530,7 @@
                       game-data-element
                       [gameDataElement]="childElement"
                       [isEdit]="isElementEditing(childElement.identifier)"
-                      [hideSectionTitle]="true"
+                      [hideSectionTitle]="!isElementEditing(childElement.identifier)"
                     ></div>
                   </div>
                 </div>
