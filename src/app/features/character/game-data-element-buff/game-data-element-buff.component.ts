@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -18,6 +18,13 @@ export class GameDataElementBuffComponent {
   readonly isTagLocked = input(false);
   readonly isValueLocked = input(false);
   readonly isPieceMode = input(false);
+
+  /** 子要素数を返す Signal。children 追加/削除をリアクティブに追跡する。 */
+  protected readonly childrenCount = computed<number>(() => {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return element.children.length;
+  });
 
   private readonly _name = signal<string>('');
   get name(): string {

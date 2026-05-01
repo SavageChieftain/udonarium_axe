@@ -472,12 +472,15 @@ export class GameCharacterComponent {
     this.foldingBuff.set(flag);
   }
 
-  get buffNum(): number {
+  /** バフ数を返す Signal。コンテナへの子要素追加/削除をリアクティブに追跡する。 */
+  protected readonly buffNum = computed<number>(() => {
     const char = this.gameCharacter();
-    const children = char?.buffDataElement?.children;
-    if (!children || children.length === 0) {
-      return 0;
-    }
-    return children[0].children.length;
-  }
+    const buffEl = char?.buffDataElement;
+    if (!buffEl) return 0;
+    this.objectChange.versionOf(buffEl.identifier)();
+    const container = buffEl.children[0];
+    if (!container) return 0;
+    this.objectChange.versionOf(container.identifier)();
+    return container.children.length;
+  });
 }

@@ -1,6 +1,6 @@
 @if (!isPieceMode()) {
   @if (gameDataElement()) {
-    @if (!gameDataElement().children.length) {
+    @if (!childrenCount()) {
       @switch (gameDataElement().type) {
         @case ('numberResource') {
           <div class="table-cell border-b-0">
@@ -43,14 +43,14 @@
         }
       }
     }
-    @if (gameDataElement().children.length) {
+    @if (childrenCount()) {
       <div class="table w-full">
         <div class="table-cell_inner-table-title">
           @if (!isTagLocked()) {
             <div class="inputLock">{{ gameDataElement().name }}</div>
           }
         </div>
-        @if (gameDataElement().children.length) {
+        @if (childrenCount()) {
           <div class="table">
             @for (childElement of gameDataElement().children; track childElement.identifier) {
               <div
@@ -69,7 +69,7 @@
 }
 
 @if (isPieceMode()) {
-  @if (!gameDataElement().children.length) {
+  @if (!childrenCount()) {
     @switch (gameDataElement().type) {
       @case ('numberResource') {
         <span class="font-[Cambria,Georgia] text-[12px]">
@@ -78,7 +78,7 @@
       }
     }
   }
-  @if (gameDataElement().children.length) {
+  @if (childrenCount()) {
     @for (childElement of gameDataElement().children; track childElement.identifier) {
       <div
         game-data-element-buff

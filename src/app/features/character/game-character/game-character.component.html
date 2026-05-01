@@ -94,7 +94,7 @@
                 <div class="is-3d">
                   @if (buffEl.children.length >= 1) {
                     @for (child of buffEl.children; track child.identifier) {
-                      @if (child.children.length > 0) {
+                      @if (buffNum() > 0) {
                         <div
                           class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
                           [ngStyle]="{
@@ -125,7 +125,7 @@
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
                             <div class="table is-3d">
                               <div class="flex-item is-3d">
-                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum }}個</div>
+                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum() }}個</div>
                               </div>
                             </div>
                           </div>
@@ -166,7 +166,7 @@
                             <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
                             <div class="table is-3d">
                               <div class="flex-item is-3d">
-                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum }}個</div>
+                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum() }}個</div>
                               </div>
                             </div>
                           </div>
@@ -178,7 +178,7 @@
               }
               <!-- 名前表示 -->
               <!-- クロームver102の描画問題に対処するため構成を修正している -->
-              <div [hidden]="!(this.buffNum === 0)">
+              <div [hidden]="!(buffNum() === 0)">
                 <div
                   class="target-icon scrolldown4"
                   [hidden]="!isTargeted()"
