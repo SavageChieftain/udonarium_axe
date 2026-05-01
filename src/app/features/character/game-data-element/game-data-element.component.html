@@ -1,30 +1,11 @@
 @if (gameDataElement()) {
   @if (!gameDataElement().children.length) {
-    @if (isEdit() && !isImage()) {
-      <div class="table-cell table-cell_solid">
-        <ng-container *ngTemplateOutlet="editButtons"></ng-container>
-        <select (change)="onSetElementType($event)" name="data-elm-type" [ngModel]="gameDataElement().type">
-          <option value="">通常</option>
-          <option value="numberResource">リソース</option>
-          <option value="note">ノート</option>
-          <option value="markdown">チェック/表</option>
-          <option value="check">単一チェック</option>
-        </select>
-      </div>
-    }
-    <div class="table-cell table-cell_solid">
+    <div class="table-cell table-cell_solid" [class.elm-cell--editing]="isEdit() && !isImage()">
       @if (!isImage()) {
         @if (isTagLocked() || !isEdit()) {
           <div class="elm-name">{{ name }}</div>
         } @else {
-          <div class="hidden-spacer elm-name">{{ name }}</div>
-          <input
-            class="w-full min-w-[10px] elm-name"
-            size="1"
-            name="data-elm-name"
-            [(ngModel)]="name"
-            placeholder="Value"
-          />
+          <input class="elm-name-input" size="1" name="data-elm-name" [(ngModel)]="name" placeholder="名前" />
         }
       }
     </div>
@@ -170,22 +151,33 @@
           }
         }
       }
+      @if (isEdit() && !isImage()) {
+        <div class="elm-row-actions">
+          <select
+            class="elm-type-chip"
+            (change)="onSetElementType($event)"
+            name="data-elm-type"
+            [ngModel]="gameDataElement().type"
+          >
+            <option value="">通常</option>
+            <option value="numberResource">リソース</option>
+            <option value="note">ノート</option>
+            <option value="markdown">チェック/表</option>
+            <option value="check">単一チェック</option>
+          </select>
+          <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
+            <i class="material-icons">add</i>
+          </button>
+          <button class="elm-act-btn elm-act-btn--danger" type="button" (click)="deleteElement()" title="この行を削除">
+            <i class="material-icons">delete_outline</i>
+          </button>
+        </div>
+      }
     </div>
   }
   @if (gameDataElement().children.length) {
-    @if (isEdit()) {
-      <div class="table-cell table-cell_solid align-top">
-        @if (isImage()) {
-          <ng-container *ngTemplateOutlet="editButtonsImageTitle"></ng-container>
-        }
-        @if (!isImage()) {
-          <ng-container *ngTemplateOutlet="editButtons"></ng-container>
-        }
-      </div>
-    }
-    <div class="table-cell table-cell_inner-table p-0 w-0"></div>
     <div class="table-cell_inner-table">
-      <div class="table-cell_inner-table-title">
+      <div class="table-cell_inner-table-title" [class.table-cell_inner-table-title--editing]="isEdit()">
         @if (!isTagLocked() && isEdit()) {
           <div class="title-edit-row">
             <div class="icon-picker-wrap">
@@ -236,6 +228,23 @@
               [(ngModel)]="name"
               placeholder="見出し名"
             />
+            @if (isImage()) {
+              <button class="elm-act-btn" type="button" (click)="addImageElement()" title="画像を追加">
+                <i class="material-icons">add</i>
+              </button>
+            } @else {
+              <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
+                <i class="material-icons">add</i>
+              </button>
+            }
+            <button
+              class="elm-act-btn elm-act-btn--danger"
+              type="button"
+              (click)="deleteElement()"
+              title="このセクションを削除"
+            >
+              <i class="material-icons">delete_outline</i>
+            </button>
           </div>
         } @else {
           <div class="title-view-row">
@@ -264,16 +273,3 @@
     </div>
   }
 }
-<ng-template #editButtons>
-  <button (click)="addElement()" title="行を追加">
-    <i class="material-icons">add_circle</i>
-  </button>
-  <button (click)="deleteElement()" title="行を削除">
-    <i class="material-icons">remove_circle_outline</i>
-  </button>
-</ng-template>
-<ng-template #editButtonsImageTitle>
-  <button (click)="addImageElement()">
-    <i class="material-icons">add_circle</i>
-  </button>
-</ng-template>

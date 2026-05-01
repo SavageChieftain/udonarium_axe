@@ -73,6 +73,84 @@
   white-space: nowrap;
 }
 
+.elm-name-input {
+  width: 100%;
+  font-size: 0.78em;
+  color: var(--ui-text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ui-panel-border);
+  outline: none;
+  padding: 1px 2px;
+  transition: border-color 0.15s;
+}
+
+.elm-name-input:focus {
+  border-bottom-color: var(--ui-accent);
+}
+
+.elm-cell--editing {
+  background: var(--ui-accent-bg);
+}
+
+/* 行末アクションバー */
+.elm-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 3px;
+  border-top: 1px solid var(--ui-panel-border);
+}
+
+.elm-type-chip {
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: 0.68em;
+  padding: 2px 6px;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  margin-right: auto;
+}
+
+.elm-type-chip:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.elm-act-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  border-radius: var(--ui-radius-sm);
+  flex-shrink: 0;
+}
+
+.elm-act-btn:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.elm-act-btn--danger:hover {
+  background: rgba(200, 50, 50, 0.15);
+  color: #e06060;
+}
+
+.elm-act-btn .material-icons {
+  font-size: 14px;
+}
+
 /* セクションタイトル */
 .title-view-row {
   display: flex;
@@ -99,6 +177,20 @@
   align-items: center;
   gap: 4px;
   width: 100%;
+}
+
+.title-edit-row input {
+  font-size: 0.82em;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ui-panel-border);
+  outline: none;
+  color: var(--ui-text);
+  padding: 1px 2px;
+}
+
+.title-edit-row input:focus {
+  border-bottom-color: var(--ui-accent);
 }
 
 /* アイコンピッカー */
@@ -244,6 +336,12 @@
   margin-bottom: 2px;
   border-radius: 0 var(--ui-radius-sm) var(--ui-radius-sm) 0;
   font-size: 0.82em;
+}
+
+.table-cell_inner-table-title--editing {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent-bg) 120%, var(--ui-elevated));
+  padding: 4px 8px;
 }
 
 .box {
