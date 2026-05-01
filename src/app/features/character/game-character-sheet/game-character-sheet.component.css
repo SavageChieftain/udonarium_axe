@@ -161,76 +161,62 @@ input {
 /* ── キャラクターアイデンティティカード ── */
 .cs-identity {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 180px 1fr;
   gap: 12px;
   padding: 10px 10px 0;
   align-items: start;
 }
 
-/* ── 左: 立ち絵ギャラリーカラム ── */
-.cs-portraits-col {
+/* ── 左: ポートレート列 ── */
+.cs-portrait-col {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  width: 160px;
+  width: 180px;
   flex-shrink: 0;
 }
 
-/* ギャラリーグリッド */
-.cs-gallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* 各サムネイルカード */
-.cs-gallery-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border-radius: var(--ui-radius-sm);
-  padding: 2px;
-  background: transparent;
-  border: 1px solid transparent;
-  transition: border-color 0.12s ease;
-}
-
-.cs-gallery-item--active {
-  border-color: var(--ui-accent);
-  background: var(--ui-accent-bg);
-}
-
-/* サムネイル画像ボックス */
-.cs-gallery-thumb {
+/* 大ポートレート表示 */
+.cs-portrait-hero {
   position: relative;
-  width: 64px;
-  height: 64px;
-  border-radius: 3px;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--ui-radius-sm);
   overflow: hidden;
-  border: 1px solid var(--ui-panel-border);
+  border: 2px solid var(--ui-panel-border);
   background: var(--ui-elevated);
   cursor: pointer;
   flex-shrink: 0;
 }
 
-.cs-gallery-item--active .cs-gallery-thumb {
-  border-color: var(--ui-accent);
-}
-
-.cs-gallery-thumb img {
+.cs-portrait-hero img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
-.cs-gallery-thumb:hover {
-  opacity: 0.85;
+.cs-portrait-hero:hover .cs-portrait-overlay {
+  opacity: 1;
 }
 
-/* 画像なしプレースホルダ */
-.cs-gallery-placeholder {
+.cs-portrait-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cs-portrait-overlay .material-icons {
+  font-size: 2em;
+}
+
+.cs-portrait-empty {
   width: 100%;
   height: 100%;
   display: flex;
@@ -239,11 +225,122 @@ input {
   color: var(--ui-text-dim);
 }
 
-.cs-gallery-placeholder .material-icons {
-  font-size: 24px;
+.cs-portrait-empty .material-icons {
+  font-size: 4em;
 }
 
-/* コマバッジ（右下） */
+/* サムネイルストリップ（複数立ち絵の切り替え） */
+.cs-portrait-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cs-strip-item {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 2px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-text-dim);
+  transition: border-color 0.12s ease;
+}
+
+.cs-strip-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cs-strip-item .material-icons {
+  font-size: 16px;
+}
+
+.cs-strip-item:hover {
+  border-color: var(--ui-text-muted);
+}
+
+.cs-strip-item--active {
+  border-color: var(--ui-accent);
+}
+
+.cs-strip-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: var(--ui-accent);
+  color: #fff;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px 0 0 0;
+  pointer-events: none;
+}
+
+.cs-strip-badge .material-icons {
+  font-size: 10px;
+}
+
+.cs-strip-add {
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  border: 1px dashed var(--ui-accent);
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--ui-transition);
+  flex-shrink: 0;
+}
+
+.cs-strip-add:hover {
+  background: rgba(88, 166, 255, 0.18);
+}
+
+.cs-strip-add .material-icons {
+  font-size: 18px;
+}
+
+/* ポートレート操作ボタン行 */
+.cs-portrait-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* 表示設定ブロック */
+.cs-display-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ui-panel-border);
+  margin-top: 2px;
+}
+
+/* ── 右: キャラクターデータ列 ── */
+.cs-data-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+/* コマバッジ（ストリップアイテム右下） */
 .cs-koma-badge {
   position: absolute;
   bottom: 1px;
@@ -251,8 +348,8 @@ input {
   background: var(--ui-accent);
   color: #fff;
   border-radius: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,127 +358,77 @@ input {
 }
 
 .cs-koma-badge .material-icons {
-  font-size: 11px;
+  font-size: 10px;
 }
 
-/* サムネイル下のアクションボタン行（常時表示） */
-.cs-gallery-actions {
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-}
-
-.cs-gallery-btn {
+/* ステッパーウィジェット（‹ N ›）*/
+.cs-slot-stepper {
   display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  overflow: hidden;
+}
+
+.cs-step-btn {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   padding: 0;
-  border-radius: 3px;
-  border: 1px solid var(--ui-panel-border);
+  border: none;
   background: var(--ui-elevated);
   color: var(--ui-text-muted);
   cursor: pointer;
+  font-size: 1em;
+  line-height: 1;
   transition:
     background var(--ui-transition),
     color var(--ui-transition);
-  font-size: 0;
 }
 
-.cs-gallery-btn .material-icons {
-  font-size: 13px;
-}
-
-.cs-gallery-btn:hover {
+.cs-step-btn:hover:not([disabled]) {
   background: var(--ui-hover);
   color: var(--ui-text);
 }
 
-.cs-gallery-btn--danger:hover {
-  background: var(--ui-danger-bg);
-  color: var(--ui-danger);
-  border-color: var(--ui-danger);
+.cs-step-btn[disabled] {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-/* 追加ボタン（ギャラリー末尾） */
-.cs-gallery-add-wrap {
+.cs-slot-num {
+  min-width: 2em;
+  text-align: center;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--ui-text);
+  padding: 0 4px;
+  background: var(--ui-input-bg);
+  border-left: 1px solid var(--ui-panel-border);
+  border-right: 1px solid var(--ui-panel-border);
+  height: 22px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.cs-gallery-add {
-  width: 64px;
-  height: 64px;
-  border-radius: 3px;
-  border: 1px dashed var(--ui-accent);
-  background: var(--ui-accent-bg);
-  color: var(--ui-accent);
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  cursor: pointer;
-  transition: background var(--ui-transition);
-  font-size: 0.72em;
 }
 
-.cs-gallery-add:hover {
-  background: rgba(88, 166, 255, 0.18);
-}
-
-.cs-gallery-add .material-icons {
-  font-size: 22px;
-}
-
-/* ── 右: 設定統合カラム ── */
-.cs-settings-col {
+/* top-header 内の配置コントロール */
+.cs-topbar-placement {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 0;
-}
-
-/* 設定グループ（ボーダーで区切り） */
-.cs-setting-group {
-  padding: 8px 0 8px;
-  border-top: 1px solid var(--ui-panel-border);
-}
-
-.cs-setting-group:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-
-/* チャット & ポップアップの横並び */
-.cs-setting-row {
-  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 0 16px;
-  border-top: 1px solid var(--ui-panel-border);
+  margin-left: auto;
 }
 
-.cs-setting-group--half {
-  flex: 1 0 200px;
-  border-top: none;
-  padding: 8px 0 0;
-}
-
-/* 立ち絵なしプレースホルダ（共通） */
-.cs-portrait-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ui-text-dim);
-}
-
-.cs-portrait-placeholder .material-icons {
-  font-size: 2.5em;
+/* 単位ラベル */
+.cs-unit {
+  font-size: 0.78em;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── 設定フィールド ── */
@@ -393,10 +440,11 @@ input {
 }
 
 .cs-field-label {
-  min-width: 52px;
+  min-width: 6em;
   color: var(--ui-text-muted);
-  font-size: 0.88em;
+  font-size: 0.85em;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cs-flag-label {
