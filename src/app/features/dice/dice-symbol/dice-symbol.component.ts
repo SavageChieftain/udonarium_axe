@@ -83,16 +83,19 @@ export class DiceSymbolComponent {
     }
     return this.diceSymbol().name;
   });
-  get size(): number {
+  readonly size = computed(() => {
+    this.objectChange.versionOf(this.diceSymbol().identifier)();
     return this.adjustMinBounds(this.diceSymbol().size);
-  }
+  });
 
-  get imageHeignt(): number {
+  readonly imageHeignt = computed(() => {
+    this.objectChange.versionOf(this.diceSymbol().identifier)();
     return this.diceSymbol().komaImageHeight;
-  }
-  get specifyImageFlag(): boolean {
+  });
+  readonly specifyImageFlag = computed(() => {
+    this.objectChange.versionOf(this.diceSymbol().identifier)();
     return this.diceSymbol().specifyKomaImageFlag;
-  }
+  });
 
   get faces(): string[] {
     return this.diceSymbol().faces;
