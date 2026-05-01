@@ -90,18 +90,35 @@
 }
 
 .elm-cell--editing {
-  background: var(--ui-accent-bg);
+  /* removed - blue background caused visual confusion */
 }
 
-/* 行末アクションバー */
+.elm-value-cell {
+  position: relative;
+}
+
+/* 行末アクション：ホバー時のみ表示するオーバーレイ */
 .elm-row-actions {
+  position: absolute;
+  top: 4px;
+  right: 2px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 2px;
-  margin-top: 4px;
-  padding-top: 3px;
-  border-top: 1px solid var(--ui-panel-border);
+  gap: 1px;
+  background: var(--ui-elevated);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 1px 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+  z-index: 2;
+}
+
+:host:hover .elm-row-actions,
+.elm-row-actions:focus-within {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .elm-type-chip {
