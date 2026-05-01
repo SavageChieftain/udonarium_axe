@@ -154,6 +154,11 @@ input {
   border-bottom: 1px solid var(--ui-panel-border);
 }
 
+.cs-sec-title--game-data {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
 .cs-sec-title .material-icons {
   font-size: 14px;
 }
@@ -368,7 +373,7 @@ input {
 .cs-data-col {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 4px;
   min-width: 0;
   flex: 1;
 }
@@ -1063,8 +1068,8 @@ input {
 
 /* ── 設定タブパネル ── */
 .cs-settings-panel {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   padding: 10px 10px 14px;
 }
@@ -1079,11 +1084,9 @@ input {
   gap: 6px;
 }
 
-/* 2カラム並列（チャット位置 + コマ設定）*/
-.cs-settings-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+/* ポップアップ設定など全幅セクション */
+.cs-settings-section--full {
+  grid-column: 1 / -1;
 }
 
 /* ポップアップ設定内のフィールドグループ */
@@ -1091,6 +1094,11 @@ input {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* 高度など数値のみのinput */
+.cs-num-input--wide {
+  width: 5em;
 }
 
 /* range が settings-section の幅に収まるよう */

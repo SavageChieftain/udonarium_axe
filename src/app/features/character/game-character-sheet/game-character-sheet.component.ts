@@ -611,6 +611,12 @@ export class GameCharacterSheetComponent {
   onChkKomaSize(event: Event): void {
     this.chkKomaSize((event.target as HTMLInputElement).valueAsNumber);
   }
+  onChkAltitude(event: Event): void {
+    const character = this.tabletopObject as GameCharacter;
+    let value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) value = 0;
+    character.altitude = Math.round(value);
+  }
   onChkPopWidth(event: Event): void {
     this.chkPopWidth((event.target as HTMLInputElement).valueAsNumber);
   }

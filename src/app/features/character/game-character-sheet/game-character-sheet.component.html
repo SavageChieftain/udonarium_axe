@@ -345,10 +345,55 @@
                 <i class="material-icons">file_copy</i>インポート
               </button>
             </div>
+
+            <!-- チャット表示位置 -->
+            <div class="cs-setting-block">
+              <div class="cs-sec-title"><i class="material-icons">chat</i>チャット表示位置</div>
+              <div class="cs-field-row">
+                <div class="cs-slot-stepper">
+                  <button
+                    type="button"
+                    class="cs-step-btn"
+                    (click)="setPortraitPos(portraitPosIndex() - 1)"
+                    [disabled]="portraitPosIndex() <= 0"
+                  >
+                    ‹
+                  </button>
+                  <span class="cs-slot-num">{{ portraitPosIndex() }}</span>
+                  <button
+                    type="button"
+                    class="cs-step-btn"
+                    (click)="setPortraitPos(portraitPosIndex() + 1)"
+                    [disabled]="portraitPosIndex() >= 11"
+                  >
+                    ›
+                  </button>
+                </div>
+                <span class="cs-unit">/ 11</span>
+              </div>
+            </div>
           </div>
 
           <!-- 右: キャラクターデータ -->
           <div class="cs-data-col">
+            <!-- 基本情報 (common) -->
+            @if (tabletopObject.commonDataElement) {
+              <div class="cs-settings-section cs-data-card--common">
+                <div class="cs-sec-title"><i class="material-icons">info</i>基本情報</div>
+                <div class="table">
+                  <div
+                    class="table-row"
+                    game-data-element
+                    [gameDataElement]="tabletopObject.commonDataElement"
+                    [isTagLocked]="true"
+                    [isEdit]="false"
+                    [hideSectionTitle]="true"
+                  ></div>
+                </div>
+              </div>
+            }
+            <!-- ゲームデータ見出し -->
+            <div class="cs-sec-title cs-sec-title--game-data"><i class="material-icons">grid_view</i>ゲームデータ</div>
             <!-- 詳細データ（ステータス・スキル等）-->
             @if (detailElements().length > 0) {
               <div class="cs-data-section">
@@ -429,87 +474,83 @@
       <!-- ── 設定タブ ── -->
       @if (activeTab() === 'settings') {
         <div class="cs-settings-panel">
-          <!-- 基本情報 (common) -->
-          @if (tabletopObject.commonDataElement) {
-            <div class="cs-settings-section">
-              <div class="cs-sec-title"><i class="material-icons">info</i>基本情報</div>
-              <div class="table">
-                <div
-                  class="table-row"
-                  game-data-element
-                  [gameDataElement]="tabletopObject.commonDataElement"
-                  [isTagLocked]="true"
-                  [isEdit]="false"
-                  [hideSectionTitle]="true"
-                ></div>
-              </div>
-            </div>
-          }
-
-          <!-- 2カラム: チャット表示位置 + コマ設定 -->
-          <div class="cs-settings-row">
-            <!-- チャット表示位置 -->
-            <div class="cs-settings-section">
-              <div class="cs-sec-title"><i class="material-icons">chat</i>チャット表示位置</div>
-              <div class="cs-field-row">
-                <div class="cs-slot-stepper">
-                  <button
-                    type="button"
-                    class="cs-step-btn"
-                    (click)="setPortraitPos(portraitPosIndex() - 1)"
-                    [disabled]="portraitPosIndex() <= 0"
-                  >
-                    ‹
-                  </button>
-                  <span class="cs-slot-num">{{ portraitPosIndex() }}</span>
-                  <button
-                    type="button"
-                    class="cs-step-btn"
-                    (click)="setPortraitPos(portraitPosIndex() + 1)"
-                    [disabled]="portraitPosIndex() >= 11"
-                  >
-                    ›
-                  </button>
-                </div>
-                <span class="cs-unit">/ 11</span>
-              </div>
-            </div>
-
-            <!-- コマ設定 -->
-            <div class="cs-settings-section">
-              <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
+          <!-- インベントリ設定 -->
+          <div class="cs-settings-section">
+            <div class="cs-sec-title"><i class="material-icons">inventory_2</i>インベントリ設定</div>
+            <select
+              (change)="onSetLocation($event)"
+              name="location"
+              [ngModel]="character.location.name"
+              class="cs-location-select"
+              title="配置場所"
+            >
+              <option value="table">テーブル</option>
+              <option value="common">共有インベントリ</option>
+              <option value="{{ networkService.peerId }}">個人インベントリ</option>
+              <option value="graveyard">墓地</option>
+            </select>
+            <div class="cs-flags-row">
               <label class="cs-flag-label">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="character.specifyKomaImageFlag"
-                  (change)="clickImageFlag()"
-                />コマ高さを指定
+                <input type="checkbox" [(ngModel)]="character.hideInventory" />非表示
               </label>
-              <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
-                <input
-                  type="range"
-                  min="50"
-                  max="750"
-                  [(ngModel)]="character.komaImageHeight"
-                  [disabled]="!character.specifyKomaImageFlag"
-                  (change)="onChkKomaSize($event)"
-                />
-                <input
-                  class="cs-num-input"
-                  type="number"
-                  min="50"
-                  max="750"
-                  [(ngModel)]="character.komaImageHeight"
-                  [disabled]="!character.specifyKomaImageFlag"
-                  (change)="onChkKomaSize($event)"
-                />
-                <span class="cs-unit">px</span>
-              </div>
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない
+              </label>
+            </div>
+          </div>
+
+          <!-- コマ設定 -->
+          <div class="cs-settings-section">
+            <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
+            <label class="cs-flag-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="character.specifyKomaImageFlag"
+                (change)="clickImageFlag()"
+              />コマ高さを指定
+            </label>
+            <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
+              <input
+                type="range"
+                min="50"
+                max="750"
+                [(ngModel)]="character.komaImageHeight"
+                [disabled]="!character.specifyKomaImageFlag"
+                (change)="onChkKomaSize($event)"
+              />
+              <input
+                class="cs-num-input"
+                type="number"
+                min="50"
+                max="750"
+                [(ngModel)]="character.komaImageHeight"
+                [disabled]="!character.specifyKomaImageFlag"
+                (change)="onChkKomaSize($event)"
+              />
+              <span class="cs-unit">px</span>
+            </div>
+            <div class="cs-field-row">
+              <span class="cs-field-label">高度</span>
+              <input
+                class="cs-num-input cs-num-input--wide"
+                type="number"
+                [(ngModel)]="character.altitude"
+                (change)="onChkAltitude($event)"
+              />
+              <span class="cs-unit">マス</span>
+            </div>
+            <div class="cs-flags-row">
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.isAltitudeIndicate" />高度表示
+              </label>
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.isDropShadow" />影の表示
+              </label>
             </div>
           </div>
 
           <!-- ポップアップ設定 -->
-          <div class="cs-settings-section">
+          <div class="cs-settings-section cs-settings-section--full">
             <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ設定</div>
             <div class="cs-settings-fields">
               <div class="cs-field-row">
@@ -536,31 +577,6 @@
                   (change)="onChkPopMaxHeight($event)"
                 />
               </div>
-            </div>
-          </div>
-
-          <!-- インベントリ設定 -->
-          <div class="cs-settings-section">
-            <div class="cs-sec-title"><i class="material-icons">inventory_2</i>インベントリ設定</div>
-            <select
-              (change)="onSetLocation($event)"
-              name="location"
-              [ngModel]="character.location.name"
-              class="cs-location-select"
-              title="配置場所"
-            >
-              <option value="table">テーブル</option>
-              <option value="common">共有インベントリ</option>
-              <option value="{{ networkService.peerId }}">個人インベントリ</option>
-              <option value="graveyard">墓地</option>
-            </select>
-            <div class="cs-flags-row">
-              <label class="cs-flag-label">
-                <input type="checkbox" [(ngModel)]="character.hideInventory" />非表示
-              </label>
-              <label class="cs-flag-label">
-                <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない
-              </label>
             </div>
           </div>
         </div>
