@@ -280,6 +280,20 @@ export class GameCharacterSheetComponent {
     }
   }
 
+  deleteTopLevelElement(id: string) {
+    const char = this.character;
+    if (!char?.detailDataElement) return;
+    const el = char.detailDataElement.children.find((e) => e.identifier === id);
+    if (!el) return;
+    el.destroy();
+    this.editingIds.update((set) => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
+    char.update();
+  }
+
   clone() {
     const obj = this.tabletopObject;
     if (!obj) return;

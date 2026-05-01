@@ -487,6 +487,16 @@
                       title="ドラッグして並び替え"
                       >drag_indicator</span
                     >
+                    @if (isElementEditing(childElement.identifier)) {
+                      <button
+                        class="cs-icon-btn cs-icon-btn--danger"
+                        type="button"
+                        title="この項目を削除"
+                        (click)="deleteTopLevelElement(childElement.identifier)"
+                      >
+                        <i class="material-icons">delete</i>
+                      </button>
+                    }
                     <button
                       class="cs-icon-btn"
                       type="button"
