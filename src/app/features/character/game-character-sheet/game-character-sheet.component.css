@@ -161,67 +161,89 @@ input {
 /* ── キャラクターアイデンティティカード ── */
 .cs-identity {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   gap: 12px;
   padding: 10px 10px 0;
   align-items: start;
 }
 
-/* 立ち絵カラム */
+/* ── 左: 立ち絵ギャラリーカラム ── */
 .cs-portraits-col {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 90px;
+  width: 160px;
+  flex-shrink: 0;
 }
 
-/* 立ち絵メインプレビュー */
-.cs-portrait-main {
-  width: 90px;
-  height: 120px;
-  border-radius: var(--ui-radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--ui-panel-border);
-  background: var(--ui-elevated);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.cs-portrait-main-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-/* サムネイルストリップ */
-.cs-portrait-strip {
+/* ギャラリーグリッド */
+.cs-gallery {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  max-width: 200px;
+  gap: 6px;
 }
 
-.cs-portrait-thumb {
+/* 各サムネイルカード */
+.cs-gallery-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-radius: var(--ui-radius-sm);
+  padding: 2px;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: border-color 0.12s ease;
+}
+
+.cs-gallery-item--active {
+  border-color: var(--ui-accent);
+  background: var(--ui-accent-bg);
+}
+
+/* サムネイル画像ボックス */
+.cs-gallery-thumb {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 64px;
+  height: 64px;
   border-radius: 3px;
   overflow: hidden;
   border: 1px solid var(--ui-panel-border);
   background: var(--ui-elevated);
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-.cs-portrait-thumb--koma {
+.cs-gallery-item--active .cs-gallery-thumb {
   border-color: var(--ui-accent);
-  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.35);
 }
 
+.cs-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cs-gallery-thumb:hover {
+  opacity: 0.85;
+}
+
+/* 画像なしプレースホルダ */
+.cs-gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-text-dim);
+}
+
+.cs-gallery-placeholder .material-icons {
+  font-size: 24px;
+}
+
+/* コマバッジ（右下） */
 .cs-koma-badge {
   position: absolute;
   bottom: 1px;
@@ -229,8 +251,8 @@ input {
   background: var(--ui-accent);
   color: #fff;
   border-radius: 2px;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -239,83 +261,116 @@ input {
 }
 
 .cs-koma-badge .material-icons {
-  font-size: 10px;
+  font-size: 11px;
 }
 
-.cs-portrait-main-badge {
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(88, 166, 255, 0.85);
-  color: #fff;
-  border-radius: var(--ui-radius-sm);
-  padding: 1px 6px;
-  font-size: 0.7em;
+/* サムネイル下のアクションボタン行（常時表示） */
+.cs-gallery-actions {
   display: flex;
-  align-items: center;
-  gap: 3px;
-  pointer-events: none;
-  white-space: nowrap;
+  gap: 2px;
+  justify-content: center;
 }
 
-.cs-portrait-main-badge .material-icons {
-  font-size: 12px;
-}
-
-.cs-portrait-thumb:hover .cs-portrait-thumb-overlay {
-  opacity: 1;
-}
-
-.cs-portrait-thumb-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.cs-portrait-thumb-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
+.cs-gallery-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.12s ease;
+  width: 26px;
+  height: 20px;
+  padding: 0;
+  border-radius: 3px;
+  border: 1px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
+  font-size: 0;
 }
 
-/* 追加ボタン（サムネイル枠） */
-.cs-portrait-add {
-  width: 36px;
-  height: 36px;
+.cs-gallery-btn .material-icons {
+  font-size: 13px;
+}
+
+.cs-gallery-btn:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.cs-gallery-btn--danger:hover {
+  background: var(--ui-danger-bg);
+  color: var(--ui-danger);
+  border-color: var(--ui-danger);
+}
+
+/* 追加ボタン（ギャラリー末尾） */
+.cs-gallery-add-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cs-gallery-add {
+  width: 64px;
+  height: 64px;
   border-radius: 3px;
   border: 1px dashed var(--ui-accent);
   background: var(--ui-accent-bg);
   color: var(--ui-accent);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   cursor: pointer;
-  flex-shrink: 0;
   transition: background var(--ui-transition);
+  font-size: 0.72em;
 }
 
-.cs-portrait-add:hover {
+.cs-gallery-add:hover {
   background: rgba(88, 166, 255, 0.18);
 }
 
-.cs-portrait-add .material-icons {
-  font-size: 18px;
+.cs-gallery-add .material-icons {
+  font-size: 22px;
 }
 
-/* インポートボタン行 */
-.cs-portrait-import-row {
+/* ── 右: 設定統合カラム ── */
+.cs-settings-col {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
 }
 
-/* 立ち絵なしプレースホルダ */
+/* 設定グループ（ボーダーで区切り） */
+.cs-setting-group {
+  padding: 8px 0 8px;
+  border-top: 1px solid var(--ui-panel-border);
+}
+
+.cs-setting-group:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* チャット & ポップアップの横並び */
+.cs-setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  border-top: 1px solid var(--ui-panel-border);
+}
+
+.cs-setting-group--half {
+  flex: 1 0 200px;
+  border-top: none;
+  padding: 8px 0 0;
+}
+
+/* 立ち絵なしプレースホルダ（共通） */
 .cs-portrait-placeholder {
   width: 100%;
   height: 100%;
@@ -327,82 +382,6 @@ input {
 
 .cs-portrait-placeholder .material-icons {
   font-size: 2.5em;
-}
-
-.cs-thumb-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ui-text-dim);
-}
-
-.cs-thumb-placeholder .material-icons {
-  font-size: 14px;
-}
-
-/* ── コマ＆設定カラム ── */
-.cs-token-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 200px;
-}
-
-.cs-token-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.cs-token-preview {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--ui-radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--ui-panel-border);
-  background: var(--ui-elevated);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-  cursor: pointer;
-}
-
-.cs-token-preview:hover .cs-token-edit-hint {
-  opacity: 1;
-}
-
-.cs-token-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.cs-token-edit-hint {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-  color: #fff;
-}
-
-.cs-token-edit-hint .material-icons {
-  font-size: 20px;
-}
-
-.cs-token-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex: 1;
 }
 
 /* ── 設定フィールド ── */

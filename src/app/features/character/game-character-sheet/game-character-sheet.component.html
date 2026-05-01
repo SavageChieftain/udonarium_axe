@@ -264,54 +264,43 @@
          TRPG キャラクターシート レイアウト
     ════════════════════════════════════════════ -->
     <div class="cs-sheet">
-      <!-- アイデンティティカード: 立ち絵 | 各種設定 | コマ画像 -->
+      <!-- 2カラム: 立ち絵ギャラリー | キャラクター設定 -->
       <div class="cs-identity">
-        <!-- 立ち絵カラム -->
+        <!-- ── 左: 立ち絵ギャラリー ── -->
         <div class="cs-portraits-col">
           <div class="cs-sec-title"><i class="material-icons">photo_library</i>立ち絵</div>
-          <div class="cs-portrait-main" title="現在のコマ画像">
-            @if (komaImageFile().url) {
-              <img class="cs-portrait-main-img" [src]="komaImageFile().url | safe: 'resourceUrl'" alt="コマ画像" />
-            } @else {
-              <div class="cs-portrait-placeholder"><i class="material-icons">person</i></div>
-            }
-            <div class="cs-portrait-main-badge"><i class="material-icons">person_pin</i>コマ</div>
-          </div>
-          <div class="cs-portrait-strip">
+          <div class="cs-gallery">
             @for (portrait of portraitImages(); track portrait.index) {
-              <div
-                class="cs-portrait-thumb"
-                [class.cs-portrait-thumb--koma]="portrait.index === komaImageIndex()"
-                (click)="setKomaIndex(portrait.index)"
-                [title]="portrait.index === komaImageIndex() ? '現在のコマ画像' : 'コマ画像に設定'"
-              >
-                @if (portrait.imageFile.url) {
-                  <img
-                    class="cs-portrait-thumb-img"
-                    [src]="portrait.imageFile.url | safe: 'resourceUrl'"
-                    alt="portrait {{ portrait.index + 1 }}"
-                  />
-                } @else {
-                  <div class="cs-thumb-placeholder"><i class="material-icons">image</i></div>
-                }
-                @if (portrait.index === komaImageIndex()) {
-                  <div class="cs-koma-badge"><i class="material-icons">person_pin</i></div>
-                }
-                <div class="cs-portrait-thumb-overlay">
+              <div class="cs-gallery-item" [class.cs-gallery-item--active]="portrait.index === komaImageIndex()">
+                <div
+                  class="cs-gallery-thumb"
+                  (click)="setKomaIndex(portrait.index)"
+                  [title]="portrait.index === komaImageIndex() ? '現在のコマ画像' : 'クリックしてコマに設定'"
+                >
+                  @if (portrait.imageFile.url) {
+                    <img [src]="portrait.imageFile.url | safe: 'resourceUrl'" alt="立ち絵 {{ portrait.index + 1 }}" />
+                  } @else {
+                    <div class="cs-gallery-placeholder"><i class="material-icons">image</i></div>
+                  }
+                  @if (portrait.index === komaImageIndex()) {
+                    <div class="cs-koma-badge"><i class="material-icons">person_pin</i></div>
+                  }
+                </div>
+                <div class="cs-gallery-actions">
                   <button
-                    class="cs-icon-btn"
+                    class="cs-gallery-btn"
                     type="button"
-                    title="画像変更"
-                    (click)="changePortrait(portrait.index); $event.stopPropagation()"
+                    title="画像を変更"
+                    (click)="changePortrait(portrait.index)"
                   >
                     <i class="material-icons">edit</i>
                   </button>
                   @if (portraitImages().length > 1) {
                     <button
-                      class="cs-icon-btn cs-icon-btn--danger"
+                      class="cs-gallery-btn cs-gallery-btn--danger"
                       type="button"
                       title="削除"
-                      (click)="removePortrait(portrait.index); $event.stopPropagation()"
+                      (click)="removePortrait(portrait.index)"
                     >
                       <i class="material-icons">delete</i>
                     </button>
@@ -319,22 +308,23 @@
                 </div>
               </div>
             }
-            <button class="cs-portrait-add" type="button" title="立ち絵を追加" (click)="addPortrait()">
-              <i class="material-icons">add</i>
-            </button>
+            <div class="cs-gallery-add-wrap">
+              <button class="cs-gallery-add" type="button" title="立ち絵を追加" (click)="addPortrait()">
+                <i class="material-icons">add_photo_alternate</i>
+                <span>追加</span>
+              </button>
+            </div>
           </div>
-          <div class="cs-portrait-import-row">
-            <button class="cs-btn" type="button" (click)="showImportImages()">
-              <i class="material-icons">file_copy</i>インポート
-            </button>
-          </div>
+          <button class="cs-btn" type="button" style="margin-top: 4px" (click)="showImportImages()">
+            <i class="material-icons">file_copy</i>インポート
+          </button>
         </div>
 
-        <!-- キャラクター情報カラム -->
-        <div>
-          <!-- 共通データ（名前・サイズ）-->
+        <!-- ── 右: キャラクター設定カラム ── -->
+        <div class="cs-settings-col">
+          <!-- 基本情報（名前・サイズ等）-->
           @if (tabletopObject.commonDataElement) {
-            <div class="cs-data-card" style="margin: 0 0 8px; min-width: 0">
+            <div class="cs-data-card" style="margin: 0">
               <div class="table">
                 <div
                   class="table-row"
@@ -345,45 +335,38 @@
               </div>
             </div>
           }
-          <!-- ロケーション -->
-          <div class="cs-flags-row">
-            <select
-              (change)="onSetLocation($event)"
-              name="location"
-              [ngModel]="character.location.name"
-              class="cs-location-select"
-            >
-              <option value="table">テーブル</option>
-              <option value="common">共有インベントリ</option>
-              <option value="{{ networkService.peerId }}">個人インベントリ</option>
-              <option value="graveyard">墓地</option>
-            </select>
-            <label class="cs-flag-label">
-              <input type="checkbox" [(ngModel)]="character.hideInventory" />インベントリ非表示
-            </label>
-            <label class="cs-flag-label">
-              <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない
-            </label>
-          </div>
-        </div>
 
-        <!-- コマ画像カラム -->
-        <div class="cs-token-col">
-          <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
-          <div class="cs-token-row">
-            <div class="cs-token-preview" title="コマ画像を差し替え" (click)="openKomaImageModal()">
-              @if (komaImageFile().url) {
-                <img class="cs-token-img" [src]="komaImageFile().url | safe: 'resourceUrl'" alt="コマ画像" />
-              } @else {
-                <div class="cs-portrait-placeholder"><i class="material-icons">person</i></div>
-              }
-              <div class="cs-token-edit-hint"><i class="material-icons">edit</i></div>
+          <!-- 配置 -->
+          <div class="cs-setting-group">
+            <div class="cs-sec-title"><i class="material-icons">place</i>配置</div>
+            <div class="cs-flags-row">
+              <select
+                (change)="onSetLocation($event)"
+                name="location"
+                [ngModel]="character.location.name"
+                class="cs-location-select"
+              >
+                <option value="table">テーブル</option>
+                <option value="common">共有インベントリ</option>
+                <option value="{{ networkService.peerId }}">個人インベントリ</option>
+                <option value="graveyard">墓地</option>
+              </select>
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.hideInventory" />インベントリ非表示
+              </label>
+              <label class="cs-flag-label">
+                <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない
+              </label>
             </div>
-            <div class="cs-token-settings">
-              <div class="cs-field-hint">立ち絵 {{ komaImageIndex() + 1 }} 枚目をコマに使用中</div>
-              <button class="cs-btn cs-btn--primary" type="button" (click)="openKomaImageModal()">
-                <i class="material-icons">swap_horiz</i>コマ画像を差し替え
-              </button>
+          </div>
+
+          <!-- コマ設定 -->
+          <div class="cs-setting-group">
+            <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
+            <p class="cs-hint-text">
+              立ち絵 {{ komaImageIndex() + 1 }} 枚目を使用中 — 左のギャラリーでクリックして切り替え
+            </p>
+            <div class="cs-field-row">
               <label class="cs-flag-label">
                 <input
                   type="checkbox"
@@ -391,77 +374,82 @@
                   (change)="clickImageFlag()"
                 />コマ高さを指定
               </label>
-              <div [class.cs-disabled]="!character.specifyKomaImageFlag">
-                <div class="cs-field-row">
-                  <input
-                    type="range"
-                    min="50"
-                    max="750"
-                    [(ngModel)]="character.komaImageHeight"
-                    [disabled]="!character.specifyKomaImageFlag"
-                    (change)="onChkKomaSize($event)"
-                  />
-                  <input
-                    class="cs-num-input"
-                    type="number"
-                    min="50"
-                    max="750"
-                    [(ngModel)]="character.komaImageHeight"
-                    [disabled]="!character.specifyKomaImageFlag"
-                    (change)="onChkKomaSize($event)"
-                  /><span style="font-size: 0.78em; color: var(--ui-text-muted)">px</span>
-                </div>
-              </div>
+            </div>
+            <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
+              <span class="cs-field-label">高さ</span>
+              <input
+                type="range"
+                min="50"
+                max="750"
+                [(ngModel)]="character.komaImageHeight"
+                [disabled]="!character.specifyKomaImageFlag"
+                (change)="onChkKomaSize($event)"
+              />
+              <input
+                class="cs-num-input"
+                type="number"
+                min="50"
+                max="750"
+                [(ngModel)]="character.komaImageHeight"
+                [disabled]="!character.specifyKomaImageFlag"
+                (change)="onChkKomaSize($event)"
+              />
+              <span style="font-size: 0.78em; color: var(--ui-text-muted)">px</span>
             </div>
           </div>
-          <hr class="cs-divider" />
-          <div class="cs-sec-title"><i class="material-icons">chat</i>チャット立ち絵スロット</div>
-          <div class="cs-field-row" style="gap: 8px">
-            <span class="cs-field-label" style="min-width: 2em">スロット</span>
-            <input
-              type="range"
-              min="0"
-              max="11"
-              step="1"
-              [ngModel]="portraitPosIndex()"
-              (change)="onSetPortraitPos($event)"
-            />
-            <input
-              class="cs-num-input"
-              type="number"
-              min="0"
-              max="11"
-              [ngModel]="portraitPosIndex()"
-              (change)="onSetPortraitPos($event)"
-            />
-            <span style="font-size: 0.78em; color: var(--ui-text-muted)">(0〜11)</span>
-          </div>
-          <p class="cs-hint-text">チャット画面に表示される立ち絵の位置番号</p>
-          <hr class="cs-divider" />
-          <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ</div>
-          <div class="cs-field-row">
-            <span class="cs-field-label">横幅</span>
-            <input type="range" min="270" max="1000" [(ngModel)]="character.overViewWidth" />
-            <input
-              class="cs-num-input"
-              type="number"
-              min="270"
-              max="1000"
-              [(ngModel)]="character.overViewWidth"
-              (change)="onChkPopWidth($event)"
-            />
-          </div>
-          <div class="cs-field-row">
-            <span class="cs-field-label">縦幅最大</span>
-            <input type="range" min="250" max="1000" [(ngModel)]="character.overViewMaxHeight" />
-            <input
-              class="cs-num-input"
-              type="number"
-              min="250"
-              max="1000"
-              [(ngModel)]="character.overViewMaxHeight"
-              (change)="onChkPopMaxHeight($event)"
-            />
+
+          <!-- チャット立ち絵 & ポップアップ（2列）-->
+          <div class="cs-setting-row">
+            <div class="cs-setting-group cs-setting-group--half">
+              <div class="cs-sec-title"><i class="material-icons">chat</i>チャット立ち絵</div>
+              <div class="cs-field-row">
+                <span class="cs-field-label">スロット</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="11"
+                  step="1"
+                  [ngModel]="portraitPosIndex()"
+                  (change)="onSetPortraitPos($event)"
+                />
+                <input
+                  class="cs-num-input"
+                  type="number"
+                  min="0"
+                  max="11"
+                  [ngModel]="portraitPosIndex()"
+                  (change)="onSetPortraitPos($event)"
+                />
+              </div>
+              <p class="cs-hint-text">チャット画面に表示される立ち絵の位置 (0〜11)</p>
+            </div>
+            <div class="cs-setting-group cs-setting-group--half">
+              <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ</div>
+              <div class="cs-field-row">
+                <span class="cs-field-label">横幅</span>
+                <input type="range" min="270" max="1000" [(ngModel)]="character.overViewWidth" />
+                <input
+                  class="cs-num-input"
+                  type="number"
+                  min="270"
+                  max="1000"
+                  [(ngModel)]="character.overViewWidth"
+                  (change)="onChkPopWidth($event)"
+                />
+              </div>
+              <div class="cs-field-row">
+                <span class="cs-field-label">縦幅最大</span>
+                <input type="range" min="250" max="1000" [(ngModel)]="character.overViewMaxHeight" />
+                <input
+                  class="cs-num-input"
+                  type="number"
+                  min="250"
+                  max="1000"
+                  [(ngModel)]="character.overViewMaxHeight"
+                  (change)="onChkPopMaxHeight($event)"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
