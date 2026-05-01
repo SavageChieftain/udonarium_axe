@@ -67,6 +67,16 @@ export class GameDataElementComponent {
     this.setUpdateTimer();
   }
 
+  /** セクションタイトル用 Material Icons 名 (cs-icon 属性) */
+  get icon(): string {
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
+    return (this.gameDataElement()?.getAttribute('cs-icon') as string) || '';
+  }
+  set icon(value: string) {
+    const el = this.gameDataElement();
+    if (el) el.setAttribute('cs-icon', value.trim());
+  }
+
   private updateTimer: NodeJS.Timeout | null = null;
 
   constructor() {

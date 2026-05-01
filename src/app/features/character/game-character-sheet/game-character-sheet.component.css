@@ -662,6 +662,15 @@ input {
   margin-bottom: 2px;
 }
 
+.cs-data-card--span2 {
+  flex-grow: 2;
+  min-width: 420px;
+}
+
+.cs-data-card--full {
+  flex: 1 0 100%;
+}
+
 /* カードツールバー（編集・ドラッグハンドル） */
 .cs-card-toolbar {
   display: flex;
@@ -692,6 +701,14 @@ input {
 .cs-drag-over {
   outline: 2px solid var(--ui-accent);
   outline-offset: -2px;
+}
+
+/* colspanトグルボタン */
+.cs-colspan-btn {
+  font-size: 0.7em;
+  font-weight: 700;
+  min-width: 20px;
+  letter-spacing: -0.03em;
 }
 
 .cs-add-item-row {

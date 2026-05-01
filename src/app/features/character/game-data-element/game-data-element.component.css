@@ -60,11 +60,56 @@
 .table-cell {
   display: table-cell;
   vertical-align: middle;
-  padding: 5px 6px 5px 6px;
+  padding: 4px 5px;
   border-bottom: 1px solid var(--ui-panel-border);
   box-sizing: border-box;
   color: var(--ui-text);
-  font-size: 0.88em;
+  font-size: 0.78em;
+}
+
+.elm-name {
+  font-size: 0.78em;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
+}
+
+/* セクションタイトル */
+.title-view-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+.title-icon {
+  font-size: 14px !important;
+  color: var(--ui-accent);
+  flex-shrink: 0;
+}
+
+.title-text {
+  font-size: 0.82em;
+  font-weight: 600;
+  color: var(--ui-text);
+  letter-spacing: 0.02em;
+}
+
+.title-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.icon-input {
+  width: 5.5em;
+  flex-shrink: 0;
+  font-size: 0.75em;
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-input-border) !important;
+  border-radius: var(--ui-radius-sm);
+  padding: 2px 4px;
+  color: var(--ui-text-muted);
 }
 
 .table-cell_solid {
@@ -86,6 +131,7 @@
   padding: 3px 8px;
   margin-bottom: 2px;
   border-radius: 0 var(--ui-radius-sm) var(--ui-radius-sm) 0;
+  font-size: 0.82em;
 }
 
 .box {

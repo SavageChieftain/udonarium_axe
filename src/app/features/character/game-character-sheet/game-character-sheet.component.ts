@@ -157,6 +157,24 @@ export class GameCharacterSheetComponent {
     char.update();
   }
 
+  // ── カード占有幅（colspan）──
+  private static readonly COLSPAN_CYCLE = ['1', '2', 'full'] as const;
+
+  getCardColspan(el: DataElement): string {
+    this.objectChange.versionOf(el.identifier)();
+    return (el.getAttribute('cs-colspan') as string) || '1';
+  }
+
+  cycleCardColspan(el: DataElement) {
+    const cur = this.getCardColspan(el);
+    const idx = GameCharacterSheetComponent.COLSPAN_CYCLE.indexOf(
+      cur as (typeof GameCharacterSheetComponent.COLSPAN_CYCLE)[number]
+    );
+    const next =
+      GameCharacterSheetComponent.COLSPAN_CYCLE[(idx + 1) % GameCharacterSheetComponent.COLSPAN_CYCLE.length];
+    el.setAttribute('cs-colspan', next);
+  }
+
   // Typed accessors for template type narrowing via instanceof
   get diceSymbol(): DiceSymbol | null {
     return this.tabletopObject instanceof DiceSymbol ? this.tabletopObject : null;

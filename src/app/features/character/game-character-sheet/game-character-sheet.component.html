@@ -473,6 +473,8 @@
               @for (childElement of detailElements(); track childElement.identifier) {
                 <div
                   class="cs-data-card"
+                  [class.cs-data-card--span2]="getCardColspan(childElement) === '2'"
+                  [class.cs-data-card--full]="getCardColspan(childElement) === 'full'"
                   [class.cs-drag-over]="dragOverId() === childElement.identifier"
                   (dragover)="onDragOver($event, childElement.identifier)"
                   (dragleave)="onDragLeave(childElement.identifier)"
@@ -487,6 +489,14 @@
                       title="ドラッグして並び替え"
                       >drag_indicator</span
                     >
+                    <button
+                      class="cs-icon-btn cs-colspan-btn"
+                      type="button"
+                      title="カラム幅を切り替え"
+                      (click)="cycleCardColspan(childElement)"
+                    >
+                      <span>{{ getCardColspan(childElement) === 'full' ? '全' : getCardColspan(childElement) }}</span>
+                    </button>
                     @if (isElementEditing(childElement.identifier)) {
                       <button
                         class="cs-icon-btn cs-icon-btn--danger"

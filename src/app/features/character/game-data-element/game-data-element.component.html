@@ -1,47 +1,26 @@
 @if (gameDataElement()) {
   @if (!gameDataElement().children.length) {
-    @if (isEdit()) {
+    @if (isEdit() && !isImage()) {
       <div class="table-cell table-cell_solid">
-        @if (!isImage()) {
-          <ng-container *ngTemplateOutlet="editButtons"></ng-container>
-          <select
-            (change)="onSetElementType($event)"
-            name="data-elm-type"
-            name="data-elm-type"
-            [ngModel]="gameDataElement().type"
-          >
-            <option value="">通常</option>
-            <option value="numberResource">リソース</option>
-            <option value="note">ノート</option>
-            <option value="markdown">チェック/表</option>
-            <option value="check">単一チェック</option>
-          </select>
-        }
-        @if (isImage() && indexNum() >= 1) {
-          <ng-container *ngTemplateOutlet="editButtonsImageTop"></ng-container>
-        }
-        @if (isImage() && indexNum() < 1) {
-          <ng-container *ngTemplateOutlet="editButtonsImageMiddle"></ng-container>
-        }
+        <ng-container *ngTemplateOutlet="editButtons"></ng-container>
+        <select (change)="onSetElementType($event)" name="data-elm-type" [ngModel]="gameDataElement().type">
+          <option value="">通常</option>
+          <option value="numberResource">リソース</option>
+          <option value="note">ノート</option>
+          <option value="markdown">チェック/表</option>
+          <option value="check">単一チェック</option>
+        </select>
       </div>
     }
     <div class="table-cell table-cell_solid">
-      @if (isTagLocked()) {
-        @if (!isImage()) {
-          <div class="font-[Cambria,Georgia] text-[0.9rem]">
-            {{ name }}
-          </div>
-        }
-      }
-      @if (!isTagLocked()) {
-        @if (!isImage()) {
-          <div class="hidden-spacer font-[Cambria,Georgia] text-[0.9rem]">
-            {{ name }}
-          </div>
+      @if (!isImage()) {
+        @if (isTagLocked() || !isEdit()) {
+          <div class="elm-name">{{ name }}</div>
+        } @else {
+          <div class="hidden-spacer elm-name">{{ name }}</div>
           <input
-            class="w-full min-w-[10px] font-[Cambria,Georgia] text-[0.9rem]"
+            class="w-full min-w-[10px] elm-name"
             size="1"
-            name="data-elm-name"
             name="data-elm-name"
             [(ngModel)]="name"
             placeholder="Value"
@@ -207,20 +186,29 @@
     <div class="table-cell table-cell_inner-table p-0 w-0"></div>
     <div class="table-cell_inner-table">
       <div class="table-cell_inner-table-title">
-        @if (isTagLocked()) {
-          <div class="p-[2px] font-[Cambria,Georgia] text-[1rem] font-bold">
-            {{ name }}
+        @if (!isTagLocked() && isEdit()) {
+          <div class="title-edit-row">
+            <input
+              class="icon-input"
+              [(ngModel)]="icon"
+              placeholder="icon"
+              title="Material Icons名 (例: star, shield)"
+            />
+            <input
+              class="w-full min-w-[10px]"
+              size="1"
+              name="data-elm-name"
+              [(ngModel)]="name"
+              placeholder="見出し名"
+            />
           </div>
-        }
-        @if (!isTagLocked()) {
-          <input
-            class="w-full min-w-[10px] font-[Cambria,Georgia] text-[1rem] font-bold"
-            size="1"
-            name="data-elm-name"
-            name="data-elm-name"
-            [(ngModel)]="name"
-            placeholder="Value"
-          />
+        } @else {
+          <div class="title-view-row">
+            @if (icon) {
+              <i class="material-icons title-icon">{{ icon }}</i>
+            }
+            <span class="title-text">{{ name }}</span>
+          </div>
         }
       </div>
       @if (gameDataElement().children.length) {
@@ -242,42 +230,11 @@
   }
 }
 <ng-template #editButtons>
-  <button (click)="addElement()">
+  <button (click)="addElement()" title="行を追加">
     <i class="material-icons">add_circle</i>
   </button>
-  <button (click)="upElement()">
-    <i class="material-icons">arrow_upward</i>
-  </button>
-  <br />
-  <button (click)="deleteElement()">
+  <button (click)="deleteElement()" title="行を削除">
     <i class="material-icons">remove_circle_outline</i>
-  </button>
-  <button (click)="downElement()">
-    <i class="material-icons">arrow_downward</i>
-  </button>
-</ng-template>
-
-<ng-template #editButtonsImageTop>
-  <button class="dummy invisible">
-    <i class="material-icons">remove_circle_outline</i>
-  </button>
-  <button (click)="downElement()">
-    <i class="material-icons">arrow_downward</i>
-  </button>
-</ng-template>
-<ng-template #editButtonsImageMiddle>
-  <button class="dummy invisible">
-    <i class="material-icons">remove_circle_outline</i>
-  </button>
-  <button (click)="upElement()">
-    <i class="material-icons">arrow_upward</i>
-  </button>
-  <br />
-  <button class="dummy invisible">
-    <i class="material-icons">remove_circle_outline</i>
-  </button>
-  <button (click)="downElement()">
-    <i class="material-icons">arrow_downward</i>
   </button>
 </ng-template>
 <ng-template #editButtonsImageTitle>
