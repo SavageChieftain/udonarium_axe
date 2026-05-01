@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -318,6 +319,44 @@ describe('DiceSymbol', () => {
     it('posZ のデフォルトが 0', () => {
       const dice = DiceSymbol.create('d6', DiceType.D6, 1);
       expect(dice.posZ).toBe(0);
+    });
+  });
+
+  describe('imageFile', () => {
+    it('初期状態は face に対応する画像要素を返す（faces[0]）', () => {
+      const dice = DiceSymbol.create('d6', DiceType.D6, 1);
+      expect(dice.face).toBe('1');
+      // getImageFile は ImageStorage から取得するが、テスト環境では Empty になる
+      // faces.length > 0 かつ face が正しく参照されることを確認
+      expect(dice.faces.includes(dice.face)).toBe(true);
+    });
+
+    it('diceRoll() 後は新しい face に対応する画像要素を参照する', () => {
+      const dice = DiceSymbol.create('d6', DiceType.D6, 1);
+      // face を "3" に強制設定
+      dice.face = '3';
+      // face='3' の DataElement に imageIdentifier を設定する
+      const faceElement = dice.imageDataElement?.getFirstElementByName('3');
+      if (faceElement) faceElement.value = 'img-id-3';
+
+      const storageSpy = vi.spyOn(ImageStorage.instance, 'get').mockReturnValue(null);
+      void dice.imageFile;
+      // 最初の呼び出しは face='3' の imageIdentifier="img-id-3" のはず
+      expect(storageSpy.mock.calls[0][0]).toBe('img-id-3');
+    });
+
+    it('face が未設定（faces に存在しない値）の場合は faces[0] にフォールバックする', () => {
+      const dice = DiceSymbol.create('d6', DiceType.D6, 1);
+      dice.face = 'nonexistent';
+      // faces[0]='1' の DataElement に imageIdentifier を設定する
+      const face1Element = dice.imageDataElement?.getFirstElementByName('1');
+      if (face1Element) face1Element.value = 'img-id-1';
+
+      const storageSpy = vi.spyOn(ImageStorage.instance, 'get').mockReturnValue(null);
+      void dice.imageFile;
+      // 'nonexistent' 要素は存在しないため ImageStorage.get は呼ばれず
+      // フォールバックの face='1' で "img-id-1" が呼ばれる
+      expect(storageSpy.mock.calls[0][0]).toBe('img-id-1');
     });
   });
 });

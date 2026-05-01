@@ -36,7 +36,7 @@ export class DiceSymbol extends OwnedTabletopObject {
     return this.imageDataElement?.children.map((element) => (element as DataElement).name) ?? [];
   }
   override get imageFile(): ImageFile {
-    if (this.faces.length) return this.getImageFile(this.faces[0]) ?? ImageFile.Empty;
+    if (this.faces.length) return this.getImageFile(this.face) ?? this.getImageFile(this.faces[0]) ?? ImageFile.Empty;
     return ImageFile.Empty;
   }
 
