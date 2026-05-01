@@ -7,7 +7,7 @@
     } @else if (terrain) {
       <button (click)="openModal('floor')">床の画像を変更</button>
       <button (click)="openModal('wall')">壁の画像を変更</button>
-    } @else if (!(cardStack || rangeArea || scratchMask)) {
+    } @else if (!(character || cardStack || rangeArea || scratchMask)) {
       <button (click)="openModal('imageIdentifier', true)">画像変更</button>
     }
     <button (click)="clone()">コピーを作る</button>
@@ -109,119 +109,20 @@
       </div>
     }
     @if (character) {
-      <select (change)="onSetLocation($event)" name="location" [ngModel]="character.location.name">
+      <select (change)="onSetLocation($event)" name="location" [ngModel]="character.location.name" class="cs-select">
         <option value="table">テーブル</option>
         <option value="common">共有インベントリ</option>
         <option value="{{ networkService.peerId }}">個人インベントリ</option>
         <option value="graveyard">墓地</option>
       </select>
-      <div class="extra-setting table">
-        <div class="extra-setting w-[50%] table-cell">
-          <div>
-            テーブルインベントリ非表示
-            <input
-              type="checkbox"
-              value="hideInventory"
-              [(ngModel)]="character.hideInventory"
-              name="hideInventory"
-              (click)="clickHide()"
-            />
-          </div>
-          <div>
-            発言をしない
-            <input
-              type="checkbox"
-              value="hideInventory"
-              [(ngModel)]="character.nonTalkFlag"
-              name="nonTalkFlag"
-              (click)="clickNoTalk()"
-            />
-          </div>
-          <div>
-            ポップアップ横幅
-            <input
-              type="range"
-              [style]="
-                'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                  | safe: 'style'
-              "
-              min="270"
-              max="1000"
-              name="overview-width-range"
-              [(ngModel)]="character.overViewWidth"
-            />
-            <input
-              name="overview-width-range"
-              [(ngModel)]="character.overViewWidth"
-              type="number"
-              class="w-[12em] text-[#555]"
-              min="270"
-              max="1000"
-              name="popWidth"
-              (change)="onChkPopWidth($event)"
-            />
-          </div>
-          <div>
-            ポップアップ縦幅最大
-            <input
-              type="range"
-              [style]="
-                'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                  | safe: 'style'
-              "
-              min="250"
-              max="1000"
-              name="overview-height-range"
-              [(ngModel)]="character.overViewMaxHeight"
-            />
-            <input
-              name="overview-height-range"
-              [(ngModel)]="character.overViewMaxHeight"
-              type="number"
-              class="w-[12em] text-[#555]"
-              min="250"
-              max="1000"
-              name="popHeight"
-              (change)="onChkPopMaxHeight($event)"
-            />
-          </div>
-        </div>
-        <div class="extra-setting w-[50%] table-cell">
-          コマ画像の高さを指定
-          <input
-            type="checkbox"
-            value="hideInventory"
-            [(ngModel)]="character.specifyKomaImageFlag"
-            name="specifyKomaImageFlag"
-            (click)="clickImageFlag()"
-          />
-          <div>
-            コマ画像の高さ
-            <input
-              type="range"
-              [style]="
-                'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 1 + ';'
-                  | safe: 'style'
-              "
-              min="50"
-              max="750"
-              name="koma-image-height-range"
-              [(ngModel)]="character.komaImageHeight"
-              [disabled]="!character.specifyKomaImageFlag"
-            />
-            <input
-              [(ngModel)]="character.komaImageHeight"
-              type="number"
-              class="w-[12em] text-[#555]"
-              min="50"
-              max="750"
-              name="popWidth"
-              (change)="onChkKomaSize($event)"
-              [disabled]="!character.specifyKomaImageFlag"
-            />
-          </div>
-        </div>
-      </div>
+      <label class="cs-checkbox-label">
+        <input type="checkbox" [(ngModel)]="character.hideInventory" name="hideInventory" />
+        インベントリ非表示
+      </label>
+      <label class="cs-checkbox-label">
+        <input type="checkbox" [(ngModel)]="character.nonTalkFlag" name="nonTalkFlag" />
+        発言しない
+      </label>
     }
     @if (textNote) {
       <div class="extra-setting w-[400px]">
@@ -372,7 +273,141 @@
 
 @if (tabletopObject) {
   <div class="flex-container">
-    @if (imageFile().url) {
+    @if (character) {
+      <div class="cs-section cs-section--full">
+        <div class="cs-section__header">
+          <span class="cs-section__title"><i class="material-icons">photo_library</i> 立ち絵</span>
+          <div class="cs-section__actions">
+            <button class="cs-btn cs-btn--ghost" type="button" (click)="addPortrait()">
+              <i class="material-icons">add_photo_alternate</i> 追加
+            </button>
+            <button class="cs-btn cs-btn--ghost" type="button" (click)="showImportImages()">
+              <i class="material-icons">file_copy</i> インポート
+            </button>
+          </div>
+        </div>
+        <div class="cs-portrait-gallery">
+          @for (portrait of portraitImages(); track portrait.index) {
+            <div class="cs-portrait-item">
+              @if (portrait.imageFile.url) {
+                <img
+                  class="cs-portrait-img"
+                  [src]="portrait.imageFile.url | safe: 'resourceUrl'"
+                  [alt]="portrait.imageFile.name"
+                />
+              } @else {
+                <div class="cs-portrait-empty"><i class="material-icons">image</i></div>
+              }
+              <div class="cs-portrait-item__overlay">
+                <button class="cs-btn cs-btn--icon" type="button" title="変更" (click)="changePortrait(portrait.index)">
+                  <i class="material-icons">edit</i>
+                </button>
+                @if (portraitImages().length > 1) {
+                  <button
+                    class="cs-btn cs-btn--icon cs-btn--danger"
+                    type="button"
+                    title="削除"
+                    (click)="removePortrait(portrait.index)"
+                  >
+                    <i class="material-icons">delete</i>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="cs-section cs-section--full">
+        <div class="cs-koma-row">
+          <div class="cs-koma">
+            <div class="cs-koma__header">コマ画像</div>
+            <div class="cs-koma__preview">
+              @if (komaImageFile().url) {
+                <img
+                  class="cs-koma__img"
+                  [src]="komaImageFile().url | safe: 'resourceUrl'"
+                  [alt]="komaImageFile().name"
+                />
+              } @else {
+                <div class="cs-koma__placeholder"><i class="material-icons">person</i></div>
+              }
+            </div>
+            <button class="cs-btn cs-btn--primary" type="button" (click)="openKomaImageModal()">
+              <i class="material-icons">swap_horiz</i> コマ画像を変更
+            </button>
+            <label class="cs-checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="character.specifyKomaImageFlag"
+                name="specifyKomaImageFlag"
+                (change)="clickImageFlag()"
+              />
+              高さを指定
+            </label>
+            <div class="cs-koma__height" [class.is-disabled]="!character.specifyKomaImageFlag">
+              <input
+                type="range"
+                min="50"
+                max="750"
+                name="koma-image-height-range"
+                [(ngModel)]="character.komaImageHeight"
+                [disabled]="!character.specifyKomaImageFlag"
+                (change)="onChkKomaSize($event)"
+              />
+              <input
+                type="number"
+                class="cs-input cs-input--number"
+                min="50"
+                max="750"
+                [(ngModel)]="character.komaImageHeight"
+                [disabled]="!character.specifyKomaImageFlag"
+                (change)="onChkKomaSize($event)"
+              />
+              <span>px</span>
+            </div>
+          </div>
+          <div class="cs-popup-settings">
+            <div class="cs-subsection__title">ポップアップサイズ</div>
+            <div class="cs-setting-row">
+              <span class="cs-label">横幅</span>
+              <input
+                type="range"
+                min="270"
+                max="1000"
+                name="overview-width-range"
+                [(ngModel)]="character.overViewWidth"
+              />
+              <input
+                type="number"
+                class="cs-input cs-input--number"
+                min="270"
+                max="1000"
+                [(ngModel)]="character.overViewWidth"
+                (change)="onChkPopWidth($event)"
+              />
+            </div>
+            <div class="cs-setting-row">
+              <span class="cs-label">縦幅最大</span>
+              <input
+                type="range"
+                min="250"
+                max="1000"
+                name="overview-height-range"
+                [(ngModel)]="character.overViewMaxHeight"
+              />
+              <input
+                type="number"
+                class="cs-input cs-input--number"
+                min="250"
+                max="1000"
+                [(ngModel)]="character.overViewMaxHeight"
+                (change)="onChkPopMaxHeight($event)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else if (imageFile().url) {
       <div class="box main-image-box">
         <img class="main-image" [src]="imageFile().url | safe: 'resourceUrl'" [alt]="imageFile().name" />
       </div>
@@ -398,7 +433,7 @@
         </div>
       }
     }
-    @if (!(card || cardStack || terrain || diceSymbol || scratchMask)) {
+    @if (!(character || card || cardStack || terrain || diceSymbol || scratchMask)) {
       @if (tabletopObject.imageDataElement) {
         <div class="flex-item">
           <div class="table">

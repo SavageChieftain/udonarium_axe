@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ImageService } from '@axe/core/storage/image.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';

@@ -89,3 +89,287 @@ input {
   right: 0;
   font-size: 0.9em;
 }
+
+/* ── Character Sheet Redesign ── */
+
+.cs-header-sep {
+  display: inline-block;
+  width: 8px;
+}
+
+.cs-select {
+  background: rgba(240, 218, 189, 0.9);
+  color: #444;
+  border: 1px solid rgba(200, 160, 100, 0.6);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+}
+
+.cs-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  font-size: 0.9em;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.cs-checkbox-label input[type='checkbox'] {
+  cursor: pointer;
+  accent-color: #c8a064;
+}
+
+/* Section card */
+.cs-section {
+  background: rgba(240, 218, 189, 0.85);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 0;
+  color: #444;
+  box-sizing: border-box;
+}
+
+.cs-section--full {
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.cs-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cs-section__title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.cs-section__title .material-icons {
+  font-size: 1.1em;
+  color: #a07840;
+}
+
+.cs-section__actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Portrait gallery */
+.cs-portrait-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.cs-portrait-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid rgba(200, 160, 100, 0.5);
+  background: rgba(180, 140, 90, 0.2);
+  cursor: default;
+}
+
+.cs-portrait-item:hover .cs-portrait-item__overlay {
+  opacity: 1;
+}
+
+.cs-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cs-portrait-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(180, 140, 90, 0.6);
+}
+
+.cs-portrait-empty .material-icons {
+  font-size: 2em;
+}
+
+.cs-portrait-item__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* Koma + popup row */
+.cs-koma-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cs-koma {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.cs-koma__header {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.cs-koma__preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid rgba(200, 160, 100, 0.5);
+  background: rgba(180, 140, 90, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cs-koma__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cs-koma__placeholder {
+  color: rgba(180, 140, 90, 0.6);
+}
+
+.cs-koma__placeholder .material-icons {
+  font-size: 2.5em;
+}
+
+.cs-koma__height {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85em;
+}
+
+.cs-koma__height.is-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Popup settings */
+.cs-popup-settings {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cs-subsection__title {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.cs-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+}
+
+.cs-label {
+  min-width: 4em;
+  color: #555;
+  font-size: 0.9em;
+}
+
+/* Buttons */
+.cs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.82em;
+  cursor: pointer;
+  border: none;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.cs-btn .material-icons {
+  font-size: 1.1em;
+}
+
+.cs-btn--ghost {
+  background: rgba(200, 160, 100, 0.2);
+  color: #555;
+  border: 1px solid rgba(200, 160, 100, 0.5);
+}
+
+.cs-btn--ghost:hover {
+  background: rgba(200, 160, 100, 0.35);
+}
+
+.cs-btn--primary {
+  background: rgba(180, 120, 40, 0.75);
+  color: #fff;
+}
+
+.cs-btn--primary:hover {
+  background: rgba(180, 120, 40, 0.9);
+}
+
+.cs-btn--icon {
+  padding: 4px 5px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-radius: 3px;
+}
+
+.cs-btn--icon:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.cs-btn--danger {
+  background: rgba(200, 60, 40, 0.7);
+}
+
+.cs-btn--danger:hover {
+  background: rgba(200, 60, 40, 0.9);
+}
+
+/* Inputs */
+.cs-input--number {
+  width: 5em;
+  color: #555;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(200, 160, 100, 0.5);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 0.9em;
+}

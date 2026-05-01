@@ -1,8 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -41,6 +51,7 @@ export class GameCharacterSheetComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly imageStorage = inject(ImageStorage);
 
   private readonly _tabletopObject = signal<
     | GameCharacter
@@ -118,6 +129,25 @@ export class GameCharacterSheetComponent {
     return obj.imageFile;
   });
 
+  readonly portraitImages = computed(() => {
+    this.objectChange.fileVersion();
+    const char = this.character;
+    if (!char?.imageDataElement) return [];
+    this.objectChange.versionOf(char.identifier)();
+    return char.imageDataElement.children.map((child, index) => {
+      const file = this.imageStorage.get(child.value as string) ?? ImageFile.Empty;
+      return { index, imageFile: file };
+    });
+  });
+
+  readonly komaImageFile = computed(() => {
+    this.objectChange.fileVersion();
+    const char = this.character;
+    if (!char) return ImageFile.Empty;
+    this.objectChange.versionOf(char.identifier)();
+    return char.imageFile;
+  });
+
   networkService = Network;
 
   readonly isSaving = signal(false);
@@ -129,6 +159,11 @@ export class GameCharacterSheetComponent {
         this.panelService.close();
       }
     }, this.destroyRef);
+
+    effect(() => {
+      const char = this.character;
+      if (char) untracked(() => char.addExtendData());
+    });
   }
 
   toggleEditMode() {
@@ -194,6 +229,68 @@ export class GameCharacterSheetComponent {
 
   clickGrid() {
     //処理なし
+  }
+
+  openKomaImageModal() {
+    const char = this.character;
+    if (!char?.imageDataElement) return;
+    char.addExtendData();
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((value) => {
+      if (!value || !char.imageDataElement) return;
+      const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+      if (!iconEl) return;
+      const idx = iconEl.currentValue as number;
+      const images = char.imageDataElement.children;
+      if (idx >= 0 && idx < images.length) {
+        images[idx].value = value;
+      } else if (images.length > 0) {
+        images[0].value = value;
+      }
+      char.update();
+    });
+  }
+
+  addPortrait() {
+    const char = this.character;
+    if (!char?.imageDataElement) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((value) => {
+      if (!value) return;
+      char.imageDataElement!.appendChild(DataElement.create('imageIdentifier', value, { type: 'image' }, ''));
+      char.update();
+    });
+  }
+
+  changePortrait(index: number) {
+    const char = this.character;
+    if (!char?.imageDataElement) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((value) => {
+      if (!value) return;
+      const images = char.imageDataElement!.children;
+      if (index < images.length) {
+        images[index].value = value;
+        char.update();
+      }
+    });
+  }
+
+  removePortrait(index: number) {
+    const char = this.character;
+    if (!char?.imageDataElement) return;
+    const images = char.imageDataElement.children;
+    if (images.length <= 1) return;
+    const el = images[index];
+    if (!el) return;
+    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+    if (iconEl) {
+      const komaIdx = iconEl.currentValue as number;
+      if (komaIdx === index) {
+        iconEl.currentValue = 0;
+      } else if (komaIdx > index) {
+        iconEl.currentValue = (komaIdx as number) - 1;
+      }
+    }
+    char.imageDataElement.removeChild(el);
+    char.update();
   }
 
   showImportImages() {
