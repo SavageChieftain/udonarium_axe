@@ -1,9 +1,11 @@
 import { ChatMessageContext } from '@axe/domain/chat/chat-message';
 
+const NOW = Date.now();
+
 export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   {
     from: 'System',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル',
@@ -11,7 +13,7 @@ export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   },
   {
     from: 'System',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル',
@@ -20,7 +22,7 @@ export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   {
     from: 'System',
     to: '???',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル > プレイヤー',
@@ -29,7 +31,7 @@ export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   {
     from: 'System',
     to: '???',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル > プレイヤー',
@@ -37,7 +39,7 @@ export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   },
   {
     from: 'System',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル',
@@ -45,7 +47,7 @@ export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   },
   {
     from: 'System',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル',
@@ -53,7 +55,7 @@ export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
   },
   {
     from: 'System',
-    timestamp: 0,
+    timestamp: NOW,
     imageIdentifier: '',
     tag: '',
     name: 'チュートリアル',
