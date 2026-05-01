@@ -124,7 +124,7 @@ export class AppEventHandlerService {
 
   private openAlarmPanel(title: string, time: string): void {
     const winW = 200;
-    const winH = 100;
+    const winH = 80;
     const marginW = Math.max(0, window.innerWidth - winW);
     const marginH = Math.max(0, window.innerHeight - winH - 25);
 

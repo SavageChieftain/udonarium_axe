@@ -1,35 +1,29 @@
 .aw-root {
   width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-}
-
-.aw-card {
-  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 40px;
-  background: var(--ui-panel-bg);
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  text-align: center;
+  justify-content: center;
+  padding: 8px 12px;
+  gap: 2px;
 }
 
-.aw-icon {
-  font-size: 48px;
-  color: var(--ui-accent);
-}
-
-.aw-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ui-text);
+.aw-label {
+  font-size: 12px;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
 }
 
 .aw-time {
-  font-size: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ui-accent);
+  white-space: nowrap;
+}
+
+.aw-unit {
+  font-size: 13px;
+  font-weight: 400;
+  margin-left: 2px;
   color: var(--ui-text-muted);
 }
