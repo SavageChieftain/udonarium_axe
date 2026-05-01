@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Network } from '@axe/core/index';
@@ -25,7 +25,7 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   host: { class: 'block' },
   styleUrls: ['./game-object-inventory.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, NgClass, FormsModule, SafePipe],
+  imports: [NgTemplateOutlet, FormsModule, SafePipe],
 })
 export class GameObjectInventoryComponent {
   private readonly panelService = inject(PanelService);
@@ -104,6 +104,16 @@ export class GameObjectInventoryComponent {
   }
   get sortOrderName2nd(): string {
     return this.sortOrder2nd === SortOrder.ASC ? '昇順' : '降順';
+  }
+
+  get multiMoveLocations(): { name: string; label: string }[] {
+    const all = [
+      { name: 'table', label: 'テーブル' },
+      { name: 'common', label: '共有' },
+      { name: Network.peerId, label: '個人' },
+      { name: 'graveyard', label: '墓場' },
+    ];
+    return all.filter((loc) => loc.name !== this.selectTab());
   }
 
   get newLineString(): string {
@@ -334,7 +344,20 @@ export class GameObjectInventoryComponent {
     }
   }
 
-  multiDelete() {
+  moveToAndClose(location: string) {
+    this.multiMove(location);
+    this.toggleMultiMove();
+    SoundEffect.play(PresetSound.piecePut);
+  }
+
+  deleteAndClose() {
+    if (this.multiDelete()) {
+      this.toggleMultiMove();
+      SoundEffect.play(PresetSound.sweep);
+    }
+  }
+
+  multiDelete(): boolean {
     const inGraveyard: Set<GameCharacter> = new Set();
     for (const gameObjectIdentifier of this.multiMoveTargets()) {
       const gameObject = this.objectStore.get<GameCharacter>(gameObjectIdentifier);
@@ -342,12 +365,13 @@ export class GameObjectInventoryComponent {
         inGraveyard.add(gameObject);
       }
     }
-    if (inGraveyard.size < 1) return;
+    if (inGraveyard.size < 1) return false;
 
-    if (!confirm(`選択したもののうち墓場に存在する${inGraveyard.size}個の要素を完全に削除しますか？`)) return;
+    if (!confirm(`選択したもののうち墓場に存在する${inGraveyard.size}個の要素を完全に削除しますか？`)) return false;
     for (const gameObject of inGraveyard) {
       this.deleteGameObject(gameObject);
     }
+    return true;
   }
 
   private cloneGameObject(gameObject: TabletopObject) {

@@ -234,6 +234,7 @@
   background: var(--ui-accent-bg);
   border-bottom: 1px solid var(--ui-panel-border);
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .multimove-label {
@@ -277,6 +278,34 @@
 
 .mm-btn.primary:hover {
   opacity: 0.85;
+}
+
+.mm-dest-label {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
+}
+
+.mm-btn.dest {
+  background: var(--ui-accent-bg);
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
+}
+
+.mm-btn.dest:hover {
+  background: var(--ui-accent);
+  color: #fff;
+}
+
+.mm-btn.danger {
+  background: transparent;
+  border-color: #e05c5c;
+  color: #e05c5c;
+}
+
+.mm-btn.danger:hover {
+  background: #e05c5c;
+  color: #fff;
 }
 
 .mm-btn .material-icons {

@@ -93,9 +93,17 @@
       <button type="button" class="mm-btn" (click)="allTabBoxCheck()">
         {{ existsMultiMoveSelectedInTab() ? '全解除' : '全選択' }}
       </button>
-      <button type="button" class="mm-btn primary" (click)="onMultiMoveContextMenu()">
-        <i class="material-icons">done</i>実行
-      </button>
+      <span class="mm-dest-label">移動先:</span>
+      @for (loc of multiMoveLocations; track loc.name) {
+        <button type="button" class="mm-btn dest" (click)="moveToAndClose(loc.name)">
+          <i class="material-icons">arrow_forward</i>{{ loc.label }}
+        </button>
+      }
+      @if (selectTab() === 'graveyard') {
+        <button type="button" class="mm-btn danger" (click)="deleteAndClose()">
+          <i class="material-icons">delete</i>削除
+        </button>
+      }
       <button type="button" class="mm-btn" (click)="toggleMultiMove()">
         <i class="material-icons">close</i>キャンセル
       </button>
