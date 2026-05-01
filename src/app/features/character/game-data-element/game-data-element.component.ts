@@ -77,6 +77,56 @@ export class GameDataElementComponent {
     if (el) el.setAttribute('cs-icon', value.trim());
   }
 
+  readonly iconPickerOpen = signal(false);
+
+  static readonly ICON_GROUPS: { label: string; icons: string[] }[] = [
+    {
+      label: 'キャラクター',
+      icons: ['person', 'face', 'account_circle', 'groups', 'man', 'woman', 'child_care', 'elderly'],
+    },
+    {
+      label: '戦闘',
+      icons: [
+        'shield',
+        'security',
+        'gavel',
+        'sports_martial_arts',
+        'local_fire_department',
+        'bolt',
+        'whatshot',
+        'flash_on',
+      ],
+    },
+    {
+      label: 'ステータス',
+      icons: ['favorite', 'health_and_safety', 'star', 'grade', 'bar_chart', 'trending_up', 'speed', 'military_tech'],
+    },
+    {
+      label: 'アイテム',
+      icons: ['inventory_2', 'backpack', 'category', 'sell', 'local_pharmacy', 'build', 'key', 'lock'],
+    },
+    {
+      label: '魔法・能力',
+      icons: ['auto_awesome', 'flare', 'nights_stay', 'wb_sunny', 'blur_on', 'casino', 'psychology', 'emoji_events'],
+    },
+    {
+      label: 'メモ・情報',
+      icons: ['info', 'note', 'description', 'edit_note', 'comment', 'chat', 'sticky_note_2', 'assignment'],
+    },
+  ];
+
+  readonly iconGroups = GameDataElementComponent.ICON_GROUPS;
+
+  selectIcon(name: string): void {
+    this.icon = name;
+    this.iconPickerOpen.set(false);
+  }
+
+  clearIcon(): void {
+    this.icon = '';
+    this.iconPickerOpen.set(false);
+  }
+
   private updateTimer: NodeJS.Timeout | null = null;
 
   constructor() {

@@ -188,12 +188,47 @@
       <div class="table-cell_inner-table-title">
         @if (!isTagLocked() && isEdit()) {
           <div class="title-edit-row">
-            <input
-              class="icon-input"
-              [(ngModel)]="icon"
-              placeholder="icon"
-              title="Material Icons名 (例: star, shield)"
-            />
+            <div class="icon-picker-wrap">
+              <button
+                type="button"
+                class="icon-picker-btn"
+                (click)="iconPickerOpen.update(v => !v)"
+                title="アイコンを選択"
+              >
+                @if (icon) {
+                  <i class="material-icons">{{ icon }}</i>
+                } @else {
+                  <i class="material-icons icon-placeholder">category</i>
+                }
+              </button>
+              @if (iconPickerOpen()) {
+                <div class="icon-picker-overlay" (click)="iconPickerOpen.set(false)"></div>
+                <div class="icon-picker-popup">
+                  <div class="icon-picker-header">
+                    <span>アイコン選択</span>
+                    @if (icon) {
+                      <button type="button" class="icon-clear-btn" (click)="clearIcon()">クリア</button>
+                    }
+                  </div>
+                  @for (group of iconGroups; track group.label) {
+                    <div class="icon-picker-group-label">{{ group.label }}</div>
+                    <div class="icon-picker-grid">
+                      @for (iconName of group.icons; track iconName) {
+                        <button
+                          type="button"
+                          class="icon-picker-item"
+                          [class.icon-picker-item--active]="icon === iconName"
+                          (click)="selectIcon(iconName)"
+                          [title]="iconName"
+                        >
+                          <i class="material-icons">{{ iconName }}</i>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
             <input
               class="w-full min-w-[10px]"
               size="1"
