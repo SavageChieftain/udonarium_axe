@@ -10,6 +10,29 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
+/** face 配列からデフォルト画像パスの prefix を導出する */
+function getDiceImagePrefix(faces: string[]): string | null {
+  if (faces.length === 0) return null;
+  // D10_10TIMES: 面の値がすべて10の倍数
+  if (faces.every((f) => Number(f) % 10 === 0)) return '100_dice';
+  switch (faces.length) {
+    case 4:
+      return '4_dice';
+    case 6:
+      return '6_dice';
+    case 8:
+      return '8_dice';
+    case 10:
+      return '10_dice';
+    case 12:
+      return '12_dice';
+    case 20:
+      return '20_dice';
+    default:
+      return null;
+  }
+}
+
 @Component({
   selector: 'app-dice-symbol-sheet',
   templateUrl: './dice-symbol-sheet.component.html',
@@ -21,6 +44,7 @@ export class DiceSymbolSheetComponent {
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
   private readonly imageService = inject(ImageService);
+  private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -107,12 +131,25 @@ export class DiceSymbolSheetComponent {
     const dice = this._diceSymbol();
     if (!dice) return;
     this.modalService.open<string>(FileSelecterComponent).then((value) => {
-      // null = modal closed with X → revert to default (clear)
-      // undefined = unexpected fallback → ignore
-      // string = image selected → set
+      // null  = モーダルを X で閉じた → デフォルト画像に戻す
+      // undefined = 想定外 → 何もしない
+      // string 値 = 画像選択 → セット
       if (value === undefined) return;
       const el = dice.imageDataElement?.getFirstElementByName(faceName) as DataElement | null;
-      if (el) el.value = value ?? '';
+      if (!el) return;
+      if (!value) {
+        // デフォルト画像へ戻す
+        const prefix = getDiceImagePrefix(dice.faces);
+        if (prefix) {
+          const url = `./assets/images/dice/${prefix}/${prefix}[${faceName}].png`;
+          const image = this.imageStorage.get(url) ?? this.imageStorage.add(url);
+          el.value = image.identifier;
+        } else {
+          el.value = '';
+        }
+      } else {
+        el.value = value;
+      }
     });
   }
 
