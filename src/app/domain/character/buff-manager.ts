@@ -45,8 +45,14 @@ export class BuffManager {
   }
 
   addRound(name: string, info: string = '', round: number = 3): void {
-    const container = this.container;
-    if (!container) return;
+    if (!this.buffDataElement) return;
+    const container =
+      this.container ??
+      (() => {
+        const newContainer = DataElement.create('バフ/デバフ', '', {}, `${this.buffDataElement!.identifier}_container`);
+        this.buffDataElement!.appendChild(newContainer);
+        return newContainer;
+      })();
     const data = this.buffDataElement?.getFirstElementByName(name);
     if (data) {
       data.value = round;

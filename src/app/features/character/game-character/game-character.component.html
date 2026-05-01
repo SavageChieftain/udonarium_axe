@@ -92,7 +92,7 @@
               @let buffEl = this.gameCharacter()!.buffDataElement;
               @if (buffEl) {
                 <div class="is-3d">
-                  @if (buffEl.children.length === 1) {
+                  @if (buffEl.children.length >= 1) {
                     @for (child of buffEl.children; track child.identifier) {
                       @if (child.children.length > 0) {
                         <div
