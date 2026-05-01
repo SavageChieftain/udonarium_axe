@@ -1137,12 +1137,25 @@ input {
 }
 
 .cs-popup-tag-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8em, 1fr));
-  gap: 2px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   padding: 4px 0 2px;
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
+}
+
+.cs-popup-section-row {
+  margin-top: 4px;
+}
+
+.cs-popup-section-label strong {
+  font-weight: 600;
+  color: var(--ui-text);
+}
+
+.cs-popup-leaf-row {
+  font-size: 0.85em;
 }
 
 .cs-popup-tag-item {

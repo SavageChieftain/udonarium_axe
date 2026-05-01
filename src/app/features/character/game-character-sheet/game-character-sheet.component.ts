@@ -642,18 +642,15 @@ export class GameCharacterSheetComponent {
   // ── ポップアップ表示データ設定 ──
   private static readonly POPUP_HIDDEN_NAMES = new Set(['立ち絵位置', 'コマ画像', 'バフ/デバフ']);
 
-  get popupElements(): Array<{ name: string; depth: number }> {
+  get popupElements(): Array<{ identifier: string; name: string; depth: number; isSection: boolean }> {
     const char = this.character;
     if (!char?.detailDataElement) return [];
-    const result: Array<{ name: string; depth: number }> = [];
-    const seen = new Set<string>();
+    const result: Array<{ identifier: string; name: string; depth: number; isSection: boolean }> = [];
     const collect = (elements: readonly DataElement[], depth: number) => {
       for (const elm of elements) {
         if (!elm.name) continue;
         if (depth === 0 && GameCharacterSheetComponent.POPUP_HIDDEN_NAMES.has(elm.name)) continue;
-        if (seen.has(elm.name)) continue;
-        seen.add(elm.name);
-        result.push({ name: elm.name, depth });
+        result.push({ identifier: elm.identifier, name: elm.name, depth, isSection: elm.children.length > 0 });
         if (elm.children.length) collect(elm.children, depth + 1);
       }
     };
@@ -661,19 +658,19 @@ export class GameCharacterSheetComponent {
     return result;
   }
 
-  isInPopupTags(name: string): boolean {
-    return this.character?.overViewDataTags.includes(name) ?? false;
+  isInPopupTags(identifier: string): boolean {
+    return this.character?.overViewDataTags.includes(identifier) ?? false;
   }
 
-  onTogglePopupTag(name: string, event: Event): void {
+  onTogglePopupTag(identifier: string, event: Event): void {
     const char = this.character;
     if (!char) return;
     const checked = (event.target as HTMLInputElement).checked;
     const tags = [...char.overViewDataTags];
     if (checked) {
-      if (!tags.includes(name)) tags.push(name);
+      if (!tags.includes(identifier)) tags.push(identifier);
     } else {
-      const idx = tags.indexOf(name);
+      const idx = tags.indexOf(identifier);
       if (idx >= 0) tags.splice(idx, 1);
     }
     char.overViewDataTags = tags;

@@ -590,14 +590,26 @@
             }
             @if (popupElements.length > 0) {
               <div class="cs-popup-tag-list">
-                @for (elm of popupElements; track elm.name) {
-                  <label class="cs-flag-label cs-popup-tag-item" [style.padding-left.em]="elm.depth * 0.75 + 0.25">
-                    <input
-                      type="checkbox"
-                      [checked]="isInPopupTags(elm.name)"
-                      (change)="onTogglePopupTag(elm.name, $event)"
-                    />{{ elm.name }}
-                  </label>
+                @for (elm of popupElements; track elm.identifier) {
+                  @if (elm.isSection) {
+                    <div class="cs-popup-section-row" [style.padding-left.em]="elm.depth * 1 + 0.25">
+                      <label class="cs-flag-label cs-popup-section-label">
+                        <input
+                          type="checkbox"
+                          [checked]="isInPopupTags(elm.identifier)"
+                          (change)="onTogglePopupTag(elm.identifier, $event)"
+                        /><strong>{{ elm.name }}</strong>
+                      </label>
+                    </div>
+                  } @else {
+                    <label class="cs-flag-label cs-popup-leaf-row" [style.padding-left.em]="elm.depth * 1 + 0.25">
+                      <input
+                        type="checkbox"
+                        [checked]="isInPopupTags(elm.identifier)"
+                        (change)="onTogglePopupTag(elm.identifier, $event)"
+                      />{{ elm.name }}
+                    </label>
+                  }
                 }
               </div>
             }

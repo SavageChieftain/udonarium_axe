@@ -79,10 +79,8 @@ export class OverviewPanelComponent {
     if (!this.tabletopObject) return [];
     const char = this.tabletopObject instanceof GameCharacter ? this.tabletopObject : null;
     if (char && char.overViewDataTags.length > 0) {
-      const root = char.rootDataElement;
-      if (!root) return [];
       return char.overViewDataTags
-        .map((tag) => root.getFirstElementByName(tag))
+        .map((id) => this.objectStore.get<DataElement>(id))
         .filter((e): e is DataElement => e != null);
     }
     return this.getInventoryTags(this.tabletopObject).filter((e) => e != null);
