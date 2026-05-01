@@ -11,13 +11,14 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',
   templateUrl: './game-data-element.component.html',
   styleUrls: ['./game-data-element.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, LinkifyPipe, SafePipe],
+  imports: [FormsModule, LinkifyPipe, SafePipe, NgSelectComponent, NgOptionComponent],
   host: {
     '(click)': 'click($event)',
   },
@@ -284,7 +285,7 @@ export class GameDataElementComponent {
     this.editCheckedIds.add(dataElmIdentifier);
   }
 
-  onSetElementType(event: Event): void {
-    this.setElementType((event.target as HTMLInputElement).value);
+  onSetElementType(value: string): void {
+    this.setElementType(value ?? '');
   }
 }

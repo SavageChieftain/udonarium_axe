@@ -153,18 +153,19 @@
       }
       @if (isEdit() && !isImage()) {
         <div class="elm-row-actions">
-          <select
-            class="elm-type-chip"
-            (change)="onSetElementType($event)"
-            name="data-elm-type"
+          <ng-select
+            class="ud-select elm-type-select"
             [ngModel]="gameDataElement().type"
+            [clearable]="false"
+            [searchable]="false"
+            (change)="onSetElementType($event)"
           >
-            <option value="">通常</option>
-            <option value="numberResource">リソース</option>
-            <option value="note">ノート</option>
-            <option value="markdown">チェック/表</option>
-            <option value="check">単一チェック</option>
-          </select>
+            <ng-option value="">通常</ng-option>
+            <ng-option value="numberResource">リソース</ng-option>
+            <ng-option value="note">ノート</ng-option>
+            <ng-option value="markdown">チェック/表</ng-option>
+            <ng-option value="check">単一チェック</ng-option>
+          </ng-select>
           <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
             <i class="material-icons">add</i>
           </button>

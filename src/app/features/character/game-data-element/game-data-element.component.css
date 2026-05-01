@@ -121,24 +121,17 @@
   pointer-events: auto;
 }
 
-.elm-type-chip {
-  font-size: 0.68em;
-  padding: 1px 4px;
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  background: var(--ui-elevated);
-  color: var(--ui-text);
-  cursor: pointer;
+/* ng-select の行内ミニサイズ上書き */
+.elm-type-select {
   margin-right: auto;
+  min-width: 5em;
+  font-size: 0.68em !important;
+  min-height: 22px !important;
 }
 
-.elm-type-chip:hover {
-  background: var(--ui-hover);
-}
-
-.elm-type-chip option {
-  background: var(--ui-elevated);
-  color: var(--ui-text);
+.elm-type-select .ng-select-container {
+  min-height: 22px !important;
+  height: 22px !important;
 }
 
 .elm-act-btn {
