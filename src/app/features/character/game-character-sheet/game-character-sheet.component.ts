@@ -140,12 +140,50 @@ export class GameCharacterSheetComponent {
     });
   });
 
+  /**
+   * テーブル上のコマとして現在選択されている立ち絵インデックス (ICON.currentValue)
+   */
+  readonly komaImageIndex = computed(() => {
+    const char = this.character;
+    if (!char) return 0;
+    this.objectChange.versionOf(char.identifier)();
+    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+    return iconEl ? (iconEl.currentValue as number) : 0;
+  });
+
+  /**
+   * チャット立ち絵スロット (POS.currentValue, 0-11)
+   */
+  readonly portraitPosIndex = computed(() => {
+    const char = this.character;
+    if (!char) return 0;
+    this.objectChange.versionOf(char.identifier)();
+    const posEl = char.detailDataElement?.getFirstElementByName('POS');
+    return posEl ? (posEl.currentValue as number) : 0;
+  });
+
   readonly komaImageFile = computed(() => {
     this.objectChange.fileVersion();
     const char = this.character;
-    if (!char) return ImageFile.Empty;
+    if (!char?.imageDataElement) return ImageFile.Empty;
     this.objectChange.versionOf(char.identifier)();
-    return char.imageFile;
+    const idx = this.komaImageIndex();
+    const images = char.imageDataElement.children;
+    if (images.length === 0) return ImageFile.Empty;
+    const target = images[Math.min(idx, images.length - 1)];
+    return this.imageStorage.get(target.value as string) ?? ImageFile.Empty;
+  });
+
+  /**
+   * detailDataElement の子要素から 立ち絵位置・コマ画像 を除いたもの
+   * (これらは専用UIで扱うため生スライダー表示から除外)
+   */
+  readonly detailElements = computed(() => {
+    const char = this.character;
+    if (!char?.detailDataElement) return [];
+    this.objectChange.versionOf(char.identifier)();
+    const HIDDEN = new Set(['\u7acb\u3061\u7d75\u4f4d\u7f6e', '\u30b3\u30de\u753b\u50cf']);
+    return char.detailDataElement.children.filter((el) => !HIDDEN.has(el.name));
   });
 
   networkService = Network;
@@ -231,6 +269,20 @@ export class GameCharacterSheetComponent {
     //処理なし
   }
 
+  /** コマとして使う立ち絵インデックスを切り替える */
+  setKomaIndex(index: number) {
+    const char = this.character;
+    if (!char?.imageDataElement) return;
+    char.addExtendData();
+    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+    if (!iconEl) return;
+    const max = char.imageDataElement.children.length - 1;
+    iconEl.currentValue = Math.max(0, Math.min(index, max));
+    iconEl.value = max;
+    char.update();
+  }
+
+  /** コマ画像の実ファイルを変更（現在のICONインデックスが指す立ち絵を差し替え）*/
   openKomaImageModal() {
     const char = this.character;
     if (!char?.imageDataElement) return;
@@ -238,8 +290,7 @@ export class GameCharacterSheetComponent {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((value) => {
       if (!value || !char.imageDataElement) return;
       const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
-      if (!iconEl) return;
-      const idx = iconEl.currentValue as number;
+      const idx = iconEl ? (iconEl.currentValue as number) : 0;
       const images = char.imageDataElement.children;
       if (idx >= 0 && idx < images.length) {
         images[idx].value = value;
@@ -250,12 +301,30 @@ export class GameCharacterSheetComponent {
     });
   }
 
+  /** チャット立ち絵スロット (0-11) を設定 */
+  setPortraitPos(pos: number) {
+    const char = this.character;
+    if (!char) return;
+    char.addExtendData();
+    const posEl = char.detailDataElement?.getFirstElementByName('POS');
+    if (!posEl) return;
+    posEl.currentValue = Math.max(0, Math.min(11, Math.round(pos)));
+    char.update();
+  }
+
+  onSetPortraitPos(event: Event): void {
+    this.setPortraitPos((event.target as HTMLInputElement).valueAsNumber);
+  }
+
   addPortrait() {
     const char = this.character;
     if (!char?.imageDataElement) return;
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((value) => {
       if (!value) return;
       char.imageDataElement!.appendChild(DataElement.create('imageIdentifier', value, { type: 'image' }, ''));
+      // ICON.value (max) を同期
+      const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+      if (iconEl) iconEl.value = char.imageDataElement!.children.length - 1;
       char.update();
     });
   }
@@ -288,6 +357,8 @@ export class GameCharacterSheetComponent {
       } else if (komaIdx > index) {
         iconEl.currentValue = (komaIdx as number) - 1;
       }
+      // 削除後の最大値に合わせる
+      iconEl.value = images.length - 2;
     }
     char.imageDataElement.removeChild(el);
     char.update();

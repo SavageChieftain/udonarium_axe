@@ -269,20 +269,22 @@
         <!-- 立ち絵カラム -->
         <div class="cs-portraits-col">
           <div class="cs-sec-title"><i class="material-icons">photo_library</i>立ち絵</div>
-          <div class="cs-portrait-main">
-            @if (portraitImages().length > 0 && portraitImages()[0].imageFile.url) {
-              <img
-                class="cs-portrait-main-img"
-                [src]="portraitImages()[0].imageFile.url | safe: 'resourceUrl'"
-                alt="portrait"
-              />
+          <div class="cs-portrait-main" title="現在のコマ画像">
+            @if (komaImageFile().url) {
+              <img class="cs-portrait-main-img" [src]="komaImageFile().url | safe: 'resourceUrl'" alt="コマ画像" />
             } @else {
               <div class="cs-portrait-placeholder"><i class="material-icons">person</i></div>
             }
+            <div class="cs-portrait-main-badge"><i class="material-icons">person_pin</i>コマ</div>
           </div>
           <div class="cs-portrait-strip">
             @for (portrait of portraitImages(); track portrait.index) {
-              <div class="cs-portrait-thumb">
+              <div
+                class="cs-portrait-thumb"
+                [class.cs-portrait-thumb--koma]="portrait.index === komaImageIndex()"
+                (click)="setKomaIndex(portrait.index)"
+                [title]="portrait.index === komaImageIndex() ? '現在のコマ画像' : 'コマ画像に設定'"
+              >
                 @if (portrait.imageFile.url) {
                   <img
                     class="cs-portrait-thumb-img"
@@ -292,8 +294,16 @@
                 } @else {
                   <div class="cs-thumb-placeholder"><i class="material-icons">image</i></div>
                 }
+                @if (portrait.index === komaImageIndex()) {
+                  <div class="cs-koma-badge"><i class="material-icons">person_pin</i></div>
+                }
                 <div class="cs-portrait-thumb-overlay">
-                  <button class="cs-icon-btn" type="button" title="変更" (click)="changePortrait(portrait.index)">
+                  <button
+                    class="cs-icon-btn"
+                    type="button"
+                    title="画像変更"
+                    (click)="changePortrait(portrait.index); $event.stopPropagation()"
+                  >
                     <i class="material-icons">edit</i>
                   </button>
                   @if (portraitImages().length > 1) {
@@ -301,7 +311,7 @@
                       class="cs-icon-btn cs-icon-btn--danger"
                       type="button"
                       title="削除"
-                      (click)="removePortrait(portrait.index)"
+                      (click)="removePortrait(portrait.index); $event.stopPropagation()"
                     >
                       <i class="material-icons">delete</i>
                     </button>
@@ -359,9 +369,9 @@
 
         <!-- コマ画像カラム -->
         <div class="cs-token-col">
-          <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ画像</div>
+          <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
           <div class="cs-token-row">
-            <div class="cs-token-preview" title="クリックで変更" (click)="openKomaImageModal()">
+            <div class="cs-token-preview" title="コマ画像を差し替え" (click)="openKomaImageModal()">
               @if (komaImageFile().url) {
                 <img class="cs-token-img" [src]="komaImageFile().url | safe: 'resourceUrl'" alt="コマ画像" />
               } @else {
@@ -370,15 +380,16 @@
               <div class="cs-token-edit-hint"><i class="material-icons">edit</i></div>
             </div>
             <div class="cs-token-settings">
+              <div class="cs-field-hint">立ち絵 {{ komaImageIndex() + 1 }} 枚目をコマに使用中</div>
               <button class="cs-btn cs-btn--primary" type="button" (click)="openKomaImageModal()">
-                <i class="material-icons">swap_horiz</i>変更
+                <i class="material-icons">swap_horiz</i>コマ画像を差し替え
               </button>
               <label class="cs-flag-label">
                 <input
                   type="checkbox"
                   [(ngModel)]="character.specifyKomaImageFlag"
                   (change)="clickImageFlag()"
-                />高さ指定
+                />コマ高さを指定
               </label>
               <div [class.cs-disabled]="!character.specifyKomaImageFlag">
                 <div class="cs-field-row">
@@ -403,6 +414,29 @@
               </div>
             </div>
           </div>
+          <hr class="cs-divider" />
+          <div class="cs-sec-title"><i class="material-icons">chat</i>チャット立ち絵スロット</div>
+          <div class="cs-field-row" style="gap: 8px">
+            <span class="cs-field-label" style="min-width: 2em">スロット</span>
+            <input
+              type="range"
+              min="0"
+              max="11"
+              step="1"
+              [ngModel]="portraitPosIndex()"
+              (change)="onSetPortraitPos($event)"
+            />
+            <input
+              class="cs-num-input"
+              type="number"
+              min="0"
+              max="11"
+              [ngModel]="portraitPosIndex()"
+              (change)="onSetPortraitPos($event)"
+            />
+            <span style="font-size: 0.78em; color: var(--ui-text-muted)">(0〜11)</span>
+          </div>
+          <p class="cs-hint-text">チャット画面に表示される立ち絵の位置番号</p>
           <hr class="cs-divider" />
           <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ</div>
           <div class="cs-field-row">
@@ -433,9 +467,9 @@
       </div>
 
       <!-- 詳細データ（ステータス・スキル等）-->
-      @if (tabletopObject.detailDataElement) {
+      @if (detailElements().length > 0) {
         <div class="cs-data-section">
-          @for (childElement of tabletopObject.detailDataElement.children; track childElement.identifier) {
+          @for (childElement of detailElements(); track childElement.identifier) {
             <div class="cs-data-card">
               <div class="table">
                 <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>

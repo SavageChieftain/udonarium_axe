@@ -92,7 +92,9 @@ input {
   border: 1px solid var(--ui-panel-border);
   background: var(--ui-elevated);
   color: var(--ui-text-muted);
-  transition: background var(--ui-transition), color var(--ui-transition);
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
   white-space: nowrap;
 }
 
@@ -212,6 +214,53 @@ input {
   background: var(--ui-elevated);
   cursor: pointer;
   flex-shrink: 0;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.cs-portrait-thumb--koma {
+  border-color: var(--ui-accent);
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.35);
+}
+
+.cs-koma-badge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  background: var(--ui-accent);
+  color: #fff;
+  border-radius: 2px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cs-koma-badge .material-icons {
+  font-size: 10px;
+}
+
+.cs-portrait-main-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(88, 166, 255, 0.85);
+  color: #fff;
+  border-radius: var(--ui-radius-sm);
+  padding: 1px 6px;
+  font-size: 0.7em;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cs-portrait-main-badge .material-icons {
+  font-size: 12px;
 }
 
 .cs-portrait-thumb:hover .cs-portrait-thumb-overlay {
@@ -428,7 +477,9 @@ input {
   border: 1px solid var(--ui-panel-border);
   background: var(--ui-elevated);
   color: var(--ui-text-muted);
-  transition: background var(--ui-transition), color var(--ui-transition);
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
   white-space: nowrap;
   line-height: 1.4;
 }
@@ -508,6 +559,20 @@ input {
   margin: 0;
 }
 
+.cs-hint-text {
+  font-size: 0.72em;
+  color: var(--ui-text-muted);
+  margin: 2px 0 6px;
+  padding: 0;
+  line-height: 1.4;
+}
+
+.cs-field-hint {
+  font-size: 0.75em;
+  color: var(--ui-text-muted);
+  margin-bottom: 4px;
+}
+
 /* ── データセクション（stats）── */
 .cs-data-section {
   display: flex;
@@ -532,7 +597,6 @@ input {
 .cs-add-item-row {
   padding: 4px 10px 8px;
 }
-
 
 /* ── Character Sheet Redesign ── */
 
