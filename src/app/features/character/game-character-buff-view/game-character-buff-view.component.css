@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.buff-container {
+  padding: 4px 8px 8px;
+}
+
+.buff-list {
+  margin-bottom: 8px;
+}
+
+.buff-empty {
+  color: var(--ui-text-dim);
+  font-size: 0.85em;
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
+/* --- バフ追加バー --- */
+.buff-add-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid var(--ui-panel-border);
+}
+
+.add-buff-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: var(--ui-radius-sm);
+  font-size: 0.8em;
+  cursor: pointer;
+  border: 1px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+}
+
+.add-buff-btn:hover {
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  border-color: var(--ui-accent);
+}
+
+.add-buff-btn i {
+  font-size: 0.9rem;
+}

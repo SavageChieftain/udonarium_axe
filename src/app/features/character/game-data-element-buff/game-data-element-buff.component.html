@@ -3,66 +3,54 @@
     @if (!childrenCount()) {
       @switch (gameDataElement().type) {
         @case ('numberResource') {
-          <div class="table-cell border-b-0">
-            <button (click)="deletBuff(gameDataElement())" class="w-[5em]">削除</button>
-          </div>
-          <div class="table table-cell border-b-0">
-            <div class="table-cell w-[60%]">
+          <div class="buff-row">
+            <div class="buff-name">
               @if (!isTagLocked()) {
-                <!-- NAME -->
-                <div class="hidden-spacer font-[Cambria,Georgia] text-[0.9rem]">{{ name }}</div>
-                <input
-                  class="w-full min-w-[10px] font-[Cambria,Georgia] text-[0.9rem]"
-                  size="1"
-                  name="data-elm-name"
-                  name="data-elm-name"
-                  [(ngModel)]="name"
-                  placeholder="Value"
-                />
+                <div class="hidden-spacer">{{ name }}</div>
+                <input class="name-input" name="data-elm-name" [(ngModel)]="name" placeholder="バフ名" />
+              } @else {
+                <span class="name-locked">{{ name }}</span>
               }
             </div>
-            <div class="table-cell w-0">/</div>
-            <div class="table-cell w-[30%]">
-              <input class="w-full" [(ngModel)]="currentValue" placeholder="Value" />
+            <div class="buff-values">
+              <input class="val-input" [(ngModel)]="currentValue" placeholder="現在値" />
+              <span class="sep">/</span>
+              <input class="val-input-sm" [(ngModel)]="value" placeholder="最大" />
+              <span class="unit">R</span>
             </div>
-            <div class="table-cell w-0">/</div>
-            <div class="table-cell">
-              <input class="w-[3em]" [(ngModel)]="value" placeholder="Value" />
-            </div>
-            <div class="table-cell">R</div>
+            @if (!isTagLocked()) {
+              <button class="delete-btn" (click)="deletBuff(gameDataElement())" title="バフを削除">
+                <i class="material-icons">delete_outline</i>
+              </button>
+            }
           </div>
         }
         @default {
-          <div class="table w-full">
-            <div class="table-cell_inner-table-title">
-              @if (!isTagLocked()) {
-                <div class="inputLock">{{ gameDataElement().name }}</div>
-              }
-            </div>
+          <div class="group-header">
+            @if (!isTagLocked()) {
+              <div class="group-name">{{ gameDataElement().name }}</div>
+            }
           </div>
         }
       }
     }
     @if (childrenCount()) {
-      <div class="table w-full">
-        <div class="table-cell_inner-table-title">
+      <div class="group-section">
+        <div class="group-header">
           @if (!isTagLocked()) {
-            <div class="inputLock">{{ gameDataElement().name }}</div>
+            <div class="group-name">{{ gameDataElement().name }}</div>
           }
         </div>
-        @if (childrenCount()) {
-          <div class="table">
-            @for (childElement of gameDataElement().children; track childElement.identifier) {
-              <div
-                game-data-element-buff
-                class="table-row"
-                [gameDataElement]="childElement"
-                [isEdit]="isEdit()"
-                [isTagLocked]="isTagLocked()"
-              ></div>
-            }
-          </div>
-        }
+        <div class="group-children">
+          @for (childElement of gameDataElement().children; track childElement.identifier) {
+            <div
+              game-data-element-buff
+              [gameDataElement]="childElement"
+              [isEdit]="isEdit()"
+              [isTagLocked]="isTagLocked()"
+            ></div>
+          }
+        </div>
       </div>
     }
   }
@@ -72,7 +60,7 @@
   @if (!childrenCount()) {
     @switch (gameDataElement().type) {
       @case ('numberResource') {
-        <span class="font-[Cambria,Georgia] text-[12px]"> {{ name }} / {{ currentValue }} / {{ value }}R </span>
+        <span class="piece-buff">{{ name }} / {{ currentValue }} / {{ value }}R</span>
       }
     }
   }
@@ -80,7 +68,6 @@
     @for (childElement of gameDataElement().children; track childElement.identifier) {
       <div
         game-data-element-buff
-        class="table-row"
         [gameDataElement]="childElement"
         [isEdit]="isEdit()"
         [isTagLocked]="isTagLocked()"
@@ -89,11 +76,3 @@
     }
   }
 }
-
-<ng-template #editButtons>
-  <button (click)="addElement()"><i class="material-icons">add_circle</i></button>
-  <button (click)="upElement()"><i class="material-icons">arrow_upward</i></button>
-  <br />
-  <button (click)="deleteElement()"><i class="material-icons">remove_circle_outline</i></button>
-  <button (click)="downElement()"><i class="material-icons">arrow_downward</i></button>
-</ng-template>

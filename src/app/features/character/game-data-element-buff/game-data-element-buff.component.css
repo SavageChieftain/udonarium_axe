@@ -1,55 +1,16 @@
-.game-data-element {
-  margin-left: 10px;
+/* --- バフ行 --- */
+.buff-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--ui-panel-border);
 }
 
-.table {
-  display: table;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.table-row {
-  padding-top: 10px;
-  display: table-row;
-  box-sizing: border-box;
-}
-
-.table-cell-2 {
-  display: table-cell;
-  vertical-align: middle;
-  padding: 0em 0em 0em 0em;
-}
-
-.table-cell {
-  display: table-cell;
-  vertical-align: bottom;
-  padding: 0.5em 0em 0.1em 0.5em;
-  border-bottom: 1px dotted #888;
-  box-sizing: border-box;
-}
-
-.table-cell_solid {
-  width: 10px;
-  white-space: nowrap;
-}
-
-.table-cell_inner-table {
-  display: table-cell;
-  vertical-align: bottom;
-  padding: 0.2em 0em 0.1em 0.5em;
-  border: none;
-  box-sizing: border-box;
-}
-
-.table-cell_inner-table-title {
-  border-bottom: 1px solid #444;
-  border-left: 8px solid #444;
-  padding-left: 8px;
-}
-
-.box {
-  display: inline-block;
-  margin: 10px;
+.buff-name {
+  min-width: 0;
+  position: relative;
 }
 
 .hidden-spacer {
@@ -59,60 +20,138 @@
   overflow: hidden;
   padding: 0 3px;
   box-sizing: border-box;
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
 }
 
-input,
-textarea,
-select {
-  background: none;
-  border: none;
-  border-radius: 2px;
-  outline: none;
-
-  color: #444;
-  font-family: Cambria, Georgia;
-  font-size: 1em;
-  padding: 2px;
-  box-sizing: border-box;
-}
-
-.inputLock {
-  background: none;
-  border: none;
-  border-radius: 2px;
-  outline: none;
-
-  color: #444;
-  font-family: Cambria, Georgia;
-  font-size: 1em;
-  padding: 2px;
-  box-sizing: border-box;
+.name-input {
   width: 100%;
-  min-width: 10px;
-  font-weight: bold;
+  min-width: 0;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+  box-sizing: border-box;
 }
 
-input:hover,
-textarea:hover,
-select:hover {
-  background: #eee;
+.name-locked {
+  display: block;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-  background: #fff;
+/* --- 値エリア --- */
+.buff-values {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
 }
 
-button i {
+.val-input {
+  width: 5em;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.val-input-sm {
+  width: 3em;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.sep,
+.unit {
+  color: var(--ui-text-dim);
+  font-size: 0.8em;
+  user-select: none;
+}
+
+/* hover / focus */
+.name-input:hover,
+.val-input:hover,
+.val-input-sm:hover {
+  background: var(--ui-hover);
+}
+
+.name-input:focus,
+.val-input:focus,
+.val-input-sm:focus {
+  background: var(--ui-input-bg);
+}
+
+/* --- 削除ボタン --- */
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: var(--ui-radius-sm);
+  border: none;
+  background: none;
+  color: var(--ui-text-dim);
+  cursor: pointer;
+  opacity: 0.45;
+  transition:
+    opacity var(--ui-transition),
+    color var(--ui-transition),
+    background var(--ui-transition);
+}
+
+.delete-btn i {
   font-size: 1rem;
 }
 
-button:hover {
-  background: #444;
-  color: #ccc;
+.delete-btn:hover {
+  opacity: 1;
+  color: #e05252;
+  background: color-mix(in srgb, #e05252 12%, transparent);
 }
 
-.table-cell button {
-  font-size: 0.5rem;
+/* --- グループヘッダー --- */
+.group-header {
+  border-left: 3px solid var(--ui-accent);
+  padding-left: 8px;
+  margin: 6px 0 2px;
+}
+
+.group-name {
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  font-weight: bold;
+  padding: 2px 0;
+}
+
+.group-children {
+  padding-left: 8px;
+}
+
+/* --- ピースモード --- */
+.piece-buff {
+  font-family: Cambria, Georgia;
+  font-size: 12px;
+  color: var(--ui-text);
 }

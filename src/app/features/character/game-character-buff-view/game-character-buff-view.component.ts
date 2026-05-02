@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
@@ -8,6 +9,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-buff-view',
   templateUrl: './game-character-buff-view.component.html',
+  styleUrls: ['./game-character-buff-view.component.css'],
   imports: [GameDataElementBuffComponent],
 })
 export class GameCharacterBuffViewComponent {
@@ -16,4 +18,15 @@ export class GameCharacterBuffViewComponent {
 
   readonly character = signal<GameCharacter | null>(null);
   readonly isEdit = signal(false);
+
+  addBuff() {
+    const char = this.character();
+    if (!char) return;
+    if (!char.buffDataElement) {
+      char.addBuffDataElement();
+    }
+    char.buffDataElement?.appendChild(
+      DataElement.create('新しいバフ', 1, { type: DataElementType.NUMBER_RESOURCE, currentValue: '0' })
+    );
+  }
 }

@@ -1,19 +1,20 @@
 @if (character()) {
-  <div class="controller">
+  <div class="buff-container">
     @if (character()!.buffDataElement) {
-      <div class="table">
+      <div class="buff-list">
         @for (childElement of character()!.buffDataElement!.children; track childElement.identifier) {
-          <div class="flex-item">
-            <div
-              class="table-row"
-              game-data-element-buff
-              [gameDataElement]="childElement"
-              [isEdit]="isEdit()"
-              [isPieceMode]="false"
-            ></div>
-          </div>
+          <div game-data-element-buff [gameDataElement]="childElement" [isEdit]="isEdit()" [isPieceMode]="false"></div>
+        }
+        @if (character()!.buffDataElement!.children.length === 0) {
+          <p class="buff-empty">バフ・デバフは登録されていません</p>
         }
       </div>
     }
+    <div class="buff-add-bar">
+      <button class="add-buff-btn" (click)="addBuff()">
+        <i class="material-icons">add</i>
+        バフを追加
+      </button>
+    </div>
   </div>
 }
