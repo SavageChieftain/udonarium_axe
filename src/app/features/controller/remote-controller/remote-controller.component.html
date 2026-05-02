@@ -1,8 +1,9 @@
 <div class="rc-layout">
   <!-- ── 左パネル ── -->
   <div class="rc-left">
-    <!-- チャットタブ -->
+    <!-- チャットタブ（発言先タブ） -->
     <div class="rc-tabbar">
+      <span class="rc-tabbar-label">発言先</span>
       <form name="remote-controller-chat-tab" class="rc-tab-form">
         @for (chatTab of chatTabsVersion(); track chatTab) {
           <label class="rc-tab-label" [class.active]="chatTabidentifier() === chatTab.identifier">

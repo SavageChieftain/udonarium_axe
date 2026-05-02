@@ -66,7 +66,7 @@ export function sendDeleteZeroRoundBuffMessage(
   portraitIndex: number,
   gameCharacters: GameCharacter[]
 ): void {
-  if (gameCharacters.length <= 0) return;
+  if (gameCharacters.length <= 0 || !chatTab) return;
   const parts: string[] = [];
   for (const object of gameCharacters) {
     object.buffs.deleteZeroRound();

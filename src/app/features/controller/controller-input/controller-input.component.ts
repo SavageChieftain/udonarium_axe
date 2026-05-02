@@ -67,6 +67,18 @@ export class ControllerInputComponent {
     this.portraitIndex.set(num);
   }
 
+  stepPortrait(dir: number): void {
+    const next = this.portraitIndex() + dir;
+    if (next < 0 || next >= this.portraitCount()) return;
+    this.setPortraitIndex(next);
+  }
+
+  get portraitLabel(): string {
+    const portrait = this.selectedPortrait();
+    if (portrait?.currentValue) return portrait.currentValue as string;
+    return `${this.portraitIndex() + 1}/${this.portraitCount()}`;
+  }
+
   get isDirect(): boolean {
     return this.sendTo() != null && this.sendTo().length > 0;
   }

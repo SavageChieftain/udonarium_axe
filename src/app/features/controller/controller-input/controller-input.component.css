@@ -76,3 +76,43 @@ div.color {
   font-size: 12px;
   vertical-align: middle;
 }
+
+.portrait-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.portrait-nav-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  color: var(--ui-text, #333);
+}
+
+.portrait-nav-btn i {
+  font-size: 14px;
+}
+
+.portrait-nav-btn:hover:not(:disabled) {
+  color: var(--ui-accent, #0078d4);
+}
+
+.portrait-nav-btn:disabled {
+  color: var(--ui-text-muted, #aaa);
+  cursor: default;
+}
+
+.portrait-nav-label {
+  min-width: 3em;
+  text-align: center;
+  font-size: 11px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

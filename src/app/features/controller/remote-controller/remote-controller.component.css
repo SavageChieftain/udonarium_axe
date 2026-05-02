@@ -49,6 +49,14 @@
   flex-shrink: 0;
 }
 
+.rc-tabbar-label {
+  font-size: 10px;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
+  padding-right: 6px;
+  flex-shrink: 0;
+}
+
 .rc-tab-form {
   display: flex;
   gap: 2px;

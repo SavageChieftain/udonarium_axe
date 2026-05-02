@@ -37,7 +37,7 @@ export class BuffManager {
   deleteZeroRound(): void {
     const container = this.container;
     if (!container) return;
-    for (const data of container.children) {
+    for (const data of [...container.children]) {
       if (parseInt(String(data.value)) <= 0) {
         data.destroy();
       }

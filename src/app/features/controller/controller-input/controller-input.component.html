@@ -51,40 +51,28 @@
 
       <!-- 立ち絵ここから-->
       <div class="portrait-tag">
-        @if (1 >= portraitCount()) {
-          <input
-            type="range"
-            [style]="
-              'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                | safe: 'style'
-            "
-            min="0"
-            max="0"
-            name="portrait-num"
-            [ngModel]="portraitIndex()"
-            (ngModelChange)="setPortraitIndex($event)"
-          />
-          0/0 立ち絵
-        }
-        @if (1 < portraitCount()) {
-          <input
-            type="range"
-            [style]="
-              'font-size: 0.8em; min-width: 1em; width:' + 10 + 'em; --min: 0; --max: ' + 0 + '; --val:' + 10 + ';'
-                | safe: 'style'
-            "
-            min="0"
-            max="{{ portraitCount() - 1 }}"
-            name="portrait-num"
-            [ngModel]="portraitIndex()"
-            (ngModelChange)="setPortraitIndex($event)"
-          />
-          {{ portraitIndex() }}/{{ portraitCount() - 1 }} 立ち絵
-          @if (selectedPortrait(); as portrait) {
-            @if (portrait.currentValue) {
-              {{ portrait.currentValue }}
-            }
-          }
+        @if (1 <= portraitCount()) {
+          <div class="portrait-nav">
+            <button
+              type="button"
+              class="portrait-nav-btn"
+              [disabled]="portraitIndex() <= 0"
+              (click)="stepPortrait(-1)"
+              aria-label="前の立ち絵"
+            >
+              <i class="material-icons">chevron_left</i>
+            </button>
+            <span class="portrait-nav-label" [title]="portraitLabel">{{ portraitLabel }}</span>
+            <button
+              type="button"
+              class="portrait-nav-btn"
+              [disabled]="portraitIndex() >= portraitCount() - 1"
+              (click)="stepPortrait(1)"
+              aria-label="次の立ち絵"
+            >
+              <i class="material-icons">chevron_right</i>
+            </button>
+          </div>
         }
       </div>
       <!-- ここまで-->
