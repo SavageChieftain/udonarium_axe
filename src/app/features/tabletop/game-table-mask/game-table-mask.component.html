@@ -6,6 +6,7 @@
       'is-scratching': isScratching && gameTableMask()!.isMine,
       'is-border': true,
     }"
+    [attr.data-version]="maskVersion()"
     [style.width.px]="pixelWidth"
     [style.height.px]="pixelHeight"
     appMovable

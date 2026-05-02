@@ -111,6 +111,14 @@ export class GameTableMaskComponent {
     this.objectChange.versionOf(mask.identifier)();
     return mask.name;
   });
+
+  /** @SyncVar 変更（scratchedGrids, scratchingGrids, owner 等）をテンプレートが確実に検知するためのバージョン Signal */
+  protected readonly maskVersion = computed<number>(() => {
+    const mask = this.gameTableMask();
+    if (!mask) return 0;
+    return this.objectChange.versionOf(mask.identifier)();
+  });
+
   get width(): number {
     const mask = this.gameTableMask();
     return this.adjustMinBounds(mask?.width ?? 0);

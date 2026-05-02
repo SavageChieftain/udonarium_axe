@@ -43,9 +43,9 @@
 
 .lock-icon,
 .draw-icon {
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   width: 25px;
   height: 25px;
 }
@@ -82,7 +82,7 @@
 .component:hover .border,
 .component:active .border,
 .is-border .border {
-  outline: 2px solid #ccc !important;
+  outline: 2px solid var(--ui-panel-border) !important;
   outline-offset: -2px;
 }
 
@@ -101,7 +101,7 @@
   font-size: 11px;
   font-weight: bolder;
   color: blanchedalmond;
-  text-shadow: #444 0px 0px 3px;
+  text-shadow: var(--ui-elevated) 0px 0px 3px;
   backface-visibility: hidden;
 }
 
@@ -123,19 +123,19 @@
   overflow-wrap: anywhere;
   word-break: break-word;
   font-size: 24px;
-  color: #444;
+  color: var(--ui-text);
   z-index: 5;
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow:
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px,
-    #fff 0px 0px 2px;
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px,
+    var(--ui-panel-bg) 0px 0px 2px;
 }
 
 .is-inverse {
@@ -171,8 +171,8 @@
 }
 
 .is-black-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .name-tag .material-icons {
