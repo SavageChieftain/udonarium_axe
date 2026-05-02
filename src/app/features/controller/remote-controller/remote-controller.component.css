@@ -354,6 +354,22 @@
   gap: 4px;
 }
 
+/* ── Sub-divider (section内の小見出し区切り) ── */
+.rc-sub-divider {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px 3px;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ui-text-dim);
+  border-top: 1px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  user-select: none;
+}
+
 .rc-round-op-row {
   display: flex;
   align-items: center;

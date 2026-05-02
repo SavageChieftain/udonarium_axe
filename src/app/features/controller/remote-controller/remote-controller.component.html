@@ -102,6 +102,7 @@
           </div>
 
           <!-- ラウンド操作 -->
+          <div class="rc-sub-divider">ラウンド管理</div>
           <div class="rc-round-ops">
             <div class="rc-round-op-row">
               <span class="rc-round-op-label">R 減少</span>
@@ -118,11 +119,11 @@
       }
     </div>
 
-    <!-- ◆ ステータス変更セクション（collapsible） -->
+    <!-- ◆ リソース操作セクション（collapsible） -->
     <div class="rc-section">
       <button class="rc-section-header" type="button" (click)="counterSectionOpen.set(!counterSectionOpen())">
         <i class="material-icons rc-section-chevron">{{ counterSectionOpen() ? 'expand_more' : 'chevron_right' }}</i>
-        <span class="rc-section-title">ステータス変更</span>
+        <span class="rc-section-title">リソース操作</span>
       </button>
       @if (counterSectionOpen()) {
         <div class="rc-section-body">
@@ -130,32 +131,7 @@
             <div class="rc-error">{{ errorMessageController }}</div>
           }
 
-          <!-- 変更量 + 操作 -->
-          <div class="rc-counter-row">
-            <span class="rc-field-label">変更量</span>
-            <input
-              class="rc-num-input"
-              size="1"
-              type="number"
-              name="remote-number"
-              [(ngModel)]="remoteNumber"
-              placeholder="0"
-            />
-            <button class="mm-btn" (click)="reverseValue()" title="符号を反転">±</button>
-            <button class="mm-btn mm-btn--primary" (click)="remoteChangeValue()">操作</button>
-          </div>
-
-          <!-- 制限チェック -->
-          <div class="rc-counter-limits">
-            <label class="rc-check-label">
-              <input name="max_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlag" />最大値制限
-            </label>
-            <label class="rc-check-label">
-              <input name="min_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlagMin" />0下限制限
-            </label>
-          </div>
-
-          <!-- 操作対象タグ選択 -->
+          <!-- ① 操作対象タグ選択（先に何を変えるか選ぶ） -->
           @if (character()?.rootDataElement) {
             <div class="rc-tag-selector">
               @for (data of character()?.detailDataElement?.children ?? []; track data.identifier) {
@@ -199,6 +175,32 @@
               }
             </div>
           }
+
+          <!-- ② 変更量 + 操作 -->
+          <div class="rc-sub-divider">変更量・実行</div>
+          <div class="rc-counter-row">
+            <span class="rc-field-label">変更量</span>
+            <input
+              class="rc-num-input"
+              size="1"
+              type="number"
+              name="remote-number"
+              [(ngModel)]="remoteNumber"
+              placeholder="0"
+            />
+            <button class="mm-btn" (click)="reverseValue()" title="符号を反転">±</button>
+            <button class="mm-btn mm-btn--primary" (click)="remoteChangeValue()">操作</button>
+          </div>
+
+          <!-- ③ 制限チェック -->
+          <div class="rc-counter-limits">
+            <label class="rc-check-label">
+              <input name="max_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlag" />最大値制限
+            </label>
+            <label class="rc-check-label">
+              <input name="min_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlagMin" />0下限制限
+            </label>
+          </div>
         </div>
       }
     </div>
