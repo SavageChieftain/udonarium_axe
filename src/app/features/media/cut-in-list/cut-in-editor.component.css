@@ -43,7 +43,7 @@
   bottom: 4px;
   right: 4px;
   font-size: 18px;
-  color: #ff0000;
+  color: var(--ui-danger);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
@@ -105,8 +105,8 @@
 }
 
 .transport-btn.stop:hover {
-  border-color: #e05555;
-  color: #e05555;
+  border-color: var(--ui-danger);
+  color: var(--ui-danger);
 }
 
 .transport-btn .material-icons {
@@ -281,11 +281,11 @@
 }
 
 .bgm-status.ok {
-  color: #4caf50;
+  color: var(--ui-success);
 }
 
 .bgm-status.ng {
-  color: #e05555;
+  color: var(--ui-danger);
 }
 
 /* ── YouTube terms ── */

@@ -162,8 +162,8 @@
 }
 
 .elm-act-btn--danger:hover {
-  background: rgba(200, 50, 50, 0.15);
-  color: #e06060;
+  background: var(--ui-danger-bg);
+  color: var(--ui-danger);
 }
 
 .elm-act-btn .material-icons {
@@ -474,8 +474,8 @@ button i {
 }
 
 button:hover {
-  background: #444;
-  color: #ccc;
+  background: var(--ui-hover);
+  color: var(--ui-text);
 }
 
 .table-cell button {

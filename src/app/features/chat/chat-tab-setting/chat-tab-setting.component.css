@@ -298,10 +298,10 @@
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  border: 1px solid #c0392b66;
+  border: 1px solid color-mix(in srgb, var(--ui-danger) 40%, transparent);
   border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: #e74c3c;
+  color: var(--ui-danger);
   font-size: 12px;
   cursor: pointer;
   transition:
@@ -311,8 +311,8 @@
 }
 
 .danger-btn:hover:not(:disabled) {
-  background: #c0392b22;
-  border-color: #e74c3c;
+  background: var(--ui-danger-bg);
+  border-color: var(--ui-danger);
 }
 
 .danger-btn:disabled {

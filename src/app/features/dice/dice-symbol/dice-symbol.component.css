@@ -84,7 +84,7 @@
 }
 
 .is-gray-border {
-  border-color: #999;
+  border-color: var(--ui-panel-border);
 }
 
 .pedestal-outer {
@@ -174,8 +174,8 @@
 }
 
 .is-black-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .fornt-tag {
@@ -210,9 +210,9 @@
   cursor: default;
   z-index: 1;
   padding: 2px;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: 8px;
 }
 
@@ -231,7 +231,7 @@
   right: 0;
   bottom: 0;
   margin: auto;
-  color: #444;
+  color: var(--ui-text-muted);
 }
 
 .of-back {
@@ -241,7 +241,7 @@
   left: 0;
   right: 0;
   margin: auto;
-  color: #444;
+  color: var(--ui-text-muted);
 }
 
 .rotate-grab {

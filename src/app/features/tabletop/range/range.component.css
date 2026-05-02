@@ -33,9 +33,9 @@
 }
 
 .lock-icon {
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   width: 25px;
   height: 25px;
 }
@@ -51,7 +51,7 @@
 
 .border {
   box-sizing: border-box;
-  border: solid 2px #cccccc;
+  border: solid 2px var(--ui-panel-border);
 }
 
 .is-fit-full {
@@ -69,10 +69,10 @@
   cursor: default;
 
   box-sizing: border-box;
-  border-top: solid 7px #ccc;
-  border-left: solid 7px #ccc;
-  border-right: solid 7px #ccc;
-  border-bottom: solid 7px #ccc;
+  border-top: solid 7px var(--ui-panel-border);
+  border-left: solid 7px var(--ui-panel-border);
+  border-right: solid 7px var(--ui-panel-border);
+  border-bottom: solid 7px var(--ui-panel-border);
   border-radius: 14px;
 }
 
@@ -86,10 +86,10 @@
   cursor: default;
 
   box-sizing: border-box;
-  border-top: solid 7px #ccc;
-  border-left: solid 7px #ccc;
-  border-right: solid 7px #ccc;
-  border-bottom: solid 7px #ccc;
+  border-top: solid 7px var(--ui-panel-border);
+  border-left: solid 7px var(--ui-panel-border);
+  border-right: solid 7px var(--ui-panel-border);
+  border-bottom: solid 7px var(--ui-panel-border);
   border-radius: 14px;
 }
 
@@ -108,15 +108,15 @@
   width: 30px;
   height: 30px;
   box-sizing: border-box;
-  border: solid 2px #cccccc;
+  border: solid 2px var(--ui-panel-border);
   cursor: -moz-default;
   cursor: -webkit-default;
   cursor: default;
   z-index: 1;
   padding: 0;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: 24px;
   transform-style: preserve-3d;
   transform: translateZ(0.1px);
@@ -195,8 +195,8 @@
 .elevation-indicator,
 .altitude-indicator {
   padding-left: 2px;
-  color: black;
-  text-shadow: whitesmoke 0px 0px 3px;
+  color: var(--ui-text);
+  text-shadow: var(--ui-panel-bg) 0px 0px 3px;
   backface-visibility: hidden;
 }
 

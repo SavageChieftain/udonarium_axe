@@ -64,9 +64,9 @@
 
 .is-bg-color {
   box-sizing: border-box;
-  color: #444;
-  background-color: rgba(240, 218, 189, 0.9);
-  border: solid 1px #999;
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
+  border: solid 1px var(--ui-panel-border);
 }
 
 .title {
@@ -80,14 +80,14 @@
 }
 
 .is-black-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .lock-icon {
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   width: 25px;
   height: 25px;
 }
@@ -111,7 +111,7 @@
   border-radius: 0px;
   outline: none;
 
-  color: #444;
+  color: var(--ui-text);
   font-family: Cambria, Georgia;
   font-size: 1rem;
   padding: 2px;
@@ -125,26 +125,26 @@
 }
 
 .textarea:focus {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--ui-surface);
 }
 
 .is-black-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .is-outline-text {
   font-size: 24px;
-  color: #444;
+  color: var(--ui-text);
   text-shadow:
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px,
-    #f2f2f2 0px 0px 0.5px;
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px,
+    var(--ui-panel-bg) 0px 0px 0.5px;
 }
 
 .lock-icon-mark {
@@ -155,9 +155,9 @@
   z-index: 1;
   text-align: center;
   padding: 2px;
-  background-color: rgba(30, 30, 30, 0.8);
+  background-color: var(--ui-panel-bg);
   border-radius: 28px;
-  color: #ccc;
+  color: var(--ui-text);
   font-size: 8px;
 }
 
@@ -172,9 +172,9 @@
   z-index: 1;
   text-align: center;
   padding: 2px;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 28px;
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: 8px;
 }
 
@@ -219,7 +219,7 @@
   font-size: 11px;
   font-weight: bolder;
   color: blanchedalmond;
-  text-shadow: #444 0px 0px 3px;
+  text-shadow: var(--ui-elevated) 0px 0px 3px;
   backface-visibility: hidden;
 }
 

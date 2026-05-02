@@ -110,7 +110,7 @@
 
 .vw-peer-card.is-absent {
   opacity: 0.6;
-  border-left-color: #e05c5c;
+  border-left-color: var(--ui-danger);
 }
 
 .vw-peer-avatar,
@@ -189,6 +189,6 @@
 }
 
 .vw-peer-status.status-absent {
-  background: rgba(224, 92, 92, 0.12);
-  color: #e05c5c;
+  background: var(--ui-danger-bg);
+  color: var(--ui-danger);
 }

@@ -101,9 +101,9 @@
 }
 
 .transport-stop:hover {
-  background: rgba(248, 81, 73, 0.15);
-  border-color: #f85149;
-  color: #f85149;
+  background: var(--ui-danger-bg);
+  border-color: var(--ui-danger);
+  color: var(--ui-danger);
   box-shadow: none;
 }
 
@@ -254,7 +254,7 @@
 }
 
 .track-row.is-auditioning {
-  background: rgba(88, 166, 255, 0.05);
+  background: var(--ui-accent-bg);
   border-left: 3px solid var(--ui-text-dim);
   padding-left: 7px;
 }

@@ -108,9 +108,9 @@
 }
 
 .cs-select {
-  background: rgba(240, 218, 189, 0.9);
-  color: #444;
-  border: 1px solid rgba(200, 160, 100, 0.6);
+  background: var(--ui-panel-bg);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-panel-border);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 0.9em;
@@ -122,22 +122,22 @@
   gap: 4px;
   margin-left: 10px;
   font-size: 0.9em;
-  color: #ccc;
+  color: var(--ui-text);
   cursor: pointer;
 }
 
 .cs-checkbox-label input[type='checkbox'] {
   cursor: pointer;
-  accent-color: #c8a064;
+  accent-color: var(--ui-accent);
 }
 
 /* Section card */
 .cs-section {
-  background: rgba(240, 218, 189, 0.85);
+  background: var(--ui-elevated);
   border-radius: 6px;
   padding: 8px 10px;
   margin: 4px 0;
-  color: #444;
+  color: var(--ui-text);
   box-sizing: border-box;
 }
 
@@ -159,12 +159,12 @@
   gap: 4px;
   font-weight: bold;
   font-size: 0.95em;
-  color: #555;
+  color: var(--ui-text);
 }
 
 .cs-section__title .material-icons {
   font-size: 1.1em;
-  color: #a07840;
+  color: var(--ui-accent);
 }
 
 .cs-section__actions {
@@ -186,8 +186,8 @@
   height: 80px;
   border-radius: 4px;
   overflow: hidden;
-  border: 2px solid rgba(200, 160, 100, 0.5);
-  background: rgba(180, 140, 90, 0.2);
+  border: 2px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
   cursor: default;
 }
 
@@ -208,7 +208,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(180, 140, 90, 0.6);
+  color: var(--ui-text-dim);
 }
 
 .cs-portrait-empty .material-icons {
@@ -246,7 +246,7 @@
 .cs-koma__header {
   font-weight: bold;
   font-size: 0.9em;
-  color: #666;
+  color: var(--ui-text-muted);
 }
 
 .cs-koma__preview {
@@ -254,8 +254,8 @@
   height: 80px;
   border-radius: 4px;
   overflow: hidden;
-  border: 2px solid rgba(200, 160, 100, 0.5);
-  background: rgba(180, 140, 90, 0.2);
+  border: 2px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,7 +269,7 @@
 }
 
 .cs-koma__placeholder {
-  color: rgba(180, 140, 90, 0.6);
+  color: var(--ui-text-dim);
 }
 
 .cs-koma__placeholder .material-icons {
@@ -300,7 +300,7 @@
 .cs-subsection__title {
   font-weight: bold;
   font-size: 0.9em;
-  color: #666;
+  color: var(--ui-text-muted);
   margin-bottom: 4px;
 }
 
@@ -313,7 +313,7 @@
 
 .cs-label {
   min-width: 4em;
-  color: #555;
+  color: var(--ui-text-muted);
   font-size: 0.9em;
 }
 
@@ -336,22 +336,22 @@
 }
 
 .cs-btn--ghost {
-  background: rgba(200, 160, 100, 0.2);
-  color: #555;
-  border: 1px solid rgba(200, 160, 100, 0.5);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  border: 1px solid var(--ui-panel-border);
 }
 
 .cs-btn--ghost:hover {
-  background: rgba(200, 160, 100, 0.35);
+  background: var(--ui-hover);
 }
 
 .cs-btn--primary {
-  background: rgba(180, 120, 40, 0.75);
+  background: var(--ui-accent);
   color: #fff;
 }
 
 .cs-btn--primary:hover {
-  background: rgba(180, 120, 40, 0.9);
+  background: var(--ui-accent-hover);
 }
 
 .cs-btn--icon {
@@ -366,19 +366,19 @@
 }
 
 .cs-btn--danger {
-  background: rgba(200, 60, 40, 0.7);
+  background: color-mix(in srgb, var(--ui-danger) 70%, transparent);
 }
 
 .cs-btn--danger:hover {
-  background: rgba(200, 60, 40, 0.9);
+  background: color-mix(in srgb, var(--ui-danger) 90%, transparent);
 }
 
 /* Inputs */
 .cs-input--number {
   width: 5em;
-  color: #555;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(200, 160, 100, 0.5);
+  color: var(--ui-text);
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-panel-border);
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 0.9em;
@@ -515,7 +515,7 @@
   font-size: 14px;
 }
 .cs-migrate-btn:hover {
-  background: rgba(56, 189, 248, 0.12);
+  background: var(--ui-accent-bg);
 }
 
 .cs-popup-hint {

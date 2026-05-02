@@ -1,8 +1,8 @@
 .edit-info {
   width: 100%;
   text-align: center;
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .palette {
@@ -18,9 +18,9 @@
   align-items: center;
   gap: 4px;
   padding: 2px 4px;
-  background: rgba(28, 28, 28, 0.9);
-  border-top: 1px solid #383838;
-  border-bottom: 1px solid #383838;
+  background: var(--ui-panel-bg);
+  border-top: 1px solid var(--ui-panel-border);
+  border-bottom: 1px solid var(--ui-panel-border);
 }
 
 .toolbar-btn {
@@ -30,21 +30,21 @@
   padding: 2px 7px;
   font-size: 0.78em;
   background: transparent;
-  border: 1px solid #555;
+  border: 1px solid var(--ui-panel-border);
   border-radius: 4px;
-  color: #aaa;
+  color: var(--ui-text-muted);
   cursor: pointer;
   user-select: none;
   line-height: 1.5;
 }
 .toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #eee;
+  background: var(--ui-hover);
+  color: var(--ui-text);
 }
 .toolbar-btn--active {
-  background: rgba(60, 80, 140, 0.5);
-  border-color: #7799cc;
-  color: #aaccff;
+  background: var(--ui-accent-bg);
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
 }
 
 .toolbar-spacer {
@@ -56,11 +56,11 @@
   align-items: center;
   gap: 2px;
   font-size: 0.72em;
-  color: #88bbff;
+  color: var(--ui-accent);
   padding: 1px 7px;
   border-radius: 10px;
-  border: 1px solid #446688;
-  background: rgba(30, 50, 90, 0.6);
+  border: 1px solid var(--ui-accent);
+  background: var(--ui-accent-bg);
   user-select: none;
 }
 
@@ -83,23 +83,23 @@
 }
 
 .palette-row--command {
-  color: #e0e0e0;
+  color: var(--ui-text);
   cursor: pointer;
 }
 .palette-row--command:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--ui-hover);
 }
 .palette-row--selected {
-  background: rgba(90, 130, 190, 0.3) !important;
+  background: var(--ui-accent-bg) !important;
 }
 
 .palette-row--heading {
-  color: #88bbff;
+  color: var(--ui-accent);
   font-size: 0.8em;
   font-weight: bold;
   padding: 5px 8px 2px;
-  background: rgba(30, 50, 90, 0.4);
-  border-top: 1px solid #2a3a5a;
+  background: var(--ui-elevated);
+  border-top: 1px solid var(--ui-panel-border);
   cursor: default;
   user-select: none;
 }
@@ -113,7 +113,7 @@
 }
 
 .palette-row--variable {
-  color: #666;
+  color: var(--ui-text-dim);
   font-size: 0.78em;
   font-style: italic;
   cursor: default;
@@ -131,9 +131,9 @@
 .palette-hint {
   padding: 2px 6px;
   font-size: 0.68em;
-  color: #555;
+  color: var(--ui-text-dim);
   text-align: center;
-  border-top: 1px solid #2e2e2e;
+  border-top: 1px solid var(--ui-panel-border);
   user-select: none;
 }
 
@@ -163,8 +163,8 @@
   outline: 0;
   font-size: 8px;
   background-color: transparent;
-  color: #444;
-  border: solid 1px #555;
+  color: var(--ui-text-muted);
+  border: solid 1px var(--ui-panel-border);
   padding: 2px 8px;
   margin: 2px;
   border-radius: 100px;
@@ -172,14 +172,14 @@
 }
 
 .chat-tab input[type='radio'] + div:hover {
-  background-color: #888;
-  color: #eee;
-  border: solid 1px #555;
+  background-color: var(--ui-hover);
+  color: var(--ui-text);
+  border: solid 1px var(--ui-panel-border);
 }
 
 .chat-tab input[type='radio']:checked + div {
-  background: #555;
-  color: #ccc;
+  background: var(--ui-elevated);
+  color: var(--ui-text);
 }
 
 .badge {

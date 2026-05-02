@@ -299,12 +299,12 @@
 
 .mm-btn.danger {
   background: transparent;
-  border-color: #e05c5c;
-  color: #e05c5c;
+  border-color: var(--ui-danger);
+  color: var(--ui-danger);
 }
 
 .mm-btn.danger:hover {
-  background: #e05c5c;
+  background: var(--ui-danger);
   color: #fff;
 }
 
@@ -475,8 +475,8 @@
   gap: 4px;
   padding: 5px 12px;
   background: transparent;
-  color: #e05555;
-  border: 1px solid #e05555;
+  color: var(--ui-danger);
+  border: 1px solid var(--ui-danger);
   border-radius: var(--ui-radius-sm);
   font-size: 12px;
   font-weight: 600;
@@ -485,7 +485,7 @@
 }
 
 .danger-btn:hover {
-  background: rgba(224, 85, 85, 0.12);
+  background: var(--ui-danger-bg);
 }
 
 .danger-btn:disabled {

@@ -17,8 +17,8 @@
 .modal-background {
   box-sizing: border-box;
   position: absolute;
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.3);
+  color: var(--ui-text);
+  background-color: rgba(0, 0, 0, 0.3);
   top: 0;
   bottom: 0;
   left: 0;
@@ -30,9 +30,9 @@
   box-sizing: border-box;
   overflow: hidden;
 
-  color: #444;
-  background: linear-gradient(-30deg, rgba(240, 218, 189, 0.9), rgba(255, 244, 232, 0.9));
-  border: solid 1px #999;
+  color: var(--ui-text);
+  background: var(--ui-panel-bg);
+  border: solid 1px var(--ui-panel-border);
 
   height: auto;
   max-height: calc(100% - 10px);
@@ -49,8 +49,8 @@
   height: 25px;
   padding: 2px 5px;
   width: 100%;
-  background-color: #ccc;
-  color: #444;
+  background-color: var(--ui-elevated);
+  color: var(--ui-text);
 }
 
 .title-button {
@@ -64,7 +64,7 @@
   border: none;
   border-radius: 0;
   outline: none;
-  color: #444;
+  color: var(--ui-text);
 }
 
 .header,

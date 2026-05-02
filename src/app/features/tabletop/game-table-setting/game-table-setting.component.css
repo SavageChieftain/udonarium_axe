@@ -393,7 +393,7 @@
   border: none;
   border-radius: var(--ui-radius-sm);
   background: var(--ui-accent);
-  color: #0d1117;
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;

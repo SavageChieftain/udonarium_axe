@@ -124,10 +124,10 @@
   cursor: default;
 
   box-sizing: border-box;
-  border-top: solid 7px #ccc;
-  border-left: solid 7px #ccc;
-  border-right: solid 7px #ccc;
-  border-bottom: solid 7px #ccc;
+  border-top: solid 7px var(--ui-panel-border);
+  border-left: solid 7px var(--ui-panel-border);
+  border-right: solid 7px var(--ui-panel-border);
+  border-bottom: solid 7px var(--ui-panel-border);
   border-radius: 14px;
 }
 
@@ -141,15 +141,15 @@
   width: 28px;
   height: 28px;
   box-sizing: border-box;
-  border: solid 2px #cccccc;
+  border: solid 2px var(--ui-panel-border);
   cursor: -moz-default;
   cursor: -webkit-default;
   cursor: default;
   z-index: 1;
   padding: 0;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: 8px;
 
   transform-style: preserve-3d;
@@ -202,10 +202,10 @@
   right: 0;
   bottom: 0;
   box-sizing: border-box;
-  border-top: solid 7px #ccc;
-  border-left: solid 7px #ccc;
-  border-right: solid 7px #ccc;
-  border-bottom: solid 7px #ccc;
+  border-top: solid 7px var(--ui-panel-border);
+  border-left: solid 7px var(--ui-panel-border);
+  border-right: solid 7px var(--ui-panel-border);
+  border-bottom: solid 7px var(--ui-panel-border);
   border-radius: 50%;
   transform-style: preserve-3d;
 }
@@ -216,7 +216,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 28px;
-  color: #aaa;
+  color: var(--ui-text-muted);
   backface-visibility: hidden;
 }
 
@@ -249,7 +249,7 @@
   font-size: 11px;
   font-weight: bolder;
   color: blanchedalmond;
-  text-shadow: #444 0px 0px 3px;
+  text-shadow: var(--ui-elevated) 0px 0px 3px;
   backface-visibility: hidden;
 }
 

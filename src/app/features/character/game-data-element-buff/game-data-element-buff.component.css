@@ -126,8 +126,8 @@
 
 .delete-btn:hover {
   opacity: 1;
-  color: #e05252;
-  background: color-mix(in srgb, #e05252 12%, transparent);
+  color: var(--ui-danger);
+  background: var(--ui-danger-bg);
 }
 
 /* --- グループヘッダー --- */
@@ -151,7 +151,8 @@
 
 /* --- ピースモード --- */
 .piece-buff {
-  font-family: Cambria, Georgia;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 12px;
+  -webkit-font-smoothing: antialiased;
   color: var(--ui-text);
 }

@@ -53,9 +53,9 @@
   width: 100%;
   margin-top: -5px;
   margin-left: -5px;
-  border: solid 5px #cccccc;
+  border: solid 5px var(--ui-elevated);
   border-radius: 5px;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   backface-visibility: hidden;
 }
 
@@ -77,9 +77,9 @@
   box-sizing: border-box;
   z-index: 1;
   padding: 2px;
-  background-color: #444;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #ccc;
+  color: var(--ui-text-muted);
   font-size: 8px;
   top: 5px;
 }
@@ -94,9 +94,9 @@
   cursor: default;
   z-index: 1;
   padding: 2px;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: 8px;
 }
 
@@ -161,8 +161,8 @@
 }
 
 .is-black-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .material-icons {

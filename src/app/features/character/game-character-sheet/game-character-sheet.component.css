@@ -345,7 +345,7 @@ input {
 }
 
 .cs-strip-add:hover {
-  background: rgba(88, 166, 255, 0.18);
+  background: var(--ui-accent-glow);
 }
 
 .cs-strip-add .material-icons {
@@ -572,7 +572,7 @@ input {
 }
 
 .cs-btn--primary:hover {
-  background: rgba(88, 166, 255, 0.2);
+  background: var(--ui-accent-glow);
   color: var(--ui-accent-hover);
 }
 
@@ -583,7 +583,7 @@ input {
 }
 
 .cs-btn--danger:hover {
-  background: rgba(248, 81, 73, 0.2);
+  background: var(--ui-danger-bg);
 }
 
 /* アイコンのみの小ボタン */
@@ -611,11 +611,11 @@ input {
 }
 
 .cs-icon-btn--danger {
-  background: rgba(248, 81, 73, 0.5);
+  background: color-mix(in srgb, var(--ui-danger) 50%, transparent);
 }
 
 .cs-icon-btn--danger:hover {
-  background: rgba(248, 81, 73, 0.75);
+  background: color-mix(in srgb, var(--ui-danger) 75%, transparent);
 }
 
 /* 高さ無効時 */

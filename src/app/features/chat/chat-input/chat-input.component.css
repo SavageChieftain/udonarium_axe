@@ -171,7 +171,7 @@
   font-size: 12px;
   font-weight: 600;
   background: var(--ui-accent);
-  color: #0d1117;
+  color: #fff;
   border: 1px solid var(--ui-accent);
   border-radius: 50%;
   cursor: pointer;
