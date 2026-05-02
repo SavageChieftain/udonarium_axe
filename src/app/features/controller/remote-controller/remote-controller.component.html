@@ -31,7 +31,7 @@
     </div>
 
     <!-- ◆ バフ付与セクション（collapsible） -->
-    <div class="rc-section">
+    <div class="rc-section rc-section--buff">
       <button class="rc-section-header" type="button" (click)="buffSectionOpen.set(!buffSectionOpen())">
         <i class="material-icons rc-section-chevron">{{ buffSectionOpen() ? 'expand_more' : 'chevron_right' }}</i>
         <span class="rc-section-title">バフ付与</span>
@@ -120,7 +120,7 @@
     </div>
 
     <!-- ◆ リソース操作セクション（collapsible） -->
-    <div class="rc-section">
+    <div class="rc-section rc-section--counter">
       <button class="rc-section-header" type="button" (click)="counterSectionOpen.set(!counterSectionOpen())">
         <i class="material-icons rc-section-chevron">{{ counterSectionOpen() ? 'expand_more' : 'chevron_right' }}</i>
         <span class="rc-section-title">リソース操作</span>
