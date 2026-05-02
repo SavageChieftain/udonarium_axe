@@ -4,7 +4,7 @@
   max-width: 100%;
   box-sizing: border-box;
   overflow: visible;
-  color: #444;
+  color: var(--ui-text);
   z-index: 9000;
   overscroll-behavior: contain;
 }
@@ -34,12 +34,12 @@
 }
 
 .component-background {
-  background: linear-gradient(-30deg, rgba(240, 218, 189, 0.9), rgba(255, 244, 232, 0.9));
-  border-bottom: solid 1px #999;
+  background: var(--ui-panel-bg);
+  border-bottom: solid 1px var(--ui-panel-border);
 }
 
 .component-title {
-  color: #ccc;
+  color: var(--ui-text);
   font-size: 1em;
   text-align: right;
   vertical-align: middle;
@@ -52,16 +52,16 @@
 }
 
 .title-background {
-  background-color: #555;
-  border-top: solid 1px #999;
-  border-left: solid 1px #999;
-  border-right: solid 1px #999;
+  background-color: var(--ui-elevated);
+  border-top: solid 1px var(--ui-panel-border);
+  border-left: solid 1px var(--ui-panel-border);
+  border-right: solid 1px var(--ui-panel-border);
 }
 
 .component-owner {
   font-size: 0.8em;
   padding: 10px;
-  color: #ccc;
+  color: var(--ui-text-muted);
   vertical-align: middle;
   overflow: hidden;
   text-align: right;
@@ -76,8 +76,8 @@
   margin-left: auto;
   margin-right: 0;
   overflow: hidden;
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text-muted);
+  background-color: var(--ui-elevated);
   box-sizing: border-box;
   padding: 3px 9px;
   border-radius: 6px;
@@ -92,7 +92,7 @@
   vertical-align: bottom;
   object-fit: contain;
   box-sizing: border-box;
-  background-color: rgba(204, 204, 204, 0.5);
+  background-color: var(--ui-input-bg);
 }
 
 .zoom-button {
@@ -117,8 +117,8 @@
 }
 
 .image-view-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.3);
+  color: var(--ui-text);
+  background-color: color-mix(in srgb, var(--ui-panel-bg) 80%, transparent);
   z-index: 9900;
 }
 
@@ -148,8 +148,8 @@
   box-sizing: border-box;
   overflow: hidden auto;
   line-height: 1.8;
-  border-left: solid 1px #999;
-  border-right: solid 1px #999;
+  border-left: solid 1px var(--ui-panel-border);
+  border-right: solid 1px var(--ui-panel-border);
 }
 
 .character-image-box {
@@ -212,8 +212,8 @@
   max-height: 250px;
   overflow: hidden auto;
   box-sizing: border-box;
-  border-left: solid 1px #999;
-  border-right: solid 1px #999;
+  border-left: solid 1px var(--ui-panel-border);
+  border-right: solid 1px var(--ui-panel-border);
 }
 
 .grid-container {
@@ -259,7 +259,7 @@
   border: none;
   border-radius: 2px;
   outline: none;
-  color: #444;
+  color: var(--ui-text);
   padding: 0;
   box-sizing: border-box;
   resize: none;
@@ -271,11 +271,11 @@
 }
 
 .textarea:hover {
-  background: #eee;
+  background: var(--ui-hover);
 }
 
 .textarea:focus {
-  background: #fff;
+  background: var(--ui-input-bg);
 }
 
 .textarea-url {
@@ -288,7 +288,7 @@
   border: none;
   border-radius: 2px;
   outline: none;
-  color: #444;
+  color: var(--ui-text);
   padding: 0;
   box-sizing: border-box;
   resize: none;
@@ -345,17 +345,17 @@
   border: none;
   border-radius: 2px;
   outline: none;
-  color: #444;
+  color: var(--ui-text);
   padding: 0;
   box-sizing: border-box;
 }
 
 .input:hover {
-  background: #eee;
+  background: var(--ui-hover);
 }
 
 .input:focus {
-  background: #fff;
+  background: var(--ui-input-bg);
 }
 
 input[type='number'] {
@@ -368,12 +368,12 @@ input[type='number']:focus {
 }
 
 .border {
-  border-bottom: 1px dotted #888;
+  border-bottom: 1px dotted var(--ui-panel-border);
 }
 
 .separator {
   padding: 2px 0 2px 0;
-  border-bottom: 1px solid #888;
+  border-bottom: 1px solid var(--ui-panel-border);
 }
 
 .with-button-marign {
