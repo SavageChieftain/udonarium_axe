@@ -4,6 +4,29 @@
       @if (0 < imageFile().url.length) {
         <img class="image" [src]="imageFile().url | safe: 'resourceUrl'" />
       }
+      @if (1 <= portraitCount()) {
+        <div class="portrait-nav">
+          <button
+            type="button"
+            class="portrait-nav-btn"
+            [disabled]="portraitIndex() <= 0"
+            (click)="stepPortrait(-1)"
+            aria-label="前の立ち絵"
+          >
+            <i class="material-icons">chevron_left</i>
+          </button>
+          <span class="portrait-nav-label" [title]="portraitLabel">{{ portraitLabel }}</span>
+          <button
+            type="button"
+            class="portrait-nav-btn"
+            [disabled]="portraitIndex() >= portraitCount() - 1"
+            (click)="stepPortrait(1)"
+            aria-label="次の立ち絵"
+          >
+            <i class="material-icons">chevron_right</i>
+          </button>
+        </div>
+      }
     </div>
     <div class="table-cell">
       <div class="table">
@@ -48,34 +71,6 @@
           </div>
         </div>
       </div>
-
-      <!-- 立ち絵ここから-->
-      <div class="portrait-tag">
-        @if (1 <= portraitCount()) {
-          <div class="portrait-nav">
-            <button
-              type="button"
-              class="portrait-nav-btn"
-              [disabled]="portraitIndex() <= 0"
-              (click)="stepPortrait(-1)"
-              aria-label="前の立ち絵"
-            >
-              <i class="material-icons">chevron_left</i>
-            </button>
-            <span class="portrait-nav-label" [title]="portraitLabel">{{ portraitLabel }}</span>
-            <button
-              type="button"
-              class="portrait-nav-btn"
-              [disabled]="portraitIndex() >= portraitCount() - 1"
-              (click)="stepPortrait(1)"
-              aria-label="次の立ち絵"
-            >
-              <i class="material-icons">chevron_right</i>
-            </button>
-          </div>
-        }
-      </div>
-      <!-- ここまで-->
     </div>
   </div>
 

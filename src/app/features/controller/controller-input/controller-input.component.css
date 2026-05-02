@@ -25,6 +25,7 @@ div.color {
 
 .imagebox {
   display: inline-block;
+  position: relative;
   width: 50px;
   height: 50px;
   max-width: 50px;
@@ -78,21 +79,31 @@ div.color {
 }
 
 .portrait-nav {
-  display: inline-flex;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
   align-items: center;
-  gap: 2px;
-  font-size: 11px;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 0 0 var(--ui-radius-sm, 4px) var(--ui-radius-sm, 4px);
+  height: 18px;
+  overflow: hidden;
+  padding: 0 2px;
 }
 
 .portrait-nav-btn {
   background: transparent;
   border: none;
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
   padding: 0;
   line-height: 1;
   display: flex;
   align-items: center;
-  color: var(--ui-text, #333);
+  flex-shrink: 0;
+  transition: color var(--ui-transition, 0.15s);
 }
 
 .portrait-nav-btn i {
@@ -100,19 +111,21 @@ div.color {
 }
 
 .portrait-nav-btn:hover:not(:disabled) {
-  color: var(--ui-accent, #0078d4);
+  color: #fff;
 }
 
 .portrait-nav-btn:disabled {
-  color: var(--ui-text-muted, #aaa);
+  color: rgba(255, 255, 255, 0.25);
   cursor: default;
 }
 
 .portrait-nav-label {
-  min-width: 3em;
+  flex: 1;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.9);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  min-width: 0;
 }
