@@ -8,6 +8,8 @@ import { decodeEntityReference, encodeEntityReference } from '@axe/core/util/xml
 
 @SyncObject('node')
 export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
+  /** ローカルでの子ノード追加/削除時に呼ばれるフック。object-event-extension から登録される。 */
+  static onChildrenChanged: ((node: ObjectNode) => void) | null = null;
   @SyncVar() value: number | string = '';
   @SyncVar() protected attributes: Attributes = {};
   @SyncVar() private parentIdentifier: string = '';
@@ -82,6 +84,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     for (let current = this.parent; current && current !== this; current = current.parent) {
       current.onChildAdded(child);
     }
+    ObjectNode.onChildrenChanged?.(this);
   }
 
   private _onChildRemoved(child: ObjectNode) {
@@ -89,6 +92,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     for (let current = this.parent; current && current !== this; current = current.parent) {
       current.onChildRemoved(child);
     }
+    ObjectNode.onChildrenChanged?.(this);
   }
 
   private initializeChildren() {

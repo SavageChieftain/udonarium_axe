@@ -90,90 +90,85 @@
               <!-- バフ表示 -->
               <!-- クロームver102の描画問題に対処するため構成を修正している -->
               @let buffEl = this.gameCharacter()!.buffDataElement;
-              @if (buffEl) {
+              @if (buffEl && buffNum() > 0) {
                 <div class="is-3d">
-                  @if (buffEl.children.length >= 1) {
-                    @for (child of buffEl.children; track child.identifier) {
-                      @if (buffNum() > 0) {
-                        <div
-                          class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
-                          [ngStyle]="{
-                            transform:
-                              'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY(-100%)',
-                          }"
-                        >
-                          <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
-                            <img src="./assets/images/target/target.png" />
-                          </div>
-                          <div [hidden]="foldingBuff()">
-                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
-                            <div class="!table is-3d">
-                              @for (childElement of buffEl.children; track childElement.identifier) {
-                                <div class="flex-item is-3d">
-                                  <div
-                                    class="table-row fornt-tag is-3d"
-                                    game-data-element-buff
-                                    [gameDataElement]="childElement"
-                                    [isEdit]="false"
-                                    [isPieceMode]="true"
-                                  ></div>
-                                </div>
-                              }
-                            </div>
-                          </div>
-                          <div [hidden]="!foldingBuff()">
-                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
-                            <div class="table is-3d">
-                              <div class="flex-item is-3d">
-                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum() }}個</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          class="buff-tag is-nowrap is-buff-background is-3d will-change backface-off"
-                          [ngStyle]="{
-                            transform:
-                              'translateX(-50%) translateX(' +
-                              (size() * gridSize) / 2 +
-                              'px) translateY(-100%) rotateY(180deg)',
-                          }"
-                        >
-                          <div
-                            class="target-icon-buff2 scrolldown5"
-                            [hidden]="!isTargeted()"
-                            [ngStyle]="{ transform: 'rotateY(180deg)' }"
-                          >
-                            <img src="./assets/images/target/target.png" />
-                          </div>
-                          <div [hidden]="foldingBuff()">
-                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(true)">▼</div>
-                            <div class="table is-3d">
-                              @for (childElement of buffEl.children; track childElement.identifier) {
-                                <div class="flex-item is-3d">
-                                  <div
-                                    class="table-row fornt-tag is-3d"
-                                    game-data-element-buff
-                                    [gameDataElement]="childElement"
-                                    [isEdit]="false"
-                                    [isPieceMode]="true"
-                                  ></div>
-                                </div>
-                              }
-                            </div>
-                          </div>
-                          <div [hidden]="!foldingBuff()">
-                            <div class="buff-folding-icon" (mousedown)="foldingBuffFlag(false)">▲</div>
-                            <div class="table is-3d">
-                              <div class="flex-item is-3d">
-                                <div class="table-row fornt-tag is-3d buff-text">簡易表示中/バフ{{ buffNum() }}個</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                    }
-                  }
+                  <!-- 表面 -->
+                  <div
+                    class="buff-tag is-buff-background is-3d will-change backface-off"
+                    [ngStyle]="{
+                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY(-100%)',
+                    }"
+                  >
+                    <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
+                      <img src="./assets/images/target/target.png" />
+                    </div>
+                    <div class="buff-balloon-inner">
+                      <div class="buff-balloon-content">
+                        @if (!foldingBuff()) {
+                          @for (childElement of buffChildren(); track childElement.identifier) {
+                            <div
+                              class="buff-item-row"
+                              game-data-element-buff
+                              [gameDataElement]="childElement"
+                              [isEdit]="false"
+                              [isPieceMode]="true"
+                            ></div>
+                          }
+                        } @else {
+                          <span class="buff-text">バフ{{ buffNum() }}個</span>
+                        }
+                      </div>
+                      <button
+                        class="buff-fold-btn"
+                        (mousedown)="foldingBuffFlag(!foldingBuff())"
+                        [title]="foldingBuff() ? '詳細表示' : '簡易表示'"
+                      >
+                        {{ foldingBuff() ? '▲' : '▼' }}
+                      </button>
+                    </div>
+                  </div>
+                  <!-- 裏面 -->
+                  <div
+                    class="buff-tag is-buff-background is-3d will-change backface-off"
+                    [ngStyle]="{
+                      transform:
+                        'translateX(-50%) translateX(' +
+                        (size() * gridSize) / 2 +
+                        'px) translateY(-100%) rotateY(180deg)',
+                    }"
+                  >
+                    <div
+                      class="target-icon-buff2 scrolldown5"
+                      [hidden]="!isTargeted()"
+                      [ngStyle]="{ transform: 'rotateY(180deg)' }"
+                    >
+                      <img src="./assets/images/target/target.png" />
+                    </div>
+                    <div class="buff-balloon-inner">
+                      <div class="buff-balloon-content">
+                        @if (!foldingBuff()) {
+                          @for (childElement of buffChildren(); track childElement.identifier) {
+                            <div
+                              class="buff-item-row"
+                              game-data-element-buff
+                              [gameDataElement]="childElement"
+                              [isEdit]="false"
+                              [isPieceMode]="true"
+                            ></div>
+                          }
+                        } @else {
+                          <span class="buff-text">バフ{{ buffNum() }}個</span>
+                        }
+                      </div>
+                      <button
+                        class="buff-fold-btn"
+                        (mousedown)="foldingBuffFlag(!foldingBuff())"
+                        [title]="foldingBuff() ? '詳細表示' : '簡易表示'"
+                      >
+                        {{ foldingBuff() ? '▲' : '▼' }}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               }
               <!-- 名前表示 -->

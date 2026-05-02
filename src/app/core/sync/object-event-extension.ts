@@ -4,6 +4,9 @@ import { localDispatch } from '@axe/core/network/network-messaging';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 
+// ローカルでの appendChild/removeChild 時に childrenChanged$ を発火させる
+ObjectNode.onChildrenChanged = (node) => markForChildrenChanged(node);
+
 export interface ObjectChangeEvent {
   identifier: string;
   aliasName: string;

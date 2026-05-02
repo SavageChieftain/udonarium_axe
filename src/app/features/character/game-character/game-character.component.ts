@@ -16,6 +16,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
@@ -472,15 +473,30 @@ export class GameCharacterComponent {
     this.foldingBuff.set(flag);
   }
 
-  /** バフ数を返す Signal。コンテナへの子要素追加/削除をリアクティブに追跡する。 */
-  protected readonly buffNum = computed<number>(() => {
+  /** buffDataElement の直下子要素を新しい配列で返す Signal。
+   *  appendChild/destroy 時に必ず新参照を返すことでビュー再レンダリングを保証する。 */
+  protected readonly buffChildren = computed<DataElement[]>(() => {
     const char = this.gameCharacter();
     const buffEl = char?.buffDataElement;
-    if (!buffEl) return 0;
+    if (!buffEl) return [];
     this.objectChange.versionOf(buffEl.identifier)();
-    const container = buffEl.children[0];
-    if (!container) return 0;
-    this.objectChange.versionOf(container.identifier)();
-    return container.children.length;
+    return buffEl.children.slice() as DataElement[];
+  });
+
+  /** バフ数を返す Signal。コンテナへの子要素追加/削除をリアクティブに追跡する。
+   *  子ありの要素はコンテナとみなしその子数を加算。
+   *  子なし＋numberResource のみ実バフとして加算。空コンテナはカウントしない。 */
+  protected readonly buffNum = computed<number>(() => {
+    const children = this.buffChildren();
+    let count = 0;
+    for (const child of children) {
+      this.objectChange.versionOf(child.identifier)();
+      if (child.children.length > 0) {
+        count += child.children.length;
+      } else if (child.isNumberResource) {
+        count += 1;
+      }
+    }
+    return count;
   });
 }

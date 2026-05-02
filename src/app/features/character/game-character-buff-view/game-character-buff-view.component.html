@@ -2,10 +2,10 @@
   <div class="buff-container">
     @if (character()!.buffDataElement) {
       <div class="buff-list">
-        @for (childElement of character()!.buffDataElement!.children; track childElement.identifier) {
+        @for (childElement of buffChildren(); track childElement.identifier) {
           <div game-data-element-buff [gameDataElement]="childElement" [isEdit]="isEdit()" [isPieceMode]="false"></div>
         }
-        @if (character()!.buffDataElement!.children.length === 0) {
+        @if (buffChildren().length === 0) {
           <p class="buff-empty">バフ・デバフは登録されていません</p>
         }
       </div>

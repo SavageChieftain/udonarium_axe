@@ -1,13 +1,21 @@
 :host {
   display: block;
+  height: 100%;
 }
 
 .buff-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 4px 8px 8px;
+  box-sizing: border-box;
 }
 
 .buff-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
   margin-bottom: 8px;
+  min-height: 0;
 }
 
 .buff-empty {
@@ -20,6 +28,7 @@
 
 /* --- バフ追加バー --- */
 .buff-add-bar {
+  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
   padding-top: 6px;

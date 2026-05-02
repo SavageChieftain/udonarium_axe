@@ -129,16 +129,17 @@
 .buff-tag {
   box-sizing: border-box;
   padding: 3px 9px;
-  border: 1px #222 solid;
+  border: 1px solid var(--ui-panel-border);
   border-radius: 12px;
   position: absolute;
   margin: auto;
   top: -35px;
+  white-space: nowrap;
 }
 
 .is-buff-background {
-  color: #222;
-  background-color: rgba(240, 229, 215, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
 }
 
 .name-tag {
@@ -171,8 +172,8 @@
 }
 
 .is-black-background {
-  color: #ccc;
-  background-color: rgba(30, 30, 30, 0.8);
+  color: var(--ui-text);
+  background-color: var(--ui-panel-bg);
   backface-visibility: hidden;
 }
 
@@ -197,9 +198,9 @@
   cursor: default;
   z-index: 1;
   padding: 2px;
-  background-color: #cccccc;
+  background-color: var(--ui-elevated);
   border-radius: 100%;
-  color: #444;
+  color: var(--ui-text-muted);
   font-size: 8px;
 }
 
@@ -218,7 +219,7 @@
   right: 0;
   bottom: 0;
   margin: auto;
-  color: #444;
+  color: var(--ui-text-muted);
 }
 
 .of-back {
@@ -228,7 +229,7 @@
   left: 0;
   right: 0;
   margin: auto;
-  color: #444;
+  color: var(--ui-text-muted);
 }
 
 .rotate-grab {
@@ -259,8 +260,8 @@
 .elevation-indicator,
 .altitude-indicator {
   padding-left: 2px;
-  color: black;
-  text-shadow: #f5f5f5 0px 0px 3px;
+  color: var(--ui-text);
+  text-shadow: var(--ui-panel-bg) 0px 0px 3px;
   backface-visibility: hidden;
 }
 
@@ -274,8 +275,9 @@
 }
 
 .buff-text {
-  font-family: Cambria, Georgia;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 12px;
+  -webkit-font-smoothing: antialiased;
 }
 
 .component:hover .material-icons,
@@ -294,26 +296,49 @@
   vertical-align: middle;
 }
 
-.buff-folding-dummy {
-  width: 1px;
-  height: 1px;
+.buff-balloon-inner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
 }
 
-.buff-folding-icon {
-  font-size: 12px;
-  vertical-align: middle;
-  text-align: center;
-  margin-left: 100%;
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  left: -20px;
-  top: -20px;
-  background-color: rgba(240, 229, 215, 0.8);
-  box-sizing: border-box;
-  border: 1px #222 solid;
-  border-radius: 4px;
+.buff-balloon-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.buff-item-row {
+  display: block;
+}
+
+.buff-fold-btn {
+  flex-shrink: 0;
+  align-self: center;
+  background: var(--ui-elevated);
+  border: 1px solid var(--ui-text-muted);
+  border-radius: 3px;
   cursor: pointer;
+  color: var(--ui-text);
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 4px;
+  opacity: 0.8;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    opacity 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.buff-fold-btn:hover {
+  opacity: 1;
+  background: var(--ui-accent-bg);
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
 }
 
 .target-icon {
