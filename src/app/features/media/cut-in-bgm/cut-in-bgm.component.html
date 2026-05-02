@@ -1,20 +1,37 @@
-<div>
-  @for (audio of audios(); track audio.identifier) {
-    <div class="border-b border-dotted border-[#888]">
-      <button (click)="selectBgm(audio)">登録</button>
-      @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
-        <button (click)="play(audio)" [disabled]="!audio.isReady">試聴/再生</button>
+<div class="bgm-select">
+  @if (audios().length) {
+    <ul class="bgm-list">
+      @for (audio of audios(); track audio.identifier) {
+        <li class="bgm-row" [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused">
+          <div class="bgm-info">
+            @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
+              <i class="material-icons bgm-playing-icon">volume_up</i>
+            } @else {
+              <i class="material-icons bgm-playing-icon" style="opacity: 0.25">music_note</i>
+            }
+            <span class="bgm-name" [title]="audio.name">{{ audio.name }}</span>
+          </div>
+          <div class="bgm-actions">
+            @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
+              <button type="button" class="action-btn is-playing" (click)="stop()">
+                <i class="material-icons">stop</i>停止
+              </button>
+            } @else {
+              <button type="button" class="action-btn" (click)="play(audio)" [disabled]="!audio.isReady">
+                <i class="material-icons">play_arrow</i>試聴
+              </button>
+            }
+            <button type="button" class="action-btn is-select" (click)="selectBgm(audio)">
+              <i class="material-icons">check</i>選択
+            </button>
+          </div>
+        </li>
       }
-      @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-        <button (click)="stop()" [disabled]="!audio.isReady">試聴/停止</button>
-      }
-      @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-        <span>【試聴中】</span>
-      }
-      <span>{{ audio.name }}</span>
+    </ul>
+  } @else {
+    <div class="bgm-empty">
+      <i class="material-icons">music_off</i>
+      <p>音楽がアップロードされていません。</p>
     </div>
-  }
-  @if (!audios().length) {
-    <div>音楽がアップロードされていません。</div>
   }
 </div>

@@ -13,6 +13,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-bgm',
   templateUrl: './cut-in-bgm.component.html',
+  styleUrls: ['./cut-in-bgm.component.css'],
 })
 export class CutInBgmComponent {
   private readonly modalService = inject(ModalService);
