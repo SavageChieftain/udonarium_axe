@@ -126,9 +126,6 @@ export class RemoteControllerComponent {
   }
 
   constructor() {
-    effect(() => {
-      this.uiSignalService.targetChange();
-    });
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
     effect(() => {
@@ -213,11 +210,13 @@ export class RemoteControllerComponent {
   errorMessageBuff = '';
   errorMessageController = '';
 
-  private _gameType = '';
-  text = '';
+  readonly text = signal('');
 
   readonly buffAreaIsHide = signal(false);
   readonly controllerAreaIsHide = signal(false);
+
+  readonly buffSectionOpen = signal(true);
+  readonly counterSectionOpen = signal(true);
 
   readonly chatTabidentifier = signal('');
   remoteNumber = 0;
@@ -229,8 +228,6 @@ export class RemoteControllerComponent {
     nowOrMax: '',
     dispName: '',
   };
-  remoteControllerRadio = '';
-
   readonly isEdit = signal(false);
   editPalette = '';
 
@@ -239,18 +236,35 @@ export class RemoteControllerComponent {
   readonly inventoryTypes = signal<string[]>(['table', 'common', 'graveyard']);
   readonly selectTab = signal('table');
 
-  hideChkBoxEvent(eventValue: boolean) {
-    this.buffAreaIsHide.set(eventValue);
-  }
-  onControllerHideChkChange(event: Event): void {
-    this.controllerAreaIsHide.set((event.target as HTMLInputElement).checked);
-  }
-  onRecoveryLimitFlagChange(_event: Event): void {
-    // 現状特に処理なし
-  }
-
   reverseValue() {
     this.remoteNumber = -this.remoteNumber;
+  }
+
+  sendBuffChat(event: KeyboardEvent | null): void {
+    if (event) event.preventDefault();
+    const textVal = this.text().trim();
+    if (!textVal) return;
+    const parsed = parseBuffInput(textVal);
+    if (!parsed) return;
+    const gameCharacters = this.getTargetCharacters(true);
+    if (gameCharacters.length <= 0) {
+      this.errorMessageBuff = '対象が未選択です';
+      return;
+    }
+    const ci = this.controllerInputComponent();
+    const parts = gameCharacters.map((o) => `[${o.name}]`).join('');
+    addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
+    this.chatMessageService.sendMessage(
+      this.chatTab(),
+      'バフを付与 ' + parsed.bufftext + ' > ' + parts,
+      this._gameSystem,
+      this.sendFrom,
+      '',
+      ci.portraitIndex(),
+      ci.selectChatColor
+    );
+    this.errorMessageBuff = '';
+    this.text.set('');
   }
 
   remoteSelect(name: string, nowOrMax: string, dispName: string) {
@@ -280,16 +294,16 @@ export class RemoteControllerComponent {
   }
 
   selectPalette(line: string) {
-    this.text = line;
+    this.text.set(line);
   }
 
   clickPalette(line: string) {
-    if (this.doubleClickTimer && this.text === line) {
+    if (this.doubleClickTimer && this.text() === line) {
       clearTimeout(this.doubleClickTimer);
       this.doubleClickTimer = null;
-      this.controllerInputComponent().sendChat(null);
+      this.sendBuffChat(null);
     } else {
-      this.text = line;
+      this.text.set(line);
       this.doubleClickTimer = setTimeout(() => {
         this.doubleClickTimer = null;
       }, 400);
@@ -332,6 +346,7 @@ export class RemoteControllerComponent {
   }
 
   getTargetCharacters(checkedOnly: boolean): GameCharacter[] {
+    this.uiSignalService.targetChange();
     const objectList = this.getGameObjects(this.selectTab());
     return getTargetCharacters(objectList, checkedOnly);
   }
@@ -372,40 +387,6 @@ export class RemoteControllerComponent {
 
   deleteZeroRoundBuffAll() {
     this.remoteBuffDeleteZeroRound(false);
-  }
-
-  sendChat(value: {
-    text: string;
-    gameSystem: GameSystemClass;
-    sendFrom: string;
-    sendTo: string;
-    portraitIndex: number;
-    messColor: string;
-  }) {
-    const parsed = parseBuffInput(value.text);
-    if (!parsed) return;
-    const gameCharacters = this.getTargetCharacters(true);
-    if (gameCharacters.length <= 0) {
-      this.errorMessageBuff = '対象が未選択です';
-      return;
-    }
-    const parts: string[] = [];
-    for (const object of gameCharacters) {
-      parts.push(`[${object.name}]`);
-    }
-    const text = parts.join('');
-    addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
-    const mess = 'バフを付与 ' + parsed.bufftext + ' > ' + text;
-    this.chatMessageService.sendMessage(
-      this.chatTab(),
-      mess,
-      this._gameSystem,
-      this.sendFrom,
-      '',
-      value.portraitIndex,
-      value.messColor
-    );
-    this.errorMessageBuff = '';
   }
 
   remoteChangeValue() {

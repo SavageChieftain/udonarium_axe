@@ -1,209 +1,221 @@
 <div class="rc-layout">
   <!-- ── 左パネル ── -->
   <div class="rc-left">
-    <!-- チャットタブ（発言先タブ） -->
-    <div class="rc-tabbar">
-      <span class="rc-tabbar-label">発言先</span>
-      <form name="remote-controller-chat-tab" class="rc-tab-form">
-        @for (chatTab of chatTabsVersion(); track chatTab) {
-          <label class="rc-tab-label" [class.active]="chatTabidentifier() === chatTab.identifier">
-            <input
-              name="chat-tab"
-              type="radio"
-              value="{{ chatTab.identifier }}"
-              [ngModel]="chatTabidentifier()"
-              (ngModelChange)="chatTabidentifier.set($event)"
-            />
-            {{ chatTab.name }}
-          </label>
-        }
-      </form>
+    <!-- 発言設定エリア: controller-input + chat tabs -->
+    <div class="rc-speaker-area">
+      <controller-input
+        [onlyCharacters]="true"
+        [chatTabidentifier]="chatTabidentifier()"
+        [(sendFrom)]="sendFrom"
+        [selectNum]="getTargetCharacters(true).length"
+        (allBox)="allBoxCheck($event)"
+        #controllerInput
+      />
+      <div class="rc-chat-tabs">
+        <span class="rc-chat-tabs-label">発言先</span>
+        <form name="remote-controller-chat-tab" class="rc-chat-tabs-form">
+          @for (chatTab of chatTabsVersion(); track chatTab) {
+            <label class="rc-chat-tab-label" [class.active]="chatTabidentifier() === chatTab.identifier">
+              <input
+                name="chat-tab"
+                type="radio"
+                value="{{ chatTab.identifier }}"
+                [ngModel]="chatTabidentifier()"
+                (ngModelChange)="chatTabidentifier.set($event)"
+              />
+              {{ chatTab.name }}
+            </label>
+          }
+        </form>
+      </div>
     </div>
 
-    <!-- 送信元 / 立ち絵 / バフエリア（controller-input） -->
-    <controller-input
-      [onlyCharacters]="true"
-      [chatTabidentifier]="chatTabidentifier()"
-      [(gameType)]="gameType"
-      [(sendFrom)]="sendFrom"
-      [(text)]="text"
-      [selectNum]="getTargetCharacters(true).length"
-      (allBox)="allBoxCheck($event)"
-      (chat)="sendChat($event)"
-      (hideChkEvent)="hideChkBoxEvent($event)"
-      #controllerInput
-    >
-    </controller-input>
-
-    <!-- バフパレット -->
-    @if (!buffAreaIsHide()) {
-      @if (errorMessageBuff) {
-        <div class="rc-error">{{ errorMessageBuff }}</div>
-      }
-
-      <div class="palette-toolbar">
-        <button class="toolbar-btn" [class.toolbar-btn--active]="isEdit()" (click)="toggleEditMode()">
-          @if (!isEdit()) {
-            <i class="material-icons small-icon">edit</i>パレット編集
-          } @else {
-            <i class="material-icons small-icon">check</i>確定
+    <!-- ◆ バフ付与セクション（collapsible） -->
+    <div class="rc-section">
+      <button class="rc-section-header" type="button" (click)="buffSectionOpen.set(!buffSectionOpen())">
+        <i class="material-icons rc-section-chevron">{{ buffSectionOpen() ? 'expand_more' : 'chevron_right' }}</i>
+        <span class="rc-section-title">バフ付与</span>
+      </button>
+      @if (buffSectionOpen()) {
+        <div class="rc-section-body">
+          @if (errorMessageBuff) {
+            <div class="rc-error">{{ errorMessageBuff }}</div>
           }
-        </button>
-        @if (isEdit()) {
-          <span class="edit-badge"><i class="material-icons small-icon">edit</i>編集中</span>
-        }
-      </div>
 
-      @if (isEdit()) {
-        <textarea
-          class="palette-textarea"
-          [(ngModel)]="editPalette"
-          [ngModelOptions]="{ standalone: true }"
-          placeholder="バフパレット"
-        ></textarea>
-      } @else {
-        <div class="palette-list" #paletteList>
-          @for (row of paletteRows(); track row.lineIndex) {
-            @if (row.kind === 'heading') {
-              <div class="palette-row palette-row--heading" [attr.data-line]="row.lineIndex">
-                <span class="palette-heading-mark">◆</span>{{ row.headingName }}
-              </div>
-            } @else if (row.kind === 'variable') {
-              <div class="palette-row palette-row--variable" [attr.data-line]="row.lineIndex">{{ row.text }}</div>
-            } @else if (row.kind === 'empty') {
-              <div class="palette-row palette-row--empty" [attr.data-line]="row.lineIndex"></div>
-            } @else {
-              <div
-                class="palette-row palette-row--command"
-                [class.palette-row--selected]="selectedLine() === row.lineIndex"
-                [attr.data-line]="row.lineIndex"
-                (click)="onClickPaletteRow(row)"
-              >
-                {{ row.text }}
-              </div>
+          <div class="palette-toolbar">
+            <button class="toolbar-btn" [class.toolbar-btn--active]="isEdit()" (click)="toggleEditMode()">
+              @if (!isEdit()) {
+                <i class="material-icons small-icon">edit</i>パレット編集
+              } @else {
+                <i class="material-icons small-icon">check</i>確定
+              }
+            </button>
+            @if (isEdit()) {
+              <span class="edit-badge"><i class="material-icons small-icon">edit</i>編集中</span>
             }
+          </div>
+
+          @if (isEdit()) {
+            <textarea
+              class="palette-textarea"
+              [(ngModel)]="editPalette"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="バフパレット"
+            ></textarea>
+          } @else {
+            <div class="palette-list" #paletteList>
+              @for (row of paletteRows(); track row.lineIndex) {
+                @if (row.kind === 'heading') {
+                  <div class="palette-row palette-row--heading" [attr.data-line]="row.lineIndex">
+                    <span class="palette-heading-mark">◆</span>{{ row.headingName }}
+                  </div>
+                } @else if (row.kind === 'variable') {
+                  <div class="palette-row palette-row--variable" [attr.data-line]="row.lineIndex">{{ row.text }}</div>
+                } @else if (row.kind === 'empty') {
+                  <div class="palette-row palette-row--empty" [attr.data-line]="row.lineIndex"></div>
+                } @else {
+                  <div
+                    class="palette-row palette-row--command"
+                    [class.palette-row--selected]="selectedLine() === row.lineIndex"
+                    [attr.data-line]="row.lineIndex"
+                    (click)="onClickPaletteRow(row)"
+                  >
+                    {{ row.text }}
+                  </div>
+                }
+              }
+            </div>
+            <div class="palette-hint">クリック: 入力 ／ 2回クリック: 付与</div>
           }
+
+          <!-- バフテキスト入力 -->
+          <div class="rc-buff-input-row">
+            <textarea
+              class="rc-buff-textarea"
+              [ngModel]="text()"
+              (ngModelChange)="text.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="バフ名 [情報] [ラウンド数]"
+              (keydown.enter)="sendBuffChat($any($event))"
+            ></textarea>
+            <button class="mm-btn mm-btn--primary" (click)="sendBuffChat(null)">付与</button>
+          </div>
+
+          <!-- ラウンド操作 -->
+          <div class="rc-round-ops">
+            <div class="rc-round-op-row">
+              <span class="rc-round-op-label">R 減少</span>
+              <button class="mm-btn mm-btn--sm" (click)="decBuffRoundSelect()">選択</button>
+              <button class="mm-btn mm-btn--sm" (click)="decBuffRoundAll()">全員</button>
+            </div>
+            <div class="rc-round-op-row">
+              <span class="rc-round-op-label">0R 消去</span>
+              <button class="mm-btn mm-btn--sm mm-btn--danger" (click)="deleteZeroRoundBuffSelect()">選択</button>
+              <button class="mm-btn mm-btn--sm mm-btn--danger" (click)="deleteZeroRoundBuffAll()">全員</button>
+            </div>
+          </div>
         </div>
-        <div class="palette-hint">クリック: 入力 ／ 2回クリック: 送信</div>
       }
-
-      <!-- バフ操作ボタン -->
-      <div class="buff-actions">
-        <div class="buff-action-row">
-          <span class="buff-action-label">Round 減少</span>
-          <button class="mm-btn" (click)="decBuffRoundSelect()">選択</button>
-          <button class="mm-btn" (click)="decBuffRoundAll()">全員</button>
-        </div>
-        <div class="buff-action-row">
-          <span class="buff-action-label">0R以下 消去</span>
-          <button class="mm-btn mm-btn--danger" (click)="deleteZeroRoundBuffSelect()">選択</button>
-          <button class="mm-btn mm-btn--danger" (click)="deleteZeroRoundBuffAll()">全員</button>
-        </div>
-      </div>
-    }
-
-    <!-- カウンターリモコン セクション区切り -->
-    <div class="rc-section-divider">
-      <span class="rc-section-title">カウンターリモコン</span>
-      <label class="rc-toggle-label">
-        隠す<input name="ctrl_hide_chk" type="checkbox" (change)="onControllerHideChkChange($event)" />
-      </label>
     </div>
 
-    @if (!controllerAreaIsHide()) {
-      <div class="rc-counter-body">
-        @if (errorMessageController) {
-          <div class="rc-error">{{ errorMessageController }}</div>
-        }
+    <!-- ◆ ステータス変更セクション（collapsible） -->
+    <div class="rc-section">
+      <button class="rc-section-header" type="button" (click)="counterSectionOpen.set(!counterSectionOpen())">
+        <i class="material-icons rc-section-chevron">{{ counterSectionOpen() ? 'expand_more' : 'chevron_right' }}</i>
+        <span class="rc-section-title">ステータス変更</span>
+      </button>
+      @if (counterSectionOpen()) {
+        <div class="rc-section-body">
+          @if (errorMessageController) {
+            <div class="rc-error">{{ errorMessageController }}</div>
+          }
 
-        <!-- 変更量 + 操作 -->
-        <div class="rc-counter-row">
-          <span class="rc-field-label">変更量</span>
-          <input
-            class="rc-num-input"
-            size="1"
-            type="number"
-            name="remote-number"
-            [(ngModel)]="remoteNumber"
-            placeholder="0"
-          />
-          <button class="mm-btn" (click)="reverseValue()" title="符号を反転">±</button>
-          <button class="mm-btn mm-btn--primary" (click)="remoteChangeValue()">操作</button>
-        </div>
-
-        <!-- 制限チェック -->
-        <div class="rc-counter-limits">
-          <label class="rc-check-label">
+          <!-- 変更量 + 操作 -->
+          <div class="rc-counter-row">
+            <span class="rc-field-label">変更量</span>
             <input
-              name="max_limit_chk"
-              type="checkbox"
-              [(ngModel)]="recoveryLimitFlag"
-              (change)="onRecoveryLimitFlagChange($event)"
+              class="rc-num-input"
+              size="1"
+              type="number"
+              name="remote-number"
+              [(ngModel)]="remoteNumber"
+              placeholder="0"
             />
-            最大値制限
-          </label>
-          <label class="rc-check-label">
-            <input
-              name="min_limit_chk"
-              type="checkbox"
-              [(ngModel)]="recoveryLimitFlagMin"
-              (change)="onRecoveryLimitFlagChange($event)"
-            />
-            0下限制限
-          </label>
-        </div>
+            <button class="mm-btn" (click)="reverseValue()" title="符号を反転">±</button>
+            <button class="mm-btn mm-btn--primary" (click)="remoteChangeValue()">操作</button>
+          </div>
 
-        <!-- 操作対象タグ選択 -->
-        @if (character()?.rootDataElement) {
-          <div class="rc-tag-selector">
-            @for (data of character()?.detailDataElement?.children ?? []; track data.identifier) {
-              @for (dataElm of data.children; track dataElm.identifier) {
-                @if (dataElm && dataTags.includes(dataElm.name)) {
-                  @switch (dataElm.type) {
-                    @case ('numberResource') {
-                      <label class="rc-radio-label">
-                        <input
-                          name="controller"
-                          type="radio"
-                          value="{{ dataElm.name + '現在値' }}"
-                          (click)="remoteSelect(dataElm.name, 'now', dataElm.name + '現在値')"
-                        />
-                        <span>{{ dataElm.name + '現在値' }}</span>
-                      </label>
-                      <label class="rc-radio-label">
-                        <input
-                          name="controller"
-                          type="radio"
-                          value="{{ dataElm.name + '最大値' }}"
-                          (click)="remoteSelect(dataElm.name, 'max', dataElm.name + '最大値')"
-                        />
-                        <span>{{ dataElm.name + '最大値' }}</span>
-                      </label>
-                    }
-                    @default {
-                      <label class="rc-radio-label">
-                        <input
-                          name="controller"
-                          type="radio"
-                          value="{{ dataElm.name }}"
-                          (click)="remoteSelect(dataElm.name, 'now', dataElm.name)"
-                        />
-                        <span>{{ dataElm.name }}</span>
-                      </label>
+          <!-- 制限チェック -->
+          <div class="rc-counter-limits">
+            <label class="rc-check-label">
+              <input name="max_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlag" />最大値制限
+            </label>
+            <label class="rc-check-label">
+              <input name="min_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlagMin" />0下限制限
+            </label>
+          </div>
+
+          <!-- 操作対象タグ選択 -->
+          @if (character()?.rootDataElement) {
+            <div class="rc-tag-selector">
+              @for (data of character()?.detailDataElement?.children ?? []; track data.identifier) {
+                @for (dataElm of data.children; track dataElm.identifier) {
+                  @if (dataElm && dataTags.includes(dataElm.name)) {
+                    @switch (dataElm.type) {
+                      @case ('numberResource') {
+                        <label class="rc-radio-label">
+                          <input
+                            name="controller"
+                            type="radio"
+                            value="{{ dataElm.name + '現在値' }}"
+                            (click)="remoteSelect(dataElm.name, 'now', dataElm.name + '現在値')"
+                          />
+                          <span>{{ dataElm.name + '現在値' }}</span>
+                        </label>
+                        <label class="rc-radio-label">
+                          <input
+                            name="controller"
+                            type="radio"
+                            value="{{ dataElm.name + '最大値' }}"
+                            (click)="remoteSelect(dataElm.name, 'max', dataElm.name + '最大値')"
+                          />
+                          <span>{{ dataElm.name + '最大値' }}</span>
+                        </label>
+                      }
+                      @default {
+                        <label class="rc-radio-label">
+                          <input
+                            name="controller"
+                            type="radio"
+                            value="{{ dataElm.name }}"
+                            (click)="remoteSelect(dataElm.name, 'now', dataElm.name)"
+                          />
+                          <span>{{ dataElm.name }}</span>
+                        </label>
+                      }
                     }
                   }
                 }
               }
-            }
-          </div>
-        }
-      </div>
-    }
+            </div>
+          }
+        </div>
+      }
+    </div>
   </div>
   <!-- /rc-left -->
 
-  <!-- ── 右パネル：キャラクター一覧 ── -->
+  <!-- ── 右パネル：インベントリタブ + キャラクター一覧 ── -->
   <div class="rc-right">
+    <!-- インベントリタブ -->
+    <div class="rc-inv-tabs">
+      @for (tab of inventoryTypes(); track tab) {
+        <button class="rc-inv-tab" [class.rc-inv-tab--active]="selectTab() === tab" (click)="selectTab.set(tab)">
+          {{ getTabTitle(tab) }}
+        </button>
+      }
+    </div>
+
     @let objects = getGameObjects(selectTab());
     @if (objects.length < 1) {
       <div class="rc-empty">

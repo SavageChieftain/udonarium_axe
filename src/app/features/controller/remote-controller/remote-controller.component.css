@@ -37,44 +37,48 @@
 }
 
 /* ================================================================
-   Chat tab bar
+   Speaker area: controller-input + chat tabs
 ================================================================ */
 
-.rc-tabbar {
+.rc-speaker-area {
   display: flex;
-  align-items: center;
-  padding: 6px 8px 0;
-  border-bottom: 1px solid var(--ui-panel-border);
-  background: var(--ui-panel-bg);
+  flex-direction: column;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--ui-panel-border);
 }
 
-.rc-tabbar-label {
+.rc-chat-tabs {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--ui-elevated);
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.rc-chat-tabs-label {
   font-size: 10px;
   color: var(--ui-text-muted);
   white-space: nowrap;
-  padding-right: 6px;
+  padding-right: 5px;
   flex-shrink: 0;
 }
 
-.rc-tab-form {
+.rc-chat-tabs-form {
   display: flex;
   gap: 2px;
-  flex: 1;
-  min-width: 0;
   flex-wrap: wrap;
 }
 
-.rc-tab-label {
+.rc-chat-tab-label {
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
-  border-radius: 6px 6px 0 0;
+  padding: 3px 8px;
+  border-radius: var(--ui-radius-sm);
   cursor: pointer;
   font-size: 12px;
   color: var(--ui-text-muted);
   border: 1px solid transparent;
-  border-bottom: none;
   transition:
     background var(--ui-transition),
     color var(--ui-transition);
@@ -82,46 +86,53 @@
   white-space: nowrap;
 }
 
-.rc-tab-label input[type='radio'] {
+.rc-chat-tab-label input[type='radio'] {
   display: none;
 }
 
-.rc-tab-label:hover {
+.rc-chat-tab-label:hover {
   background: var(--ui-hover);
   color: var(--ui-text);
 }
 
-.rc-tab-label.active {
-  background: var(--ui-elevated);
+.rc-chat-tab-label.active {
+  background: var(--ui-accent-bg);
+  border-color: var(--ui-accent);
   color: var(--ui-accent);
-  border-color: var(--ui-panel-border);
-  position: relative;
-}
-
-.rc-tab-label.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--ui-elevated);
 }
 
 /* ================================================================
-   Section divider (カウンターリモコン header)
+   Collapsible section
 ================================================================ */
 
-.rc-section-divider {
+.rc-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--ui-panel-border);
+}
+
+.rc-section-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-top: 1px solid var(--ui-panel-border);
-  border-bottom: 1px solid var(--ui-panel-border);
+  gap: 4px;
+  width: 100%;
+  padding: 5px 8px;
   background: var(--ui-elevated);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ui-text-muted);
+  transition: background var(--ui-transition);
+}
+
+.rc-section-header:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.rc-section-chevron {
+  font-size: 18px;
   flex-shrink: 0;
-  margin-top: 2px;
+  opacity: 0.7;
 }
 
 .rc-section-title {
@@ -129,18 +140,13 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ui-text-muted);
   flex: 1;
 }
 
-.rc-toggle-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--ui-text-muted);
-  cursor: pointer;
-  user-select: none;
+.rc-section-body {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
 }
 
 /* ── Error message ── */
@@ -312,27 +318,52 @@
 }
 
 /* ================================================================
-   Buff action buttons
+   Buff input + round operations
 ================================================================ */
 
-.buff-actions {
-  padding: 6px 10px;
-  border-top: 1px solid var(--ui-panel-border);
+.rc-buff-input-row {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 5px;
+  padding: 4px 8px;
 }
 
-.buff-action-row {
+.rc-buff-textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 80px;
+  resize: vertical;
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-input-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 4px 6px;
+  color: var(--ui-text);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.rc-buff-textarea:focus {
+  border-color: var(--ui-accent);
+}
+
+.rc-round-ops {
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rc-round-op-row {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.buff-action-label {
+.rc-round-op-label {
   font-size: 12px;
   color: var(--ui-text-muted);
-  min-width: 6em;
+  min-width: 5em;
   user-select: none;
 }
 
@@ -400,17 +431,11 @@
    Counter remote
 ================================================================ */
 
-.rc-counter-body {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .rc-counter-row {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 0 8px;
 }
 
 .rc-field-label {
@@ -443,6 +468,7 @@
 .rc-counter-limits {
   display: flex;
   gap: 12px;
+  padding: 4px 8px;
 }
 
 .rc-check-label {
@@ -460,7 +486,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 4px 0 2px;
+  padding: 4px 8px 2px;
 }
 
 .rc-radio-label {
@@ -501,8 +527,44 @@
 }
 
 /* ================================================================
-   Right panel — character cards
+   Right panel — inventory tabs + character cards
 ================================================================ */
+
+.rc-inv-tabs {
+  display: flex;
+  gap: 3px;
+  padding: 4px 4px 0;
+  border-bottom: 1px solid var(--ui-panel-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.rc-inv-tab {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-sm) var(--ui-radius-sm) 0 0;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.rc-inv-tab:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.rc-inv-tab--active {
+  background: var(--ui-accent-bg);
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
+  font-weight: 600;
+}
 
 .rc-empty {
   flex: 1;

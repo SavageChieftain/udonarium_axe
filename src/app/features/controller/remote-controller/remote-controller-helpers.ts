@@ -65,19 +65,8 @@ export function getGameObjects(
   inventoryType: string,
   inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
 ): TabletopObject[] {
-  if (inventoryType !== 'table') {
-    return [];
-  }
-
-  const tableCharacterList: TabletopObject[] = [];
-  const tableCharacterList_scr = inventoryService.tableInventory.tabletopObjects;
-  for (const character of tableCharacterList_scr) {
-    const character_ = character as GameCharacter;
-    if (!character_.hideInventory) {
-      tableCharacterList.push(character as TabletopObject);
-    }
-  }
-  return tableCharacterList;
+  const inventory = getInventory(inventoryType, inventoryService);
+  return inventory.tabletopObjects.filter((obj) => !(obj as GameCharacter).hideInventory);
 }
 
 /**
