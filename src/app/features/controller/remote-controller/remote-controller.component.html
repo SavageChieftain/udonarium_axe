@@ -273,13 +273,12 @@
                 <input
                   class="rc-stat-input"
                   [style]="'color:' + dataElm.nowValueColor"
-                  size="1"
                   type="number"
                   name="data-current-value"
                   [(ngModel)]="dataElm.currentValue"
                 />
                 <span class="rc-stat-slash">/</span>
-                <input class="rc-stat-input" size="1" type="number" name="data-value" [(ngModel)]="dataElm.value" />
+                <input class="rc-stat-input" type="number" name="data-value" [(ngModel)]="dataElm.value" />
               </div>
             </div>
           }
@@ -298,7 +297,7 @@
           @default {
             <div class="rc-stat">
               <span class="rc-stat-label">{{ dataElm.name }}</span>
-              <input class="rc-stat-input" size="1" name="data-value" [(ngModel)]="dataElm.value" />
+              <input class="rc-stat-input" name="data-value" [(ngModel)]="dataElm.value" />
             </div>
           }
         }
