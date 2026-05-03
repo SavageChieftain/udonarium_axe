@@ -275,6 +275,14 @@
           </div>
         </div>
       }
+      @case ('checktable') {
+        <div class="section">
+          <div>{{ dataElm.name }}</div>
+          <div class="note relative">
+            <app-check-table [element]="dataElm" [isEdit]="false" />
+          </div>
+        </div>
+      }
       @case ('check') {
         <div class="tag">{{ dataElm.name }}</div>
         <div class="value">

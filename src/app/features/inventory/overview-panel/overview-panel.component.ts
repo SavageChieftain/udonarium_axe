@@ -20,6 +20,7 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TextNote } from '@axe/domain/tabletop/text-note'; //
+import { CheckTableComponent } from '@axe/features/character/check-table/check-table.component';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
@@ -31,7 +32,16 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
   templateUrl: './overview-panel.component.html',
   styleUrls: ['./overview-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkifyPipe, SafePipe],
+  imports: [
+    DraggableDirective,
+    NgTemplateOutlet,
+    NgClass,
+    NgStyle,
+    FormsModule,
+    LinkifyPipe,
+    SafePipe,
+    CheckTableComponent,
+  ],
   host: {
     class: 'block',
     '(click)': 'onClick($event)',
