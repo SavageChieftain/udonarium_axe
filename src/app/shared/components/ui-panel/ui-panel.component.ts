@@ -54,6 +54,8 @@ export class UIPanelComponent {
   readonly widthInput = input(100, { alias: 'width' });
   readonly heightInput = input(100, { alias: 'height' });
   readonly showTitleButtons = input(true);
+  readonly showTitle = input(true);
+  readonly overflowVisible = input(false);
 
   constructor() {
     effect(() => {

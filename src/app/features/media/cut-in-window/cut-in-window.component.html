@@ -2,7 +2,7 @@
   <div class="p-0 overflow-hidden h-full w-full" #cutInArea>
     <youtube-player
       #videoPlayerComponent
-      [style.visibility]="isVisible"
+      [style.visibility]="isVisible()"
       [videoId]="videoId"
       [width]="youTubeWidth"
       [height]="youTubeHeight"
@@ -27,7 +27,7 @@
     >
     </youtube-player>
     @if (!videoId) {
-      <img class="w-full h-full" [src]="cutIn.cutInImage.url | safe: 'resourceUrl'" />
+      <img class="w-full h-full" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
     }
   </div>
 }

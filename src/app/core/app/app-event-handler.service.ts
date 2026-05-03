@@ -1,5 +1,7 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { Network } from '@axe/core/network/network';
+import { AudioPlayer } from '@axe/core/storage/audio-player';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -16,8 +18,11 @@ export class AppEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly audioStorage = inject(AudioStorage);
   private readonly panelService = inject(PanelService);
   private readonly chatMessageService = inject(ChatMessageService);
+
+  private readonly soundOnlyPlayer = new AudioPlayer();
 
   readonly renderVersion = signal(0);
   private immediateUpdateTimer: number | null = null;
@@ -48,6 +53,19 @@ export class AppEventHandlerService {
   private subscribeCutIn(): void {
     this.objectChange.startCutIn$.subscribe((event) => {
       this.openCutInPanel(event.cutIn as CutIn);
+    }, this.destroyRef);
+    this.objectChange.soundOnlyCutIn$.subscribe((event) => {
+      const cutIn = event.cutIn as CutIn;
+      if (!cutIn) return;
+      if (cutIn.videoId) {
+        this.openCutInPanel(cutIn, true);
+      } else {
+        const audio = this.audioStorage.get(cutIn.audioIdentifier);
+        if (audio) {
+          this.soundOnlyPlayer.loop = false;
+          this.soundOnlyPlayer.play(audio);
+        }
+      }
     }, this.destroyRef);
   }
 
@@ -141,7 +159,7 @@ export class AppEventHandlerService {
     component.time = time;
   }
 
-  private openCutInPanel(cutIn: CutIn): void {
+  private openCutInPanel(cutIn: CutIn, invisible = false): void {
     if (!cutIn) return;
     const marginW = Math.max(0, window.innerWidth - cutIn.width);
     const marginH = Math.max(0, window.innerHeight - cutIn.height - 25);
@@ -154,10 +172,12 @@ export class AppEventHandlerService {
       top: (marginH * cutIn.y_pos) / 100,
       isCutIn: true,
       cutInIdentifier: cutIn.identifier,
+      invisible,
     };
 
     const component = this.panelService.open(CutInWindowComponent, option);
     component.cutIn = cutIn;
+    component.forceNoLoop = invisible;
     component.startCutIn();
   }
 

@@ -3,7 +3,7 @@ import { Network } from '@axe/core/index';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { stopCutInByBgm$ } from '@axe/domain/domain-events';
+import { soundOnlyCutIn$, stopCutInByBgm$ } from '@axe/domain/domain-events';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
@@ -261,6 +261,179 @@ describe('CutInLauncher', () => {
       launcher.chatActivateCutIn('再生 BGM停止', '');
 
       expect(stopSpy).toHaveBeenCalledOnce();
+    });
+
+    it('@付きテキスト末尾のワードが name と一致すると startSoundOnlyCutIn が呼ばれる', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+      new Jukebox('Jukebox').initialize();
+
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = '爆発';
+      cutIn.chatActivate = true;
+
+      const soundSpy = vi.spyOn(launcher, 'startSoundOnlyCutIn');
+      const startSpy = vi.spyOn(launcher, 'startCutIn');
+
+      launcher.chatActivateCutIn('演出 @爆発', '');
+
+      expect(soundSpy).toHaveBeenCalledWith(cutIn, '');
+      expect(startSpy).not.toHaveBeenCalled();
+    });
+
+    it('@付きのとき jukebox.stop() は呼ばれない', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+
+      const jukebox = new Jukebox('Jukebox');
+      jukebox.initialize();
+      const stopSpy = vi.spyOn(jukebox, 'stop').mockImplementation(() => {});
+
+      const audio = AudioFile.createEmpty('cutin-audio-02');
+      AudioStorage.instance.add(audio);
+
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = '爆音';
+      cutIn.chatActivate = true;
+      cutIn.audioIdentifier = 'cutin-audio-02';
+      cutIn.tagName = '';
+
+      vi.spyOn(launcher, 'startSoundOnlyCutIn').mockImplementation(() => {});
+
+      launcher.chatActivateCutIn('@爆音', '');
+
+      expect(stopSpy).not.toHaveBeenCalled();
+    });
+
+    it('@のみでは chatActivate カットインにマッチしない', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+      new Jukebox('Jukebox').initialize();
+
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = '';
+      cutIn.chatActivate = true;
+
+      const soundSpy = vi.spyOn(launcher, 'startSoundOnlyCutIn');
+      const startSpy = vi.spyOn(launcher, 'startCutIn');
+
+      launcher.chatActivateCutIn('テスト @', '');
+
+      expect(soundSpy).not.toHaveBeenCalled();
+      expect(startSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('startSoundOnlyCutIn()', () => {
+    it('soundOnlyCutInIdentifier と soundOnlyTimeStamp を設定する', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+
+      const cutIn = new CutIn();
+      cutIn.initialize();
+
+      expect(launcher.soundOnlyTimeStamp).toBe(0);
+      vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
+      launcher.startSoundOnlyCutIn(cutIn);
+
+      expect(launcher.soundOnlyCutInIdentifier).toBe(cutIn.identifier);
+      expect(launcher.soundOnlyTimeStamp).toBe(1);
+    });
+
+    it('sendTo を指定すると設定される', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+      const cutIn = new CutIn();
+      cutIn.initialize();
+
+      vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
+      launcher.startSoundOnlyCutIn(cutIn, 'user-abc');
+
+      expect(launcher.sendTo).toBe('user-abc');
+    });
+
+    it('sendTo 省略時は空文字になる', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+      const cutIn = new CutIn();
+      cutIn.initialize();
+
+      vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
+      launcher.startSoundOnlyCutIn(cutIn);
+
+      expect(launcher.sendTo).toBe('');
+    });
+  });
+
+  describe('apply() — soundOnlyTimeStamp', () => {
+    it('soundOnlyTimeStamp が変わると startSelfSoundOnly が呼ばれる', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+
+      // 初回 sync をスキップ
+      launcher.apply(launcher.toContext());
+
+      const soundSpy = vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
+
+      const ctx = launcher.toContext();
+      ctx.syncData = { ...ctx.syncData, soundOnlyTimeStamp: 1 };
+      launcher.apply(ctx);
+
+      expect(soundSpy).toHaveBeenCalledOnce();
+    });
+
+    it('soundOnlyTimeStamp が変わらなければ startSelfSoundOnly は呼ばれない', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+
+      launcher.apply(launcher.toContext());
+
+      const soundSpy = vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
+
+      const ctx = launcher.toContext();
+      // soundOnlyTimeStamp を変えない
+      launcher.apply(ctx);
+
+      expect(soundSpy).not.toHaveBeenCalled();
+    });
+
+    it('launchMySelf=true のとき soundOnlyTimeStamp が変化しても発火しない', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+
+      launcher.apply(launcher.toContext());
+
+      const soundSpy = vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
+
+      const ctx = launcher.toContext();
+      ctx.syncData = { ...ctx.syncData, launchMySelf: true, soundOnlyTimeStamp: 1 };
+      launcher.apply(ctx);
+
+      expect(soundSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('startSelfSoundOnly()', () => {
+    it('soundOnlyCutInIdentifier に対応する CutIn で soundOnlyCutIn$ が emit される', () => {
+      const launcher = new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      launcher.soundOnlyCutInIdentifier = cutIn.identifier;
+
+      let emitted: unknown = null;
+      const cleanup = soundOnlyCutIn$.subscribe((e) => {
+        emitted = e.cutIn;
+      });
+
+      launcher.startSelfSoundOnly();
+
+      expect(emitted).toBe(cutIn);
+      cleanup();
     });
   });
 

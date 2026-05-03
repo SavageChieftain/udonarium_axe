@@ -18,13 +18,23 @@ export interface PanelOption {
   // Container-level behavior for the ui-panel shell.
   isCutIn?: boolean;
   cutInIdentifier?: string;
+  /** パネルを DOM に保持しつつ視覚的に非表示にする（YouTube 音声のみ再生等） */
+  invisible?: boolean;
 }
 
 interface UIPanelInstance {
   content: () => ViewContainerRef;
 }
 
-type PanelServiceAssignableKey = 'title' | 'top' | 'left' | 'width' | 'height' | 'isCutIn' | 'cutInIdentifier';
+type PanelServiceAssignableKey =
+  | 'title'
+  | 'top'
+  | 'left'
+  | 'width'
+  | 'height'
+  | 'isCutIn'
+  | 'cutInIdentifier'
+  | 'invisible';
 
 @Injectable()
 export class PanelService {
@@ -38,6 +48,7 @@ export class PanelService {
   height: number = 100;
   isCutIn: boolean = false;
   cutInIdentifier: string = '';
+  invisible: boolean = false;
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
   scrollablePanel: HTMLDivElement | null = null;
@@ -94,7 +105,7 @@ export class PanelService {
       panelComponentRef.setInput(key, value);
     }
 
-    const serviceOnly = ['isCutIn', 'cutInIdentifier'] as const;
+    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible'] as const;
     for (const key of serviceOnly) {
       const value = option[key];
       if (value === undefined) continue;

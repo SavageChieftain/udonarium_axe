@@ -6,6 +6,8 @@
   [style.top.px]="top"
   [style.width.px]="width"
   [style.height.px]="height"
+  [style.visibility]="panelService.invisible ? 'hidden' : ''"
+  [style.pointer-events]="panelService.invisible ? 'none' : ''"
   [resizable.disable]="isMinimized() || isFullScreen()"
   [draggable.stack]="'.draggable-panel'"
   appDraggable
@@ -14,7 +16,7 @@
   (mouseenter)="showPortrait(true)"
   (mouseleave)="showPortrait(false)"
 >
-  <div class="title" #titleBar>
+  <div class="title" #titleBar [style.display]="showTitle() ? '' : 'none'">
     @if (title !== 'メニュー') {
       <div class="title-button">
         <button [disabled]="isFullScreen()" (click)="toggleMinimize()">
@@ -38,7 +40,15 @@
   @if (panelService.cardStack) {
     <card-stack-list-img [cardStackidentifier]="panelService.cardStack.identifier"></card-stack-list-img>
   }
-  <div class="scrollable-panel" [ngStyle]="{ padding: padding_ }" #scrollablePanel>
+  <div
+    class="scrollable-panel"
+    [ngStyle]="{
+      padding: padding_,
+      top: showTitle() ? '28px' : '0',
+      overflow: overflowVisible() ? 'visible' : undefined,
+    }"
+    #scrollablePanel
+  >
     <ng-content></ng-content>
     <div #content></div>
   </div>

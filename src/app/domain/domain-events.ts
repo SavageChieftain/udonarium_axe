@@ -77,6 +77,7 @@ export const updateAudioResource$ = new EventChannel<void>();
 export const messageAdded$ = new EventChannel<MessageAddedEvent>();
 export const cardStackDecreased$ = new EventChannel<CardStackDecreasedEvent>();
 export const startCutIn$ = new EventChannel<CutInEvent>();
+export const soundOnlyCutIn$ = new EventChannel<CutInEvent>();
 export const stopCutIn$ = new EventChannel<CutInEvent>();
 export const stopCutInByBgm$ = new EventChannel<void>();
 export const finishVote$ = new EventChannel<FinishVoteEvent>();
@@ -111,6 +112,9 @@ export function emitCardStackDecreased(event: CardStackDecreasedEvent) {
 }
 export function emitStartCutIn(event: CutInEvent) {
   startCutIn$.emit(event);
+}
+export function emitSoundOnlyCutIn(event: CutInEvent) {
+  soundOnlyCutIn$.emit(event);
 }
 export function emitStopCutIn(event: CutInEvent) {
   stopCutIn$.emit(event);

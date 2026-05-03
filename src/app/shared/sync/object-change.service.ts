@@ -21,6 +21,7 @@ import {
   loadConfig$,
   messageAdded$,
   selectFile$,
+  soundOnlyCutIn$,
   startCutIn$,
   startVote$,
   stopCutIn$,
@@ -155,6 +156,7 @@ export class ObjectChangeService {
   readonly messageAdded$ = messageAdded$;
   readonly cardStackDecreased$ = cardStackDecreased$;
   readonly startCutIn$ = startCutIn$;
+  readonly soundOnlyCutIn$ = soundOnlyCutIn$;
   readonly stopCutInByBgm$ = stopCutInByBgm$;
   readonly stopCutIn$ = stopCutIn$;
   readonly endOldVote$ = endOldVote$;

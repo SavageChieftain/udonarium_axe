@@ -3,7 +3,7 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { emitStartCutIn, emitStopCutIn, emitStopCutInByBgm } from '@axe/domain/domain-events';
+import { emitSoundOnlyCutIn, emitStartCutIn, emitStopCutIn, emitStopCutInByBgm } from '@axe/domain/domain-events';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { Jukebox } from '@axe/domain/media/jukebox';
 
@@ -15,6 +15,8 @@ export class CutInLauncher extends GameObject {
   @SyncVar() launchIsStart: boolean = false;
   @SyncVar() stopBlankTagCutInTimeStamp: number = 0;
   @SyncVar() sendTo: string = '';
+  @SyncVar() soundOnlyCutInIdentifier: string = '';
+  @SyncVar() soundOnlyTimeStamp: number = 0;
 
   reloadDummy = 5;
   private isInitialSync = true;
@@ -30,25 +32,42 @@ export class CutInLauncher extends GameObject {
 
   chatActivateCutIn(text: string, sendTo: string) {
     const text2 = ` ${text}`;
-    const matches_array = text2.match(/\s(\S+)$/i);
+    const matches_array = text2.match(/\s(@?)(\S+)$/i);
     let activateName: string;
 
     if (matches_array) {
-      activateName = RegExp.$1;
+      const isSoundOnly = matches_array[1] === '@';
+      activateName = matches_array[2];
       const allCutIn = this.getCutIns();
 
       for (const cutIn_ of allCutIn) {
         if (cutIn_.chatActivate && cutIn_.name == activateName) {
-          // 無タグで音声付きの場合BGM停止
-          if (this.isCutInBgmUploaded(cutIn_.audioIdentifier) && cutIn_.tagName == '') {
-            this.jukebox.stop();
+          if (isSoundOnly) {
+            this.startSoundOnlyCutIn(cutIn_, sendTo);
+          } else {
+            // 無タグで音声付きの場合BGM停止
+            if (this.isCutInBgmUploaded(cutIn_.audioIdentifier) && cutIn_.tagName == '') {
+              this.jukebox.stop();
+            }
+            this.startCutIn(cutIn_, sendTo);
           }
-
-          this.startCutIn(cutIn_, sendTo);
           return;
         }
       }
     }
+  }
+
+  startSoundOnlyCutIn(cutIn: CutIn, sendTo?: string) {
+    this.soundOnlyCutInIdentifier = cutIn.identifier;
+    this.soundOnlyTimeStamp = this.soundOnlyTimeStamp + 1;
+
+    if (sendTo) {
+      this.sendTo = sendTo;
+    } else {
+      this.sendTo = '';
+    }
+
+    this.startSelfSoundOnly();
   }
 
   startCutInMySelf(cutIn: CutIn) {
@@ -106,6 +125,11 @@ export class CutInLauncher extends GameObject {
     emitStartCutIn({ cutIn: cutIn_ });
   }
 
+  startSelfSoundOnly() {
+    const cutIn_ = ObjectStore.instance.get(this.soundOnlyCutInIdentifier);
+    emitSoundOnlyCutIn({ cutIn: cutIn_ });
+  }
+
   stopSelfCutIn() {
     const cutIn_ = ObjectStore.instance.get(this.launchCutInIdentifier);
     emitStopCutIn({ cutIn: cutIn_ });
@@ -125,6 +149,7 @@ export class CutInLauncher extends GameObject {
     const launchIsStart = this.launchIsStart;
     const launchTimeStamp = this.launchTimeStamp;
     const stopBlankTagCutInTimeStamp = this.stopBlankTagCutInTimeStamp;
+    const soundOnlyTimeStamp = this.soundOnlyTimeStamp;
     super.apply(context);
 
     if (this.isInitialSync) {
@@ -157,6 +182,10 @@ export class CutInLauncher extends GameObject {
       } else {
         this.stopSelfCutIn();
       }
+    }
+
+    if (soundOnlyTimeStamp !== this.soundOnlyTimeStamp) {
+      this.startSelfSoundOnly();
     }
   }
 }
