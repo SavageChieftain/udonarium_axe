@@ -1,4 +1,4 @@
-import { ApplicationRef } from '@angular/core';
+import { ɵChangeDetectionScheduler as ChangeDetectionScheduler } from '@angular/core';
 import { ServiceLocator } from '@axe/core/di/service-locator';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
@@ -50,11 +50,11 @@ let _tickScheduled = false;
 function scheduleAngularTick(): void {
   if (_tickScheduled) return;
   _tickScheduled = true;
-  requestAnimationFrame(() => {
+  queueMicrotask(() => {
     _tickScheduled = false;
     try {
-      const appRef = ServiceLocator.get(ApplicationRef);
-      appRef.tick();
+      const scheduler = ServiceLocator.get(ChangeDetectionScheduler);
+      scheduler.notify(0 /* NotificationSource.MarkAncestorsForTraversal */);
     } catch {
       /* ignore */
     }
