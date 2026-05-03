@@ -77,7 +77,8 @@ export class GameCharacterComponent {
     effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
       const char = this.gameCharacter();
-      if (!highlight || !char) return;
+      const root = this.rootElementRef();
+      if (!highlight || !char || !root) return;
       if (char.identifier !== highlight.identifier) return;
       if (char.location.name != 'table') return;
 
@@ -85,21 +86,21 @@ export class GameCharacterComponent {
       if (this.highlightTimer != null) return;
 
       // アニメーション中であればアニメーションを初期化
-      if (this.rootElementRef().nativeElement.classList.contains('focused')) {
+      if (root.nativeElement.classList.contains('focused')) {
         clearTimeout(this.unhighlightTimer);
-        this.rootElementRef().nativeElement.classList.remove('focused');
+        root.nativeElement.classList.remove('focused');
       }
 
       // アニメーション開始処理タイマー
       this.highlightTimer = setTimeout(() => {
         this.highlightTimer = undefined;
-        this.rootElementRef().nativeElement.classList.add('focused');
+        root.nativeElement.classList.add('focused');
       }, 0);
 
       // アニメーション終了処理タイマー
       this.unhighlightTimer = setTimeout(() => {
         this.unhighlightTimer = undefined;
-        this.rootElementRef().nativeElement.classList.remove('focused');
+        root.nativeElement.classList.remove('focused');
       }, 1010);
     });
 
@@ -130,7 +131,7 @@ export class GameCharacterComponent {
   }
 
   readonly gameCharacter = input<GameCharacter | null>(null);
-  readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
+  readonly rootElementRef = viewChild<ElementRef<HTMLElement>>('root');
 
   get isLock(): boolean {
     const char = this.gameCharacter();
