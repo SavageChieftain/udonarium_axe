@@ -263,3 +263,46 @@
   color: var(--ui-text-muted);
   margin-bottom: 4px;
 }
+
+/* ── 射程範囲 形状選択グリッド ── */
+.range-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.range-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 6px;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  font-size: 0.75em;
+  line-height: 1.2;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+  white-space: nowrap;
+}
+
+.range-type-btn .material-icons {
+  font-size: 18px;
+}
+
+.range-type-btn:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.range-type-btn--active {
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  border-color: var(--ui-accent);
+  font-weight: 600;
+}

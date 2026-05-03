@@ -221,6 +221,17 @@ export class GameCharacterSheetComponent {
     return this.tabletopObject instanceof RangeArea ? this.tabletopObject : null;
   }
 
+  readonly rangeTypeItems: { type: string; label: string; icon: string }[] = [
+    { type: 'LINE', label: '直線', icon: 'remove' },
+    { type: 'CORN', label: 'コーン', icon: 'change_history' },
+    { type: 'TRIANGLE', label: '三角形', icon: 'details' },
+    { type: 'SQUARE', label: '四角形', icon: 'crop_square' },
+    { type: 'DIAMOND', label: 'ひし形', icon: 'diamond' },
+    { type: 'PENTAGON', label: '五角形', icon: 'pentagon' },
+    { type: 'HEXAGON', label: '六角形', icon: 'hexagon' },
+    { type: 'CIRCLE', label: '円形', icon: 'radio_button_unchecked' },
+  ];
+
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
     const obj = this.tabletopObject as TabletopObject | null;

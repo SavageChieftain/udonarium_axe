@@ -427,6 +427,7 @@ export class GameCharacterComponent {
   private showChatPalette(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
+      title: gameObject.name + ' のチャットパレット',
       left: coordinate.x - 250,
       top: coordinate.y - 175,
       width: 615,
@@ -442,6 +443,7 @@ export class GameCharacterComponent {
   private showRemoteController(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
+      title: gameObject.name + ' のリモコン',
       left: coordinate.x - 250,
       top: coordinate.y - 175,
       width: 700,

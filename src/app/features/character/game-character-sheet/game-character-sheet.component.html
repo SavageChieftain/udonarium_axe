@@ -1,6 +1,6 @@
 @if (tabletopObject) {
   <div class="top-header">
-    @if (!character) {
+    @if (!character && !rangeArea) {
       <button (click)="toggleEditMode()">編集切り替え</button>
     }
     @if (card) {
@@ -196,66 +196,6 @@
       </div>
       <br />
       ※width、height項目は最大50
-    }
-    @if (rangeArea) {
-      <div>
-        境界線
-        <input
-          type="color"
-          name="color01"
-          list="color-list_01"
-          (change)="onChangeRangeColor($event)"
-          value="{{ rangeArea.rangeColor }}"
-        />
-        塗りつぶし
-        <input
-          type="color"
-          name="color02"
-          list="color-list_02"
-          (change)="onChangeGridColor($event)"
-          value="{{ rangeArea.gridColor }}"
-        />
-      </div>
-      @if (rangeArea.type !== 'CIRCLE') {
-        <div>
-          回転角度のスナップを細かくする:<input
-            type="checkbox"
-            value="noSnapPolygonal"
-            [(ngModel)]="rangeArea.subDivisionSnapPolygonal"
-            name="subDivisionSnapPolygonal"
-            (click)="subDivisionSnapPolygonal()"
-          />
-        </div>
-      }
-      <div>
-        輪郭に沿って塗る:<input
-          type="checkbox"
-          value="fillOutLine"
-          [(ngModel)]="rangeArea.fillOutLine"
-          name="fillOutLine"
-          (click)="fillOutLine()"
-        /><br />
-        スクエアの塗りを半マスずらず 横:<input
-          type="checkbox"
-          value="offSetX"
-          [(ngModel)]="rangeArea.offSetX"
-          name="offSetX"
-          (click)="clickRangeOffSetX()"
-        />
-        &nbsp;縦:<input
-          type="checkbox"
-          value="offSetY"
-          [(ngModel)]="rangeArea.offSetY"
-          name="offSetY"
-          (click)="clickRangeOffSetY()"
-        /><br />
-        @if (rangeArea.type === 'CIRCLE' || rangeArea.type === 'SQUARE' || rangeArea.type === 'DIAMOND') {
-          <div>
-            <br />
-            ※この形状はwidth項目は不使用
-          </div>
-        }
-      </div>
     }
   </div>
 }
@@ -677,55 +617,156 @@
       }
     </div>
   } @else {
-    <!-- 非キャラクターオブジェクト -->
-    <div class="flex-container">
-      @if (imageFile().url) {
-        <div class="box main-image-box">
-          <img class="main-image" [src]="imageFile().url | safe: 'resourceUrl'" [alt]="imageFile().name" />
-        </div>
-      }
-      @if (tabletopObject.commonDataElement) {
-        <div class="flex-item">
-          <div class="table">
-            <div
-              class="table-row"
-              game-data-element
-              [gameDataElement]="tabletopObject.commonDataElement"
-              [isTagLocked]="true"
-            ></div>
+    @if (rangeArea) {
+      <!-- ── 射程範囲設定パネル ── -->
+      <div class="cs-settings-panel">
+        <!-- 形状 -->
+        <div class="cs-settings-section cs-settings-section--full">
+          <div class="cs-sec-title"><i class="material-icons">category</i>形状</div>
+          <div class="range-type-grid">
+            @for (item of rangeTypeItems; track item.type) {
+              <button
+                type="button"
+                class="range-type-btn"
+                [class.range-type-btn--active]="rangeArea.type === item.type"
+                (click)="rangeArea.type = item.type"
+              >
+                <i class="material-icons">{{ item.icon }}</i>
+                <span>{{ item.label }}</span>
+              </button>
+            }
           </div>
         </div>
-      }
-      @if (tabletopObject.detailDataElement) {
-        @for (childElement of tabletopObject.detailDataElement.children; track childElement.identifier) {
-          <div class="flex-item">
+
+        <!-- カラー設定 -->
+        <div class="cs-settings-section">
+          <div class="cs-sec-title"><i class="material-icons">palette</i>カラー</div>
+          <div class="cs-field-row">
+            <span class="cs-field-label">境界線</span>
+            <input
+              type="color"
+              name="color01"
+              (change)="onChangeRangeColor($event)"
+              value="{{ rangeArea.rangeColor }}"
+            />
+          </div>
+          <div class="cs-field-row">
+            <span class="cs-field-label">塗りつぶし</span>
+            <input type="color" name="color02" (change)="onChangeGridColor($event)" value="{{ rangeArea.gridColor }}" />
+          </div>
+        </div>
+
+        <!-- 塗りオプション -->
+        <div class="cs-settings-section">
+          <div class="cs-sec-title"><i class="material-icons">grid_on</i>塗りオプション</div>
+          <div class="cs-flags-row">
+            @if (rangeArea.type !== 'CIRCLE') {
+              <label class="cs-flag-label">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="rangeArea.subDivisionSnapPolygonal"
+                  name="subDivisionSnapPolygonal"
+                  (click)="subDivisionSnapPolygonal()"
+                />
+                回転スナップ細分
+              </label>
+            }
+            <label class="cs-flag-label">
+              <input type="checkbox" [(ngModel)]="rangeArea.fillOutLine" name="fillOutLine" (click)="fillOutLine()" />
+              輪郭に沿って塗る
+            </label>
+          </div>
+          <div class="cs-field-row">
+            <span class="cs-field-label">半マスずらす</span>
+            <label class="cs-flag-label">
+              <input type="checkbox" [(ngModel)]="rangeArea.offSetX" name="offSetX" (click)="clickRangeOffSetX()" />
+              横
+            </label>
+            <label class="cs-flag-label">
+              <input type="checkbox" [(ngModel)]="rangeArea.offSetY" name="offSetY" (click)="clickRangeOffSetY()" />
+              縦
+            </label>
+          </div>
+          @if (
+            rangeArea.type === 'CIRCLE' ||
+            rangeArea.type === 'SQUARE' ||
+            rangeArea.type === 'DIAMOND' ||
+            rangeArea.type === 'TRIANGLE' ||
+            rangeArea.type === 'PENTAGON' ||
+            rangeArea.type === 'HEXAGON'
+          ) {
+            <div class="cs-field-hint">※ この形状では範囲の幅項目は不使用</div>
+          }
+        </div>
+
+        <!-- 基本情報 -->
+        @if (tabletopObject.commonDataElement) {
+          <div class="cs-settings-section cs-settings-section--full">
+            <div class="cs-sec-title"><i class="material-icons">info</i>基本情報</div>
             <div class="table">
-              <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
+              <div
+                class="table-row"
+                game-data-element
+                [gameDataElement]="tabletopObject.commonDataElement"
+                [isTagLocked]="true"
+                [isEdit]="false"
+                [hideSectionTitle]="true"
+              ></div>
             </div>
           </div>
         }
-      }
-      @if (!(card || cardStack || terrain || diceSymbol || scratchMask)) {
-        @if (tabletopObject.imageDataElement) {
+      </div>
+    } @else {
+      <!-- 非キャラクターオブジェクト -->
+      <div class="flex-container">
+        @if (imageFile().url) {
+          <div class="box main-image-box">
+            <img class="main-image" [src]="imageFile().url | safe: 'resourceUrl'" [alt]="imageFile().name" />
+          </div>
+        }
+        @if (tabletopObject.commonDataElement) {
           <div class="flex-item">
             <div class="table">
               <div
                 class="table-row"
                 game-data-element
-                [gameDataElement]="tabletopObject.imageDataElement"
+                [gameDataElement]="tabletopObject.commonDataElement"
                 [isTagLocked]="true"
-                [isEdit]="isEdit()"
-                [isImage]="true"
               ></div>
             </div>
           </div>
         }
-      }
-      @if (isEdit()) {
-        <div class="flex-item">
-          <button class="w-full text-[#555]" (click)="addDataElement()">新しい項目を追加</button>
-        </div>
-      }
-    </div>
+        @if (tabletopObject.detailDataElement) {
+          @for (childElement of tabletopObject.detailDataElement.children; track childElement.identifier) {
+            <div class="flex-item">
+              <div class="table">
+                <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
+              </div>
+            </div>
+          }
+        }
+        @if (!(card || cardStack || terrain || diceSymbol || scratchMask)) {
+          @if (tabletopObject.imageDataElement) {
+            <div class="flex-item">
+              <div class="table">
+                <div
+                  class="table-row"
+                  game-data-element
+                  [gameDataElement]="tabletopObject.imageDataElement"
+                  [isTagLocked]="true"
+                  [isEdit]="isEdit()"
+                  [isImage]="true"
+                ></div>
+              </div>
+            </div>
+          }
+        }
+        @if (isEdit()) {
+          <div class="flex-item">
+            <button class="w-full text-[#555]" (click)="addDataElement()">新しい項目を追加</button>
+          </div>
+        }
+      </div>
+    }
   }
 }
