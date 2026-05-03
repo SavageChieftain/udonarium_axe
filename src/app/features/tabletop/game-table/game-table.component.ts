@@ -83,6 +83,7 @@ export class GameTableComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private _initialized = false;
   readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
@@ -120,6 +121,7 @@ export class GameTableComponent {
     });
 
     this.objectChangeService.objectChanged$.subscribe((event) => {
+      if (!this._initialized) return;
       if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
         this.setGameTableGrid(
           this.currentTable.width,
@@ -136,6 +138,7 @@ export class GameTableComponent {
     this.tabletopActionService.initAprilDiceImage();
 
     afterNextRender(() => {
+      this._initialized = true;
       this.gestureService.initialize(
         this.rootElementRef().nativeElement,
         this.gameTable().nativeElement,

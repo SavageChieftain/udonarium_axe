@@ -107,6 +107,8 @@ export class GameObjectInventoryService {
         if (object.location.name !== prevLocation) {
           this.locationMap.set(object.identifier, object.location.name);
           this.refresh();
+        } else {
+          this.callInventoryUpdate();
         }
       } else if (object instanceof DataElement) {
         if (!this.containsInGameCharacter(object)) return;

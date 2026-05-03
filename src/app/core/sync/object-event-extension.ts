@@ -6,6 +6,8 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 
 // ローカルでの appendChild/removeChild 時に childrenChanged$ を発火させる
 ObjectNode.onChildrenChanged = (node) => markForChildrenChanged(node);
+// ローカルでの update() 呼び出し時に objectChanged$ を発火させる（@SyncVar 変更を含む）
+GameObject.onUpdate = (obj) => markForChanged(obj);
 
 export interface ObjectChangeEvent {
   identifier: string;

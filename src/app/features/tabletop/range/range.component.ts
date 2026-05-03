@@ -71,8 +71,8 @@ export class RangeComponent {
 
   readonly range = input.required<RangeArea>();
 
-  readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
-  readonly rangeCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('rangeCanvas');
+  readonly gridCanvas = viewChild<ElementRef<HTMLCanvasElement>>('gridCanvas');
+  readonly rangeCanvas = viewChild<ElementRef<HTMLCanvasElement>>('rangeCanvas');
   readonly rotate = viewChild<ElementRef<HTMLElement>>('rotate');
 
   public get clipPathText() {
@@ -300,9 +300,11 @@ export class RangeComponent {
   readonly rotableOption = signal<RotableOption>({});
 
   private input: InputHandler | null = null;
+  private _initialized = false;
 
   constructor() {
     this.objectChange.objectChanged$.subscribe((e) => {
+      if (!this._initialized) return;
       const object = this.objectStore.get(e.identifier);
       if (!this.range() || !object) return;
       this.setRange();
@@ -323,6 +325,7 @@ export class RangeComponent {
       });
     });
     afterNextRender(() => {
+      this._initialized = true;
       this.input = new InputHandler(this.elementRef.nativeElement);
       this.input.onStart = (e) => this.onInputStart(e);
       this.setRange();
@@ -408,7 +411,11 @@ export class RangeComponent {
   }
 
   private setRange() {
-    const render = new RangeRender(this.gridCanvas().nativeElement, this.rangeCanvas().nativeElement);
+    const gridCanvasRef = this.gridCanvas();
+    const rangeCanvasRef = this.rangeCanvas();
+    if (!gridCanvasRef || !rangeCanvasRef) return;
+    if (!gridCanvasRef.nativeElement.getContext('2d')) return;
+    const render = new RangeRender(gridCanvasRef.nativeElement, rangeCanvasRef.nativeElement);
 
     const setting: RangeRenderSetting = {
       areaWidth: this.areaQuadrantSize * 2,
@@ -450,7 +457,7 @@ export class RangeComponent {
     }
 
     const opacity: number = this.range().opacity;
-    this.gridCanvas().nativeElement.style.opacity = opacity + '';
+    gridCanvasRef.nativeElement.style.opacity = opacity + '';
     this._clipVersion.update((v) => v + 1);
   }
 }

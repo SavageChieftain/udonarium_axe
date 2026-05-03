@@ -103,6 +103,7 @@ export class TerrainComponent {
       });
     });
     this.objectChange.objectChanged$.subscribe((e) => {
+      if (!this._initialized) return;
       if (!this.terrain()) return;
       if (
         e.identifier !== this.currentTable.identifier &&
@@ -120,6 +121,7 @@ export class TerrainComponent {
       );
     }, this.destroyRef);
     afterNextRender(() => {
+      this._initialized = true;
       this.input = new InputHandler(this.elementRef.nativeElement);
       this.input.onStart = (e) => this.onInputStart(e);
       this.setGameTableGrid(
@@ -397,6 +399,7 @@ export class TerrainComponent {
   slopeDirectionState = SlopeDirection;
 
   private input: InputHandler | null = null;
+  private _initialized = false;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   onDragstart(e: DragEvent) {

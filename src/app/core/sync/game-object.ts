@@ -12,6 +12,9 @@ export interface ObjectContext {
 }
 
 export class GameObject {
+  /** Called after every update() invocation. Set externally (e.g. object-event-extension.ts) to hook local change notifications. */
+  static onUpdate: ((object: GameObject) => void) | null = null;
+
   private context: ObjectContext = {
     aliasName: (this.constructor as typeof GameObject).aliasName,
     identifier: '',
@@ -54,6 +57,7 @@ export class GameObject {
   update() {
     this.versionUp();
     ObjectStore.instance.update(this.identifier);
+    GameObject.onUpdate?.(this);
   }
 
   private versionUp() {
