@@ -50,6 +50,8 @@ export class CutInEditorComponent {
     this.objectChange.fileVersion();
     const c = this.cutIn();
     if (!c) return ImageFile.Empty;
+    // imageIdentifier は @SyncVar なので versionOf で変更を検知する
+    this.objectChange.versionOf(c.identifier)();
     const file = this.imageStorage.get(c.imageIdentifier);
     return file ? file : ImageFile.Empty;
   });
@@ -87,8 +89,9 @@ export class CutInEditorComponent {
         const width = this.c.defVideoSizeWidth;
         if (this.c.width !== width) this.c.width = width;
       } else {
-        const width = this.originalImgWidth();
-        if (this.c.width !== width) this.c.width = width;
+        // cutInImage() を読むことで imageIdentifier 変更時に再評価させる
+        const width = this.cutInImage().url ? this.originalImgWidth() : 0;
+        if (width > 0 && this.c.width !== width) this.c.width = width;
       }
     }
     return this.c.width;
@@ -113,8 +116,9 @@ export class CutInEditorComponent {
         const height = this.c.defVideoSizeHeight;
         if (this.c.height !== height) this.c.height = height;
       } else {
-        const height = this.originalImgHeight();
-        if (this.c.height !== height) this.c.height = height;
+        // cutInImage() を読むことで imageIdentifier 変更時に再評価させる
+        const height = this.cutInImage().url ? this.originalImgHeight() : 0;
+        if (height > 0 && this.c.height !== height) this.c.height = height;
       }
     }
     return this.c.height;
@@ -255,7 +259,7 @@ export class CutInEditorComponent {
     const cutIn = this.c;
     setTimeout(() => {
       if (this.keepImageAspect) {
-        const imageurl = cutIn.cutInImage.url;
+        const imageurl = this.cutInImage().url;
         if (imageurl.length > 0) {
           const img = new Image();
           img.src = imageurl;
@@ -290,8 +294,7 @@ export class CutInEditorComponent {
   }
 
   originalImgWidth(): number {
-    if (!this.c?.cutInImage) return 0;
-    const imageurl = this.c.cutInImage.url;
+    const imageurl = this.cutInImage().url;
     if (imageurl.length > 0) {
       const img = new Image();
       img.src = imageurl;
@@ -301,8 +304,7 @@ export class CutInEditorComponent {
   }
 
   originalImgHeight(): number {
-    if (!this.c?.cutInImage) return 0;
-    const imageurl = this.c.cutInImage.url;
+    const imageurl = this.cutInImage().url;
     if (imageurl.length > 0) {
       const img = new Image();
       img.src = imageurl;
@@ -314,7 +316,7 @@ export class CutInEditorComponent {
   previewCutIn() {
     if (!this.c) return;
     if (this.c.originalSize) {
-      const imageurl = this.c.cutInImage.url;
+      const imageurl = this.cutInImage().url;
       if (imageurl.length > 0) {
         this.c.width = this.originalImgWidth();
         this.c.height = this.originalImgHeight();
@@ -326,7 +328,7 @@ export class CutInEditorComponent {
   playCutIn() {
     if (!this.c) return;
     if (this.c.originalSize) {
-      const imageurl = this.c.cutInImage.url;
+      const imageurl = this.cutInImage().url;
       if (imageurl.length > 0) {
         this.c.width = this.originalImgWidth();
         this.c.height = this.originalImgHeight();

@@ -134,8 +134,13 @@
 
 .field-row {
   display: flex;
+  align-items: flex-end;
   gap: 10px;
   margin-bottom: 4px;
+}
+
+.field-row .detail-section.input-centered {
+  padding-bottom: 8px;
 }
 
 .field-row .detail-section {
@@ -301,9 +306,22 @@
 }
 
 /* ── Note ── */
-.note-text {
+.tag-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 7px 10px;
+  background: var(--ui-elevated);
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 0 var(--ui-radius-sm) var(--ui-radius-sm) 0;
   font-size: 11px;
-  color: var(--ui-text-dim);
+  color: var(--ui-text-muted);
   line-height: 1.6;
-  margin: 4px 0 8px;
+}
+
+.tag-hint .material-icons {
+  font-size: 14px;
+  color: var(--ui-accent);
+  flex-shrink: 0;
+  margin-top: 1px;
 }

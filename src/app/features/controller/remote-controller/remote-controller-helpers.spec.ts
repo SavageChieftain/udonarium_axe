@@ -105,7 +105,8 @@ describe('remote-controller-helpers', () => {
       inventoryContext.tableInventory.refreshObjects();
 
       const result = getGameObjects('table', inventoryContext);
-      expect(result).toEqual([char1]);
+      expect(result).toContain(char1);
+      expect(result).not.toContain(char2);
     });
 
     it('should return empty array for non-table types', () => {

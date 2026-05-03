@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
@@ -24,10 +25,26 @@ export class CutInBgmComponent {
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
 
+  static readonly TAGS = ['全て', 'BGM', 'SE'] as const;
+
+  readonly selectTag = signal<string>('全て');
+
   readonly audios = computed(() => {
     this.objectChange.fileVersion();
+    this.objectChange.collectionOf('audio-tag')();
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   });
+
+  readonly filteredAudios = computed(() => {
+    const tag = this.selectTag();
+    const all = this.audios();
+    if (tag === '全て') return all;
+    return all.filter((audio) => (AudioTag.get(audio.identifier)?.tag ?? 'BGM') === tag);
+  });
+
+  tagOf(audio: AudioFile): string {
+    return AudioTag.get(audio.identifier)?.tag ?? 'BGM';
+  }
   get jukebox(): Jukebox {
     return this.objectStore.get<Jukebox>('Jukebox')!;
   }

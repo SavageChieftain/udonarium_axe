@@ -1,180 +1,3 @@
-/* ── Layout ── */
-.jb-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  font-size: 13px;
-  color: var(--ui-text);
-}
-
-/* ── Now Playing ── */
-.now-playing {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--ui-elevated);
-  border-bottom: 1px solid var(--ui-panel-border);
-  min-height: 56px;
-}
-
-.now-playing-icon {
-  font-size: 28px;
-  color: var(--ui-accent);
-  flex-shrink: 0;
-  width: 32px;
-  text-align: center;
-}
-
-.now-playing-icon .material-icons {
-  font-size: 28px;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.playing-anim {
-  animation: pulse 1.4s ease-in-out infinite;
-  color: var(--ui-accent);
-}
-
-.now-playing-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.now-playing-label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--ui-accent);
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.now-playing-title {
-  font-size: 13px;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--ui-text);
-}
-
-.now-playing-title.now-playing-idle {
-  color: var(--ui-text-dim);
-  font-weight: 400;
-  font-style: italic;
-}
-
-.now-playing-tag {
-  font-size: 11px;
-  color: var(--ui-text-muted);
-  margin-top: 1px;
-}
-
-.transport-stop {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--ui-hover);
-  border: 1px solid var(--ui-panel-border);
-  color: var(--ui-text-muted);
-  cursor: pointer;
-  transition:
-    background var(--ui-transition),
-    color var(--ui-transition);
-  padding: 0;
-}
-
-.transport-stop:hover {
-  background: var(--ui-danger-bg);
-  border-color: var(--ui-danger);
-  color: var(--ui-danger);
-}
-
-.transport-stop .material-icons {
-  font-size: 18px;
-}
-
-/* ── Volume Section ── */
-.volume-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--ui-panel-border);
-  background: var(--ui-panel-bg);
-}
-
-.vol-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 0;
-}
-
-.vol-row--room {
-  border-top: 1px solid var(--ui-panel-border);
-  margin-top: 4px;
-  padding-top: 6px;
-}
-
-.vol-icon {
-  font-size: 14px;
-  color: var(--ui-text-dim);
-  flex-shrink: 0;
-  width: 16px;
-  text-align: center;
-}
-
-.vol-label {
-  font-size: 11px;
-  color: var(--ui-text-muted);
-  width: 26px;
-  flex-shrink: 0;
-  text-align: right;
-}
-
-.vol-slider {
-  flex: 1;
-  accent-color: var(--ui-accent);
-  height: 4px;
-}
-
-.vol-slider:disabled {
-  opacity: 0.35;
-}
-
-.gm-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--ui-text-dim);
-  cursor: pointer;
-  user-select: none;
-  flex-shrink: 0;
-}
-
-.gm-toggle input[type='checkbox'] {
-  accent-color: var(--ui-accent);
-  width: 12px;
-  height: 12px;
-}
-
 /* ── Tag filter bar ── */
 .tag-bar {
   display: flex;
@@ -415,18 +238,54 @@
   opacity: 0.45;
 }
 
-/* ── Notes ── */
-.jb-notes {
-  padding: 8px 12px 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.jb-notes p {
-  margin: 0;
+/* ── Playlist empty hint ── */
+.playlist-empty-hint {
   font-size: 11px;
   color: var(--ui-text-dim);
-  opacity: 0.75;
-  line-height: 1.4;
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* ── Draggable track row ── */
+.track-row--draggable {
+  cursor: default;
+}
+
+.track-row--draggable:hover {
+  background: var(--ui-hover);
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  color: var(--ui-text-dim);
+  cursor: grab;
+  opacity: 0.4;
+  width: 20px;
+  text-align: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle .material-icons {
+  font-size: 18px;
+}
+
+/* ── Tag select disabled ── */
+.track-tag-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Playlist tag label ── */
+.track-tag-label {
+  font-size: 10px;
+  color: var(--ui-accent);
+  background: var(--ui-accent-bg);
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--ui-radius-sm);
+  padding: 0 5px;
+  width: fit-content;
+  line-height: 1.5;
 }

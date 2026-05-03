@@ -110,6 +110,7 @@ export class AudioPlayer {
       };
       this._audioElm.onended = () => {
         this.mediaElementSource.disconnect();
+        this.onEnded?.();
       };
     }
     return this._audioElm;
@@ -124,6 +125,7 @@ export class AudioPlayer {
 
   audio: AudioFile | undefined;
   volumeType: VolumeType = VolumeType.MASTER;
+  onEnded: (() => void) | null = null;
 
   private _volume: number = 1;
   private _loop: boolean = false;
@@ -144,6 +146,14 @@ export class AudioPlayer {
   }
   get paused(): boolean {
     return this._audioElm?.paused ?? true;
+  }
+
+  get currentTime(): number {
+    return this._audioElm?.currentTime ?? 0;
+  }
+
+  get duration(): number {
+    return this._audioElm?.duration ?? 0;
   }
 
   private static cacheMap: Map<string, AudioCache> = new Map();
@@ -206,6 +216,10 @@ export class AudioPlayer {
 
   pause() {
     this._audioElm?.pause();
+  }
+
+  seekTo(time: number) {
+    if (this._audioElm) this._audioElm.currentTime = time;
   }
 
   stop() {

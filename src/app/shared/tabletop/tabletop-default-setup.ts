@@ -124,18 +124,4 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターC', 1, testFile.identifier);
   addBuffRound(testCharacter, 'テストバフ3', '', 3);
-
-  //-------------------------
-
-  testCharacter = new GameCharacter('testCharacter_7');
-  fileContext = ImageFile.createEmpty('testCharacter_7_image').toContext();
-  fileContext.url = './assets/images/ninja.png';
-  testFile = imageStorage.add(fileContext);
-
-  ImageTag.create(testFile.identifier).tag = '';
-
-  testCharacter.initialize();
-  testCharacter.location.x = 10 * 50;
-  testCharacter.location.y = 5 * 50;
-  CharacterTemplateFactory.createCheckTable(testCharacter, '忍者A', 1, testFile.identifier);
 }

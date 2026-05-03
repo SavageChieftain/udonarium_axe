@@ -1,7 +1,15 @@
 <div class="bgm-select">
-  @if (audios().length) {
+  <div class="tag-tabs">
+    @for (tab of ['全て', 'BGM', 'SE']; track tab) {
+      <button type="button" class="tag-tab" [class.is-active]="selectTag() === tab" (click)="selectTag.set(tab)">
+        {{ tab }}
+      </button>
+    }
+  </div>
+
+  @if (filteredAudios().length) {
     <ul class="bgm-list">
-      @for (audio of audios(); track audio.identifier) {
+      @for (audio of filteredAudios(); track audio.identifier) {
         <li class="bgm-row" [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused">
           <div class="bgm-info">
             @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
@@ -9,6 +17,7 @@
             } @else {
               <i class="material-icons bgm-playing-icon" style="opacity: 0.25">music_note</i>
             }
+            <span class="tag-badge" [class.is-se]="tagOf(audio) === 'SE'">{{ tagOf(audio) }}</span>
             <span class="bgm-name" [title]="audio.name">{{ audio.name }}</span>
           </div>
           <div class="bgm-actions">

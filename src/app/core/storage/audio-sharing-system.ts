@@ -38,7 +38,7 @@ export class AudioSharingSystem {
             for (const item of otherCatalog) {
               let audio = AudioStorage.instance.get(item.identifier);
               if (audio === null) {
-                audio = AudioFile.createEmpty(item.identifier);
+                audio = AudioFile.createEmpty(item.identifier, item.name);
                 AudioStorage.instance.add(audio);
               }
               if (audio.state < AudioState.COMPLETE && !this.receiveTaskMap.has(item.identifier)) {

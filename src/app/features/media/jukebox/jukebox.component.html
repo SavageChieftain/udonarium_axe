@@ -1,26 +1,44 @@
 <div class="jb-layout">
   <!-- ── Now Playing ── -->
-  <div class="now-playing">
-    <div class="now-playing-icon">
-      @if (jukebox.audio && jukebox.isPlaying) {
-        <i class="material-icons playing-anim">music_note</i>
-      } @else {
-        <i class="material-icons">music_note</i>
-      }
-    </div>
-    <div class="now-playing-info">
-      <div class="now-playing-label">NOW PLAYING</div>
+  <div class="now-playing" [class.has-artwork]="nowPlayingArtwork()">
+    @if (nowPlayingArtwork()) {
+      <div class="now-playing-artwork-wrap">
+        <img class="now-playing-artwork-full" [src]="nowPlayingArtwork()" alt="" />
+        <div class="now-playing-artwork-overlay">
+          <div class="now-playing-label">NOW PLAYING</div>
+          @if (jukebox.audio) {
+            <div class="now-playing-title">{{ jukebox.audio.name }}</div>
+            <div class="now-playing-tag">{{ getTagOf(jukebox.audio) }}</div>
+          }
+        </div>
+        @if (jukebox.audio) {
+          <button class="transport-stop" (click)="stopBGM(jukebox.audio)" title="BGM/SE 停止">
+            <i class="material-icons">stop</i>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="now-playing-icon">
+        @if (jukebox.audio && jukebox.isPlaying) {
+          <i class="material-icons playing-anim">music_note</i>
+        } @else {
+          <i class="material-icons">music_note</i>
+        }
+      </div>
+      <div class="now-playing-info">
+        <div class="now-playing-label">NOW PLAYING</div>
+        @if (jukebox.audio) {
+          <div class="now-playing-title">{{ jukebox.audio.name }}</div>
+          <div class="now-playing-tag">{{ getTagOf(jukebox.audio) }}</div>
+        } @else {
+          <div class="now-playing-title now-playing-idle">— 停止中 —</div>
+        }
+      </div>
       @if (jukebox.audio) {
-        <div class="now-playing-title">{{ jukebox.audio.name }}</div>
-        <div class="now-playing-tag">{{ getTagOf(jukebox.audio) }}</div>
-      } @else {
-        <div class="now-playing-title now-playing-idle">— 停止中 —</div>
+        <button class="transport-stop" (click)="stopBGM(jukebox.audio)" title="BGM/SE 停止">
+          <i class="material-icons">stop</i>
+        </button>
       }
-    </div>
-    @if (jukebox.audio) {
-      <button class="transport-stop" (click)="stopBGM(jukebox.audio)" title="BGM/SE 停止">
-        <i class="material-icons">stop</i>
-      </button>
     }
   </div>
 
@@ -69,90 +87,177 @@
     </div>
   </div>
 
-  <!-- ── Tag Filter ── -->
-  <div class="tag-bar">
-    @for (tag of tagList(); track tag) {
-      <button class="tag-pill" [class.is-active]="selectTag() === tag" (click)="selectTag.set(tag)">{{ tag }}</button>
-    }
+  <!-- ── View Mode tabs ── -->
+  <div class="view-tabs">
+    <div class="view-tabs-track">
+      <button class="view-tab" [class.is-active]="viewMode() === 'library'" (click)="viewMode.set('library')">
+        <i class="material-icons">library_music</i>ライブラリ
+      </button>
+      <button class="view-tab" [class.is-active]="viewMode() === 'playlist'" (click)="viewMode.set('playlist')">
+        <i class="material-icons">queue_music</i>再生リスト
+      </button>
+    </div>
   </div>
 
-  <!-- ── Playlist ── -->
-  <div class="playlist">
-    @for (audio of audios(); track audio.identifier) {
-      <div
-        class="track-row"
-        [class.is-playing]="audio === jukebox.audio"
-        [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused"
-      >
-        <div class="track-status">
-          @if (audio === jukebox.audio) {
-            <i class="material-icons track-status-icon playing">{{
-              getTagOf(audio) === 'SE' ? 'star' : 'library_music'
-            }}</i>
-          } @else if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-            <i class="material-icons track-status-icon auditioning">headphones</i>
-          } @else {
-            <i class="material-icons track-status-icon idle">music_note</i>
-          }
-        </div>
-        <div class="track-info">
-          <div class="track-name">{{ audio.name }}</div>
-          <select class="track-tag-select" [ngModel]="getTagOf(audio)" (ngModelChange)="setTagOf(audio, $event)">
-            @for (tag of tagList(); track tag) {
-              @if (tag !== '全て') {
-                <option [value]="tag">{{ tag }}</option>
+  @if (viewMode() === 'library') {
+    <!-- ── Tag Filter ── -->
+    <div class="tag-bar">
+      @for (tag of tagList(); track tag) {
+        <button class="tag-pill" [class.is-active]="selectTag() === tag" (click)="selectTag.set(tag)">{{ tag }}</button>
+      }
+    </div>
+
+    <!-- ── Library Playlist ── -->
+    <div class="playlist">
+      @for (audio of audios(); track audio.identifier) {
+        <div
+          class="track-row"
+          [class.is-playing]="audio === jukebox.audio"
+          [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused"
+        >
+          <div class="track-status">
+            @if (audio === jukebox.audio) {
+              <i class="material-icons track-status-icon playing">{{
+                getTagOf(audio) === 'SE' ? 'star' : 'library_music'
+              }}</i>
+            } @else if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
+              <i class="material-icons track-status-icon auditioning">headphones</i>
+            } @else {
+              <i class="material-icons track-status-icon idle">music_note</i>
+            }
+          </div>
+          <div class="track-info">
+            <div class="track-name">{{ audio.name }}</div>
+            <select
+              class="track-tag-select"
+              [ngModel]="getTagOf(audio)"
+              (ngModelChange)="setTagOf(audio, $event)"
+              [disabled]="isInPlaylist(audio)"
+              [title]="isInPlaylist(audio) ? '再生リスト登録中はタグ変更できません' : ''"
+            >
+              @for (tag of tagList(); track tag) {
+                @if (tag !== '全て') {
+                  <option [value]="tag">{{ tag }}</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="track-actions">
+            @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
+              <button class="action-btn" (click)="play(audio)" [disabled]="!audio.isReady" title="試聴">
+                <i class="material-icons">headphones</i>
+              </button>
+            } @else {
+              <button class="action-btn is-active" (click)="stop()" title="試聴停止">
+                <i class="material-icons">stop</i>
+              </button>
+            }
+            @if (audio !== jukebox.audio) {
+              <button
+                class="action-btn"
+                (click)="playBGM(audio)"
+                [disabled]="!audio.isReady"
+                title="{{ getTagOf(audio) === 'SE' ? 'SE再生' : 'BGM再生' }}"
+              >
+                <i class="material-icons">{{ getTagOf(audio) === 'SE' ? 'star' : 'play_arrow' }}</i>
+              </button>
+            } @else {
+              <button class="action-btn is-active" (click)="stopBGM(audio)" title="停止">
+                <i class="material-icons">stop</i>
+              </button>
+            }
+            @if (getTagOf(audio) === 'BGM') {
+              @if (!isInPlaylist(audio)) {
+                <button class="action-btn" (click)="addToPlaylist(audio)" title="再生リストに追加">
+                  <i class="material-icons">playlist_add</i>
+                </button>
+              } @else {
+                <button class="action-btn is-active" (click)="removeFromPlaylist(audio)" title="再生リストから削除">
+                  <i class="material-icons">playlist_add_check</i>
+                </button>
               }
             }
-          </select>
+          </div>
         </div>
-        <div class="track-actions">
-          @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
-            <button class="action-btn" (click)="play(audio)" [disabled]="!audio.isReady" title="試聴">
-              <i class="material-icons">headphones</i>
-            </button>
-          } @else {
-            <button class="action-btn is-active" (click)="stop()" title="試聴停止">
-              <i class="material-icons">stop</i>
-            </button>
-          }
-          @if (audio !== jukebox.audio) {
-            <button
-              class="action-btn"
-              (click)="playBGM(audio)"
-              [disabled]="!audio.isReady"
-              title="{{ getTagOf(audio) === 'SE' ? 'SE再生' : 'BGM再生' }}"
-            >
-              <i class="material-icons">{{ getTagOf(audio) === 'SE' ? 'star' : 'play_arrow' }}</i>
-            </button>
-          } @else {
-            <button class="action-btn is-active" (click)="stopBGM(audio)" title="停止">
-              <i class="material-icons">stop</i>
-            </button>
-          }
+      }
+      @if (!audios().length) {
+        <div class="playlist-empty">
+          <i class="material-icons">queue_music</i>
+          <span>この分類に音楽ファイルはありません</span>
         </div>
-      </div>
-    }
-    @if (!audios().length) {
-      <div class="playlist-empty">
-        <i class="material-icons">queue_music</i>
-        <span>この分類に音楽ファイルはありません</span>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  } @else {
+    <!-- ── My Playlist ── -->
+    <div class="playlist">
+      @for (audio of playlistAudios(); track audio.identifier; let i = $index) {
+        <div
+          class="track-row track-row--draggable"
+          [class.is-playing]="audio === jukebox.audio"
+          draggable="true"
+          (dragstart)="onPlaylistDragStart(i)"
+          (dragover)="onPlaylistDragOver($event, i)"
+          (dragend)="onPlaylistDragEnd()"
+        >
+          <div class="drag-handle">
+            <i class="material-icons">drag_indicator</i>
+          </div>
+          <div class="track-status">
+            @if (audio === jukebox.audio) {
+              <i class="material-icons track-status-icon playing">library_music</i>
+            } @else {
+              <i class="material-icons track-status-icon idle">music_note</i>
+            }
+          </div>
+          <div class="track-info">
+            <div class="track-name">{{ audio.name }}</div>
+            <div class="track-tag-label">BGM</div>
+          </div>
+          <div class="track-actions">
+            @if (audio !== jukebox.audio) {
+              <button class="action-btn" (click)="playBGM(audio)" [disabled]="!audio.isReady" title="BGM再生">
+                <i class="material-icons">play_arrow</i>
+              </button>
+            } @else {
+              <button class="action-btn is-active" (click)="stopBGM(audio)" title="停止">
+                <i class="material-icons">stop</i>
+              </button>
+            }
+            <button class="action-btn" (click)="removeFromPlaylist(audio)" title="再生リストから削除">
+              <i class="material-icons">remove_circle_outline</i>
+            </button>
+          </div>
+        </div>
+      }
+      @if (!playlistAudios().length) {
+        <div class="playlist-empty">
+          <i class="material-icons">playlist_play</i>
+          <span>再生リストにBGMを追加してください</span>
+          <span class="playlist-empty-hint"
+            >ライブラリタブで
+            <i class="material-icons" style="font-size: 14px; vertical-align: middle">playlist_add</i>
+            ボタンで追加できます</span
+          >
+        </div>
+      }
+    </div>
+  }
 
-  <!-- ── Drop Zone ── -->
-  <label class="drop-zone">
-    <i class="material-icons drop-zone-icon">playlist_add</i>
-    <span class="drop-zone-main">ここに音楽をドロップ</span>
-    <span class="drop-zone-sub">またはここをクリックして選択</span>
-    <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
-    <span class="drop-zone-limit">１ファイルにつき10MBまで</span>
-  </label>
+  @if (viewMode() === 'library') {
+    <!-- ── Drop Zone ── -->
+    <label class="drop-zone">
+      <i class="material-icons drop-zone-icon">playlist_add</i>
+      <span class="drop-zone-main">ここに音楽をドロップ</span>
+      <span class="drop-zone-sub">またはここをクリックして選択</span>
+      <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
+      <span class="drop-zone-limit">１ファイルにつき10MBまで</span>
+    </label>
 
-  <!-- ── Notes ── -->
-  <div class="jb-notes">
-    <p>※「試聴」は自分のスピーカーだけで1回再生します。</p>
-    <p>※「BGM/SE」はルーム内全員で再生します。</p>
-    <p>※セーブデータ（zip）に音楽ファイルは含まれません。</p>
-  </div>
+    <!-- ── Notes ── -->
+    <div class="jb-notes">
+      <p>※「試聴」は自分のスピーカーだけで1回再生します。</p>
+      <p>※「BGM/SE」はルーム内全員で再生します。</p>
+      <p>※セーブデータ（zip）に音楽ファイルは含まれません。</p>
+    </div>
+  }
 </div>

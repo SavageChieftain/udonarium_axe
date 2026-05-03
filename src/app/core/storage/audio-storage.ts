@@ -5,6 +5,7 @@ import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 export type CatalogItem = {
   readonly identifier: string;
   readonly state: number;
+  readonly name?: string;
 };
 
 export class AudioStorage {
@@ -92,7 +93,7 @@ export class AudioStorage {
     const catalog: CatalogItem[] = [];
     for (const audio of AudioStorage.instance.audios) {
       if (AudioState.COMPLETE <= audio.state) {
-        catalog.push({ identifier: audio.identifier, state: audio.state });
+        catalog.push({ identifier: audio.identifier, state: audio.state, name: audio.name });
       }
     }
     return catalog;

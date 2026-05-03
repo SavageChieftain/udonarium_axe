@@ -8,6 +8,59 @@
   color: var(--ui-text);
 }
 
+/* ── Tag filter tabs ── */
+.tag-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 4px;
+  border-bottom: 1px solid var(--ui-panel-border);
+  flex-shrink: 0;
+}
+
+.tag-tab {
+  padding: 3px 12px;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+}
+
+.tag-tab:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.tag-tab.is-active {
+  background: var(--ui-accent);
+  color: #fff;
+  border-color: var(--ui-accent);
+}
+
+/* ── Tag badge ── */
+.tag-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  border: 1px solid var(--ui-accent);
+  letter-spacing: 0.05em;
+}
+
+.tag-badge.is-se {
+  background: color-mix(in srgb, #f59e0b 15%, transparent);
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+
 /* ── Empty state ── */
 .bgm-empty {
   flex: 1;

@@ -63,10 +63,10 @@ describe('Jukebox', () => {
       expect(jukebox.startTime).toBe(0);
     });
 
-    it('isLoopがfalse', () => {
+    it('repeatMode がデフォルト none', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
-      expect(jukebox.isLoop).toBe(false);
+      expect(jukebox.repeatMode).toBe('none');
     });
 
     it('isPlayingがfalse', () => {
@@ -147,7 +147,6 @@ describe('Jukebox', () => {
 
       expect(jukebox.audioIdentifier).toBe('bgm-01');
       expect(jukebox.isPlaying).toBe(true);
-      expect(jukebox.isLoop).toBe(true);
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
@@ -187,7 +186,8 @@ describe('Jukebox', () => {
       const audio = makeReadyAudio('bgm-02');
       AudioStorage.instance.add(audio);
 
-      jukebox.play('bgm-02', true);
+      jukebox.repeatMode = 'one';
+      jukebox.play('bgm-02');
 
       const player = (jukebox as unknown as { audioPlayer: AudioPlayer }).audioPlayer;
       expect(player.volumeType).toBe(VolumeType.MASTER);
@@ -229,7 +229,7 @@ describe('Jukebox', () => {
       // play() → ready でないので return → _play() 内で playAfterFileUpdate()
       jukebox.audioIdentifier = 'lazy-audio';
       jukebox.isPlaying = true;
-      jukebox.isLoop = true;
+      jukebox.repeatMode = 'one';
       // _play() を直接呼ぶ
       (jukebox as unknown as { _play: () => void })._play();
 

@@ -196,8 +196,8 @@
         [attr.disabled]="!isEditable() ? '' : null"
       />
     </div>
-    <div class="detail-section">
-      <label class="field-label checkbox-label top-pad">
+    <div class="detail-section input-centered">
+      <label class="field-label checkbox-label">
         <input
           type="checkbox"
           [(ngModel)]="chatActivate"
@@ -207,6 +207,13 @@
         <span>チャット末尾発動</span>
       </label>
     </div>
+  </div>
+
+  <div class="tag-hint">
+    <i class="material-icons">info_outline</i>
+    <span
+      >同名タグのカットインは先行するものを停止します（空欄含む）。タグ空欄かつ音楽設定ありの場合はジュークボックスのBGMを停止します。SEを同時再生したい場合はタグを設定してください。</span
+    >
   </div>
 
   <hr class="divider" />
@@ -264,12 +271,4 @@
       >をご確認の上ご利用ください。
     </p>
   }
-
-  <hr class="divider" />
-
-  <!-- ── 注釈 ── -->
-  <p class="note-text">
-    ※
-    タグ名称が同名のカットインは先行するものを停止します（空欄含む）。タグ空欄かつ音楽設定ありの場合はジュークボックスのBGMを停止します。同時再生したいSEにはタグを設定してください。
-  </p>
 </div>

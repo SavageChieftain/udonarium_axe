@@ -9,6 +9,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
+import { Playlist } from '@axe/domain/media/playlist';
 import { Config } from '@axe/domain/peer/config';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -73,6 +74,7 @@ export class JukeboxComponent {
   readonly audios = computed(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('audio-tag')();
+    this.objectChange.versionOf('Jukebox')();
     const all = this.audioStorage.audios.filter((audio) => !audio.isHidden);
     const tag = this.selectTag();
     if (tag === '全て') return all;
@@ -84,6 +86,21 @@ export class JukeboxComponent {
   });
 
   readonly selectTag = signal('全て');
+
+  /** 「ライブラリ」または「再生リスト」 */
+  readonly viewMode = signal<'library' | 'playlist'>('library');
+
+  /** 再生リスト表示用（Playlist entries の順序を AudioFile に解決） */
+  readonly playlistAudios = computed(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.versionOf('Playlist')();
+    this.objectChange.versionOf('Jukebox')();
+    const entries = this.playlist?.entries ?? [];
+    return entries.map((id) => this.audioStorage.get(id)).filter((a): a is AudioFile => a !== null && !a.isHidden);
+  });
+
+  /** ドラッグ中のインデックス */
+  private dragFromIndex: number | null = null;
 
   readonly tagList = computed((): string[] => {
     this.objectChange.fileVersion();
@@ -106,13 +123,45 @@ export class JukeboxComponent {
   }
 
   setTagOf(audio: AudioFile, tag: string) {
+    if (this.isInPlaylist(audio)) return; // 再生リスト登録済みは変更不可
     let audioTag = AudioTag.get(audio.identifier);
     if (!audioTag) audioTag = AudioTag.create(audio.identifier);
     audioTag.tag = tag;
     this.objectChange.notifyCollectionChanged('audio-tag');
   }
+
+  isInPlaylist(audio: AudioFile): boolean {
+    return this.playlist?.hasEntry(audio.identifier) ?? false;
+  }
+
+  addToPlaylist(audio: AudioFile): void {
+    this.playlist?.addEntry(audio.identifier);
+  }
+
+  removeFromPlaylist(audio: AudioFile): void {
+    this.playlist?.removeEntry(audio.identifier);
+  }
+
+  onPlaylistDragStart(index: number): void {
+    this.dragFromIndex = index;
+  }
+
+  onPlaylistDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+    if (this.dragFromIndex === null || this.dragFromIndex === index) return;
+    this.playlist?.moveEntry(this.dragFromIndex, index);
+    this.dragFromIndex = index;
+  }
+
+  onPlaylistDragEnd(): void {
+    this.dragFromIndex = null;
+  }
   get jukebox(): Jukebox {
     return this.objectStore.get<Jukebox>('Jukebox')!;
+  }
+
+  get playlist(): Playlist | null {
+    return this.objectStore.get<Playlist>('Playlist') ?? null;
   }
 
   get cutInLauncher(): CutInLauncher {
@@ -121,10 +170,21 @@ export class JukeboxComponent {
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
 
+  /** 500ms ごとにインクリメント — ジャケ絵の非同期抽出完了を拾うため */
+  private readonly _tick = signal(0);
+
+  readonly nowPlayingArtwork = computed(() => {
+    this._tick();
+    this.objectChange.versionOf('Jukebox')();
+    return this.jukebox?.audio?.artworkUrl ?? null;
+  });
+
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
     this.destroyRef.onDestroy(() => this.stop());
+    const timer = setInterval(() => this._tick.update((v) => v + 1), 500);
+    this.destroyRef.onDestroy(() => clearInterval(timer));
   }
 
   play(audio: AudioFile) {
