@@ -339,14 +339,11 @@ export class TextNoteComponent {
   calcFitHeight() {
     const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
 
-    textArea.style.height = '0';
     if (!this.textNote().limitHeight) {
-      if (textArea.scrollHeight > textArea.offsetHeight) {
-        textArea.style.height = textArea.scrollHeight + 'px';
-        this.oldScrollHeight = textArea.scrollHeight;
-        this.oldOffsetHeight = textArea.offsetHeight;
-      }
+      // flex:1 で親の高さを埋め尽くすため、インライン height をリセットして CSS に委ねる
+      textArea.style.height = '';
     } else {
+      textArea.style.height = '0';
       let textAreaHeight = textArea.scrollHeight;
       let textAreaMax = this.height * this.gridSize - 2;
 

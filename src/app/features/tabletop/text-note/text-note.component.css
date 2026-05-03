@@ -69,52 +69,73 @@
   border: solid 1px var(--ui-panel-border);
 }
 
-.title {
-  box-sizing: border-box;
-  font-size: 15px;
-  padding: 3px 9px;
+.note-card {
+  border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
+  box-shadow: var(--ui-shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform-style: flat;
+}
+
+.note-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px 5px 10px;
+  background: var(--ui-titlebar-bg);
+  border-bottom: 1px solid var(--ui-titlebar-border);
+  border-left: 3px solid var(--ui-accent);
+  min-height: 28px;
+  backface-visibility: hidden;
+  transform-style: flat;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.note-header-icon {
+  font-size: 14px;
+  color: var(--ui-accent);
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.note-title {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-text-muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  backface-visibility: hidden;
 }
 
-.is-black-background {
-  color: var(--ui-text);
-  background-color: var(--ui-panel-bg);
-}
-
-.lock-icon {
-  background-color: var(--ui-elevated);
-  border-radius: 100%;
-  color: var(--ui-text-muted);
-  width: 25px;
-  height: 25px;
-}
-
-.is-right {
-  position: absolute;
-  top: 0px;
-  right: 0;
-  margin: auto;
+.note-lock-icon {
+  font-size: 13px;
+  color: var(--ui-text-dim);
+  flex-shrink: 0;
 }
 
 .textarea {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   resize: none;
-  overflow: hidden;
+  overflow-y: auto;
 
   box-sizing: border-box;
   background: none;
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
   outline: none;
 
   color: var(--ui-text);
-  font-family: Cambria, Georgia;
+  font-family: var(--font-family-sans);
   font-size: 1rem;
-  padding: 2px;
+  line-height: 1.65;
+  padding: 8px 10px;
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -122,10 +143,26 @@
   word-break: break-word;
 
   backface-visibility: hidden;
+  transform-style: flat;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .textarea:focus {
-  background: var(--ui-surface);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--ui-panel-border);
+  border-radius: 2px;
 }
 
 .is-black-background {

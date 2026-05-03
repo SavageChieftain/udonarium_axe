@@ -27,33 +27,30 @@
         }"
       >
         <div
-          class="upright-transform is-3d is-bg-color is-bg-texture chrome-smooth-image-trick"
+          class="upright-transform is-3d is-bg-color note-card is-bg-texture chrome-smooth-image-trick"
           [style.background-image]="'url(' + imageFile().url + ')' | safe: 'style'"
           [style.width.px]="width * gridSize"
           [style.min-height.px]="height * gridSize"
         >
           @if (title().length) {
-            <div class="title is-black-background is-pointer-events-none">
-              {{ title() }}
+            <div class="note-header is-pointer-events-none">
+              <i class="material-icons note-header-icon">subject</i>
+              <span class="note-title">{{ title() }}</span>
               @if (isLock) {
-                <div class="lock-icon is-right">
-                  <i class="material-icons inline">lock</i>
-                </div>
+                <i class="material-icons note-lock-icon">lock</i>
               }
             </div>
           }
           <textarea
-            class="textarea"
+            class="textarea overflow-x-hidden overflow-y-auto"
             (input)="calcFitHeight()"
             #textArea
             [attr.data-v]="textNoteVersion()"
             [style.font-size.px]="fontSize + 9"
             name="text-note-text"
-            name="text-note-text"
             [(ngModel)]="text"
             spellcheck="false"
             id="text-area"
-            class="overflow-x-hidden overflow-y-auto"
           ></textarea>
         </div>
       </div>
