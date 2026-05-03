@@ -2,6 +2,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
   viewChild,
@@ -22,6 +23,7 @@ import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
+import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { ContextMenuComponent } from '@axe/shared/components/context-menu/context-menu.component';
@@ -37,7 +39,7 @@ import { ThemeService } from '@axe/shared/ui/theme.service';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [GameTableComponent, UIPanelComponent, NetworkIndicatorComponent],
+  imports: [GameTableComponent, UIPanelComponent, NetworkIndicatorComponent, MiniJukeboxComponent],
 })
 export class AppComponent {
   readonly theme = inject(ThemeService);
@@ -51,6 +53,12 @@ export class AppComponent {
 
   isSaving = signal(false);
   progressPercent = signal(0);
+  readonly themeLabel = computed(() => {
+    const t = this.theme.theme();
+    if (t === 'dark') return 'ダーク';
+    if (t === 'light') return 'ライト';
+    return '自動';
+  });
   private openPanelCount = 0;
 
   constructor() {
@@ -60,8 +68,14 @@ export class AppComponent {
         ModalService.defaultParentViewContainerRef =
         ContextMenuService.defaultParentViewContainerRef =
           this.modalLayerViewContainerRef();
-      this.panelService.open(PeerMenuComponent, { width: 500, height: 450, left: 100 });
-      this.panelService.open(ChatWindowComponent, { width: 700, height: 400, left: 100, top: 450 });
+      this.panelService.open(PeerMenuComponent, { title: '接続情報', width: 500, height: 450, left: 100 });
+      this.panelService.open(ChatWindowComponent, {
+        title: 'チャットウィンドウ',
+        width: 700,
+        height: 400,
+        left: 100,
+        top: 450,
+      });
     });
   }
 
@@ -82,34 +96,39 @@ export class AppComponent {
     switch (componentName) {
       case 'PeerMenuComponent':
         component = PeerMenuComponent;
+        option.title = '接続情報';
         break;
       case 'ChatWindowComponent':
         component = ChatWindowComponent;
         option.width = 700;
+        option.title = 'チャットウィンドウ';
         break;
       case 'GameTableSettingComponent':
         component = GameTableSettingComponent;
-        option = { width: 630, height: 500, left: 100 };
+        option = { width: 630, height: 500, left: 100, title: 'テーブル設定' };
         break;
       case 'FileStorageComponent':
         component = FileStorageComponent;
+        option.title = 'ファイル一覧';
         break;
       case 'GameCharacterSheetComponent':
         component = GameCharacterSheetComponent;
         break;
       case 'JukeboxComponent':
         component = JukeboxComponent;
+        option.title = 'ジュークボックス';
         break;
       case 'CutInListComponent':
         component = CutInListComponent;
-        option = { width: 650, height: 740, left: 100 };
+        option = { width: 650, height: 740, left: 100, title: 'カットインリスト' };
         break;
       case 'GameCharacterGeneratorComponent':
         component = GameCharacterGeneratorComponent;
-        option = { width: 500, height: 300, left: 100 };
+        option = { width: 500, height: 300, left: 100, title: 'キャラクタージェネレーター' };
         break;
       case 'GameObjectInventoryComponent':
         component = GameObjectInventoryComponent;
+        option.title = 'インベントリ';
         break;
     }
     if (component) {

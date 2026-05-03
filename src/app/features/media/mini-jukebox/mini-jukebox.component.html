@@ -1,0 +1,124 @@
+<div
+  class="player"
+  [class.is-minimized]="isMinimized()"
+  #playerEl
+  appDraggable
+  [draggable.handle]="'.player-top'"
+  [draggable.stack]="'.player'"
+>
+  <!-- ドラッグエリア + トラック情報 -->
+  <div class="player-top">
+    <div
+      class="art-disc"
+      [class.is-playing]="isPlaying()"
+      [class.has-artwork]="artworkUrl()"
+      [class.is-expand-target]="isMinimized()"
+      (mousedown)="isMinimized() && $event.stopPropagation()"
+      (click)="isMinimized() && toggleMinimize()"
+    >
+      @if (artworkUrl()) {
+        <img class="art-disc-img" [src]="artworkUrl()" alt="" />
+      } @else {
+        <i class="material-icons">{{ isMinimized() && isPlaying() ? 'volume_up' : 'album' }}</i>
+      }
+      @if (isMinimized()) {
+        <div class="disc-expand-overlay">
+          <i class="material-icons">open_in_full</i>
+        </div>
+      }
+    </div>
+    @if (!isMinimized()) {
+      <div class="track-info">
+        @if (trackName()) {
+          <div class="track-name-wrap">
+            <span class="track-name" [class.is-scrolling]="isTitleScrolling()" #titleTextEl>{{ trackName() }}</span>
+          </div>
+          <div class="track-sub">{{ trackTag() }}</div>
+        } @else if (lastTrackName()) {
+          <div class="track-name-wrap">
+            <span class="track-name is-stopped">{{ lastTrackName() }}</span>
+          </div>
+          <div class="track-sub is-stopped">{{ lastTrackTag() }}</div>
+        } @else {
+          <div class="track-name is-idle">— 停止中 —</div>
+        }
+      </div>
+      <button class="minimize-btn" (mousedown)="$event.stopPropagation()" (click)="toggleMinimize()" title="最小化">
+        <i class="material-icons">remove</i>
+      </button>
+    }
+  </div>
+
+  @if (!isMinimized()) {
+    <!-- プログレスバー + 時刻 -->
+    <div class="progress-area">
+      <input
+        type="range"
+        class="seek-bar"
+        [value]="displayProgress() * 100"
+        [style.--seek-progress]="displayProgress() * 100 + '%'"
+        min="0"
+        max="100"
+        step="0.1"
+        [disabled]="!isPlaying()"
+        (input)="onSeekInput($event)"
+        (change)="onSeekCommit($event)"
+      />
+      <span class="time-display">{{ timeDisplay() }}</span>
+    </div>
+
+    <!-- トランスポートコントロール -->
+    <div class="controls-row">
+      <button class="ctrl-btn" (click)="playPrev()" [disabled]="!bgmList().length" title="前の曲">
+        <i class="material-icons">skip_previous</i>
+      </button>
+      <button
+        class="ctrl-btn ctrl-btn--play"
+        (click)="togglePlayStop()"
+        [disabled]="!isPlaying() && !lastAudioIdentifier()"
+        [title]="isPlaying() ? '停止' : '再生'"
+      >
+        <i class="material-icons">{{ isPlaying() ? 'stop' : 'play_arrow' }}</i>
+      </button>
+      <button class="ctrl-btn" (click)="playNext()" [disabled]="!bgmList().length" title="次の曲">
+        <i class="material-icons">skip_next</i>
+      </button>
+      <button
+        class="ctrl-btn"
+        [class.is-active]="repeatMode() !== 'none'"
+        (click)="cycleRepeatMode()"
+        [title]="repeatMode() === 'one' ? 'リピート1曲' : repeatMode() === 'all' ? 'リピート全曲' : 'リピートなし'"
+      >
+        <i class="material-icons">{{ repeatMode() === 'one' ? 'repeat_one' : 'repeat' }}</i>
+      </button>
+      <div class="vol-group">
+        <i class="material-icons vol-icon">volume_up</i>
+        <input class="vol-slider" [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" />
+      </div>
+      <button class="ctrl-btn" (click)="togglePlaylist()" [class.is-active]="isPlaylistOpen()" title="再生リスト">
+        <i class="material-icons">queue_music</i>
+      </button>
+    </div>
+
+    <!-- 再生リストドロップダウン -->
+    @if (isPlaylistOpen()) {
+      <div class="playlist-dropdown">
+        @for (audio of bgmList(); track audio.identifier) {
+          <button
+            class="pld-row"
+            [class.is-current]="audio.identifier === lastAudioIdentifier()"
+            (click)="playFromList(audio.identifier)"
+          >
+            <i class="material-icons pld-icon">{{
+              audio.identifier === lastAudioIdentifier() && isPlaying() ? 'volume_up' : 'music_note'
+            }}</i>
+            <span class="pld-name">{{ audio.name }}</span>
+          </button>
+        }
+        @if (!bgmList().length) {
+          <div class="pld-empty">再生リストは空です</div>
+        }
+      </div>
+    }
+  }
+</div>
