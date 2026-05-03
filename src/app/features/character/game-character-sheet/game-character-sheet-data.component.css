@@ -66,10 +66,6 @@
   flex-shrink: 0;
 }
 
-.cs-card-toolbar--common {
-  justify-content: flex-end;
-}
-
 .cs-drag-handle {
   font-size: 16px !important;
   color: var(--ui-text-dim);
@@ -100,108 +96,6 @@
   padding: 4px 10px 8px;
 }
 
-/* ── Character Sheet Redesign ── */
-
-.cs-header-sep {
-  display: inline-block;
-  width: 8px;
-}
-
-.cs-select {
-  background: var(--ui-panel-bg);
-  color: var(--ui-text);
-  border: 1px solid var(--ui-panel-border);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.9em;
-}
-
-.cs-checkbox-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 10px;
-  font-size: 0.9em;
-  color: var(--ui-text);
-  cursor: pointer;
-}
-
-.cs-checkbox-label input[type='checkbox'] {
-  cursor: pointer;
-  accent-color: var(--ui-accent);
-}
-
-/* Section card */
-.cs-section {
-  background: var(--ui-elevated);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin: 4px 0;
-  color: var(--ui-text);
-  box-sizing: border-box;
-}
-
-.cs-section--full {
-  width: 100%;
-  flex-basis: 100%;
-}
-
-.cs-section__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.cs-section__title {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: bold;
-  font-size: 0.95em;
-  color: var(--ui-text);
-}
-
-.cs-section__title .material-icons {
-  font-size: 1.1em;
-  color: var(--ui-accent);
-}
-
-.cs-section__actions {
-  display: flex;
-  gap: 6px;
-}
-
-/* Portrait gallery */
-.cs-portrait-gallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.cs-portrait-item {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 2px solid var(--ui-panel-border);
-  background: var(--ui-elevated);
-  cursor: default;
-}
-
-.cs-portrait-item:hover .cs-portrait-item__overlay {
-  opacity: 1;
-}
-
-.cs-portrait-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 .cs-portrait-empty {
   width: 100%;
   height: 100%;
@@ -213,108 +107,6 @@
 
 .cs-portrait-empty .material-icons {
   font-size: 2em;
-}
-
-.cs-portrait-item__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-/* Koma + popup row */
-.cs-koma-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.cs-koma {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  min-width: 160px;
-}
-
-.cs-koma__header {
-  font-weight: bold;
-  font-size: 0.9em;
-  color: var(--ui-text-muted);
-}
-
-.cs-koma__preview {
-  width: 80px;
-  height: 80px;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 2px solid var(--ui-panel-border);
-  background: var(--ui-elevated);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cs-koma__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.cs-koma__placeholder {
-  color: var(--ui-text-dim);
-}
-
-.cs-koma__placeholder .material-icons {
-  font-size: 2.5em;
-}
-
-.cs-koma__height {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.85em;
-}
-
-.cs-koma__height.is-disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* Popup settings */
-.cs-popup-settings {
-  flex: 1;
-  min-width: 200px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.cs-subsection__title {
-  font-weight: bold;
-  font-size: 0.9em;
-  color: var(--ui-text-muted);
-  margin-bottom: 4px;
-}
-
-.cs-setting-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85em;
-}
-
-.cs-label {
-  min-width: 4em;
-  color: var(--ui-text-muted);
-  font-size: 0.9em;
 }
 
 /* Buttons */
@@ -335,53 +127,8 @@
   font-size: 1.1em;
 }
 
-.cs-btn--ghost {
-  background: var(--ui-elevated);
-  color: var(--ui-text-muted);
-  border: 1px solid var(--ui-panel-border);
-}
-
-.cs-btn--ghost:hover {
-  background: var(--ui-hover);
-}
-
-.cs-btn--primary {
-  background: var(--ui-accent);
-  color: #fff;
-}
-
-.cs-btn--primary:hover {
-  background: var(--ui-accent-hover);
-}
-
-.cs-btn--icon {
-  padding: 4px 5px;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border-radius: 3px;
-}
-
-.cs-btn--icon:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 .cs-btn--danger {
   background: color-mix(in srgb, var(--ui-danger) 70%, transparent);
-}
-
-.cs-btn--danger:hover {
-  background: color-mix(in srgb, var(--ui-danger) 90%, transparent);
-}
-
-/* Inputs */
-.cs-input--number {
-  width: 5em;
-  color: var(--ui-text);
-  background: var(--ui-input-bg);
-  border: 1px solid var(--ui-panel-border);
-  border-radius: 3px;
-  padding: 1px 4px;
-  font-size: 0.9em;
 }
 
 /* ── タブバー ── */
@@ -549,11 +296,4 @@
 .cs-popup-locked {
   opacity: 0.55;
   cursor: default;
-}
-
-.cs-popup-tag-item {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.85em;
 }

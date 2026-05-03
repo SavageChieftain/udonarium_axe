@@ -42,10 +42,6 @@
   width: 100%;
 }
 
-.game-data-element {
-  margin-left: 10px;
-}
-
 .table {
   display: table;
   width: 100%;
@@ -88,10 +84,6 @@
 
 .elm-name-input:focus {
   border-bottom-color: var(--ui-accent);
-}
-
-.elm-cell--editing {
-  /* removed - blue background caused visual confusion */
 }
 
 .elm-value-cell {
@@ -212,129 +204,6 @@
   border-bottom-color: var(--ui-accent);
 }
 
-/* アイコンピッカー */
-.icon-picker-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.icon-picker-btn {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  background: var(--ui-input-bg);
-  cursor: pointer;
-  color: var(--ui-accent);
-}
-
-.icon-picker-btn:hover {
-  background: var(--ui-hover);
-}
-
-.icon-picker-btn .material-icons {
-  font-size: 15px;
-}
-
-.icon-placeholder {
-  opacity: 0.35;
-}
-
-.icon-picker-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-}
-
-.icon-picker-popup {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 101;
-  background: var(--ui-elevated);
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  padding: 8px;
-  width: 216px;
-  max-height: 320px;
-  overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-.icon-picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.72em;
-  color: var(--ui-text-muted);
-  margin-bottom: 6px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--ui-panel-border);
-}
-
-.icon-clear-btn {
-  font-size: 0.72em;
-  padding: 1px 6px;
-  background: transparent;
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  color: var(--ui-text-muted);
-  cursor: pointer;
-}
-
-.icon-clear-btn:hover {
-  background: var(--ui-hover);
-  color: var(--ui-text);
-}
-
-.icon-picker-group-label {
-  font-size: 0.65em;
-  color: var(--ui-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 5px 0 2px 1px;
-}
-
-.icon-picker-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  margin-bottom: 2px;
-}
-
-.icon-picker-item {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-sm);
-  background: transparent;
-  cursor: pointer;
-  color: var(--ui-text);
-}
-
-.icon-picker-item:hover {
-  background: var(--ui-hover);
-  border-color: var(--ui-panel-border);
-}
-
-.icon-picker-item--active {
-  background: var(--ui-accent-bg);
-  border-color: var(--ui-accent) !important;
-  color: var(--ui-accent);
-}
-
-.icon-picker-item .material-icons {
-  font-size: 16px;
-}
-
 .table-cell_solid {
   width: 10px;
   white-space: nowrap;
@@ -363,11 +232,6 @@
   padding: 4px 8px;
 }
 
-.box {
-  display: inline-block;
-  margin: 10px;
-}
-
 .hidden-spacer {
   visibility: hidden;
   height: 0;
@@ -377,32 +241,10 @@
   box-sizing: border-box;
 }
 
-.textarea-url {
-  background: transparent;
-  border: none;
-  border-radius: var(--ui-radius-sm);
-  outline: none;
-  color: var(--ui-text);
-  font-family: inherit;
-  padding: 2px;
-  box-sizing: border-box;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
+.textarea-url,
 .textarea-markdown {
-  background: transparent;
-  border: none;
-  border-radius: var(--ui-radius-sm);
-  outline: none;
-  color: var(--ui-text);
-  font-family: inherit;
   padding: 2px;
-  box-sizing: border-box;
   white-space: pre-wrap;
-  word-wrap: break-word;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -459,11 +301,7 @@ select:focus {
   box-shadow: 0 0 0 1px var(--ui-accent);
 }
 
-.invisible {
-  visibility: hidden;
-  pointer-events: none;
-}
-
+.invisible,
 .dummy {
   visibility: hidden;
   pointer-events: none;
@@ -471,11 +309,6 @@ select:focus {
 
 button i {
   font-size: 1rem;
-}
-
-button:hover {
-  background: var(--ui-hover);
-  color: var(--ui-text);
 }
 
 .table-cell button {

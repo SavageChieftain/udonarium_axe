@@ -17,7 +17,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 @Component({
   selector: 'game-data-element, [game-data-element]',
   templateUrl: './game-data-element.component.html',
-  styleUrls: ['./game-data-element.component.css'],
+  styleUrls: ['./game-data-element.component.css', './game-data-element-icons.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, LinkifyPipe, SafePipe, NgSelectComponent, NgOptionComponent, CheckTableComponent],
   host: {

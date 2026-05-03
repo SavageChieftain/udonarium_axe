@@ -319,21 +319,30 @@
   font-size: 15px;
 }
 
-.secondary-btn {
+.secondary-btn,
+.danger-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  border: 1px solid var(--ui-panel-border);
   border-radius: var(--ui-radius-sm);
-  background: var(--ui-panel-bg);
-  color: var(--ui-text);
   font-size: 12px;
   cursor: pointer;
+  flex-shrink: 0;
   transition:
     background var(--ui-transition),
     border-color var(--ui-transition);
-  flex-shrink: 0;
+}
+
+.secondary-btn .material-icons,
+.danger-btn .material-icons {
+  font-size: 14px;
+}
+
+.secondary-btn {
+  border: 1px solid var(--ui-panel-border);
+  background: var(--ui-panel-bg);
+  color: var(--ui-text);
 }
 
 .secondary-btn:hover:not(:disabled) {
@@ -347,25 +356,10 @@
   cursor: not-allowed;
 }
 
-.secondary-btn .material-icons {
-  font-size: 14px;
-}
-
 .danger-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
   border: 1px solid color-mix(in srgb, var(--ui-danger) 40%, transparent);
-  border-radius: var(--ui-radius-sm);
   background: transparent;
   color: var(--ui-danger);
-  font-size: 12px;
-  cursor: pointer;
-  transition:
-    background var(--ui-transition),
-    border-color var(--ui-transition);
-  flex-shrink: 0;
 }
 
 .danger-btn:hover:not(:disabled) {
@@ -376,10 +370,6 @@
 .danger-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-}
-
-.danger-btn .material-icons {
-  font-size: 14px;
 }
 
 /* ── Empty state ── */

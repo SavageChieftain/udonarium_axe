@@ -1,0 +1,250 @@
+/* TRPG キャラクターシート UI */
+
+/* キャラクターシートのルート */
+.cs-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+/* ── セクション見出し共通 ── */
+.cs-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-accent);
+  margin: 0 0 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--ui-panel-border);
+}
+
+.cs-sec-title--game-data {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.cs-sec-title .material-icons {
+  font-size: 14px;
+}
+
+/* ── キャラクターアイデンティティカード ── */
+.cs-identity {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  padding: 10px 10px 0;
+  align-items: start;
+}
+
+/* ── 左: ポートレート列 ── */
+.cs-portrait-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 180px;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ポートレート列内のフィールド行：range が溢れないよう制御 */
+.cs-portrait-col .cs-field-row {
+  min-width: 0;
+  flex-wrap: wrap;
+  row-gap: 3px;
+}
+
+.cs-portrait-col .cs-field-row input[type='range'] {
+  flex: 1 1 100%;
+  min-width: 0;
+  order: 1;
+}
+
+.cs-portrait-col .cs-field-label {
+  min-width: 3.5em;
+  color: var(--ui-text-muted);
+  font-size: 0.85em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  order: 0;
+}
+
+.cs-portrait-col .cs-num-input {
+  width: 4.5em;
+  order: 0;
+}
+
+.cs-portrait-col .cs-unit {
+  order: 0;
+}
+
+/* 大ポートレート表示 */
+.cs-portrait-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--ui-radius-sm);
+  overflow: hidden;
+  border: 2px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cs-portrait-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.cs-portrait-hero:hover .cs-portrait-overlay {
+  opacity: 1;
+}
+
+.cs-portrait-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cs-portrait-overlay .material-icons {
+  font-size: 2em;
+}
+
+.cs-portrait-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-text-dim);
+}
+
+.cs-portrait-empty .material-icons {
+  font-size: 4em;
+}
+
+/* サムネイルストリップ（複数立ち絵の切り替え） */
+.cs-portrait-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cs-strip-item {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 2px solid var(--ui-panel-border);
+  background: var(--ui-elevated);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-text-dim);
+  transition: border-color 0.12s ease;
+}
+
+.cs-strip-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cs-strip-item .material-icons {
+  font-size: 16px;
+}
+
+.cs-strip-item:hover {
+  border-color: var(--ui-text-muted);
+}
+
+.cs-strip-item--active {
+  border-color: var(--ui-accent);
+}
+
+.cs-strip-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: var(--ui-accent);
+  color: #fff;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px 0 0 0;
+  pointer-events: none;
+}
+
+.cs-strip-badge .material-icons {
+  font-size: 10px;
+}
+
+.cs-strip-add {
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  border: 1px dashed var(--ui-accent);
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--ui-transition);
+  flex-shrink: 0;
+}
+
+.cs-strip-add:hover {
+  background: var(--ui-accent-glow);
+}
+
+.cs-strip-add .material-icons {
+  font-size: 18px;
+}
+
+/* ポートレート操作ボタン行 */
+.cs-portrait-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* 表示設定ブロック */
+.cs-setting-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ui-panel-border);
+  margin-top: 2px;
+}
+
+/* ── 右: キャラクターデータ列 ── */
+.cs-data-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* コマバッジ（ストリップアイテム右下） */

@@ -104,11 +104,6 @@
 }
 
 .room-footer-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ui-text-muted);
   white-space: nowrap;
 }
 
@@ -137,7 +132,7 @@
 }
 
 .field-label,
-.section-label {
+.room-footer-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -146,21 +141,27 @@
 }
 
 .field-input,
-.field-select {
+.field-select,
+.slider-row input[type='number'] {
   background: var(--ui-input-bg);
   border: 1px solid var(--ui-panel-border);
   border-radius: var(--ui-radius-sm);
   color: var(--ui-text);
-  padding: 5px 8px;
   font-size: 13px;
   outline: none;
   transition: border-color var(--ui-transition);
+}
+
+.field-input,
+.field-select {
+  padding: 5px 8px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .field-input:focus,
-.field-select:focus {
+.field-select:focus,
+.slider-row input[type='number']:focus {
   border-color: var(--ui-accent);
 }
 
@@ -184,19 +185,8 @@
 
 .slider-row input[type='number'] {
   width: 4.5em;
-  background: var(--ui-input-bg);
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  color: var(--ui-text);
   padding: 4px 6px;
-  font-size: 13px;
   text-align: right;
-  outline: none;
-  transition: border-color var(--ui-transition);
-}
-
-.slider-row input[type='number']:focus {
-  border-color: var(--ui-accent);
 }
 
 .slider-row input[type='number']:disabled,
@@ -276,14 +266,18 @@
   color: var(--ui-text-muted);
 }
 
-.image-thumb {
+.image-thumb,
+.image-add-btn {
   width: 88px;
   height: 66px;
-  object-fit: contain;
-  border-radius: var(--ui-radius-sm);
-  border: 1px solid var(--ui-panel-border);
-  cursor: pointer;
   background: var(--ui-input-bg);
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+}
+
+.image-thumb {
+  object-fit: contain;
+  border: 1px solid var(--ui-panel-border);
   display: block;
   transition: border-color var(--ui-transition);
 }
@@ -293,8 +287,6 @@
 }
 
 .image-add-btn {
-  width: 88px;
-  height: 66px;
   font-size: 11px;
   display: flex;
   align-items: center;
@@ -303,10 +295,7 @@
   padding: 4px;
   line-height: 1.4;
   border: 1px dashed var(--ui-panel-border);
-  background: var(--ui-input-bg);
   color: var(--ui-text-muted);
-  border-radius: var(--ui-radius-sm);
-  cursor: pointer;
   transition:
     border-color var(--ui-transition),
     color var(--ui-transition);
@@ -352,17 +341,22 @@
 }
 
 /* ── Buttons ── */
-.icon-btn {
+.icon-btn,
+.primary-btn,
+.danger-btn {
   display: inline-flex;
   align-items: center;
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+}
+
+.icon-btn {
   justify-content: center;
   width: 28px;
   height: 28px;
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
   background: transparent;
   color: var(--ui-text-muted);
-  cursor: pointer;
   transition:
     background var(--ui-transition),
     color var(--ui-transition),
@@ -386,17 +380,13 @@
 }
 
 .primary-btn {
-  display: inline-flex;
-  align-items: center;
   gap: 5px;
   padding: 5px 12px;
   border: none;
-  border-radius: var(--ui-radius-sm);
   background: var(--ui-accent);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
   transition: opacity var(--ui-transition);
 }
 
@@ -414,17 +404,13 @@
 }
 
 .danger-btn {
-  display: inline-flex;
-  align-items: center;
   gap: 5px;
   padding: 5px 12px;
   border: 1px solid var(--ui-danger);
-  border-radius: var(--ui-radius-sm);
   background: transparent;
   color: var(--ui-danger);
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
   transition:
     background var(--ui-transition),
     opacity var(--ui-transition);
@@ -441,20 +427,4 @@
 
 .danger-btn .material-icons {
   font-size: 15px;
-}
-
-/* ng-select full-width */
-.full-select {
-  display: block !important;
-  width: 100% !important;
-}
-
-.full-select .ng-select-container {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 28px !important;
-  background: var(--ui-input-bg) !important;
-  border-color: var(--ui-panel-border) !important;
-  color: var(--ui-text) !important;
-  font-size: 13px !important;
 }

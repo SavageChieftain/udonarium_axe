@@ -95,8 +95,6 @@
   transition:
     background var(--ui-transition),
     color var(--ui-transition);
-  box-shadow: none;
-  transform: none;
   padding: 0;
 }
 
@@ -104,7 +102,6 @@
   background: var(--ui-danger-bg);
   border-color: var(--ui-danger);
   color: var(--ui-danger);
-  box-shadow: none;
 }
 
 .transport-stop .material-icons {
@@ -210,14 +207,11 @@
     border-color var(--ui-transition);
   user-select: none;
   white-space: nowrap;
-  box-shadow: none;
-  transform: none;
 }
 
 .tag-pill:hover {
   background: var(--ui-hover);
   color: var(--ui-text);
-  box-shadow: none;
 }
 
 .tag-pill.is-active {
@@ -247,16 +241,17 @@
   background: var(--ui-hover);
 }
 
-.track-row.is-playing {
+.track-row.is-playing,
+.track-row.is-auditioning {
   background: var(--ui-accent-bg);
-  border-left: 3px solid var(--ui-accent);
   padding-left: 7px;
 }
 
+.track-row.is-playing {
+  border-left: 3px solid var(--ui-accent);
+}
 .track-row.is-auditioning {
-  background: var(--ui-accent-bg);
   border-left: 3px solid var(--ui-text-dim);
-  padding-left: 7px;
 }
 
 .track-status {
@@ -336,8 +331,6 @@
     background var(--ui-transition),
     color var(--ui-transition),
     border-color var(--ui-transition);
-  box-shadow: none;
-  transform: none;
   padding: 0;
 }
 
@@ -345,7 +338,6 @@
   background: var(--ui-hover);
   color: var(--ui-text);
   border-color: var(--ui-accent);
-  box-shadow: none;
 }
 
 .action-btn.is-active {
