@@ -38,7 +38,15 @@
             <i class="material-icons">lock</i>
           </div>
         }
-        @if (!isLock && range().type !== 'CIRCLE' && range().type !== 'SQUARE' && range().type !== 'DIAMOND') {
+        @if (
+          !isLock &&
+          range().type !== 'CIRCLE' &&
+          range().type !== 'SQUARE' &&
+          range().type !== 'DIAMOND' &&
+          range().type !== 'TRIANGLE' &&
+          range().type !== 'PENTAGON' &&
+          range().type !== 'HEXAGON'
+        ) {
           <div class="absolute w-7">
             <div
               class="absolute rotate-grab of-corn-tip rotate-grab-icon is-3d will-change"

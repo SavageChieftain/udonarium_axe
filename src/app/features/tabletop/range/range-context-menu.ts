@@ -69,7 +69,14 @@ export function buildRangeContextMenu(
           },
         }
   );
-  if (range.type == 'CIRCLE' || range.type == 'SQUARE' || range.type == 'DIAMOND') {
+  if (
+    range.type == 'CIRCLE' ||
+    range.type == 'SQUARE' ||
+    range.type == 'DIAMOND' ||
+    range.type == 'TRIANGLE' ||
+    range.type == 'PENTAGON' ||
+    range.type == 'HEXAGON'
+  ) {
     menuArray.push(
       objectStore.get(range.followingCharctorIdentifier) != null
         ? {
@@ -87,6 +94,69 @@ export function buildRangeContextMenu(
           }
     );
   }
+  menuArray.push(ContextMenuSeparator);
+  menuArray.push({
+    name: '形状変更',
+    action: undefined,
+    subActions: [
+      {
+        name: (range.type === 'LINE' ? '✔ ' : '') + '直線',
+        action: () => {
+          range.type = 'LINE';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'CORN' ? '✔ ' : '') + 'コーン',
+        action: () => {
+          range.type = 'CORN';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'TRIANGLE' ? '✔ ' : '') + '三角形（キャラ中心）',
+        action: () => {
+          range.type = 'TRIANGLE';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'SQUARE' ? '✔ ' : '') + '四角形',
+        action: () => {
+          range.type = 'SQUARE';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'DIAMOND' ? '✔ ' : '') + 'ひし形',
+        action: () => {
+          range.type = 'DIAMOND';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'PENTAGON' ? '✔ ' : '') + '五角形',
+        action: () => {
+          range.type = 'PENTAGON';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'HEXAGON' ? '✔ ' : '') + '六角形',
+        action: () => {
+          range.type = 'HEXAGON';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+      {
+        name: (range.type === 'CIRCLE' ? '✔ ' : '') + '円形',
+        action: () => {
+          range.type = 'CIRCLE';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
+    ],
+  });
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
     name: '射程範囲を編集',

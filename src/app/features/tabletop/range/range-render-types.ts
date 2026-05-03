@@ -54,6 +54,43 @@ export interface ClipAreaDiamond {
   clip04y: number;
 }
 
+export interface ClipAreaTriangle {
+  clip01x: number;
+  clip01y: number;
+  clip02x: number;
+  clip02y: number;
+  clip03x: number;
+  clip03y: number;
+}
+
+export interface ClipAreaPentagon {
+  clip01x: number;
+  clip01y: number;
+  clip02x: number;
+  clip02y: number;
+  clip03x: number;
+  clip03y: number;
+  clip04x: number;
+  clip04y: number;
+  clip05x: number;
+  clip05y: number;
+}
+
+export interface ClipAreaHexagon {
+  clip01x: number;
+  clip01y: number;
+  clip02x: number;
+  clip02y: number;
+  clip03x: number;
+  clip03y: number;
+  clip04x: number;
+  clip04y: number;
+  clip05x: number;
+  clip05y: number;
+  clip06x: number;
+  clip06y: number;
+}
+
 export interface ClipAreaCorn {
   clip01x: number; // 根本始点
   clip01y: number;

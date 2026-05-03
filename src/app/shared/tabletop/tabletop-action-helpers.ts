@@ -40,10 +40,13 @@ export function getDiceMenuItems(): DiceMenuItem[] {
 
 export function getRangeMenuItems(): RangeMenuItem[] {
   return [
-    { menuName: 'コーン', typeName: 'CORN' },
     { menuName: '直線', typeName: 'LINE' },
-    { menuName: '円', typeName: 'CIRCLE' },
-    { menuName: '正方形', typeName: 'SQUARE' },
-    { menuName: 'ダイヤ', typeName: 'DIAMOND' },
+    { menuName: 'コーン', typeName: 'CORN' },
+    { menuName: '三角形', typeName: 'TRIANGLE' },
+    { menuName: '四角形', typeName: 'SQUARE' },
+    { menuName: 'ひし形', typeName: 'DIAMOND' },
+    { menuName: '五角形', typeName: 'PENTAGON' },
+    { menuName: '六角形', typeName: 'HEXAGON' },
+    { menuName: '円形', typeName: 'CIRCLE' },
   ];
 }

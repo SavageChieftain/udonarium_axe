@@ -24,8 +24,11 @@ import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-contex
 import {
   ClipAreaCorn,
   ClipAreaDiamond,
+  ClipAreaHexagon,
   ClipAreaLine,
+  ClipAreaPentagon,
   ClipAreaSquare,
+  ClipAreaTriangle,
   RangeRender,
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
@@ -90,6 +93,15 @@ export class RangeComponent {
       case 'DIAMOND':
         text = this.clipDiamond;
         break;
+      case 'TRIANGLE':
+        text = this.clipTriangle;
+        break;
+      case 'PENTAGON':
+        text = this.clipPentagon;
+        break;
+      case 'HEXAGON':
+        text = this.clipHexagon;
+        break;
       case 'CORN':
       default:
         text = this.clipCorn;
@@ -145,6 +157,24 @@ export class RangeComponent {
     return clipDiamond;
   }
 
+  public get clipTriangle() {
+    this._clipVersion();
+    const c = this.clipAreaTriangle;
+    return `polygon(${c.clip01x}px ${c.clip01y}px, ${c.clip02x}px ${c.clip02y}px, ${c.clip03x}px ${c.clip03y}px)`;
+  }
+
+  public get clipPentagon() {
+    this._clipVersion();
+    const c = this.clipAreaPentagon;
+    return `polygon(${c.clip01x}px ${c.clip01y}px, ${c.clip02x}px ${c.clip02y}px, ${c.clip03x}px ${c.clip03y}px, ${c.clip04x}px ${c.clip04y}px, ${c.clip05x}px ${c.clip05y}px)`;
+  }
+
+  public get clipHexagon() {
+    this._clipVersion();
+    const c = this.clipAreaHexagon;
+    return `polygon(${c.clip01x}px ${c.clip01y}px, ${c.clip02x}px ${c.clip02y}px, ${c.clip03x}px ${c.clip03y}px, ${c.clip04x}px ${c.clip04y}px, ${c.clip05x}px ${c.clip05y}px, ${c.clip06x}px ${c.clip06y}px)`;
+  }
+
   private clipAreaCorn: ClipAreaCorn = {
     clip01x: 0, // 根本始点
     clip01y: 0,
@@ -189,14 +219,51 @@ export class RangeComponent {
   };
 
   private clipAreaDiamond: ClipAreaDiamond = {
-    clip01x: 0, // 左下
+    clip01x: 0,
     clip01y: 0,
-    clip02x: 0, // 左上
+    clip02x: 0,
     clip02y: -50,
-    clip03x: 100, // 右上
+    clip03x: 100,
     clip03y: -50,
-    clip04x: 100, // 右下
+    clip04x: 100,
     clip04y: 0,
+  };
+
+  private clipAreaTriangle: ClipAreaTriangle = {
+    clip01x: 0,
+    clip01y: -100,
+    clip02x: 100,
+    clip02y: 100,
+    clip03x: -100,
+    clip03y: 100,
+  };
+
+  private clipAreaPentagon: ClipAreaPentagon = {
+    clip01x: 0,
+    clip01y: -100,
+    clip02x: 100,
+    clip02y: -30,
+    clip03x: 60,
+    clip03y: 100,
+    clip04x: -60,
+    clip04y: 100,
+    clip05x: -100,
+    clip05y: -30,
+  };
+
+  private clipAreaHexagon: ClipAreaHexagon = {
+    clip01x: 0,
+    clip01y: -100,
+    clip02x: 100,
+    clip02y: -50,
+    clip03x: 100,
+    clip03y: 50,
+    clip04x: 0,
+    clip04y: 100,
+    clip05x: -100,
+    clip05y: 50,
+    clip06x: -100,
+    clip06y: -50,
   };
 
   get tableSelecter(): TableSelecter {
@@ -315,10 +382,15 @@ export class RangeComponent {
       }
     }, this.destroyRef);
     effect(() => {
+      const range = this.range();
+      // range の posX は起点（キャスター中心）を表す。
+      // size=1 キャラと同じセル中心にスナップさせるため常に gridSize/2 をオフセットに使う。
+      const half = this.gridSize / 2;
       this.movableOption.set({
-        tabletopObject: this.range(),
+        tabletopObject: range,
         transformCssOffset: 'translateZ(0.25px)',
         colideLayers: ['terrain'],
+        snapOrigin: { x: half, y: half },
       });
       this.rotableOption.set({
         tabletopObject: this.range(),
@@ -449,6 +521,15 @@ export class RangeComponent {
         break;
       case 'DIAMOND':
         this.clipAreaDiamond = render.renderDiamond(setting);
+        break;
+      case 'TRIANGLE':
+        this.clipAreaTriangle = render.renderTriangle(setting);
+        break;
+      case 'PENTAGON':
+        this.clipAreaPentagon = render.renderPentagon(setting);
+        break;
+      case 'HEXAGON':
+        this.clipAreaHexagon = render.renderHexagon(setting);
         break;
       case 'CORN':
       default:

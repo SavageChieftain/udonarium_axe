@@ -1,7 +1,10 @@
 import {
   ClipAreaDiamond,
+  ClipAreaHexagon,
   ClipAreaLine,
+  ClipAreaPentagon,
   ClipAreaSquare,
+  ClipAreaTriangle,
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render-types';
 import {
@@ -256,6 +259,195 @@ export function renderDiamond(
     context.arc(offSetX_px, offSetX_px, 5, 0, 2 * Math.PI, true);
     context.fill();
   }
+
+  return clip;
+}
+
+// ---- ヘルパー: 正多角形の頂点を生成 (中心0,0・上方向が最初の頂点) ----
+function regularPolygonVertices(n: number, radius: number): { x: number; y: number }[] {
+  const verts: { x: number; y: number }[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (((360 / n) * i - 90) * Math.PI) / 180;
+    verts.push({ x: Math.cos(a) * radius, y: Math.sin(a) * radius });
+  }
+  return verts;
+}
+
+// ---- 凸多角形の内側判定 ----
+function insideConvexPolygon(verts: { x: number; y: number }[], gcx: number, gcy: number): boolean {
+  for (let i = 0; i < verts.length; i++) {
+    const a = verts[i];
+    const b = verts[(i + 1) % verts.length];
+    if (!chkOuterProduct(a.x, a.y, b.x, b.y, gcx, gcy)) return false;
+  }
+  return true;
+}
+
+// ---- TRIANGLE: キャラ中心に置いた正三角形 ----
+export function renderTriangle(
+  canvasElement: HTMLCanvasElement,
+  canvasElementRange: HTMLCanvasElement,
+  setting: RangeRenderSetting
+): ClipAreaTriangle {
+  const offsets = calcGridOffsets(setting);
+  const { gridSize, offSetX_px, offSetY_px } = offsets;
+
+  canvasElement.width = setting.areaWidth * gridSize;
+  canvasElement.height = setting.areaHeight * gridSize;
+  let context = canvasElement.getContext('2d')!;
+
+  const r = setting.range * gridSize;
+  const verts = regularPolygonVertices(3, r);
+
+  const clip: ClipAreaTriangle = {
+    clip01x: verts[0].x * 1.2,
+    clip01y: verts[0].y * 1.2,
+    clip02x: verts[1].x * 1.2,
+    clip02y: verts[1].y * 1.2,
+    clip03x: verts[2].x * 1.2,
+    clip03y: verts[2].y * 1.2,
+  };
+
+  makeBrush(context, gridSize, setting.gridColor);
+  if (setting.fillOutLine) {
+    context.beginPath();
+    context.moveTo(verts[0].x + offSetX_px, verts[0].y + offSetY_px);
+    for (let i = 1; i < verts.length; i++) context.lineTo(verts[i].x + offSetX_px, verts[i].y + offSetY_px);
+    context.closePath();
+    context.fill();
+  } else {
+    fillGridCells(context, setting, offsets, (gcx, gcy) => insideConvexPolygon(verts, gcx, gcy));
+  }
+
+  canvasElementRange.width = setting.areaWidth * gridSize;
+  canvasElementRange.height = setting.areaHeight * gridSize;
+  context = canvasElementRange.getContext('2d')!;
+  makeBrush(context, gridSize, setting.rangeColor);
+  context.beginPath();
+  context.lineWidth = 2;
+  context.moveTo(verts[0].x + offSetX_px, verts[0].y + offSetY_px);
+  for (let i = 1; i < verts.length; i++) context.lineTo(verts[i].x + offSetX_px, verts[i].y + offSetY_px);
+  context.closePath();
+  context.stroke();
+  context.beginPath();
+  context.arc(offSetX_px, offSetY_px, 5, 0, 2 * Math.PI, true);
+  context.fill();
+
+  return clip;
+}
+
+// ---- PENTAGON: キャスター中心の正五角形 ----
+export function renderPentagon(
+  canvasElement: HTMLCanvasElement,
+  canvasElementRange: HTMLCanvasElement,
+  setting: RangeRenderSetting
+): ClipAreaPentagon {
+  const offsets = calcGridOffsets(setting);
+  const { gridSize, offSetX_px, offSetY_px } = offsets;
+
+  canvasElement.width = setting.areaWidth * gridSize;
+  canvasElement.height = setting.areaHeight * gridSize;
+  let context = canvasElement.getContext('2d')!;
+
+  const r = setting.range * gridSize;
+  const verts = regularPolygonVertices(5, r);
+
+  const clip: ClipAreaPentagon = {
+    clip01x: verts[0].x * 1.2,
+    clip01y: verts[0].y * 1.2,
+    clip02x: verts[1].x * 1.2,
+    clip02y: verts[1].y * 1.2,
+    clip03x: verts[2].x * 1.2,
+    clip03y: verts[2].y * 1.2,
+    clip04x: verts[3].x * 1.2,
+    clip04y: verts[3].y * 1.2,
+    clip05x: verts[4].x * 1.2,
+    clip05y: verts[4].y * 1.2,
+  };
+
+  makeBrush(context, gridSize, setting.gridColor);
+  if (setting.fillOutLine) {
+    context.beginPath();
+    context.moveTo(verts[0].x + offSetX_px, verts[0].y + offSetY_px);
+    for (let i = 1; i < verts.length; i++) context.lineTo(verts[i].x + offSetX_px, verts[i].y + offSetY_px);
+    context.closePath();
+    context.fill();
+  } else {
+    fillGridCells(context, setting, offsets, (gcx, gcy) => insideConvexPolygon(verts, gcx, gcy));
+  }
+
+  canvasElementRange.width = setting.areaWidth * gridSize;
+  canvasElementRange.height = setting.areaHeight * gridSize;
+  context = canvasElementRange.getContext('2d')!;
+  makeBrush(context, gridSize, setting.rangeColor);
+  context.beginPath();
+  context.lineWidth = 2;
+  context.moveTo(verts[0].x + offSetX_px, verts[0].y + offSetY_px);
+  for (let i = 1; i < verts.length; i++) context.lineTo(verts[i].x + offSetX_px, verts[i].y + offSetY_px);
+  context.closePath();
+  context.stroke();
+  context.beginPath();
+  context.arc(offSetX_px, offSetY_px, 5, 0, 2 * Math.PI, true);
+  context.fill();
+
+  return clip;
+}
+
+// ---- HEXAGON: キャスター中心の正六角形 ----
+export function renderHexagon(
+  canvasElement: HTMLCanvasElement,
+  canvasElementRange: HTMLCanvasElement,
+  setting: RangeRenderSetting
+): ClipAreaHexagon {
+  const offsets = calcGridOffsets(setting);
+  const { gridSize, offSetX_px, offSetY_px } = offsets;
+
+  canvasElement.width = setting.areaWidth * gridSize;
+  canvasElement.height = setting.areaHeight * gridSize;
+  let context = canvasElement.getContext('2d')!;
+
+  const r = setting.range * gridSize;
+  const verts = regularPolygonVertices(6, r);
+
+  const clip: ClipAreaHexagon = {
+    clip01x: verts[0].x * 1.2,
+    clip01y: verts[0].y * 1.2,
+    clip02x: verts[1].x * 1.2,
+    clip02y: verts[1].y * 1.2,
+    clip03x: verts[2].x * 1.2,
+    clip03y: verts[2].y * 1.2,
+    clip04x: verts[3].x * 1.2,
+    clip04y: verts[3].y * 1.2,
+    clip05x: verts[4].x * 1.2,
+    clip05y: verts[4].y * 1.2,
+    clip06x: verts[5].x * 1.2,
+    clip06y: verts[5].y * 1.2,
+  };
+
+  makeBrush(context, gridSize, setting.gridColor);
+  if (setting.fillOutLine) {
+    context.beginPath();
+    context.moveTo(verts[0].x + offSetX_px, verts[0].y + offSetY_px);
+    for (let i = 1; i < verts.length; i++) context.lineTo(verts[i].x + offSetX_px, verts[i].y + offSetY_px);
+    context.closePath();
+    context.fill();
+  } else {
+    fillGridCells(context, setting, offsets, (gcx, gcy) => insideConvexPolygon(verts, gcx, gcy));
+  }
+
+  canvasElementRange.width = setting.areaWidth * gridSize;
+  canvasElementRange.height = setting.areaHeight * gridSize;
+  context = canvasElementRange.getContext('2d')!;
+  makeBrush(context, gridSize, setting.rangeColor);
+  context.beginPath();
+  context.lineWidth = 2;
+  context.moveTo(verts[0].x + offSetX_px, verts[0].y + offSetY_px);
+  for (let i = 1; i < verts.length; i++) context.lineTo(verts[i].x + offSetX_px, verts[i].y + offSetY_px);
+  context.closePath();
+  context.stroke();
+  context.beginPath();
+  context.arc(offSetX_px, offSetY_px, 5, 0, 2 * Math.PI, true);
+  context.fill();
 
   return clip;
 }

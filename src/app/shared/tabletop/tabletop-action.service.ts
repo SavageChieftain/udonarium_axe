@@ -122,20 +122,29 @@ export class TabletopActionService {
     let range;
     switch (typeName) {
       case 'LINE':
-        range = RangeArea.create('射程範囲', 1, 10, 100);
+        range = RangeArea.create('射程範囲', 1, 4, 100);
         break;
       case 'CIRCLE':
-        range = RangeArea.create('射程範囲', 6, 6, 100);
+        range = RangeArea.create('射程範囲', 3, 3, 100);
         break;
       case 'SQUARE':
-        range = RangeArea.create('射程範囲', 6, 6, 100);
+        range = RangeArea.create('射程範囲', 3, 3, 100);
         break;
       case 'DIAMOND':
-        range = RangeArea.create('射程範囲', 6, 6, 100);
+        range = RangeArea.create('射程範囲', 3, 3, 100);
+        break;
+      case 'TRIANGLE':
+        range = RangeArea.create('射程範囲', 3, 3, 100);
+        break;
+      case 'PENTAGON':
+        range = RangeArea.create('射程範囲', 3, 3, 100);
+        break;
+      case 'HEXAGON':
+        range = RangeArea.create('射程範囲', 3, 3, 100);
         break;
       case 'CORN':
       default:
-        range = RangeArea.create('射程範囲', 5, 5, 100);
+        range = RangeArea.create('射程範囲', 3, 3, 100);
         break;
     }
 

@@ -316,8 +316,10 @@ export class MovableDirective {
           this.posY = snappedY - this.height / 2;
         }
       } else {
-        this.posX = calcSnapNum(this.posX, effectiveGridSize);
-        this.posY = calcSnapNum(this.posY, effectiveGridSize);
+        const originX = this.snapOrigin?.x ?? 0;
+        const originY = this.snapOrigin?.y ?? 0;
+        this.posX = calcSnapNum(this.posX + originX, effectiveGridSize) - originX;
+        this.posY = calcSnapNum(this.posY + originY, effectiveGridSize) - originY;
       }
     }
   }
