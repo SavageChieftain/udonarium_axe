@@ -1,6 +1,7 @@
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
+import { markForChanged } from '@axe/core/sync/object-event-extension';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -143,5 +144,6 @@ export class TabletopObject extends ObjectNode {
   setLocation(location: string) {
     this.location.name = location;
     this.update();
+    markForChanged(this);
   }
 }
