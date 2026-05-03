@@ -52,7 +52,7 @@ export class ChatInputDiceBotHelper {
       }
       gameName += 'の説明';
       const coordinate = this.pointerDeviceService.pointers[0];
-      const option: PanelOption = { left: coordinate.x, top: coordinate.y, width: 600, height: 500 };
+      const option: PanelOption = { title: gameName, left: coordinate.x, top: coordinate.y, width: 600, height: 500 };
       const textView = this.panelService.open(TextViewComponent, option);
       textView.title = gameName;
       textView.text = DICEBOT_INTRO + this.gameHelp;

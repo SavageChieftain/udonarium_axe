@@ -376,7 +376,13 @@ export class CardStackComponent {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
 
     const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { left: coordinate.x - 200, top: coordinate.y - 300, width: 400, height: 600 };
+    const option: PanelOption = {
+      title: gameObject.name + ' のカード一覧',
+      left: coordinate.x - 200,
+      top: coordinate.y - 300,
+      width: 400,
+      height: 600,
+    };
 
     this.cardStack().owner = Network.peerContext.userId;
     const component = this.panelService.open<CardStackListComponent>(CardStackListComponent, option);

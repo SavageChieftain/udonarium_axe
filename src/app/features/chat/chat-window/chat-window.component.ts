@@ -267,14 +267,26 @@ export class ChatWindowComponent {
 
   showTabSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { left: coordinate.x - 250, top: coordinate.y - 175, width: 500, height: 380 };
+    const option: PanelOption = {
+      title: 'チャットタブ設定',
+      left: coordinate.x - 250,
+      top: coordinate.y - 175,
+      width: 500,
+      height: 380,
+    };
     const component = this.panelService.open<ChatTabSettingComponent>(ChatTabSettingComponent, option);
     component.selectedTab.set(this.chatTab());
   }
 
   showDiceTableSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { left: coordinate.x + 50, top: coordinate.y - 450, width: 650, height: 400 };
+    const option: PanelOption = {
+      title: 'ダイス表設定',
+      left: coordinate.x + 50,
+      top: coordinate.y - 450,
+      width: 650,
+      height: 400,
+    };
     this.panelService.openLazy(
       () =>
         import('@axe/features/dice/dice-table-setting/dice-table-setting.component').then(
@@ -299,7 +311,13 @@ export class ChatWindowComponent {
 
   showVoteMenu() {
     const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { left: coordinate.x + 50, top: coordinate.y - 450, width: 650, height: 400 };
+    const option: PanelOption = {
+      title: '点呼/投票設定',
+      left: coordinate.x + 50,
+      top: coordinate.y - 450,
+      width: 650,
+      height: 400,
+    };
     this.panelService.openLazy(
       () => import('@axe/features/vote/vote-menu/vote-menu.component').then((m) => m.VoteMenuComponent),
       option
@@ -308,7 +326,13 @@ export class ChatWindowComponent {
 
   showAlarmMenu() {
     const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { left: coordinate.x + 50, top: coordinate.y - 450, width: 650, height: 400 };
+    const option: PanelOption = {
+      title: 'アラームタイマ',
+      left: coordinate.x + 50,
+      top: coordinate.y - 450,
+      width: 650,
+      height: 400,
+    };
     this.panelService.openLazy(
       () => import('@axe/features/alarm/alarm-menu/alarm-menu.component').then((m) => m.AlarmMenuComponent),
       option

@@ -18,6 +18,7 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
+import { Playlist } from '@axe/domain/media/playlist';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -67,6 +68,9 @@ export class AppInitializationService {
 
     const jukebox = new Jukebox('Jukebox');
     jukebox.initialize();
+
+    const playlist = new Playlist('Playlist');
+    playlist.initialize();
 
     const markdown = new MarkDown('markdown');
     markdown.initialize();

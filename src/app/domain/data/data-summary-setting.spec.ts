@@ -61,14 +61,14 @@ describe('DataSummarySetting', () => {
     });
 
     it('dataTag がデフォルト値', () => {
-      expect(DataSummarySetting.instance.dataTag).toBe('HP MP SAN 敏捷度 精神力 情報');
+      expect(DataSummarySetting.instance.dataTag).toBe('HP MP 敏捷度 精神力');
     });
   });
 
   describe('dataTags', () => {
     it('スペース区切りの配列を返す', () => {
       const tags = DataSummarySetting.instance.dataTags;
-      expect(tags).toEqual(['HP', 'MP', 'SAN', '敏捷度', '精神力', '情報']);
+      expect(tags).toEqual(['HP', 'MP', '敏捷度', '精神力']);
     });
 
     it('キャッシュが効いて同じ配列を返す', () => {
