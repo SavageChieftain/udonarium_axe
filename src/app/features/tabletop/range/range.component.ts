@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -384,13 +385,15 @@ export class RangeComponent {
     effect(() => {
       const range = this.range();
       // range の posX は起点（キャスター中心）を表す。
-      // size=1 キャラと同じセル中心にスナップさせるため常に gridSize/2 をオフセットに使う。
+      // ヘクスグリッドでは canvas 中心 X = posX のため snapOrigin は (0, 0) でキャスターが
+      // ヘクス中心に直接スナップする。スクエアグリッドでは gridSize/2 オフセットでセル中心へスナップ。
       const half = this.gridSize / 2;
+      const snapXY = isHexGrid(this.currentTable.gridType) ? 0 : half;
       this.movableOption.set({
         tabletopObject: range,
         transformCssOffset: 'translateZ(0.25px)',
         colideLayers: ['terrain'],
-        snapOrigin: { x: half, y: half },
+        snapOrigin: { x: snapXY, y: snapXY },
       });
       this.rotableOption.set({
         tabletopObject: this.range(),
