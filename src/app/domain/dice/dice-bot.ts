@@ -60,7 +60,7 @@ export class DiceBot extends GameObject {
           return {
             id: gameSystem.ID,
             result: `${gameSystem.ID} : ${result.text}`
-              .replace(/\n?(#\d+)\n/gi, '\n$1 ') // 繰り返しダイスロールを行ごとに表示
+              .replace(/\n*(#\d+)\n/gi, '\n$1 ') // 繰り返しダイスロールを行ごとに表示
               .replace(/: \n/, ': '), // ヘッダー直後の余分な改行を除去
             isSecret: result.secret,
           };
