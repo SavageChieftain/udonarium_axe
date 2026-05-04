@@ -21,7 +21,7 @@
       [ngStyle]="{ transform: 'translateZ(' + altitude * gridSize + 'px)' }"
     >
       <div
-        class="is-fit-full is-3d"
+        class="is-fit-full is-3d pointer-events-none"
         [ngStyle]="hexOutlineMask ? { '-webkit-mask': hexOutlineMask, mask: hexOutlineMask } : null"
       >
         <div
@@ -329,7 +329,6 @@
               @if (gameTableMask()!.isMine) {
                 <button
                   class="edit-button"
-                  (pointerdown)="prevent($event)"
                   (mousedown)="prevent($event)"
                   (click)="scratchDone($event)"
                   [title]="gameTableMask()!.scratchingGrids ? '確定' : '終了'"
@@ -340,7 +339,6 @@
               @if (gameTableMask()!.isMine) {
                 <button
                   class="edit-button"
-                  (pointerdown)="prevent($event)"
                   (mousedown)="prevent($event)"
                   (click)="scratchCancel($event)"
                   title="キャンセル"
