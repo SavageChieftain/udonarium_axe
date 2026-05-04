@@ -89,10 +89,13 @@ export class ChatPortraitImageComponent {
 
   readonly portraitYPos = computed<number>(() => {
     this.chatTabListVersion();
+    const h = this.chatTabList?.portraitHeight ?? 0;
     if (!this.chatTabList?.isPortraitInWindow) {
-      return -(this.chatTabList?.portraitHeight ?? 0) - 26;
+      // タブレットトップ（isTilteTop=true）のウィンドウ外表示: 既存の補正値を維持
+      return -h - 26;
     } else {
-      return 0;
+      // ウィンドウ内表示: 高さゼロのコンテナから上方にはみ出す
+      return -h;
     }
   });
 

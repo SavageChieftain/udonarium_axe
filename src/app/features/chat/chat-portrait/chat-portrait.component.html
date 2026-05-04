@@ -1,11 +1,6 @@
 <div>
   <form name="chat-portrait">
-    <div
-      id="portrait-component_"
-      #portraitArea
-      class="relative overflow-visible"
-      [ngStyle]="{ height: portraitAreaHeight() + 'px' }"
-    >
+    <div id="portrait-component_" #portraitArea class="relative overflow-visible">
       <chat-portrait-img
         [chatTabidentifier]="chatTabidentifier()"
         [isTilteTop]="false"
