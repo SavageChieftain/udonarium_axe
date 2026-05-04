@@ -68,12 +68,45 @@
 
 .message .body {
   flex-grow: 1;
+  position: relative;
   color: var(--ui-text);
+  --bubble-bg: var(--ui-elevated);
+  background-color: var(--bubble-bg);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius);
+  padding: 3px 6px 5px;
+  margin-left: 8px;
+}
+
+/* 吹き出しテール — border色の三角（外側） */
+.message .body::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 12px;
+  border-style: solid;
+  border-width: 6px 9px 6px 0;
+  border-color: transparent var(--ui-panel-border) transparent transparent;
+}
+
+/* 吹き出しテール — 背景色の三角（内側、borderを1px覆い隠す） */
+.message .body::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 13px;
+  border-style: solid;
+  border-width: 5px 8px 5px 0;
+  border-color: transparent var(--bubble-bg) transparent transparent;
 }
 
 .message-small .body {
   flex-grow: 1;
   color: var(--ui-text);
+  background-color: var(--ui-elevated);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  padding: 2px 6px 3px;
 }
 
 .message .title {
