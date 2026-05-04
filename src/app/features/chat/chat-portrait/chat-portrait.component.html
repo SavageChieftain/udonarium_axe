@@ -4,7 +4,7 @@
       id="portrait-component_"
       #portraitArea
       class="relative overflow-visible"
-      [ngStyle]="{ height: portraitAreaHeight + 'px' }"
+      [ngStyle]="{ height: portraitAreaHeight() + 'px' }"
     >
       <chat-portrait-img
         [chatTabidentifier]="chatTabidentifier()"

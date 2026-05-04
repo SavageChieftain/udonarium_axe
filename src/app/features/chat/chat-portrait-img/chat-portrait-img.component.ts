@@ -87,13 +87,14 @@ export class ChatPortraitImageComponent {
 
   // ------- 表示フラグ -------
 
-  get portraitYPos(): number {
+  readonly portraitYPos = computed<number>(() => {
+    this.chatTabListVersion();
     if (!this.chatTabList?.isPortraitInWindow) {
       return -(this.chatTabList?.portraitHeight ?? 0) - 26;
     } else {
       return 0;
     }
-  }
+  });
 
   readonly isPortraitDispMode = computed<boolean>(() => {
     this.chatTabListVersion();
