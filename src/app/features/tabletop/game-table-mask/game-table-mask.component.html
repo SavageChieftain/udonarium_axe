@@ -329,7 +329,7 @@
               @if (gameTableMask()!.isMine) {
                 <button
                   class="edit-button"
-                  (mousedown)="prevent($event)"
+                  (pointerdown)="onScratchDonePointerDown($event)"
                   (click)="scratchDone($event)"
                   [title]="gameTableMask()!.scratchingGrids ? '確定' : '終了'"
                 >
@@ -339,7 +339,7 @@
               @if (gameTableMask()!.isMine) {
                 <button
                   class="edit-button"
-                  (mousedown)="prevent($event)"
+                  (pointerdown)="onScratchCancelPointerDown($event)"
                   (click)="scratchCancel($event)"
                   title="キャンセル"
                 >

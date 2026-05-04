@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Network } from '@axe/core/index';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
@@ -157,6 +160,83 @@ describe('GameTableMaskComponent', () => {
 
       // 対称差: {0:0} xor {0:0} = {}
       expect(mask.scratchedGrids).toBe('');
+    });
+  });
+
+  describe('スクラッチ操作ボタン', () => {
+    let mask: GameTableMask;
+
+    beforeEach(() => {
+      vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ userId: 'my-user', isOpen: true } as IPeerContext);
+      vi.spyOn(SoundEffect, 'play').mockImplementation(() => {});
+      mask = GameTableMask.create('testMask', 10, 10, 1);
+      mask.owner = 'my-user';
+      fixture.componentRef.setInput('gameTableMask', mask);
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      mask.destroy();
+    });
+
+    it('主ボタンの pointerdown でスクラッチ完了を実行すること', () => {
+      mask.scratchingGrids = '0:0';
+
+      const event = new PointerEvent('pointerdown', { button: 0 });
+      const preventDefault = vi.spyOn(event, 'preventDefault');
+      const stopPropagation = vi.spyOn(event, 'stopPropagation');
+
+      expect(component.onScratchDonePointerDown(event)).toBe(false);
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(stopPropagation).toHaveBeenCalled();
+      expect(mask.owner).toBe('');
+      expect(mask.scratchingGrids).toBe('');
+      expect(mask.scratchedGrids).toBe('0:0');
+    });
+
+    it('副ボタンの pointerdown ではスクラッチ完了を実行しないこと', () => {
+      mask.scratchingGrids = '0:0';
+
+      const event = new PointerEvent('pointerdown', { button: 2 });
+      const preventDefault = vi.spyOn(event, 'preventDefault');
+      const stopPropagation = vi.spyOn(event, 'stopPropagation');
+
+      expect(component.onScratchDonePointerDown(event)).toBe(false);
+
+      expect(preventDefault).not.toHaveBeenCalled();
+      expect(stopPropagation).not.toHaveBeenCalled();
+      expect(mask.owner).toBe('my-user');
+      expect(mask.scratchingGrids).toBe('0:0');
+      expect(mask.scratchedGrids).toBe('');
+    });
+
+    it('主ボタンの pointerdown でスクラッチキャンセルを実行すること', () => {
+      mask.scratchingGrids = '0:0';
+
+      const event = new PointerEvent('pointerdown', { button: 0 });
+      const preventDefault = vi.spyOn(event, 'preventDefault');
+      const stopPropagation = vi.spyOn(event, 'stopPropagation');
+
+      expect(component.onScratchCancelPointerDown(event)).toBe(false);
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(stopPropagation).toHaveBeenCalled();
+      expect(mask.owner).toBe('');
+      expect(mask.scratchingGrids).toBe('');
+      expect(mask.scratchedGrids).toBe('');
+    });
+
+    it('マスク本体の主ボタン pointerdown でクリックスクラッチできること', () => {
+      const event = new PointerEvent('pointerdown', { button: 0, buttons: 1 });
+      Object.defineProperty(event, 'offsetX', { value: 10 });
+      Object.defineProperty(event, 'offsetY', { value: 10 });
+
+      component.onInputStartPointer(event);
+      component.scratched();
+
+      expect(mask.scratchedGrids).toBe('0:0');
     });
   });
 });

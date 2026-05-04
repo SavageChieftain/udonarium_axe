@@ -51,6 +51,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
+    '(pointerdown)': 'onInputStartPointer($event)',
     '(pointermove)': 'onInputMovePointer($event)',
     '(contextmenu)': 'onContextMenu($event)',
   },
@@ -534,6 +535,16 @@ export class GameTableMaskComponent {
     SoundEffect.play(PresetSound.cardPut);
   }
 
+  onScratchDonePointerDown(e: PointerEvent) {
+    if (e.button !== 0) return false;
+    return this.scratchDone(e);
+  }
+
+  onScratchCancelPointerDown(e: PointerEvent) {
+    if (e.button !== 0) return false;
+    return this.scratchCancel(e);
+  }
+
   scratchDone(e: Event | null = null) {
     if (e) {
       e.preventDefault();
@@ -567,11 +578,6 @@ export class GameTableMaskComponent {
     SoundEffect.play(PresetSound.unlock);
     //    this.chatMessageService.sendOperationLog(`${ mask?.name == '' ? '(無名のマップマスク)' : mask?.name } のスクラッチを終了した`);
     return false;
-  }
-
-  prevent(e: Event) {
-    e.preventDefault();
-    e.stopPropagation();
   }
 
   private adjustMinBounds(value: number, min: number = 0): number {
