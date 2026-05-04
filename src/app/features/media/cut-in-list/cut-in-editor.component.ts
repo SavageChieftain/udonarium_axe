@@ -200,6 +200,14 @@ export class CutInEditorComponent {
     if (this.editable && this.c) this.c.videoUrl = videoUrl;
   }
 
+  get cutInVideoVolume(): number {
+    if (!this.c) return 100;
+    return this.editable ? this.c.videoVolume : 100;
+  }
+  set cutInVideoVolume(videoVolume: number) {
+    if (this.editable && this.c) this.c.videoVolume = this.normalizeVideoVolume(videoVolume);
+  }
+
   get cutInTagName(): string {
     if (!this.c) return '';
     return this.editable ? this.c.tagName : '';
@@ -369,6 +377,12 @@ export class CutInEditorComponent {
       title: 'YouTube 利用規約',
     });
     return false;
+  }
+
+  private normalizeVideoVolume(videoVolume: number): number {
+    const volume = Number(videoVolume);
+    if (!Number.isFinite(volume)) return 100;
+    return Math.min(100, Math.max(1, Math.round(volume)));
   }
 
   private get cutInLauncher(): CutInLauncher {

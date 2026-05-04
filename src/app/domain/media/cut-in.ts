@@ -32,6 +32,7 @@ export class CutIn extends GameObject {
 
   @SyncVar() isVideoCutIn = false;
   @SyncVar() videoUrl = '';
+  @SyncVar() videoVolume = 100;
 
   private normalMinSizeWidth = 10;
   private normalMinSizeHeight = 10;

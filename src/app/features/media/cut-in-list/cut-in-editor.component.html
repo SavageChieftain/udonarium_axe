@@ -266,6 +266,31 @@
         (input)="changeYouTubeInfo()"
       />
     </div>
+    <div class="detail-section">
+      <label class="field-label">個別音量</label>
+      <div class="slider-row">
+        <input
+          class="slider"
+          name="cut-in-video-volume"
+          [(ngModel)]="cutInVideoVolume"
+          type="range"
+          min="1"
+          max="100"
+          step="1"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <input
+          class="field-input num-input"
+          name="cut-in-video-volume-num"
+          [(ngModel)]="cutInVideoVolume"
+          type="number"
+          min="1"
+          max="100"
+          step="1"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+      </div>
+    </div>
     <p class="yt-terms">
       <a href="https://www.youtube.com/terms" target="_blank" (click)="openYouTubeTerms()">YouTube 利用規約</a
       >をご確認の上ご利用ください。

@@ -229,7 +229,10 @@ export class CutInWindowComponent {
   }
 
   get videoVolume(): number {
-    return (this.isTest ? this.jukebox.auditionVolume : this.jukebox.volume) * this.config.roomVolume * 100;
+    const cutInVolume = (this.cutIn?.videoVolume ?? 100) / 100;
+    return (
+      (this.isTest ? this.jukebox.auditionVolume : this.jukebox.volume) * this.config.roomVolume * cutInVolume * 100
+    );
   }
 
   get youTubeWidth(): number {

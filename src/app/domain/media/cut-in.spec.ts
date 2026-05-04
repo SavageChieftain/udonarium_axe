@@ -70,6 +70,10 @@ describe('CutIn', () => {
     it('videoUrl がデフォルト空文字', () => {
       expect(cutIn.videoUrl).toBe('');
     });
+
+    it('videoVolume がデフォルト 100', () => {
+      expect(cutIn.videoVolume).toBe(100);
+    });
   });
 
   describe('minSize / maxSize', () => {
