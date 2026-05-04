@@ -85,7 +85,7 @@ export class ChatMessageComponent {
     // 振られる側に《スキル名》は有効：|《約束された勝利の剣》《エクスカリバー》
     const escapeText = this.escapeHtml(text);
     return escapeText
-      .replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby style="white-space:normal;">$1<rt>$2</rt></ruby>')
+      .replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby class="chat-ruby"><rb>$1</rb><rt>$2</rt></ruby>')
       .replace(/\\s/g, ' ');
   }
 

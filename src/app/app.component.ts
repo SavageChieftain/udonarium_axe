@@ -73,7 +73,9 @@ export class AppComponent {
       this.panelService.open(ChatWindowComponent, {
         title: 'チャットウィンドウ',
         width: 660,
-        height: 370,
+        height: 460,
+        minWidth: 300,
+        minHeight: 460,
         left: 80,
         top: 390,
       });
@@ -102,6 +104,9 @@ export class AppComponent {
       case 'ChatWindowComponent':
         component = ChatWindowComponent;
         option.width = 700;
+        option.height = 500;
+        option.minWidth = 300;
+        option.minHeight = 460;
         option.title = 'チャットウィンドウ';
         break;
       case 'GameTableSettingComponent':

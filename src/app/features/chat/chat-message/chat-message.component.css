@@ -150,6 +150,37 @@
   color: var(--ui-accent);
 }
 
+:host ::ng-deep .msg-text ruby.chat-ruby {
+  display: inline-flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1px;
+  margin: 0 1px;
+  vertical-align: text-bottom;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .msg-text ruby.chat-ruby rb {
+  display: block;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+:host ::ng-deep .msg-text ruby.chat-ruby rt {
+  display: block;
+  box-sizing: border-box;
+  min-width: 100%;
+  padding: 0 1px;
+  color: var(--ui-text);
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .message .timestamp {
   font-size: 10px;
   color: var(--ui-text-dim);

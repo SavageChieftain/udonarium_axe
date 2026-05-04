@@ -40,5 +40,23 @@ describe('ChatMessageComponent', () => {
       fixture.componentRef.setInput('chatMessage', undefined as unknown as ChatMessage);
       expect(() => component.escapeHtmlAndRuby('テスト')).not.toThrow();
     });
+
+    it('ルビ記法をFirefoxでもレイアウトしやすい明示的なruby構造へ変換すること', () => {
+      const mockMessage = { identifier: 'ruby-msg-id' } as ChatMessage;
+      fixture.componentRef.setInput('chatMessage', mockMessage);
+
+      const result = component.escapeHtmlAndRuby('前｜漢字《かんじ》後');
+
+      expect(result).toBe('前<ruby class="chat-ruby"><rb>漢字</rb><rt>かんじ</rt></ruby>後');
+    });
+
+    it('ルビ本文とルビ文字もHTMLエスケープされること', () => {
+      const mockMessage = { identifier: 'ruby-escape-msg-id' } as ChatMessage;
+      fixture.componentRef.setInput('chatMessage', mockMessage);
+
+      const result = component.escapeHtmlAndRuby('｜<本文>《"ルビ"》');
+
+      expect(result).toBe('<ruby class="chat-ruby"><rb>&lt;本文&gt;</rb><rt>&quot;ルビ&quot;</rt></ruby>');
+    });
   });
 });

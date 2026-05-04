@@ -1,0 +1,117 @@
+.writing-speakers {
+  width: 100%;
+  padding: 4px 8px 8px;
+  box-sizing: border-box;
+}
+
+.writing-speaker {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 280px;
+}
+
+.writing-speaker + .writing-speaker {
+  margin-top: 4px;
+}
+
+.writing-speaker-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-input-bg);
+  color: var(--ui-text-dim);
+}
+
+.writing-speaker-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0%;
+}
+
+.writing-speaker-image .material-icons {
+  font-size: 24px;
+}
+
+.writing-speaker-body {
+  position: relative;
+  min-width: 0;
+  padding: 4px 10px 6px;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+}
+
+.writing-speaker-body::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  bottom: 10px;
+  border-style: solid;
+  border-width: 5px 8px 5px 0;
+  border-color: transparent var(--ui-panel-border) transparent transparent;
+}
+
+.writing-speaker-body::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  bottom: 11px;
+  border-style: solid;
+  border-width: 4px 7px 4px 0;
+  border-color: transparent var(--ui-elevated) transparent transparent;
+}
+
+.writing-speaker-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.writing-speaker-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 16px;
+}
+
+.writing-speaker-text span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ui-text-muted);
+  animation: writing-dot 1.2s infinite ease-in-out;
+}
+
+.writing-speaker-text span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.writing-speaker-text span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes writing-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}

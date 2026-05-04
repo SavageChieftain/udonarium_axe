@@ -7,37 +7,54 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-content: space-between;
+  min-width: 0;
+}
+
+.log {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
 }
 
 .sticky-bottom {
   position: sticky;
   bottom: 0;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: var(--ui-titlebar-bg);
   border-top: 1px solid var(--ui-panel-border);
   margin-bottom: 0;
   z-index: 10;
+  container-type: inline-size;
+}
+
+.chat-toolbar-form {
+  min-width: 0;
+  margin: 0;
 }
 
 /* チャットタブ — ピル形状 */
 .chat-tab {
-  padding: 6px 6px 4px;
+  padding: 8px 6px 4px;
   user-select: none;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px;
   align-items: center;
   border-bottom: 1px solid var(--ui-panel-border);
   position: relative;
   z-index: 10;
   overflow: visible;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .chat-tab label {
   display: inline-block;
   position: relative;
+  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .chat-tab input[type='radio'] {
@@ -45,7 +62,9 @@
 }
 
 .chat-tab input[type='radio'] + div {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
   vertical-align: middle;
   outline: 0;
   font-size: 11px;
@@ -79,8 +98,10 @@
 
 .badge {
   position: absolute;
-  top: -4px;
-  right: 0;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .tab-setting {
@@ -147,9 +168,13 @@
   gap: 3px;
   flex-wrap: nowrap;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
-  flex: 1 1 auto;
+  flex: 999 1 160px;
   min-width: 0;
+  min-height: 30px;
+  padding: 6px 6px 3px;
+  margin: -5px -4px -3px;
 }
 
 .chat-tab-actions {
@@ -159,7 +184,7 @@
   flex-shrink: 0;
   border-left: 1px solid var(--ui-panel-border);
   padding-left: 6px;
-  margin-left: 2px;
+  margin-left: auto;
 }
 
 /* タブスクロール矢印ボタン */
@@ -204,6 +229,7 @@
 .tab-action-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   background: transparent;
   color: var(--ui-text-muted);
@@ -301,4 +327,36 @@
 .chat-settings-item .material-icons {
   font-size: 15px;
   opacity: 0.8;
+}
+
+@container (max-width: 500px) {
+  .tab-action-label {
+    display: none;
+  }
+
+  .tab-action-btn {
+    width: 28px;
+    height: 26px;
+    padding: 2px;
+  }
+
+  .chat-tab-actions,
+  .chat-settings-dropdown {
+    padding-left: 4px;
+  }
+}
+
+@container (max-width: 340px) {
+  .chat-tab {
+    padding-inline: 4px;
+  }
+
+  .chat-tab-pills {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .chat-tab-actions {
+    margin-left: 0;
+  }
 }

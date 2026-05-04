@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { emitMessageAdded } from '@axe/domain/domain-events';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
+import { ObjectChangeService, type WritingMessageEvent } from '@axe/shared/sync/object-change.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -132,6 +134,64 @@ describe('ChatTabComponent', () => {
 
       // Assert: bottomIndex は変わらない
       expect(internal().bottomIndex).toBe(4);
+    });
+  });
+
+  describe('入力中バブル', () => {
+    let chatTab: ChatTab;
+
+    beforeEach(() => {
+      const panelService = TestBed.inject(PanelService);
+      const mockPanel = document.createElement('div');
+      Object.defineProperty(mockPanel, 'clientHeight', { value: 400 });
+      panelService.scrollablePanel = mockPanel as unknown as HTMLDivElement;
+
+      chatTab = new ChatTab();
+      chatTab.initialize();
+      fixture.componentRef.setInput('chatTab', chatTab);
+      fixture.detectChanges();
+    });
+
+    it('WRITING_A_MESSAGE_DETAIL の話者をチャットログ末尾に表示すること', () => {
+      const speaker = GameCharacter.create('入力中の冒険者', 1, '');
+      const objectChange = TestBed.inject(ObjectChangeService) as unknown as {
+        _writingMessage$: { emit(event: WritingMessageEvent): void };
+      };
+
+      objectChange._writingMessage$.emit({
+        tabIdentifier: chatTab.identifier,
+        sendFrom: 'remote-peer',
+        isSendFromSelf: false,
+        speakerIdentifier: speaker.identifier,
+      });
+      fixture.detectChanges();
+
+      const indicator = fixture.nativeElement.querySelector('.writing-speaker-name') as HTMLElement;
+      expect(indicator).toBeTruthy();
+      expect(indicator.textContent).toContain('入力中の冒険者');
+    });
+
+    it('メッセージ到着時に同じ話者の入力中バブルを消すこと', () => {
+      const speaker = GameCharacter.create('発言者', 1, '');
+      const objectChange = TestBed.inject(ObjectChangeService) as unknown as {
+        _writingMessage$: { emit(event: WritingMessageEvent): void };
+      };
+
+      objectChange._writingMessage$.emit({
+        tabIdentifier: chatTab.identifier,
+        sendFrom: 'remote-peer',
+        isSendFromSelf: false,
+        speakerIdentifier: speaker.identifier,
+      });
+
+      const message = new ChatMessage();
+      message.initialize();
+      message.sendFrom = speaker.identifier;
+      chatTab.appendChild(message);
+      emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: message.identifier });
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.writing-speaker-name')).toBeNull();
     });
   });
 });

@@ -61,6 +61,8 @@ describe('PanelService', () => {
       left: 999,
       width: 999,
       height: 999,
+      minWidth: 999,
+      minHeight: 999,
       isCutIn: true,
       cutInIdentifier: 'old-id',
     });
@@ -71,6 +73,8 @@ describe('PanelService', () => {
       left: 0,
       width: 0,
       height: 0,
+      minWidth: 0,
+      minHeight: 0,
       isCutIn: false,
       cutInIdentifier: '',
     };
@@ -83,15 +87,19 @@ describe('PanelService', () => {
     expect(childPanelService.left).toBe(0);
     expect(childPanelService.width).toBe(0);
     expect(childPanelService.height).toBe(0);
+    expect(childPanelService.minWidth).toBe(0);
+    expect(childPanelService.minHeight).toBe(0);
     expect(childPanelService.isCutIn).toBe(false);
     expect(childPanelService.cutInIdentifier).toBe('');
 
-    expect(setInput).toHaveBeenCalledTimes(5);
+    expect(setInput).toHaveBeenCalledTimes(7);
     expect(setInput).toHaveBeenCalledWith('title', '');
     expect(setInput).toHaveBeenCalledWith('top', 0);
     expect(setInput).toHaveBeenCalledWith('left', 0);
     expect(setInput).toHaveBeenCalledWith('width', 0);
     expect(setInput).toHaveBeenCalledWith('height', 0);
+    expect(setInput).toHaveBeenCalledWith('minWidth', 0);
+    expect(setInput).toHaveBeenCalledWith('minHeight', 0);
   });
 
   it('open: parentViewContainerRef 未指定時は defaultParentViewContainerRef を使う', () => {

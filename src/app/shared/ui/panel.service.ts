@@ -14,6 +14,8 @@ export interface PanelOption {
   top?: number;
   width?: number;
   height?: number;
+  minWidth?: number;
+  minHeight?: number;
 
   // Container-level behavior for the ui-panel shell.
   isCutIn?: boolean;
@@ -32,6 +34,8 @@ type PanelServiceAssignableKey =
   | 'left'
   | 'width'
   | 'height'
+  | 'minWidth'
+  | 'minHeight'
   | 'isCutIn'
   | 'cutInIdentifier'
   | 'invisible';
@@ -46,6 +50,8 @@ export class PanelService {
   top: number = 0;
   width: number = 100;
   height: number = 100;
+  minWidth: number = 100;
+  minHeight: number = 100;
   isCutIn: boolean = false;
   cutInIdentifier: string = '';
   invisible: boolean = false;
@@ -97,7 +103,7 @@ export class PanelService {
     childPanelService: PanelService,
     option: PanelOption
   ) {
-    const withInput = ['title', 'top', 'left', 'width', 'height'] as const;
+    const withInput = ['title', 'top', 'left', 'width', 'height', 'minWidth', 'minHeight'] as const;
     for (const key of withInput) {
       const value = option[key];
       if (value === undefined) continue;

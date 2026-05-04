@@ -19,7 +19,6 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { callWritingAMessage } from '@axe/domain/domain-events';
@@ -29,7 +28,6 @@ import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting
 import { ChatInputDiceBotHelper } from '@axe/features/chat/chat-input/chat-input-dicebot';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatInputHistory } from '@axe/features/chat/chat-input/chat-input-history';
-import { WritingPeerManager } from '@axe/features/chat/chat-input/chat-input-writing';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -56,7 +54,6 @@ export class ChatInputComponent {
   private readonly imageStorage = inject(ImageStorage);
 
   private chatHistory = new ChatInputHistory();
-  private writingManager = new WritingPeerManager();
   private dicebotHelper = new ChatInputDiceBotHelper();
 
   readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
@@ -135,15 +132,6 @@ export class ChatInputComponent {
   readonly autoCompleteDo = output<number>();
 
   constructor() {
-    this.objectChange.messageAdded$.subscribe((event) => {
-      if (event.tabIdentifier !== this.chatTabidentifier()) return;
-      const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
-      const peerCursor = this.objectStore
-        .getObjects<PeerCursor>(PeerCursor)
-        .find((obj) => obj.userId === message?.from);
-      const sendFrom = peerCursor ? peerCursor.peerId : '?';
-      this.writingManager.remove(sendFrom);
-    }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
       if (event.aliasName !== GameCharacter.aliasName) return;
       if (event.identifier !== this.sendFrom) return;
@@ -162,10 +150,6 @@ export class ChatInputComponent {
         this.sendTo = '';
       }
     }, this.destroyRef);
-    this.objectChange.writingMessage$.subscribe((event) => {
-      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier()) return;
-      this.writingManager.add(event.sendFrom);
-    }, this.destroyRef);
     this.destroyRef.onDestroy(() => {
       this.batchService.remove(this);
       if (this.writingEventInterval) {
@@ -176,7 +160,6 @@ export class ChatInputComponent {
         clearTimeout(this.calcFitHeightInterval);
         this.calcFitHeightInterval = null;
       }
-      this.writingManager.destroy();
     });
   }
 
@@ -300,7 +283,6 @@ export class ChatInputComponent {
 
   private writingEventInterval: ReturnType<typeof setTimeout> | null = null;
   private previousWritingLength: number = 0;
-  readonly writingPeerNames = this.writingManager.names;
 
   get diceBotInfos() {
     return DiceBot.diceBotInfos;
@@ -324,7 +306,7 @@ export class ChatInputComponent {
           if (peer) sendTo = peer.peerId;
         }
       }
-      callWritingAMessage(this.chatTabidentifier(), sendTo);
+      callWritingAMessage(this.chatTabidentifier(), sendTo, this.sendFrom);
       this.writingEventInterval = setTimeout(() => {
         this.writingEventInterval = null;
       }, 200);

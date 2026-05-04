@@ -74,6 +74,32 @@ describe('object-change-network-helpers', () => {
     }
   });
 
+  it('WRITING_A_MESSAGE_DETAIL は話者識別子を含めて writingMessage$ に変換される', () => {
+    const targets = makeTargets();
+    const offBindings = subscribeNetworkBindings(networkMessage$, targets);
+
+    let received: WritingMessageEvent | undefined;
+    const writingOff = targets.writingMessage$.subscribe((e) => (received = e));
+
+    try {
+      localDispatch(
+        'WRITING_A_MESSAGE_DETAIL',
+        { tabIdentifier: 'tab-1', speakerIdentifier: 'speaker-1' },
+        'remote-peer'
+      );
+
+      expect(received).toEqual({
+        tabIdentifier: 'tab-1',
+        sendFrom: 'remote-peer',
+        isSendFromSelf: false,
+        speakerIdentifier: 'speaker-1',
+      });
+    } finally {
+      writingOff();
+      offBindings();
+    }
+  });
+
   it('HEART_BEAT メッセージが正しく heartBeat$ に変換される', () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);

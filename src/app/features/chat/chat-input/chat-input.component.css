@@ -1,26 +1,111 @@
-/* ダイレクトメッセージモード */
-.direct-message {
-  background: var(--ui-accent-bg);
-  color: var(--ui-text);
-  border-top: 1px solid var(--ui-accent);
+:host {
+  display: block;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.chat-input-panel {
+  display: grid;
+  grid-template-columns: minmax(72px, 108px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px;
+  background: var(--ui-panel-bg);
+  container-type: inline-size;
+}
+
+.chat-input-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
 /* アバター（2行スパン、立ち絵ナビゲーションオーバーレイのコンテナ） */
 .imagebox {
   position: relative;
-  width: 108px;
-  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
 }
 
 .image {
-  width: 108px;
+  width: 100%;
   height: 100%;
-  min-height: 72px;
+  min-height: 0;
   object-fit: cover;
   object-position: 50% 0%;
-  border-radius: var(--ui-radius-sm);
-  border: 1px solid var(--ui-panel-border);
   display: block;
+}
+
+.image-placeholder {
+  font-size: 42px;
+  color: var(--ui-text-dim);
+}
+
+.chat-input-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px 6px;
+  min-width: 0;
+}
+
+.chat-input-controls .chat-select {
+  flex: 1 1 9rem;
+  width: auto !important;
+  min-width: 7rem;
+  max-width: 100%;
+}
+
+.chat-input-controls .chat-select--to {
+  flex-basis: 7rem;
+}
+
+.chat-input-controls .chat-select--game-type {
+  flex-basis: 11rem;
+}
+
+.send-arrow {
+  flex: 0 0 auto;
+  color: var(--ui-text-muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.dicebot-help {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dicebot-warning {
+  flex: 0 1 auto;
+  color: var(--ui-danger);
+  font-size: 11px;
+  min-width: 0;
+}
+
+.chat-color-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  min-width: 0;
 }
 
 /* カラースウォッチ行 */
@@ -134,9 +219,19 @@
   min-width: 0;
 }
 
+.chat-compose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
 /* テキストエリア */
 .chat-input {
+  flex: 1 1 auto;
   width: 100%;
+  min-width: 0;
   resize: none;
   min-height: 40px;
   max-height: 100px;
@@ -189,9 +284,68 @@
   filter: brightness(1.1);
 }
 
-.writing-info {
-  font-size: 11px;
-  color: var(--ui-text-muted);
-  padding: 2px 6px;
-  min-height: 16px;
+/* ダイレクトメッセージモード */
+.direct-message {
+  background: var(--ui-accent-bg);
+  color: var(--ui-text);
+  border-top: 1px solid var(--ui-accent);
+}
+
+@container (max-width: 420px) {
+  .chat-input-panel {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .imagebox {
+    min-height: 0;
+  }
+
+  .chat-input-controls .chat-select {
+    flex-basis: calc(50% - 16px);
+    min-width: 0;
+  }
+
+  .chat-input-controls .chat-select--game-type {
+    flex-basis: 100%;
+  }
+
+  .chat-color-actions {
+    margin-left: 0;
+  }
+}
+
+@container (max-width: 320px) {
+  .chat-input-panel {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .imagebox {
+    min-height: 0;
+  }
+
+  .image-placeholder {
+    font-size: 28px;
+  }
+
+  .chat-input-controls .chat-select {
+    flex-basis: 100%;
+  }
+
+  .send-arrow {
+    display: none;
+  }
+
+  .color-setting {
+    width: 26px;
+    height: 24px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .color-setting-icon {
+    margin: 0;
+    font-size: 14px;
+  }
 }

@@ -19,6 +19,7 @@ export interface WritingMessageEvent {
   tabIdentifier: string;
   sendFrom: string;
   isSendFromSelf: boolean;
+  speakerIdentifier?: string;
 }
 
 export interface IdentifierEvent {
@@ -105,6 +106,17 @@ export function subscribeNetworkBindings(
           isSendFromSelf: msg.isSendFromSelf,
         });
         break;
+      case 'WRITING_A_MESSAGE_DETAIL': {
+        const data = msg.data as { tabIdentifier?: string; speakerIdentifier?: string };
+        if (!data.tabIdentifier) break;
+        targets.writingMessage$.emit({
+          tabIdentifier: data.tabIdentifier,
+          sendFrom: msg.sendFrom,
+          isSendFromSelf: msg.isSendFromSelf,
+          speakerIdentifier: data.speakerIdentifier,
+        });
+        break;
+      }
       case 'SHUFFLE_CARD_STACK':
         targets.shuffleCardStack$.emit({ identifier: (msg.data as { identifier: string }).identifier });
         break;

@@ -184,8 +184,11 @@ export function callSoundEffect(identifier: string) {
   networkSend('SOUND_EFFECT', identifier);
 }
 
-export function callWritingAMessage(tabIdentifier: string, sendTo?: string | null) {
+export function callWritingAMessage(tabIdentifier: string, sendTo?: string | null, speakerIdentifier?: string | null) {
   networkSend('WRITING_A_MESSAGE', tabIdentifier, sendTo ?? undefined);
+  if (speakerIdentifier) {
+    networkSend('WRITING_A_MESSAGE_DETAIL', { tabIdentifier, speakerIdentifier }, sendTo ?? undefined);
+  }
 }
 
 export function callHeartBeat(data: [number, string, number | null, number]) {

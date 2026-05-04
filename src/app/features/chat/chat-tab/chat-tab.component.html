@@ -29,5 +29,28 @@
         </chat-message>
       }
     }
+    @if (writingSpeakers().length && bottomSpace <= 0) {
+      <div class="writing-speakers" aria-live="polite">
+        @for (speaker of writingSpeakers(); track speaker.peerId) {
+          <div class="writing-speaker">
+            <div class="writing-speaker-image">
+              @if (speaker.imageFile.url) {
+                <img [src]="speaker.imageFile.url | safe: 'resourceUrl'" [alt]="speaker.name" />
+              } @else {
+                <i class="material-icons">person</i>
+              }
+            </div>
+            <div class="writing-speaker-body">
+              <div class="writing-speaker-name">{{ speaker.name }}</div>
+              <div class="writing-speaker-text">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>

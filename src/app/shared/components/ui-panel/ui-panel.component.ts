@@ -53,6 +53,8 @@ export class UIPanelComponent {
   readonly topInput = input(0, { alias: 'top' });
   readonly widthInput = input(100, { alias: 'width' });
   readonly heightInput = input(100, { alias: 'height' });
+  readonly minWidthInput = input(100, { alias: 'minWidth' });
+  readonly minHeightInput = input(100, { alias: 'minHeight' });
   readonly showTitleButtons = input(true);
   readonly showTitle = input(true);
   readonly overflowVisible = input(false);
@@ -64,6 +66,8 @@ export class UIPanelComponent {
       this.panelService.top = this.topInput();
       this.panelService.width = this.widthInput();
       this.panelService.height = this.heightInput();
+      this.panelService.minWidth = this.minWidthInput();
+      this.panelService.minHeight = this.minHeightInput();
     });
     afterNextRender({
       write: () => {
@@ -110,6 +114,18 @@ export class UIPanelComponent {
   }
   set height(height: number) {
     this.panelService.height = height;
+  }
+  get minWidth() {
+    return this.panelService.minWidth;
+  }
+  set minWidth(minWidth: number) {
+    this.panelService.minWidth = minWidth;
+  }
+  get minHeight() {
+    return this.panelService.minHeight;
+  }
+  set minHeight(minHeight: number) {
+    this.panelService.minHeight = minHeight;
   }
 
   private preLeft: number = 0;

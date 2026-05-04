@@ -13,12 +13,15 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { setZeroTimeout } from '@axe/core/util/zero-timeout';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
 import { SAMPLE_CHAT_MESSAGES } from '@axe/features/chat/chat-tab/chat-tab-sample-messages';
 import {
@@ -28,6 +31,7 @@ import {
   getBoundedScrollPosition,
   ScrollPosition,
 } from '@axe/features/chat/chat-tab/chat-tab-scroll-helpers';
+import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
@@ -35,12 +39,20 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 const ua = window.navigator.userAgent.toLowerCase();
 const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);
 
+interface WritingSpeaker {
+  peerId: string;
+  speakerIdentifier?: string;
+  name: string;
+  imageFile: ImageFile;
+}
+
 @Component({
   selector: 'chat-tab',
   templateUrl: './chat-tab.component.html',
+  styleUrls: ['./chat-tab.component.css'],
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ChatMessageComponent],
+  imports: [ChatMessageComponent, SafePipe],
 })
 export class ChatTabComponent {
   private renderVersion = signal(0);
@@ -88,6 +100,7 @@ export class ChatTabComponent {
     this.objectChange.messageAdded$.subscribe((event) => {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (!message || !this.chatTab?.contains(message)) return;
+      this.removeWritingSpeakerForMessage(message);
       if (this.topTimestamp <= message.timestamp) {
         // bottomIndex がリスト末尾にある場合は新着メッセージを含むよう即座に拡張する。
         // scrollToBottom() の isAutoScroll タイミング競合に依存せず確実に表示する。
@@ -99,6 +112,10 @@ export class ChatTabComponent {
         this.needUpdate = true;
         this.onMessageInit();
       }
+    }, this.destroyRef);
+    this.objectChange.writingMessage$.subscribe((event) => {
+      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTab?.identifier) return;
+      this.addWritingSpeaker(event.sendFrom, event.speakerIdentifier);
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
       const message = this.objectStore.get(event.identifier);
@@ -127,6 +144,9 @@ export class ChatTabComponent {
       if (this.scrollEventLongTimer) this.scrollEventLongTimer.clear();
       if (this.addMessageEventTimer) clearTimeout(this.addMessageEventTimer);
       this.addMessageEventTimer = null;
+      for (const timeout of this.writingSpeakerTimeouts.values()) timeout.stop();
+      this.writingSpeakerTimeouts.clear();
+      this.writingSpeakerIdentifiers.clear();
     });
   }
 
@@ -199,6 +219,10 @@ export class ChatTabComponent {
   private scrollEventLongTimer: ResettableTimeout | null = null;
   private addMessageEventTimer: NodeJS.Timeout | null = null;
   private callbackOnScroll: () => void = () => this.onScroll();
+  private readonly writingSpeakerTimeouts = new Map<string, ResettableTimeout>();
+  private readonly writingSpeakerIdentifiers = new Map<string, string | undefined>();
+
+  readonly writingSpeakers = signal<WritingSpeaker[]>([]);
 
   readonly chatTabInput = input<ChatTab | null>(null, { alias: 'chatTab' });
   get chatTab(): ChatTab | null {
@@ -237,6 +261,80 @@ export class ChatTabComponent {
 
   trackByChatMessage(index: number, message: ChatMessage) {
     return message.identifier;
+  }
+
+  private addWritingSpeaker(peerId: string, speakerIdentifier?: string) {
+    if (!peerId) return;
+    this.writingSpeakerIdentifiers.set(peerId, speakerIdentifier ?? this.writingSpeakerIdentifiers.get(peerId));
+    if (!this.writingSpeakerTimeouts.has(peerId)) {
+      this.writingSpeakerTimeouts.set(
+        peerId,
+        new ResettableTimeout(() => {
+          this.writingSpeakerTimeouts.delete(peerId);
+          this.writingSpeakerIdentifiers.delete(peerId);
+          this.updateWritingSpeakers();
+        }, 2000)
+      );
+    }
+    this.writingSpeakerTimeouts.get(peerId)!.reset();
+    this.updateWritingSpeakers();
+  }
+
+  private removeWritingSpeaker(peerId: string) {
+    const timeout = this.writingSpeakerTimeouts.get(peerId);
+    if (!timeout) return;
+    timeout.stop();
+    this.writingSpeakerTimeouts.delete(peerId);
+    this.writingSpeakerIdentifiers.delete(peerId);
+    this.updateWritingSpeakers();
+  }
+
+  private removeWritingSpeakerForMessage(message: ChatMessage) {
+    const peerCursor = PeerCursor.findByUserId(message.from || message.originFrom);
+    if (peerCursor) {
+      this.removeWritingSpeaker(peerCursor.peerId);
+      return;
+    }
+
+    for (const [peerId, speakerIdentifier] of this.writingSpeakerIdentifiers) {
+      if (speakerIdentifier === message.sendFrom) this.removeWritingSpeaker(peerId);
+    }
+  }
+
+  private updateWritingSpeakers() {
+    this.writingSpeakers.set(
+      Array.from(this.writingSpeakerTimeouts.keys()).map((peerId) =>
+        this.resolveWritingSpeaker(peerId, this.writingSpeakerIdentifiers.get(peerId))
+      )
+    );
+  }
+
+  private resolveWritingSpeaker(peerId: string, speakerIdentifier?: string): WritingSpeaker {
+    const object = speakerIdentifier ? this.objectStore.get(speakerIdentifier) : null;
+    if (object instanceof GameCharacter) {
+      return {
+        peerId,
+        speakerIdentifier,
+        name: object.name || '無名のキャラクター',
+        imageFile: object.imageFile ?? ImageFile.Empty,
+      };
+    }
+    if (object instanceof PeerCursor) {
+      return {
+        peerId,
+        speakerIdentifier,
+        name: object.name || 'プレイヤー',
+        imageFile: object.image ?? ImageFile.Empty,
+      };
+    }
+
+    const peer = PeerCursor.findByPeerId(peerId);
+    return {
+      peerId,
+      speakerIdentifier,
+      name: peer?.lastControlCharacterName || peer?.name || peerId,
+      imageFile: peer?.lastControlImage ?? peer?.image ?? ImageFile.Empty,
+    };
   }
 
   private adjustIndex() {

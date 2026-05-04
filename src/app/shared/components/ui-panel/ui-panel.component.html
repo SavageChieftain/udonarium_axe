@@ -9,6 +9,8 @@
   [style.visibility]="panelService.invisible ? 'hidden' : ''"
   [style.pointer-events]="panelService.invisible ? 'none' : ''"
   [resizable.disable]="isMinimized() || isFullScreen()"
+  [resizable.minWidth]="minWidth"
+  [resizable.minHeight]="minHeight"
   [draggable.stack]="'.draggable-panel'"
   appDraggable
   appResizable
