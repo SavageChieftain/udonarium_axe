@@ -39,7 +39,7 @@ import { ThemeService } from '@axe/shared/ui/theme.service';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [GameTableComponent, UIPanelComponent, NetworkIndicatorComponent, MiniJukeboxComponent],
+  imports: [GameTableComponent, NetworkIndicatorComponent, MiniJukeboxComponent],
 })
 export class AppComponent {
   readonly theme = inject(ThemeService);
@@ -51,6 +51,7 @@ export class AppComponent {
 
   readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
 
+  fabOpen = signal(false);
   isSaving = signal(false);
   progressPercent = signal(0);
   readonly themeLabel = computed(() => {
@@ -68,13 +69,13 @@ export class AppComponent {
         ModalService.defaultParentViewContainerRef =
         ContextMenuService.defaultParentViewContainerRef =
           this.modalLayerViewContainerRef();
-      this.panelService.open(PeerMenuComponent, { title: '接続情報', width: 500, height: 450, left: 100 });
+      this.panelService.open(PeerMenuComponent, { title: '接続情報', width: 460, height: 360, left: 80, top: 10 });
       this.panelService.open(ChatWindowComponent, {
         title: 'チャットウィンドウ',
-        width: 700,
-        height: 400,
-        left: 100,
-        top: 450,
+        width: 660,
+        height: 370,
+        left: 80,
+        top: 390,
       });
     });
   }

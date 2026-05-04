@@ -2,98 +2,82 @@
   <game-table></game-table>
 </div>
 <app-mini-jukebox></app-mini-jukebox>
-<ui-panel
-  [top]="0"
-  [left]="0"
-  [width]="56"
-  [height]="430"
-  [title]="'メニュー'"
-  [showTitleButtons]="false"
-  [showTitle]="false"
-  [overflowVisible]="true"
->
-  <nav>
+<div class="fab-nav" [class.open]="fabOpen()">
+  <div class="fab-backdrop" (click)="fabOpen.set(false)"></div>
+  <nav class="fab-panel">
     <ul>
-      <li data-label="接続" (click)="open('PeerMenuComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">people</i>
-        </a>
+      <li data-label="接続" (click)="fabOpen.set(false); open('PeerMenuComponent')">
+        <i class="material-icons">people</i>
       </li>
-      <li data-label="チャット画面" (click)="open('ChatWindowComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">speaker_notes</i>
-        </a>
+      <li data-label="チャット" (click)="fabOpen.set(false); open('ChatWindowComponent')">
+        <i class="material-icons">speaker_notes</i>
       </li>
-      <li data-label="テーブル設定" (click)="open('GameTableSettingComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">layers</i>
-        </a>
+      <li data-label="テーブル設定" (click)="fabOpen.set(false); open('GameTableSettingComponent')">
+        <i class="material-icons">layers</i>
       </li>
-      <li data-label="画像" (click)="open('FileStorageComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">photo_library</i>
-        </a>
+      <li data-label="画像" (click)="fabOpen.set(false); open('FileStorageComponent')">
+        <i class="material-icons">photo_library</i>
       </li>
-      <li data-label="ジュークボックス" (click)="open('JukeboxComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">queue_music</i>
-        </a>
+      <li data-label="ジュークボックス" (click)="fabOpen.set(false); open('JukeboxComponent')">
+        <i class="material-icons">queue_music</i>
       </li>
-      <li data-label="カットイン" (click)="open('CutInListComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">slideshow</i>
-        </a>
+      <li data-label="カットイン" (click)="fabOpen.set(false); open('CutInListComponent')">
+        <i class="material-icons">slideshow</i>
       </li>
-      <li data-label="インベントリ" (click)="open('GameObjectInventoryComponent')">
-        <a routerLink="/" routerLinkActive="active">
-          <i class="material-icons">folder_shared</i>
-        </a>
+      <li data-label="インベントリ" (click)="fabOpen.set(false); open('GameObjectInventoryComponent')">
+        <i class="material-icons">folder_shared</i>
       </li>
-      <li data-label="ZIP読込">
-        <a routerLink="/" routerLinkActive="active">
-          <label>
-            <i class="material-icons">open_in_browser</i>
-            <input
-              type="file"
-              class="hidden"
-              (change)="handleFileSelect($event)"
-              multiple
-              accept="application/xml,text/xml,application/zip"
-            />
-          </label>
-        </a>
-      </li>
-      @if (!isSaving()) {
-        <li data-label="保存" (click)="save()">
-          <a routerLink="/" routerLinkActive="active">
-            <i class="material-icons">sd_storage</i>
-          </a>
-        </li>
-      }
-      @if (isSaving()) {
-        <li class="pointer-events-none" [attr.data-label]="progressPercent() + '%'">
-          <a>
-            <i class="material-icons vibration-amine">sd_storage</i>
-          </a>
-        </li>
-      }
-      <li (click)="theme.cycle()" [attr.data-label]="themeLabel()">
-        <a>
-          @switch (theme.theme()) {
-            @case ('auto') {
-              <i class="material-icons">brightness_auto</i>
-            }
-            @case ('dark') {
-              <i class="material-icons">dark_mode</i>
-            }
-            @case ('light') {
-              <i class="material-icons">light_mode</i>
-            }
-          }
-        </a>
+      <li data-label="ZIP読込" (click)="fabOpen.set(false)">
+        <label>
+          <i class="material-icons">open_in_browser</i>
+          <input
+            type="file"
+            class="hidden"
+            (change)="handleFileSelect($event)"
+            multiple
+            accept="application/xml,text/xml,application/zip"
+          />
+        </label>
       </li>
     </ul>
+    <div class="fab-footer">
+      @if (!isSaving()) {
+        <div class="fab-footer-item" data-label="保存" (click)="fabOpen.set(false); save()">
+          <i class="material-icons">sd_storage</i>
+        </div>
+      }
+      @if (isSaving()) {
+        <div
+          class="fab-footer-item"
+          [attr.data-label]="progressPercent() + '%'"
+          style="pointer-events: none; opacity: 0.6"
+        >
+          <i class="material-icons vibration-amine">sd_storage</i>
+        </div>
+      }
+      <div class="fab-footer-item" [attr.data-label]="themeLabel()" (click)="theme.cycle()">
+        @switch (theme.theme()) {
+          @case ('auto') {
+            <i class="material-icons">brightness_auto</i>
+          }
+          @case ('dark') {
+            <i class="material-icons">dark_mode</i>
+          }
+          @case ('light') {
+            <i class="material-icons">light_mode</i>
+          }
+        }
+      </div>
+    </div>
   </nav>
-</ui-panel>
+  <button
+    class="fab-btn"
+    (click)="fabOpen.set(!fabOpen())"
+    [attr.aria-label]="fabOpen() ? 'メニューを閉じる' : 'メニューを開く'"
+    [attr.aria-expanded]="fabOpen()"
+  >
+    <i class="material-icons">{{ fabOpen() ? 'close' : 'menu' }}</i>
+  </button>
+</div>
 <div #modalLayer></div>
 <network-indicator class="networkIndicator"></network-indicator>
