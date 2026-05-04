@@ -1,7 +1,6 @@
 export * from '@axe/features/tabletop/range/range-render-types';
 
 import {
-  renderDiamond,
   renderHexagon,
   renderLine,
   renderPentagon,
@@ -11,7 +10,6 @@ import {
 import { renderCircle, renderCorn } from '@axe/features/tabletop/range/range-render-radial';
 import type {
   ClipAreaCorn,
-  ClipAreaDiamond,
   ClipAreaHexagon,
   ClipAreaLine,
   ClipAreaPentagon,
@@ -36,10 +34,6 @@ export class RangeRender {
 
   renderSquare(setting: RangeRenderSetting): ClipAreaSquare {
     return renderSquare(this.canvasElement, this.canvasElementRange, setting);
-  }
-
-  renderDiamond(setting: RangeRenderSetting): ClipAreaDiamond {
-    return renderDiamond(this.canvasElement, this.canvasElementRange, setting);
   }
 
   renderCorn(setting: RangeRenderSetting): ClipAreaCorn {

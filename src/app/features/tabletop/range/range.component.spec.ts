@@ -82,4 +82,44 @@ describe('RangeComponent', () => {
       expect(component.rotableOption().tabletopObject).toBe(range);
     });
   });
+
+  describe('回転ハンドル', () => {
+    it('四角形でも回転ハンドルを表示すること', () => {
+      const range = RangeArea.create('テスト', 3, 3, 1);
+      range.type = 'SQUARE';
+      fixture.componentRef.setInput('range', range);
+      fixture.detectChanges();
+
+      expect(component.usesSingleRotateGrab).toBe(true);
+      expect(fixture.nativeElement.querySelector('.rotate-grab')).toBeTruthy();
+    });
+
+    it('円形では回転ハンドルを表示しないこと', () => {
+      const range = RangeArea.create('テスト', 3, 3, 1);
+      range.type = 'CIRCLE';
+      fixture.componentRef.setInput('range', range);
+      fixture.detectChanges();
+
+      expect(component.isRotatableRangeType).toBe(false);
+      expect(component.usesSingleRotateGrab).toBe(false);
+      expect(fixture.nativeElement.querySelector('.rotate-grab')).toBeNull();
+    });
+
+    it.each(['TRIANGLE', 'PENTAGON', 'HEXAGON'])(
+      '%s の回転ハンドルをクリップ外の大きな単一ハンドルにすること',
+      (type) => {
+        const range = RangeArea.create('テスト', 3, 3, 1);
+        range.type = type;
+        fixture.componentRef.setInput('range', range);
+        fixture.detectChanges();
+
+        const handle = fixture.nativeElement.querySelector('.range-rotate-grab--single') as HTMLElement;
+
+        expect(handle).toBeTruthy();
+        expect(handle.closest('.range-clip-layer')).toBeNull();
+        expect(handle.style.left).toBe('0px');
+        expect(handle.style.top).toBe('-150px');
+      }
+    );
+  });
 });

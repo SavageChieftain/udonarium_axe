@@ -25,6 +25,11 @@ import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
+import {
+  buildHexOuterBorderSvg,
+  buildHexOutlineMask,
+  computeHexMaskGeometry,
+} from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
@@ -99,8 +104,9 @@ export class GameTableComponent {
         setTimeout(() => {
           this.gameTable().nativeElement.style.transition = '';
         }, 100);
-        const centerX = this.gridCanvas().nativeElement.clientWidth / 2;
-        const centerY = this.gridCanvas().nativeElement.clientHeight / 2;
+        const center = this.tableVisualCenter();
+        const centerX = center.x;
+        const centerY = center.y;
         const movedX = focus.x - centerX;
         const movedY = focus.y - centerY;
         const rotateZRad = (this.gestureService.viewRotateZ / 180) * Math.PI;
@@ -182,6 +188,36 @@ export class GameTableComponent {
     },
     { equal: imageFileEqual() }
   );
+
+  readonly tableSurfaceStyle = computed<Record<string, string>>(() => {
+    const table = this.watchCurrentTable();
+    const geo = computeHexMaskGeometry(table.width, table.height, table.gridSize, table.gridType);
+    if (!geo) {
+      return {
+        width: '100%',
+        height: '100%',
+        left: '0px',
+        top: '0px',
+        '-webkit-mask': 'none',
+        mask: 'none',
+      };
+    }
+    const mask = buildHexOutlineMask(table.gridSize, table.gridType, table.width, table.height);
+    return {
+      width: `${geo.pixelW}px`,
+      height: `${geo.pixelH}px`,
+      left: `${-geo.offsetX}px`,
+      top: `${-geo.offsetY}px`,
+      '-webkit-mask': mask,
+      mask,
+    };
+  });
+
+  readonly tableSurfaceBorderStyle = computed<Record<string, string>>(() => {
+    const table = this.watchCurrentTable();
+    const background = buildHexOuterBorderSvg(table.gridSize, table.gridType, table.width, table.height);
+    return { background: background || 'none' };
+  });
 
   get backgroundImage(): ImageFile {
     return this.imageService.getEmptyOr(this.currentTable.backgroundImageIdentifier);
@@ -268,6 +304,28 @@ export class GameTableComponent {
       e.preventDefault();
   }
 
+  private watchCurrentTable(): GameTable {
+    const table = this.currentTable;
+    this.objectChangeService.versionOf(table.identifier)();
+    this.objectChangeService.versionOf(this.tableSelecter.identifier)();
+    return table;
+  }
+
+  private tableVisualCenter(): { x: number; y: number } {
+    const table = this.currentTable;
+    const geo = computeHexMaskGeometry(table.width, table.height, table.gridSize, table.gridType);
+    if (geo) {
+      return {
+        x: -geo.offsetX + geo.pixelW / 2,
+        y: -geo.offsetY + geo.pixelH / 2,
+      };
+    }
+    return {
+      x: this.gridCanvas().nativeElement.clientWidth / 2,
+      y: this.gridCanvas().nativeElement.clientHeight / 2,
+    };
+  }
+
   private setGameTableGrid(
     width: number,
     height: number,
@@ -280,7 +338,21 @@ export class GameTableComponent {
     this.gameTable().nativeElement.style.height = height * gridSize + 'px';
 
     const render = new GridLineRender(this.gridCanvas().nativeElement);
-    render.render(width, height, gridSize, gridType, gridColor, gridFontColor);
+    const geo = computeHexMaskGeometry(width, height, gridSize, gridType);
+    if (geo) {
+      render.renderViewport(
+        geo.pixelW,
+        geo.pixelH,
+        gridSize,
+        gridType,
+        gridColor,
+        gridFontColor,
+        -geo.offsetY,
+        -geo.offsetX
+      );
+    } else {
+      render.render(width, height, gridSize, gridType, gridColor, gridFontColor);
+    }
 
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため

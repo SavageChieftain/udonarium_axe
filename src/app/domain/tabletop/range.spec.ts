@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { RangeArea } from '@axe/domain/tabletop/range';
 
@@ -63,6 +64,16 @@ describe('RangeArea', () => {
       expect(range.type).toBe('CORN');
     });
 
+    it('DIAMOND を設定すると SQUARE + 45度回転にフォールバックする', () => {
+      const range = RangeArea.create('test', 1, 1, 50);
+      range.rotate = 10;
+
+      range.type = 'DIAMOND';
+
+      expect(range.type).toBe('SQUARE');
+      expect(range.rotate).toBe(55);
+    });
+
     it('gridColor がデフォルト "#FFFF00"', () => {
       const range = RangeArea.create('test', 1, 1, 50);
       expect(range.gridColor).toBe('#FFFF00');
@@ -100,6 +111,15 @@ describe('RangeArea', () => {
     it('locationのデフォルトがtable', () => {
       const range = RangeArea.create('test', 1, 1, 50);
       expect(range.location.name).toBe('table');
+    });
+  });
+
+  describe('旧セーブデータ互換', () => {
+    it('type=DIAMOND のXMLは SQUARE + 45度回転として読み込む', () => {
+      const range = ObjectSerializer.instance.parseXml('<range type="DIAMOND" rotate="0"></range>') as RangeArea;
+
+      expect(range.type).toBe('SQUARE');
+      expect(range.rotate).toBe(45);
     });
   });
 });

@@ -24,7 +24,6 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
 import {
   ClipAreaCorn,
-  ClipAreaDiamond,
   ClipAreaHexagon,
   ClipAreaLine,
   ClipAreaPentagon,
@@ -91,9 +90,6 @@ export class RangeComponent {
       case 'SQUARE':
         text = this.clipSquare;
         break;
-      case 'DIAMOND':
-        text = this.clipDiamond;
-        break;
       case 'TRIANGLE':
         text = this.clipTriangle;
         break;
@@ -147,15 +143,6 @@ export class RangeComponent {
     clipSquare += this.clipAreaSquare.clip03x + 'px ' + this.clipAreaSquare.clip03y + 'px, ';
     clipSquare += this.clipAreaSquare.clip04x + 'px ' + this.clipAreaSquare.clip04y + 'px)';
     return clipSquare;
-  }
-
-  public get clipDiamond() {
-    this._clipVersion();
-    let clipDiamond = 'polygon(' + this.clipAreaDiamond.clip01x + 'px ' + this.clipAreaDiamond.clip01y + 'px, ';
-    clipDiamond += this.clipAreaDiamond.clip02x + 'px ' + this.clipAreaDiamond.clip02y + 'px, ';
-    clipDiamond += this.clipAreaDiamond.clip03x + 'px ' + this.clipAreaDiamond.clip03y + 'px, ';
-    clipDiamond += this.clipAreaDiamond.clip04x + 'px ' + this.clipAreaDiamond.clip04y + 'px)';
-    return clipDiamond;
   }
 
   public get clipTriangle() {
@@ -216,17 +203,6 @@ export class RangeComponent {
     clip03x: 100, // 右上
     clip03y: -50,
     clip04x: 100, // 右下
-    clip04y: 0,
-  };
-
-  private clipAreaDiamond: ClipAreaDiamond = {
-    clip01x: 0,
-    clip01y: 0,
-    clip02x: 0,
-    clip02y: -50,
-    clip03x: 100,
-    clip03y: -50,
-    clip04x: 100,
     clip04y: 0,
   };
 
@@ -304,6 +280,26 @@ export class RangeComponent {
     const w = this.width < 1 ? 1 : this.width;
     const l = this.length < 1 ? 1 : this.length;
     return Math.ceil(Math.sqrt(w * w + l * l)) + 1;
+  }
+
+  get isRotatableRangeType(): boolean {
+    return ['LINE', 'CORN', 'SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(this.range().type);
+  }
+
+  get usesSingleRotateGrab(): boolean {
+    return ['SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(this.range().type);
+  }
+
+  get rotateGrabDistancePx(): number {
+    return Math.max(1, this.length) * this.gridSize;
+  }
+
+  get singleRotateGrabX(): number {
+    return 0;
+  }
+
+  get singleRotateGrabY(): number {
+    return -Math.max(1, this.length) * this.gridSize;
   }
 
   get rotateDeg(): number {
@@ -460,6 +456,10 @@ export class RangeComponent {
     SoundEffect.play(PresetSound.cardPut);
   }
 
+  onRotateChanged(degree: number) {
+    this.setRange(degree);
+  }
+
   private adjustMinBounds(value: number, min: number = 0): number {
     return value < min ? min : value;
   }
@@ -485,7 +485,7 @@ export class RangeComponent {
     );
   }
 
-  private setRange() {
+  private setRange(degree: number = this.range().rotate) {
     const gridCanvasRef = this.gridCanvas();
     const rangeCanvasRef = this.rangeCanvas();
     if (!gridCanvasRef || !rangeCanvasRef) return;
@@ -504,7 +504,7 @@ export class RangeComponent {
       gridColor: this.range().gridColor,
       rangeColor: this.range().rangeColor,
       fanDegree: 0.0,
-      degree: this.rotateDeg,
+      degree,
       offSetX: this.range().offSetX,
       offSetY: this.range().offSetY,
       fillOutLine: this.range().fillOutLine,
@@ -521,9 +521,6 @@ export class RangeComponent {
         break;
       case 'SQUARE':
         this.clipAreaSquare = render.renderSquare(setting);
-        break;
-      case 'DIAMOND':
-        this.clipAreaDiamond = render.renderDiamond(setting);
         break;
       case 'TRIANGLE':
         this.clipAreaTriangle = render.renderTriangle(setting);

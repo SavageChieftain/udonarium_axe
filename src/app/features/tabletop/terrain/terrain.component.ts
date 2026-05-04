@@ -10,7 +10,7 @@ import {
   inject,
   input,
   signal,
-  viewChild,
+  viewChildren,
 } from '@angular/core';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -28,7 +28,11 @@ import {
   HexFlowerParams,
 } from '@axe/features/character/game-character/hex-pedestal-geometry';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
-import { computeHexSlopeSteps, HexSlopeStepData } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
+import {
+  computeHexSlopeSteps,
+  HexSlopeStepData,
+  HexSlopeStepFloor,
+} from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { InputHandler } from '@axe/shared/directives/input-handler';
 import { MovableOption } from '@axe/shared/directives/movable.directive';
@@ -44,6 +48,22 @@ import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+
+interface TerrainGridBounds {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+interface TerrainGridViewport extends TerrainGridBounds {
+  canvasLeft: number;
+  canvasTop: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  offsetLeft: number;
+  offsetTop: number;
+}
 
 @Component({
   selector: 'terrain',
@@ -80,7 +100,7 @@ export class TerrainComponent {
       if (this.terrain().isGrid) {
         opacity = 1.0;
       }
-      this.gridCanvas().nativeElement.style.opacity = opacity + '';
+      this.setGridCanvasOpacity(opacity);
     });
     effect(() => {
       this.uiSignalService.terrainGridEndVersion();
@@ -90,7 +110,19 @@ export class TerrainComponent {
           opacity = 1.0;
         }
       }
-      this.gridCanvas().nativeElement.style.opacity = opacity + '';
+      this.setGridCanvasOpacity(opacity);
+    });
+    effect(() => {
+      const gridCanvases = this.gridCanvases();
+      if (!this._initialized || gridCanvases.length < 1) return;
+      this.setGameTableGrid(
+        this.width(),
+        this.depth(),
+        this.gridSize,
+        this.currentTable.gridType,
+        this.currentTable.gridColor,
+        this.currentTable.gridFontColor
+      );
     });
     effect(() => {
       const terrain = this.terrain();
@@ -140,7 +172,7 @@ export class TerrainComponent {
 
   readonly terrain = input.required<Terrain>();
   readonly is3D = input(false);
-  readonly gridCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('gridCanvas');
+  readonly gridCanvases = viewChildren<ElementRef<HTMLCanvasElement>>('gridCanvas');
 
   get tableSelecter(): TableSelecter {
     return this.tabletopService.tableSelecter;
@@ -228,6 +260,10 @@ export class TerrainComponent {
   readonly isAltitudeIndicate = computed(() => {
     this.terrainVersion();
     return this.terrain().isAltitudeIndicate;
+  });
+  readonly terrainRotate = computed(() => {
+    this.terrainVersion();
+    return this.terrain().rotate;
   });
 
   readonly isVisibleFloor = computed(() => 0 < this.width() * this.depth());
@@ -343,18 +379,56 @@ export class TerrainComponent {
 
   /** ヘクスマップ時のフロア要素のスタイル（bbox に合わせたサイズ・位置） */
   readonly hexFloorDimStyle = computed<Record<string, string>>(() => {
-    const params = this.pedestalHexParams();
-    if (!params) return {} as Record<string, string>;
-    const { bbox } = params;
-    const containerW = this.width() * this.gridSize;
-    const containerH = this.depth() * this.gridSize;
-    const W = bbox.maxX - bbox.minX;
-    const H = bbox.maxY - bbox.minY;
+    const bounds = this.getFloorBounds();
+    if (!this.pedestalHexParams()) return {} as Record<string, string>;
     return {
-      width: `${W}px`,
-      height: `${H}px`,
-      left: `${containerW / 2 + bbox.minX}px`,
-      top: `${containerH / 2 + bbox.minY}px`,
+      width: `${bounds.width}px`,
+      height: `${bounds.height}px`,
+      left: `${bounds.left}px`,
+      top: `${bounds.top}px`,
+    };
+  });
+
+  readonly terrainGridClipStyle = computed<Record<string, string>>(() => this.makeTerrainGridClipStyle());
+
+  terrainGridClipStepStyle(step: HexSlopeStepFloor): Record<string, string> {
+    return this.makeTerrainGridClipStyle(step);
+  }
+
+  private makeTerrainGridClipStyle(step?: HexSlopeStepFloor): Record<string, string> {
+    const bounds = this.getFloorBounds();
+    const clipPath = this.hexFloorClipPath();
+    const transform =
+      step != null
+        ? 'translateZ(' + step.heightPx + 'px)'
+        : 'translateZ(' + (this.height() / (this.isSlope() ? 2 : 1)) * this.gridSize + 'px)' + this.floorModCss();
+    const style: Record<string, string> = {
+      width: `${bounds.width}px`,
+      height: `${bounds.height}px`,
+      left: `${bounds.left}px`,
+      top: `${bounds.top}px`,
+      'backface-visibility': this.isSlope() ? 'visible' : 'hidden',
+      transform,
+      filter: 'brightness(' + this.floorBrightness() + ')',
+    };
+    if (step != null) {
+      style['-webkit-mask'] = step.mask;
+      style.mask = step.mask;
+    } else {
+      style['clip-path'] = clipPath ?? 'none';
+    }
+    return style;
+  }
+
+  readonly terrainGridCanvasStyle = computed<Record<string, string>>(() => {
+    const viewport = this.getGridViewport(this.getFloorBounds());
+    return {
+      width: `${viewport.canvasWidth}px`,
+      height: `${viewport.canvasHeight}px`,
+      left: `${viewport.canvasLeft}px`,
+      top: `${viewport.canvasTop}px`,
+      'backface-visibility': this.isSlope() ? 'visible' : 'hidden',
+      transform: `rotateZ(${-this.terrainRotate()}deg) translateZ(0.15px)`,
     };
   });
 
@@ -483,6 +557,47 @@ export class TerrainComponent {
     return ret;
   });
 
+  private getFloorBounds(width: number = this.width(), depth: number = this.depth()): TerrainGridBounds {
+    const params = this.pedestalHexParams();
+    if (!params) {
+      return {
+        left: 0,
+        top: 0,
+        width: width * this.gridSize,
+        height: depth * this.gridSize,
+      };
+    }
+    const { bbox } = params;
+    const containerW = width * this.gridSize;
+    const containerH = depth * this.gridSize;
+    return {
+      left: containerW / 2 + bbox.minX,
+      top: containerH / 2 + bbox.minY,
+      width: bbox.maxX - bbox.minX,
+      height: bbox.maxY - bbox.minY,
+    };
+  }
+
+  private getGridViewport(bounds: TerrainGridBounds): TerrainGridViewport {
+    const radians = (this.terrainRotate() * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(radians));
+    const sin = Math.abs(Math.sin(radians));
+    const canvasWidth = Math.max(1, bounds.width * cos + bounds.height * sin);
+    const canvasHeight = Math.max(1, bounds.width * sin + bounds.height * cos);
+    const canvasLeft = (bounds.width - canvasWidth) / 2;
+    const canvasTop = (bounds.height - canvasHeight) / 2;
+
+    return {
+      ...bounds,
+      canvasLeft,
+      canvasTop,
+      canvasWidth,
+      canvasHeight,
+      offsetLeft: this.terrain().location.x + bounds.left + canvasLeft,
+      offsetTop: this.terrain().location.y + bounds.top + canvasTop,
+    };
+  }
+
   private adjustMinBounds(value: number, min: number = 0): number {
     return value < min ? min : value;
   }
@@ -511,18 +626,27 @@ export class TerrainComponent {
 
   private setGameTableGrid(
     width: number,
-    height: number,
+    depth: number,
     gridSize: number = 50,
     gridType: GridType = GridType.SQUARE,
     gridColor: string = '#000000e6',
     gridFontColor: string = gridColor
   ) {
-    const render = new GridLineRender(this.gridCanvas().nativeElement);
+    const viewport = this.getGridViewport(this.getFloorBounds(width, depth));
 
-    const leftPx = this.terrain().location.x - width / 2;
-    const topPx = this.terrain().location.y - height / 2;
-
-    render.render(width, height, gridSize, gridType, gridColor, gridFontColor, true, topPx, leftPx);
+    for (const gridCanvas of this.gridCanvases()) {
+      const render = new GridLineRender(gridCanvas.nativeElement);
+      render.renderViewport(
+        viewport.canvasWidth,
+        viewport.canvasHeight,
+        gridSize,
+        gridType,
+        gridColor,
+        gridFontColor,
+        viewport.offsetTop,
+        viewport.offsetLeft
+      );
+    }
     let opacity: number = 0.0;
     setTimeout(() => {
       // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
@@ -531,7 +655,13 @@ export class TerrainComponent {
           opacity = 1.0;
         }
       }
-      this.gridCanvas().nativeElement.style.opacity = opacity + '';
+      this.setGridCanvasOpacity(opacity);
     }, 0);
+  }
+
+  private setGridCanvasOpacity(opacity: number) {
+    for (const gridCanvas of this.gridCanvases()) {
+      gridCanvas.nativeElement.style.opacity = opacity + '';
+    }
   }
 }

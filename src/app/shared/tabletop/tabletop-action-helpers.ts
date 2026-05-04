@@ -44,7 +44,6 @@ export function getRangeMenuItems(): RangeMenuItem[] {
     { menuName: 'コーン', typeName: 'CORN' },
     { menuName: '三角形', typeName: 'TRIANGLE' },
     { menuName: '四角形', typeName: 'SQUARE' },
-    { menuName: 'ひし形', typeName: 'DIAMOND' },
     { menuName: '五角形', typeName: 'PENTAGON' },
     { menuName: '六角形', typeName: 'HEXAGON' },
     { menuName: '円形', typeName: 'CIRCLE' },

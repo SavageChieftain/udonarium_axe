@@ -72,7 +72,6 @@ export function buildRangeContextMenu(
   if (
     range.type == 'CIRCLE' ||
     range.type == 'SQUARE' ||
-    range.type == 'DIAMOND' ||
     range.type == 'TRIANGLE' ||
     range.type == 'PENTAGON' ||
     range.type == 'HEXAGON'
@@ -124,13 +123,6 @@ export function buildRangeContextMenu(
         name: (range.type === 'SQUARE' ? '✔ ' : '') + '四角形',
         action: () => {
           range.type = 'SQUARE';
-          SoundEffect.play(PresetSound.sweep);
-        },
-      },
-      {
-        name: (range.type === 'DIAMOND' ? '✔ ' : '') + 'ひし形',
-        action: () => {
-          range.type = 'DIAMOND';
           SoundEffect.play(PresetSound.sweep);
         },
       },

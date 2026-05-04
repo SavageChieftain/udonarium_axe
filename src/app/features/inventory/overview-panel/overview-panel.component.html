@@ -198,10 +198,7 @@
         >
           @for (dataElm of rangeElms; track dataElm.myIdentifer) {
             @if (dataElm && dataElm.name !== 'name') {
-              @if (
-                (range.type !== 'CIRCLE' && range.type !== 'SQUARE' && range.type !== 'DIAMOND') ||
-                dataElm.name !== 'width'
-              ) {
+              @if ((range.type !== 'CIRCLE' && range.type !== 'SQUARE') || dataElm.name !== 'width') {
                 <div class="grid-container">
                   <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
                 </div>

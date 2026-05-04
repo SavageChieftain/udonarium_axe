@@ -65,15 +65,17 @@
           ></div>
         }
       }
-      <canvas
-        class="grid-canvas is-fill"
-        [ngStyle]="{
-          'backface-visibility': isSlope() ? 'visible' : 'hidden',
-          transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
-          filter: 'brightness(' + floorBrightness() + ')',
-        }"
-        #gridCanvas
-      ></canvas>
+      @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
+        @for (step of hexSlopeSteps().floors; track $index) {
+          <div class="terrain-grid-clip is-3d" [ngStyle]="terrainGridClipStepStyle(step)">
+            <canvas class="grid-canvas terrain-grid-canvas" [ngStyle]="terrainGridCanvasStyle()" #gridCanvas></canvas>
+          </div>
+        }
+      } @else {
+        <div class="terrain-grid-clip is-3d" [ngStyle]="terrainGridClipStyle()">
+          <canvas class="grid-canvas terrain-grid-canvas" [ngStyle]="terrainGridCanvasStyle()" #gridCanvas></canvas>
+        </div>
+      }
       @if (hasWall() && 0 < wallImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().walls.length > 0) {
           @for (wall of hexSlopeSteps().walls; track $index) {

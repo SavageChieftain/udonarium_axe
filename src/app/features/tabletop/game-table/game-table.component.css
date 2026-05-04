@@ -109,9 +109,21 @@
   position: absolute;
   height: 100%;
   width: 100%;
+  top: 0;
+  left: 0;
   background-color: rgba(255, 255, 255, 0.15);
   background-repeat: no-repeat;
   background-size: 100% 100%;
+}
+
+.table-surface {
+  overflow: hidden;
+}
+
+.table-surface-border {
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  transform: translateZ(0.2px);
 }
 
 .background-image {

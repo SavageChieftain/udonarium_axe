@@ -1,4 +1,5 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
+import { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { generateUuid } from '@axe/core/util/uuid';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -20,9 +21,21 @@ export class RangeArea extends TabletopObject {
   @SyncVar() offSetY: boolean = false;
   @SyncVar() gridColor: string = '#FFFF00';
   @SyncVar() rangeColor: string = '#000000';
-  @SyncVar() type: string = 'CORN';
+  @SyncVar('type') private _type: string = 'CORN';
   @SyncVar() fillOutLine: boolean = false;
   @SyncVar() subDivisionSnapPolygonal: boolean = true;
+
+  get type(): string {
+    return this._type;
+  }
+  set type(type: string) {
+    if (type === 'DIAMOND') {
+      this._type = 'SQUARE';
+      this.rotate = this.rotate + 45;
+      return;
+    }
+    this._type = type;
+  }
 
   get length(): number {
     return this.getCommonValue('length', 1);
@@ -36,6 +49,16 @@ export class RangeArea extends TabletopObject {
   followingCounterDummyCount() {
     this.followingCounterDummy++;
     if (this.followingCounterDummy >= 50) this.followingCounterDummy = 0;
+  }
+
+  override onStoreAdded() {
+    super.onStoreAdded();
+    this.normalizeLegacyDiamondType();
+  }
+
+  override apply(context: ObjectContext) {
+    super.apply(context);
+    this.normalizeLegacyDiamondType();
   }
 
   following() {
@@ -74,5 +97,11 @@ export class RangeArea extends TabletopObject {
     object.initialize();
 
     return object;
+  }
+
+  private normalizeLegacyDiamondType() {
+    if (this._type !== 'DIAMOND') return;
+    this.attributes['type'] = 'SQUARE';
+    this.attributes['rotate'] = Number(this.rotate) + 45;
   }
 }

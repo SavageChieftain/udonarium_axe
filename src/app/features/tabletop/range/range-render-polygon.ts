@@ -1,5 +1,4 @@
 import {
-  ClipAreaDiamond,
   ClipAreaHexagon,
   ClipAreaLine,
   ClipAreaPentagon,
@@ -13,6 +12,23 @@ import {
   fillGridCells,
   makeBrush,
 } from '@axe/features/tabletop/range/range-render-util';
+
+type Point = { x: number; y: number };
+
+function rotatePoint(point: Point, degree: number): Point {
+  const rad = (Math.PI / 180) * degree;
+  const cosRad = Math.cos(rad);
+  const sinRad = Math.sin(rad);
+  return {
+    x: point.x * cosRad - point.y * sinRad,
+    y: point.x * sinRad + point.y * cosRad,
+  };
+}
+
+function rotatePoints(points: Point[], degree: number): Point[] {
+  if (degree === 0) return points;
+  return points.map((point) => rotatePoint(point, degree));
+}
 
 export function renderLine(
   canvasElement: HTMLCanvasElement,
@@ -122,45 +138,51 @@ export function renderSquare(
   canvasElement.height = setting.areaHeight * gridSize;
   let context: CanvasRenderingContext2D = canvasElement.getContext('2d')!;
 
-  const p1x = -setting.range * gridSize; // 左下
-  const p1y = setting.range * gridSize;
-  const p2x = -setting.range * gridSize; // 左上
-  const p2y = -setting.range * gridSize;
-  const p3x = setting.range * gridSize; // 右上
-  const p3y = -setting.range * gridSize;
-  const p4x = setting.range * gridSize; // 右下
-  const p4y = setting.range * gridSize;
+  const p = rotatePoints(
+    [
+      { x: -setting.range * gridSize, y: setting.range * gridSize }, // 左下
+      { x: -setting.range * gridSize, y: -setting.range * gridSize }, // 左上
+      { x: setting.range * gridSize, y: -setting.range * gridSize }, // 右上
+      { x: setting.range * gridSize, y: setting.range * gridSize }, // 右下
+    ],
+    setting.degree
+  );
+  const [p1, p2, p3, p4] = p;
+
+  const clipPoints = rotatePoints(
+    [
+      { x: -setting.range * gridSize - gridSize * 1.0, y: setting.range * gridSize + gridSize * 1.0 },
+      { x: -setting.range * gridSize - gridSize * 1.0, y: -setting.range * gridSize - gridSize * 1.0 },
+      { x: setting.range * gridSize + gridSize * 1.0, y: -setting.range * gridSize - gridSize * 1.0 },
+      { x: setting.range * gridSize + gridSize * 1.0, y: setting.range * gridSize + gridSize * 1.0 },
+    ],
+    setting.degree
+  );
 
   // クリッピング座標（根本から時計回りにクリップ範囲を定義）
   const clip: ClipAreaSquare = {
-    clip01x: p1x - gridSize * 1.0, // 根本始点
-    clip01y: p1y + gridSize * 1.0,
-    clip02x: p2x - gridSize * 1.0,
-    clip02y: p2y - gridSize * 1.0,
-    clip03x: p3x + gridSize * 1.0,
-    clip03y: p3y - gridSize * 1.0,
-    clip04x: p4x + gridSize * 1.0,
-    clip04y: p4y + gridSize * 1.0,
+    clip01x: clipPoints[0].x, // 根本始点
+    clip01y: clipPoints[0].y,
+    clip02x: clipPoints[1].x,
+    clip02y: clipPoints[1].y,
+    clip03x: clipPoints[2].x,
+    clip03y: clipPoints[2].y,
+    clip04x: clipPoints[3].x,
+    clip04y: clipPoints[3].y,
   };
 
   makeBrush(context, gridSize, setting.gridColor);
 
   if (setting.fillOutLine) {
     context.beginPath();
-    context.moveTo(p1x + offSetX_px, p1y + offSetY_px);
-    context.lineTo(p2x + offSetX_px, p2y + offSetY_px);
-    context.lineTo(p3x + offSetX_px, p3y + offSetY_px);
-    context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
-    context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
+    context.moveTo(p1.x + offSetX_px, p1.y + offSetY_px);
+    context.lineTo(p2.x + offSetX_px, p2.y + offSetY_px);
+    context.lineTo(p3.x + offSetX_px, p3.y + offSetY_px);
+    context.lineTo(p4.x + offSetX_px, p4.y + offSetY_px);
+    context.lineTo(p1.x + offSetX_px, p1.y + offSetY_px);
     context.fill();
   } else {
-    const halfRange = setting.range * gridSize;
-    fillGridCells(
-      context,
-      setting,
-      offsets,
-      (gcx, gcy) => gcx >= -halfRange && gcx <= halfRange && gcy >= -halfRange && gcy <= halfRange
-    );
+    fillGridCells(context, setting, offsets, (gcx, gcy) => insideConvexPolygon(p, gcx, gcy));
   }
 
   canvasElementRange.width = setting.areaWidth * gridSize;
@@ -170,85 +192,11 @@ export function renderSquare(
   makeBrush(context, gridSize, setting.rangeColor);
   context.beginPath();
   context.lineWidth = 2;
-  context.moveTo(p1x + offSetX_px, p1y + offSetY_px);
-  context.lineTo(p2x + offSetX_px, p2y + offSetY_px);
-  context.lineTo(p3x + offSetX_px, p3y + offSetY_px);
-  context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
-  context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
-  context.stroke();
-
-  if (setting.isDocking) {
-    context.beginPath();
-    context.strokeRect(offSetX_px - 6, offSetY_px - 6, 12, 12);
-  } else {
-    context.beginPath();
-    context.arc(offSetX_px, offSetX_px, 5, 0, 2 * Math.PI, true);
-    context.fill();
-  }
-
-  return clip;
-}
-
-export function renderDiamond(
-  canvasElement: HTMLCanvasElement,
-  canvasElementRange: HTMLCanvasElement,
-  setting: RangeRenderSetting
-): ClipAreaDiamond {
-  const offsets = calcGridOffsets(setting);
-  const { gridSize, offSetX_px, offSetY_px } = offsets;
-
-  canvasElement.width = setting.areaWidth * gridSize;
-  canvasElement.height = setting.areaHeight * gridSize;
-  let context: CanvasRenderingContext2D = canvasElement.getContext('2d')!;
-
-  const p1x = -setting.range * gridSize; // 左
-  const p1y = 0;
-  const p2x = 0; // 上
-  const p2y = -setting.range * gridSize;
-  const p3x = setting.range * gridSize; // 右
-  const p3y = 0;
-  const p4x = 0; // 下
-  const p4y = setting.range * gridSize;
-
-  // クリッピング座標（根本から時計回りにクリップ範囲を定義）
-  const clip: ClipAreaDiamond = {
-    clip01x: p1x - gridSize * 1.2, // 根本始点
-    clip01y: 0,
-    clip02x: 0,
-    clip02y: p2y - gridSize * 1.2,
-    clip03x: p3x + gridSize * 1.2,
-    clip03y: 0,
-    clip04x: 0,
-    clip04y: p4y + gridSize * 1.2,
-  };
-
-  makeBrush(context, gridSize, setting.gridColor);
-
-  if (setting.fillOutLine) {
-    context.beginPath();
-    context.moveTo(p1x + offSetX_px, p1y + offSetY_px);
-    context.lineTo(p2x + offSetX_px, p2y + offSetY_px);
-    context.lineTo(p3x + offSetX_px, p3y + offSetY_px);
-    context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
-    context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
-    context.fill();
-  } else {
-    const halfRange = setting.range * gridSize;
-    fillGridCells(context, setting, offsets, (gcx, gcy) => Math.abs(gcx) + Math.abs(gcy) <= halfRange);
-  }
-
-  canvasElementRange.width = setting.areaWidth * gridSize;
-  canvasElementRange.height = setting.areaHeight * gridSize;
-  context = canvasElementRange.getContext('2d')!;
-
-  makeBrush(context, gridSize, setting.rangeColor);
-  context.beginPath();
-  context.lineWidth = 2;
-  context.moveTo(p1x + offSetX_px, p1y + offSetY_px);
-  context.lineTo(p2x + offSetX_px, p2y + offSetY_px);
-  context.lineTo(p3x + offSetX_px, p3y + offSetY_px);
-  context.lineTo(p4x + offSetX_px, p4y + offSetY_px);
-  context.lineTo(p1x + offSetX_px, p1y + offSetY_px);
+  context.moveTo(p1.x + offSetX_px, p1.y + offSetY_px);
+  context.lineTo(p2.x + offSetX_px, p2.y + offSetY_px);
+  context.lineTo(p3.x + offSetX_px, p3.y + offSetY_px);
+  context.lineTo(p4.x + offSetX_px, p4.y + offSetY_px);
+  context.lineTo(p1.x + offSetX_px, p1.y + offSetY_px);
   context.stroke();
 
   if (setting.isDocking) {
@@ -264,17 +212,17 @@ export function renderDiamond(
 }
 
 // ---- ヘルパー: 正多角形の頂点を生成 (中心0,0・上方向が最初の頂点) ----
-function regularPolygonVertices(n: number, radius: number): { x: number; y: number }[] {
-  const verts: { x: number; y: number }[] = [];
+function regularPolygonVertices(n: number, radius: number, degree: number): Point[] {
+  const verts: Point[] = [];
   for (let i = 0; i < n; i++) {
-    const a = (((360 / n) * i - 90) * Math.PI) / 180;
+    const a = (((360 / n) * i - 90 + degree) * Math.PI) / 180;
     verts.push({ x: Math.cos(a) * radius, y: Math.sin(a) * radius });
   }
   return verts;
 }
 
 // ---- 凸多角形の内側判定 ----
-function insideConvexPolygon(verts: { x: number; y: number }[], gcx: number, gcy: number): boolean {
+function insideConvexPolygon(verts: Point[], gcx: number, gcy: number): boolean {
   for (let i = 0; i < verts.length; i++) {
     const a = verts[i];
     const b = verts[(i + 1) % verts.length];
@@ -297,7 +245,7 @@ export function renderTriangle(
   let context = canvasElement.getContext('2d')!;
 
   const r = setting.range * gridSize;
-  const verts = regularPolygonVertices(3, r);
+  const verts = regularPolygonVertices(3, r, setting.degree);
 
   const clip: ClipAreaTriangle = {
     clip01x: verts[0].x * 1.2,
@@ -350,7 +298,7 @@ export function renderPentagon(
   let context = canvasElement.getContext('2d')!;
 
   const r = setting.range * gridSize;
-  const verts = regularPolygonVertices(5, r);
+  const verts = regularPolygonVertices(5, r, setting.degree);
 
   const clip: ClipAreaPentagon = {
     clip01x: verts[0].x * 1.2,
@@ -407,7 +355,7 @@ export function renderHexagon(
   let context = canvasElement.getContext('2d')!;
 
   const r = setting.range * gridSize;
-  const verts = regularPolygonVertices(6, r);
+  const verts = regularPolygonVertices(6, r, setting.degree);
 
   const clip: ClipAreaHexagon = {
     clip01x: verts[0].x * 1.2,

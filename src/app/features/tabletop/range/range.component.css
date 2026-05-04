@@ -103,6 +103,24 @@
   z-index: -1;
 }
 
+.range-rotate-layer,
+.range-rotate-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.range-rotate-controls {
+  pointer-events: none;
+}
+
+.range-rotate-controls .rotate-grab {
+  pointer-events: auto;
+}
+
 .rotate-grab-icon {
   position: absolute;
   width: 30px;
@@ -120,6 +138,24 @@
   font-size: 24px;
   transform-style: preserve-3d;
   transform: translateZ(0.1px);
+}
+
+.range-rotate-grab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  opacity: 0.86;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-panel-bg) 70%, transparent);
+}
+
+.range-rotate-grab--single {
+  transform: translate(-50%, -50%) translateZ(0.1px);
+}
+
+.range-rotate-grab .material-icons {
+  font-size: 28px;
 }
 
 .is-3d {

@@ -226,12 +226,24 @@
 
 .grid-canvas {
   opacity: 0;
-  transform: translateZ(0.15px);
   -webkit-transition: 0.3s ease-out;
   -moz-transition: 0.3s ease-out;
   -o-transition: 0.3s ease-out;
   transition: 0.3s ease-out;
   backface-visibility: hidden;
+}
+
+.terrain-grid-clip {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+  transform-origin: center center;
+}
+
+.terrain-grid-canvas {
+  position: absolute;
+  transform-origin: center center;
+  pointer-events: none;
 }
 
 .is-fill {

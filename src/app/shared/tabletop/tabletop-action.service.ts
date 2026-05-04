@@ -130,9 +130,6 @@ export class TabletopActionService {
       case 'SQUARE':
         range = RangeArea.create('射程範囲', 3, 3, 100);
         break;
-      case 'DIAMOND':
-        range = RangeArea.create('射程範囲', 3, 3, 100);
-        break;
       case 'TRIANGLE':
         range = RangeArea.create('射程範囲', 3, 3, 100);
         break;

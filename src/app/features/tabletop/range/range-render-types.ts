@@ -43,17 +43,6 @@ export interface ClipAreaSquare {
   clip04y: number;
 }
 
-export interface ClipAreaDiamond {
-  clip01x: number;
-  clip01y: number;
-  clip02x: number;
-  clip02y: number;
-  clip03x: number;
-  clip03y: number;
-  clip04x: number;
-  clip04y: number;
-}
-
 export interface ClipAreaTriangle {
   clip01x: number;
   clip01y: number;

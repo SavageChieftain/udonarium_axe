@@ -5,13 +5,15 @@
 ></div>
 <div class="component is-fill is-perspective" [ngClass]="{ 'is-grabbing': isPointerDragging }" #root>
   <div class="component-content is-fill is-3d-2" #gameTable>
-    <div
-      id="app-game-table"
-      class="game-table table-image is-3d-2"
-      [style.background-image]="'url(' + tableImage().url + ')' | safe: 'style'"
-      #gameObjects
-    >
-      <canvas class="grid-canvas is-fill is-pointer-events-none" #gridCanvas></canvas>
+    <div id="app-game-table" class="game-table is-3d-2" #gameObjects>
+      <div
+        class="table-surface table-image is-3d-2 is-pointer-events-none"
+        [ngStyle]="tableSurfaceStyle()"
+        [style.background-image]="'url(' + tableImage().url + ')' | safe: 'style'"
+      >
+        <canvas class="grid-canvas is-fill is-pointer-events-none" #gridCanvas></canvas>
+        <div class="table-surface-border is-fill is-pointer-events-none" [ngStyle]="tableSurfaceBorderStyle()"></div>
+      </div>
       @if (terrains().length) {
         <div class="layer">
           <div class="dummy"></div>

@@ -56,6 +56,35 @@ export class GridLineRender {
     }
   }
 
+  renderViewport(
+    widthPx: number,
+    heightPx: number,
+    gridSize: number = 50,
+    gridType: GridType = GridType.SQUARE,
+    gridColor: string = '#000000e6',
+    gridFontColor: string = gridColor,
+    offsetTopPx: number = 0,
+    offsetLeftPx: number = 0
+  ) {
+    this.canvasElement.width = Math.max(1, Math.ceil(widthPx));
+    this.canvasElement.height = Math.max(1, Math.ceil(heightPx));
+    const context: CanvasRenderingContext2D = this.canvasElement.getContext('2d')!;
+
+    if (gridType < 0) return;
+
+    this.makeBrush(context, gridSize, gridColor, gridFontColor);
+
+    switch (gridType) {
+      case GridType.SQUARE:
+        this.renderSquareGridViewport(context, widthPx, heightPx, gridSize, offsetTopPx, offsetLeftPx);
+        break;
+      case GridType.HEX_VERTICAL:
+      case GridType.HEX_HORIZONTAL:
+        this.renderHexGridViewport(context, widthPx, heightPx, gridSize, gridType, offsetTopPx, offsetLeftPx);
+        break;
+    }
+  }
+
   private renderSquareGrid(
     context: CanvasRenderingContext2D,
     width: number,
@@ -113,6 +142,67 @@ export class GridLineRender {
 
         strokeHexPath(context, cx, cy, s, startAngle);
         context.fillText(col + 1 + offCol + '-' + (row + 1 + offRow), cx, cy);
+      }
+    }
+  }
+
+  private renderSquareGridViewport(
+    context: CanvasRenderingContext2D,
+    widthPx: number,
+    heightPx: number,
+    gridSize: number,
+    offsetTopPx: number,
+    offsetLeftPx: number
+  ) {
+    const firstCol = Math.floor(offsetLeftPx / gridSize);
+    const lastCol = Math.ceil((offsetLeftPx + widthPx) / gridSize);
+    const firstRow = Math.floor(offsetTopPx / gridSize);
+    const lastRow = Math.ceil((offsetTopPx + heightPx) / gridSize);
+
+    for (let row = firstRow; row < lastRow; row++) {
+      for (let col = firstCol; col < lastCol; col++) {
+        const gx = col * gridSize - offsetLeftPx;
+        const gy = row * gridSize - offsetTopPx;
+        context.beginPath();
+        context.strokeRect(gx, gy, gridSize, gridSize);
+        context.fillText(`${col + 1}-${row + 1}`, gx + gridSize / 2, gy + gridSize / 2);
+      }
+    }
+  }
+
+  private renderHexGridViewport(
+    context: CanvasRenderingContext2D,
+    widthPx: number,
+    heightPx: number,
+    gridSize: number,
+    gridType: GridType,
+    offsetTopPx: number,
+    offsetLeftPx: number
+  ) {
+    const s = hexCircumradius(gridSize);
+    const isFlatTop = gridType === GridType.HEX_VERTICAL;
+    const { colSpacing, rowSpacing } = hexSpacing(gridSize, isFlatTop);
+    const startAngle = hexStartAngle(isFlatTop);
+
+    const colExtra = Math.ceil(gridSize / colSpacing) + 2;
+    const rowExtra = Math.ceil(gridSize / rowSpacing) + 2;
+    const firstCol = Math.floor(offsetLeftPx / colSpacing) - colExtra;
+    const lastCol = Math.ceil((offsetLeftPx + widthPx) / colSpacing) + colExtra;
+    const firstRow = Math.floor(offsetTopPx / rowSpacing) - rowExtra;
+    const lastRow = Math.ceil((offsetTopPx + heightPx) / rowSpacing) + rowExtra;
+
+    context.textBaseline = 'middle';
+
+    for (let row = firstRow; row <= lastRow; row++) {
+      for (let col = firstCol; col <= lastCol; col++) {
+        const { x, y } = hexCellCenter(col, row, colSpacing, rowSpacing, isFlatTop);
+        const cx = x - offsetLeftPx;
+        const cy = y - offsetTopPx;
+
+        if (cx < -gridSize || cx > widthPx + gridSize || cy < -gridSize || cy > heightPx + gridSize) continue;
+
+        strokeHexPath(context, cx, cy, s, startAngle);
+        context.fillText(`${col + 1}-${row + 1}`, cx, cy);
       }
     }
   }
