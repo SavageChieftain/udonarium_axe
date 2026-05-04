@@ -57,6 +57,7 @@
 .scratching,
 .draw-icon {
   visibility: visible;
+  transform: translateZ(0.5px);
 }
 
 .component:hover .scratching.is-mine,
