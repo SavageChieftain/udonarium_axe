@@ -21,7 +21,7 @@
         <span class="cell-name">画像なし</span>
       </button>
     }
-    @for (file of images(); track file) {
+    @for (file of images(); track file.identifier) {
       <button class="image-cell" (click)="onSelectedFile(file)">
         @if (file.url) {
           <img [src]="file.url | safe: 'resourceUrl'" [alt]="file.name" />

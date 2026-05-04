@@ -1,4 +1,4 @@
-@if (tabletopObject) {
+@if (tabletopObject && !terrain) {
   <div class="top-header">
     @if (!character && !rangeArea) {
       <button (click)="toggleEditMode()">編集切り替え</button>
@@ -92,21 +92,6 @@
             (change)="onChkPopMaxHeight($event)"
             class="text-[#555]"
           />
-        </div>
-      </div>
-    }
-    @if (terrain) {
-      <div class="extra-setting table">
-        <div class="extra-setting w-[30%] table-cell text-right"></div>
-        <div class="extra-setting w-[70%] table-cell text-right">
-          床にグリッドを表示
-          <input
-            type="checkbox"
-            value="isGrid"
-            [(ngModel)]="terrain.isGrid"
-            name="isGrid"
-            (click)="clickGrid()"
-          /><br />
         </div>
       </div>
     }
@@ -445,8 +430,8 @@
             <label class="cs-flag-label">
               <input
                 type="checkbox"
-                [(ngModel)]="character.specifyKomaImageFlag"
-                (change)="clickImageFlag()"
+                [ngModel]="character.specifyKomaImageFlag"
+                (ngModelChange)="setSpecifyKomaImageFlag($event)"
               />コマ高さを指定
             </label>
             <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
@@ -690,7 +675,6 @@
           @if (
             rangeArea.type === 'CIRCLE' ||
             rangeArea.type === 'SQUARE' ||
-            rangeArea.type === 'DIAMOND' ||
             rangeArea.type === 'TRIANGLE' ||
             rangeArea.type === 'PENTAGON' ||
             rangeArea.type === 'HEXAGON'
@@ -715,6 +699,81 @@
             </div>
           </div>
         }
+      </div>
+    } @else if (terrain) {
+      <div class="terrain-sheet">
+        @if (tabletopObject.commonDataElement) {
+          <section class="terrain-section terrain-data-section">
+            <h3 class="terrain-section-title"><i class="material-icons">info</i>基本設定</h3>
+            <div class="table terrain-data-table">
+              <div
+                class="table-row"
+                game-data-element
+                [gameDataElement]="tabletopObject.commonDataElement"
+                [isTagLocked]="true"
+                [isEdit]="false"
+                [hideSectionTitle]="true"
+              ></div>
+            </div>
+          </section>
+        }
+
+        <section class="terrain-section">
+          <h3 class="terrain-section-title"><i class="material-icons">grid_on</i>表示</h3>
+          <div class="terrain-row">
+            <span class="terrain-label">床グリッド</span>
+            <label class="terrain-toggle-row">
+              <input type="checkbox" value="isGrid" [(ngModel)]="terrain.isGrid" name="isGrid" (click)="clickGrid()" />
+              <span class="terrain-toggle-visual"><span></span></span>
+              <span>{{ terrain.isGrid ? '表示' : '非表示' }}</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="terrain-section">
+          <h3 class="terrain-section-title"><i class="material-icons">image</i>画像設定</h3>
+          <div class="terrain-image-grid">
+            <button class="terrain-image-card" type="button" (click)="openModal('floor')" title="床画像を変更">
+              <span class="terrain-image-label"><i class="material-icons">layers</i>床画像</span>
+              <span class="terrain-image-preview">
+                @if (terrainFloorImage().url) {
+                  <img [src]="terrainFloorImage().url | safe: 'resourceUrl'" [alt]="terrainFloorImage().name" />
+                } @else {
+                  <span class="terrain-image-empty"><i class="material-icons">image_not_supported</i></span>
+                }
+              </span>
+              <span class="terrain-image-action"><i class="material-icons">edit</i>変更</span>
+            </button>
+
+            <button class="terrain-image-card" type="button" (click)="openModal('wall')" title="壁画像を変更">
+              <span class="terrain-image-label"><i class="material-icons">view_in_ar</i>壁画像</span>
+              <span class="terrain-image-preview">
+                @if (terrainWallImage().url) {
+                  <img [src]="terrainWallImage().url | safe: 'resourceUrl'" [alt]="terrainWallImage().name" />
+                } @else {
+                  <span class="terrain-image-empty"><i class="material-icons">image_not_supported</i></span>
+                }
+              </span>
+              <span class="terrain-image-action"><i class="material-icons">edit</i>変更</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="terrain-section terrain-section--actions">
+          <button class="cs-btn" type="button" (click)="clone()">
+            <i class="material-icons">content_copy</i>
+            コピーを作る
+          </button>
+          <button class="cs-btn cs-btn--primary" type="button" [disabled]="isSaving()" (click)="saveToXML()">
+            @if (isSaving()) {
+              <i class="material-icons">hourglass_empty</i>
+              保存中 {{ progressPercent() }}%
+            } @else {
+              <i class="material-icons">save</i>
+              保存
+            }
+          </button>
+        </section>
       </div>
     } @else {
       <!-- 非キャラクターオブジェクト -->

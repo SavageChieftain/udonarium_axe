@@ -200,6 +200,12 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(char.identifier)();
     return char.komaImageHeight;
   });
+  readonly specifyKomaImageFlag = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return false;
+    this.objectChange.versionOf(char.identifier)();
+    return char.specifyKomaImageFlag;
+  });
   get isDropShadow(): boolean {
     const char = this.gameCharacter();
     return char?.isDropShadow ?? false;
@@ -389,16 +395,24 @@ export class GameCharacterComponent {
     const _key_meta = key_event.metaKey;
     //キーに対応した処理
 
-    if (key_alt) {
-      const char = this.gameCharacter();
-      if (char) char.targeted = char.targeted ? false : true;
-    }
-
     if (key_shift && key_alt) {
+      key_event.preventDefault();
+      key_event.stopPropagation();
       const objects = this.objectStore.getObjects(GameCharacter);
       for (const object of objects) {
         object.targeted = false;
         this.uiSignalService.notifyTargetChange(object.identifier, object.aliasName);
+      }
+      return;
+    }
+
+    if (key_alt) {
+      key_event.preventDefault();
+      key_event.stopPropagation();
+      const char = this.gameCharacter();
+      if (char) {
+        char.targeted = !char.targeted;
+        this.uiSignalService.notifyTargetChange(char.identifier, char.aliasName);
       }
     }
 

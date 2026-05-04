@@ -226,7 +226,6 @@ export class GameCharacterSheetComponent {
     { type: 'CORN', label: 'コーン', icon: 'change_history' },
     { type: 'TRIANGLE', label: '三角形', icon: 'details' },
     { type: 'SQUARE', label: '四角形', icon: 'crop_square' },
-    { type: 'DIAMOND', label: 'ひし形', icon: 'diamond' },
     { type: 'PENTAGON', label: '五角形', icon: 'pentagon' },
     { type: 'HEXAGON', label: '六角形', icon: 'hexagon' },
     { type: 'CIRCLE', label: '円形', icon: 'radio_button_unchecked' },
@@ -238,6 +237,22 @@ export class GameCharacterSheetComponent {
     if (!obj) return ImageFile.Empty;
     this.objectChange.versionOf(obj.identifier)();
     return obj.imageFile;
+  });
+
+  readonly terrainFloorImage = computed(() => {
+    this.objectChange.fileVersion();
+    const terrain = this.terrain;
+    if (!terrain) return ImageFile.Empty;
+    this.objectChange.versionOf(terrain.identifier)();
+    return terrain.floorImage ?? ImageFile.Empty;
+  });
+
+  readonly terrainWallImage = computed(() => {
+    this.objectChange.fileVersion();
+    const terrain = this.terrain;
+    if (!terrain) return ImageFile.Empty;
+    this.objectChange.versionOf(terrain.identifier)();
+    return terrain.wallImage ?? ImageFile.Empty;
   });
 
   readonly characterPieceSignals = computed(() => {
@@ -398,8 +413,11 @@ export class GameCharacterSheetComponent {
     //処理なし
   }
 
-  clickImageFlag() {
-    //処理なし
+  setSpecifyKomaImageFlag(value: boolean) {
+    const character = this.character;
+    if (!character) return;
+    character.specifyKomaImageFlag = value;
+    this.objectChange.notifyChanged(character.identifier);
   }
 
   clickGrid() {
@@ -544,6 +562,7 @@ export class GameCharacterSheetComponent {
   chkKomaSize(height: number) {
     const character = this.tabletopObject as GameCharacter;
     character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
+    this.objectChange.notifyChanged(character.identifier);
     this.pointerDeviceService.isDragging = false;
   }
 

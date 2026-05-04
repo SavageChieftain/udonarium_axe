@@ -8,7 +8,7 @@
     [movable.disable]="isLock"
     (movable.ondragstart)="onMove()"
     (movable.ondragend)="onMoved()"
-    (mousedown)="checkKey($event)"
+    (pointerdown)="checkKey($event)"
     #root
   >
     <div class="component-content is-3d bounce-in">
@@ -36,7 +36,7 @@
           </div>
         }
         <!--影-->
-        @if (isDropShadow && 0 < imageFile().url.length && this.gameCharacter()!.specifyKomaImageFlag) {
+        @if (isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
           <img
             class="is-pointer-events-none chrome-smooth-image-trick is-drop-shadow"
             [ngStyle]="{
@@ -51,7 +51,7 @@
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         }
-        @if (isDropShadow && 0 < imageFile().url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
+        @if (isDropShadow && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
           <img
             class="image is-pointer-events-none chrome-smooth-image-trick"
             [ngStyle]="{
@@ -264,22 +264,22 @@
                 </div>
               }
               <!--画像-->
-              @if (0 < imageFile().url.length && this.gameCharacter()!.specifyKomaImageFlag) {
+              @if (0 < imageFile().url.length && specifyKomaImageFlag()) {
                 <img
-                  class="is-3d chrome-smooth-image-trick"
+                  class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{
-                    position: 'absolute',
-                    bottom: '0',
-                    left: '50%',
                     height: komaImageHeightSignal() + 'px',
                     width: 'auto',
                     maxWidth: 'none',
-                    transform: 'translateX(-50%)',
+                    display: 'inline-block',
+                    left: 'auto',
+                    right: 'auto',
+                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
-              @if (0 < imageFile().url.length && !this.gameCharacter()!.specifyKomaImageFlag) {
+              @if (0 < imageFile().url.length && !specifyKomaImageFlag()) {
                 <img
                   class="image is-3d chrome-smooth-image-trick"
                   [ngStyle]="{ width: '100%' }"
