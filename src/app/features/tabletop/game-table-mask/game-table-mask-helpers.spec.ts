@@ -350,6 +350,12 @@ describe('game-table-mask-helpers', () => {
       expect(lineCount).toBe(6);
     });
 
+    it('HEX_HORIZONTAL 1x1 グリッドでは全6辺が外周になること', () => {
+      const svg = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 1, 1));
+      const lineCount = (svg.match(/<line /g) || []).length;
+      expect(lineCount).toBe(6);
+    });
+
     it('2x2 グリッドでは内部辺が除外されること', () => {
       const svg1 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1));
       const svg2 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 2, 2));
@@ -357,6 +363,15 @@ describe('game-table-mask-helpers', () => {
       const count2 = (svg2.match(/<line /g) || []).length;
       // 2x2 has fewer outer edges per cell than 1x1 (interior edges removed)
       // 4 cells × 6 edges = 24 total, minus shared internal edges
+      expect(count2).toBeLessThan(4 * 6);
+      expect(count2).toBeGreaterThan(count1);
+    });
+
+    it('HEX_HORIZONTAL 2x2 グリッドでは内部辺が除外されること', () => {
+      const svg1 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 1, 1));
+      const svg2 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 2, 2));
+      const count1 = (svg1.match(/<line /g) || []).length;
+      const count2 = (svg2.match(/<line /g) || []).length;
       expect(count2).toBeLessThan(4 * 6);
       expect(count2).toBeGreaterThan(count1);
     });

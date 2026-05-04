@@ -237,26 +237,26 @@ function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop:
   }
   /* pointy-top: 偶数行はオフセットなし、奇数行は +colSpacing/2 */
   const even = row % 2 === 0;
-  //                  edge: 0       1        2       3        4        5
+  //                  edge: 0        1       2       3        4        5
   return even
     ? (
         [
+          [0, -1],
+          [1, 0],
           [0, 1],
           [-1, 1],
           [-1, 0],
           [-1, -1],
-          [0, -1],
-          [1, 0],
         ] as const
       )[edgeIdx]
     : (
         [
+          [1, -1],
+          [1, 0],
           [1, 1],
           [0, 1],
           [-1, 0],
           [0, -1],
-          [1, -1],
-          [1, 0],
         ] as const
       )[edgeIdx];
 }
