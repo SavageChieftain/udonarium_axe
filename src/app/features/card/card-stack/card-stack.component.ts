@@ -20,6 +20,7 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { CardDrawCountDialogComponent } from '@axe/features/card/card-draw-count-dialog/card-draw-count-dialog.component';
 import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
 import { CardStackListComponent } from '@axe/features/card/card-stack-list/card-stack-list.component';
 import { InputHandler } from '@axe/shared/directives/input-handler';
@@ -30,6 +31,7 @@ import { RotableDirective } from '@axe/shared/directives/rotable.directive';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
+import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
 
@@ -55,6 +57,7 @@ export class CardStackComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly cardStack = input.required<CardStack>();
@@ -251,6 +254,7 @@ export class CardStackComponent {
       this.cardStack(),
       this.gridSize,
       () => this.drawCard(),
+      () => this.openDrawCardsDialog(),
       (cs) => this.showStackList(cs),
       (n) => this.splitStack(n),
       () => this.breakStack(),
@@ -269,14 +273,48 @@ export class CardStackComponent {
   }
 
   private drawCard(): Card | null {
+    return this.drawCardAt(0);
+  }
+
+  private drawCards(count: number): Card[] {
+    const normalizedCount = Number.isFinite(count) ? Math.floor(count) : 0;
+    const drawCount = Math.min(Math.max(0, normalizedCount), this.cardStack().cards.length);
+    const cards: Card[] = [];
+    for (let index = 0; index < drawCount; index++) {
+      const card = this.drawCardAt(index);
+      if (!card) break;
+      cards.push(card);
+    }
+    return cards;
+  }
+
+  private drawCardAt(index: number): Card | null {
     const card = this.cardStack().drawCard();
     if (card) {
       this.cardStack().update();
-      card.location.x += 100 + Math.random() * 50;
-      card.location.y += 25 + Math.random() * 50;
+      card.location.x += 100 + index * 18 + Math.random() * 50;
+      card.location.y += 25 + index * 8 + Math.random() * 50;
       card.setLocation(this.cardStack().location.name);
     }
     return card;
+  }
+
+  private async openDrawCardsDialog() {
+    const maxCount = this.cardStack().cards.length;
+    if (maxCount < 1) return;
+
+    const count = await this.modalService
+      .open<number | null>(CardDrawCountDialogComponent, {
+        title: 'カードを引く',
+        maxCount,
+        defaultCount: Math.min(2, maxCount),
+      })
+      .catch(() => null);
+    if (count == null) return;
+
+    if (this.drawCards(count).length > 0) {
+      SoundEffect.play(PresetSound.cardDraw);
+    }
   }
 
   private breakStack() {

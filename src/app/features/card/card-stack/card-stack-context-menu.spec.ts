@@ -1,0 +1,33 @@
+import { CardStack } from '@axe/domain/card/card-stack';
+import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
+
+describe('buildCardStackContextMenu', () => {
+  it('１枚引くの直下にX枚を引くを追加し、選択時に複数枚ドロー処理を呼ぶこと', () => {
+    const cardStack = CardStack.create('test stack');
+    const onDrawCard = vi.fn();
+    const onDrawCards = vi.fn();
+
+    try {
+      const actions = buildCardStackContextMenu(
+        cardStack,
+        50,
+        onDrawCard,
+        onDrawCards,
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      );
+      const drawIndex = actions.findIndex((action) => action.name === '１枚引く');
+
+      expect(drawIndex).toBeGreaterThanOrEqual(0);
+      expect(actions[drawIndex + 1].name).toBe('X枚を引く');
+
+      actions[drawIndex + 1].action?.();
+
+      expect(onDrawCards).toHaveBeenCalledOnce();
+    } finally {
+      cardStack.destroy();
+    }
+  });
+});

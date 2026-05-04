@@ -1,0 +1,20 @@
+<form class="draw-count-dialog" (ngSubmit)="confirm()">
+  <label class="draw-count-row">
+    <span>枚数</span>
+    <input
+      name="draw-count"
+      type="number"
+      min="1"
+      [max]="maxCount"
+      step="1"
+      [(ngModel)]="count"
+      [disabled]="maxCount < 1"
+      autofocus
+    />
+  </label>
+
+  <div class="draw-count-actions">
+    <button type="button" (click)="cancel()">キャンセル</button>
+    <button class="draw-count-submit" type="submit" [disabled]="maxCount < 1">引く</button>
+  </div>
+</form>

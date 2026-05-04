@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  color: var(--ui-text);
+}
+
+.draw-count-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 220px;
+  max-width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.draw-count-row {
+  display: grid;
+  grid-template-columns: 4em minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-text-muted);
+  font-size: 12px;
+}
+
+.draw-count-row input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-input-bg);
+  color: var(--ui-text);
+  font-size: 13px;
+}
+
+.draw-count-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.draw-count-actions button {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.draw-count-submit {
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
+  color: #fff;
+}

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -72,6 +73,51 @@ describe('CardStackComponent', () => {
       fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('複数枚ドロー', () => {
+    it('指定枚数だけ山札からカードを出して配置をずらすこと', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      const cardStack = CardStack.create('draw-stack');
+      cardStack.location.name = 'table';
+      cardStack.location.x = 100;
+      cardStack.location.y = 200;
+      cardStack.putOnBottom(Card.create('c1', '', '', 2));
+      cardStack.putOnBottom(Card.create('c2', '', '', 2));
+      cardStack.putOnBottom(Card.create('c3', '', '', 2));
+      fixture.componentRef.setInput('cardStack', cardStack);
+
+      try {
+        const drawn = (component as unknown as { drawCards(count: number): Card[] }).drawCards(3);
+
+        expect(drawn).toHaveLength(3);
+        expect(cardStack.cards).toHaveLength(0);
+        expect(drawn.map((card) => card.location.name)).toEqual(['table', 'table', 'table']);
+        expect(drawn.map((card) => card.location.x)).toEqual([200, 218, 236]);
+        expect(drawn.map((card) => card.location.y)).toEqual([225, 233, 241]);
+      } finally {
+        cardStack.destroy();
+        vi.restoreAllMocks();
+      }
+    });
+
+    it('指定枚数が山札残数を超えても残り枚数だけ引くこと', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      const cardStack = CardStack.create('draw-stack-limit');
+      cardStack.putOnBottom(Card.create('c1', '', '', 2));
+      cardStack.putOnBottom(Card.create('c2', '', '', 2));
+      fixture.componentRef.setInput('cardStack', cardStack);
+
+      try {
+        const drawn = (component as unknown as { drawCards(count: number): Card[] }).drawCards(5);
+
+        expect(drawn).toHaveLength(2);
+        expect(cardStack.cards).toHaveLength(0);
+      } finally {
+        cardStack.destroy();
+        vi.restoreAllMocks();
+      }
     });
   });
 });

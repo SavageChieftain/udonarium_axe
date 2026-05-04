@@ -8,6 +8,7 @@ export function buildCardStackContextMenu(
   cardStack: CardStack,
   gridSize: number,
   onDrawCard: () => unknown,
+  onDrawCards: () => unknown,
   onShowStackList: (cs: CardStack) => void,
   onSplitStack: (n: number) => void,
   onBreakStack: () => void,
@@ -36,6 +37,12 @@ export function buildCardStackContextMenu(
         if (onDrawCard() != null) {
           SoundEffect.play(PresetSound.cardDraw);
         }
+      },
+    },
+    {
+      name: 'X枚を引く',
+      action: () => {
+        onDrawCards();
       },
     },
     ContextMenuSeparator,
