@@ -10,7 +10,9 @@
         }"
       >
         <div class="image">
-          @if (imageFile().url) {
+          @if (isSystemMessage) {
+            <img [src]="SYSTEM_ICON_URL | safe: 'resourceUrl'" />
+          } @else if (imageFile().url) {
             <img [src]="imageFile().url | safe: 'resourceUrl'" />
           }
         </div>

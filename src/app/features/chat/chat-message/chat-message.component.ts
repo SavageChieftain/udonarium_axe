@@ -22,6 +22,8 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, ChatColorStylePipe, SafePipe],
 })
 export class ChatMessageComponent {
+  protected readonly SYSTEM_ICON_URL = 'assets/images/system_chang.png';
+
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly panelService = inject(PanelService);
@@ -31,6 +33,14 @@ export class ChatMessageComponent {
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
   get chatMessage(): ChatMessage {
     return this.chatMessageInput();
+  }
+
+  /** システムちゃんアイコンを表示すべきメッセージか判定する */
+  get isSystemMessage(): boolean {
+    // チュートリアル等: from === 'System'
+    // sendSystemMessage: tag に 'system-message' を含む
+    // BCDice (System-BCDice) は除外
+    return this.chatMessage.from === 'System' || (this.chatMessage.tag ?? '').includes('system-message');
   }
 
   readonly simpleDispFlagTime = input(false);
