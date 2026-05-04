@@ -59,7 +59,9 @@ export class DiceBot extends GameObject {
           Logger.info(`[DiceRoll] ${gameSystem.ID}: ${result.text}${result.secret ? ' (secret)' : ''}`);
           return {
             id: gameSystem.ID,
-            result: `${gameSystem.ID} : ${result.text}`.replace(/\n?(#\d+)\n/gi, '$1 '), // 繰り返しダイスロールは改行表示を短縮する
+            result: `${gameSystem.ID} : ${result.text}`
+              .replace(/\n?(#\d+)\n/gi, '\n$1 ') // 繰り返しダイスロールを行ごとに表示
+              .replace(/: \n/, ': '), // ヘッダー直後の余分な改行を除去
             isSecret: result.secret,
           };
         }
