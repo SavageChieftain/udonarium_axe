@@ -1,65 +1,62 @@
 @if (!isConnected()) {
-  <div>
-    <div>
-      ルーム名 :
-      <input
-        class="w-full"
-        name="room-name"
-        name="room-name"
-        [ngModel]="roomName()"
-        (ngModelChange)="roomName.set($event)"
-        required
-        minlength="1"
-        maxlength="128"
-        #roomNameValidation="ngModel"
-        placeholder="ルームの名前は必須"
-      />
-    </div>
-    <div>
-      パスワード:
-      <input
-        class="w-full"
-        name="password"
-        name="password"
-        [ngModel]="password()"
-        (ngModelChange)="password.set($event)"
-        maxlength="12"
-        #passwordValidation="ngModel"
-        placeholder="空ならパスワードなし"
-      />
-    </div>
-    <hr />
+  <div class="form-field">
+    <label class="field-label" for="room-name">ルーム名</label>
+    <input
+      id="room-name"
+      name="room-name"
+      [ngModel]="roomName()"
+      (ngModelChange)="roomName.set($event)"
+      required
+      minlength="1"
+      maxlength="128"
+      #roomNameValidation="ngModel"
+      placeholder="ルームの名前は必須"
+    />
     @if (roomNameValidation.errors && (roomNameValidation.dirty || roomNameValidation.touched)) {
-      <div>
+      <div class="validation-errors">
         <div [hidden]="!roomNameValidation.errors.required">ルームの名前は必須です。</div>
         <div [hidden]="!roomNameValidation.errors.minlength">ルームの名前は必須です。</div>
-        <div [hidden]="!roomNameValidation.errors.maxlength">ルーム名前の長さは128以内にしてください。</div>
+        <div [hidden]="!roomNameValidation.errors.maxlength">ルーム名は128文字以内にしてください。</div>
       </div>
     }
+  </div>
+  <div class="form-field">
+    <label class="field-label" for="room-password"
+      >パスワード <span style="font-weight: 400; opacity: 0.7">(空にするとなし)</span></label
+    >
+    <input
+      id="room-password"
+      name="password"
+      [ngModel]="password()"
+      (ngModelChange)="password.set($event)"
+      maxlength="12"
+      #passwordValidation="ngModel"
+      placeholder="パスワードなし"
+    />
     @if (passwordValidation.errors && (passwordValidation.dirty || passwordValidation.touched)) {
-      <div>
-        <div [hidden]="!passwordValidation.errors.maxlength">パスワードの長さは12以内にしてください。</div>
+      <div class="validation-errors">
+        <div [hidden]="!passwordValidation.errors.maxlength">パスワードは12文字以内にしてください。</div>
       </div>
     }
     @if (!validateLength()) {
-      <div>ルームの名前とパスワードの合計が長すぎるようです。どちらかを少し短くしてみてください。</div>
+      <div class="validation-errors">ルーム名とパスワードの合計が長すぎます。どちらかを短くしてください。</div>
     }
-    <div>
-      <button
-        [disabled]="!roomNameValidation.valid || !passwordValidation.valid || !validateLength()"
-        (click)="createRoom()"
-      >
-        新しいルームを作成
-      </button>
-    </div>
   </div>
+  <div class="form-actions">
+    <button
+      class="btn-primary"
+      [disabled]="!roomNameValidation.valid || !passwordValidation.valid || !validateLength()"
+      (click)="createRoom()"
+    >
+      <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px">meeting_room</i
+      >新しいルームを作成
+    </button>
+  </div>
+  <p class="note-text">
+    ※作成したルームは参加者が0人になった時点で解散します。ルームの状態を次回に持ち越したい場合は必ず「保存」してください。
+  </p>
 } @else {
-  <span class="text-[12px]"
-    >他の参加者と接続したままではルーム作成を行えません。<br />別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）</span
-  >
+  <p class="connected-note">
+    他の参加者と接続したままではルーム作成を行えません。<br />別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）
+  </p>
 }
-<div>
-  <span class="text-[12px]"
-    >※作成したルームは参加者が0人になった時点で解散します。ルームの状態を次回に持ち越したい場合は必ず「保存」してください。</span
-  >
-</div>

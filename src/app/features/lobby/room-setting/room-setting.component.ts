@@ -10,6 +10,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'room-setting',
   templateUrl: './room-setting.component.html',
+  styleUrls: ['./room-setting.component.css'],
   host: { class: 'block' },
   imports: [FormsModule],
 })
