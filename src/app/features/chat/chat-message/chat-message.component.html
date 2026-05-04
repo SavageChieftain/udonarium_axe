@@ -14,6 +14,8 @@
             <img [src]="SYSTEM_ICON_URL | safe: 'resourceUrl'" />
           } @else if (imageFile().url) {
             <img [src]="imageFile().url | safe: 'resourceUrl'" />
+          } @else if (chatMessage.isDicebot) {
+            <img [src]="DICEBOT_ICON_URL | safe: 'resourceUrl'" />
           }
         </div>
         <div class="body" [ngStyle]="chatMessage.messColor | chatColorStyle">

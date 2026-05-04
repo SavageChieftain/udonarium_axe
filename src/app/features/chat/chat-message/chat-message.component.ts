@@ -23,6 +23,7 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
 })
 export class ChatMessageComponent {
   protected readonly SYSTEM_ICON_URL = 'assets/images/system_chang.png';
+  protected readonly DICEBOT_ICON_URL = 'assets/images/system_chang_roll.png';
 
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
