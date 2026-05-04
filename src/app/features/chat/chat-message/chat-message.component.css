@@ -68,6 +68,9 @@
 
 .message .body {
   flex-grow: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   position: relative;
   color: var(--ui-text);
   --bubble-bg: var(--ui-elevated);
