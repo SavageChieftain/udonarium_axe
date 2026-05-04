@@ -30,7 +30,7 @@
   </div>
   <!-- 送信元/宛先/DiceBot/カラー 行 -->
   <div class="flex items-center gap-1 justify-end flex-nowrap min-w-0">
-    <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
+    <ng-select name="send-from" class="ud-select w-[12em] min-w-0" [(ngModel)]="sendFrom" [clearable]="false">
       @if (!onlyCharacters()) {
         <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
       }
@@ -39,7 +39,7 @@
       }
     </ng-select>
     <span class="text-[var(--ui-text-muted)] text-xs">▶</span>
-    <ng-select name="send-to" class="ud-select w-[10em]" [(ngModel)]="sendTo" [clearable]="false">
+    <ng-select name="send-to" class="ud-select w-[10em] min-w-0" [(ngModel)]="sendTo" [clearable]="false">
       <ng-option [value]="''">全員</ng-option>
       @for (peer of otherPeers; track peer) {
         <ng-option [value]="peer.identifier"
@@ -52,7 +52,7 @@
     </ng-select>
     <ng-select
       name="game-type"
-      class="ud-select w-[15em]"
+      class="ud-select w-[15em] min-w-0"
       (change)="loadDiceBot($event)"
       [(ngModel)]="gameType"
       [clearable]="false"

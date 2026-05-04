@@ -241,6 +241,7 @@
   vertical-align: middle;
   font-size: 12px;
   min-height: 26px;
+  min-width: 0;
 }
 
 .ng-select.ud-select .ng-select-container {
@@ -265,6 +266,7 @@
   padding-left: 8px;
   padding-top: 0;
   align-items: center;
+  overflow: hidden;
 }
 
 .ng-select.ng-select-single .ng-select-container .ng-value-container .ng-input {
@@ -278,6 +280,10 @@
 
 .ng-select.ud-select .ng-select-container .ng-value-container .ng-value {
   color: var(--ui-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .ng-select.ud-select .ng-select-container .ng-arrow-wrapper {
