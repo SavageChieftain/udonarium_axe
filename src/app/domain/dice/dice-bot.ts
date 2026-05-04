@@ -339,6 +339,11 @@ export class DiceBot extends GameObject {
     }
     result = result.replace(/[＞]/g, (_s) => '→').trim();
 
+    // 3段階以上の多段ロール（クリティカル等）は → ごとに改行して読みやすくする
+    if ((result.match(/ → /g) ?? []).length >= 3) {
+      result = result.replace(/ → /g, '\n→ ');
+    }
+
     const diceBotMessage: ChatMessageContext = {
       identifier: '',
       tabIdentifier: originalMessage.tabIdentifier,
