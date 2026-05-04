@@ -8,14 +8,14 @@
 /* アバター（2行スパン、立ち絵ナビゲーションオーバーレイのコンテナ） */
 .imagebox {
   position: relative;
-  width: 72px;
+  width: 108px;
   align-self: stretch;
 }
 
 .image {
-  width: 72px;
+  width: 108px;
   height: 100%;
-  min-height: 52px;
+  min-height: 72px;
   object-fit: cover;
   object-position: 50% 0%;
   border-radius: var(--ui-radius-sm);

@@ -49,8 +49,8 @@
 
 .message .image {
   padding: 0px;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
   vertical-align: top;
   border-radius: var(--ui-radius-sm);
