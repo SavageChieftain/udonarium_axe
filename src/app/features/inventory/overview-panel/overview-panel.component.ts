@@ -12,36 +12,36 @@ import {
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card'; //
 import { CardStack } from '@axe/domain/card/card-stack'; //
 import { GameCharacter } from '@axe/domain/character/game-character'; //
-import { DataElement } from '@axe/domain/data/data-element';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+  DataElementViewMode,
+} from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TextNote } from '@axe/domain/tabletop/text-note'; //
-import { CheckTableComponent } from '@axe/features/character/check-table/check-table.component';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
 import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
+type OverviewTableColumn = { name: string; label: string; group: string; kind: string };
+type OverviewTableColumnHeaderGroup = { key: string; label: string; span: number };
+
 @Component({
   selector: 'overview-panel',
   templateUrl: './overview-panel.component.html',
   styleUrls: ['./overview-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DraggableDirective,
-    NgTemplateOutlet,
-    NgClass,
-    NgStyle,
-    FormsModule,
-    LinkifyPipe,
-    SafePipe,
-    CheckTableComponent,
-  ],
+  imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkifyPipe, SafePipe],
   host: {
     class: 'block',
     '(click)': 'onClick($event)',
@@ -51,6 +51,7 @@ export class OverviewPanelComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly domSanitizer = inject(DomSanitizer);
+  private readonly imageStorage = inject(ImageStorage);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -88,33 +89,282 @@ export class OverviewPanelComponent {
   get inventoryDataElms(): DataElement[] {
     if (!this.tabletopObject) return [];
     const char = this.tabletopObject instanceof GameCharacter ? this.tabletopObject : null;
-    if (char && char.overViewDataTags.length > 0) {
-      const customIds = new Set(char.overViewDataTags);
-
-      // インベントリタグ要素の祖先にカスタム選択セクションが含まれる場合は除外
-      const hasCustomAncestor = (elm: DataElement): boolean => {
-        let node = elm.parent;
-        while (node) {
-          if (customIds.has(node.identifier)) return true;
-          node = node.parent;
-        }
-        return false;
-      };
-
-      const inventoryElms = this.getInventoryTags(this.tabletopObject)
-        .filter((e): e is DataElement => e != null)
-        .filter((e) => !hasCustomAncestor(e));
-      const inventoryIds = new Set(inventoryElms.map((e) => e.identifier));
-
-      // カスタム選択要素のうちインベントリタグに含まれないものを末尾に追加
-      const customElms = char.overViewDataTags
-        .filter((id) => !inventoryIds.has(id))
-        .map((id) => this.objectStore.get<DataElement>(id))
-        .filter((e): e is DataElement => e != null);
-      return [...inventoryElms, ...customElms];
+    if (char) {
+      const customPopupElements = this.getCustomPopupElements(char);
+      const inventoryElements = this.getInventoryTags(this.tabletopObject).filter((e): e is DataElement => e != null);
+      if (customPopupElements.length < 1) return inventoryElements;
+      return this.mergePopupElementsByInventoryOrder(inventoryElements, customPopupElements);
     }
     return this.getInventoryTags(this.tabletopObject).filter((e) => e != null);
   }
+
+  private mergePopupElementsByInventoryOrder(
+    inventoryElements: readonly DataElement[],
+    customPopupElements: readonly DataElement[]
+  ): DataElement[] {
+    const result: DataElement[] = [];
+
+    const appendUnique = (element: DataElement): void => {
+      if (result.some((shownElement) => shownElement === element || this.isAncestorOf(shownElement, element))) return;
+      for (let index = result.length - 1; index >= 0; index--) {
+        if (this.isAncestorOf(element, result[index])) result.splice(index, 1);
+      }
+      result.push(element);
+    };
+
+    for (const inventoryElement of inventoryElements) {
+      appendUnique(this.findCustomPopupAncestorOrSelf(inventoryElement, customPopupElements) ?? inventoryElement);
+    }
+    for (const customElement of customPopupElements) appendUnique(customElement);
+
+    return result;
+  }
+
+  private findCustomPopupAncestorOrSelf(
+    element: DataElement,
+    customPopupElements: readonly DataElement[]
+  ): DataElement | null {
+    return (
+      customPopupElements.find(
+        (customElement) => customElement === element || this.isAncestorOf(customElement, element)
+      ) ?? null
+    );
+  }
+
+  private getCustomPopupElements(character: GameCharacter): DataElement[] {
+    const detail = character.detailDataElement;
+    if (!detail) return [];
+
+    const elements: DataElement[] = [];
+    const usedIds = new Set<string>();
+    const collect = (dataElement: DataElement): void => {
+      if (dataElement.getAttribute(DataElementAttribute.POPUP) === 'true') {
+        elements.push(dataElement);
+        usedIds.add(dataElement.identifier);
+      }
+      for (const child of dataElement.children) collect(child);
+    };
+    for (const child of detail.children) collect(child);
+
+    for (const id of character.overViewDataTags) {
+      if (usedIds.has(id)) continue;
+      const element = this.objectStore.get<DataElement>(id);
+      if (!element) continue;
+      elements.push(element);
+      usedIds.add(id);
+    }
+
+    const selectedIds = new Set(elements.map((element) => element.identifier));
+    return elements.filter((element) => !this.hasSelectedPopupAncestor(element, selectedIds));
+  }
+
+  private hasSelectedPopupAncestor(element: DataElement, selectedIds: ReadonlySet<string>): boolean {
+    let node = element.parent instanceof DataElement ? element.parent : null;
+    while (node) {
+      if (selectedIds.has(node.identifier)) return true;
+      node = node.parent instanceof DataElement ? node.parent : null;
+    }
+    return false;
+  }
+
+  private isAncestorOf(ancestor: DataElement, element: DataElement): boolean {
+    let node = element.parent instanceof DataElement ? element.parent : null;
+    while (node) {
+      if (node === ancestor) return true;
+      node = node.parent instanceof DataElement ? node.parent : null;
+    }
+    return false;
+  }
+
+  shouldRenderTableView(element: DataElement): boolean {
+    return (
+      element.viewMode === DataElementViewMode.TABLE &&
+      this.canRenderTableRows(element) &&
+      this.getTableRows(element).length > 0 &&
+      this.getTableColumns(element).length > 0
+    );
+  }
+
+  getTableRows(element: DataElement): DataElement[] {
+    return this.getRawTableRows(element).filter((row) => !this.isTableControlRow(row));
+  }
+
+  private getRawTableRows(element: DataElement): DataElement[] {
+    return element.children.filter((child) => child.children.length > 0);
+  }
+
+  getTableColumns(element: DataElement): OverviewTableColumn[] {
+    const columns: OverviewTableColumn[] = [];
+    for (const row of this.getRawTableRows(element)) {
+      for (const child of row.children) {
+        if (child.fieldRole !== DataElementRole.FIELD || columns.some((column) => column.name === child.name)) continue;
+        columns.push(this.createTableColumn(child));
+      }
+    }
+    return columns;
+  }
+
+  private createTableColumn(cell: DataElement): OverviewTableColumn {
+    return {
+      name: cell.name,
+      label: cell.getAttribute(DataElementAttribute.COLUMN_LABEL).trim() || cell.name,
+      group: cell.getAttribute(DataElementAttribute.COLUMN_GROUP).trim(),
+      kind: cell.getAttribute(DataElementAttribute.CELL_KIND).trim(),
+    };
+  }
+
+  hasTableColumnGroups(element: DataElement): boolean {
+    return this.getTableColumns(element).some((column) => column.group.length > 0);
+  }
+
+  getTableColumnHeaderGroups(element: DataElement): OverviewTableColumnHeaderGroup[] {
+    const groups: OverviewTableColumnHeaderGroup[] = [];
+    for (const [index, column] of this.getTableColumns(element).entries()) {
+      const label = column.group || column.label;
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && lastGroup.label === label) {
+        lastGroup.span += 1;
+      } else {
+        groups.push({ key: `${index}:${label}`, label, span: 1 });
+      }
+    }
+    return groups;
+  }
+
+  getTableRowHeaderLabel(element: DataElement): string {
+    return element.getAttribute(DataElementAttribute.ROW_HEADER_LABEL).trim();
+  }
+
+  getTableCell(row: DataElement, columnName: string): DataElement | null {
+    return row.children.find((child) => child.fieldRole === DataElementRole.FIELD && child.name === columnName) ?? null;
+  }
+
+  isGapTableColumn(column: OverviewTableColumn): boolean {
+    return column.kind === 'gap';
+  }
+
+  isGapTableColumnActive(element: DataElement, column: OverviewTableColumn): boolean {
+    const gapCell = this.getGapTableColumnCell(element, column);
+    return gapCell ? this.isTableCheckCellChecked(gapCell) : false;
+  }
+
+  getGapTableColumnTitle(element: DataElement, column: OverviewTableColumn): string {
+    const gapCell = this.getGapTableColumnCell(element, column);
+    return gapCell ? this.getTableCellLabel(gapCell) || column.label : column.label;
+  }
+
+  toggleGapTableColumn(element: DataElement, column: OverviewTableColumn, event?: Event): void {
+    if (!this.isGapTableColumn(column)) return;
+    event?.stopPropagation();
+    const gapCell = this.getGapTableColumnCell(element, column);
+    if (!gapCell) return;
+    this.toggleTableCheckCell(gapCell);
+  }
+
+  setGapTableColumnActive(element: DataElement, column: OverviewTableColumn, event: Event): void {
+    event.stopPropagation();
+    const gapCell = this.getGapTableColumnCell(element, column);
+    if (!gapCell) return;
+    const checked =
+      event.target instanceof HTMLInputElement ? event.target.checked : !this.isTableCheckCellChecked(gapCell);
+    gapCell.value = checked ? 1 : 0;
+  }
+
+  private getGapTableColumnCell(element: DataElement, column: OverviewTableColumn): DataElement | null {
+    if (!this.isGapTableColumn(column)) return null;
+    for (const row of this.getRawTableRows(element)) {
+      const cell = this.getTableCell(row, column.name);
+      if (cell?.getAttribute(DataElementAttribute.CELL_KIND).trim() === 'gap') return cell;
+    }
+    return null;
+  }
+
+  getTableCellDisplayText(cell: DataElement): string {
+    switch (cell.fieldType) {
+      case DataElementFieldType.RESOURCE:
+        return `${cell.currentValue}/${cell.value}`;
+      case DataElementFieldType.CHECK:
+        return this.getTableCellLabel(cell);
+      default:
+        return String(cell.value ?? '')
+          .replace(/\s+/g, ' ')
+          .trim();
+    }
+  }
+
+  getTableSelectOptions(cell: DataElement): string[] {
+    return cell
+      .getAttribute(DataElementAttribute.CHOICES)
+      .split(/\r?\n|,/)
+      .map((choice) => choice.trim())
+      .filter((choice) => choice.length > 0);
+  }
+
+  isTableSelectValueListed(cell: DataElement): boolean {
+    return this.getTableSelectOptions(cell).includes(String(cell.value ?? ''));
+  }
+
+  setTableSelectCellValue(cell: DataElement, value: string): void {
+    cell.value = value;
+  }
+
+  setTableSelectCellValueFromEvent(cell: DataElement, event: Event): void {
+    cell.value = event.target instanceof HTMLSelectElement ? event.target.value : '';
+  }
+
+  getTableCellImageUrl(cell: DataElement): string {
+    this.objectChange.fileVersion();
+    const value = String(cell.value ?? '').trim();
+    return this.imageStorage.get(value)?.url ?? value;
+  }
+
+  getTableCellLabel(cell: DataElement): string {
+    return cell.getAttribute(DataElementAttribute.CELL_TEXT).trim();
+  }
+
+  getPopupCurrentValueColor(element: DataElement): string | null {
+    const color = element.nowValueColor.trim().toLowerCase();
+    return color === '#444' ? null : color;
+  }
+
+  isTableCheckCellChecked(cell: DataElement): boolean {
+    const value = String(cell.value).trim().toLowerCase();
+    return value === '1' || value === 'true' || value === 'x' || value === 'checked';
+  }
+
+  toggleTableCheckCell(cell: DataElement, event?: Event): void {
+    if (event?.target instanceof HTMLInputElement) {
+      cell.value = event.target.checked ? 1 : 0;
+      return;
+    }
+    cell.value = this.isTableCheckCellChecked(cell) ? 0 : 1;
+  }
+
+  private canRenderTableRows(element: DataElement): boolean {
+    if (element.children.length < 1) return false;
+    for (const row of element.children) {
+      if (row.fieldRole === DataElementRole.FIELD || row.children.length < 1) return false;
+      for (const child of row.children) {
+        if (child.fieldRole !== DataElementRole.FIELD) return false;
+      }
+    }
+    return true;
+  }
+
+  private isTableControlRow(row: DataElement): boolean {
+    const hasGapCell = row.children.some(
+      (child) => child.getAttribute(DataElementAttribute.CELL_KIND).trim() === 'gap'
+    );
+    if (!hasGapCell) return false;
+
+    return row.children.every((child) => {
+      if (child.getAttribute(DataElementAttribute.CELL_KIND).trim() === 'gap') return true;
+      return (
+        String(child.value ?? '').trim() === '' && child.getAttribute(DataElementAttribute.CELL_TEXT).trim() === ''
+      );
+    });
+  }
+
   get dataElms(): DataElement[] {
     return this.tabletopObject && this.tabletopObject.detailDataElement
       ? this.tabletopObject.detailDataElement.children.filter((e) => e != null)

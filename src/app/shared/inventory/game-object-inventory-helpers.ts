@@ -25,8 +25,8 @@ export function sortObjectsByTags(
   if (primaryTag.length < 1) return objects;
 
   objects.sort((a, b) => {
-    const aElm = a.rootDataElement?.getFirstElementByName(primaryTag);
-    const bElm = b.rootDataElement?.getFirstElementByName(primaryTag);
+    const aElm = a.rootDataElement ? DataElement.findElementByReference(a.rootDataElement, primaryTag) : null;
+    const bElm = b.rootDataElement ? DataElement.findElementByReference(b.rootDataElement, primaryTag) : null;
     if (!aElm && !bElm) return 0;
     if (!bElm) return -1;
     if (!aElm) return 1;
@@ -36,8 +36,8 @@ export function sortObjectsByTags(
     if (aValue < bValue) return primaryOrder;
     if (aValue > bValue) return primaryOrder * -1;
 
-    const aElm2nd = a.rootDataElement?.getFirstElementByName(secondaryTag);
-    const bElm2nd = b.rootDataElement?.getFirstElementByName(secondaryTag);
+    const aElm2nd = a.rootDataElement ? DataElement.findElementByReference(a.rootDataElement, secondaryTag) : null;
+    const bElm2nd = b.rootDataElement ? DataElement.findElementByReference(b.rootDataElement, secondaryTag) : null;
     if (!aElm2nd && !bElm2nd) return 0;
     if (!bElm2nd) return -1;
     if (!aElm2nd) return 1;

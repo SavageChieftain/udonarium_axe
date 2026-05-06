@@ -20,9 +20,108 @@ export const DataElementType = {
   CHECK_TABLE: 'checktable',
   /** マークダウン（旧実装・移行用） */
   MARKDOWN: 'markdown',
+  /** 単一チェック */
+  CHECK: 'check',
+  /** 画像 */
+  IMAGE: 'image',
 } as const;
 
 export type DataElementTypeValue = (typeof DataElementType)[keyof typeof DataElementType];
+
+export const DataElementRole = {
+  SECTION: 'section',
+  GROUP: 'group',
+  FIELD: 'field',
+} as const;
+
+export type DataElementRoleValue = (typeof DataElementRole)[keyof typeof DataElementRole];
+
+export const DataElementFieldType = {
+  TEXT: 'text',
+  NUMBER: 'number',
+  RESOURCE: 'resource',
+  LONG_TEXT: 'longText',
+  MARKDOWN: 'markdown',
+  CHECK: 'check',
+  SELECT: 'select',
+  CHECK_TABLE: 'checkTable',
+  IMAGE: 'image',
+  CALC: 'calc',
+} as const;
+
+export type DataElementFieldTypeValue = (typeof DataElementFieldType)[keyof typeof DataElementFieldType];
+
+export const DataElementViewMode = {
+  NORMAL: 'normal',
+  TABLE: 'table',
+} as const;
+
+export type DataElementViewModeValue = (typeof DataElementViewMode)[keyof typeof DataElementViewMode];
+
+export const DataElementAttribute = {
+  ROLE: 'role',
+  FIELD_TYPE: 'fieldType',
+  VIEW_MODE: 'viewMode',
+  CHOICES: 'choices',
+  UNIT: 'unit',
+  MIN: 'min',
+  MAX: 'max',
+  FORMULA: 'formula',
+  CELL_TEXT: 'cellText',
+  COLUMN_LABEL: 'columnLabel',
+  COLUMN_GROUP: 'columnGroup',
+  ROW_HEADER_LABEL: 'rowHeaderLabel',
+  CELL_KIND: 'cellKind',
+  POPUP: 'cs-popup',
+} as const;
+
+const DATA_ELEMENT_ROLE_VALUES = new Set<string>(Object.values(DataElementRole));
+const DATA_ELEMENT_FIELD_TYPE_VALUES = new Set<string>(Object.values(DataElementFieldType));
+const DATA_ELEMENT_VIEW_MODE_VALUES = new Set<string>(Object.values(DataElementViewMode));
+
+function isDataElementRole(value: string): value is DataElementRoleValue {
+  return DATA_ELEMENT_ROLE_VALUES.has(value);
+}
+
+function isDataElementFieldType(value: string): value is DataElementFieldTypeValue {
+  return DATA_ELEMENT_FIELD_TYPE_VALUES.has(value);
+}
+
+function isDataElementViewMode(value: string): value is DataElementViewModeValue {
+  return DATA_ELEMENT_VIEW_MODE_VALUES.has(value);
+}
+
+function escapeReferencePathPart(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/\//g, '\\/');
+}
+
+function parseReferencePath(reference: string): string[] {
+  const parts: string[] = [];
+  let current = '';
+  let escaped = false;
+
+  for (const char of reference.trim()) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (char === '/') {
+      parts.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  if (escaped) current += '\\';
+  parts.push(current.trim());
+
+  return parts.filter((part) => part.length > 0);
+}
 
 @SyncObject('data')
 export class DataElement extends ObjectNode {
@@ -40,6 +139,75 @@ export class DataElement extends ObjectNode {
   }
   get isNote(): boolean {
     return this.type != null && this.type === DataElementType.NOTE;
+  }
+
+  get fieldRole(): DataElementRoleValue {
+    const role = this.getAttribute(DataElementAttribute.ROLE);
+    if (isDataElementRole(role)) return role;
+    return this.inferFieldRole();
+  }
+
+  get fieldType(): DataElementFieldTypeValue {
+    const fieldType = this.getAttribute(DataElementAttribute.FIELD_TYPE);
+    if (isDataElementFieldType(fieldType)) return fieldType;
+    return DataElement.fieldTypeFromDataType(this.type);
+  }
+
+  get viewMode(): DataElementViewModeValue {
+    const viewMode = this.getAttribute(DataElementAttribute.VIEW_MODE);
+    if (isDataElementViewMode(viewMode)) return viewMode;
+    return DataElementViewMode.NORMAL;
+  }
+
+  setFieldRole(role: DataElementRoleValue): void {
+    this.setAttribute(DataElementAttribute.ROLE, role);
+  }
+
+  setFieldType(fieldType: DataElementFieldTypeValue): void {
+    this.setAttribute(DataElementAttribute.FIELD_TYPE, fieldType);
+  }
+
+  setViewMode(viewMode: DataElementViewModeValue): void {
+    if (viewMode === DataElementViewMode.NORMAL) this.removeAttribute(DataElementAttribute.VIEW_MODE);
+    else this.setAttribute(DataElementAttribute.VIEW_MODE, viewMode);
+  }
+
+  static fieldTypeFromDataType(type: string): DataElementFieldTypeValue {
+    switch (type) {
+      case DataElementType.NUMBER_RESOURCE:
+        return DataElementFieldType.RESOURCE;
+      case DataElementType.NOTE:
+        return DataElementFieldType.LONG_TEXT;
+      case DataElementType.CHECK_TABLE:
+        return DataElementFieldType.CHECK_TABLE;
+      case DataElementType.MARKDOWN:
+        return DataElementFieldType.MARKDOWN;
+      case DataElementType.CHECK:
+        return DataElementFieldType.CHECK;
+      case DataElementType.IMAGE:
+        return DataElementFieldType.IMAGE;
+      default:
+        return DataElementFieldType.TEXT;
+    }
+  }
+
+  static dataTypeFromFieldType(fieldType: string): DataElementTypeValue {
+    switch (fieldType) {
+      case DataElementFieldType.RESOURCE:
+        return DataElementType.NUMBER_RESOURCE;
+      case DataElementFieldType.LONG_TEXT:
+        return DataElementType.NOTE;
+      case DataElementFieldType.CHECK_TABLE:
+        return DataElementType.CHECK_TABLE;
+      case DataElementFieldType.MARKDOWN:
+        return DataElementType.MARKDOWN;
+      case DataElementFieldType.CHECK:
+        return DataElementType.CHECK;
+      case DataElementFieldType.IMAGE:
+        return DataElementType.IMAGE;
+      default:
+        return DataElementType.TEXT;
+    }
   }
 
   public static create(
@@ -89,8 +257,164 @@ export class DataElement extends ObjectNode {
     return null;
   }
 
+  static getDetailNameScope(element: DataElement): DataElement {
+    let current: DataElement | null = element;
+    let detailElement: DataElement | null = null;
+
+    while (current) {
+      if (current.name === 'detail') detailElement = current;
+      current = current.parent instanceof DataElement ? current.parent : null;
+    }
+
+    return detailElement ?? element;
+  }
+
+  static hasNameInScope(
+    scopeElement: DataElement,
+    name: string,
+    exceptIdentifier: string = '',
+    reservedNames: ReadonlySet<string> = new Set()
+  ): boolean {
+    const normalizedName = name.trim();
+    if (!normalizedName) return false;
+    if (reservedNames.has(normalizedName)) return true;
+
+    const scan = (element: DataElement): boolean => {
+      for (const child of element.children) {
+        if (child.identifier !== exceptIdentifier && child.name.trim() === normalizedName) return true;
+        if (scan(child)) return true;
+      }
+      return false;
+    };
+
+    return scan(scopeElement);
+  }
+
+  static createUniqueName(
+    scopeElement: DataElement,
+    baseName: string,
+    exceptIdentifier: string = '',
+    reservedNames: ReadonlySet<string> = new Set()
+  ): string {
+    const normalizedBaseName = baseName.trim() || baseName;
+    if (!DataElement.hasNameInScope(scopeElement, normalizedBaseName, exceptIdentifier, reservedNames)) {
+      return normalizedBaseName;
+    }
+
+    let suffix = 2;
+    while (
+      DataElement.hasNameInScope(scopeElement, `${normalizedBaseName} ${suffix}`, exceptIdentifier, reservedNames)
+    ) {
+      suffix++;
+    }
+    return `${normalizedBaseName} ${suffix}`;
+  }
+
+  static hasSiblingName(
+    parentElement: DataElement,
+    name: string,
+    exceptIdentifier: string = '',
+    reservedNames: ReadonlySet<string> = new Set()
+  ): boolean {
+    const normalizedName = name.trim();
+    if (!normalizedName) return false;
+    if (reservedNames.has(normalizedName)) return true;
+    return parentElement.children.some(
+      (child) => child.identifier !== exceptIdentifier && child.name.trim() === normalizedName
+    );
+  }
+
+  static createUniqueSiblingName(
+    parentElement: DataElement,
+    baseName: string,
+    exceptIdentifier: string = '',
+    reservedNames: ReadonlySet<string> = new Set()
+  ): string {
+    const normalizedBaseName = baseName.trim() || baseName;
+    if (!DataElement.hasSiblingName(parentElement, normalizedBaseName, exceptIdentifier, reservedNames)) {
+      return normalizedBaseName;
+    }
+
+    let suffix = 2;
+    while (
+      DataElement.hasSiblingName(parentElement, `${normalizedBaseName} ${suffix}`, exceptIdentifier, reservedNames)
+    ) {
+      suffix++;
+    }
+    return `${normalizedBaseName} ${suffix}`;
+  }
+
+  static getReferencePathParts(
+    element: DataElement,
+    scopeElement: DataElement = DataElement.getDetailNameScope(element)
+  ): string[] {
+    if (element === scopeElement) return element.name === 'detail' ? [] : [element.name.trim()];
+
+    const parts: string[] = [];
+    let current: DataElement | null = element;
+
+    while (current && current !== scopeElement) {
+      parts.unshift(current.name.trim());
+      current = current.parent instanceof DataElement ? current.parent : null;
+    }
+
+    return current === scopeElement ? parts : [element.name.trim()];
+  }
+
+  static formatReferencePath(
+    element: DataElement,
+    scopeElement: DataElement = DataElement.getDetailNameScope(element)
+  ): string {
+    return DataElement.getReferencePathParts(element, scopeElement).map(escapeReferencePathPart).join('/');
+  }
+
+  static findElementByReference(rootElement: DataElement, reference: string): DataElement | null {
+    const parts = parseReferencePath(reference);
+    if (parts.length < 1) return null;
+    if (parts.length === 1) return DataElement.findUniqueElementByName(rootElement, parts[0]);
+
+    let found: DataElement | null = null;
+    for (const scopeElement of [rootElement, ...rootElement.children]) {
+      const match = DataElement.findElementByPath(scopeElement, parts);
+      if (!match) continue;
+      if (found && found !== match) return null;
+      found = match;
+    }
+    return found;
+  }
+
+  private static findUniqueElementByName(rootElement: DataElement, name: string): DataElement | null {
+    const matches = rootElement.getElementsByName(name.trim());
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  private static findElementByPath(scopeElement: DataElement, parts: string[]): DataElement | null {
+    let current: DataElement = scopeElement;
+    let index = current.name.trim() === parts[0] ? 1 : 0;
+
+    while (index < parts.length) {
+      const matches = current.children.filter((child) => child.name.trim() === parts[index]);
+      if (matches.length !== 1) return null;
+      current = matches[0];
+      index++;
+    }
+
+    return current;
+  }
+
   get myIdentifer() {
     return this.identifier;
+  }
+
+  private inferFieldRole(): DataElementRoleValue {
+    const parent = this.parent;
+    if (parent instanceof DataElement && parent.name === 'detail') return DataElementRole.SECTION;
+    if (this.children.length === 0) return DataElementRole.FIELD;
+    return DataElementRole.GROUP;
+  }
+
+  syncFieldRoleToHierarchy(): void {
+    this.setFieldRole(this.inferFieldRole());
   }
 
   get nowValueColor(): string {

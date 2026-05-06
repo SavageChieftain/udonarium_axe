@@ -1,13 +1,13 @@
 .portrait-button {
-  background-color: var(--ui-elevated);
-  color: var(--ui-text-muted);
-  font-size: 0.82em;
+  width: auto;
   margin: 5px 0;
   padding: 4px 8px;
   box-sizing: border-box;
-  width: auto;
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: 2px;
+  background-color: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  font-size: 0.82em;
   cursor: pointer;
 }
 
@@ -17,11 +17,11 @@
 }
 
 .sub-image {
-  height: 120px;
   display: inline-block;
+  height: 120px;
   max-height: 120px;
-  vertical-align: top;
   text-align: center;
+  vertical-align: top;
 }
 
 .sub-image-box {
@@ -42,196 +42,6 @@
   width: 100%;
 }
 
-.table {
-  display: table;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.table-row {
-  display: table-row;
-  box-sizing: border-box;
-}
-
-.table-cell {
-  display: table-cell;
-  vertical-align: middle;
-  padding: 4px 5px;
-  border-bottom: 1px solid var(--ui-panel-border);
-  box-sizing: border-box;
-  color: var(--ui-text);
-  font-size: 0.78em;
-}
-
-.elm-name {
-  font-size: 0.78em;
-  color: var(--ui-text-muted);
-  white-space: nowrap;
-}
-
-.elm-name-input {
-  width: max-content;
-  min-width: 4em;
-  font-size: 0.78em;
-  color: var(--ui-text);
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--ui-panel-border);
-  outline: none;
-  padding: 1px 2px;
-  transition: border-color 0.15s;
-}
-
-.elm-name-input:focus {
-  border-bottom-color: var(--ui-accent);
-}
-
-.elm-value-cell {
-  position: relative;
-}
-
-/* 行末アクション：ホバー時のみ表示するオーバーレイ */
-.elm-row-actions {
-  position: absolute;
-  top: 4px;
-  right: 2px;
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  background: var(--ui-elevated);
-  border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
-  padding: 1px 3px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.1s;
-  z-index: 2;
-}
-
-:host:hover .elm-row-actions,
-.elm-row-actions:focus-within {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ng-select の行内ミニサイズ上書き */
-.elm-type-select {
-  margin-right: auto;
-  min-width: 5em;
-  font-size: 0.68em !important;
-  min-height: 22px !important;
-}
-
-.elm-type-select .ng-select-container {
-  min-height: 22px !important;
-  height: 22px !important;
-  align-items: center;
-}
-
-.elm-type-select .ng-select-container .ng-arrow-wrapper {
-  align-self: center;
-  padding-bottom: 0;
-}
-
-.elm-act-btn {
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--ui-text-muted);
-  cursor: pointer;
-  border-radius: var(--ui-radius-sm);
-  flex-shrink: 0;
-}
-
-.elm-act-btn:hover {
-  background: var(--ui-hover);
-  color: var(--ui-text);
-}
-
-.elm-act-btn--danger:hover {
-  background: var(--ui-danger-bg);
-  color: var(--ui-danger);
-}
-
-.elm-act-btn .material-icons {
-  font-size: 14px;
-}
-
-/* セクションタイトル */
-.title-view-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 0;
-}
-
-.title-icon {
-  font-size: 14px !important;
-  color: var(--ui-accent);
-  flex-shrink: 0;
-}
-
-.title-text {
-  font-size: 0.82em;
-  font-weight: 600;
-  color: var(--ui-text);
-  letter-spacing: 0.02em;
-}
-
-.title-edit-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-}
-
-.title-edit-row input {
-  font-size: 0.82em;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--ui-panel-border);
-  outline: none;
-  color: var(--ui-text);
-  padding: 1px 2px;
-}
-
-.title-edit-row input:focus {
-  border-bottom-color: var(--ui-accent);
-}
-
-.table-cell_solid {
-  width: 10px;
-  white-space: nowrap;
-}
-
-.table-cell_inner-table {
-  display: table-cell;
-  vertical-align: top;
-  padding: 4px 4px 4px 0;
-  border: none;
-  box-sizing: border-box;
-}
-
-.table-cell_inner-table-title {
-  border-left: 3px solid var(--ui-accent);
-  background: var(--ui-accent-bg);
-  padding: 3px 8px;
-  margin-bottom: 2px;
-  border-radius: 0 var(--ui-radius-sm) var(--ui-radius-sm) 0;
-  font-size: 0.82em;
-}
-
-.table-cell_inner-table-title--editing {
-  border-color: var(--ui-accent);
-  background: color-mix(in srgb, var(--ui-accent-bg) 120%, var(--ui-elevated));
-  padding: 4px 8px;
-}
-
 .hidden-spacer {
   visibility: hidden;
   height: 0;
@@ -244,44 +54,51 @@
 .textarea-url,
 .textarea-markdown {
   padding: 2px;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
   word-break: break-word;
 }
 
 .elm-markdown-view {
-  overflow-x: auto;
   max-width: min(560px, calc(60vw));
+  overflow-x: auto;
 }
 
 input,
 button,
 textarea,
 select {
-  background: transparent;
+  box-sizing: border-box;
   border: none;
-  border-radius: var(--ui-radius-sm);
-  outline: none;
+  border-radius: 2px;
+  background: transparent;
   color: var(--ui-text);
   font-family: inherit;
   font-size: 1em;
+  outline: none;
+}
+
+input,
+textarea,
+select {
   padding: 2px 4px;
-  box-sizing: border-box;
 }
 
 button {
-  color: var(--ui-text-muted);
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
+  margin: 0;
+  padding: 2px 4px;
+  color: var(--ui-text-muted);
+  cursor: pointer;
   transition:
-    color 0.12s,
-    background 0.12s;
+    background var(--ui-transition),
+    color var(--ui-transition);
 }
 
 button:hover {
-  color: var(--ui-text);
   background: var(--ui-hover);
+  color: var(--ui-text);
 }
 
 button .material-icons {

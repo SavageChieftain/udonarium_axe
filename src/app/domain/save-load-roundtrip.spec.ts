@@ -2,8 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { DataElement } from '@axe/domain/data/data-element';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+} from '@axe/domain/data/data-element';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
@@ -123,6 +129,66 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(restored.children).toHaveLength(2);
       expect(restored.getFirstElementByName('name')?.value).toBe('地形A');
       expect(restored.getFirstElementByName('width')?.value).toBe('5');
+    });
+
+    it('カスタムフィールドの role / fieldType / metadata が保存/復元される', () => {
+      const section = DataElement.create('能力', '', {
+        [DataElementAttribute.ROLE]: DataElementRole.SECTION,
+      });
+      const selectField = DataElement.create('種族', '人間', {
+        [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.SELECT,
+        [DataElementAttribute.CHOICES]: '人間,エルフ,ドワーフ',
+      });
+      const numberField = DataElement.create('筋力', 24, {
+        [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+        [DataElementAttribute.UNIT]: '点',
+        [DataElementAttribute.MIN]: '0',
+        [DataElementAttribute.MAX]: '100',
+      });
+      section.appendChild(selectField);
+      section.appendChild(numberField);
+
+      const xml = serializer.toXml(section);
+      section.destroy();
+      store.clearDeleteHistory();
+
+      const restored = serializer.parseXml(xml) as DataElement;
+      const restoredSelect = restored.getFirstElementByName('種族');
+      const restoredNumber = restored.getFirstElementByName('筋力');
+
+      expect(restored.fieldRole).toBe(DataElementRole.SECTION);
+      expect(restoredSelect?.fieldRole).toBe(DataElementRole.FIELD);
+      expect(restoredSelect?.fieldType).toBe(DataElementFieldType.SELECT);
+      expect(restoredSelect?.getAttribute(DataElementAttribute.CHOICES)).toBe('人間,エルフ,ドワーフ');
+      expect(restoredNumber?.fieldType).toBe(DataElementFieldType.NUMBER);
+      expect(restoredNumber?.getAttribute(DataElementAttribute.UNIT)).toBe('点');
+      expect(restoredNumber?.getAttribute(DataElementAttribute.MIN)).toBe('0');
+      expect(restoredNumber?.getAttribute(DataElementAttribute.MAX)).toBe('100');
+    });
+  });
+
+  describe('GameCharacter ラウンドトリップ', () => {
+    it('キャラクター保存時に詳細カードのカラム設定がXMLへ出力される', () => {
+      const character = GameCharacter.create('カラム確認', 1, '');
+      const section = character.detailDataElement!.getFirstElementByName('能力')!;
+      section.setAttribute('cs-colspan', 'full');
+      section.setAttribute(DataElementAttribute.POPUP, 'true');
+
+      const xml = serializer.toXml(character);
+      const sectionXml = serializer.toXml(section);
+
+      expect(xml).toContain('cs-colspan="full"');
+      expect(xml).toContain('cs-popup="true"');
+
+      character.destroy();
+      store.clearDeleteHistory();
+
+      const restoredSection = serializer.parseXml(sectionXml) as DataElement;
+
+      expect(restoredSection.getAttribute('cs-colspan')).toBe('full');
+      expect(restoredSection.getAttribute(DataElementAttribute.POPUP)).toBe('true');
     });
   });
 

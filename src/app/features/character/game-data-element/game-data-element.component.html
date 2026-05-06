@@ -1,173 +1,330 @@
 @if (gameDataElement()) {
   @if (!gameDataElement().children.length) {
-    <div class="table-cell table-cell_solid">
+    @if (isEdit() && !isImage()) {
+      <div class="table-cell elm-structure-cell" aria-label="ドラッグ操作">
+        <button
+          class="elm-act-btn elm-structure-btn elm-structure-btn--drag elm-drag-handle"
+          type="button"
+          draggable="true"
+          (dragstart)="onStructureDragStart($event)"
+          (dragend)="onStructureDragEnd($event)"
+          title="ドラッグして移動"
+        >
+          <i class="material-icons">drag_indicator</i>
+        </button>
+      </div>
+    }
+    <div class="table-cell table-cell_solid elm-name-cell" [class.elm-name-cell--hidden]="isImage()">
       @if (!isImage()) {
         @if (isTagLocked() || !isEdit()) {
           <div class="elm-name">{{ name }}</div>
         } @else {
-          <input class="elm-name-input" size="1" name="data-elm-name" [(ngModel)]="name" placeholder="名前" />
+          <input
+            class="elm-name-input"
+            [class.elm-name-input--duplicate]="isDuplicateName()"
+            [attr.aria-invalid]="isDuplicateName()"
+            [title]="isDuplicateName() ? '同じキャラクターシート内に同名タグがあります' : null"
+            size="1"
+            name="data-elm-name"
+            [(ngModel)]="name"
+            placeholder="名前"
+          />
         }
       }
     </div>
-    <div class="table-cell elm-value-cell">
-      @switch (gameDataElement().type) {
-        @case ('numberResource') {
-          <input
-            [style]="
-              'font-size: 1.0em; min-width: 90px; width: 90%; --min: 0; --max: ' +
-                value +
-                '; --val:' +
-                currentValue +
-                ';' | safe: 'style'
-            "
-            name="data-current-value"
-            name="data-current-value"
-            [(ngModel)]="currentValue"
-            type="range"
-            min="0"
-            max="{{ value }}"
-          />
-          <br />
-          <input
-            class="w-[5em] text-right"
-            size="1"
-            type="number"
-            name="data-current-value"
-            name="data-current-value"
-            [(ngModel)]="currentValue"
-            placeholder="Value"
-          />
-          /
-          <input
-            class="w-[5em]"
-            size="1"
-            type="number"
-            name="data-value"
-            name="data-value"
-            [(ngModel)]="value"
-            placeholder="Value"
-          />
-        }
-        @case ('note') {
-          <span [hidden]="!isUrlText(value)" class="text-[0.8em]">
-            &nbsp;&nbsp;URL編集:<input
-              type="checkbox"
-              [checked]="editCheckedIds.has(gameDataElement().myIdentifer + '_elm')"
-              (change)="changeChk(gameDataElement().myIdentifer + '_elm')"
-            />
-          </span>
-          <textarea
-            class="textarea-url w-full h-[5em] min-w-[50px] resize-none text-[0.8em]"
-            name="data-value"
-            name="data-value"
-            [(ngModel)]="value"
-            placeholder="Note"
-            [hidden]="!isEditUrl(gameDataElement().myIdentifer + '_elm') && isUrlText(gameDataElement().value)"
-            (focus)="textFocus(gameDataElement().myIdentifer + '_elm')"
-          >
-          </textarea>
-          <div
-            [hidden]="isEditUrl(gameDataElement().myIdentifer + '_elm') || !isUrlText(gameDataElement().value)"
-            class="w-full max-w-[200px] min-w-[50px]"
-          >
-            <span
-              class="textarea-url w-full min-w-[50px] text-[0.8em]"
-              [innerHTML]="escapeHtml(value) | linkify"
-            ></span>
-          </div>
-        }
-        @case ('checktable') {
-          <app-check-table [element]="gameDataElement()" [isEdit]="isEdit()" />
-        }
-        @case ('markdown') {
-          @if (isEdit()) {
+    <div class="table-cell elm-value-cell" [class.elm-value-cell--editable]="isEdit() && !isImage()">
+      <div class="elm-value-content">
+        @switch (gameDataElement().fieldType) {
+          @case ('resource') {
+            <div class="resource-editor">
+              @if (isEdit()) {
+                <input
+                  class="resource-number resource-number--current"
+                  size="1"
+                  type="number"
+                  name="data-current-value"
+                  [(ngModel)]="currentValue"
+                  placeholder="Value"
+                />
+                <span class="resource-separator">/</span>
+                <input
+                  class="resource-number"
+                  size="1"
+                  type="number"
+                  name="data-value"
+                  [(ngModel)]="value"
+                  placeholder="Value"
+                />
+              } @else {
+                <div class="resource-values">
+                  <input
+                    class="resource-number resource-number--current"
+                    size="1"
+                    type="number"
+                    name="data-current-value"
+                    [(ngModel)]="currentValue"
+                    placeholder="Value"
+                  />
+                  <span class="resource-separator">/</span>
+                  <input
+                    class="resource-number"
+                    size="1"
+                    type="number"
+                    name="data-value"
+                    [(ngModel)]="value"
+                    placeholder="Value"
+                  />
+                </div>
+              }
+            </div>
+          }
+          @case ('longText') {
+            <span [hidden]="!isUrlText(value)" class="text-[0.8em]">
+              &nbsp;&nbsp;URL編集:<input
+                type="checkbox"
+                [checked]="editCheckedIds.has(gameDataElement().myIdentifer + '_elm')"
+                (change)="changeChk(gameDataElement().myIdentifer + '_elm')"
+              />
+            </span>
             <textarea
-              class="textarea-markdown w-full h-[5em] min-w-[50px] resize-none text-[0.8em]"
+              class="textarea-url w-full h-[5em] min-w-[50px] resize-none text-[0.8em]"
               name="data-value"
               name="data-value"
               [(ngModel)]="value"
               placeholder="Note"
+              [hidden]="!isEditUrl(gameDataElement().myIdentifer + '_elm') && isUrlText(gameDataElement().value)"
+              (focus)="textFocus(gameDataElement().myIdentifer + '_elm')"
             >
             </textarea>
-          } @else {
-            <div class="elm-markdown-view">
-              <div
-                class="textarea-markdown text-[0.8em]"
-                [innerHTML]="legacyEscapeHtmlMarkDown(gameDataElement().value, gameDataElement().myIdentifer)"
-              ></div>
+            <div
+              [hidden]="isEditUrl(gameDataElement().myIdentifer + '_elm') || !isUrlText(gameDataElement().value)"
+              class="w-full max-w-[200px] min-w-[50px]"
+            >
+              <span
+                class="textarea-url w-full min-w-[50px] text-[0.8em]"
+                [innerHTML]="escapeHtml(value) | linkify"
+              ></span>
             </div>
           }
-        }
-        @case ('check') {
-          @if (gameDataElement().value !== 0) {
-            <input type="checkbox" checked (click)="gameDataElement().value = 0" />
+          @case ('check') {
+            @if (gameDataElement().value !== 0) {
+              <input type="checkbox" checked (click)="gameDataElement().value = 0" />
+            }
+            @if (gameDataElement().value === 0) {
+              <input type="checkbox" (click)="gameDataElement().value = 1" />
+            }
           }
-          @if (gameDataElement().value === 0) {
-            <input type="checkbox" (click)="gameDataElement().value = 1" />
-          }
-        }
-        @default {
-          @if (!isImage()) {
+          @case ('number') {
             <div class="hidden-spacer text-[1em] font-[Cambria,Georgia]">
               {{ value }}
             </div>
             <input
               class="w-full min-w-[10px]"
               size="1"
-              name="data-value"
+              type="number"
               name="data-value"
               [(ngModel)]="value"
               placeholder="Value"
             />
           }
-          @if (isImage()) {
-            <div class="table-2">
-              <div class="table-cell-2 sub-image-box">
-                @if (imageFileUrl()) {
-                  <img class="sub-image" [src]="imageFileUrl() | safe: 'resourceUrl'" [alt]="gameDataElement().value" />
+          @case ('select') {
+            @if (getSelectOptions().length > 0) {
+              <select class="w-full min-w-[10px]" name="data-value" [(ngModel)]="value">
+                @for (option of getSelectOptions(); track option) {
+                  <option [value]="option">{{ option }}</option>
                 }
-              </div>
-              <div class="table-cell-2 sub-table">
-                <span>立ち絵番号{{ indexNum() }}: </span
-                ><input
-                  class="w-full min-w-[10px]"
-                  size="1"
-                  name="data-current-value"
-                  name="data-current-value"
-                  [(ngModel)]="currentValue"
-                  placeholder="立ち絵名"
-                />
-                <button class="portrait-button text-[1em]" (click)="openModal('imageIdentifier', true)">
+              </select>
+            } @else {
+              <input
+                class="w-full min-w-[10px]"
+                size="1"
+                name="data-value"
+                [(ngModel)]="value"
+                placeholder="選択肢未設定"
+              />
+            }
+          }
+          @case ('image') {
+            <div class="image-field">
+              @if (imageFileUrl()) {
+                <img class="image-field-preview" [src]="imageFileUrl() | safe: 'resourceUrl'" [alt]="name" />
+              } @else {
+                <div class="image-field-empty">画像未設定</div>
+              }
+              @if (isEdit()) {
+                <button class="portrait-button text-[1em]" type="button" (click)="openModal('imageIdentifier', true)">
                   画像変更
                 </button>
-              </div>
+              }
             </div>
           }
+          @case ('calc') {
+            @if (isEdit()) {
+              <input
+                class="w-full min-w-[10px]"
+                size="1"
+                name="data-formula"
+                [(ngModel)]="formulaText"
+                placeholder="式 (HP + レベル * 2)"
+              />
+            }
+            <div class="calc-result">
+              <span class="calc-result-value">{{ calcResult() }}</span>
+            </div>
+          }
+          @default {
+            @if (!isImage()) {
+              <div class="hidden-spacer text-[1em] font-[Cambria,Georgia]">
+                {{ value }}
+              </div>
+              <input
+                class="w-full min-w-[10px]"
+                size="1"
+                name="data-value"
+                name="data-value"
+                [(ngModel)]="value"
+                placeholder="Value"
+              />
+            }
+            @if (isImage()) {
+              <div class="table-2">
+                <div class="table-cell-2 sub-image-box">
+                  @if (imageFileUrl()) {
+                    <img
+                      class="sub-image"
+                      [src]="imageFileUrl() | safe: 'resourceUrl'"
+                      [alt]="gameDataElement().value"
+                    />
+                  }
+                </div>
+                <div class="table-cell-2 sub-table">
+                  <span>立ち絵番号{{ indexNum() }}: </span
+                  ><input
+                    class="w-full min-w-[10px]"
+                    size="1"
+                    name="data-current-value"
+                    name="data-current-value"
+                    [(ngModel)]="currentValue"
+                    placeholder="立ち絵名"
+                  />
+                  <button class="portrait-button text-[1em]" (click)="openModal('imageIdentifier', true)">
+                    画像変更
+                  </button>
+                </div>
+              </div>
+            }
+          }
         }
-      }
+      </div>
       @if (isEdit() && !isImage()) {
         <div class="elm-row-actions">
           <ng-select
             class="ud-select elm-type-select"
-            [ngModel]="gameDataElement().type"
+            [ngModel]="gameDataElement().fieldType"
             [ngModelOptions]="{ standalone: true }"
             [clearable]="false"
             [searchable]="false"
-            (change)="onSetElementType($event)"
+            (change)="onSetFieldType($event)"
           >
-            <ng-option value="">通常</ng-option>
-            <ng-option value="numberResource">リソース</ng-option>
-            <ng-option value="note">ノート</ng-option>
-            <ng-option value="checktable">チェック/表</ng-option>
-            <ng-option value="check">単一チェック</ng-option>
-            <ng-option value="markdown">チェック/表（旧）</ng-option>
+            @for (item of fieldTypeItems; track item.type) {
+              <ng-option [value]="item.type">{{ item.label }}</ng-option>
+            }
           </ng-select>
-          <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
-            <i class="material-icons">add</i>
+          <button class="elm-act-btn" type="button" (click)="copyReferencePath($event)" title="参照名をコピー">
+            <i class="material-icons">content_copy</i>
           </button>
+          <button
+            class="elm-act-btn"
+            [class.elm-act-btn--active]="isPopupDataElement()"
+            type="button"
+            (click)="togglePopupDataElement($event)"
+            title="ポップアップ表示"
+          >
+            <i class="material-icons">open_in_new</i>
+          </button>
+          @if (shouldShowFieldOptions()) {
+            <button
+              class="elm-act-btn"
+              [class.elm-act-btn--active]="fieldOptionsOpen()"
+              type="button"
+              (click)="toggleFieldOptions()"
+              title="詳細設定"
+            >
+              <i class="material-icons">tune</i>
+            </button>
+          } @else {
+            <button class="elm-act-btn elm-act-btn--placeholder" type="button" aria-hidden="true" tabindex="-1">
+              <i class="material-icons">tune</i>
+            </button>
+          }
+          @if (canAddSiblingFieldElement()) {
+            <button class="elm-act-btn" type="button" (click)="addSiblingElement()" title="下に行を追加">
+              <i class="material-icons">add</i>
+            </button>
+          }
           <button class="elm-act-btn elm-act-btn--danger" type="button" (click)="deleteElement()" title="この行を削除">
             <i class="material-icons">delete_outline</i>
           </button>
+        </div>
+      }
+      @if (fieldOptionsOpen() && shouldShowFieldOptions()) {
+        <div class="elm-field-options">
+          @if (gameDataElement().fieldType === 'select') {
+            <label class="elm-field-option elm-field-option--wide">
+              <span>選択肢</span>
+              <textarea
+                class="elm-option-textarea"
+                name="data-choices"
+                [(ngModel)]="choicesText"
+                placeholder="1行またはカンマ区切り"
+              ></textarea>
+            </label>
+          }
+          @if (gameDataElement().fieldType === 'number' || gameDataElement().fieldType === 'resource') {
+            <label class="elm-field-option">
+              <span>単位</span>
+              <input name="data-unit" [(ngModel)]="unitText" placeholder="例: 点" />
+            </label>
+            <label class="elm-field-option">
+              <span>最小</span>
+              <input type="number" name="data-min" [(ngModel)]="minText" placeholder="任意" />
+            </label>
+            <label class="elm-field-option">
+              <span>最大</span>
+              <input type="number" name="data-max" [(ngModel)]="maxText" placeholder="任意" />
+            </label>
+          }
+          @if (gameDataElement().fieldType === 'calc') {
+            <label class="elm-field-option elm-field-option--wide">
+              <span>計算式</span>
+              <textarea
+                class="elm-option-textarea"
+                name="data-formula"
+                [(ngModel)]="formulaText"
+                placeholder="例: HP + レベル * 2&#10;利用可: +, -, *, /, **, (, )&#10;関数: floor, ceil, round, abs, min, max"
+              ></textarea>
+            </label>
+          }
+          @if (isTableCellField()) {
+            <label class="elm-field-option">
+              <span>列表示</span>
+              <input name="data-column-label" [(ngModel)]="columnLabelText" placeholder="空なら名前" />
+            </label>
+            <label class="elm-field-option">
+              <span>列グループ</span>
+              <input name="data-column-group" [(ngModel)]="columnGroupText" placeholder="上段見出し" />
+            </label>
+            @if (gameDataElement().fieldType === 'check') {
+              <label class="elm-field-option">
+                <span>セル表示</span>
+                <input name="data-cell-text" [(ngModel)]="tableCellText" placeholder="チェック横の表示" />
+              </label>
+            }
+            <label class="elm-field-option elm-field-option--check">
+              <span>ギャップ列</span>
+              <input type="checkbox" name="data-cell-kind-gap" [(ngModel)]="isGapCell" />
+            </label>
+          }
         </div>
       }
     </div>
@@ -178,6 +335,20 @@
         <div class="table-cell_inner-table-title" [class.table-cell_inner-table-title--editing]="isEdit()">
           @if (!isTagLocked() && isEdit()) {
             <div class="title-edit-row">
+              @if (!isImage()) {
+                <div class="elm-title-structure-actions" aria-label="ドラッグ操作">
+                  <button
+                    class="elm-act-btn elm-drag-handle"
+                    type="button"
+                    draggable="true"
+                    (dragstart)="onStructureDragStart($event)"
+                    (dragend)="onStructureDragEnd($event)"
+                    title="ドラッグして移動"
+                  >
+                    <i class="material-icons">drag_indicator</i>
+                  </button>
+                </div>
+              }
               <div class="icon-picker-wrap">
                 <button
                   type="button"
@@ -220,20 +391,61 @@
                 }
               </div>
               <input
-                class="w-full min-w-[10px]"
+                class="w-full min-w-[10px] elm-name-input"
+                [class.elm-name-input--duplicate]="isDuplicateName()"
+                [attr.aria-invalid]="isDuplicateName()"
+                [title]="isDuplicateName() ? '同じキャラクターシート内に同名タグがあります' : null"
                 size="1"
                 name="data-elm-name"
                 [(ngModel)]="name"
                 placeholder="見出し名"
               />
+              @if (canToggleTableViewMode()) {
+                <button
+                  class="elm-act-btn"
+                  [class.elm-act-btn--active]="isTableViewMode()"
+                  type="button"
+                  (click)="toggleTableViewMode()"
+                  [title]="isTableViewMode() ? '通常表示' : 'テーブル表示'"
+                >
+                  <i class="material-icons">table_chart</i>
+                </button>
+              }
+              @if (shouldShowContainerOptions()) {
+                <button
+                  class="elm-act-btn"
+                  [class.elm-act-btn--active]="fieldOptionsOpen()"
+                  type="button"
+                  (click)="toggleFieldOptions()"
+                  title="表設定"
+                >
+                  <i class="material-icons">tune</i>
+                </button>
+              }
+              <button
+                class="elm-act-btn"
+                [class.elm-act-btn--active]="isPopupDataElement()"
+                type="button"
+                (click)="togglePopupDataElement($event)"
+                title="ポップアップ表示"
+              >
+                <i class="material-icons">open_in_new</i>
+              </button>
               @if (isImage()) {
                 <button class="elm-act-btn" type="button" (click)="addImageElement()" title="画像を追加">
                   <i class="material-icons">add</i>
                 </button>
               } @else {
-                <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
-                  <i class="material-icons">add</i>
-                </button>
+                @if (canAddChildGroupElement()) {
+                  <button class="elm-act-btn" type="button" (click)="addGroupElement()" title="下位グループを追加">
+                    <i class="material-icons">create_new_folder</i>
+                  </button>
+                }
+                @if (canAddChildFieldElement()) {
+                  <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
+                    <i class="material-icons">add</i>
+                  </button>
+                }
               }
               <button
                 class="elm-act-btn elm-act-btn--danger"
@@ -244,6 +456,14 @@
                 <i class="material-icons">delete_outline</i>
               </button>
             </div>
+            @if (fieldOptionsOpen() && shouldShowContainerOptions()) {
+              <div class="elm-field-options">
+                <label class="elm-field-option">
+                  <span>行見出し</span>
+                  <input name="data-row-header-label" [(ngModel)]="rowHeaderLabelText" placeholder="例: 技能" />
+                </label>
+              </div>
+            }
           } @else {
             <div class="title-view-row">
               @if (icon) {
@@ -254,7 +474,124 @@
           }
         </div>
       }
-      @if (gameDataElement().children.length) {
+      @if (shouldRenderTableView()) {
+        <div class="elm-view-table-wrap" tabindex="0" (wheel)="onTableWheel($event)">
+          <table class="elm-view-table">
+            <thead>
+              <tr>
+                <th class="elm-view-table-row-heading"></th>
+                @if (hasTableColumnGroups()) {
+                  @for (group of tableColumnHeaderGroups(); track group.key) {
+                    <th class="elm-view-table-column-group" [attr.colspan]="group.span">{{ group.label }}</th>
+                  }
+                } @else {
+                  @for (column of tableColumns(); track column.name) {
+                    <th
+                      [class.elm-view-table-column--gap]="isGapTableColumn(column)"
+                      [class.elm-view-table-column--gap-active]="isGapTableColumnActive(column)"
+                      (click)="toggleGapTableColumn(column, $event)"
+                    >
+                      @if (isGapTableColumn(column)) {
+                        <label
+                          class="elm-view-table-gap-toggle"
+                          [title]="getGapTableColumnTitle(column)"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <input
+                            type="checkbox"
+                            [checked]="isGapTableColumnActive(column)"
+                            (change)="setGapTableColumnActive(column, $event)"
+                          />
+                        </label>
+                      } @else {
+                        {{ column.label }}
+                      }
+                    </th>
+                  }
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (rowElement of tableBodyRows(); track rowElement.identifier; let isFirstRow = $first) {
+                <tr>
+                  @if (tableRowHeaderLabel()) {
+                    @if (isFirstRow) {
+                      <th
+                        class="elm-view-table-row-heading elm-view-table-row-heading--group"
+                        [attr.rowspan]="tableBodyRows().length"
+                      >
+                        {{ tableRowHeaderLabel() }}
+                      </th>
+                    }
+                  } @else {
+                    <th class="elm-view-table-row-heading">{{ rowElement.name }}</th>
+                  }
+                  @for (column of tableColumns(); track column.name) {
+                    <td
+                      [class.elm-view-table-column--gap]="isGapTableColumn(column)"
+                      [class.elm-view-table-column--gap-active]="isGapTableColumnActive(column)"
+                      (click)="toggleGapTableColumn(column, $event)"
+                    >
+                      @if (getTableCell(rowElement, column.name); as cell) {
+                        @switch (cell.fieldType) {
+                          @case ('check') {
+                            <label class="elm-view-table-check-cell">
+                              <input
+                                class="elm-view-table-check"
+                                type="checkbox"
+                                [checked]="isTableCheckCellChecked(cell)"
+                                (change)="toggleTableCheckCell(cell, $event)"
+                              />
+                              @if (getTableCellLabel(cell)) {
+                                <span>{{ getTableCellLabel(cell) }}</span>
+                              }
+                            </label>
+                          }
+                          @case ('resource') {
+                            <span class="elm-view-table-resource">{{ getTableCellDisplayText(cell) }}</span>
+                          }
+                          @case ('calc') {
+                            <span class="elm-view-table-calc">{{ getTableCellDisplayText(cell) }}</span>
+                          }
+                          @case ('select') {
+                            <select
+                              class="elm-view-table-select"
+                              [value]="cell.value"
+                              (change)="setTableSelectCellValueFromEvent(cell, $event)"
+                            >
+                              @if (!isTableSelectValueListed(cell)) {
+                                <option [value]="cell.value">{{ cell.value }}</option>
+                              }
+                              @for (option of getTableSelectOptions(cell); track option) {
+                                <option [value]="option">{{ option }}</option>
+                              }
+                            </select>
+                          }
+                          @case ('image') {
+                            @if (getTableCellImageUrl(cell); as imageUrl) {
+                              <img
+                                class="elm-view-table-image"
+                                [src]="imageUrl | safe: 'resourceUrl'"
+                                [alt]="cell.name"
+                                [title]="cell.name"
+                              />
+                            } @else {
+                              <span class="elm-view-table-muted">{{ getTableCellDisplayText(cell) }}</span>
+                            }
+                          }
+                          @default {
+                            <span>{{ getTableCellDisplayText(cell) }}</span>
+                          }
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else if (gameDataElement().children.length) {
         <div class="table">
           @for (childElement of gameDataElement().children; track childElement.identifier; let i = $index) {
             <div
@@ -265,6 +602,8 @@
               [isTagLocked]="isTagLocked()"
               [isImage]="isImage()"
               [indexNum]="i"
+              [depth]="depth() + 1"
+              [style.--gde-depth]="depth() + 1"
             ></div>
           }
         </div>

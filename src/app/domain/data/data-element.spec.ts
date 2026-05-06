@@ -1,6 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+  DataElementType,
+  DataElementViewMode,
+} from '@axe/domain/data/data-element';
 
 describe('DataElement', () => {
   let store: ObjectStore;
@@ -277,6 +284,196 @@ describe('DataElement', () => {
       const result = element.getFirstElementByName('anything');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('custom field metadata', () => {
+    it('should read explicit field role and field type attributes', () => {
+      const element = DataElement.create('section', '', {
+        fieldType: DataElementFieldType.RESOURCE,
+        role: DataElementRole.SECTION,
+      });
+
+      expect(element.fieldRole).toBe(DataElementRole.SECTION);
+      expect(element.fieldType).toBe(DataElementFieldType.RESOURCE);
+    });
+
+    it('should infer field role from detail hierarchy', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('リソース', '');
+      const group = DataElement.create('基本', '');
+      const field = DataElement.create('HP', 10, { type: DataElementType.NUMBER_RESOURCE });
+
+      detail.appendChild(section);
+      section.appendChild(group);
+      group.appendChild(field);
+
+      expect(section.fieldRole).toBe(DataElementRole.SECTION);
+      expect(group.fieldRole).toBe(DataElementRole.GROUP);
+      expect(field.fieldRole).toBe(DataElementRole.FIELD);
+    });
+
+    it('should infer an empty detail child as a section', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('空セクション', '');
+
+      detail.appendChild(section);
+
+      expect(section.fieldRole).toBe(DataElementRole.SECTION);
+    });
+
+    it('should map legacy DataElementType to field type', () => {
+      expect(DataElement.create('HP', 10, { type: DataElementType.NUMBER_RESOURCE }).fieldType).toBe(
+        DataElementFieldType.RESOURCE
+      );
+      expect(DataElement.create('メモ', '', { type: DataElementType.NOTE }).fieldType).toBe(
+        DataElementFieldType.LONG_TEXT
+      );
+      expect(DataElement.create('表', '', { type: DataElementType.CHECK_TABLE }).fieldType).toBe(
+        DataElementFieldType.CHECK_TABLE
+      );
+      expect(DataElement.create('旧表', '', { type: DataElementType.MARKDOWN }).fieldType).toBe(
+        DataElementFieldType.MARKDOWN
+      );
+      expect(DataElement.create('確認', 1, { type: DataElementType.CHECK }).fieldType).toBe(DataElementFieldType.CHECK);
+      expect(DataElement.create('名前', '').fieldType).toBe(DataElementFieldType.TEXT);
+    });
+
+    it('should map custom field type back to legacy DataElementType', () => {
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.RESOURCE)).toBe(DataElementType.NUMBER_RESOURCE);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.LONG_TEXT)).toBe(DataElementType.NOTE);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.CHECK_TABLE)).toBe(DataElementType.CHECK_TABLE);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.MARKDOWN)).toBe(DataElementType.MARKDOWN);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.CHECK)).toBe(DataElementType.CHECK);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.IMAGE)).toBe(DataElementType.IMAGE);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.NUMBER)).toBe(DataElementType.TEXT);
+      expect(DataElement.dataTypeFromFieldType(DataElementFieldType.SELECT)).toBe(DataElementType.TEXT);
+    });
+
+    it('should write role and field type through helper methods', () => {
+      const element = DataElement.create('field', '');
+
+      element.setFieldRole(DataElementRole.FIELD);
+      element.setFieldType(DataElementFieldType.SELECT);
+
+      expect(element.getAttribute('role')).toBe(DataElementRole.FIELD);
+      expect(element.getAttribute('fieldType')).toBe(DataElementFieldType.SELECT);
+      expect(element.fieldRole).toBe(DataElementRole.FIELD);
+      expect(element.fieldType).toBe(DataElementFieldType.SELECT);
+    });
+
+    it('should read and write container view mode', () => {
+      const element = DataElement.create('group', '');
+
+      expect(element.viewMode).toBe(DataElementViewMode.NORMAL);
+
+      element.setViewMode(DataElementViewMode.TABLE);
+
+      expect(element.viewMode).toBe(DataElementViewMode.TABLE);
+      expect(element.getAttribute(DataElementAttribute.VIEW_MODE)).toBe(DataElementViewMode.TABLE);
+
+      element.setViewMode(DataElementViewMode.NORMAL);
+
+      expect(element.viewMode).toBe(DataElementViewMode.NORMAL);
+      expect(element.getAttribute(DataElementAttribute.VIEW_MODE)).toBe('');
+    });
+
+    it('should sync explicit role to the current hierarchy', () => {
+      const detail = DataElement.create('detail', '');
+      const group = DataElement.create('group', '', { role: DataElementRole.SECTION });
+      const field = DataElement.create('field', 'value');
+
+      detail.appendChild(group);
+      group.appendChild(field);
+
+      field.setFieldRole(DataElementRole.SECTION);
+      field.syncFieldRoleToHierarchy();
+
+      expect(group.fieldRole).toBe(DataElementRole.SECTION);
+      expect(field.fieldRole).toBe(DataElementRole.FIELD);
+    });
+
+    it('should detect names used in a detail scope', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('リソース', '');
+      const group = DataElement.create('基本', '');
+      const field = DataElement.create('HP', 10);
+      detail.appendChild(section);
+      section.appendChild(group);
+      group.appendChild(field);
+
+      expect(DataElement.hasNameInScope(detail, 'HP')).toBe(true);
+      expect(DataElement.hasNameInScope(detail, 'HP', field.identifier)).toBe(false);
+      expect(DataElement.createUniqueName(detail, 'HP')).toBe('HP 2');
+      expect(DataElement.getDetailNameScope(field)).toBe(detail);
+    });
+
+    it('should detect duplicate names only among direct siblings', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('戦闘特技', '');
+      const groupA = DataElement.create('最終能力', '');
+      const groupB = DataElement.create('Lv1', '');
+      const nameA = DataElement.create('名称', 'A');
+      const nameB = DataElement.create('名称', 'B');
+      detail.appendChild(section);
+      section.appendChild(groupA);
+      section.appendChild(groupB);
+      groupA.appendChild(nameA);
+      groupB.appendChild(nameB);
+
+      expect(DataElement.hasSiblingName(groupA, '名称')).toBe(true);
+      expect(DataElement.hasSiblingName(groupA, '名称', nameA.identifier)).toBe(false);
+      expect(DataElement.createUniqueSiblingName(groupA, '名称')).toBe('名称 2');
+      expect(DataElement.createUniqueSiblingName(groupB, 'コスト')).toBe('コスト');
+    });
+
+    it('should format and resolve reference paths', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('戦闘特技', '');
+      const group = DataElement.create('スキル一覧', '');
+      const skill = DataElement.create('Lv1', '');
+      const field = DataElement.create('コスト', 'なし');
+      detail.appendChild(section);
+      section.appendChild(group);
+      group.appendChild(skill);
+      skill.appendChild(field);
+
+      const reference = DataElement.formatReferencePath(field, detail);
+
+      expect(reference).toBe('戦闘特技/スキル一覧/Lv1/コスト');
+      expect(DataElement.findElementByReference(detail, reference)).toBe(field);
+      expect(DataElement.findElementByReference(detail, 'コスト')).toBe(field);
+    });
+
+    it('should require path references when a simple name is ambiguous', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('戦闘特技', '');
+      const skillA = DataElement.create('最終能力', '');
+      const skillB = DataElement.create('Lv1', '');
+      const nameA = DataElement.create('名称', 'A');
+      const nameB = DataElement.create('名称', 'B');
+      detail.appendChild(section);
+      section.appendChild(skillA);
+      section.appendChild(skillB);
+      skillA.appendChild(nameA);
+      skillB.appendChild(nameB);
+
+      expect(DataElement.findElementByReference(detail, '名称')).toBeNull();
+      expect(DataElement.findElementByReference(detail, '戦闘特技/最終能力/名称')).toBe(nameA);
+      expect(DataElement.findElementByReference(detail, '戦闘特技/Lv1/名称')).toBe(nameB);
+    });
+
+    it('should escape slashes in reference path parts', () => {
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('技能/戦闘', '');
+      const field = DataElement.create('コスト', 'なし');
+      detail.appendChild(section);
+      section.appendChild(field);
+
+      const reference = DataElement.formatReferencePath(field, detail);
+
+      expect(reference).toBe('技能\\/戦闘/コスト');
+      expect(DataElement.findElementByReference(detail, reference)).toBe(field);
     });
   });
 

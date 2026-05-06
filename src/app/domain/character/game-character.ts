@@ -8,11 +8,20 @@ import { CharacterTemplateFactory } from '@axe/domain/character/character-templa
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { BuffPalette, ChatPalette } from '@axe/domain/chat/chat-palette';
 import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { convertLegacyCheckTableElements } from '@axe/domain/data/check-table-converter';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementRole,
+  type DataElementRoleValue,
+  DataElementType,
+} from '@axe/domain/data/data-element';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('character')
 export class GameCharacter extends TabletopObject {
+  private static readonly MAX_DETAIL_GROUP_DEPTH = 2;
+
   constructor(identifier: string = generateUuid()) {
     super(identifier);
     this.isAltitudeIndicate = true;
@@ -143,6 +152,13 @@ export class GameCharacter extends TabletopObject {
     return gameCharacter;
   }
 
+  override parseInnerXml(element: Element): void {
+    super.parseInnerXml(element);
+    this.normalizeDetailDataElementHierarchy();
+    this.convertLegacyCheckTableData();
+    this.migrateOverviewDataTagsToElementAttributes();
+  }
+
   addExtendData() {
     this.addBuffDataElement();
 
@@ -151,13 +167,19 @@ export class GameCharacter extends TabletopObject {
 
     const portraitPosEl = detail.getElementsByName('立ち絵位置');
     if (portraitPosEl.length == 0) {
-      const testElement: DataElement = DataElement.create('立ち絵位置', '', {}, `立ち絵位置${this.identifier}`);
+      const testElement: DataElement = this.createDetailSectionElement('立ち絵位置', `立ち絵位置${this.identifier}`);
+      const groupElement: DataElement = this.createDetailGroupElement('基本', `立ち絵位置基本${this.identifier}`);
       detail.appendChild(testElement);
-      testElement.appendChild(
+      testElement.appendChild(groupElement);
+      groupElement.appendChild(
         DataElement.create(
           'POS',
           11,
-          { type: DataElementType.NUMBER_RESOURCE, currentValue: '0' },
+          {
+            [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+            type: DataElementType.NUMBER_RESOURCE,
+            currentValue: '0',
+          },
           `POS_${this.identifier}`
         )
       );
@@ -165,7 +187,8 @@ export class GameCharacter extends TabletopObject {
 
     const iconNum = detail.getElementsByName('コマ画像');
     if (iconNum.length == 0) {
-      const elementKoma: DataElement = DataElement.create('コマ画像', '', {}, `コマ画像${this.identifier}`);
+      const elementKoma: DataElement = this.createDetailSectionElement('コマ画像', `コマ画像${this.identifier}`);
+      const groupElement: DataElement = this.createDetailGroupElement('基本', `コマ画像基本${this.identifier}`);
       detail.appendChild(elementKoma);
 
       //コマ画像作成時は立ち絵の次に差し込み
@@ -180,11 +203,16 @@ export class GameCharacter extends TabletopObject {
           parentElement.insertBefore(elementKoma, nextElement);
         }
       }
-      elementKoma.appendChild(
+      elementKoma.appendChild(groupElement);
+      groupElement.appendChild(
         DataElement.create(
           'ICON',
           (this.imageDataElement?.children.length ?? 1) - 1,
-          { type: DataElementType.NUMBER_RESOURCE, currentValue: 0 },
+          {
+            [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+            type: DataElementType.NUMBER_RESOURCE,
+            currentValue: 0,
+          },
           `ICON_${this.identifier}`
         )
       );
@@ -206,6 +234,120 @@ export class GameCharacter extends TabletopObject {
       controller.initialize();
       this.appendChild(controller);
     }
+    this.normalizeDetailDataElementHierarchy();
+    this.convertLegacyCheckTableData();
+    this.migrateOverviewDataTagsToElementAttributes();
+  }
+
+  private convertLegacyCheckTableData(): void {
+    const detail = this.detailDataElement;
+    if (!detail) return;
+    convertLegacyCheckTableElements(detail);
+  }
+
+  private migrateOverviewDataTagsToElementAttributes(): void {
+    const detail = this.detailDataElement;
+    if (!detail || this.overViewDataTags.length < 1) return;
+
+    const targetIds = new Set(this.overViewDataTags);
+    const scan = (element: DataElement): void => {
+      if (targetIds.has(element.identifier)) element.setAttribute(DataElementAttribute.POPUP, 'true');
+      for (const child of element.children) scan(child);
+    };
+    scan(detail);
+    this.overViewDataTags = [];
+  }
+
+  normalizeDetailDataElementHierarchy(): void {
+    const detail = this.detailDataElement;
+    if (!detail) return;
+
+    for (const section of [...detail.children]) {
+      this.ensureFieldRole(section, DataElementRole.SECTION);
+      this.normalizeSectionElement(section);
+    }
+    detail.update();
+  }
+
+  private normalizeSectionElement(section: DataElement): void {
+    let generatedGroupCount = 0;
+    let currentGeneratedGroup: DataElement | null = null;
+
+    for (const child of [...section.children]) {
+      if (this.shouldWrapSectionChildAsField(child)) {
+        if (!currentGeneratedGroup) {
+          currentGeneratedGroup = this.createDetailGroupElement(
+            generatedGroupCount === 0 ? '基本' : `基本 ${generatedGroupCount + 1}`
+          );
+          section.insertBefore(currentGeneratedGroup, child);
+          generatedGroupCount++;
+        }
+        this.ensureFieldRole(child, DataElementRole.FIELD);
+        currentGeneratedGroup.appendChild(child);
+      } else {
+        currentGeneratedGroup = null;
+        this.ensureFieldRole(child, DataElementRole.GROUP);
+        this.normalizeGroupElement(child, section);
+      }
+    }
+    section.update();
+  }
+
+  private normalizeGroupElement(group: DataElement, parentSection: DataElement, groupDepth: number = 1): void {
+    let insertionTarget = group;
+
+    for (const child of [...group.children]) {
+      if (child.children.length > 0 && child.fieldRole !== DataElementRole.FIELD) {
+        this.ensureFieldRole(child, DataElementRole.GROUP);
+        this.normalizeGroupElement(child, parentSection, groupDepth + 1);
+        if (groupDepth >= GameCharacter.MAX_DETAIL_GROUP_DEPTH) {
+          this.insertElementAfter(child, insertionTarget, parentSection);
+          insertionTarget = child;
+        }
+      } else {
+        this.ensureFieldRole(child, DataElementRole.FIELD);
+      }
+    }
+    group.update();
+  }
+
+  private shouldWrapSectionChildAsField(child: DataElement): boolean {
+    const explicitRole = child.getAttribute(DataElementAttribute.ROLE);
+    if (explicitRole === DataElementRole.SECTION || explicitRole === DataElementRole.GROUP) return false;
+    return child.fieldRole === DataElementRole.FIELD || child.children.length === 0;
+  }
+
+  private createDetailSectionElement(name: string, identifier?: string): DataElement {
+    return DataElement.create(
+      name,
+      '',
+      {
+        [DataElementAttribute.ROLE]: DataElementRole.SECTION,
+      },
+      identifier
+    );
+  }
+
+  private createDetailGroupElement(name: string, identifier?: string): DataElement {
+    return DataElement.create(
+      name,
+      '',
+      {
+        [DataElementAttribute.ROLE]: DataElementRole.GROUP,
+      },
+      identifier
+    );
+  }
+
+  private ensureFieldRole(element: DataElement, role: DataElementRoleValue): void {
+    if (element.getAttribute(DataElementAttribute.ROLE) !== role) element.setFieldRole(role);
+  }
+
+  private insertElementAfter(element: DataElement, targetElement: DataElement, parentElement: DataElement): void {
+    const targetIndex = parentElement.children.indexOf(targetElement);
+    const nextElement = parentElement.children[targetIndex + 1];
+    if (nextElement) parentElement.insertBefore(element, nextElement);
+    else parentElement.appendChild(element);
   }
 
   override clone(): this {

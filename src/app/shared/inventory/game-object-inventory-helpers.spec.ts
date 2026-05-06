@@ -1,16 +1,21 @@
+import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { sortObjectsByTags, toSortableValue } from '@axe/shared/inventory/game-object-inventory-helpers';
 
 function createObject(name: string, hp: string | number, dex: string | number) {
+  const rootDataElement = DataElement.create('character', '');
+  const detail = DataElement.create('detail', '');
+  const resource = DataElement.create('リソース', '');
+  const ability = DataElement.create('能力', '');
+  rootDataElement.appendChild(detail);
+  detail.appendChild(resource);
+  detail.appendChild(ability);
+  resource.appendChild(DataElement.create('HP', hp));
+  ability.appendChild(DataElement.create('DEX', dex));
+
   return {
     identifier: name,
-    rootDataElement: {
-      getFirstElementByName: (tag: string) => {
-        if (tag === 'HP') return createElement(hp);
-        if (tag === 'DEX') return createElement(dex);
-        return null;
-      },
-    },
+    rootDataElement,
   };
 }
 
@@ -53,6 +58,13 @@ describe('game-object-inventory-helpers', () => {
       const a = createObject('a', 10, 5);
       const b = createObject('b', 10, 8);
       const result = sortObjectsByTags([a, b] as never[], 'HP', SortOrder.ASC, 'DEX', SortOrder.DESC);
+      expect(result.map((x) => x.identifier)).toEqual(['b', 'a']);
+    });
+
+    it('パス指定のタグでソートできること', () => {
+      const a = createObject('a', 20, 5);
+      const b = createObject('b', 10, 8);
+      const result = sortObjectsByTags([a, b] as never[], 'リソース/HP', SortOrder.ASC, '', SortOrder.ASC);
       expect(result.map((x) => x.identifier)).toEqual(['b', 'a']);
     });
   });

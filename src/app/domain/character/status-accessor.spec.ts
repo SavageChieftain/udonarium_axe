@@ -53,6 +53,21 @@ describe('StatusAccessor', () => {
     it('存在しない名前ではfalseを返す', () => {
       expect(accessor.canChangeName('存在しない')).toBe(false);
     });
+
+    it('単純名が重複する場合はパス指定で判別する', () => {
+      const skillSection = DataElement.create('戦闘特技', '');
+      const skillA = DataElement.create('最終能力', '');
+      const skillB = DataElement.create('Lv1', '');
+      skillA.appendChild(DataElement.create('名称', 'オーバークリエイト'));
+      skillB.appendChild(DataElement.create('名称', 'ストラグチャアタック'));
+      detailDataElement.appendChild(skillSection);
+      skillSection.appendChild(skillA);
+      skillSection.appendChild(skillB);
+
+      expect(accessor.canChangeName('名称')).toBe(false);
+      expect(accessor.canChangeName('戦闘特技/最終能力/名称')).toBe(true);
+      expect(accessor.getTextType('戦闘特技/Lv1/名称')).toBe('value');
+    });
   });
 
   describe('canChange', () => {

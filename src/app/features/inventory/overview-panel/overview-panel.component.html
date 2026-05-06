@@ -217,11 +217,113 @@
       @if (dataElm.name.trim()) {
         <div class="section-text">{{ dataElm.name }}</div>
       }
-      <div class="grid-container indetnt">
-        @for (childElm of dataElm.children; track childElm.myIdentifer) {
-          <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: childElm }"></ng-container>
-        }
-      </div>
+      @if (shouldRenderTableView(dataElm)) {
+        <div class="overview-table-wrap">
+          <table class="overview-table">
+            <thead>
+              <tr>
+                <th class="overview-table-row-heading"></th>
+                @if (hasTableColumnGroups(dataElm)) {
+                  @for (group of getTableColumnHeaderGroups(dataElm); track group.key) {
+                    <th class="overview-table-column-group" [attr.colspan]="group.span">{{ group.label }}</th>
+                  }
+                } @else {
+                  @for (column of getTableColumns(dataElm); track column.name) {
+                    <th
+                      [class.overview-table-column--gap]="isGapTableColumn(column)"
+                      [class.overview-table-column--gap-active]="isGapTableColumnActive(dataElm, column)"
+                      (click)="toggleGapTableColumn(dataElm, column, $event)"
+                    >
+                      @if (isGapTableColumn(column)) {
+                        <label
+                          class="overview-table-gap-toggle"
+                          [title]="getGapTableColumnTitle(dataElm, column)"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <input
+                            type="checkbox"
+                            [checked]="isGapTableColumnActive(dataElm, column)"
+                            (change)="setGapTableColumnActive(dataElm, column, $event)"
+                          />
+                        </label>
+                      } @else {
+                        {{ column.label }}
+                      }
+                    </th>
+                  }
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (rowElement of getTableRows(dataElm); track rowElement.myIdentifer; let isFirstRow = $first) {
+                <tr>
+                  @if (getTableRowHeaderLabel(dataElm)) {
+                    @if (isFirstRow) {
+                      <th
+                        class="overview-table-row-heading overview-table-row-heading--group"
+                        [attr.rowspan]="getTableRows(dataElm).length"
+                      >
+                        {{ getTableRowHeaderLabel(dataElm) }}
+                      </th>
+                    }
+                  } @else {
+                    <th class="overview-table-row-heading">{{ rowElement.name }}</th>
+                  }
+                  @for (column of getTableColumns(dataElm); track column.name) {
+                    <td
+                      [class.overview-table-column--gap]="isGapTableColumn(column)"
+                      [class.overview-table-column--gap-active]="isGapTableColumnActive(dataElm, column)"
+                      (click)="toggleGapTableColumn(dataElm, column, $event)"
+                    >
+                      @if (getTableCell(rowElement, column.name); as cell) {
+                        @if (cell.fieldType === 'check') {
+                          <label class="overview-table-check-cell">
+                            <input
+                              type="checkbox"
+                              [checked]="isTableCheckCellChecked(cell)"
+                              (change)="toggleTableCheckCell(cell, $event)"
+                            />
+                            @if (getTableCellLabel(cell)) {
+                              <span>{{ getTableCellLabel(cell) }}</span>
+                            }
+                          </label>
+                        } @else if (cell.fieldType === 'image' && getTableCellImageUrl(cell)) {
+                          <img
+                            class="overview-table-image"
+                            [src]="getTableCellImageUrl(cell) | safe: 'resourceUrl'"
+                            alt=""
+                          />
+                        } @else if (cell.fieldType === 'select') {
+                          <select
+                            class="overview-table-select"
+                            [value]="cell.value"
+                            (change)="setTableSelectCellValueFromEvent(cell, $event)"
+                          >
+                            @if (!isTableSelectValueListed(cell)) {
+                              <option [value]="cell.value">{{ cell.value }}</option>
+                            }
+                            @for (option of getTableSelectOptions(cell); track option) {
+                              <option [value]="option">{{ option }}</option>
+                            }
+                          </select>
+                        } @else {
+                          {{ getTableCellDisplayText(cell) }}
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="grid-container indetnt">
+          @for (childElm of dataElm.children; track childElm.myIdentifer) {
+            <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: childElm }"></ng-container>
+          }
+        </div>
+      }
     </div>
   } @else {
     @switch (dataElm.type) {
@@ -272,14 +374,6 @@
           </div>
         </div>
       }
-      @case ('checktable') {
-        <div class="section">
-          <div>{{ dataElm.name }}</div>
-          <div class="note relative">
-            <app-check-table [element]="dataElm" [isEdit]="false" />
-          </div>
-        </div>
-      }
       @case ('check') {
         <div class="tag">{{ dataElm.name }}</div>
         <div class="value">
@@ -292,37 +386,19 @@
       }
       @case ('numberResource') {
         <div class="tag">{{ dataElm.name }}</div>
-        <div class="value">
-          <div class="inline-block w-min">
-            <div class="hidden-spacer mr-[2em]">{{ dataElm.currentValue }}</div>
+        <div class="value resource-value">
+          <div class="resource-value-current">
             <input
               class="input"
               type="number"
-              [style]="'color:' + dataElm.nowValueColor + ';'"
+              [style.color]="getPopupCurrentValueColor(dataElm)"
               size="1"
-              name="data-current-value"
               name="data-current-value"
               [(ngModel)]="dataElm.currentValue"
             />
           </div>
-          <div class="inline">/ {{ dataElm.value }}</div>
-        </div>
-        <div class="section leading-[1em]">
-          <input
-            type="range"
-            [style]="
-              'font-size: 0.8em; width: 100%; --min: 0; --max:' +
-                dataElm.value +
-                '; --val:' +
-                dataElm.currentValue +
-                ';' | safe: 'style'
-            "
-            min="0"
-            max="{{ dataElm.value }}"
-            name="data-current-value"
-            name="data-current-value"
-            [(ngModel)]="dataElm.currentValue"
-          />
+          <span>/</span>
+          <span>{{ dataElm.value }}</span>
         </div>
       }
       @default {

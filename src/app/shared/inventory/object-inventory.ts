@@ -91,7 +91,9 @@ export class ObjectInventory {
         const elements = this.dataTags.map((tag) =>
           tag === this.newLineString
             ? this.newLineDataElement
-            : (object.rootDataElement?.getFirstElementByName(tag) ?? null)
+            : object.rootDataElement
+              ? DataElement.findElementByReference(object.rootDataElement, tag)
+              : null
         );
         this._dataElementMap.set(object.identifier, elements);
       }

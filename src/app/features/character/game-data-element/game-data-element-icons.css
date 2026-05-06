@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: 2px;
   background: var(--ui-input-bg);
   cursor: pointer;
   color: var(--ui-accent);
@@ -43,7 +43,7 @@
   z-index: 101;
   background: var(--ui-elevated);
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: 4px;
   padding: 8px;
   width: 216px;
   max-height: 320px;
@@ -67,7 +67,7 @@
   padding: 1px 6px;
   background: transparent;
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: 2px;
   color: var(--ui-text-muted);
   cursor: pointer;
 }
@@ -100,7 +100,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: var(--ui-radius-sm);
+  border-radius: 2px;
   background: transparent;
   cursor: pointer;
   color: var(--ui-text);

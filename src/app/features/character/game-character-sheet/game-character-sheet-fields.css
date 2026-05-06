@@ -225,6 +225,15 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+.cs-icon-btn--active {
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+}
+
+.cs-icon-btn--active:hover {
+  background: color-mix(in srgb, var(--ui-accent) 24%, transparent);
+}
+
 .cs-icon-btn .material-icons {
   font-size: 13px;
 }

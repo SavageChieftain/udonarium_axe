@@ -1,6 +1,14 @@
 import type { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { createStructuredCheckTableElement } from '@axe/domain/data/check-table-converter';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+  DataElementType,
+  DataElementViewMode,
+} from '@axe/domain/data/data-element';
 
 export class CharacterTemplateFactory {
   static createDefault(character: GameCharacter, name: string, size: number, imageIdentifier: string): void {
@@ -14,17 +22,32 @@ export class CharacterTemplateFactory {
       character.imageDataElement!.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
     }
 
-    const resourceElement = DataElement.create('リソース', '', {}, `リソース${character.identifier}`);
-    const hpElement = DataElement.create(
+    const resourceElement = CharacterTemplateFactory.createSectionElement(
+      'リソース',
+      `リソース${character.identifier}`
+    );
+    const resourceGroupElement = CharacterTemplateFactory.createGroupElement(
+      '基本',
+      `リソース基本${character.identifier}`
+    );
+    const hpElement = CharacterTemplateFactory.createFieldElement(
       'HP',
       200,
-      { type: DataElementType.NUMBER_RESOURCE, currentValue: '200' },
+      {
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: '200',
+      },
       `HP_${character.identifier}`
     );
-    const mpElement = DataElement.create(
+    const mpElement = CharacterTemplateFactory.createFieldElement(
       'MP',
       100,
-      { type: DataElementType.NUMBER_RESOURCE, currentValue: '100' },
+      {
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: '100',
+      },
       `MP_${character.identifier}`
     );
     character.commonDataElement!.appendChild(nameElement);
@@ -32,8 +55,9 @@ export class CharacterTemplateFactory {
     character.commonDataElement!.appendChild(altitudeElement);
 
     character.detailDataElement!.appendChild(resourceElement);
-    resourceElement.appendChild(hpElement);
-    resourceElement.appendChild(mpElement);
+    resourceElement.appendChild(resourceGroupElement);
+    resourceGroupElement.appendChild(hpElement);
+    resourceGroupElement.appendChild(mpElement);
 
     CharacterTemplateFactory.appendCommonDetailElements(character);
     CharacterTemplateFactory.appendChatPalette(character);
@@ -51,17 +75,32 @@ export class CharacterTemplateFactory {
       character.imageDataElement!.getFirstElementByName('imageIdentifier')!.value = imageIdentifier;
     }
 
-    const resourceElement = DataElement.create('リソース', '', {}, `リソース${character.identifier}`);
-    const hpElement = DataElement.create(
+    const resourceElement = CharacterTemplateFactory.createSectionElement(
+      'リソース',
+      `リソース${character.identifier}`
+    );
+    const resourceGroupElement = CharacterTemplateFactory.createGroupElement(
+      '基本',
+      `リソース基本${character.identifier}`
+    );
+    const hpElement = CharacterTemplateFactory.createFieldElement(
       'HP',
       200,
-      { type: DataElementType.NUMBER_RESOURCE, currentValue: '200' },
+      {
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: '200',
+      },
       `HP_${character.identifier}`
     );
-    const mpElement = DataElement.create(
+    const mpElement = CharacterTemplateFactory.createFieldElement(
       'MP',
       100,
-      { type: DataElementType.NUMBER_RESOURCE, currentValue: '100' },
+      {
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: '100',
+      },
       `MP_${character.identifier}`
     );
 
@@ -70,92 +109,642 @@ export class CharacterTemplateFactory {
     character.commonDataElement!.appendChild(altitudeElement);
 
     character.detailDataElement!.appendChild(resourceElement);
-    resourceElement.appendChild(hpElement);
-    resourceElement.appendChild(mpElement);
+    resourceElement.appendChild(resourceGroupElement);
+    resourceGroupElement.appendChild(hpElement);
+    resourceGroupElement.appendChild(mpElement);
 
-    const infoElement = DataElement.create('情報', '', {}, `情報${character.identifier}`);
-    character.detailDataElement!.appendChild(infoElement);
-
-    const textMarkDown = `テーブル表
-|[]|[]器術|[]|[]体術|[]|[]忍術|[]|[]謀術|[]|[]戦術|[]|[]妖術||
-|　|[]絡繰術|　|[]騎乗術|　|[]生存術|　|[]医術|　|[]兵糧術|　|[]異形化|2|
-|　|[]火術|　|[]砲術|　|[]潜伏術|　|[]毒術|　|[]鳥獣術|　|[]召喚術|3|
-|　|[]水術|　|[]手裏剣術|　|[]遁走術|　|[]罠術|　|[]野戦術|　|[]死霊術|4|
-|　|[]針術|　|[]手練|　|[]盗聴術|　|[]調査術|　|[]地の利|　|[]結界術|5|
-|　|[]仕込み|　|[]身体操術|　|[]腹話術|　|[]詐術|　|[]意気|　|[]封術|6|
-|　|[]衣装術|　|[]歩法|　|[]隠形術|　|[]対人術|　|[]用兵術|　|[]言霊術|7|
-|　|[]縄術|　|[]走法|　|[]変装術|　|[]遊芸|　|[]記憶術|　|[]幻術|8|
-|　|[]登術|　|[]飛術|　|[]香術|　|[]九ノ一の術|　|[]見敵術|　|[]瞳術|9|
-|　|[]拷問術|　|[]骨法術|　|[]分身の術|　|[]傀儡の術|　|[]暗号術|　|[]千里眼の術|10|
-|　|[]壊器術|　|[]刀術|　|[]隠蔽術|　|[]流言の術|　|[]伝達術|　|[]憑依術|11|
-|　|[]掘削術|　|[]怪力|　|[]第六感|　|[]経済力|　|[]人脈|　|[]呪術|12|
-`;
-    infoElement.appendChild(
-      DataElement.create('忍術', textMarkDown, { type: DataElementType.CHECK_TABLE }, `忍術${character.identifier}`)
-    );
-
-    const textMarkDownNecro = `|損傷|使用|タイミング|コスト|射程|効果|
-|[]こぶし|[]|アクション|2|0|肉弾攻撃1|
-|[]うで|[]|ジャッジ|1|0|支援1|`;
-    infoElement.appendChild(
-      DataElement.create(
-        'ネクロニカ的パーツ',
-        textMarkDownNecro,
-        { type: DataElementType.CHECK_TABLE },
-        `ネクロニカ的パーツ${character.identifier}`
-      )
-    );
-    infoElement.appendChild(
-      DataElement.create(
-        '宝物への依存',
-        '[][][][] 幼児退行',
-        { type: DataElementType.CHECK_TABLE },
-        `ネクロニカ的未練${character.identifier}`
-      )
-    );
+    const equipmentTable = `|消耗|使用|種別|コスト|射程|効果|
+  |[]応急キット|[]|補助|1|接触|HPを少し回復|
+  |[]照明|[]|道具|0|近距離|暗所ペナルティを軽減|`;
 
     character.overViewWidth = 800;
     character.overViewMaxHeight = 620;
 
     CharacterTemplateFactory.appendCommonDetailElements(character);
+    character.detailDataElement!.appendChild(createStructuredCheckTableElement('装備サンプル', equipmentTable));
+    character.detailDataElement!.appendChild(createStructuredCheckTableElement('進行チェック', '[][][][] 準備完了'));
     CharacterTemplateFactory.appendChatPalette(character);
     character.addExtendData();
   }
 
   private static appendCommonDetailElements(character: GameCharacter): void {
-    let testElement = DataElement.create('能力', '', {}, `能力${character.identifier}`);
-    character.detailDataElement!.appendChild(testElement);
-    testElement.appendChild(DataElement.create('器用度', 24, {}, `器用度${character.identifier}`));
-    testElement.appendChild(DataElement.create('敏捷度', 24, {}, `敏捷度${character.identifier}`));
-    testElement.appendChild(DataElement.create('筋力', 24, {}, `筋力${character.identifier}`));
-    testElement.appendChild(DataElement.create('生命力', 24, {}, `生命力${character.identifier}`));
-    testElement.appendChild(DataElement.create('知力', 24, {}, `知力${character.identifier}`));
-    testElement.appendChild(DataElement.create('精神力', 24, {}, `精神力${character.identifier}`));
+    CharacterTemplateFactory.appendAbilitySampleElements(character);
+    CharacterTemplateFactory.appendFormatSampleElements(character);
+    CharacterTemplateFactory.appendSkillSampleElements(character);
 
-    testElement = DataElement.create('戦闘特技', '', {}, `戦闘特技${character.identifier}`);
-    character.detailDataElement!.appendChild(testElement);
-    testElement.appendChild(DataElement.create('Lv1', '全力攻撃', {}, `Lv1${character.identifier}`));
-    testElement.appendChild(DataElement.create('Lv3', '武器習熟/ソード', {}, `Lv3${character.identifier}`));
-    testElement.appendChild(DataElement.create('Lv5', '武器習熟/ソードⅡ', {}, `Lv5${character.identifier}`));
-    testElement.appendChild(DataElement.create('Lv7', '頑強', {}, `Lv7${character.identifier}`));
-    testElement.appendChild(DataElement.create('Lv9', '薙ぎ払い', {}, `Lv9${character.identifier}`));
-    testElement.appendChild(DataElement.create('自動', '治癒適正', {}, `自動${character.identifier}`));
+    character.detailDataElement!.appendChild(CharacterTemplateFactory.createGenericSkillTableElement(character));
+    character.detailDataElement!.appendChild(CharacterTemplateFactory.createSkillTableType2Element(character));
+  }
+
+  private static appendAbilitySampleElements(character: GameCharacter): void {
+    const sectionElement = CharacterTemplateFactory.createSectionElement('能力', `能力${character.identifier}`);
+    const groupElement = CharacterTemplateFactory.createGroupElement('基本', `能力基本${character.identifier}`);
+    character.detailDataElement!.appendChild(sectionElement);
+    sectionElement.appendChild(groupElement);
+
+    for (const name of ['器用度', '敏捷度', '筋力', '生命力', '知力', '精神力']) {
+      groupElement.appendChild(
+        CharacterTemplateFactory.createFieldElement(
+          name,
+          24,
+          {
+            [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+            [DataElementAttribute.UNIT]: '点',
+            [DataElementAttribute.MIN]: '0',
+            [DataElementAttribute.MAX]: '100',
+          },
+          `${name}${character.identifier}`
+        )
+      );
+    }
+  }
+
+  private static appendFormatSampleElements(character: GameCharacter): void {
+    const sectionElement = CharacterTemplateFactory.createSectionElement(
+      'プロフィール',
+      `プロフィール${character.identifier}`
+    );
+    sectionElement.setAttribute('cs-colspan', '2');
+    const groupElement = CharacterTemplateFactory.createGroupElement('基本', `プロフィール基本${character.identifier}`);
+    character.detailDataElement!.appendChild(sectionElement);
+    sectionElement.appendChild(groupElement);
+
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '名前メモ',
+        'サンプルキャラクター',
+        { [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT },
+        `名前メモ${character.identifier}`
+      )
+    );
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '年齢',
+        18,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+          [DataElementAttribute.UNIT]: '歳',
+          [DataElementAttribute.MIN]: '0',
+          [DataElementAttribute.MAX]: '999',
+        },
+        `年齢${character.identifier}`
+      )
+    );
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '役割',
+        '調査役',
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.SELECT,
+          [DataElementAttribute.CHOICES]: '調査役,交渉役,支援役,記録役',
+        },
+        `役割${character.identifier}`
+      )
+    );
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '公開メモ',
+        'どのルールでも使いやすい、汎用的な説明欄です。',
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.LONG_TEXT,
+          type: DataElementType.NOTE,
+        },
+        `公開メモ${character.identifier}`
+      )
+    );
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '準備済み',
+        1,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
+          type: DataElementType.CHECK,
+        },
+        `準備済み${character.identifier}`
+      )
+    );
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '参考画像',
+        character.imageDataElement!.getFirstElementByName('imageIdentifier')?.value ?? '',
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.IMAGE,
+          type: DataElementType.IMAGE,
+        },
+        `参考画像${character.identifier}`
+      )
+    );
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '能力合計',
+        '',
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CALC,
+          [DataElementAttribute.FORMULA]: '器用度 + 敏捷度 + 筋力 + 生命力 + 知力 + 精神力',
+        },
+        `能力合計${character.identifier}`
+      )
+    );
+  }
+
+  private static appendSkillSampleElements(character: GameCharacter): void {
+    const sectionElement = CharacterTemplateFactory.createSectionElement('スキル', `スキル${character.identifier}`);
+    sectionElement.setAttribute('cs-colspan', '2');
+    const categoryElements = new Map<string, DataElement>();
+    character.detailDataElement!.appendChild(sectionElement);
+
+    const skillSamples = [
+      {
+        category: 'アクション',
+        name: '精密射撃',
+        kind: '攻撃',
+        ability: '器用度',
+        skillReference: '技能表/7/技巧',
+        power: 12,
+        hitBonus: 2,
+        mpCost: 4,
+        range: '遠距離',
+        effect: '判定に成功したら、威力に器用度を加えてダメージを算出します。',
+      },
+      {
+        category: 'アクション',
+        name: '重撃',
+        kind: '攻撃',
+        ability: '筋力',
+        skillReference: '技能表/8/身体',
+        power: 18,
+        hitBonus: -1,
+        mpCost: 6,
+        range: '近距離',
+        effect: '命中しにくい代わりに、高い威力を持つ攻撃サンプルです。',
+      },
+      {
+        category: '支援',
+        name: '応急手当',
+        kind: '回復',
+        ability: '知力',
+        skillReference: '技能表/2/知識',
+        power: 10,
+        hitBonus: 1,
+        mpCost: 3,
+        range: '接触',
+        effect: '対象のHPを威力ぶん回復します。消耗品や状況に応じて補正を加えてください。',
+      },
+    ];
+
+    for (const sample of skillSamples) {
+      let categoryElement = categoryElements.get(sample.category);
+      if (!categoryElement) {
+        categoryElement = CharacterTemplateFactory.createGroupElement(
+          sample.category,
+          `スキル${sample.category}${character.identifier}`
+        );
+        if (sample.category === 'アクション') categoryElement.setAttribute('cs-colspan', '2');
+        sectionElement.appendChild(categoryElement);
+        categoryElements.set(sample.category, categoryElement);
+      }
+
+      const skillElement = CharacterTemplateFactory.createGroupElement(
+        sample.name,
+        `スキル${sample.category}${sample.name}${character.identifier}`
+      );
+      categoryElement.appendChild(skillElement);
+      CharacterTemplateFactory.appendSkillFields(character, skillElement, sample);
+    }
+  }
+
+  private static appendSkillFields(
+    character: GameCharacter,
+    skillElement: DataElement,
+    sample: {
+      category: string;
+      name: string;
+      kind: string;
+      ability: string;
+      skillReference: string;
+      power: number;
+      hitBonus: number;
+      mpCost: number;
+      range: string;
+      effect: string;
+    }
+  ): void {
+    const prefix = `スキル${sample.category}${sample.name}${character.identifier}`;
+
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '名称',
+        sample.name,
+        { [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT },
+        `${prefix}名称`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '種別',
+        sample.kind,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.SELECT,
+          [DataElementAttribute.CHOICES]: '攻撃,支援,妨害,回復,移動',
+        },
+        `${prefix}種別`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '判定能力',
+        sample.ability,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.SELECT,
+          [DataElementAttribute.CHOICES]: '器用度,敏捷度,筋力,生命力,知力,精神力',
+        },
+        `${prefix}判定能力`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '技能参照',
+        sample.skillReference,
+        { [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT },
+        `${prefix}技能参照`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '威力',
+        sample.power,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+          [DataElementAttribute.UNIT]: '点',
+          [DataElementAttribute.MIN]: '0',
+          [DataElementAttribute.MAX]: '999',
+        },
+        `${prefix}威力`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '命中補正',
+        sample.hitBonus,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+          [DataElementAttribute.UNIT]: '点',
+        },
+        `${prefix}命中補正`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '消費MP',
+        sample.mpCost,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+          [DataElementAttribute.UNIT]: '点',
+          [DataElementAttribute.MIN]: '0',
+        },
+        `${prefix}消費MP`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '射程',
+        sample.range,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.SELECT,
+          [DataElementAttribute.CHOICES]: '自身,接触,近距離,中距離,遠距離,場面',
+        },
+        `${prefix}射程`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '使用済み',
+        0,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
+          type: DataElementType.CHECK,
+        },
+        `${prefix}使用済み`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '効果',
+        sample.effect,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.LONG_TEXT,
+          type: DataElementType.NOTE,
+        },
+        `${prefix}効果`
+      )
+    );
+    skillElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '合計威力',
+        '',
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CALC,
+          [DataElementAttribute.FORMULA]: `[スキル/${sample.category}/${sample.name}/威力] + [能力/基本/${sample.ability}]`,
+        },
+        `${prefix}合計威力`
+      )
+    );
+  }
+
+  private static createSectionElement(name: string, identifier: string): DataElement {
+    return DataElement.create(name, '', { [DataElementAttribute.ROLE]: DataElementRole.SECTION }, identifier);
+  }
+
+  private static createGroupElement(name: string, identifier: string): DataElement {
+    return DataElement.create(name, '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP }, identifier);
+  }
+
+  private static createGenericSkillTableElement(character: GameCharacter): DataElement {
+    const tableElement = DataElement.create(
+      '技能表',
+      '',
+      {
+        'cs-colspan': '2',
+        [DataElementAttribute.ROLE]: DataElementRole.SECTION,
+        [DataElementAttribute.VIEW_MODE]: DataElementViewMode.TABLE,
+      },
+      `技能表${character.identifier}`
+    );
+    const categories = [
+      {
+        name: '技巧',
+        skills: ['解錠', '工作', '細工', '修理', '道具知識', '照準', '道具扱い', '鑑定', '罠解除', '精密操作', '改造'],
+      },
+      {
+        name: '身体',
+        skills: ['跳躍', '登攀', '持久', '格闘', '回避', '運搬', '踏み込み', '水泳', '投擲', '剛力', '受け身'],
+      },
+      {
+        name: '隠密',
+        skills: ['静音移動', '尾行', '潜入', '変装', '偽装', '逃走', '追跡', '聞き耳', '影渡り', '隠蔽', '危険察知'],
+      },
+      {
+        name: '知識',
+        skills: [
+          '応急処置',
+          '薬品知識',
+          '自然知識',
+          '歴史',
+          '調査',
+          '推理',
+          '心理',
+          '地理',
+          '戦略',
+          '学術',
+          'オカルト',
+        ],
+      },
+      {
+        name: '交流',
+        skills: ['交渉', '説得', '威圧', '共感', '礼儀', '噂話', '取引', '指揮', '人脈', '演技', '励まし'],
+      },
+      {
+        name: '異能',
+        skills: ['霊感', '感応', '予見', '護符', '幻視', '結界', '浄化', '変化', '念動', '呼応', '呪印'],
+      },
+    ];
+    const rowNames = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+    const gapRowElement = CharacterTemplateFactory.createGroupElement(
+      'ギャップ',
+      `技能表ギャップ_${character.identifier}`
+    );
+    tableElement.appendChild(gapRowElement);
+    const wrapGapIndex = categories.length;
+    const wrapGapFromCategory = categories[categories.length - 1];
+    const wrapGapToCategory = categories[0];
+    gapRowElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        `ギャップ${wrapGapIndex}`,
+        0,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
+          [DataElementAttribute.CELL_TEXT]: `${wrapGapFromCategory.name}-${wrapGapToCategory.name}`,
+          [DataElementAttribute.COLUMN_LABEL]: 'G',
+          [DataElementAttribute.CELL_KIND]: 'gap',
+          type: DataElementType.CHECK,
+        },
+        `技能表ギャップ${wrapGapIndex}_${character.identifier}`
+      )
+    );
+    for (const [categoryIndex, category] of categories.entries()) {
+      gapRowElement.appendChild(
+        CharacterTemplateFactory.createFieldElement(
+          category.name,
+          '',
+          {
+            [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
+            [DataElementAttribute.COLUMN_LABEL]: category.name,
+          },
+          `技能表ギャップ_${category.name}_${character.identifier}`
+        )
+      );
+      const nextCategory = categories[categoryIndex + 1];
+      if (!nextCategory) continue;
+      gapRowElement.appendChild(
+        CharacterTemplateFactory.createFieldElement(
+          `ギャップ${categoryIndex + 1}`,
+          0,
+          {
+            [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
+            [DataElementAttribute.CELL_TEXT]: `${category.name}-${nextCategory.name}`,
+            [DataElementAttribute.COLUMN_LABEL]: 'G',
+            [DataElementAttribute.CELL_KIND]: 'gap',
+            type: DataElementType.CHECK,
+          },
+          `技能表ギャップ${categoryIndex + 1}_${character.identifier}`
+        )
+      );
+    }
+
+    for (const [rowIndex, rowName] of rowNames.entries()) {
+      const rowElement = CharacterTemplateFactory.createGroupElement(
+        rowName,
+        `技能表${rowName}_${character.identifier}`
+      );
+      tableElement.appendChild(rowElement);
+      for (const [categoryIndex, category] of categories.entries()) {
+        rowElement.appendChild(
+          CharacterTemplateFactory.createFieldElement(
+            category.name,
+            rowName === '2' && categoryIndex === 0 ? 1 : 0,
+            {
+              [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
+              [DataElementAttribute.CELL_TEXT]: category.skills[rowIndex],
+              [DataElementAttribute.COLUMN_LABEL]: category.name,
+              type: DataElementType.CHECK,
+            },
+            `技能表${rowName}_${category.name}_${character.identifier}`
+          )
+        );
+      }
+    }
+
+    return tableElement;
+  }
+
+  private static createSkillTableType2Element(character: GameCharacter): DataElement {
+    const tableElement = DataElement.create(
+      '技能表タイプ2',
+      '',
+      {
+        'cs-colspan': '2',
+        [DataElementAttribute.ROLE]: DataElementRole.SECTION,
+        [DataElementAttribute.VIEW_MODE]: DataElementViewMode.TABLE,
+        [DataElementAttribute.ROW_HEADER_LABEL]: '技能',
+      },
+      `技能表タイプ2_${character.identifier}`
+    );
+    const rankChoices = '初級,中級,上級';
+    const categories = [
+      {
+        name: '肉体技能',
+        skills: [
+          ['肉体攻撃', ''],
+          ['剛力', ''],
+          ['水泳', ''],
+          ['登攀', '初級'],
+        ],
+      },
+      {
+        name: '機械技能',
+        skills: [
+          ['運動', '初級'],
+          ['隠密', '初級'],
+          ['運転', ''],
+          ['操作', ''],
+        ],
+      },
+      {
+        name: '感覚技能',
+        skills: [
+          ['射撃攻撃', '中級'],
+          ['意思疎通', ''],
+          ['芸術(絵画)', '初級'],
+          ['知覚', '初級'],
+        ],
+      },
+      {
+        name: '幸運技能',
+        skills: [
+          ['直感', ''],
+          ['賭博', '初級'],
+          ['交渉', ''],
+          ['社会', ''],
+        ],
+      },
+      {
+        name: '知力技能',
+        skills: [
+          ['特殊攻撃', '中級'],
+          ['知謀・パワー', '上級'],
+          ['応急手当', ''],
+          ['情報技術', ''],
+        ],
+      },
+      {
+        name: '精神技能',
+        skills: [
+          ['礼儀', ''],
+          ['統率', ''],
+          ['尋問', '初級'],
+          ['魅了', ''],
+        ],
+      },
+    ];
+
+    for (let rowIndex = 0; rowIndex < 4; rowIndex++) {
+      const rowElement = CharacterTemplateFactory.createGroupElement(
+        `行${rowIndex + 1}`,
+        `技能表タイプ2_行${rowIndex + 1}_${character.identifier}`
+      );
+      tableElement.appendChild(rowElement);
+      for (const category of categories) {
+        const [skillName, rank] = category.skills[rowIndex];
+        rowElement.appendChild(
+          CharacterTemplateFactory.createFieldElement(
+            `${category.name}名`,
+            skillName,
+            {
+              [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
+              [DataElementAttribute.COLUMN_LABEL]: '技能',
+              [DataElementAttribute.COLUMN_GROUP]: category.name,
+            },
+            `技能表タイプ2_${rowIndex + 1}_${category.name}名_${character.identifier}`
+          )
+        );
+        rowElement.appendChild(
+          CharacterTemplateFactory.createFieldElement(
+            `${category.name}習熟度`,
+            rank,
+            {
+              [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.SELECT,
+              [DataElementAttribute.CHOICES]: rankChoices,
+              [DataElementAttribute.COLUMN_LABEL]: '習熟度',
+              [DataElementAttribute.COLUMN_GROUP]: category.name,
+            },
+            `技能表タイプ2_${rowIndex + 1}_${category.name}習熟度_${character.identifier}`
+          )
+        );
+      }
+    }
+
+    return tableElement;
+  }
+
+  private static createFieldElement(
+    name: string,
+    value: number | string,
+    attributes: Record<string, number | string>,
+    identifier: string
+  ): DataElement {
+    return DataElement.create(
+      name,
+      value,
+      { ...attributes, [DataElementAttribute.ROLE]: DataElementRole.FIELD },
+      identifier
+    );
   }
 
   private static appendChatPalette(character: GameCharacter): void {
     const palette = new ChatPalette(`ChatPalette_${character.identifier}`);
     palette.setPalette(`チャットパレット入力例：
-2d6+1 ダイスロール
-１ｄ２０＋{敏捷}＋｛格闘｝　{name}の格闘！
+◆基本判定
+2d6+{能力/基本/敏捷度}+{補正} 敏捷度判定
+2d6+{能力/基本/知力}+{補正} 知力判定
 
-自己バフ、リソース操作コマンド例：
-&マッスルベアー/筋B+2/3
+◆スキル
+2d6+{精密射撃命中} {スキル/アクション/精密射撃/名称} 命中 / 射程:{スキル/アクション/精密射撃/射程}
+1d10+{精密射撃威力} {スキル/アクション/精密射撃/名称} 威力
+:MP-{スキル/アクション/精密射撃/消費MP}
+2d6+{重撃命中} {スキル/アクション/重撃/名称} 命中 / 射程:{スキル/アクション/重撃/射程}
+1d10+{重撃威力} {スキル/アクション/重撃/名称} 威力
+:MP-{スキル/アクション/重撃/消費MP}
+2d6+{応急手当判定} {スキル/支援/応急手当/名称} 判定
+1d6+{応急手当回復} {スキル/支援/応急手当/名称} 回復量
+:MP-{スキル/支援/応急手当/消費MP}
+
+◆技能表
+2d6 技能表: 技巧/照準
+2d6 技能表: 知識/応急処置
+
+リソース操作コマンド例：
 :MP-3
-&マッスルベアー/筋B+2/3:MP-3
+:HP+5
+:HP+{応急手当回復}
 
-//敏捷=10+{敏捷A}
-//敏捷A=10
-//格闘＝１`);
+//補正=1
+//精密射撃命中={能力/基本/器用度}+{スキル/アクション/精密射撃/命中補正}
+//精密射撃威力={スキル/アクション/精密射撃/威力}+{能力/基本/器用度}
+//重撃命中={能力/基本/筋力}+{スキル/アクション/重撃/命中補正}
+//重撃威力={スキル/アクション/重撃/威力}+{能力/基本/筋力}
+//応急手当判定={能力/基本/知力}+{スキル/支援/応急手当/命中補正}
+//応急手当回復={スキル/支援/応急手当/威力}+{能力/基本/知力}`);
     palette.initialize();
     character.appendChild(palette);
   }

@@ -1,6 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+  DataElementType,
+  DataElementViewMode,
+} from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -27,6 +35,96 @@ describe('GameCharacterSheetComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('addDataElement() は見出し > グループ > フィールドの構造で追加すること', () => {
+    const character = GameCharacter.create('structure-test', 1, '');
+    character.addExtendData();
+    component.tabletopObject = character;
+
+    try {
+      const beforeCount = character.detailDataElement?.children.length ?? 0;
+
+      component.addDataElement();
+
+      const section = character.detailDataElement?.children[beforeCount];
+      expect(section?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(section?.children).toHaveLength(1);
+      const group = section?.children[0];
+      expect(group?.fieldRole).toBe(DataElementRole.GROUP);
+      expect(group?.children).toHaveLength(1);
+      expect(group?.children[0].fieldRole).toBe(DataElementRole.FIELD);
+    } finally {
+      character.destroy();
+    }
+  });
+
+  it('addDataElement() は既存タグ名と重複しない名前で追加すること', () => {
+    const character = GameCharacter.create('unique-name-test', 1, '');
+    character.addExtendData();
+    component.tabletopObject = character;
+
+    try {
+      component.addDataElement();
+      component.addDataElement();
+
+      const addedSections = character.detailDataElement!.children.filter((child) => child.name.startsWith('見出し'));
+      expect(addedSections.map((child) => child.name)).toEqual(['見出し', '見出し 2']);
+      expect(addedSections[1].children[0].name).toBe('グループ');
+      expect(addedSections[1].children[0].children[0].name).toBe('タグ');
+    } finally {
+      character.destroy();
+    }
+  });
+
+  it('convertLegacyCheckTables() は旧チェック表フィールドを構造化テーブルへ変換すること', () => {
+    const character = GameCharacter.create('migration-test', 1, '');
+    const section = DataElement.create('旧情報', '', { [DataElementAttribute.ROLE]: DataElementRole.SECTION });
+    const group = DataElement.create('基本', '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP });
+    const legacy = DataElement.create('旧表', '|項目|済み|\n|灯火|[]|', {
+      [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+      [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK_TABLE,
+      type: DataElementType.CHECK_TABLE,
+    });
+    section.appendChild(group);
+    group.appendChild(legacy);
+    character.detailDataElement!.appendChild(section);
+    component.tabletopObject = character;
+
+    try {
+      component.convertLegacyCheckTables();
+
+      const migrated = character.detailDataElement!.children.find((child) => child.name === '旧表');
+      const checkCell = migrated?.children[0].getFirstElementByName('済み');
+
+      expect(migrated?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(migrated?.viewMode).toBe(DataElementViewMode.TABLE);
+      expect(checkCell?.fieldType).toBe(DataElementFieldType.CHECK);
+      expect(checkCell?.value).toBe(0);
+      expect(group.getFirstElementByName('旧表')).toBeNull();
+    } finally {
+      character.destroy();
+    }
+  });
+
+  it('ポップアップ表示設定はDataElement属性として切り替えること', () => {
+    const character = GameCharacter.create('popup-toggle-test', 1, '');
+    const section = character.detailDataElement!.getFirstElementByName('能力')!;
+    component.tabletopObject = character;
+
+    try {
+      component.togglePopupDataElement(section);
+
+      expect(section.getAttribute(DataElementAttribute.POPUP)).toBe('true');
+      expect(component.isPopupDataElement(section)).toBe(true);
+
+      component.togglePopupDataElement(section);
+
+      expect(section.getAttribute(DataElementAttribute.POPUP)).toBe('');
+      expect(component.isPopupDataElement(section)).toBe(false);
+    } finally {
+      character.destroy();
+    }
   });
 
   it('コマ画像高さの変更時は範囲内に丸めてドラッグ状態を解除すること', () => {

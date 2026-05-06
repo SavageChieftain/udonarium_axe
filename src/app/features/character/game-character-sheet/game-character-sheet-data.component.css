@@ -1,23 +1,42 @@
+:host {
+  --cs-radius-panel: 4px;
+  --cs-radius-control: 2px;
+  --cs-radius-line: 0;
+  --cs-tab-bg: color-mix(in srgb, var(--ui-elevated) 58%, var(--ui-surface));
+  --cs-tab-bg-hover: color-mix(in srgb, var(--ui-elevated) 82%, var(--ui-surface));
+}
+
 /* ── データセクション（stats）── */
 .cs-data-section {
   display: flex;
   flex-flow: row wrap;
   justify-content: flex-start;
   align-items: stretch;
+  min-width: 0;
   padding: 4px 0 0;
   gap: 4px;
 }
 
 .cs-data-card {
   padding: 8px 10px;
-  flex: 1 0 auto;
+  flex: 1 1 200px;
   box-sizing: border-box;
   min-width: 200px;
+  max-width: 100%;
+  overflow: hidden;
   background: var(--ui-elevated);
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--cs-radius-panel);
   color: var(--ui-text);
   transition: outline 0.1s ease;
+}
+
+.cs-data-card--editing {
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  border-color: color-mix(in srgb, var(--ui-accent) 62%, var(--ui-panel-border));
 }
 
 .cs-data-card--common {
@@ -29,11 +48,13 @@
 
 .cs-data-card--span2 {
   flex-grow: 2;
-  min-width: 420px;
+  min-width: min(420px, 100%);
 }
 
 .cs-data-card--full {
-  flex: 1 0 100%;
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* カードツールバー（編集・ドラッグハンドル） */
@@ -57,7 +78,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .cs-card-title-icon {
@@ -89,7 +110,7 @@
   font-size: 0.7em;
   font-weight: 700;
   min-width: 20px;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .cs-add-item-row {
@@ -115,7 +136,7 @@
   align-items: center;
   gap: 3px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--cs-radius-control);
   font-size: 0.82em;
   cursor: pointer;
   border: none;
@@ -134,10 +155,11 @@
 /* ── タブバー ── */
 .cs-tabs {
   display: flex;
-  border-bottom: 2px solid var(--ui-panel-border);
-  padding: 0 8px;
-  gap: 2px;
-  background: var(--ui-base);
+  align-items: flex-end;
+  gap: 1px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--ui-panel-border);
+  background: var(--ui-surface);
 }
 
 .cs-tab {
@@ -147,16 +169,19 @@
   padding: 6px 14px;
   font-size: 0.8em;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  background: transparent;
+  letter-spacing: 0;
+  border: 1px solid var(--ui-panel-border);
+  border-bottom-color: var(--ui-panel-border);
+  border-radius: var(--cs-radius-control) var(--cs-radius-control) 0 0;
+  margin-bottom: -1px;
+  background: var(--cs-tab-bg);
   color: var(--ui-text-muted);
   cursor: pointer;
   transition:
+    background var(--ui-transition),
+    border-color var(--ui-transition),
     color var(--ui-transition),
-    border-color var(--ui-transition);
+    box-shadow var(--ui-transition);
   white-space: nowrap;
 }
 
@@ -165,12 +190,18 @@
 }
 
 .cs-tab:hover {
+  background: var(--cs-tab-bg-hover);
   color: var(--ui-text);
 }
 
 .cs-tab--active {
+  position: relative;
+  z-index: 1;
+  border-color: var(--ui-panel-border);
+  border-bottom-color: var(--ui-elevated);
+  background: var(--ui-elevated);
+  box-shadow: inset 0 2px 0 var(--ui-accent);
   color: var(--ui-accent);
-  border-bottom-color: var(--ui-accent);
 }
 
 /* ── 設定タブパネル ── */
@@ -184,7 +215,7 @@
 .cs-settings-section {
   background: var(--ui-elevated);
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--cs-radius-panel);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
@@ -214,20 +245,12 @@
   min-width: 0;
 }
 
-/* ── ポップアップ表示データ設定 ── */
-.cs-popup-data-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-}
-
 .cs-reset-btn {
   font-size: 0.78em;
   padding: 1px 8px;
   background: transparent;
   border: 1px solid var(--ui-panel-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--cs-radius-control);
   color: var(--ui-text);
   cursor: pointer;
   line-height: 1.6;
@@ -252,7 +275,7 @@
   padding: 3px 10px;
   background: transparent;
   border: 1px solid var(--ui-accent);
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--cs-radius-control);
   color: var(--ui-accent);
   cursor: pointer;
   line-height: 1.6;
@@ -263,37 +286,4 @@
 }
 .cs-migrate-btn:hover {
   background: var(--ui-accent-bg);
-}
-
-.cs-popup-hint {
-  font-size: 0.78em;
-  color: color-mix(in srgb, var(--ui-text) 55%, transparent);
-  padding: 2px 0;
-}
-
-.cs-popup-tag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 4px 0 2px;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.cs-popup-section-row {
-  margin-top: 4px;
-}
-
-.cs-popup-section-label strong {
-  font-weight: 600;
-  color: var(--ui-text);
-}
-
-.cs-popup-leaf-row {
-  font-size: 0.85em;
-}
-
-.cs-popup-locked {
-  opacity: 0.55;
-  cursor: default;
 }

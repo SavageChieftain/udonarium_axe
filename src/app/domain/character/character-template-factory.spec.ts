@@ -1,7 +1,14 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElementType } from '@axe/domain/data/data-element';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+  DataElementType,
+  DataElementViewMode,
+} from '@axe/domain/data/data-element';
 
 describe('CharacterTemplateFactory', () => {
   let store: ObjectStore;
@@ -30,8 +37,14 @@ describe('CharacterTemplateFactory', () => {
     it('HP/MPリソースが作成される', () => {
       const character = GameCharacter.create('戦士', 1, '');
 
+      const resource = character.detailDataElement!.getFirstElementByName('リソース');
+      expect(resource?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(resource?.children[0].fieldRole).toBe(DataElementRole.GROUP);
+
       const hp = character.detailDataElement!.getFirstElementByName('HP');
       expect(hp).toBeTruthy();
+      expect(hp!.parent).toBe(resource!.children[0]);
+      expect(hp!.fieldRole).toBe(DataElementRole.FIELD);
       expect(hp!.value).toBe(200);
       expect(hp!.currentValue).toBe('200');
       expect(hp!.type).toBe(DataElementType.NUMBER_RESOURCE);
@@ -48,18 +61,32 @@ describe('CharacterTemplateFactory', () => {
       const dex = character.detailDataElement!.getFirstElementByName('器用度');
       expect(dex).toBeTruthy();
       expect(dex!.value).toBe(24);
+      expect(dex!.fieldType).toBe(DataElementFieldType.NUMBER);
 
       const int = character.detailDataElement!.getFirstElementByName('知力');
       expect(int).toBeTruthy();
       expect(int!.value).toBe(24);
     });
 
-    it('戦闘特技が作成される', () => {
-      const character = GameCharacter.create('剣士', 1, '');
+    it('汎用プロフィールに各フィールドフォーマットのサンプルが作成される', () => {
+      const character = GameCharacter.create('サンプル', 1, 'image-id');
 
-      const lv1 = character.detailDataElement!.getFirstElementByName('Lv1');
-      expect(lv1).toBeTruthy();
-      expect(lv1!.value).toBe('全力攻撃');
+      const section = character.detailDataElement!.getFirstElementByName('プロフィール');
+      expect(section?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(section?.getAttribute('cs-colspan')).toBe('2');
+      expect(section?.children[0].fieldRole).toBe(DataElementRole.GROUP);
+
+      const group = section!.children[0];
+      expect(group.getFirstElementByName('名前メモ')?.fieldType).toBe(DataElementFieldType.TEXT);
+      expect(group.getFirstElementByName('年齢')?.fieldType).toBe(DataElementFieldType.NUMBER);
+      expect(group.getFirstElementByName('役割')?.fieldType).toBe(DataElementFieldType.SELECT);
+      expect(group.getFirstElementByName('公開メモ')?.fieldType).toBe(DataElementFieldType.LONG_TEXT);
+      expect(group.getFirstElementByName('準備済み')?.fieldType).toBe(DataElementFieldType.CHECK);
+      expect(group.getFirstElementByName('参考画像')?.fieldType).toBe(DataElementFieldType.IMAGE);
+      expect(group.getFirstElementByName('参考画像')?.value).toBe('image-id');
+      expect(group.getFirstElementByName('能力合計')?.fieldType).toBe(DataElementFieldType.CALC);
+      expect(group.getFirstElementByName('能力合計')?.getAttribute(DataElementAttribute.FORMULA)).toContain('器用度');
+      expect(group.getFirstElementByName('役割')?.getAttribute(DataElementAttribute.CHOICES)).toContain('調査役');
     });
 
     it('chatPaletteが作成される', () => {
@@ -67,31 +94,160 @@ describe('CharacterTemplateFactory', () => {
 
       const palette = character.chatPalette;
       expect(palette).toBeTruthy();
+      expect(palette!.getPalette().join('\n')).toContain('精密射撃');
+      expect(palette!.evaluate('2d6+{精密射撃命中}', character.detailDataElement!)).toBe('2d6+24+2');
+      expect(palette!.evaluate(':MP-{スキル/アクション/精密射撃/消費MP}', character.detailDataElement!)).toBe(':MP-4');
+      expect(palette!.evaluate('{スキル/支援/応急手当/効果}', character.detailDataElement!)).toContain(
+        'HPを威力ぶん回復'
+      );
+    });
+
+    it('複雑なスキルフィールドグループ群が作成される', () => {
+      const character = GameCharacter.create('スキル確認', 1, '');
+
+      const skillSection = character.detailDataElement!.getFirstElementByName('スキル');
+      const actionGroup = skillSection?.getFirstElementByName('アクション');
+      const supportGroup = skillSection?.getFirstElementByName('支援');
+      const precisionShot = actionGroup?.getFirstElementByName('精密射撃');
+      const firstAid = supportGroup?.getFirstElementByName('応急手当');
+
+      expect(skillSection?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(skillSection?.getAttribute('cs-colspan')).toBe('2');
+      expect(actionGroup?.fieldRole).toBe(DataElementRole.GROUP);
+      expect(actionGroup?.getAttribute('cs-colspan')).toBe('2');
+      expect(supportGroup?.fieldRole).toBe(DataElementRole.GROUP);
+      expect(precisionShot?.fieldRole).toBe(DataElementRole.GROUP);
+      expect(precisionShot?.getFirstElementByName('名称')?.fieldType).toBe(DataElementFieldType.TEXT);
+      expect(precisionShot?.getFirstElementByName('種別')?.fieldType).toBe(DataElementFieldType.SELECT);
+      expect(precisionShot?.getFirstElementByName('判定能力')?.value).toBe('器用度');
+      expect(precisionShot?.getFirstElementByName('威力')?.fieldType).toBe(DataElementFieldType.NUMBER);
+      expect(precisionShot?.getFirstElementByName('命中補正')?.value).toBe(2);
+      expect(precisionShot?.getFirstElementByName('消費MP')?.value).toBe(4);
+      expect(precisionShot?.getFirstElementByName('使用済み')?.fieldType).toBe(DataElementFieldType.CHECK);
+      expect(precisionShot?.getFirstElementByName('効果')?.fieldType).toBe(DataElementFieldType.LONG_TEXT);
+      expect(precisionShot?.getFirstElementByName('合計威力')?.fieldType).toBe(DataElementFieldType.CALC);
+      expect(precisionShot?.getFirstElementByName('合計威力')?.getAttribute(DataElementAttribute.FORMULA)).toBe(
+        '[スキル/アクション/精密射撃/威力] + [能力/基本/器用度]'
+      );
+      expect(firstAid?.getFirstElementByName('種別')?.value).toBe('回復');
+    });
+
+    it('表示サンプル用の技能表が作成される', () => {
+      const character = GameCharacter.create('サンプル', 1, '');
+
+      const skillTable = character.detailDataElement!.getFirstElementByName('技能表');
+
+      expect(skillTable?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(skillTable?.viewMode).toBe(DataElementViewMode.TABLE);
+      expect(skillTable?.getAttribute('cs-colspan')).toBe('2');
+      expect(skillTable?.children).toHaveLength(12);
+    });
+
+    it('技能名と習熟度を2列ペアで持つ技能表タイプ2が作成される', () => {
+      const character = GameCharacter.create('タイプ2', 1, '');
+
+      const skillTable = character.detailDataElement!.getFirstElementByName('技能表タイプ2');
+      const row1 = skillTable?.children[0];
+      const row3 = skillTable?.children[2];
+      const row4 = skillTable?.children[3];
+
+      expect(skillTable?.fieldRole).toBe(DataElementRole.SECTION);
+      expect(skillTable?.viewMode).toBe(DataElementViewMode.TABLE);
+      expect(skillTable?.getAttribute('cs-colspan')).toBe('2');
+      expect(skillTable?.getAttribute(DataElementAttribute.ROW_HEADER_LABEL)).toBe('技能');
+      expect(skillTable?.children).toHaveLength(4);
+      expect(row1?.children).toHaveLength(12);
+      expect(row1?.children.map((child) => child.getAttribute(DataElementAttribute.COLUMN_GROUP))).toEqual([
+        '肉体技能',
+        '肉体技能',
+        '機械技能',
+        '機械技能',
+        '感覚技能',
+        '感覚技能',
+        '幸運技能',
+        '幸運技能',
+        '知力技能',
+        '知力技能',
+        '精神技能',
+        '精神技能',
+      ]);
+      expect(row1?.getFirstElementByName('肉体技能名')?.value).toBe('肉体攻撃');
+      expect(row1?.getFirstElementByName('肉体技能習熟度')?.fieldType).toBe(DataElementFieldType.SELECT);
+      expect(row1?.getFirstElementByName('肉体技能習熟度')?.getAttribute(DataElementAttribute.CHOICES)).toBe(
+        '初級,中級,上級'
+      );
+      expect(row1?.getFirstElementByName('機械技能習熟度')?.value).toBe('初級');
+      expect(row1?.getFirstElementByName('感覚技能習熟度')?.value).toBe('中級');
+      expect(row3?.getFirstElementByName('感覚技能名')?.value).toBe('芸術(絵画)');
+      expect(row4?.getFirstElementByName('肉体技能名')?.value).toBe('登攀');
+      expect(row4?.getFirstElementByName('肉体技能習熟度')?.value).toBe('初級');
     });
   });
 
   describe('createCheckTable', () => {
-    it('マークダウン形式の忍術テーブルが作成される', () => {
+    it('現行データ要素形式の技能表が作成される', () => {
       const character = new GameCharacter();
       character.createDataElements();
       character.initialize();
-      CharacterTemplateFactory.createCheckTable(character, '忍者', 1, '');
+      CharacterTemplateFactory.createCheckTable(character, '冒険者', 1, '');
 
-      const ninjutsu = character.detailDataElement!.getFirstElementByName('忍術');
-      expect(ninjutsu).toBeTruthy();
-      expect(ninjutsu!.type).toBe(DataElementType.CHECK_TABLE);
-      expect(ninjutsu!.value).toContain('テーブル表');
+      const skillTable = character.detailDataElement!.getFirstElementByName('技能表')!;
+      const gapRow = skillTable.children.find((child) => child.name === 'ギャップ') as DataElement;
+      const row2 = skillTable.children.find((child) => child.name === '2') as DataElement;
+      const row12 = skillTable.children.find((child) => child.name === '12') as DataElement;
+
+      expect(skillTable.fieldRole).toBe(DataElementRole.SECTION);
+      expect(skillTable.viewMode).toBe(DataElementViewMode.TABLE);
+      expect(skillTable.getAttribute('cs-colspan')).toBe('2');
+      expect(skillTable.children).toHaveLength(12);
+      expect(gapRow.fieldRole).toBe(DataElementRole.GROUP);
+      expect(gapRow.children.map((child) => child.name)).toEqual([
+        'ギャップ6',
+        '技巧',
+        'ギャップ1',
+        '身体',
+        'ギャップ2',
+        '隠密',
+        'ギャップ3',
+        '知識',
+        'ギャップ4',
+        '交流',
+        'ギャップ5',
+        '異能',
+      ]);
+      expect(gapRow.getFirstElementByName('ギャップ1')?.fieldType).toBe(DataElementFieldType.CHECK);
+      expect(gapRow.getFirstElementByName('ギャップ1')?.getAttribute(DataElementAttribute.CELL_KIND)).toBe('gap');
+      expect(gapRow.getFirstElementByName('ギャップ1')?.getAttribute(DataElementAttribute.COLUMN_LABEL)).toBe('G');
+      expect(gapRow.getFirstElementByName('ギャップ6')?.getAttribute(DataElementAttribute.CELL_TEXT)).toBe('異能-技巧');
+      expect(row2.fieldRole).toBe(DataElementRole.GROUP);
+      expect(row2.children.map((child) => child.name)).toEqual(['技巧', '身体', '隠密', '知識', '交流', '異能']);
+      expect(row2.children.map((child) => child.getAttribute(DataElementAttribute.CELL_TEXT))).toEqual([
+        '解錠',
+        '跳躍',
+        '静音移動',
+        '応急処置',
+        '交渉',
+        '霊感',
+      ]);
+      expect(row2.children.every((child) => child.fieldType === DataElementFieldType.CHECK)).toBe(true);
+      expect(row12.getFirstElementByName('異能')?.getAttribute(DataElementAttribute.CELL_TEXT)).toBe('呪印');
+      expect(DataElement.findElementByReference(character.detailDataElement!, '技能表/2/技巧')?.value).toBe(1);
+      expect(character.detailDataElement!.getFirstElementByName('技能表（旧形式）')).toBeNull();
     });
 
-    it('ネクロニカ的パーツが作成される', () => {
+    it('装備サンプルが構造化テーブルとして作成される', () => {
       const character = new GameCharacter();
       character.createDataElements();
       character.initialize();
-      CharacterTemplateFactory.createCheckTable(character, '人形', 1, '');
+      CharacterTemplateFactory.createCheckTable(character, '装備', 1, '');
 
-      const parts = character.detailDataElement!.getFirstElementByName('ネクロニカ的パーツ');
-      expect(parts).toBeTruthy();
-      expect(parts!.type).toBe(DataElementType.CHECK_TABLE);
+      const equipment = character.detailDataElement!.getFirstElementByName('装備サンプル');
+      expect(equipment).toBeTruthy();
+      expect(equipment!.fieldRole).toBe(DataElementRole.SECTION);
+      expect(equipment!.viewMode).toBe(DataElementViewMode.TABLE);
+      expect(equipment!.children[0].fieldRole).toBe(DataElementRole.GROUP);
+      expect(equipment!.children[0].getFirstElementByName('消耗')?.fieldType).toBe(DataElementFieldType.CHECK);
+      expect(equipment!.children[0].getFirstElementByName('効果')?.value).toContain('回復');
     });
 
     it('overViewWidthとoverViewMaxHeightがカスタム値に設定される', () => {

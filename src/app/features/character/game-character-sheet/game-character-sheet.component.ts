@@ -14,11 +14,20 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SaveDataService } from '@axe/core/storage/save-data.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
+import {
+  convertLegacyCheckTableElements,
+  countConvertibleCheckTableElements,
+} from '@axe/domain/data/check-table-converter';
+import {
+  DataElement,
+  DataElementAttribute,
+  DataElementFieldType,
+  DataElementRole,
+} from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
@@ -27,6 +36,7 @@ import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { DataElementDragService } from '@axe/features/character/data-element-drag.service';
 import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
@@ -58,6 +68,8 @@ export class GameCharacterSheetComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly dataElementDrag = inject(DataElementDragService);
 
   private readonly _tabletopObject = signal<
     | GameCharacter
@@ -128,18 +140,21 @@ export class GameCharacterSheetComponent {
 
   onDragStart(event: DragEvent, id: string) {
     this._draggedId = id;
-    event.dataTransfer?.setData('text/plain', id);
+    this.dataElementDrag.start(event, id);
     event.stopPropagation();
   }
 
   onDragEnd() {
     this._draggedId = null;
+    this.dataElementDrag.end();
     this.dragOverId.set(null);
   }
 
   onDragOver(event: DragEvent, id: string) {
-    if (!this._draggedId || this._draggedId === id) return;
+    const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;
+    if (!draggedId || draggedId === id || !this.canMoveDetailElementBefore(draggedId, id)) return;
     event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     this.dragOverId.set(id);
   }
 
@@ -150,20 +165,36 @@ export class GameCharacterSheetComponent {
   onDrop(event: DragEvent, targetId: string) {
     event.preventDefault();
     this.dragOverId.set(null);
-    const draggedId = this._draggedId;
+    const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;
     this._draggedId = null;
+    this.dataElementDrag.end();
     if (!draggedId || draggedId === targetId) return;
     this.moveDetailElement(draggedId, targetId);
+  }
+
+  private canMoveDetailElementBefore(draggedId: string, targetId: string): boolean {
+    const char = this.character;
+    if (!char?.detailDataElement || draggedId === targetId) return false;
+    const draggedEl = this.objectStore.get<DataElement>(draggedId);
+    const targetEl = char.detailDataElement.children.find((e) => e.identifier === targetId);
+    if (!draggedEl || !targetEl) return false;
+    return !draggedEl.contains(char.detailDataElement);
   }
 
   private moveDetailElement(draggedId: string, targetId: string) {
     const char = this.character;
     if (!char?.detailDataElement) return;
-    const children = char.detailDataElement.children;
-    const draggedEl = children.find((e) => e.identifier === draggedId);
-    const targetEl = children.find((e) => e.identifier === targetId);
+    const draggedEl = this.objectStore.get<DataElement>(draggedId);
+    const targetEl = char.detailDataElement.children.find((e) => e.identifier === targetId);
     if (!draggedEl || !targetEl) return;
+    const oldParent = draggedEl.parent as DataElement | null;
     char.detailDataElement.insertBefore(draggedEl, targetEl);
+    draggedEl.syncFieldRoleToHierarchy();
+    oldParent?.update();
+    char.detailDataElement.update();
+    this.objectChange.notifyChanged(draggedEl.identifier);
+    if (oldParent) this.objectChange.notifyChanged(oldParent.identifier);
+    this.objectChange.notifyChanged(char.detailDataElement.identifier);
     char.update();
   }
 
@@ -349,9 +380,22 @@ export class GameCharacterSheetComponent {
   addDataElement() {
     const obj = this.tabletopObject;
     if (obj?.detailDataElement) {
-      const title = DataElement.create('見出し', '', {});
-      const tag = DataElement.create('タグ', '', {});
-      title.appendChild(tag);
+      const titleName = DataElement.createUniqueSiblingName(obj.detailDataElement, '見出し');
+
+      const title = DataElement.create(titleName, '', {
+        [DataElementAttribute.ROLE]: DataElementRole.SECTION,
+      });
+      const groupName = DataElement.createUniqueSiblingName(title, 'グループ');
+      const group = DataElement.create(groupName, '', {
+        [DataElementAttribute.ROLE]: DataElementRole.GROUP,
+      });
+      const tagName = DataElement.createUniqueSiblingName(group, 'タグ');
+      const tag = DataElement.create(tagName, '', {
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
+        [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+      });
+      group.appendChild(tag);
+      title.appendChild(group);
       obj.detailDataElement.appendChild(title);
     }
   }
@@ -721,96 +765,43 @@ export class GameCharacterSheetComponent {
     this.changeGridColor((event.target as HTMLInputElement).value);
   }
 
-  // ── ポップアップ表示データ設定 ──
-  private static readonly POPUP_HIDDEN_NAMES = new Set(['立ち絵位置', 'コマ画像', 'バフ/デバフ']);
-
-  get popupElements(): Array<{ identifier: string; name: string; depth: number; isSection: boolean }> {
-    const char = this.character;
-    if (!char?.detailDataElement) return [];
-    const result: Array<{ identifier: string; name: string; depth: number; isSection: boolean }> = [];
-    const collect = (elements: readonly DataElement[], depth: number) => {
-      for (const elm of elements) {
-        if (!elm.name) continue;
-        if (depth === 0 && GameCharacterSheetComponent.POPUP_HIDDEN_NAMES.has(elm.name)) continue;
-        result.push({ identifier: elm.identifier, name: elm.name, depth, isSection: elm.children.length > 0 });
-        if (elm.children.length) collect(elm.children, depth + 1);
-      }
-    };
-    collect(char.detailDataElement.children, 0);
-    return result;
+  isPopupDataElement(element: DataElement): boolean {
+    this.objectChange.versionOf(element.identifier)();
+    return (
+      element.getAttribute(DataElementAttribute.POPUP) === 'true' ||
+      (this.character?.overViewDataTags.includes(element.identifier) ?? false)
+    );
   }
 
-  /** インベントリタグに名前で含まれている要素の identifier セット */
-  get inventoryLockedIdentifiers(): Set<string> {
-    const char = this.character;
-    if (!char?.detailDataElement) return new Set();
-    const tags = new Set(DataSummarySetting.instance.dataTags);
-    const result = new Set<string>();
-    const scan = (elements: readonly DataElement[]) => {
-      for (const elm of elements) {
-        if (tags.has(elm.name)) result.add(elm.identifier);
-        if (elm.children.length) scan(elm.children);
-      }
-    };
-    scan(char.detailDataElement.children);
-    return result;
-  }
-
-  isLockedPopupTag(identifier: string): boolean {
-    return this.inventoryLockedIdentifiers.has(identifier);
-  }
-
-  isInPopupTags(identifier: string): boolean {
-    if (this.isLockedPopupTag(identifier)) return true;
-    return this.character?.overViewDataTags.includes(identifier) ?? false;
-  }
-
-  onTogglePopupTag(identifier: string, event: Event): void {
+  togglePopupDataElement(element: DataElement, event?: MouseEvent): void {
+    event?.stopPropagation();
     const char = this.character;
     if (!char) return;
-    if (this.isLockedPopupTag(identifier)) return;
-    const checked = (event.target as HTMLInputElement).checked;
-    const tags = [...char.overViewDataTags];
-    if (checked) {
-      if (!tags.includes(identifier)) tags.push(identifier);
-    } else {
-      const idx = tags.indexOf(identifier);
-      if (idx >= 0) tags.splice(idx, 1);
-    }
-    char.overViewDataTags = tags;
+
+    const legacyTags = char.overViewDataTags.filter((id) => id !== element.identifier);
+    if (this.isPopupDataElement(element)) element.removeAttribute(DataElementAttribute.POPUP);
+    else element.setAttribute(DataElementAttribute.POPUP, 'true');
+
+    char.overViewDataTags = legacyTags;
+    this.objectChange.notifyChanged(element.identifier);
   }
 
-  onResetPopupTags(): void {
-    const char = this.character;
-    if (!char) return;
-    char.overViewDataTags = [];
-  }
-
-  /** 旧 markdown タイプの要素数（移行バナー表示判定用） */
-  legacyMarkdownCount(): number {
+  /** 旧チェック/表フィールドの要素数（移行バナー表示判定用） */
+  legacyCheckTableCount(): number {
     const char = this.character;
     if (!char?.detailDataElement) return 0;
-    let count = 0;
-    const scan = (elements: readonly DataElement[]) => {
-      for (const elm of elements) {
-        if (elm.type === DataElementType.MARKDOWN) count++;
-        if (elm.children.length) scan(elm.children);
-      }
-    };
-    scan(char.detailDataElement.children);
-    return count;
+    return countConvertibleCheckTableElements(char.detailDataElement);
   }
 
-  /** 旧 markdown → checktable に一括変換 */
-  migrateMarkdownToCheckTable(): void {
+  /** 旧チェック/表フィールド → 構造化テーブルに一括変換 */
+  convertLegacyCheckTables(): void {
     const char = this.character;
     if (!char?.detailDataElement) return;
-    const migrate = (elements: readonly DataElement[]) => {
-      for (const elm of elements) {
-        if (elm.type === DataElementType.MARKDOWN) elm.setAttribute('type', DataElementType.CHECK_TABLE);
-        if (elm.children.length) migrate(elm.children);
-      }
-    };
-    migrate(char.detailDataElement.children);
+
+    const convertedCount = convertLegacyCheckTableElements(char.detailDataElement);
+    if (convertedCount < 1) return;
+
+    this.objectChange.notifyChanged(char.detailDataElement.identifier);
+    char.update();
   }
 }

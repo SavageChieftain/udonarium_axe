@@ -325,6 +325,7 @@
                 @for (childElement of detailElements(); track childElement.identifier) {
                   <div
                     class="cs-data-card"
+                    [class.cs-data-card--editing]="isElementEditing(childElement.identifier)"
                     [class.cs-data-card--span2]="getCardColspan(childElement) === '2'"
                     [class.cs-data-card--full]="getCardColspan(childElement) === 'full'"
                     [class.cs-drag-over]="dragOverId() === childElement.identifier"
@@ -333,29 +334,42 @@
                     (drop)="onDrop($event, childElement.identifier)"
                   >
                     <div class="cs-card-toolbar">
-                      <span
-                        class="cs-drag-handle material-icons"
-                        draggable="true"
-                        (dragstart)="onDragStart($event, childElement.identifier)"
-                        (dragend)="onDragEnd()"
-                        title="ドラッグして並び替え"
-                        >drag_indicator</span
-                      >
+                      @if (isElementEditing(childElement.identifier)) {
+                        <span
+                          class="cs-drag-handle material-icons"
+                          draggable="true"
+                          (dragstart)="onDragStart($event, childElement.identifier)"
+                          (dragend)="onDragEnd()"
+                          title="ドラッグして並び替え"
+                          >drag_indicator</span
+                        >
+                      }
                       <span class="cs-card-title">
                         @if (getCardIcon(childElement)) {
                           <i class="material-icons cs-card-title-icon">{{ getCardIcon(childElement) }}</i>
                         }
                         {{ getCardName(childElement) }}
                       </span>
-                      <button
-                        class="cs-icon-btn cs-colspan-btn"
-                        type="button"
-                        title="カラム幅を切り替え"
-                        (click)="cycleCardColspan(childElement)"
-                      >
-                        <span>{{ getCardColspan(childElement) === 'full' ? '全' : getCardColspan(childElement) }}</span>
-                      </button>
                       @if (isElementEditing(childElement.identifier)) {
+                        <button
+                          class="cs-icon-btn cs-colspan-btn"
+                          type="button"
+                          title="カラム幅を切り替え"
+                          (click)="cycleCardColspan(childElement)"
+                        >
+                          <span>{{
+                            getCardColspan(childElement) === 'full' ? '全' : getCardColspan(childElement)
+                          }}</span>
+                        </button>
+                        <button
+                          class="cs-icon-btn"
+                          [class.cs-icon-btn--active]="isPopupDataElement(childElement)"
+                          type="button"
+                          title="ポップアップ表示"
+                          (click)="togglePopupDataElement(childElement, $event)"
+                        >
+                          <i class="material-icons">open_in_new</i>
+                        </button>
                         <button
                           class="cs-icon-btn cs-icon-btn--danger"
                           type="button"
@@ -512,13 +526,13 @@
           </div>
 
           <!-- データ移行 -->
-          @if (legacyMarkdownCount() > 0) {
+          @if (legacyCheckTableCount() > 0) {
             <div class="cs-settings-section cs-settings-section--full">
               <div class="cs-sec-title"><i class="material-icons">upgrade</i>データ移行</div>
               <div class="cs-migrate-row">
-                <span class="cs-field-label">チェック/表（旧）が {{ legacyMarkdownCount() }} 件あります</span>
-                <button class="cs-migrate-btn" type="button" (click)="migrateMarkdownToCheckTable()">
-                  <i class="material-icons">auto_fix_high</i>新形式に一括変換
+                <span class="cs-field-label">構造化できる旧チェック表が {{ legacyCheckTableCount() }} 件あります</span>
+                <button class="cs-migrate-btn" type="button" (click)="convertLegacyCheckTables()">
+                  <i class="material-icons">auto_fix_high</i>構造化テーブルに一括変換
                 </button>
               </div>
             </div>
@@ -553,50 +567,6 @@
                 />
               </div>
             </div>
-            <!-- 表示するデータ要素の設定 -->
-            <div class="cs-popup-data-header">
-              <span class="cs-field-label">表示するデータ</span>
-              @if (character.overViewDataTags.length > 0) {
-                <button class="cs-reset-btn" type="button" (click)="onResetPopupTags()">リセット</button>
-              }
-            </div>
-            @if (character.overViewDataTags.length === 0) {
-              <div class="cs-popup-hint">（未設定: インベントリタグを使用）</div>
-            }
-            @if (popupElements.length > 0) {
-              <div class="cs-popup-tag-list">
-                @for (elm of popupElements; track elm.identifier) {
-                  @if (elm.isSection) {
-                    <div class="cs-popup-section-row" [style.padding-left.em]="elm.depth * 1 + 0.25">
-                      <label
-                        class="cs-flag-label cs-popup-section-label"
-                        [class.cs-popup-locked]="isLockedPopupTag(elm.identifier)"
-                      >
-                        <input
-                          type="checkbox"
-                          [checked]="isInPopupTags(elm.identifier)"
-                          [disabled]="isLockedPopupTag(elm.identifier)"
-                          (change)="onTogglePopupTag(elm.identifier, $event)"
-                        /><strong>{{ elm.name }}</strong>
-                      </label>
-                    </div>
-                  } @else {
-                    <label
-                      class="cs-flag-label cs-popup-leaf-row"
-                      [class.cs-popup-locked]="isLockedPopupTag(elm.identifier)"
-                      [style.padding-left.em]="elm.depth * 1 + 0.25"
-                    >
-                      <input
-                        type="checkbox"
-                        [checked]="isInPopupTags(elm.identifier)"
-                        [disabled]="isLockedPopupTag(elm.identifier)"
-                        (change)="onTogglePopupTag(elm.identifier, $event)"
-                      />{{ elm.name }}
-                    </label>
-                  }
-                }
-              </div>
-            }
           </div>
         </div>
       }
