@@ -45,6 +45,16 @@ describe('ChatMessage', () => {
     });
   });
 
+  describe('attachmentImageIdentifierList', () => {
+    it('JSON文字列から添付画像ID一覧を取得できる', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.attachmentImageIdentifiers = JSON.stringify(['image-a', ' image-b ']);
+
+      expect(msg.attachmentImageIdentifierList).toEqual(['image-a', 'image-b']);
+    });
+  });
+
   describe('timestamp', () => {
     it('attributeが未設定の場合1を返す', () => {
       const msg = new ChatMessage();

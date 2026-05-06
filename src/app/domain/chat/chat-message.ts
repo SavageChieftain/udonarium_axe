@@ -24,6 +24,7 @@ export interface ChatMessageContext {
   tag?: string;
   dicebot?: string;
   imageIdentifier?: string;
+  attachmentImageIdentifiers?: string;
 
   imagePos?: number;
   messColor?: string;
@@ -39,6 +40,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() tag: string;
   @SyncVar() dicebot: string;
   @SyncVar() imageIdentifier: string;
+  @SyncVar() attachmentImageIdentifiers: string = '';
   @SyncVar() imagePos: number;
   @SyncVar() messColor: string;
   @SyncVar() sendFrom: string;
@@ -81,6 +83,30 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   }
   get image(): ImageFile | null {
     return ImageStorage.instance.get(this.imageIdentifier);
+  }
+  get attachmentImageIdentifierList(): string[] {
+    const rawValue = String(this.attachmentImageIdentifiers ?? '').trim();
+    if (rawValue.startsWith('[')) {
+      try {
+        const identifiers = JSON.parse(rawValue) as unknown;
+        if (Array.isArray(identifiers)) {
+          return identifiers
+            .map((identifier) => String(identifier).trim())
+            .filter((identifier) => identifier.length > 0);
+        }
+      } catch {
+        return [];
+      }
+    }
+    return rawValue
+      .split(/\n+/)
+      .map((identifier) => identifier.trim())
+      .filter((identifier) => identifier.length > 0);
+  }
+  get attachmentImages(): ImageFile[] {
+    return this.attachmentImageIdentifierList
+      .map((identifier) => ImageStorage.instance.get(identifier))
+      .filter((image): image is ImageFile => image != null);
   }
   override get index(): number {
     return this.minorIndex + this.timestamp;

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
@@ -22,6 +23,30 @@ describe('ChatMessageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('本文添付画像をチャット本文内に表示すること', () => {
+    const image = ImageStorage.instance.add('stamp-image.png');
+    try {
+      const message = new ChatMessage();
+      message.initialize();
+      message.from = 'test-user';
+      message.to = '';
+      message.name = 'テスト';
+      message.tag = '';
+      message.imageIdentifier = '';
+      message.messColor = '#000000';
+      message.text = '確認';
+      message.attachmentImageIdentifiers = JSON.stringify([image.identifier]);
+      fixture.componentRef.setInput('chatMessage', message);
+      fixture.detectChanges();
+
+      const attachment = fixture.nativeElement.querySelector('.message-attachment-image') as HTMLImageElement | null;
+      expect(attachment).toBeTruthy();
+      expect(attachment?.getAttribute('src')).toBe('stamp-image.png');
+    } finally {
+      ImageStorage.instance.delete(image.identifier);
+    }
   });
 
   describe('escapeHtmlAndRuby', () => {

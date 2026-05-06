@@ -1,6 +1,9 @@
 import type { ChatMessage } from '@axe/domain/chat/chat-message';
 import type { ChatTab } from '@axe/domain/chat/chat-tab';
 
+export type ChatLogAttachmentImage = ChatMessage['attachmentImages'][number];
+export type ChatLogAttachmentImageSrcResolver = (image: ChatLogAttachmentImage) => string;
+
 type MessageFormatter = (tabName: string, message: ChatMessage) => string;
 
 const HTML_ESCAPE_MAP: Record<string, string> = {
@@ -21,7 +24,13 @@ export class ChatLogExporter {
     return escaped.replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\s/g, ' ');
   }
 
-  static formatMessageStandard(isTime: boolean, tabName: string, message: ChatMessage, userId?: string): string {
+  static formatMessageStandard(
+    isTime: boolean,
+    tabName: string,
+    message: ChatMessage,
+    userId?: string,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
     if (!message) return '';
     let str = '';
     if (tabName) str += `[${ChatLogExporter.escapeHtml(tabName)}]`;
@@ -43,6 +52,7 @@ export class ChatLogExporter {
     str += '：';
     if (!message.isSecret || canSee) {
       if (message.text) str += ChatLogExporter.escapeHtml(message.text).replace(/\n/g, '<br>');
+      str += ChatLogExporter.formatAttachmentImages(message, attachmentImageSrcResolver);
     } else {
       str += '（シークレットダイス）';
     }
@@ -52,7 +62,12 @@ export class ChatLogExporter {
     return str;
   }
 
-  static formatMessageCoc(tabName: string, message: ChatMessage, userId?: string): string {
+  static formatMessageCoc(
+    tabName: string,
+    message: ChatMessage,
+    userId?: string,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
     if (!message) return '';
     let str = '';
     str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
@@ -66,6 +81,7 @@ export class ChatLogExporter {
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     if (!message.isSecret || canSee) {
       if (message.text) str += ChatLogExporter.escapeHtml(message.text).replace(/\n/g, '<br>').replace(/→/g, '＞');
+      str += ChatLogExporter.formatAttachmentImages(message, attachmentImageSrcResolver);
     } else {
       str += '（シークレットダイス）';
     }
@@ -78,7 +94,11 @@ export class ChatLogExporter {
     return str;
   }
 
-  static exportTabHtml(tab: ChatTab, userId?: string): string {
+  static exportTabHtml(
+    tab: ChatTab,
+    userId?: string,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
@@ -91,12 +111,16 @@ export class ChatLogExporter {
     const parts: string[] = [];
     for (const mess of tab.chatMessages) {
       if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
-      parts.push(ChatLogExporter.formatMessageStandard(true, '', mess, userId));
+      parts.push(ChatLogExporter.formatMessageStandard(true, '', mess, userId, attachmentImageSrcResolver));
     }
     return head + parts.join('') + '\n  </body>\n</html>';
   }
 
-  static exportTabHtmlCoc(tab: ChatTab, userId?: string): string {
+  static exportTabHtmlCoc(
+    tab: ChatTab,
+    userId?: string,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -111,12 +135,19 @@ export class ChatLogExporter {
     const parts: string[] = [];
     for (const mess of tab.chatMessages) {
       if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
-      parts.push(ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId));
+      parts.push(
+        ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId, attachmentImageSrcResolver)
+      );
     }
     return head + parts.join('') + '  </body>\n</html>';
   }
 
-  static exportAllTabsHtml(tabs: readonly ChatTab[], showTime: number | boolean, userId?: string): string {
+  static exportAllTabsHtml(
+    tabs: readonly ChatTab[],
+    showTime: number | boolean,
+    userId?: string,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
@@ -128,13 +159,18 @@ export class ChatLogExporter {
 `;
     const main = ChatLogExporter.mergeTabMessages(
       tabs,
-      (tabName, message) => ChatLogExporter.formatMessageStandard(!!showTime, tabName, message, userId),
+      (tabName, message) =>
+        ChatLogExporter.formatMessageStandard(!!showTime, tabName, message, userId, attachmentImageSrcResolver),
       userId
     );
     return head + main + '\n  </body>\n</html>';
   }
 
-  static exportAllTabsHtmlCoc(tabs: readonly ChatTab[], userId?: string): string {
+  static exportAllTabsHtmlCoc(
+    tabs: readonly ChatTab[],
+    userId?: string,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -148,7 +184,7 @@ export class ChatLogExporter {
 `;
     const main = ChatLogExporter.mergeTabMessages(
       tabs,
-      (tabName, message) => ChatLogExporter.formatMessageCoc(tabName, message, userId),
+      (tabName, message) => ChatLogExporter.formatMessageCoc(tabName, message, userId, attachmentImageSrcResolver),
       userId
     );
     return head + main + '  </body>\n</html>';
@@ -190,5 +226,30 @@ export class ChatLogExporter {
       indexList[fastTabIndex]++;
     }
     return parts.join('');
+  }
+
+  private static formatAttachmentImages(
+    message: ChatMessage,
+    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+  ): string {
+    const images = message.attachmentImages ?? [];
+    if (images.length < 1) return '';
+
+    const imageTags = images
+      .map((image) => {
+        const src = attachmentImageSrcResolver?.(image) ?? image.url;
+        if (!src) return '';
+        const alt = image.name || '添付画像';
+        return `<img src="${ChatLogExporter.escapeAttribute(src)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="max-width:180px;max-height:120px;width:auto;height:auto;object-fit:contain;border:1px solid #cccccc;border-radius:4px;background:#ffffff;vertical-align:top;margin:2px 4px 2px 0;" />`;
+      })
+      .filter((imageTag) => imageTag.length > 0)
+      .join('');
+
+    if (!imageTags) return '';
+    return `<span style="display:block;margin-top:6px;white-space:normal;">${imageTags}</span>`;
+  }
+
+  private static escapeAttribute(value: string): string {
+    return value.replace(/[&'`"<>]/g, (match) => HTML_ESCAPE_MAP[match] ?? match);
   }
 }

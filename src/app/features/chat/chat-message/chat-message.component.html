@@ -32,6 +32,13 @@
           <div class="text msg-text">
             @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
+              @if (attachmentImageFiles().length > 0) {
+                <div class="message-attachments">
+                  @for (image of attachmentImageFiles(); track image.identifier) {
+                    <img class="message-attachment-image" [src]="image.url | safe: 'resourceUrl'" alt="添付画像" />
+                  }
+                </div>
+              }
               @if (chatMessage.isSecret) {
                 <button (click)="discloseMessage()">内容を公開</button>
               }
@@ -73,6 +80,13 @@
             <font class="text msg-text">
               @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
+                @if (attachmentImageFiles().length > 0) {
+                  <span class="message-attachments message-attachments--small">
+                    @for (image of attachmentImageFiles(); track image.identifier) {
+                      <img class="message-attachment-image" [src]="image.url | safe: 'resourceUrl'" alt="添付画像" />
+                    }
+                  </span>
+                }
                 @if (chatMessage.isSecret) {
                   <button (click)="discloseMessage()">内容を公開</button>
                 }

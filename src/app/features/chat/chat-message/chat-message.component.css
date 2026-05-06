@@ -150,6 +150,37 @@
   color: var(--ui-accent);
 }
 
+.message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  white-space: normal;
+}
+
+.message-attachments--small {
+  display: inline-flex;
+  margin: 0 0 0 6px;
+  vertical-align: middle;
+}
+
+.message-attachment-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(180px, 100%);
+  max-height: 120px;
+  object-fit: contain;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: 4px;
+  background: var(--ui-elevated);
+}
+
+.message-attachments--small .message-attachment-image {
+  max-width: 72px;
+  max-height: 48px;
+}
+
 :host ::ng-deep .msg-text ruby.chat-ruby {
   display: inline-flex;
   flex-direction: column-reverse;

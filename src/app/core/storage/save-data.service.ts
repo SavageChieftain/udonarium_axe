@@ -2,12 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
+import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { GameObject } from '@axe/core/sync/game-object';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { xml2element } from '@axe/core/util/xml-util';
+import { ChatLogAttachmentImageSrcResolver, ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
@@ -134,7 +136,9 @@ export class SaveDataService {
       images[identifier] = this.imageStorage.get(identifier);
     }
 
-    imageElements = xmlElement.ownerDocument.querySelectorAll('*[imageIdentifier], *[backgroundImageIdentifier]');
+    imageElements = xmlElement.ownerDocument.querySelectorAll(
+      '*[imageIdentifier], *[backgroundImageIdentifier], *[attachmentImageIdentifiers]'
+    );
 
     for (let i = 0; i < imageElements.length; i++) {
       const identifier = imageElements[i].getAttribute('imageIdentifier');
@@ -142,6 +146,12 @@ export class SaveDataService {
       const backgroundImageIdentifier = imageElements[i].getAttribute('backgroundImageIdentifier');
       if (backgroundImageIdentifier)
         images[backgroundImageIdentifier] = this.imageStorage.get(backgroundImageIdentifier);
+      const attachmentImageIdentifiers = imageElements[i].getAttribute('attachmentImageIdentifiers') ?? '';
+      for (const attachmentImageIdentifier of this.parseAttachmentImageIdentifiers(attachmentImageIdentifiers)) {
+        if (attachmentImageIdentifier) {
+          images[attachmentImageIdentifier] = this.imageStorage.get(attachmentImageIdentifier);
+        }
+      }
     }
     for (const image of Object.values(images)) {
       if (image) {
@@ -151,28 +161,95 @@ export class SaveDataService {
     return files;
   }
 
-  saveHtmlChatLog(chatTab: ChatTab, fileName: string) {
-    const text: string = chatTab.logHtml();
+  private parseAttachmentImageIdentifiers(value: string): string[] {
+    const rawValue = value.trim();
+    if (rawValue.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(rawValue) as unknown;
+        if (Array.isArray(parsed)) return parsed.map((identifier) => String(identifier));
+      } catch {
+        return [];
+      }
+    }
+    return rawValue.split(/\n+/);
+  }
+
+  async saveHtmlChatLog(chatTab: ChatTab, fileName: string): Promise<void> {
+    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver([chatTab]);
+    const text: string = ChatLogExporter.exportTabHtml(chatTab, undefined, attachmentImageSrcResolver);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
-  saveHtmlChatLogAll(fileName: string) {
-    const text: string = this.chatTabList.logHtml();
+  async saveHtmlChatLogAll(fileName: string): Promise<void> {
+    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver(this.chatTabList.chatTabs);
+    const text: string = ChatLogExporter.exportAllTabsHtml(
+      this.chatTabList.chatTabs,
+      this.chatTabList.simpleDispFlagTime,
+      undefined,
+      attachmentImageSrcResolver
+    );
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
-  saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string) {
-    const text: string = chatTab.logHtmlCoc();
+  async saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string): Promise<void> {
+    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver([chatTab]);
+    const text: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, attachmentImageSrcResolver);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
-  saveHtmlChatLogAllCoc(fileName: string) {
-    const text: string = this.chatTabList.logHtmlCoc();
+  async saveHtmlChatLogAllCoc(fileName: string): Promise<void> {
+    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver(this.chatTabList.chatTabs);
+    const text: string = ChatLogExporter.exportAllTabsHtmlCoc(
+      this.chatTabList.chatTabs,
+      undefined,
+      attachmentImageSrcResolver
+    );
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
+  }
+
+  private async createChatLogAttachmentImageSrcResolver(
+    chatTabs: readonly ChatTab[]
+  ): Promise<ChatLogAttachmentImageSrcResolver> {
+    const images = new Map<string, ImageFile>();
+    for (const chatTab of chatTabs) {
+      for (const message of chatTab.chatMessages) {
+        for (const image of message.attachmentImages) {
+          images.set(image.identifier, image);
+        }
+      }
+    }
+
+    const imageSources = new Map<string, string>();
+    await Promise.all(
+      [...images.values()].map(async (image) => {
+        imageSources.set(image.identifier, await this.createChatLogAttachmentImageSrc(image));
+      })
+    );
+
+    return (image) => imageSources.get(image.identifier) ?? image.url;
+  }
+
+  private async createChatLogAttachmentImageSrc(image: ImageFile): Promise<string> {
+    const blob = image.blob;
+    if (blob) return FileReaderUtil.readAsDataURLAsync(blob);
+
+    const url = image.url;
+    if (!url || url.startsWith('data:')) return url;
+    return (await this.createChatLogAttachmentImageSrcFromUrl(url)) ?? url;
+  }
+
+  private async createChatLogAttachmentImageSrcFromUrl(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      return FileReaderUtil.readAsDataURLAsync(await response.blob());
+    } catch {
+      return null;
+    }
   }
 
   private appendTimestamp(fileName: string): string {

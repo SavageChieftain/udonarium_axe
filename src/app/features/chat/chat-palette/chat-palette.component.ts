@@ -295,6 +295,12 @@ export class ChatPaletteComponent {
       let outtext = '';
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
+      const attachmentImageIdentifiers: string[] = [];
+      const appendAttachmentImages = (identifiers: string[]) => {
+        for (const identifier of identifiers) {
+          if (!attachmentImageIdentifiers.includes(identifier)) attachmentImageIdentifiers.push(identifier);
+        }
+      };
       if (palette.checkTargetCharacter(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;
@@ -313,7 +319,9 @@ export class ChatPaletteComponent {
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 
-          outtext += palette.evaluate(str2, character.rootDataElement ?? undefined, object);
+          const evaluated = palette.evaluateWithAttachments(str2, character.rootDataElement ?? undefined, object);
+          appendAttachmentImages(evaluated.attachmentImageIdentifiers);
+          outtext += evaluated.text;
           outtext += ' [' + object.name + ']';
           first = false;
 
@@ -321,12 +329,14 @@ export class ChatPaletteComponent {
             text: '',
             object: null,
           };
-          targetContext.text = palette.evaluate(str2, character.rootDataElement ?? undefined, object);
+          targetContext.text = evaluated.text;
           targetContext.object = object;
           messageTargetContext.push(targetContext);
         }
       } else {
-        outtext = palette.evaluate(value.text, character.rootDataElement ?? undefined);
+        const evaluated = palette.evaluateWithAttachments(value.text, character.rootDataElement ?? undefined);
+        appendAttachmentImages(evaluated.attachmentImageIdentifiers);
+        outtext = evaluated.text;
         const targetContext: ChatMessageTargetContext = {
           text: '',
           object: null,
@@ -343,7 +353,8 @@ export class ChatPaletteComponent {
         value.sendTo,
         value.portraitIndex,
         value.messColor,
-        messageTargetContext
+        messageTargetContext,
+        attachmentImageIdentifiers
       );
       // this.chatMessageService.sendMessage(this.chatTab, text, value.gameType, value.sendFrom, value.sendTo);
     }

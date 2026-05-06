@@ -8,6 +8,7 @@ describe('SaveDataService', () => {
   type SaveDataServicePrivateApi = {
     _saveRoomAsync: (fileName?: string) => Promise<void>;
     _saveGameObjectAsync: (gameObject: object, fileName?: string) => Promise<void>;
+    createChatLogAttachmentImageSrc: (image: ImageFile) => Promise<string>;
     convertToXml: (gameObject: unknown) => string;
     searchImageFiles: (xml: string) => ImageFile[];
     saveAsync: (files: File[], zipName: string, updateCallback?: (percent: number) => void) => Promise<void>;
@@ -61,6 +62,56 @@ describe('SaveDataService', () => {
 
     const files = saveAsyncSpy.mock.calls[0][0] as File[];
     expect(files.some((file: File) => file.name.startsWith('image-null-blob.'))).toBe(false);
+  });
+
+  it('HTMLログ添付画像src: blob画像をdata URLに変換する', async () => {
+    const service = TestBed.inject(SaveDataService);
+    const privateApi = service as unknown as SaveDataServicePrivateApi;
+    const image = {
+      blob: new Blob(['Test'], { type: 'text/plain' }),
+      url: 'blob:stamp-image',
+    } as ImageFile;
+
+    await expect(privateApi.createChatLogAttachmentImageSrc(image)).resolves.toBe('data:text/plain;base64,VGVzdA==');
+  });
+
+  it('HTMLログ添付画像src: 取得可能なURL画像をdata URLに変換する', async () => {
+    const service = TestBed.inject(SaveDataService);
+    const privateApi = service as unknown as SaveDataServicePrivateApi;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () => Promise.resolve(new Blob(['UrlImage'], { type: 'text/plain' })),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const image = {
+      blob: null,
+      url: 'https://example.test/stamp.txt',
+    } as ImageFile;
+
+    try {
+      await expect(privateApi.createChatLogAttachmentImageSrc(image)).resolves.toBe(
+        'data:text/plain;base64,VXJsSW1hZ2U='
+      );
+      expect(fetchMock).toHaveBeenCalledWith('https://example.test/stamp.txt');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('HTMLログ添付画像src: URL画像を取得できない場合は元URLを返す', async () => {
+    const service = TestBed.inject(SaveDataService);
+    const privateApi = service as unknown as SaveDataServicePrivateApi;
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+    const image = {
+      blob: null,
+      url: 'https://example.test/stamp.png',
+    } as ImageFile;
+
+    try {
+      await expect(privateApi.createChatLogAttachmentImageSrc(image)).resolves.toBe('https://example.test/stamp.png');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   describe('saveAsync → FileArchiver.saveAsync の委譲', () => {

@@ -18,6 +18,14 @@ describe('FileReaderUtil', () => {
     });
   });
 
+  describe('readAsDataURLAsync', () => {
+    it('Blobをdata URLに変換できる', async () => {
+      const blob = new Blob(['Test'], { type: 'text/plain' });
+      const dataUrl = await FileReaderUtil.readAsDataURLAsync(blob);
+      expect(dataUrl).toBe('data:text/plain;base64,VGVzdA==');
+    });
+  });
+
   describe('calcSHA256Async', () => {
     it('BlobのSHA256ハッシュを計算できる', async () => {
       const blob = new Blob(['test data'], { type: 'text/plain' });

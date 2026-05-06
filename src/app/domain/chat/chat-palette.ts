@@ -3,7 +3,7 @@ import { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { toHalfWidth } from '@axe/core/util/string-util';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 
 export interface PaletteLine {
   palette: string;
@@ -22,6 +22,11 @@ export interface PaletteMatch {
 export interface PaletteVariable {
   name: string;
   value: string;
+}
+
+export interface PaletteEvaluationResult {
+  text: string;
+  attachmentImageIdentifiers: string[];
 }
 
 @SyncObject('chat-palette')
@@ -145,12 +150,46 @@ export class ChatPalette extends ObjectNode {
   }
 
   evaluate(line: PaletteLine | string, extendVariables?: DataElement, target?: GameCharacter): string {
+    return this.evaluateInternal(line, extendVariables, target, false).text;
+  }
+
+  evaluateWithAttachments(
+    line: PaletteLine | string,
+    extendVariables?: DataElement,
+    target?: GameCharacter
+  ): PaletteEvaluationResult {
+    return this.evaluateInternal(line, extendVariables, target, true);
+  }
+
+  private evaluateInternal(
+    line: PaletteLine | string,
+    extendVariables: DataElement | undefined,
+    target: GameCharacter | undefined,
+    collectImageAttachments: boolean
+  ): PaletteEvaluationResult {
     let evaluate: string;
     if (typeof line === 'string') {
       evaluate = line;
     } else {
       evaluate = line.palette;
     }
+
+    const attachmentImageIdentifiers: string[] = [];
+
+    const evaluateElementText = (element: DataElement, useMax: boolean): string => {
+      if (collectImageAttachments && element.fieldType === DataElementFieldType.IMAGE) {
+        const imageIdentifier = String(element.value ?? '').trim();
+        if (imageIdentifier.length > 0 && !attachmentImageIdentifiers.includes(imageIdentifier)) {
+          attachmentImageIdentifiers.push(imageIdentifier);
+        }
+        return '';
+      }
+
+      if (useMax && element.isNumberResource) {
+        return `${element.value}`;
+      }
+      return element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
+    };
 
     const limit = 128;
     let loop = 0;
@@ -173,14 +212,11 @@ export class ChatPalette extends ObjectNode {
             if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
           }
           if (target) {
-            const element = target.rootDataElement?.getFirstElementByName(name);
+            const element = target.rootDataElement
+              ? DataElement.findElementByReference(target.rootDataElement, name)
+              : null;
             if (element) {
-              let targetElementText: string;
-              if (useMax && element.isNumberResource) {
-                targetElementText = `${element.value}`;
-              } else {
-                targetElementText = element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
-              }
+              let targetElementText = evaluateElementText(element, useMax);
               if (targetElementText.match(/[{｛]\s*([^{}｛｝]+)\s*[}｝]/g)) {
                 targetElementText = targetElementText.replace(/[{｛]/g, 't{');
               }
@@ -193,10 +229,9 @@ export class ChatPalette extends ObjectNode {
           }
 
           if (extendVariables) {
-            const element = extendVariables.getFirstElementByName(name);
+            const element = DataElement.findElementByReference(extendVariables, name);
             if (element) {
-              if (useMax && element.isNumberResource) return `${element.value}`;
-              return element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
+              return evaluateElementText(element, useMax);
             }
           }
         }
@@ -204,7 +239,7 @@ export class ChatPalette extends ObjectNode {
       });
       if (limit < loop) isContinue = false;
     }
-    return evaluate;
+    return { text: evaluate, attachmentImageIdentifiers };
   }
 
   private parse(paletteSource: string) {

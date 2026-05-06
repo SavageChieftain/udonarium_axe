@@ -278,11 +278,20 @@ function convertUrlImage(xmlElement: Element) {
     }
   }
 
-  imageElements = xmlElement.querySelectorAll('*[imageIdentifier]');
+  imageElements = xmlElement.querySelectorAll('*[imageIdentifier], *[attachmentImageIdentifiers]');
   for (let i = 0; i < imageElements.length; i++) {
     const url = imageElements[i].getAttribute('imageIdentifier');
     if (!ImageStorage.instance.get(url ?? '') && 0 < MimeType.type(url ?? '').length) {
       urls.push(url!);
+    }
+    const attachmentImageIdentifiers = imageElements[i].getAttribute('attachmentImageIdentifiers') ?? '';
+    for (const attachmentImageIdentifier of parseAttachmentImageIdentifiers(attachmentImageIdentifiers)) {
+      if (
+        !ImageStorage.instance.get(attachmentImageIdentifier) &&
+        0 < MimeType.type(attachmentImageIdentifier).length
+      ) {
+        urls.push(attachmentImageIdentifier);
+      }
     }
   }
   for (const url of urls) {
@@ -306,4 +315,17 @@ function convertUrlImage(xmlElement: Element) {
       ImageStorage.instance.add(url);
     }
   }
+}
+
+function parseAttachmentImageIdentifiers(value: string): string[] {
+  const rawValue = value.trim();
+  if (rawValue.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(rawValue) as unknown;
+      if (Array.isArray(parsed)) return parsed.map((identifier) => String(identifier));
+    } catch {
+      return [];
+    }
+  }
+  return rawValue.split(/\n+/);
 }

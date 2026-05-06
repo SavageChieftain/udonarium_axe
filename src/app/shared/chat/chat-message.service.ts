@@ -3,11 +3,12 @@ import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { toHalfWidth } from '@axe/core/util/string-util';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { emitDiceTableMessage, emitResourceEditMessage, emitSendMessage } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -141,8 +142,12 @@ export class ChatMessageService {
     sendTo?: string,
     portraitIndex?: number,
     color?: string,
-    messageTargetContext?: ChatMessageTargetContext[]
+    messageTargetContext?: ChatMessageTargetContext[],
+    attachmentImageIdentifiers?: string[]
   ): ChatMessage {
+    const resolvedMessage = this.resolveAttachmentImageReferences(text, sendFrom, attachmentImageIdentifiers ?? []);
+    text = resolvedMessage.text;
+
     const imgIndex = resolvePortraitIndex(portraitIndex);
     const messageColor = resolveMessageColor(color, '#000000');
 
@@ -156,11 +161,14 @@ export class ChatMessageService {
       imageIdentifier: this.findImageIdentifier(sendFrom, imgIndex),
       timestamp: this.calcTimeStamp(chatTab),
       tag: chatMessageTag,
-      text: text,
+      text,
       imagePos: this.findImagePos(sendFrom),
       messColor: messageColor,
       sendFrom: sendFrom,
     };
+    if (resolvedMessage.attachmentImageIdentifiers.length > 0) {
+      chatMessage.attachmentImageIdentifiers = JSON.stringify(resolvedMessage.attachmentImageIdentifiers);
+    }
 
     this.setLastControlInfoToPeer(sendFrom, this.findImageIdentifier(sendFrom, imgIndex), imgIndex, sendTo);
 
@@ -181,6 +189,36 @@ export class ChatMessageService {
     });
 
     return chat;
+  }
+
+  private resolveAttachmentImageReferences(
+    text: string,
+    sendFrom: string,
+    attachmentImageIdentifiers: string[]
+  ): { text: string; attachmentImageIdentifiers: string[] } {
+    const object = this.objectStore.get(sendFrom);
+    if (!(object instanceof GameCharacter) || !object.rootDataElement) {
+      return { text, attachmentImageIdentifiers };
+    }
+
+    const resolvedAttachmentImageIdentifiers = [...attachmentImageIdentifiers];
+    const resolvedText = text.replace(/[tTｔＴ]?[{｛]\s*([^{}｛｝]+)\s*[}｝]/g, (match, name) => {
+      if (match.match(/^[tTｔＴ].*/)) return match;
+
+      const element = DataElement.findElementByReference(object.rootDataElement!, toHalfWidth(name));
+      if (!element || element.fieldType !== DataElementFieldType.IMAGE) return match;
+
+      const imageIdentifier = String(element.value ?? '').trim();
+      if (imageIdentifier.length > 0 && !resolvedAttachmentImageIdentifiers.includes(imageIdentifier)) {
+        resolvedAttachmentImageIdentifiers.push(imageIdentifier);
+      }
+      return '';
+    });
+
+    return {
+      text: resolvedText.replace(/[ \t]{2,}/g, ' ').trim(),
+      attachmentImageIdentifiers: resolvedAttachmentImageIdentifiers,
+    };
   }
 
   private applyPortraitCommand(chatMessage: ChatMessageContext, text: string, sendFrom: string): void {

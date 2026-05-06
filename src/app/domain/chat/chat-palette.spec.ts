@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffPalette, ChatPalette, DiceTablePalette } from '@axe/domain/chat/chat-palette';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 
 describe('ChatPalette', () => {
   let store: ObjectStore;
@@ -178,6 +179,44 @@ describe('ChatPalette', () => {
         const result = palette.evaluate(attackLine);
         expect(result).toBe('2d6+5');
       }
+    });
+
+    it('extendVariables の単純名が重複する場合はパス指定で展開する', () => {
+      const palette = new ChatPalette();
+      palette.initialize();
+      const detail = DataElement.create('detail', '');
+      const section = DataElement.create('戦闘特技', '');
+      const skillA = DataElement.create('最終能力', '');
+      const skillB = DataElement.create('Lv1', '');
+      const nameA = DataElement.create('名称', 'オーバークリエイト');
+      const nameB = DataElement.create('名称', 'ストラグチャアタック');
+      detail.appendChild(section);
+      section.appendChild(skillA);
+      section.appendChild(skillB);
+      skillA.appendChild(nameA);
+      skillB.appendChild(nameB);
+
+      expect(palette.evaluate('{名称}', detail)).toBe('');
+      expect(palette.evaluate('{戦闘特技/最終能力/名称}', detail)).toBe('オーバークリエイト');
+      expect(palette.evaluate('{戦闘特技/Lv1/名称}', detail)).toBe('ストラグチャアタック');
+    });
+
+    it('evaluateWithAttachments は画像フィールド参照を添付画像として回収する', () => {
+      const palette = new ChatPalette();
+      palette.initialize();
+      const detail = DataElement.create('detail', '');
+      const profile = DataElement.create('プロフィール', '');
+      const basic = DataElement.create('基本', '');
+      const image = DataElement.create('参考画像', 'image-stamp-id', { fieldType: DataElementFieldType.IMAGE });
+      detail.appendChild(profile);
+      profile.appendChild(basic);
+      basic.appendChild(image);
+
+      const result = palette.evaluateWithAttachments('確認 {プロフィール/基本/参考画像}', detail);
+
+      expect(result.text).toBe('確認 ');
+      expect(result.attachmentImageIdentifiers).toEqual(['image-stamp-id']);
+      expect(palette.evaluate('確認 {プロフィール/基本/参考画像}', detail)).toBe('確認 image-stamp-id');
     });
   });
 

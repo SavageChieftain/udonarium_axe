@@ -26,6 +26,19 @@ export function readAsTextAsync(blob: Blob): Promise<string> {
   });
 }
 
+export function readAsDataURLAsync(blob: Blob): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result as string);
+    };
+    reader.onabort = reader.onerror = (e) => {
+      reject(e);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
 export async function calcSHA256Async(arrayBuffer: ArrayBuffer): Promise<string>;
 export async function calcSHA256Async(blob: Blob): Promise<string>;
 export async function calcSHA256Async(arg: ArrayBuffer | Blob): Promise<string> {

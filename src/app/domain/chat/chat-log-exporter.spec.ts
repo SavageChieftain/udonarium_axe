@@ -125,6 +125,66 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('(編集済)');
     });
 
+    it('本文添付画像をHTML画像として出力する', () => {
+      const msg = createMockMessage({
+        attachmentImages: [
+          {
+            identifier: 'image-1',
+            name: 'stamp.png',
+            url: 'blob:stamp-image',
+          },
+        ],
+      } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(
+        false,
+        '',
+        msg,
+        undefined,
+        () => 'data:image/png;base64,AAAA'
+      );
+
+      expect(result).toContain('<img');
+      expect(result).toContain('src="data:image/png;base64,AAAA"');
+      expect(result).toContain('alt="stamp.png"');
+    });
+
+    it('本文添付画像のHTML属性ではルビ変換を行わず属性エスケープする', () => {
+      const msg = createMockMessage({
+        attachmentImages: [
+          {
+            identifier: 'image-1',
+            name: '|画像《がぞう》',
+            url: 'https://example.test/stamp.png?x=1&y=2',
+          },
+        ],
+      } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+
+      expect(result).toContain('src="https://example.test/stamp.png?x=1&amp;y=2"');
+      expect(result).toContain('alt="|画像《がぞう》"');
+      expect(result).not.toContain('<ruby>画像');
+    });
+
+    it('見えないシークレットメッセージでは本文添付画像を出力しない', () => {
+      const msg = createMockMessage({
+        isSecret: true,
+        isSendFromSelf: false,
+        from: 'other-user',
+        attachmentImages: [
+          {
+            identifier: 'secret-image',
+            name: 'secret.png',
+            url: 'data:image/png;base64,SECRET',
+          },
+        ],
+      } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+
+      expect(result).not.toContain('<img');
+      expect(result).not.toContain('secret.png');
+      expect(result).toContain('シークレットダイス');
+    });
+
     it('nullメッセージでは空文字を返す', () => {
       expect(ChatLogExporter.formatMessageStandard(false, '', null!)).toBe('');
     });
@@ -139,6 +199,25 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('探索者');
       expect(result).toContain('目星チェック');
       expect(result).toContain('[メインタブ]');
+    });
+
+    it('CoC形式でも本文添付画像をHTML画像として出力する', () => {
+      const msg = createMockMessage({
+        name: '探索者',
+        text: '参考画像',
+        attachmentImages: [
+          {
+            identifier: 'image-1',
+            name: 'stamp.png',
+            url: 'blob:stamp-image',
+          },
+        ],
+      } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageCoc('メインタブ', msg, undefined, () => 'data:image/png;base64,BBBB');
+
+      expect(result).toContain('<img');
+      expect(result).toContain('src="data:image/png;base64,BBBB"');
+      expect(result).toContain('alt="stamp.png"');
     });
 
     it('nullメッセージでは空文字を返す', () => {

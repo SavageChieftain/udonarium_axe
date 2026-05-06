@@ -1,7 +1,8 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -30,6 +31,7 @@ export class ChatMessageComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly imageStorage = inject(ImageStorage);
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
   get chatMessage(): ChatMessage {
@@ -49,6 +51,15 @@ export class ChatMessageComponent {
   readonly chatSimpleDispFlag = input(false);
 
   readonly imageFile = signal<ImageFile>(ImageFile.Empty);
+  readonly attachmentImageFiles = computed(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return [];
+    this.objectChange.versionOf(chatMessage.identifier)();
+    this.objectChange.fileVersion();
+    return chatMessage.attachmentImageIdentifierList
+      .map((identifier) => this.imageStorage.get(identifier))
+      .filter((image): image is ImageFile => image != null);
+  });
   readonly animeState = signal<string>('inactive');
 
   constructor() {
