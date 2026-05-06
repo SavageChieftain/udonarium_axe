@@ -8,15 +8,14 @@
       (ngModelChange)="roomName.set($event)"
       required
       minlength="1"
-      maxlength="128"
       #roomNameValidation="ngModel"
       placeholder="ルームの名前は必須"
     />
-    @if (roomNameValidation.errors && (roomNameValidation.dirty || roomNameValidation.touched)) {
+    @if ((roomNameValidation.errors || roomNameTooLong()) && (roomNameValidation.dirty || roomNameValidation.touched)) {
       <div class="validation-errors">
-        <div [hidden]="!roomNameValidation.errors.required">ルームの名前は必須です。</div>
-        <div [hidden]="!roomNameValidation.errors.minlength">ルームの名前は必須です。</div>
-        <div [hidden]="!roomNameValidation.errors.maxlength">ルーム名は128文字以内にしてください。</div>
+        <div [hidden]="!roomNameValidation.errors?.required">ルームの名前は必須です。</div>
+        <div [hidden]="!roomNameValidation.errors?.minlength">ルームの名前は必須です。</div>
+        <div [hidden]="!roomNameTooLong()">ルーム名は255文字以内にしてください。</div>
       </div>
     }
   </div>
@@ -38,14 +37,11 @@
         <div [hidden]="!passwordValidation.errors.maxlength">パスワードは12文字以内にしてください。</div>
       </div>
     }
-    @if (!validateLength()) {
-      <div class="validation-errors">ルーム名とパスワードの合計が長すぎます。どちらかを短くしてください。</div>
-    }
   </div>
   <div class="form-actions">
     <button
       class="btn-primary"
-      [disabled]="!roomNameValidation.valid || !passwordValidation.valid || !validateLength()"
+      [disabled]="!roomNameValidation.valid || roomNameTooLong() || !passwordValidation.valid"
       (click)="createRoom()"
     >
       <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px">meeting_room</i

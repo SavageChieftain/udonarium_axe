@@ -20,7 +20,7 @@ export class RoomSettingComponent {
 
   readonly roomName = signal<string>('ふつうの部屋');
   readonly password = signal<string>('');
-  readonly validateLength = signal<boolean>(true);
+  readonly roomNameTooLong = computed(() => this.roomName().length > 255);
 
   get peerId(): string {
     return Network.peerId;
@@ -34,15 +34,8 @@ export class RoomSettingComponent {
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = ' ルーム作成'));
     effect(() => {
-      void this.calcPeerId(this.roomName(), this.password());
+      this.myPeer.reConnectPass = this.password();
     });
-  }
-
-  async calcPeerId(roomName: string, password: string) {
-    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
-    const context = await PeerContext.createRoom(userId, PeerContext.generateId('***'), roomName, password);
-    this.validateLength.set(context.peerId.length < 64);
-    this.myPeer.reConnectPass = password;
   }
 
   createRoom() {

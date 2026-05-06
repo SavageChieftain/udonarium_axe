@@ -7,6 +7,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PasswordCheckComponent } from '@axe/features/lobby/password-check/password-check.component';
 import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { TextTooltipDirective } from '@axe/shared/directives/text-tooltip.directive';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
@@ -16,6 +17,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.css'],
   host: { class: 'block' },
+  imports: [TextTooltipDirective],
 })
 export class LobbyComponent {
   private readonly panelService = inject(PanelService);
@@ -65,9 +67,13 @@ export class LobbyComponent {
 
   private changeTitle() {
     this.modalService.title = this.panelService.title = 'ロビー';
+    this.modalService.titleTooltip = this.panelService.titleTooltip = '';
     if (Network.peerContext.roomName.length) {
-      this.modalService.title = this.panelService.title =
-        '＜' + Network.peerContext.roomName + '/' + Network.peerContext.roomId + '＞';
+      const name = Network.peerContext.roomName;
+      const roomId = Network.peerContext.roomId;
+      const truncated = name.length > 16 ? name.slice(0, 16) + '…' : name;
+      this.modalService.title = this.panelService.title = '＜' + truncated + '/' + roomId + '＞';
+      this.modalService.titleTooltip = this.panelService.titleTooltip = name + '/' + roomId;
     }
   }
 
@@ -76,29 +82,15 @@ export class LobbyComponent {
     this.help.set('検索中...');
     this.rooms.set([]);
     try {
-      const peersOfroom: { [room: string]: PeerContext[] } = {};
-      const peerIds = await Promise.race([
-        Network.listAllPeers(),
-        new Promise<string[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
+      const roomInfos = await Promise.race([
+        Network.listAllRooms(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
       ]);
-      for (const peerId of peerIds) {
-        const context = PeerContext.parse(peerId);
-        if (context.isRoom) {
-          const alias = context.roomId + context.roomName;
-          if (!Object.hasOwn(peersOfroom, alias)) {
-            peersOfroom[alias] = [];
-          }
-          peersOfroom[alias].push(context);
-        }
-      }
-      const roomsList: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = [];
-      for (const alias of Object.keys(peersOfroom)) {
-        roomsList.push({
-          alias: alias,
-          roomName: peersOfroom[alias][0].roomName,
-          peerContexts: peersOfroom[alias],
-        });
-      }
+      const roomsList: { alias: string; roomName: string; peerContexts: PeerContext[] }[] = roomInfos.map((room) => ({
+        alias: room.id + room.name,
+        roomName: room.name,
+        peerContexts: room.peers as PeerContext[],
+      }));
       roomsList.sort((a, b) => {
         if (a.alias < b.alias) return -1;
         if (a.alias > b.alias) return 1;

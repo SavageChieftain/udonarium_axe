@@ -75,7 +75,10 @@ export class ReConnectComponent {
 
   private changeTitle() {
     this.modalService.title = this.panelService.title = '再接続';
-    this.modalService.title = this.panelService.title = '＜' + this.roomName + '/' + this.roomId + '＞';
+    this.modalService.titleTooltip = this.panelService.titleTooltip = '';
+    const truncated = this.roomName.length > 16 ? this.roomName.slice(0, 16) + '…' : this.roomName;
+    this.modalService.title = this.panelService.title = '＜' + truncated + '/' + this.roomId + '＞';
+    this.modalService.titleTooltip = this.panelService.titleTooltip = this.roomName + '/' + this.roomId;
   }
 
   reConnect() {
@@ -99,23 +102,12 @@ export class ReConnectComponent {
   async reload() {
     this.rooms = [];
     try {
-      const peersOfroom: { [room: string]: PeerContext[] } = {};
-      const peerIds = await Network.listAllPeers();
-      for (const peerId of peerIds) {
-        const context = PeerContext.parse(peerId);
-        if (context.isRoom) {
-          const alias = context.roomId + context.roomName;
-          if (!Object.hasOwn(peersOfroom, alias)) {
-            peersOfroom[alias] = [];
-          }
-          peersOfroom[alias].push(context);
-        }
-      }
-      for (const alias of Object.keys(peersOfroom)) {
+      const roomInfos = await Network.listAllRooms();
+      for (const room of roomInfos) {
         this.rooms.push({
-          alias: alias,
-          roomName: peersOfroom[alias][0].roomName,
-          peerContexts: peersOfroom[alias],
+          alias: room.id + room.name,
+          roomName: room.name,
+          peerContexts: room.peers as PeerContext[],
         });
       }
       this.rooms.sort((a, b) => {

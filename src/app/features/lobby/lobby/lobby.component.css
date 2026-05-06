@@ -66,9 +66,11 @@
 
 .room-table td.room-name-cell {
   text-align: left;
-  white-space: normal;
-  word-break: break-word;
-  min-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  min-width: 80px;
 }
 
 .room-table tbody tr:last-child td {

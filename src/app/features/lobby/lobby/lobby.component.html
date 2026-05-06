@@ -23,7 +23,7 @@
         @for (room of rooms(); track room) {
           <tr>
             <td class="room-id-cell">{{ room.peerContexts[0]?.roomId }}</td>
-            <td class="room-name-cell">{{ room.roomName }}</td>
+            <td class="room-name-cell" [appTextTooltip]="room.roomName">{{ room.roomName }}</td>
             @if (room.peerContexts[0].hasPassword) {
               <td><i class="material-icons lock-icon">lock</i></td>
             } @else {
