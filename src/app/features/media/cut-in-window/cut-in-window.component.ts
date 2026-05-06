@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   signal,
@@ -17,8 +18,6 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
-import { Jukebox } from '@axe/domain/media/jukebox';
-import { Config } from '@axe/domain/peer/config';
 import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
@@ -92,6 +91,10 @@ export class CutInWindowComponent {
         }, 0);
       }
     });
+    effect(() => {
+      const vol = this.videoVolumeSig();
+      this.videoPlayer()?.setVolume(vol);
+    });
     this.destroyRef.onDestroy(() => {
       if (this.cutInTimeOut) {
         clearTimeout(this.cutInTimeOut);
@@ -150,12 +153,6 @@ export class CutInWindowComponent {
   });
   get cutInLauncher(): CutInLauncher {
     return this.objectStore.get<CutInLauncher>('CutInLauncher')!;
-  }
-  get jukebox(): Jukebox {
-    return this.objectStore.get<Jukebox>('Jukebox')!;
-  }
-  get config(): Config {
-    return this.objectStore.get<Config>('Config')!;
   }
 
   getCutIns(): CutIn[] {
@@ -228,11 +225,13 @@ export class CutInWindowComponent {
     return this._videoId;
   }
 
+  readonly videoVolumeSig = computed(() => {
+    if (this.cutIn) this.objectChange.versionOf(this.cutIn.identifier)();
+    return this.cutIn?.videoVolume ?? 50;
+  });
+
   get videoVolume(): number {
-    const cutInVolume = (this.cutIn?.videoVolume ?? 100) / 100;
-    return (
-      (this.isTest ? this.jukebox.auditionVolume : this.jukebox.volume) * this.config.roomVolume * cutInVolume * 100
-    );
+    return this.videoVolumeSig();
   }
 
   get youTubeWidth(): number {
