@@ -43,6 +43,7 @@ export class SkyWayFacade {
     try {
       this.peer = PeerContext.parse(peer.peerId);
       this.peer.userId = peer.userId;
+      this.peer.roomName = peer.roomName;
       this.peer.password = peer.password;
       this.isDestroyed = false;
 
@@ -204,6 +205,7 @@ export class SkyWayFacade {
 
     const lobbyPerson = await this.lobby.join({
       name: this.peer.peerId,
+      metadata: JSON.stringify({ roomName: this.peer.roomName }),
       preventAutoLeaveOnBeforeUnload: true,
     });
 
@@ -248,6 +250,7 @@ export class SkyWayFacade {
 
     const roomPerson = await this.room.join({
       name: this.peer.peerId,
+      metadata: JSON.stringify({ roomName: this.peer.roomName }),
       preventAutoLeaveOnBeforeUnload: true,
     });
 
@@ -385,6 +388,51 @@ export class SkyWayFacade {
       if (lobby.name !== this.lobby?.name) lobby.dispose();
     });
     return allPeerIds;
+  }
+
+  async listAllLobbyMembers(): Promise<{ peerId: string; roomName: string }[]> {
+    if (this.isDestroyed || !this.isOpen) return [];
+    if (!this.context) return [];
+
+    const context = this.context;
+    const lobbys: Channel[] = [];
+    for (const lobbyName of this.getLobbyNames()) {
+      const level = Logger.level;
+      Logger.level = 'disable';
+      try {
+        const lobby =
+          this.lobby?.name === lobbyName ? this.lobby : await SkyWayChannel.Find(context, { name: lobbyName });
+        lobbys.push(lobby);
+      } catch (error) {
+        if (error instanceof SkyWayError) {
+          if (error.name !== 'channelNotFound') AppLogger.error('[SkyWay] ロビーメンバー取得エラー', error);
+        } else {
+          AppLogger.error('[SkyWay] ロビーメンバー取得エラー', error);
+        }
+      }
+      Logger.level = level;
+    }
+
+    const members = lobbys.flatMap((lobby) =>
+      lobby.members
+        .filter((member) => member.name != null)
+        .map((member) => {
+          const peerId = member.name ?? '';
+          let roomName = '';
+          try {
+            const meta = member.metadata ? (JSON.parse(member.metadata) as { roomName?: string }) : null;
+            if (meta?.roomName) roomName = meta.roomName;
+          } catch {
+            // メタデータのパースエラーは無視
+          }
+          return { peerId, roomName };
+        })
+    );
+
+    lobbys.forEach((lobby) => {
+      if (lobby.name !== this.lobby?.name) lobby.dispose();
+    });
+    return members;
   }
 
   private getLobbyNames(): string[] {

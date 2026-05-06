@@ -5,16 +5,10 @@ import base from 'base-x';
 
 const Base62 = base('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
-function compressRoomName(roomName: string): string {
-  if (!roomName) return '';
-  return Base62.encode(new TextEncoder().encode(roomName));
-}
-
-function decompressRoomName(encoded: string): string {
-  if (!encoded) return '';
-  return new TextDecoder().decode(Base62.decode(encoded));
-}
-const roomIdPattern = /^(\w{6})(\w{3})(\w*)-(\w*)/i;
+// peerId format: digestUserId(6) + roomId(3) + digestRoomName(8) + '-' + digestPassword(0 or 7)
+// 固定長: パスワードあり=25文字、なし=18文字
+// ルーム名はSkyWayメンバーのmetadataで伝達する
+const roomIdPattern = /^(\w{6})(\w{3})(\w{8})-(\w*)/i;
 
 export interface IPeerContext {
   readonly peerId: string;
@@ -23,6 +17,7 @@ export interface IPeerContext {
   readonly roomName: string;
   readonly password: string;
   readonly digestUserId: string;
+  readonly digestRoomName: string;
   readonly digestPassword: string;
   readonly isOpen: boolean;
   readonly isRoom: boolean;
@@ -37,6 +32,7 @@ export class PeerContext implements IPeerContext {
   roomName: string = '';
   password: string = '';
   digestUserId: string = '';
+  digestRoomName: string = '';
   digestPassword: string = '';
   isOpen: boolean = false;
   session: MutablePeerSessionState = {
@@ -61,7 +57,7 @@ export class PeerContext implements IPeerContext {
       if (regArray != null) {
         this.digestUserId = regArray[1];
         this.roomId = regArray[2];
-        this.roomName = decompressRoomName(regArray[3]);
+        this.digestRoomName = regArray[3];
         this.digestPassword = regArray[4];
         return;
       }
@@ -83,7 +79,11 @@ export class PeerContext implements IPeerContext {
 
   async verifyPeer(peerId: string): Promise<boolean> {
     const peer = PeerContext.parse(peerId);
-    if (this.roomId !== peer.roomId || this.roomName !== peer.roomName || this.hasPassword !== peer.hasPassword) {
+    if (
+      this.roomId !== peer.roomId ||
+      this.digestRoomName !== peer.digestRoomName ||
+      this.hasPassword !== peer.hasPassword
+    ) {
       return false;
     }
 
@@ -96,6 +96,7 @@ export class PeerContext implements IPeerContext {
       return false;
     }
 
+    peer.roomName = this.roomName;
     return peer.verifyPassword(this.password);
   }
 
@@ -118,10 +119,12 @@ export class PeerContext implements IPeerContext {
   ): Promise<PeerContext> {
     const digestUserId = await calcDigest(userId, 6);
     const checksumedRoomId = await calcChecksumedRoomId(roomId, roomName, password);
+    const digestRoomName = await calcDigestRoomName(roomName);
     const digestPassword = await calcDigestPassword(digestUserId, checksumedRoomId, roomName, password);
-    const peerId = `${digestUserId}${checksumedRoomId}${compressRoomName(roomName)}-${digestPassword}`;
+    const peerId = `${digestUserId}${checksumedRoomId}${digestRoomName}-${digestPassword}`;
     const peer = new PeerContext(peerId);
     peer.userId = userId;
+    peer.roomName = roomName;
     peer.password = password;
     return peer;
   }
@@ -130,6 +133,10 @@ export class PeerContext implements IPeerContext {
     const h = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     return format.replace(/\*/g, () => h[Math.floor(Math.random() * h.length)]);
   }
+}
+
+async function calcDigestRoomName(roomName: string): Promise<string> {
+  return calcDigest(roomName, 8);
 }
 
 async function calcDigestPassword(

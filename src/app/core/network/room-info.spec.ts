@@ -38,16 +38,16 @@ describe('RoomInfo', () => {
     });
 
     it('ルームpeerからRoomInfoリストを作成する', async () => {
-      const peer1 = await PeerContext.createRoom('user1', 'rm', 'Room1', '');
-      const peer2 = await PeerContext.createRoom('user2', 'rm', 'Room1', '');
+      const peer1 = await PeerContext.createRoom('user1', 'abc', 'Room1', '');
+      const peer2 = await PeerContext.createRoom('user2', 'abc', 'Room1', '');
       const rooms = RoomInfo.listFrom([peer1.peerId, peer2.peerId]);
       expect(rooms.length).toBe(1);
       expect(rooms[0].peers.length).toBe(2);
     });
 
     it('異なるルームは別々のRoomInfoになる', async () => {
-      const peer1 = await PeerContext.createRoom('user1', 'r1', 'RoomA', '');
-      const peer2 = await PeerContext.createRoom('user2', 'r2', 'RoomB', '');
+      const peer1 = await PeerContext.createRoom('user1', 'ab1', 'RoomA', '');
+      const peer2 = await PeerContext.createRoom('user2', 'ab2', 'RoomB', '');
       const rooms = RoomInfo.listFrom([peer1.peerId, peer2.peerId]);
       expect(rooms.length).toBe(2);
     });

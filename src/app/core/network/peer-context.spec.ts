@@ -22,22 +22,27 @@ describe('PeerContext', () => {
       const parsed = PeerContext.parse(ctx.peerId);
 
       expect(parsed.isRoom).toBe(true);
-      expect(parsed.roomName).toBe(roomName);
+      // ルーム名はpeerIdに含まれないためparseでは復元不可
+      expect(parsed.roomName).toBe('');
+      // digestRoomName は一致する
+      expect(parsed.digestRoomName).toBe(ctx.digestRoomName);
       expect(parsed.hasPassword).toBe(false);
     });
 
-    it('ルーム名にASCII以外を含む場合もラウンドトリップが成立する', async () => {
+    it('ルーム名にASCII以外を含む場合もdigestRoomNameが一致する', async () => {
       const roomName = '🎲ダイスルーム🎲';
       const ctx = await PeerContext.createRoom('user', 'xyz', roomName, '');
       const parsed = PeerContext.parse(ctx.peerId);
 
-      expect(parsed.roomName).toBe(roomName);
+      // ルーム名自体は復元不可だが、digestRoomNameで同一性は確認できる
+      expect(parsed.digestRoomName).toBe(ctx.digestRoomName);
     });
 
     it('空のルーム名でもラウンドトリップが成立する', async () => {
       const ctx = await PeerContext.createRoom('user', 'abc', '', '');
       const parsed = PeerContext.parse(ctx.peerId);
       expect(parsed.roomName).toBe('');
+      expect(parsed.digestRoomName).toBe(ctx.digestRoomName);
     });
 
     it('不正なpeerIdでパースが失敗してもクラッシュしない', () => {
@@ -84,12 +89,15 @@ describe('PeerContext', () => {
     it('正しいパスワードで検証成功', async () => {
       const ctx = await PeerContext.createRoom('testUser', 'abc', 'TestRoom', 'secret');
       const parsed = PeerContext.parse(ctx.peerId);
+      // ルーム名はmetadata経由で設定される想定（ここでは手動注入）
+      parsed.roomName = 'TestRoom';
       expect(await parsed.verifyPassword('secret')).toBe(true);
     });
 
     it('間違ったパスワードで検証失敗', async () => {
       const ctx = await PeerContext.createRoom('testUser', 'abc', 'TestRoom', 'secret');
       const parsed = PeerContext.parse(ctx.peerId);
+      parsed.roomName = 'TestRoom';
       expect(await parsed.verifyPassword('wrong')).toBe(false);
     });
   });

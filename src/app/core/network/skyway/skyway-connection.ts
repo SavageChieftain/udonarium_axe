@@ -187,8 +187,8 @@ export class SkyWayConnection implements Connection {
   }
 
   async listAllRooms(): Promise<IRoomInfo[]> {
-    const allPeerIds = await this.listAllPeers();
-    return RoomInfo.listFrom(allPeerIds);
+    const members = await this.skyWay.listAllLobbyMembers();
+    return RoomInfo.listFromMembers(members);
   }
 
   private async openSkyWay(peer: IPeerContext) {

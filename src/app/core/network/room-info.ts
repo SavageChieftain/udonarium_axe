@@ -31,7 +31,31 @@ export class RoomInfo implements IRoomInfo {
     const roomMap: Map<string, RoomInfo> = new Map();
     for (const peer of peers) {
       if (peer.isRoom) {
-        const alias = peer.roomId + peer.roomName;
+        const alias = peer.roomId + peer.digestRoomName;
+        const room = roomMap.get(alias) ?? new RoomInfo(peer.roomId, peer.roomName);
+        room.peers.push(peer);
+        roomMap.set(alias, room);
+      }
+    }
+
+    if (roomMap.size === 0) return [];
+
+    return Array.from(roomMap.values()).sort((a, b) => (a.id + a.name).localeCompare(b.id + b.name));
+  }
+
+  static listFromMembers(members: { peerId: string; roomName: string }[]): RoomInfo[] {
+    const peers = members
+      .map(({ peerId, roomName }) => {
+        const peer = PeerContext.parse(peerId);
+        peer.roomName = roomName;
+        return peer;
+      })
+      .sort((a, b) => a.peerId.localeCompare(b.peerId));
+
+    const roomMap: Map<string, RoomInfo> = new Map();
+    for (const peer of peers) {
+      if (peer.isRoom) {
+        const alias = peer.roomId + peer.digestRoomName;
         const room = roomMap.get(alias) ?? new RoomInfo(peer.roomId, peer.roomName);
         room.peers.push(peer);
         roomMap.set(alias, room);
