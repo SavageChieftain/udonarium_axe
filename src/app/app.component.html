@@ -3,31 +3,30 @@
 </div>
 <app-mini-jukebox></app-mini-jukebox>
 <div class="fab-nav" [class.open]="fabOpen()">
-  <div class="fab-backdrop" (click)="fabOpen.set(false)"></div>
   <nav class="fab-panel">
     <ul>
-      <li data-label="接続" (click)="fabOpen.set(false); open('PeerMenuComponent')">
+      <li data-label="接続" (click)="open('PeerMenuComponent')">
         <i class="material-icons">people</i>
       </li>
-      <li data-label="チャット" (click)="fabOpen.set(false); open('ChatWindowComponent')">
+      <li data-label="チャット" (click)="open('ChatWindowComponent')">
         <i class="material-icons">speaker_notes</i>
       </li>
-      <li data-label="テーブル設定" (click)="fabOpen.set(false); open('GameTableSettingComponent')">
+      <li data-label="テーブル設定" (click)="open('GameTableSettingComponent')">
         <i class="material-icons">layers</i>
       </li>
-      <li data-label="画像" (click)="fabOpen.set(false); open('FileStorageComponent')">
+      <li data-label="画像" (click)="open('FileStorageComponent')">
         <i class="material-icons">photo_library</i>
       </li>
-      <li data-label="ジュークボックス" (click)="fabOpen.set(false); open('JukeboxComponent')">
+      <li data-label="ジュークボックス" (click)="open('JukeboxComponent')">
         <i class="material-icons">queue_music</i>
       </li>
-      <li data-label="カットイン" (click)="fabOpen.set(false); open('CutInListComponent')">
+      <li data-label="カットイン" (click)="open('CutInListComponent')">
         <i class="material-icons">slideshow</i>
       </li>
-      <li data-label="インベントリ" (click)="fabOpen.set(false); open('GameObjectInventoryComponent')">
+      <li data-label="インベントリ" (click)="open('GameObjectInventoryComponent')">
         <i class="material-icons">folder_shared</i>
       </li>
-      <li data-label="ZIP読込" (click)="fabOpen.set(false)">
+      <li data-label="ZIP読込">
         <label>
           <i class="material-icons">open_in_browser</i>
           <input
@@ -42,7 +41,7 @@
     </ul>
     <div class="fab-footer">
       @if (!isSaving()) {
-        <div class="fab-footer-item" data-label="保存" (click)="fabOpen.set(false); save()">
+        <div class="fab-footer-item" data-label="保存" (click)="save()">
           <i class="material-icons">sd_storage</i>
         </div>
       }

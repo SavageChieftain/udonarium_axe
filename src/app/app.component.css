@@ -69,18 +69,6 @@ img {
   transform: rotate(90deg);
 }
 
-/* backdrop: 外側クリックで閉じる */
-.fab-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-}
-
-.fab-nav.open .fab-backdrop {
-  display: block;
-}
-
 /* floating panel */
 .fab-panel {
   position: absolute;
