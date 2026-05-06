@@ -73,6 +73,11 @@ export const DataElementAttribute = {
   ROW_HEADER_LABEL: 'rowHeaderLabel',
   CELL_KIND: 'cellKind',
   POPUP: 'cs-popup',
+  JUDGE_MODE: 'cs-judge-mode',
+  GAP_DISTANCE: 'cs-gap-distance',
+  LOOP_HORIZONTAL: 'cs-loop-horizontal',
+  LOOP_VERTICAL: 'cs-loop-vertical',
+  BASE_DIFFICULTY: 'cs-base-difficulty',
 } as const;
 
 const DATA_ELEMENT_ROLE_VALUES = new Set<string>(Object.values(DataElementRole));
