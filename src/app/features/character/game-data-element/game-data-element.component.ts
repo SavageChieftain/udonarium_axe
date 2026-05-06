@@ -11,6 +11,7 @@ import {
   type DataElementRoleValue,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
+import { findJudgementCandidates, type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
 import { DataElementDragService } from '@axe/features/character/data-element-drag.service';
 import { type CalcEnv, evalCalcFormula } from '@axe/features/character/game-data-element/game-data-element-calc';
 import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
@@ -19,11 +20,18 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { ModalService } from '@axe/shared/ui/modal.service';
 import { PanelService } from '@axe/shared/ui/panel.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 type DataElementDropPosition = 'before' | 'after' | 'inside';
 type DataElementTableColumn = { name: string; label: string; group: string; kind: string };
 type DataElementTableColumnHeaderGroup = { key: string; label: string; span: number };
+
+interface JudgeCandidatesState {
+  /** クリックしたセルの技能名（表示用） */
+  clickedCellLabel: string;
+  candidates: SkillJudgementCandidate[];
+}
 
 @Component({
   selector: 'game-data-element, [game-data-element]',
@@ -58,6 +66,7 @@ export class GameDataElementComponent {
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly dataElementDrag = inject(DataElementDragService);
+  private readonly uiSignalService = inject(UiSignalService);
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);
@@ -72,6 +81,8 @@ export class GameDataElementComponent {
 
   readonly structureDropPosition = signal<DataElementDropPosition | null>(null);
   readonly fieldOptionsOpen = signal(false);
+  readonly judgeCandidatesState = signal<JudgeCandidatesState | null>(null);
+  private readonly _judgeActive = signal<boolean>(false);
 
   readonly tableRows = computed(() => {
     const element = this.gameDataElement();
@@ -821,6 +832,139 @@ export class GameDataElementComponent {
     const element = this.gameDataElement();
     element.setViewMode(this.isTableViewMode() ? DataElementViewMode.NORMAL : DataElementViewMode.TABLE);
     this.objectChange.notifyChanged(element.identifier);
+  }
+
+  /** GAP判定テーブルとして設定されているか（属性フラグ） */
+  isJudgeModeEnabled(): boolean {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return element.getAttribute(DataElementAttribute.JUDGE_MODE) === 'true';
+  }
+
+  /** 編集モード: GAP判定テーブル設定フラグをトグル */
+  toggleJudgeModeEnabled(): void {
+    const element = this.gameDataElement();
+    if (this.isJudgeModeEnabled()) element.removeAttribute(DataElementAttribute.JUDGE_MODE);
+    else element.setAttribute(DataElementAttribute.JUDGE_MODE, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+    // 設定をオフにした場合はアクティブ状態もリセット
+    if (!this.isJudgeModeEnabled()) this._judgeActive.set(false);
+  }
+
+  /** 現在、判定算出モードで動作中か（ビューモードのトグル状態） */
+  isJudgeMode(): boolean {
+    return this.isJudgeModeEnabled() && this._judgeActive();
+  }
+
+  /** ビューモード: 判定算出 / 技能習得をトグル */
+  toggleJudgeActive(): void {
+    this._judgeActive.update((v) => !v);
+    this.judgeCandidatesState.set(null);
+  }
+
+  get gapDistanceText(): string {
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
+    return this.gameDataElement().getAttribute(DataElementAttribute.GAP_DISTANCE);
+  }
+  set gapDistanceText(value: string) {
+    this.setFieldAttribute(DataElementAttribute.GAP_DISTANCE, value);
+  }
+
+  get baseDifficultyText(): string {
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
+    return this.gameDataElement().getAttribute(DataElementAttribute.BASE_DIFFICULTY);
+  }
+  set baseDifficultyText(value: string) {
+    this.setFieldAttribute(DataElementAttribute.BASE_DIFFICULTY, value);
+  }
+
+  get loopHorizontal(): boolean {
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
+    return this.gameDataElement().getAttribute(DataElementAttribute.LOOP_HORIZONTAL) === 'true';
+  }
+  toggleLoopHorizontal(): void {
+    const element = this.gameDataElement();
+    if (this.loopHorizontal) element.removeAttribute(DataElementAttribute.LOOP_HORIZONTAL);
+    else element.setAttribute(DataElementAttribute.LOOP_HORIZONTAL, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  get loopVertical(): boolean {
+    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
+    return this.gameDataElement().getAttribute(DataElementAttribute.LOOP_VERTICAL) === 'true';
+  }
+  toggleLoopVertical(): void {
+    const element = this.gameDataElement();
+    if (this.loopVertical) element.removeAttribute(DataElementAttribute.LOOP_VERTICAL);
+    else element.setAttribute(DataElementAttribute.LOOP_VERTICAL, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  onJudgeCheckCellClick(row: DataElement, colName: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const element = this.gameDataElement();
+    const gapDistance = parseInt(element.getAttribute(DataElementAttribute.GAP_DISTANCE)) || 1;
+
+    const rows = this.tableBodyRows();
+    const allColumns = this.tableColumns();
+    const techColumns = allColumns.filter((col) => !this.isGapTableColumn(col));
+    const gapCostsBetweenCols = this.buildGapCostsBetweenCols(allColumns, gapDistance);
+
+    const targetRowIndex = rows.indexOf(row);
+    const targetColIndex = techColumns.findIndex((col) => col.name === colName);
+    if (targetRowIndex < 0 || targetColIndex < 0) return;
+
+    const candidates = findJudgementCandidates(
+      rows,
+      techColumns.map((col) => ({ name: col.name, label: col.label })),
+      targetRowIndex,
+      targetColIndex,
+      (cell) => this.isTableCheckCellChecked(cell),
+      5,
+      {
+        gapCostsBetweenCols,
+        loopHorizontal: this.loopHorizontal,
+        loopVertical: this.loopVertical,
+      }
+    );
+
+    const clickedCell = this.getTableCell(row, colName);
+    const fallbackLabel = techColumns.find((c) => c.name === colName)?.label ?? colName;
+    const clickedCellLabel = clickedCell ? this.getTableCellLabel(clickedCell) || fallbackLabel : fallbackLabel;
+
+    this.judgeCandidatesState.set({ clickedCellLabel, candidates });
+  }
+
+  private buildGapCostsBetweenCols(allColumns: DataElementTableColumn[], gapDistance: number): number[] {
+    const techCols = allColumns.filter((c) => !this.isGapTableColumn(c));
+    const costs: number[] = [];
+    for (let ti = 0; ti < techCols.length - 1; ti++) {
+      const idx1 = allColumns.findIndex((c) => c.name === techCols[ti].name);
+      const idx2 = allColumns.findIndex((c) => c.name === techCols[ti + 1].name);
+      let totalCost = 0;
+      for (let k = idx1 + 1; k < idx2; k++) {
+        if (this.isGapTableColumn(allColumns[k]) && this.isGapTableColumnActive(allColumns[k])) {
+          totalCost += gapDistance;
+        }
+      }
+      costs.push(totalCost);
+    }
+    return costs;
+  }
+
+  closeJudgeCandidates(): void {
+    this.judgeCandidatesState.set(null);
+  }
+
+  sendCandidateToChat(candidate: SkillJudgementCandidate, event: Event): void {
+    event.stopPropagation();
+    const element = this.gameDataElement();
+    const baseDifficulty = parseInt(element.getAttribute(DataElementAttribute.BASE_DIFFICULTY)) || 5;
+    const totalDifficulty = baseDifficulty + candidate.distance;
+    this.uiSignalService.requestChatInputText(`2d6>=${totalDifficulty}`);
+    this.judgeCandidatesState.set(null);
   }
 
   shouldRenderTableView(): boolean {

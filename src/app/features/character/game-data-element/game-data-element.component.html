@@ -462,6 +462,55 @@
                   <span>行見出し</span>
                   <input name="data-row-header-label" [(ngModel)]="rowHeaderLabelText" placeholder="例: 技能" />
                 </label>
+                <label class="elm-field-option elm-field-option--check">
+                  <span>GAP判定テーブル</span>
+                  <input
+                    type="checkbox"
+                    name="data-judge-mode"
+                    [checked]="isJudgeModeEnabled()"
+                    (change)="toggleJudgeModeEnabled()"
+                  />
+                </label>
+                @if (isJudgeModeEnabled()) {
+                  <label class="elm-field-option">
+                    <span>基礎難易度</span>
+                    <input
+                      type="number"
+                      name="data-base-difficulty"
+                      [(ngModel)]="baseDifficultyText"
+                      min="1"
+                      placeholder="5"
+                    />
+                  </label>
+                  <label class="elm-field-option">
+                    <span>GAP距離</span>
+                    <input
+                      type="number"
+                      name="data-gap-distance"
+                      [(ngModel)]="gapDistanceText"
+                      min="0"
+                      placeholder="1"
+                    />
+                  </label>
+                  <label class="elm-field-option elm-field-option--check">
+                    <span>左右ループ</span>
+                    <input
+                      type="checkbox"
+                      name="data-loop-horizontal"
+                      [checked]="loopHorizontal"
+                      (change)="toggleLoopHorizontal()"
+                    />
+                  </label>
+                  <label class="elm-field-option elm-field-option--check">
+                    <span>上下ループ</span>
+                    <input
+                      type="checkbox"
+                      name="data-loop-vertical"
+                      [checked]="loopVertical"
+                      (change)="toggleLoopVertical()"
+                    />
+                  </label>
+                }
               </div>
             }
           } @else {
@@ -475,6 +524,24 @@
         </div>
       }
       @if (shouldRenderTableView()) {
+        @if (isJudgeModeEnabled()) {
+          <div class="elm-judge-mode-toolbar">
+            <button
+              class="elm-judge-mode-toggle"
+              type="button"
+              [class.elm-judge-mode-toggle--active]="isJudgeMode()"
+              (click)="toggleJudgeActive()"
+            >
+              @if (isJudgeMode()) {
+                <i class="material-icons">rule</i>
+                <span>判定算出モード</span>
+              } @else {
+                <i class="material-icons">check_box</i>
+                <span>技能習得モード</span>
+              }
+            </button>
+          </div>
+        }
         <div class="elm-view-table-wrap" tabindex="0" (wheel)="onTableWheel($event)">
           <table class="elm-view-table">
             <thead>
@@ -535,12 +602,16 @@
                       @if (getTableCell(rowElement, column.name); as cell) {
                         @switch (cell.fieldType) {
                           @case ('check') {
-                            <label class="elm-view-table-check-cell">
+                            <label
+                              class="elm-view-table-check-cell"
+                              [class.elm-view-table-check-cell--judge]="isJudgeMode()"
+                              (click)="isJudgeMode() ? onJudgeCheckCellClick(rowElement, column.name, $event) : null"
+                            >
                               <input
                                 class="elm-view-table-check"
                                 type="checkbox"
                                 [checked]="isTableCheckCellChecked(cell)"
-                                (change)="toggleTableCheckCell(cell, $event)"
+                                (change)="!isJudgeMode() && toggleTableCheckCell(cell, $event)"
                               />
                               @if (getTableCellLabel(cell)) {
                                 <span>{{ getTableCellLabel(cell) }}</span>
@@ -591,6 +662,40 @@
             </tbody>
           </table>
         </div>
+        @if (judgeCandidatesState(); as state) {
+          <div class="elm-judge-candidates-overlay" (click)="closeJudgeCandidates()">
+            <div class="elm-judge-candidates" (click)="$event.stopPropagation()">
+              <div class="elm-judge-candidates-header">
+                <span class="elm-judge-candidates-title">{{ state.clickedCellLabel }} の判定候補</span>
+                <button class="elm-judge-candidates-close" type="button" (click)="closeJudgeCandidates()">
+                  <i class="material-icons">close</i>
+                </button>
+              </div>
+              @if (state.candidates.length === 0) {
+                <p class="elm-judge-candidates-empty">習得済みの技能が見つかりませんでした</p>
+              } @else {
+                <ul class="elm-judge-candidates-list">
+                  @for (candidate of state.candidates; track candidate.cell.identifier) {
+                    <li class="elm-judge-candidates-item">
+                      <span class="elm-judge-candidates-skill">{{ candidate.cellLabel || candidate.colLabel }}</span>
+                      <span class="elm-judge-candidates-dist" [title]="'距離: ' + candidate.distance">{{
+                        candidate.distance
+                      }}</span>
+                      <button
+                        class="elm-judge-candidates-chat"
+                        type="button"
+                        title="チャットに入力"
+                        (click)="sendCandidateToChat(candidate, $event)"
+                      >
+                        <i class="material-icons">chat</i>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        }
       } @else if (gameDataElement().children.length) {
         <div class="table">
           @for (childElement of gameDataElement().children; track childElement.identifier; let i = $index) {
