@@ -71,8 +71,8 @@ describe('CutIn', () => {
       expect(cutIn.videoUrl).toBe('');
     });
 
-    it('videoVolume がデフォルト 100', () => {
-      expect(cutIn.videoVolume).toBe(100);
+    it('videoVolume がデフォルト 50', () => {
+      expect(cutIn.videoVolume).toBe(50);
     });
   });
 

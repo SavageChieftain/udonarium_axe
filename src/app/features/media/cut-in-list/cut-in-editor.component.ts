@@ -381,7 +381,7 @@ export class CutInEditorComponent {
 
   private normalizeVideoVolume(videoVolume: number): number {
     const volume = Number(videoVolume);
-    if (!Number.isFinite(volume)) return 100;
+    if (!Number.isFinite(volume)) return 50;
     return Math.min(100, Math.max(1, Math.round(volume)));
   }
 
