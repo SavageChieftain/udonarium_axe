@@ -4,12 +4,14 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
   linkedSignal,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +35,7 @@ import { SafePipe } from '@axe/shared/pipes/safe.pipe';
 import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { BatchService } from '@axe/shared/ui/batch.service';
 import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -52,6 +55,7 @@ export class ChatInputComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly uiSignalService = inject(UiSignalService);
 
   private chatHistory = new ChatInputHistory();
   private dicebotHelper = new ChatInputDiceBotHelper();
@@ -160,6 +164,13 @@ export class ChatInputComponent {
         clearTimeout(this.calcFitHeightInterval);
         this.calcFitHeightInterval = null;
       }
+    });
+    effect(() => {
+      const req = this.uiSignalService.chatInputTextRequest();
+      if (!req) return;
+      untracked(() => {
+        this.text = (this.text ? this.text + ' ' : '') + req.text;
+      });
     });
   }
 

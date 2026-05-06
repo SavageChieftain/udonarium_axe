@@ -22,6 +22,11 @@ export interface TableViewRotation {
   z: number;
 }
 
+export interface ChatInputTextRequest {
+  text: string;
+  timestamp: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -33,6 +38,7 @@ export class UiSignalService {
   readonly noteResizeRequest = signal<NoteResizeData | null>(null);
   readonly jumpIndexRequest = signal<JumpIndexData | null>(null);
   readonly tableViewRotation = signal<TableViewRotation | null>(null);
+  readonly chatInputTextRequest = signal<ChatInputTextRequest | null>(null);
 
   notifyChatRedraw(): void {
     this.chatRedrawVersion.update((v) => v + 1);
@@ -60,5 +66,9 @@ export class UiSignalService {
 
   notifyTableViewRotation(x: number, y: number, z: number): void {
     this.tableViewRotation.set({ x, y, z });
+  }
+
+  requestChatInputText(text: string): void {
+    this.chatInputTextRequest.set({ text, timestamp: Date.now() });
   }
 }
