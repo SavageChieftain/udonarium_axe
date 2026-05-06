@@ -851,3 +851,10 @@ input[type='range']::-moz-range-thumb {
 .vibration-amine {
   animation: vibration 0.2s infinite;
 }
+
+.yt-click-guard {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: all;
+}

@@ -59,6 +59,7 @@ export class CutInEditorComponent {
   readonly cutInImageUrl = computed(() => {
     const c = this.cutIn();
     if (!c) return ImageFile.Empty.url;
+    this.objectChange.versionOf(c.identifier)();
     return !c.videoId ? this.cutInImage().url : `https://img.youtube.com/vi/${c.videoId}/hqdefault.jpg`;
   });
 
@@ -382,7 +383,7 @@ export class CutInEditorComponent {
   private normalizeVideoVolume(videoVolume: number): number {
     const volume = Number(videoVolume);
     if (!Number.isFinite(volume)) return 50;
-    return Math.min(100, Math.max(1, Math.round(volume)));
+    return Math.min(100, Math.max(0, Math.round(volume)));
   }
 
   private get cutInLauncher(): CutInLauncher {
