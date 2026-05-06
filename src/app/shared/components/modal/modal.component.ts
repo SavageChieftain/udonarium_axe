@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, viewChild, ViewContainerRef } from '@angular/core';
+import { TextTooltipDirective } from '@axe/shared/directives/text-tooltip.directive';
 import { ModalService } from '@axe/shared/ui/modal.service';
 
 @Component({
+  imports: [TextTooltipDirective],
   selector: 'modal',
   templateUrl: './modal.component.html',
   host: { class: 'block' },
@@ -13,6 +15,10 @@ export class ModalComponent {
 
   get title(): string {
     return this.modalService.title;
+  }
+
+  get titleTooltip(): string {
+    return this.modalService.titleTooltip;
   }
 
   readonly content = viewChild.required('content', { read: ViewContainerRef });

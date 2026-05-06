@@ -53,6 +53,14 @@
   color: var(--ui-text);
 }
 
+.title-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 30px;
+}
+
 .title-button {
   position: absolute;
   right: 0;

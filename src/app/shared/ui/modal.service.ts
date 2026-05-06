@@ -29,6 +29,14 @@ export class ModalService {
     this._title.set(value);
   }
 
+  private readonly _titleTooltip = signal('');
+  get titleTooltip(): string {
+    return this._titleTooltip();
+  }
+  set titleTooltip(value: string) {
+    this._titleTooltip.set(value);
+  }
+
   static defaultParentViewContainerRef: ViewContainerRef;
   static ModalComponentClass: { new (...args: unknown[]): unknown } = null!;
   get option(): unknown {

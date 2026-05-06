@@ -47,8 +47,7 @@
 }
 
 .title {
-  overflow: hidden;
-  white-space: nowrap;
+  position: relative;
   box-sizing: border-box;
   font-size: 12px;
   font-weight: 500;
@@ -62,6 +61,14 @@
   border-bottom: 1px solid var(--ui-titlebar-border);
   border-radius: var(--ui-radius-lg) var(--ui-radius-lg) 0 0;
   user-select: none;
+}
+
+.title-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 86px;
 }
 
 .title-button {

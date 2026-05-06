@@ -5,7 +5,7 @@
       <div class="title-button">
         <button (click)="resolve()"><i class="material-icons text-[14px]">close</i></button>
       </div>
-      {{ title }}
+      <span class="title-text" [appTextTooltip]="titleTooltip">{{ title }}</span>
     </div>
     <div class="scrollable-panel">
       <ng-content></ng-content>

@@ -46,6 +46,7 @@ export class PanelService {
   static UIPanelComponentClass: { new (...args: unknown[]): UIPanelInstance } = null!;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
   title: string = '無名のパネル';
+  titleTooltip: string = '';
   left: number = 0;
   top: number = 0;
   width: number = 100;

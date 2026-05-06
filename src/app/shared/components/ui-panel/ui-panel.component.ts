@@ -19,6 +19,7 @@ import { CardStackListImageComponent as CardStackListImageComponent_1 } from '@a
 import { ChatPortraitImageComponent as ChatPortraitImageComponent_1 } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
 import { ResizableDirective } from '@axe/shared/directives/resizable.directive';
+import { TextTooltipDirective } from '@axe/shared/directives/text-tooltip.directive';
 import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
@@ -35,6 +36,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
     ChatPortraitImageComponent_1,
     CardStackListImageComponent_1,
     NgStyle,
+    TextTooltipDirective,
   ],
 })
 export class UIPanelComponent {
