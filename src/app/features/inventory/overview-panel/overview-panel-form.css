@@ -1,0 +1,85 @@
+.hidden-spacer {
+  visibility: hidden;
+  height: 0px;
+  min-width: 3em;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+.textarea-spacer {
+  visibility: hidden;
+  min-width: 3em;
+  height: auto;
+  min-height: 24px;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.input {
+  width: 100%;
+  min-width: 3em;
+  text-align: right;
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.input:hover {
+  background: var(--ui-hover);
+}
+
+.input:focus {
+  background: var(--ui-input-bg);
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input[type='number']:hover,
+input[type='number']:focus {
+  -moz-appearance: number-input;
+}
+
+.border {
+  border-bottom: 1px dotted var(--ui-panel-border);
+}
+
+.separator {
+  padding: 2px 0 2px 0;
+  border-bottom: 1px solid var(--ui-panel-border);
+}
+
+.with-button-marign {
+  padding-left: 60px;
+}
+
+.is-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.is-bold {
+  font-weight: bold;
+}
+
+.is-pointer-events-none {
+  pointer-events: none;
+}
+
+.is-pointer-events-auto {
+  pointer-events: auto;
+}

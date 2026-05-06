@@ -31,6 +31,8 @@ type DataElementTableColumnHeaderGroup = { key: string; label: string; span: num
   styleUrls: [
     './game-data-element.component.css',
     './game-data-element-rows.css',
+    './game-data-element-row-actions.css',
+    './game-data-element-field-values.css',
     './game-data-element-sections.css',
     './game-data-element-options.css',
     './game-data-element-icons.css',
