@@ -32,6 +32,8 @@ import { BatchService } from '@axe/shared/ui/batch.service';
   imports: [NgClass, SafePipe],
 })
 export class PeerCursorComponent {
+  private static readonly _sentLogoutIdentifiers = new Set<string>();
+
   private readonly batchService = inject(BatchService);
   private readonly coordinateService = inject(CoordinateService);
   private readonly chatMessageService = inject(ChatMessageService);
@@ -193,7 +195,11 @@ export class PeerCursorComponent {
   }
 
   private logoutMessage() {
-    if (!this.cursor()) return;
+    if (!this.cursor() || this.cursor().isMine) return;
+    const identifier = this.cursor().identifier;
+    if (PeerCursorComponent._sentLogoutIdentifiers.has(identifier)) return;
+    PeerCursorComponent._sentLogoutIdentifiers.add(identifier);
+    setTimeout(() => PeerCursorComponent._sentLogoutIdentifiers.delete(identifier), 60_000);
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     if (!chatTabList) return;
     const sysTab = chatTabList.systemMessageTab;

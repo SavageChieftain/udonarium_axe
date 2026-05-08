@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
@@ -36,6 +37,7 @@ describe('PeerCursorComponent', () => {
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
+    (PeerCursorComponent as unknown as Record<string, unknown>)['_sentLogoutIdentifiers'] = new Set();
   });
 
   it('should create', () => {
@@ -202,6 +204,56 @@ describe('PeerCursorComponent', () => {
       priv.chkDisConnect();
 
       expect(remoteCursor.isDisConnect).toBe(true);
+      expect(chatSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('logoutMessage 重複送信防止', () => {
+    beforeEach(() => {
+      // 各テスト前に静的 Set をリセットする
+      (PeerCursorComponent as unknown as Record<string, unknown>)['_sentLogoutIdentifiers'] = new Set();
+    });
+
+    it('同一カーソルに対して2回呼び出しても1回しかメッセージを送信しないこと', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+      const tabList = ChatTabList.instance;
+      const tab = new ChatTab();
+      tab.initialize();
+      tabList.appendChild(tab);
+
+      const remoteCursor = new PeerCursor();
+      remoteCursor.initialize();
+      remoteCursor.peerId = 'remote-peer';
+      remoteCursor.userId = 'user-1';
+
+      fixture.componentRef.setInput('cursor', remoteCursor);
+      fixture.detectChanges();
+
+      const chatService = TestBed.inject(ChatMessageService);
+      const chatSpy = vi.spyOn(chatService, 'sendSystemMessageOnePlayer');
+
+      const priv = component as unknown as { logoutMessage: () => void };
+      priv.logoutMessage(); // 1回目
+      priv.logoutMessage(); // 2回目（静的 Set で防がれる）
+
+      expect(chatSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('自分のカーソルでは logoutMessage がメッセージを送信しないこと', () => {
+      const myCursor = PeerCursor.createMyCursor();
+      myCursor.peerId = 'my-peer';
+      void ChatTabList.instance;
+
+      fixture.componentRef.setInput('cursor', myCursor);
+      fixture.detectChanges();
+
+      const chatService = TestBed.inject(ChatMessageService);
+      const chatSpy = vi.spyOn(chatService, 'sendSystemMessageOnePlayer');
+
+      const priv = component as unknown as { logoutMessage: () => void };
+      priv.logoutMessage();
+
       expect(chatSpy).not.toHaveBeenCalled();
     });
   });

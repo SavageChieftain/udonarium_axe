@@ -101,17 +101,16 @@ export class ChatTabComponent {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (!message || !this.chatTab?.contains(message)) return;
       this.removeWritingSpeakerForMessage(message);
-      if (this.topTimestamp <= message.timestamp) {
-        // bottomIndex がリスト末尾にある場合は新着メッセージを含むよう即座に拡張する。
-        // scrollToBottom() の isAutoScroll タイミング競合に依存せず確実に表示する。
-        const newLastIndex = this.chatTab.chatMessages.length - 1;
-        if (this.bottomIndex >= newLastIndex - 1) {
-          this.bottomIndex = newLastIndex;
-        }
-        this.renderVersion.update((v) => v + 1);
-        this.needUpdate = true;
-        this.onMessageInit();
+      // bottomIndex がリスト末尾にある場合は新着メッセージを含むよう即座に拡張する。
+      // タイムスタンプのズレ（時計差・NTP未同期）に関わらず常に適用する。
+      // scrollToBottom() の isAutoScroll タイミング競合に依存せず確実に表示する。
+      const newLastIndex = this.chatTab.chatMessages.length - 1;
+      if (this.bottomIndex >= newLastIndex - 1) {
+        this.bottomIndex = newLastIndex;
       }
+      this.renderVersion.update((v) => v + 1);
+      this.needUpdate = true;
+      this.onMessageInit();
     }, this.destroyRef);
     this.objectChange.writingMessage$.subscribe((event) => {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTab?.identifier) return;

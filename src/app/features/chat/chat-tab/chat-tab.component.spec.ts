@@ -135,6 +135,59 @@ describe('ChatTabComponent', () => {
       // Assert: bottomIndex は変わらない
       expect(internal().bottomIndex).toBe(4);
     });
+
+    it('topTimestamp より古いタイムスタンプのメッセージでも needUpdate が true になること', () => {
+      // Arrange: timestamp=1000 のメッセージを追加し chatMessages getter を実行して topTimestamp を確定させる
+      type InternalFull = { bottomIndex: number; needUpdate: boolean; topTimestamp: number };
+      const internalFull = () => component as unknown as InternalFull;
+
+      const msg0 = new ChatMessage();
+      msg0.initialize();
+      msg0.setAttribute('timestamp', 1000);
+      chatTab.appendChild(msg0);
+      emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg0.identifier });
+
+      // topTimestamp を 1000 に確定させる
+      const _ignored = component.chatMessages;
+      expect(internalFull().topTimestamp).toBe(1000);
+      internalFull().needUpdate = false; // getter で false になっているはずだが明示的に確認
+
+      // Act: timestamp=500 (< topTimestamp=1000) のメッセージを追加
+      const msg1 = new ChatMessage();
+      msg1.initialize();
+      msg1.setAttribute('timestamp', 500);
+      chatTab.appendChild(msg1);
+      emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg1.identifier });
+
+      // Assert: タイムスタンプが古くても needUpdate = true になること (修正前は false のまま)
+      expect(internalFull().needUpdate).toBe(true);
+    });
+
+    it('topTimestamp より古いタイムスタンプでもボトムにいる場合は bottomIndex が拡張されること', () => {
+      // Arrange: timestamp=1000 のメッセージを追加し bottomIndex=0 / topTimestamp=1000 を確定させる
+      type InternalFull = { bottomIndex: number; topTimestamp: number };
+      const internalFull = () => component as unknown as InternalFull;
+
+      const msg0 = new ChatMessage();
+      msg0.initialize();
+      msg0.setAttribute('timestamp', 1000);
+      chatTab.appendChild(msg0);
+      emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg0.identifier });
+
+      const _ignored = component.chatMessages;
+      expect(internalFull().topTimestamp).toBe(1000);
+      expect(internalFull().bottomIndex).toBe(0);
+
+      // Act: timestamp=500 (< topTimestamp=1000) のメッセージを追加
+      const msg1 = new ChatMessage();
+      msg1.initialize();
+      msg1.setAttribute('timestamp', 500);
+      chatTab.appendChild(msg1);
+      emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg1.identifier });
+
+      // Assert: ボトムにいるため bottomIndex が 1 に拡張されること (修正前は 0 のまま)
+      expect(internalFull().bottomIndex).toBe(1);
+    });
   });
 
   describe('入力中バブル', () => {
