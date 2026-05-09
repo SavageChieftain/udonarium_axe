@@ -30,7 +30,7 @@
         <button (click)="close()"><i class="material-icons text-[14px]">close</i></button>
       </div>
     }
-    <span class="title-text" [appTextTooltip]="panelService.titleTooltip">{{ panelService.title }}</span>
+    <div class="title-text" [appTextTooltip]="panelService.titleTooltip">{{ panelService.title }}</div>
   </div>
   @if (panelService.chatTab) {
     <chat-portrait-img
