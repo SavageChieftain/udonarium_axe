@@ -98,10 +98,13 @@
   --animate-cursor-ping: cursor-ping 2s ease-out infinite;
   --animate-writing-dot: writing-dot 1.2s infinite ease-in-out;
   --animate-disc-spin: spin 4s linear infinite;
+  /* Tailwind 標準と同じ 1s spin。保存ボタンの sync アイコン等のローディング表現で利用。 */
+  --animate-spin: spin 1s linear infinite;
 }
 
-/* mini-jukebox の再生中ディスクが回るアニメーション。
-   Tailwind v4 のビルトイン spin keyframe を 4 秒掛けて回すために定義。 */
+/* mini-jukebox の再生中ディスクが回るアニメーション (4s)、
+   および各種ローディングアイコン用 (1s)。Tailwind の animate-spin /
+   animate-disc-spin ユーティリティから参照される。 */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -417,6 +420,24 @@
 
 .ng-select.ud-select.ng-select-opened .ng-select-container .ng-arrow-wrapper .ng-arrow {
   border-color: transparent transparent var(--ui-accent);
+}
+
+/* dice-table-setting でフル幅にしたいセレクタに付けるバリアント。
+   dice-table-setting.component.css から移植 (Tailwind 化に伴うスコープド CSS の
+   消失を防ぐためグローバル化)。 */
+.ng-select.ud-select.sys-select {
+  display: block !important;
+  width: 100% !important;
+}
+
+.ng-select.ud-select.sys-select .ng-select-container {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 28px !important;
+  background: var(--ui-input-bg) !important;
+  border-color: var(--ui-panel-border) !important;
+  color: var(--ui-text) !important;
+  font-size: 13px !important;
 }
 
 .ng-dropdown-panel.ud-select {

@@ -1,42 +1,62 @@
-<div class="dice-table-layout">
+<div class="text-ui-text grid h-full grid-cols-[170px_1fr] overflow-hidden text-[13px]">
   <!-- ── 左カラム: 表リスト ── -->
-  <aside class="table-list-col">
-    <div class="list-header">
-      <span class="col-heading">ダイス表</span>
-      <button type="button" class="icon-btn" title="新しい表を作る" (click)="createDiceTable()" [disabled]="isEdit()">
+  <aside class="border-ui-border-panel bg-ui-panel flex flex-col overflow-hidden border-r border-solid">
+    <div
+      class="border-ui-border-panel flex flex-shrink-0 items-center justify-between border-b border-solid px-[10px] py-2"
+    >
+      <span class="text-ui-muted text-[11px] font-semibold tracking-[0.05em] uppercase">ダイス表</span>
+      <button
+        type="button"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        title="新しい表を作る"
+        (click)="createDiceTable()"
+        [disabled]="isEdit()"
+      >
         <i class="material-icons">add</i>
       </button>
     </div>
 
-    <ul class="table-list" role="listbox">
+    <ul class="m-0 flex-1 list-none overflow-y-auto px-0 py-1" role="listbox">
       @for (diceTable of getDiceTables(); track diceTable.identifier) {
         <li
-          class="table-list-item"
-          [class.selected]="selectedTable?.identifier === diceTable.identifier"
-          [class.disabled]="isEdit()"
+          class="text-ui-muted not-disabled:hover:bg-ui-hover not-disabled:hover:text-ui-text mx-1 my-0 flex cursor-pointer items-center gap-[6px] rounded-[4px] px-[10px] py-[6px] transition-colors"
+          [class.!bg-ui-accent-bg]="selectedTable?.identifier === diceTable.identifier"
+          [class.!text-ui-accent]="selectedTable?.identifier === diceTable.identifier"
+          [class.cursor-not-allowed]="isEdit()"
+          [class.opacity-50]="isEdit()"
           (click)="!isEdit() && selectDiceTable(diceTable.identifier)"
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === diceTable.identifier"
         >
-          <i class="material-icons table-item-icon">casino</i>
-          <span class="table-item-name">{{ diceTable.name }}</span>
+          <i class="material-icons flex-shrink-0 text-[15px] opacity-70">casino</i>
+          <span class="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap">{{ diceTable.name }}</span>
         </li>
       }
     </ul>
   </aside>
 
   <!-- ── 右カラム: 詳細 ── -->
-  <main class="table-detail-col">
+  <main class="bg-ui-elevated flex flex-col gap-0 overflow-y-auto px-[14px] py-3">
     @if (getDiceTables().length === 0) {
-      <div class="empty-state">
+      <div
+        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]"
+      >
         <i class="material-icons">casino</i>
         <p>ダイス表がありません</p>
-        <button type="button" class="primary-btn" (click)="createDiceTable()">表を作成</button>
+        <button
+          type="button"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          (click)="createDiceTable()"
+        >
+          表を作成
+        </button>
       </div>
     }
 
     @if (getDiceTables().length > 0 && !selectedTable) {
-      <div class="empty-state">
+      <div
+        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]"
+      >
         <i class="material-icons">touch_app</i>
         <p>左のリストから表を選択してください</p>
       </div>
@@ -44,10 +64,10 @@
 
     @if (selectedTable && !isDeleted) {
       <!-- フィールド -->
-      <div class="detail-section">
-        <label class="field-label">表タイトル</label>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">表タイトル</label>
         <input
-          class="field-input"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
           name="dice-table-name"
           [(ngModel)]="tableName"
           placeholder="タイトルを入力"
@@ -55,21 +75,21 @@
         />
       </div>
 
-      <div class="field-row">
-        <div class="detail-section">
-          <label class="field-label">ダイス</label>
+      <div class="mb-1 flex gap-[10px]">
+        <div class="mb-1 flex min-w-0 flex-1 flex-col gap-[5px]">
+          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">ダイス</label>
           <input
-            class="field-input"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             name="dice-table-dice"
             [(ngModel)]="tableDice"
             placeholder="例: 1d6"
             [attr.disabled]="!isEditable ? '' : null"
           />
         </div>
-        <div class="detail-section">
-          <label class="field-label">コマンド</label>
+        <div class="mb-1 flex min-w-0 flex-1 flex-col gap-[5px]">
+          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">コマンド</label>
           <input
-            class="field-input"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             name="dice-table-command"
             [(ngModel)]="tableCommand"
             placeholder="コマンド"
@@ -78,8 +98,8 @@
         </div>
       </div>
 
-      <div class="detail-section">
-        <label class="field-label">ゲームシステム</label>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">ゲームシステム</label>
         <ng-select
           class="ud-select sys-select"
           (change)="loadDiceBot($event)"
@@ -94,36 +114,49 @@
         </ng-select>
       </div>
 
-      <hr class="divider" />
+      <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
       <!-- パレット -->
-      <div class="detail-section palette-section">
-        <div class="palette-header">
-          <span class="section-label">ダイス表</span>
+      <div class="mb-1 flex flex-1 flex-col gap-[6px]">
+        <div class="flex flex-shrink-0 items-center gap-2">
+          <span class="text-ui-muted flex-1 text-[11px] font-semibold tracking-[0.04em] uppercase">ダイス表</span>
           @if (isEdit()) {
-            <span class="edit-badge"> <i class="material-icons">edit</i>編集中 </span>
+            <span
+              class="rounded-ui-sm bg-ui-accent-bg text-ui-accent inline-flex items-center gap-[3px] px-[6px] py-[2px] text-[11px] [&_.material-icons]:text-[12px]"
+            >
+              <i class="material-icons">edit</i>編集中
+            </span>
           }
-          <button
-            type="button"
-            [class]="isEdit() ? 'primary-btn palette-toggle-btn' : 'secondary-btn palette-toggle-btn'"
-            (click)="toggleEditMode()"
-            [disabled]="!isEditable"
-          >
-            @if (!isEdit()) {
+          @if (!isEdit()) {
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]"
+              (click)="toggleEditMode()"
+              [disabled]="!isEditable"
+            >
               <i class="material-icons">edit</i>編集
-            } @else {
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              (click)="toggleEditMode()"
+              [disabled]="!isEditable"
+            >
               <i class="material-icons">check</i>確定
-            }
-          </button>
+            </button>
+          }
         </div>
 
         @if (!isEdit()) {
-          <div class="palette-view">
+          <div
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input max-h-[160px] min-h-20 overflow-y-auto border border-solid px-2 py-[6px] font-mono text-[12px] leading-[1.6]"
+          >
             @if (selectedTable.diceTablePalette) {
               @for (palette of selectedTable.diceTablePalette.getPalette(); track palette) {
-                <div class="palette-row">{{ palette }}</div>
+                <div class="text-ui-text py-[1px] whitespace-pre">{{ palette }}</div>
               } @empty {
-                <div class="palette-empty">（エントリなし）</div>
+                <div class="text-ui-dim text-[11px] italic">（エントリなし）</div>
               }
             }
           </div>
@@ -131,7 +164,7 @@
 
         @if (isEdit()) {
           <textarea
-            class="palette-editor"
+            class="rounded-ui-sm border-ui-accent bg-ui-input text-ui-text focus:border-ui-accent-glow box-border min-h-[110px] w-full resize-y border border-solid px-2 py-[6px] font-mono text-[12px] leading-[1.6] transition-colors outline-none"
             name="dice-table-palette"
             [ngModel]="editPalette()"
             (ngModelChange)="editPalette.set($event)"
@@ -140,19 +173,29 @@
         }
       </div>
 
-      <hr class="divider" />
+      <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
       <!-- アクション -->
-      <div class="detail-section">
-        <div class="action-row">
-          <button type="button" class="primary-btn" [disabled]="isSaving() || isEdit()" (click)="save()">
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <div class="flex flex-wrap items-center gap-[6px]">
+          <button
+            type="button"
+            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+            [disabled]="isSaving() || isEdit()"
+            (click)="save()"
+          >
             @if (isSaving()) {
-              <i class="material-icons spin">sync</i>{{ progressPercent() }}%
+              <i class="material-icons animate-spin">sync</i>{{ progressPercent() }}%
             } @else {
               <i class="material-icons">save</i>保存
             }
           </button>
-          <button type="button" class="danger-btn" [disabled]="isEdit()" (click)="delete()">
+          <button
+            type="button"
+            class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+            [disabled]="isEdit()"
+            (click)="delete()"
+          >
             <i class="material-icons">delete</i>削除
           </button>
         </div>

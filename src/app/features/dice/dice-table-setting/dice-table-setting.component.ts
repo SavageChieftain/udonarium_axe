@@ -13,7 +13,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'dice-table-setting',
   templateUrl: './dice-table-setting.component.html',
-  styleUrl: './dice-table-setting.component.css',
   host: { class: 'block h-full' },
   imports: [FormsModule, NgSelectComponent, NgOptionComponent],
 })
