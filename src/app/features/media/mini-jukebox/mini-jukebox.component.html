@@ -1,49 +1,78 @@
+<!-- .player クラスは draggable.stack の識別子兼マーカー (CSS では未使用)。
+     .player-top も draggable.handle のセレクタターゲット。Tailwind 化後も
+     マーカーとして保持する。 -->
 <div
-  class="player"
-  [class.is-minimized]="isMinimized()"
+  class="player group rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute top-0 left-0 z-[100] w-[300px] overflow-hidden border border-solid text-[13px] [backdrop-filter:blur(24px)_saturate(1.5)] transition-[width,border-radius] duration-150 ease-[ease] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+  [class.!w-[56px]]="isMinimized()"
+  [class.!rounded-[28px]]="isMinimized()"
   #playerEl
   appDraggable
   [draggable.handle]="'.player-top'"
   [draggable.stack]="'.player'"
 >
   <!-- ドラッグエリア + トラック情報 -->
-  <div class="player-top">
+  <div
+    class="player-top relative flex cursor-grab items-center gap-[10px] pt-[10px] pr-2 pb-[6px] pl-3 active:cursor-grabbing"
+    [class.!cursor-grab]="isMinimized()"
+    [class.!justify-center]="isMinimized()"
+    [class.!gap-0]="isMinimized()"
+    [class.!p-[7px]]="isMinimized()"
+  >
     <div
-      class="art-disc"
-      [class.is-playing]="isPlaying()"
-      [class.has-artwork]="artworkUrl()"
-      [class.is-expand-target]="isMinimized()"
+      class="group/disc border-ui-border-panel bg-ui-elevated text-ui-dim relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-solid transition-colors [&_.material-icons]:text-[22px]"
+      [class.!w-[38px]]="isMinimized()"
+      [class.!h-[38px]]="isMinimized()"
+      [class.!border-ui-accent]="isPlaying()"
+      [class.!text-ui-accent]="isPlaying()"
+      [class.shadow-[0_0_0_3px_var(--ui-accent-glow)]]="isPlaying()"
+      [class.animate-disc-spin]="isPlaying() && !artworkUrl()"
+      [class.cursor-pointer]="isMinimized()"
       (mousedown)="isMinimized() && $event.stopPropagation()"
       (click)="isMinimized() && toggleMinimize()"
     >
       @if (artworkUrl()) {
-        <img class="art-disc-img" [src]="artworkUrl()" alt="" />
+        <img class="block h-full w-full rounded-full object-cover" [src]="artworkUrl()" alt="" />
       } @else {
         <i class="material-icons">{{ isMinimized() && isPlaying() ? 'volume_up' : 'album' }}</i>
       }
       @if (isMinimized()) {
-        <div class="disc-expand-overlay">
+        <div
+          class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-base text-white opacity-0 transition-opacity group-hover/disc:opacity-100"
+        >
           <i class="material-icons">open_in_full</i>
         </div>
       }
     </div>
     @if (!isMinimized()) {
-      <div class="track-info">
+      <div class="min-w-0 flex-1">
         @if (trackName()) {
-          <div class="track-name-wrap">
-            <span class="track-name" [class.is-scrolling]="isTitleScrolling()" #titleTextEl>{{ trackName() }}</span>
+          <div class="w-full overflow-hidden">
+            <!-- track-name クラスは scoped CSS の .is-scrolling と組み合わせて使う -->
+            <span
+              class="track-name text-ui-text inline-block text-[13px] font-semibold whitespace-nowrap"
+              [class.is-scrolling]="isTitleScrolling()"
+              #titleTextEl
+              >{{ trackName() }}</span
+            >
           </div>
-          <div class="track-sub">{{ trackTag() }}</div>
+          <div class="text-ui-muted mt-[2px] text-[10px] tracking-[0.05em]">{{ trackTag() }}</div>
         } @else if (lastTrackName()) {
-          <div class="track-name-wrap">
-            <span class="track-name is-stopped">{{ lastTrackName() }}</span>
+          <div class="w-full overflow-hidden">
+            <span class="text-ui-text inline-block text-[13px] font-semibold whitespace-nowrap opacity-[0.45]">{{
+              lastTrackName()
+            }}</span>
           </div>
-          <div class="track-sub is-stopped">{{ lastTrackTag() }}</div>
+          <div class="text-ui-muted mt-[2px] text-[10px] tracking-[0.05em] opacity-[0.45]">{{ lastTrackTag() }}</div>
         } @else {
-          <div class="track-name is-idle">— 停止中 —</div>
+          <div class="text-ui-dim text-[12px] font-normal italic">— 停止中 —</div>
         }
       </div>
-      <button class="minimize-btn" (mousedown)="$event.stopPropagation()" (click)="toggleMinimize()" title="最小化">
+      <button
+        class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[22px] w-[22px] flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 opacity-0 transition-[opacity,background,color] group-hover:opacity-100 hover:border-transparent hover:shadow-none"
+        (mousedown)="$event.stopPropagation()"
+        (click)="toggleMinimize()"
+        title="最小化"
+      >
         <i class="material-icons">remove</i>
       </button>
     }
@@ -51,10 +80,11 @@
 
   @if (!isMinimized()) {
     <!-- プログレスバー + 時刻 -->
-    <div class="progress-area">
+    <div class="flex h-5 items-center gap-2 px-3 pt-[2px]">
+      <!-- seek-bar クラスは scoped CSS のベンダー擬似要素ターゲット -->
       <input
         type="range"
-        class="seek-bar"
+        class="seek-bar m-0 h-5 flex-1 cursor-pointer appearance-none bg-transparent p-0 [-webkit-appearance:none] disabled:pointer-events-none disabled:cursor-default disabled:opacity-40"
         [value]="displayProgress() * 100"
         [style.--seek-progress]="displayProgress() * 100 + '%'"
         min="0"
@@ -64,59 +94,87 @@
         (input)="onSeekInput($event)"
         (change)="onSeekCommit($event)"
       />
-      <span class="time-display">{{ timeDisplay() }}</span>
+      <span class="text-ui-dim w-[72px] flex-shrink-0 text-right text-[10px] [font-variant-numeric:tabular-nums]">
+        {{ timeDisplay() }}
+      </span>
     </div>
 
     <!-- トランスポートコントロール -->
-    <div class="controls-row">
-      <button class="ctrl-btn" (click)="playPrev()" [disabled]="!bgmList().length" title="前の曲">
+    <div class="flex items-center gap-[2px] px-2 pt-1 pb-[10px]">
+      <button
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[30px] w-[30px] flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        (click)="playPrev()"
+        [disabled]="!bgmList().length"
+        title="前の曲"
+      >
         <i class="material-icons">skip_previous</i>
       </button>
       <button
-        class="ctrl-btn ctrl-btn--play"
+        class="text-ui-muted hover:bg-ui-danger-bg! hover:text-ui-danger! m-0 inline-flex h-[30px] w-[30px] flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
         (click)="togglePlayStop()"
         [disabled]="!isPlaying() && !lastAudioIdentifier()"
         [title]="isPlaying() ? '停止' : '再生'"
       >
         <i class="material-icons">{{ isPlaying() ? 'stop' : 'play_arrow' }}</i>
       </button>
-      <button class="ctrl-btn" (click)="playNext()" [disabled]="!bgmList().length" title="次の曲">
+      <button
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[30px] w-[30px] flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        (click)="playNext()"
+        [disabled]="!bgmList().length"
+        title="次の曲"
+      >
         <i class="material-icons">skip_next</i>
       </button>
       <button
-        class="ctrl-btn"
-        [class.is-active]="repeatMode() !== 'none'"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[30px] w-[30px] flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        [class.!text-ui-accent]="repeatMode() !== 'none'"
         (click)="cycleRepeatMode()"
         [title]="repeatMode() === 'one' ? 'リピート1曲' : repeatMode() === 'all' ? 'リピート全曲' : 'リピートなし'"
       >
         <i class="material-icons">{{ repeatMode() === 'one' ? 'repeat_one' : 'repeat' }}</i>
       </button>
-      <div class="vol-group">
-        <i class="material-icons vol-icon">volume_up</i>
-        <input class="vol-slider" [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" />
+      <div class="flex min-w-0 flex-1 items-center gap-1 pr-1 pl-[2px]">
+        <i class="material-icons text-ui-dim flex-shrink-0 text-[14px]">volume_up</i>
+        <input
+          class="block h-1 max-w-20 min-w-0 flex-1 [accent-color:var(--ui-accent)]"
+          [(ngModel)]="volume"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+        />
       </div>
-      <button class="ctrl-btn" (click)="togglePlaylist()" [class.is-active]="isPlaylistOpen()" title="再生リスト">
+      <button
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[30px] w-[30px] flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        [class.!text-ui-accent]="isPlaylistOpen()"
+        (click)="togglePlaylist()"
+        title="再生リスト"
+      >
         <i class="material-icons">queue_music</i>
       </button>
     </div>
 
     <!-- 再生リストドロップダウン -->
     @if (isPlaylistOpen()) {
-      <div class="playlist-dropdown">
+      <!-- playlist-dropdown クラスは scoped CSS の ::-webkit-scrollbar ターゲット -->
+      <div
+        class="playlist-dropdown rounded-bl-ui-lg rounded-br-ui-lg border-ui-border-panel bg-ui-elevated max-h-[200px] overflow-hidden overflow-y-auto border-t border-solid"
+      >
         @for (audio of bgmList(); track audio.identifier) {
           <button
-            class="pld-row"
-            [class.is-current]="audio.identifier === lastAudioIdentifier()"
+            class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text hover:border-b-ui-border-panel m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-b border-none border-solid bg-transparent px-3 py-[7px] text-left text-[12px] transition-colors last:border-b-0 hover:border-transparent hover:shadow-none"
+            [class.!text-ui-accent]="audio.identifier === lastAudioIdentifier()"
+            [class.!bg-ui-accent-bg]="audio.identifier === lastAudioIdentifier()"
             (click)="playFromList(audio.identifier)"
           >
-            <i class="material-icons pld-icon">{{
+            <i class="material-icons flex-shrink-0 text-[14px]">{{
               audio.identifier === lastAudioIdentifier() && isPlaying() ? 'volume_up' : 'music_note'
             }}</i>
-            <span class="pld-name">{{ audio.name }}</span>
+            <span class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{{ audio.name }}</span>
           </button>
         }
         @if (!bgmList().length) {
-          <div class="pld-empty">再生リストは空です</div>
+          <div class="text-ui-dim px-3 py-5 text-center text-[12px]">再生リストは空です</div>
         }
       </div>
     }
