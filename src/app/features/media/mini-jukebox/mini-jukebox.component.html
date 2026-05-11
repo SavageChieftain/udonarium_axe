@@ -47,10 +47,11 @@
       <div class="min-w-0 flex-1">
         @if (trackName()) {
           <div class="w-full overflow-hidden">
-            <!-- track-name クラスは scoped CSS の .is-scrolling と組み合わせて使う -->
+            <!-- track-name クラスはなくなり、animate-title-scroll を ngClass で切り替える。
+                 MiniJukeboxComponent が titleTextEl.style.setProperty('--scroll-dist', ...) で注入。 -->
             <span
-              class="track-name text-ui-text inline-block text-[13px] font-semibold whitespace-nowrap"
-              [class.is-scrolling]="isTitleScrolling()"
+              class="text-ui-text inline-block text-[13px] font-semibold whitespace-nowrap"
+              [class.animate-title-scroll]="isTitleScrolling()"
               #titleTextEl
               >{{ trackName() }}</span
             >

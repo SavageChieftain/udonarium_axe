@@ -27,7 +27,6 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-mini-jukebox',
   templateUrl: './mini-jukebox.component.html',
-  styleUrls: ['./mini-jukebox.component.css'],
   imports: [FormsModule, DraggableDirective],
 })
 export class MiniJukeboxComponent {

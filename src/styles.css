@@ -105,6 +105,84 @@
   --animate-focused: focused 1s ease;
   --animate-arrowmove: arrowmove 1s ease-in-out infinite;
   --animate-arrowmove2: arrowmove2 1s ease-in-out infinite;
+  /* mini-jukebox のトラック名横スクロール。--scroll-dist は MiniJukeboxComponent が
+     対象 element に直接 setProperty で注入する。 */
+  --animate-title-scroll: title-scroll 7s ease-in-out infinite;
+}
+
+/* mini-jukebox のトラック名横スクロール用 keyframe。
+   element.style.--scroll-dist を読むため、グローバル定義でも JS から注入された値が効く。 */
+@keyframes title-scroll {
+  0%,
+  20% {
+    transform: translateX(0);
+  }
+  50%,
+  70% {
+    transform: translateX(var(--scroll-dist, 0));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* mini-jukebox の <input type="range" class="seek-bar"> のベンダー擬似要素群。
+   Angular の Emulated 範囲外なのでグローバル定義。.seek-bar クラスをマーカーとして識別する。
+   linear-gradient の var(--seek-progress) は HTML から [style.--seek-progress] で注入。 */
+.seek-bar::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--ui-accent) var(--seek-progress, 0%),
+    var(--ui-panel-border) var(--seek-progress, 0%)
+  );
+}
+
+.seek-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ui-accent);
+  margin-top: -3.5px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.seek-bar:hover::-webkit-slider-thumb {
+  transform: scale(1.3);
+}
+
+.seek-bar::-moz-range-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ui-panel-border);
+}
+
+.seek-bar::-moz-range-progress {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ui-accent);
+}
+
+.seek-bar::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ui-accent);
+  border: none;
+  cursor: pointer;
+}
+
+/* mini-jukebox のプレイリスト用カスタムスクロールバー。.playlist-dropdown クラスをマーカー。 */
+.playlist-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.playlist-dropdown::-webkit-scrollbar-thumb {
+  background: var(--ui-panel-border);
+  border-radius: 2px;
 }
 
 /* mini-jukebox の再生中ディスクが回るアニメーション (4s)、
