@@ -43,7 +43,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-input',
   templateUrl: './chat-input.component.html',
-  styleUrls: ['./chat-input.component.css'],
+  host: { class: 'block min-w-0 [container-type:inline-size]' },
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ChatInputComponent {

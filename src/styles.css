@@ -440,6 +440,43 @@
   font-size: 13px !important;
 }
 
+/* chat-input の発言者/宛先/ダイスボット セレクタ用 flex 制御。
+   chat-input.component.css から移植 (Tailwind 化に伴うスコープド CSS の
+   消失を防ぐためグローバル化)。 */
+.ng-select.ud-select.chat-select {
+  flex: 1 1 9rem;
+  width: auto !important;
+  min-width: 7rem;
+  max-width: 100%;
+}
+
+.ng-select.ud-select.chat-select.chat-select--to {
+  flex-basis: 7rem;
+}
+
+.ng-select.ud-select.chat-select.chat-select--game-type {
+  flex-basis: 11rem;
+}
+
+/* chat-input の @container (max-width: 420px) と (max-width: 320px) で
+   発言者セレクタの flex-basis を変える。chat-input-controls クラスを
+   container として扱う。 */
+@container (max-width: 420px) {
+  .ng-select.ud-select.chat-select {
+    flex-basis: calc(50% - 16px);
+    min-width: 0;
+  }
+  .ng-select.ud-select.chat-select.chat-select--game-type {
+    flex-basis: 100%;
+  }
+}
+
+@container (max-width: 320px) {
+  .ng-select.ud-select.chat-select {
+    flex-basis: 100%;
+  }
+}
+
 .ng-dropdown-panel.ud-select {
   background: var(--ui-menu-bg);
   border: 1px solid var(--ui-menu-border);
