@@ -22,6 +22,79 @@
   --color-danger-hover: hsl(0 90% 74%);
   --color-text-muted: hsl(220 10% 60%);
   --font-family-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
+
+  /* ── --ui-* ブリッジ: var(--ui-*) を Tailwind utility 経由で使えるようにする ──
+     例: bg-ui-panel, text-ui-muted, border-ui-border-panel, shadow-ui-md, rounded-ui-lg, animate-fade-in
+     ライト/ダーク切替は --ui-* 側で行われるため、ここでは参照だけブリッジ。 */
+
+  /* 背景 → bg-ui-* */
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-surface: var(--ui-surface);
+  --color-ui-elevated: var(--ui-elevated);
+  --color-ui-panel: var(--ui-panel-bg);
+  --color-ui-titlebar: var(--ui-titlebar-bg);
+  --color-ui-hover: var(--ui-hover);
+  --color-ui-selected: var(--ui-selected);
+  --color-ui-menu: var(--ui-menu-bg);
+  --color-ui-menu-hover: var(--ui-menu-hover);
+  --color-ui-input: var(--ui-input-bg);
+
+  /* テキスト → text-ui-* */
+  --color-ui-text: var(--ui-text);
+  --color-ui-muted: var(--ui-text-muted);
+  --color-ui-dim: var(--ui-text-dim);
+
+  /* アクセント / ステータス */
+  --color-ui-accent: var(--ui-accent);
+  --color-ui-accent-hover: var(--ui-accent-hover);
+  --color-ui-accent-glow: var(--ui-accent-glow);
+  --color-ui-accent-bg: var(--ui-accent-bg);
+  --color-ui-danger: var(--ui-danger);
+  --color-ui-danger-hover: var(--ui-danger-hover);
+  --color-ui-danger-glow: var(--ui-danger-glow);
+  --color-ui-danger-bg: var(--ui-danger-bg);
+  --color-ui-success: var(--ui-success);
+
+  /* ボーダー → border-ui-* */
+  --color-ui-border-panel: var(--ui-panel-border);
+  --color-ui-border-menu: var(--ui-menu-border);
+  --color-ui-border-titlebar: var(--ui-titlebar-border);
+  --color-ui-border-input: var(--ui-input-border);
+  --color-ui-border-separator: var(--ui-menu-separator);
+
+  /* color-mix 頻出パターン (3 箇所以上で再利用される比率のみ登録)
+     一回限りの特殊比率はコンポーネント側 style/CSS で対応する */
+  --color-ui-accent-soft: color-mix(in srgb, var(--ui-accent) 20%, transparent);
+  --color-ui-accent-bold: color-mix(in srgb, var(--ui-accent) 72%, var(--ui-elevated));
+  --color-ui-danger-soft: color-mix(in srgb, var(--ui-danger) 20%, transparent);
+  --color-ui-danger-ring: color-mix(in srgb, var(--ui-danger) 40%, transparent);
+
+  /* 影 → shadow-ui-{sm,md,lg} */
+  --shadow-ui-sm: var(--ui-shadow-sm);
+  --shadow-ui-md: var(--ui-shadow-md);
+  --shadow-ui-lg: var(--ui-shadow-lg);
+
+  /* 角丸 → rounded-ui-{sm,DEFAULT,lg,xl} */
+  --radius-ui-sm: var(--ui-radius-sm);
+  --radius-ui: var(--ui-radius);
+  --radius-ui-lg: var(--ui-radius-lg);
+  --radius-ui-xl: var(--ui-radius-xl);
+
+  /* グローバル @keyframes → animate-* ユーティリティ
+     既存の .fly-in / .fade-in 等のヘルパクラスは後方互換のため styles.css 内に残置。
+     新規箇所では animate-* を使うこと。 */
+  --animate-bounce-badge: bounce 600ms ease;
+  --animate-fly-in: flyIn 100ms ease-out;
+  --animate-bg-fade-in: bgFadeIn 200ms ease-out forwards;
+  --animate-fade-in: fadeIn 100ms ease-out;
+  --animate-rotate-state: rotateOut 132ms ease-in-out;
+  --animate-blinking: blink 1s linear infinite alternate;
+  --animate-bounce-in: bounceIn 600ms ease;
+  --animate-shuffling: shuffle 800ms ease;
+  --animate-dice-rolling: diceRoll 800ms ease;
+  --animate-chat-slide-in: chatSlideIn 200ms ease-out;
+  --animate-chat-fade-in: chatFadeIn 200ms ease-out;
+  --animate-vibration: vibration 0.2s infinite;
 }
 
 /* ── UIデザイントークン ─────────────────────────────────────────
