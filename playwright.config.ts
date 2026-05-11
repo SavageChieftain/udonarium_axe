@@ -12,15 +12,6 @@ export default defineConfig({
   reporter: 'html',
   // Per-test timeout (60s to account for slow WSL2 startup).
   timeout: 60000,
-  // Visual regression: screenshot diff must be near-pixel-perfect.
-  // - maxDiffPixels: 50 pixels of tolerance for font/AA edge cases.
-  // - threshold: 0.15 per-channel allowance to absorb OS font rendering.
-  expect: {
-    toHaveScreenshot: {
-      maxDiffPixels: 50,
-      threshold: 0.15,
-    },
-  },
   use: {
     baseURL: 'http://localhost:4200',
     trace: 'on-first-retry',
