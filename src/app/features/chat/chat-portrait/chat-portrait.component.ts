@@ -5,7 +5,6 @@ import { ChatPortraitImageComponent as ChatPortraitImageComponent_1 } from '@axe
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-portrait',
   templateUrl: './chat-portrait.component.html',
-  styleUrl: './chat-portrait.component.css',
   imports: [ChatPortraitImageComponent_1],
 })
 export class ChatPortraitComponent {

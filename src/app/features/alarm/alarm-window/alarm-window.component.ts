@@ -9,7 +9,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-alarm-window',
   templateUrl: './alarm-window.component.html',
-  styleUrls: ['./alarm-window.component.css'],
   imports: [],
 })
 export class AlarmWindowComponent {

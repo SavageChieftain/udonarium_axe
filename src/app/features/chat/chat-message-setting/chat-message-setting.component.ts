@@ -8,7 +8,6 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 @Component({
   selector: 'chat-message-setting',
   templateUrl: './chat-message-setting.component.html',
-  styleUrl: './chat-message-setting.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })

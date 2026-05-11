@@ -1,20 +1,24 @@
-<form name="chat-setting" class="chat-setting-form">
+<form name="chat-setting" class="px-3 py-2">
   <!-- 立ち絵 -->
-  <section class="setting-section">
-    <h3 class="setting-heading">立ち絵</h3>
-    <label class="setting-row">
-      <span class="setting-label">立ち絵を表示（このタブ）</span>
+  <section class="mb-3">
+    <h3
+      class="border-ui-border-panel text-ui-dim m-0 mb-[6px] border-b border-solid pb-1 text-[10px] font-semibold tracking-[0.06em] uppercase"
+    >
+      立ち絵
+    </h3>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">立ち絵を表示（このタブ）</span>
       @if (chatTab) {
         <input type="checkbox" [(ngModel)]="chatTab.portraitDisplayFlag" name="portraitDisplayFlag" />
       } @else {
         <input type="checkbox" name="portraitDisplayFlag" disabled />
       }
     </label>
-    <label class="setting-row">
-      <span class="setting-label">立ち絵サイズ</span>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">立ち絵サイズ</span>
       <input
         type="number"
-        class="setting-number"
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-16 border border-solid px-1 py-[2px] text-right text-[12px]"
         [(ngModel)]="chatTabList.portraitHeight"
         min="{{ chatTabList.minPortraitSize }}"
         max="{{ chatTabList.maxPortraitSize }}"
@@ -22,8 +26,8 @@
         (change)="onChkHeight($event)"
       />
     </label>
-    <label class="setting-row">
-      <span class="setting-label">立ち絵をウィンドウ内に表示</span>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">立ち絵をウィンドウ内に表示</span>
       <input
         type="checkbox"
         [(ngModel)]="chatTabList.isPortraitInWindow"
@@ -31,8 +35,8 @@
         (click)="changePortraitInWindow()"
       />
     </label>
-    <label class="setting-row">
-      <span class="setting-label">ウィンドウ外の立ち絵を保持</span>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">ウィンドウ外の立ち絵を保持</span>
       <input
         type="checkbox"
         [(ngModel)]="chatTabList.isKeepPortraitOutWindow"
@@ -44,10 +48,14 @@
   </section>
 
   <!-- 簡易表示 -->
-  <section class="setting-section">
-    <h3 class="setting-heading">簡易表示</h3>
-    <label class="setting-row">
-      <span class="setting-label">簡易表示を有効にする（このタブ）</span>
+  <section class="mb-0">
+    <h3
+      class="border-ui-border-panel text-ui-dim m-0 mb-[6px] border-b border-solid pb-1 text-[10px] font-semibold tracking-[0.06em] uppercase"
+    >
+      簡易表示
+    </h3>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">簡易表示を有効にする（このタブ）</span>
       @if (chatTab) {
         <input
           type="checkbox"
@@ -59,8 +67,8 @@
         <input type="checkbox" name="chatSimpleDispFlag" disabled />
       }
     </label>
-    <label class="setting-row">
-      <span class="setting-label">時間を表示</span>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">時間を表示</span>
       <input
         type="checkbox"
         [(ngModel)]="chatTabList.simpleDispFlagTime"
@@ -69,8 +77,8 @@
         [attr.disabled]="chatTab?.chatSimpleDispFlag ? null : ''"
       />
     </label>
-    <label class="setting-row">
-      <span class="setting-label">IDを表示</span>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">IDを表示</span>
       <input
         type="checkbox"
         [(ngModel)]="chatTabList.simpleDispFlagUserId"

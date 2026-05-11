@@ -10,7 +10,7 @@ export interface CardDrawCountDialogOption {
 @Component({
   selector: 'card-draw-count-dialog',
   templateUrl: './card-draw-count-dialog.component.html',
-  styleUrls: ['./card-draw-count-dialog.component.css'],
+  host: { class: 'block text-ui-text' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })

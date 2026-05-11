@@ -1,9 +1,9 @@
-<div class="color-panel">
-  <div class="color-row">
-    <label class="color-label">第1色</label>
+<div class="flex items-end gap-4">
+  <div class="flex flex-col items-center gap-[6px]">
+    <label class="text-ui-muted text-[11px] whitespace-nowrap">第1色</label>
     <input
       type="color"
-      class="color-input"
+      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-[30px] w-[44px] cursor-pointer border border-solid p-[2px] transition-colors"
       name="color01"
       list="color-list_01"
       [value]="chatColorCode(0)"
@@ -28,11 +28,11 @@
     </datalist>
   </div>
 
-  <div class="color-row">
-    <label class="color-label">第2色</label>
+  <div class="flex flex-col items-center gap-[6px]">
+    <label class="text-ui-muted text-[11px] whitespace-nowrap">第2色</label>
     <input
       type="color"
-      class="color-input"
+      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-[30px] w-[44px] cursor-pointer border border-solid p-[2px] transition-colors"
       name="color02"
       list="color-list_02"
       [value]="chatColorCode(1)"
@@ -57,11 +57,11 @@
     </datalist>
   </div>
 
-  <div class="color-row">
-    <label class="color-label">第3色</label>
+  <div class="flex flex-col items-center gap-[6px]">
+    <label class="text-ui-muted text-[11px] whitespace-nowrap">第3色</label>
     <input
       type="color"
-      class="color-input"
+      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-[30px] w-[44px] cursor-pointer border border-solid p-[2px] transition-colors"
       name="color03"
       list="color-list_03"
       [value]="chatColorCode(2)"
