@@ -185,6 +185,40 @@
   border-radius: 2px;
 }
 
+/* chat-message のルビ表示。chat-message は innerHTML で <ruby> 要素を生成するため
+   Angular の Emulated view encapsulation 範囲外。グローバル定義にすることで
+   .msg-text マーカークラス内のルビ要素にスタイルが当たる。 */
+.msg-text ruby.chat-ruby {
+  display: inline-flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1px;
+  margin: 0 1px;
+  vertical-align: text-bottom;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.msg-text ruby.chat-ruby rb {
+  display: block;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.msg-text ruby.chat-ruby rt {
+  display: block;
+  box-sizing: border-box;
+  min-width: 100%;
+  padding: 0 1px;
+  color: var(--ui-text);
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* mini-jukebox の再生中ディスクが回るアニメーション (4s)、
    および各種ローディングアイコン用 (1s)。Tailwind の animate-spin /
    animate-disc-spin ユーティリティから参照される。 */

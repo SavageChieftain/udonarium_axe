@@ -18,7 +18,6 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   selector: 'chat-message',
   templateUrl: './chat-message.component.html',
   host: { class: 'block' },
-  styleUrls: ['./chat-message.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, ChatColorStylePipe, SafePipe],
 })
