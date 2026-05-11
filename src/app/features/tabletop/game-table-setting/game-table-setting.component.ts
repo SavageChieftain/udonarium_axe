@@ -21,7 +21,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
-  styleUrl: './game-table-setting.component.css',
   host: { class: 'block' },
   imports: [FormsModule, NgSelectComponent, NgOptionComponent, SafePipe],
 })

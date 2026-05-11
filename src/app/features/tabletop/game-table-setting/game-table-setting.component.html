@@ -1,42 +1,58 @@
-<div class="gt-layout">
+<div class="text-ui-text grid h-full grid-cols-[170px_1fr] grid-rows-[1fr_auto] overflow-hidden text-[13px]">
   <!-- ── 左カラム: テーブルリスト ── -->
-  <aside class="table-list-col">
-    <div class="list-header">
-      <span class="col-heading">テーブル</span>
-      <button type="button" class="icon-btn" title="新しいテーブルを作る" (click)="createGameTable()">
+  <aside class="border-ui-border-panel bg-ui-panel [grid-row:1/2] flex flex-col overflow-hidden border-r border-solid">
+    <div
+      class="border-ui-border-panel flex flex-shrink-0 items-center justify-between border-b border-solid px-[10px] py-2"
+    >
+      <span class="text-ui-muted text-[11px] font-semibold tracking-[0.05em] uppercase">テーブル</span>
+      <button
+        type="button"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        title="新しいテーブルを作る"
+        (click)="createGameTable()"
+      >
         <i class="material-icons">add</i>
       </button>
     </div>
-    <ul class="table-list" role="listbox">
+    <ul class="m-0 flex-1 list-none overflow-y-auto px-0 py-1" role="listbox">
       @for (gameTable of getGameTables(); track gameTable.identifier) {
         <li
-          class="table-list-item"
-          [class.selected]="selectedTable?.identifier === gameTable.identifier"
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text mx-1 my-0 flex cursor-pointer items-center gap-[6px] rounded-[4px] px-[10px] py-[6px] transition-colors"
+          [class.!bg-ui-accent-bg]="selectedTable?.identifier === gameTable.identifier"
+          [class.!text-ui-accent]="selectedTable?.identifier === gameTable.identifier"
           (click)="selectGameTable(gameTable.identifier)"
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === gameTable.identifier"
         >
-          <i class="material-icons table-item-icon">table_view</i>
-          <span class="table-item-name">{{ gameTable.name }}</span>
+          <i class="material-icons flex-shrink-0 text-[15px] opacity-70">table_view</i>
+          <span class="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap">{{ gameTable.name }}</span>
         </li>
       }
     </ul>
   </aside>
 
   <!-- ── 右カラム: 詳細設定 ── -->
-  <main class="table-detail-col">
+  <main class="bg-ui-elevated [grid-row:1/2] flex flex-col gap-0 overflow-y-auto px-[14px] py-3">
     @if (getGameTables().length === 0) {
-      <div class="empty-state">
+      <div
+        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40"
+      >
         <i class="material-icons">table_view</i>
         <p>テーブルがありません</p>
-        <button type="button" class="primary-btn" (click)="createGameTable()">
+        <button
+          type="button"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          (click)="createGameTable()"
+        >
           <i class="material-icons">add</i>テーブルを作成
         </button>
       </div>
     }
 
     @if (getGameTables().length > 0 && !selectedTable) {
-      <div class="empty-state">
+      <div
+        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40"
+      >
         <i class="material-icons">touch_app</i>
         <p>左のリストからテーブルを選択してください</p>
       </div>
@@ -44,45 +60,57 @@
 
     @if (selectedTable) {
       <!-- 画像 -->
-      <div class="detail-section">
-        <span class="field-label">画像</span>
-        <div class="image-row">
-          <div class="image-cell">
-            <span class="image-sub-label">テーブル</span>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <span class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">画像</span>
+        <div class="flex gap-3">
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-ui-muted text-[11px]">テーブル</span>
             @if (tableBackgroundImage.url) {
               <img
-                class="image-thumb"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent block h-[66px] w-[88px] cursor-pointer border border-solid object-contain transition-colors"
                 [src]="tableBackgroundImage.url | safe: 'resourceUrl'"
                 (click)="openBgImageModal()"
                 alt="テーブル画像"
               />
             } @else {
-              <button type="button" class="image-add-btn" (click)="openBgImageModal()">テーブル画像を追加</button>
+              <button
+                type="button"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:bg-ui-input hover:border-ui-accent hover:text-ui-accent m-0 flex h-[66px] w-[88px] cursor-pointer items-center justify-center border border-dashed p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none"
+                (click)="openBgImageModal()"
+              >
+                テーブル画像を追加
+              </button>
             }
           </div>
-          <div class="image-cell">
-            <span class="image-sub-label">背景</span>
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-ui-muted text-[11px]">背景</span>
             @if (tableDistanceviewImage.url) {
               <img
-                class="image-thumb"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent block h-[66px] w-[88px] cursor-pointer border border-solid object-contain transition-colors"
                 [src]="tableDistanceviewImage.url | safe: 'resourceUrl'"
                 (click)="openDistanceViewImageModal()"
                 alt="背景画像"
               />
             } @else {
-              <button type="button" class="image-add-btn" (click)="openDistanceViewImageModal()">背景画像を追加</button>
+              <button
+                type="button"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:bg-ui-input hover:border-ui-accent hover:text-ui-accent m-0 flex h-[66px] w-[88px] cursor-pointer items-center justify-center border border-dashed p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none"
+                (click)="openDistanceViewImageModal()"
+              >
+                背景画像を追加
+              </button>
             }
           </div>
         </div>
       </div>
 
-      <hr class="divider" />
+      <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
       <!-- 基本設定 -->
-      <div class="detail-section">
-        <label class="field-label">テーブル名</label>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">テーブル名</label>
         <input
-          class="field-input"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
           name="table-name"
           [(ngModel)]="tableName"
           placeholder="テーブル名を入力"
@@ -90,11 +118,12 @@
         />
       </div>
 
-      <div class="detail-section">
-        <label class="field-label">Width</label>
-        <div class="slider-row">
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">Width</label>
+        <div class="flex items-center gap-2">
           <input
             type="range"
+            class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
             [(ngModel)]="tableWidth"
             min="{{ minSize }}"
             max="{{ maxSize }}"
@@ -103,6 +132,7 @@
           />
           <input
             type="number"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-[4.5em] border border-solid px-[6px] py-1 text-right text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             [(ngModel)]="tableWidth"
             min="{{ minSize }}"
             max="{{ maxSize }}"
@@ -112,11 +142,12 @@
         </div>
       </div>
 
-      <div class="detail-section">
-        <label class="field-label">Height</label>
-        <div class="slider-row">
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">Height</label>
+        <div class="flex items-center gap-2">
           <input
             type="range"
+            class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
             [(ngModel)]="tableHeight"
             min="{{ minSize }}"
             max="{{ maxSize }}"
@@ -125,6 +156,7 @@
           />
           <input
             type="number"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent w-[4.5em] border border-solid px-[6px] py-1 text-right text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             [(ngModel)]="tableHeight"
             min="{{ minSize }}"
             max="{{ maxSize }}"
@@ -134,13 +166,13 @@
         </div>
       </div>
 
-      <hr class="divider" />
+      <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
       <!-- グリッド -->
-      <div class="detail-section">
-        <label class="field-label">グリッド種類</label>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">グリッド種類</label>
         <select
-          class="field-select"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
           [(ngModel)]="tableGridType"
           name="tableGridType"
           [attr.disabled]="!isEditable ? '' : null"
@@ -152,25 +184,25 @@
         </select>
       </div>
 
-      <div class="detail-section">
-        <label class="field-label">グリッドカラー</label>
-        <div class="color-pair-row">
-          <div class="color-pair-item">
-            <span class="color-pair-sub-label">グリッド</span>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">グリッドカラー</label>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-[5px]">
+            <span class="text-ui-muted text-[11px] whitespace-nowrap">グリッド</span>
             <input
               type="color"
-              class="color-input"
+              class="rounded-ui-sm border-ui-border-panel h-[26px] w-8 cursor-pointer border border-solid bg-transparent px-[2px] py-[1px] disabled:cursor-not-allowed disabled:opacity-50"
               [(ngModel)]="tableGridColor"
               name="tableGridColor"
               list="table-grid-color-list"
               [attr.disabled]="!isEditable ? '' : null"
             />
           </div>
-          <div class="color-pair-item">
-            <span class="color-pair-sub-label">座標</span>
+          <div class="flex items-center gap-[5px]">
+            <span class="text-ui-muted text-[11px] whitespace-nowrap">座標</span>
             <input
               type="color"
-              class="color-input"
+              class="rounded-ui-sm border-ui-border-panel h-[26px] w-8 cursor-pointer border border-solid bg-transparent px-[2px] py-[1px] disabled:cursor-not-allowed disabled:opacity-50"
               [(ngModel)]="tableGridFontColor"
               name="tableGridFontColor"
               list="table-grid-color-list"
@@ -180,17 +212,22 @@
         </div>
       </div>
 
-      <div class="detail-section">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="tableGridShow" name="tableGridShow" />
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-text flex cursor-pointer items-center gap-[6px] text-[13px] select-none">
+          <input
+            type="checkbox"
+            class="h-[14px] w-[14px] cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="tableGridShow"
+            name="tableGridShow"
+          />
           グリッドを常に表示
         </label>
       </div>
 
-      <div class="detail-section">
-        <label class="field-label">スナップ</label>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">スナップ</label>
         <select
-          class="field-select"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
           [(ngModel)]="tableSnapMode"
           name="tableSnapMode"
           [attr.disabled]="!isEditable ? '' : null"
@@ -203,13 +240,13 @@
         </select>
       </div>
 
-      <hr class="divider" />
+      <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
       <!-- 背景 -->
-      <div class="detail-section">
-        <label class="field-label">背景フィルタ</label>
+      <div class="mb-1 flex flex-col gap-[5px]">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">背景フィルタ</label>
         <select
-          class="field-select"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
           [(ngModel)]="tableDistanceviewFilter"
           name="tableDistanceviewFilter"
           [attr.disabled]="!isEditable ? '' : null"
@@ -220,13 +257,18 @@
         </select>
       </div>
 
-      <hr class="divider" />
+      <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
       <!-- アクション -->
-      <div class="detail-section">
+      <div class="mb-1 flex flex-col gap-[5px]">
         @if (!isDeleted) {
-          <div class="action-row">
-            <button type="button" class="primary-btn" [disabled]="isSaving()" (click)="save()">
+          <div class="flex flex-wrap items-center gap-[6px]">
+            <button
+              type="button"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              [disabled]="isSaving()"
+              (click)="save()"
+            >
               @if (isSaving()) {
                 <i class="material-icons">sync</i>{{ progressPercent() }}%
               } @else {
@@ -235,7 +277,7 @@
             </button>
             <button
               type="button"
-              class="danger-btn"
+              class="rounded-ui-sm border-ui-danger text-ui-danger hover:border-ui-danger hover:text-ui-danger m-0 inline-flex cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-3 py-[5px] text-[12px] font-semibold transition-[background,opacity] hover:bg-[color-mix(in_srgb,var(--ui-danger)_15%,transparent)] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[15px]"
               (click)="delete()"
               [attr.disabled]="getGameTables().length <= 1 ? '' : null"
             >
@@ -244,8 +286,12 @@
           </div>
         }
         @if (isDeleted) {
-          <div class="action-row">
-            <button type="button" class="primary-btn" (click)="restore()">
+          <div class="flex flex-wrap items-center gap-[6px]">
+            <button
+              type="button"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              (click)="restore()"
+            >
               <i class="material-icons">undo</i>元に戻す
             </button>
           </div>
@@ -255,8 +301,12 @@
   </main>
 
   <!-- ── フッター: 部屋全体設定 ── -->
-  <footer class="room-footer">
-    <span class="room-footer-label">標準ダイスボット</span>
+  <footer
+    class="border-ui-border-panel bg-ui-panel col-span-full [grid-row:2/3] flex flex-shrink-0 items-center gap-[10px] border-t border-solid px-[14px] py-[10px]"
+  >
+    <span class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
+      >標準ダイスボット</span
+    >
     <ng-select
       class="ud-select w-[15em]"
       (change)="loadDiceBot($event)"
@@ -268,6 +318,8 @@
         <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
       }
     </ng-select>
-    <span class="room-footer-note">部屋接続時に選択されるダイスボットです（テーブル毎ではなく部屋全体の設定）</span>
+    <span class="text-ui-dim text-[11px]"
+      >部屋接続時に選択されるダイスボットです（テーブル毎ではなく部屋全体の設定）</span
+    >
   </footer>
 </div>
