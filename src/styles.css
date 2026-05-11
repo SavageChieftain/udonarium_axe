@@ -299,6 +299,208 @@
     inset -2px 0 0 var(--ui-accent);
 }
 
+/* ── app-root (旧 app.component.css) ─────────────────────────────────
+   FAB navigation は ::after で data-label ツールチップを描画し、
+   .fab-nav.open 状態で複数子要素のスタイルが連動するため、Tailwind utility
+   での表現が冗長になる。app-root element selector で scope して保持する。 */
+app-root .fab-nav {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
+}
+
+app-root .fab-btn {
+  position: relative;
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--ui-panel-border);
+  background: var(--ui-panel-bg);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  box-shadow:
+    var(--ui-shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color var(--ui-transition),
+    background var(--ui-transition),
+    box-shadow var(--ui-transition),
+    transform var(--ui-transition);
+}
+
+app-root .fab-btn i {
+  font-size: 22px;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+app-root .fab-btn:hover {
+  color: var(--ui-accent);
+  box-shadow:
+    0 0 0 2px var(--ui-accent-glow),
+    var(--ui-shadow-md);
+  transform: none;
+}
+
+app-root .fab-nav.open .fab-btn {
+  color: var(--ui-accent);
+  background: var(--ui-elevated);
+  box-shadow:
+    0 0 0 2px var(--ui-accent-glow),
+    var(--ui-shadow-md);
+  transform: none;
+}
+
+app-root .fab-nav.open .fab-btn i {
+  transform: rotate(90deg);
+}
+
+app-root .fab-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: 56px;
+  background: var(--ui-panel-bg);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow:
+    var(--ui-shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  z-index: 8;
+  overflow: visible;
+  transform-origin: top left;
+  transform: translateY(-16px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+app-root .fab-nav.open .fab-panel {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+app-root .fab-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+app-root .fab-panel li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ui-radius);
+  cursor: pointer;
+  color: var(--ui-text-dim);
+  transition:
+    color var(--ui-transition),
+    background var(--ui-transition);
+}
+
+app-root .fab-panel li:hover {
+  color: var(--ui-accent);
+  background: var(--ui-accent-bg);
+}
+
+app-root .fab-panel li > label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  color: inherit;
+}
+
+app-root .fab-panel li i {
+  font-size: 22px;
+}
+
+app-root .fab-panel li[data-label]::after,
+app-root .fab-footer-item[data-label]::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--ui-panel-bg);
+  border: 1px solid var(--ui-panel-border);
+  color: var(--ui-text);
+  border-radius: var(--ui-radius);
+  padding: 4px 10px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: var(--ui-shadow-sm);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  z-index: 10000;
+  transition: opacity var(--ui-transition);
+}
+
+app-root .fab-panel li[data-label]:hover::after,
+app-root .fab-footer-item[data-label]:hover::after {
+  opacity: 1;
+}
+
+app-root .fab-footer {
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px 6px;
+  gap: 0;
+}
+
+app-root .fab-footer-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ui-radius);
+  cursor: pointer;
+  color: var(--ui-text-dim);
+  transition:
+    color var(--ui-transition),
+    background var(--ui-transition);
+}
+
+app-root .fab-footer-item:hover {
+  color: var(--ui-accent);
+  background: var(--ui-accent-bg);
+}
+
+app-root .fab-footer-item i {
+  font-size: 22px;
+}
+
+app-root .networkIndicator {
+  display: none;
+  z-index: 9999;
+  pointer-events: none;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  height: 30px;
+  width: 30px;
+}
+
 /* ── game-data-element コンポーネント (旧 game-data-element-*.css 8 ファイル) ────
    :host を含む複雑なグリッドレイアウト、CSS カスタムプロパティによる theming、
    spec の querySelector ターゲット (.elm-view-table-* 等) を多数含むため
