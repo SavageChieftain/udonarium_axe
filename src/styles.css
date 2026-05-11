@@ -175,6 +175,14 @@
   cursor: pointer;
 }
 
+/* Tailwind v4 のテキストサイズユーティリティ (text-base / text-sm 等) は
+   line-height を内包するため、Google CDN 由来の `.material-icons { line-height: 1 }`
+   を上書きしてアイコンコンテナが縦方向に膨らむ。glyph はもともと line-height: 1
+   で設計されているため、ここでグローバルに line-height を抑え込む。 */
+.material-icons {
+  line-height: 1 !important;
+}
+
 /* mini-jukebox のプレイリスト用カスタムスクロールバー。.playlist-dropdown クラスをマーカー。 */
 .playlist-dropdown::-webkit-scrollbar {
   width: 4px;
