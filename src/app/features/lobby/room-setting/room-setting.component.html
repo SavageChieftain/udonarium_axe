@@ -1,7 +1,13 @@
 @if (!isConnected()) {
-  <div class="form-field">
-    <label class="field-label" for="room-name">ルーム名</label>
+  <div class="mb-[14px]">
+    <label
+      class="text-ui-muted mb-[5px] block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+      for="room-name"
+    >
+      ルーム名
+    </label>
     <input
+      class="box-border w-full px-[10px] py-[6px] text-[0.9rem]"
       id="room-name"
       name="room-name"
       [ngModel]="roomName()"
@@ -12,18 +18,22 @@
       placeholder="ルームの名前は必須"
     />
     @if ((roomNameValidation.errors || roomNameTooLong()) && (roomNameValidation.dirty || roomNameValidation.touched)) {
-      <div class="validation-errors">
-        <div [hidden]="!roomNameValidation.errors?.required">ルームの名前は必須です。</div>
-        <div [hidden]="!roomNameValidation.errors?.minlength">ルームの名前は必須です。</div>
-        <div [hidden]="!roomNameTooLong()">ルーム名は255文字以内にしてください。</div>
+      <div class="text-ui-danger mt-1 text-[0.78rem]">
+        <div class="mb-[2px]" [hidden]="!roomNameValidation.errors?.required">ルームの名前は必須です。</div>
+        <div class="mb-[2px]" [hidden]="!roomNameValidation.errors?.minlength">ルームの名前は必須です。</div>
+        <div class="mb-[2px]" [hidden]="!roomNameTooLong()">ルーム名は255文字以内にしてください。</div>
       </div>
     }
   </div>
-  <div class="form-field">
-    <label class="field-label" for="room-password"
-      >パスワード <span style="font-weight: 400; opacity: 0.7">(空にするとなし)</span></label
+  <div class="mb-[14px]">
+    <label
+      class="text-ui-muted mb-[5px] block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+      for="room-password"
     >
+      パスワード <span style="font-weight: 400; opacity: 0.7">(空にするとなし)</span>
+    </label>
     <input
+      class="box-border w-full px-[10px] py-[6px] text-[0.9rem]"
       id="room-password"
       name="password"
       [ngModel]="password()"
@@ -33,14 +43,16 @@
       placeholder="パスワードなし"
     />
     @if (passwordValidation.errors && (passwordValidation.dirty || passwordValidation.touched)) {
-      <div class="validation-errors">
-        <div [hidden]="!passwordValidation.errors.maxlength">パスワードは12文字以内にしてください。</div>
+      <div class="text-ui-danger mt-1 text-[0.78rem]">
+        <div class="mb-[2px]" [hidden]="!passwordValidation.errors.maxlength">
+          パスワードは12文字以内にしてください。
+        </div>
       </div>
     }
   </div>
-  <div class="form-actions">
+  <div class="flex justify-end">
     <button
-      class="btn-primary"
+      class="rounded-ui-sm border-ui-accent bg-ui-accent hover:border-ui-accent-hover hover:bg-ui-accent-hover cursor-pointer border border-solid px-[1.2em] py-[0.45em] text-[0.875rem] text-white hover:shadow-[0_0_0_3px_var(--ui-accent-glow)]"
       [disabled]="!roomNameValidation.valid || roomNameTooLong() || !passwordValidation.valid"
       (click)="createRoom()"
     >
@@ -48,11 +60,11 @@
       >新しいルームを作成
     </button>
   </div>
-  <p class="note-text">
+  <p class="text-ui-muted mt-3 text-[0.75rem] leading-[1.6]">
     ※作成したルームは参加者が0人になった時点で解散します。ルームの状態を次回に持ち越したい場合は必ず「保存」してください。
   </p>
 } @else {
-  <p class="connected-note">
+  <p class="text-ui-muted text-[0.8rem] leading-[1.7]">
     他の参加者と接続したままではルーム作成を行えません。<br />別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）
   </p>
 }

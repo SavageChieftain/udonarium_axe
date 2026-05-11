@@ -17,7 +17,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
 @Component({
   selector: 'password-check',
   templateUrl: './password-check.component.html',
-  styleUrls: ['./password-check.component.css'],
   host: { class: 'block' },
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,

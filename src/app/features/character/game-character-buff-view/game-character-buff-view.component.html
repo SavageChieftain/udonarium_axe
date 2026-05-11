@@ -1,17 +1,20 @@
 @if (character()) {
-  <div class="buff-container">
+  <div class="box-border flex h-full flex-col px-2 pt-1 pb-2">
     @if (character()!.buffDataElement) {
-      <div class="buff-list">
+      <div class="mb-2 min-h-0 flex-1 overflow-y-auto">
         @for (childElement of buffChildren(); track childElement.identifier) {
           <div game-data-element-buff [gameDataElement]="childElement" [isEdit]="isEdit()" [isPieceMode]="false"></div>
         }
         @if (buffChildren().length === 0) {
-          <p class="buff-empty">バフ・デバフは登録されていません</p>
+          <p class="text-ui-dim m-0 py-3 text-center text-[0.85em]">バフ・デバフは登録されていません</p>
         }
       </div>
     }
-    <div class="buff-add-bar">
-      <button class="add-buff-btn" (click)="addBuff()">
+    <div class="border-ui-border-panel flex flex-none justify-end border-t border-solid pt-[6px]">
+      <button
+        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent inline-flex cursor-pointer items-center gap-[3px] border border-solid px-[10px] py-1 text-[0.8em] transition-colors [&_i]:text-[0.9rem]"
+        (click)="addBuff()"
+      >
         <i class="material-icons">add</i>
         バフを追加
       </button>
