@@ -14,7 +14,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-window',
   templateUrl: './vote-window.component.html',
-  styleUrls: ['./vote-window.component.css'],
   imports: [FormsModule, SafePipe],
 })
 export class VoteWindowComponent {

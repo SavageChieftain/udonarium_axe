@@ -1,30 +1,32 @@
-<div class="vw-root">
+<div class="w-full">
   <!-- sticky header -->
-  <div class="vw-header">
-    <div class="vw-title">{{ vote().voteTitle }}</div>
-    <div class="vw-progress">
+  <div
+    class="border-ui-border-panel bg-ui-panel sticky top-0 z-1 flex flex-col gap-1.5 border-b border-solid px-2.5 py-2"
+  >
+    <div class="text-ui-text text-[15px] font-bold">{{ vote().voteTitle }}</div>
+    <div class="text-ui-muted flex items-center gap-2 text-[13px]">
       @if (vote().isRollCall) {
         確認 {{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }}
       } @else {
         投票 {{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }}
-        <span class="vw-abstain">棄権:{{ vote().votedNumByIndex(-2) }}</span>
+        <span class="text-ui-muted text-[11px]">棄権:{{ vote().votedNumByIndex(-2) }}</span>
       }
     </div>
-    <div class="vw-choices">
+    <div class="flex flex-wrap gap-1.5">
       @for (choice of vote().choices; track choice) {
         <button
           type="button"
-          class="vw-choice-btn"
+          class="rounded-ui-sm border-ui-accent bg-ui-accent-bg text-ui-accent hover:bg-ui-accent hover:border-ui-accent m-0 inline-flex cursor-pointer flex-col items-center border border-solid px-4 py-1.5 text-[13px] transition-[background,color,box-shadow,transform] hover:text-white hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
           [class.is-voted]="isMyVoteEnd()"
           (click)="voteSend(choice)"
           [disabled]="isMyVoteEnd()"
         >
-          <span class="vw-choice-label">{{ choice }}</span>
-          <span class="vw-choice-count">{{ vote().votedNumByChoice(choice) }}人</span>
+          <span class="font-semibold">{{ choice }}</span>
+          <span class="text-[11px] opacity-80">{{ vote().votedNumByChoice(choice) }}人</span>
         </button>
       }
     </div>
-    <div class="vw-hint">
+    <div class="text-ui-muted flex items-center gap-0.75 text-[11px] [&_.material-icons]:text-[13px]">
       <i class="material-icons">info</i>
       @if (vote().isRollCall) {
         点呼前に閉じると欠席扱い
@@ -35,34 +37,52 @@
   </div>
 
   <!-- target list -->
-  <div class="vw-peer-list">
+  <div class="flex flex-col gap-1 px-2 py-1.5">
     @for (target of vote().targetPeerId; track target) {
       @let peerImage = findPeerImage(target);
       @let controlName = findPeerLastControlName(target);
       @let controlImage = findPeerLastControlImage(target);
       @let answerIdx = vote().voteAnswerByPeerId(target);
-      <div class="vw-peer-card" [class.is-voted]="answerIdx >= 0" [class.is-absent]="answerIdx === -2">
-        <div class="vw-peer-avatar">
+      <div
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input flex items-center gap-2 border border-l-[3px] border-solid border-l-transparent px-2 py-1.5"
+        [class.!border-l-ui-accent]="answerIdx >= 0"
+        [class.!border-l-ui-danger]="answerIdx === -2"
+        [class.opacity-60]="answerIdx === -2"
+      >
+        <div class="rounded-ui-sm bg-ui-border-panel h-12 w-12 shrink-0 overflow-hidden">
           @if (peerImage) {
-            <div class="vw-avatar-img" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
+            <div
+              class="h-full w-full bg-cover bg-top bg-no-repeat"
+              [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"
+            ></div>
           } @else {
-            <div class="vw-avatar-placeholder"><i class="material-icons">person</i></div>
+            <div class="text-ui-muted flex h-full w-full items-center justify-center [&_.material-icons]:text-[28px]">
+              <i class="material-icons">person</i>
+            </div>
           }
         </div>
-        <div class="vw-peer-info">
-          <div class="vw-peer-name">{{ findPeerName(target) }}</div>
-          <div class="vw-peer-char">{{ controlName || '操作キャラなし' }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-ui-text overflow-hidden text-[13px] font-semibold text-ellipsis whitespace-nowrap">
+            {{ findPeerName(target) }}
+          </div>
+          <div class="text-ui-muted mt-0.5 text-[11px]">{{ controlName || '操作キャラなし' }}</div>
         </div>
         @if (controlImage) {
-          <div class="vw-peer-ctrl-avatar">
-            <div class="vw-avatar-img" [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"></div>
+          <div class="rounded-ui-sm bg-ui-border-panel h-10 w-10 shrink-0 overflow-hidden opacity-85">
+            <div
+              class="h-full w-full bg-cover bg-top bg-no-repeat"
+              [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"
+            ></div>
           </div>
         }
         <div
-          class="vw-peer-status"
-          [class.status-pending]="answerIdx === -1"
-          [class.status-voted]="answerIdx >= 0"
-          [class.status-absent]="answerIdx === -2"
+          class="rounded-ui-sm px-2 py-0.5 text-[12px] font-semibold whitespace-nowrap"
+          [class.bg-[rgba(200,120,0,0.12)]]="answerIdx === -1"
+          [class.text-[#c87000]]="answerIdx === -1"
+          [class.bg-ui-accent-bg]="answerIdx >= 0"
+          [class.text-ui-accent]="answerIdx >= 0"
+          [class.bg-ui-danger-bg]="answerIdx === -2"
+          [class.text-ui-danger]="answerIdx === -2"
         >
           @if (answerIdx === -1) {
             @if (vote().isRollCall) {
