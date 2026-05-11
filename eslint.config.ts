@@ -73,6 +73,10 @@ export default defineConfig([
     settings: {
       'better-tailwindcss': {
         entryPoint: 'src/styles.css',
+        /* rootFontSize: 16 を指定すると w-[300px] のような任意 px 値が
+           Tailwind spacing scale (w-75 等) に canonical 変換される。
+           index.html の <html> は browser default の 16px を継承するためこの値で正しい。 */
+        rootFontSize: 16,
       },
     },
   },

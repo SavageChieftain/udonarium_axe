@@ -2,7 +2,7 @@
      (styles.css の .ng-select.ud-select.chat-select 関連の @container ルールを参照)。
      .chat-input クラスは textarea の e2e セレクタなので残置。 -->
 <div
-  class="bg-ui-panel @container box-border grid w-full min-w-0 grid-cols-[minmax(72px,108px)_minmax(0,1fr)] items-stretch gap-2 p-2 @max-[420px]:grid-cols-[64px_minmax(0,1fr)] @max-[420px]:gap-[6px] @max-[420px]:p-[6px] @max-[320px]:grid-cols-[56px_minmax(0,1fr)]"
+  class="bg-ui-panel @container box-border grid w-full min-w-0 grid-cols-[minmax(72px,108px)_minmax(0,1fr)] items-stretch gap-2 p-2 @max-[420px]:grid-cols-[64px_minmax(0,1fr)] @max-[420px]:gap-1.5 @max-[420px]:p-1.5 @max-[320px]:grid-cols-[56px_minmax(0,1fr)]"
   [ngClass]="{ 'border-ui-accent bg-ui-accent-bg text-ui-text border-t border-solid': isDirect }"
 >
   <!-- アバター（2行スパン、立ち絵ナビゲーションオーバーレイ） -->
@@ -16,7 +16,7 @@
     }
     @if (1 <= portraitCount) {
       <div
-        class="rounded-b-ui-sm absolute inset-x-0 bottom-0 flex h-[18px] items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-[2px]"
+        class="rounded-b-ui-sm absolute inset-x-0 bottom-0 flex h-4.5 items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-0.5"
       >
         <button
           type="button"
@@ -43,9 +43,9 @@
     }
   </div>
 
-  <div class="flex min-w-0 flex-col gap-[6px]">
+  <div class="flex min-w-0 flex-col gap-1.5">
     <!-- 送信元/宛先/DiceBot/カラー 行 -->
-    <div class="flex min-w-0 flex-wrap items-center justify-start gap-x-[6px] gap-y-1">
+    <div class="flex min-w-0 flex-wrap items-center justify-start gap-x-1.5 gap-y-1">
       <ng-select
         name="send-from"
         class="ud-select chat-select chat-select--from"
@@ -82,7 +82,7 @@
           <ng-option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</ng-option>
         }
       </ng-select>
-      <button class="flex-none px-[6px] py-[2px] text-[11px] leading-[1.4]" type="button" (click)="showDicebotHelp()">
+      <button class="flex-none px-1.5 py-0.5 text-[11px] leading-[1.4]" type="button" (click)="showDicebotHelp()">
         ?
       </button>
       @if (!isGameTypeInList()) {
@@ -91,10 +91,10 @@
 
       <!-- カラー設定（チャット設定） -->
       <div class="ml-auto flex min-w-0 items-center gap-1 @max-[420px]:ml-0">
-        <div class="flex shrink-0 items-center gap-1 px-[2px]">
+        <div class="flex shrink-0 items-center gap-1 px-0.5">
           @for (i of [0, 1, 2]; track i) {
             <div
-              class="size-[14px] shrink-0 cursor-pointer rounded-full transition-[transform,box-shadow] hover:scale-[1.35] hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
+              class="size-3.5 shrink-0 cursor-pointer rounded-full transition-[transform,box-shadow] hover:scale-[1.35] hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
               [class.shadow-[0_0_0_2px_var(--ui-accent)]]="colorSelectNo() === i"
               [class.scale-[1.15]]="colorSelectNo() === i"
               (click)="setColorNum(i)"
@@ -103,7 +103,7 @@
           }
         </div>
         <button
-          class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 shrink-0 cursor-pointer border border-solid bg-transparent px-[6px] py-[2px] text-[11px] whitespace-nowrap transition-colors hover:shadow-none @max-[320px]:h-6 @max-[320px]:w-[26px] @max-[320px]:p-0 @max-[320px]:text-[0px]"
+          class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 shrink-0 cursor-pointer border border-solid bg-transparent px-1.5 py-0.5 text-[11px] whitespace-nowrap transition-colors hover:shadow-none @max-[320px]:h-6 @max-[320px]:w-6.5 @max-[320px]:p-0 @max-[320px]:text-[0px]"
           type="button"
           (click)="showColorSetting()"
         >
@@ -117,7 +117,7 @@
     <form name="chat-input" class="m-0 flex min-w-0 items-center gap-2">
       <textarea
         name="chat-input-text"
-        class="chat-input border-ui-input-border rounded-ui-sm bg-ui-input text-ui-text focus:border-ui-accent box-border max-h-[100px] min-h-[40px] w-full min-w-0 flex-1 resize-none border border-solid px-2 py-[6px] align-bottom font-[inherit] text-[13px] leading-[1.4] transition-colors focus:shadow-[0_0_0_2px_var(--ui-accent-glow)] focus:outline-none"
+        class="chat-input border-ui-input-border rounded-ui-sm bg-ui-input text-ui-text focus:border-ui-accent box-border max-h-25 min-h-10 w-full min-w-0 flex-1 resize-none border border-solid px-2 py-1.5 align-bottom font-[inherit] text-[13px] leading-[1.4] transition-colors focus:shadow-[0_0_0_2px_var(--ui-accent-glow)] focus:outline-none"
         placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
         [(ngModel)]="text"
         [ngModelOptions]="{ standalone: true }"

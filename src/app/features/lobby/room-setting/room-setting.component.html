@@ -1,13 +1,10 @@
 @if (!isConnected()) {
-  <div class="mb-[14px]">
-    <label
-      class="text-ui-muted mb-[5px] block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
-      for="room-name"
-    >
+  <div class="mb-3.5">
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="room-name">
       ルーム名
     </label>
     <input
-      class="box-border w-full px-[10px] py-[6px] text-[0.9rem]"
+      class="box-border w-full px-2.5 py-1.5 text-[0.9rem]"
       id="room-name"
       name="room-name"
       [ngModel]="roomName()"
@@ -19,21 +16,21 @@
     />
     @if ((roomNameValidation.errors || roomNameTooLong()) && (roomNameValidation.dirty || roomNameValidation.touched)) {
       <div class="text-ui-danger mt-1 text-[0.78rem]">
-        <div class="mb-[2px]" [hidden]="!roomNameValidation.errors?.required">ルームの名前は必須です。</div>
-        <div class="mb-[2px]" [hidden]="!roomNameValidation.errors?.minlength">ルームの名前は必須です。</div>
-        <div class="mb-[2px]" [hidden]="!roomNameTooLong()">ルーム名は255文字以内にしてください。</div>
+        <div class="mb-0.5" [hidden]="!roomNameValidation.errors?.required">ルームの名前は必須です。</div>
+        <div class="mb-0.5" [hidden]="!roomNameValidation.errors?.minlength">ルームの名前は必須です。</div>
+        <div class="mb-0.5" [hidden]="!roomNameTooLong()">ルーム名は255文字以内にしてください。</div>
       </div>
     }
   </div>
-  <div class="mb-[14px]">
+  <div class="mb-3.5">
     <label
-      class="text-ui-muted mb-[5px] block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+      class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
       for="room-password"
     >
       パスワード <span style="font-weight: 400; opacity: 0.7">(空にするとなし)</span>
     </label>
     <input
-      class="box-border w-full px-[10px] py-[6px] text-[0.9rem]"
+      class="box-border w-full px-2.5 py-1.5 text-[0.9rem]"
       id="room-password"
       name="password"
       [ngModel]="password()"
@@ -44,9 +41,7 @@
     />
     @if (passwordValidation.errors && (passwordValidation.dirty || passwordValidation.touched)) {
       <div class="text-ui-danger mt-1 text-[0.78rem]">
-        <div class="mb-[2px]" [hidden]="!passwordValidation.errors.maxlength">
-          パスワードは12文字以内にしてください。
-        </div>
+        <div class="mb-0.5" [hidden]="!passwordValidation.errors.maxlength">パスワードは12文字以内にしてください。</div>
       </div>
     }
   </div>

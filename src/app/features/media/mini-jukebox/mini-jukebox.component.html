@@ -2,8 +2,8 @@
      .player-top も draggable.handle のセレクタターゲット。Tailwind 化後も
      マーカーとして保持する。 -->
 <div
-  class="player group rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute top-0 left-0 z-100 w-[300px] overflow-hidden border border-solid text-[13px] [backdrop-filter:blur(24px)_saturate(1.5)] transition-[width,border-radius] duration-150 ease-[ease] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
-  [class.w-[56px]!]="isMinimized()"
+  class="player group rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute top-0 left-0 z-100 w-75 overflow-hidden border border-solid text-[13px] [backdrop-filter:blur(24px)_saturate(1.5)] transition-[width,border-radius] duration-150 ease-[ease] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+  [class.w-14!]="isMinimized()"
   [class.rounded-[28px]!]="isMinimized()"
   #playerEl
   appDraggable
@@ -12,16 +12,16 @@
 >
   <!-- ドラッグエリア + トラック情報 -->
   <div
-    class="player-top relative flex cursor-grab items-center gap-[10px] pt-[10px] pr-2 pb-[6px] pl-3 active:cursor-grabbing"
+    class="player-top relative flex cursor-grab items-center gap-2.5 pt-2.5 pr-2 pb-1.5 pl-3 active:cursor-grabbing"
     [class.cursor-grab!]="isMinimized()"
     [class.justify-center!]="isMinimized()"
     [class.gap-0!]="isMinimized()"
-    [class.p-[7px]!]="isMinimized()"
+    [class.p-1.75!]="isMinimized()"
   >
     <div
       class="group/disc border-ui-border-panel bg-ui-elevated text-ui-dim relative flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-solid transition-colors [&_.material-icons]:text-[22px]"
-      [class.w-[38px]!]="isMinimized()"
-      [class.h-[38px]!]="isMinimized()"
+      [class.w-9.5!]="isMinimized()"
+      [class.h-9.5!]="isMinimized()"
       [class.border-ui-accent!]="isPlaying()"
       [class.text-ui-accent!]="isPlaying()"
       [class.shadow-[0_0_0_3px_var(--ui-accent-glow)]]="isPlaying()"
@@ -56,20 +56,20 @@
               >{{ trackName() }}</span
             >
           </div>
-          <div class="text-ui-muted mt-[2px] text-[10px] tracking-wider">{{ trackTag() }}</div>
+          <div class="text-ui-muted mt-0.5 text-[10px] tracking-wider">{{ trackTag() }}</div>
         } @else if (lastTrackName()) {
           <div class="w-full overflow-hidden">
             <span class="text-ui-text inline-block text-[13px] font-semibold whitespace-nowrap opacity-[0.45]">{{
               lastTrackName()
             }}</span>
           </div>
-          <div class="text-ui-muted mt-[2px] text-[10px] tracking-wider opacity-[0.45]">{{ lastTrackTag() }}</div>
+          <div class="text-ui-muted mt-0.5 text-[10px] tracking-wider opacity-[0.45]">{{ lastTrackTag() }}</div>
         } @else {
           <div class="text-ui-dim text-[12px] font-normal italic">— 停止中 —</div>
         }
       </div>
       <button
-        class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-[22px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 opacity-0 transition-[opacity,background,color] group-hover:opacity-100 hover:border-transparent hover:shadow-none"
+        class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-5.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 opacity-0 transition-[opacity,background,color] group-hover:opacity-100 hover:border-transparent hover:shadow-none"
         (mousedown)="$event.stopPropagation()"
         (click)="toggleMinimize()"
         title="最小化"
@@ -81,7 +81,7 @@
 
   @if (!isMinimized()) {
     <!-- プログレスバー + 時刻 -->
-    <div class="flex h-5 items-center gap-2 px-3 pt-[2px]">
+    <div class="flex h-5 items-center gap-2 px-3 pt-0.5">
       <!-- seek-bar クラスは scoped CSS のベンダー擬似要素ターゲット -->
       <input
         type="range"
@@ -95,15 +95,15 @@
         (input)="onSeekInput($event)"
         (change)="onSeekCommit($event)"
       />
-      <span class="text-ui-dim w-[72px] shrink-0 text-right text-[10px] [font-variant-numeric:tabular-nums]">
+      <span class="text-ui-dim w-18 shrink-0 text-right text-[10px] [font-variant-numeric:tabular-nums]">
         {{ timeDisplay() }}
       </span>
     </div>
 
     <!-- トランスポートコントロール -->
-    <div class="flex items-center gap-[2px] px-2 pt-1 pb-[10px]">
+    <div class="flex items-center gap-0.5 px-2 pt-1 pb-2.5">
       <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
         (click)="playPrev()"
         [disabled]="!bgmList().length"
         title="前の曲"
@@ -111,7 +111,7 @@
         <i class="material-icons">skip_previous</i>
       </button>
       <button
-        class="text-ui-muted hover:bg-ui-danger-bg! hover:text-ui-danger! m-0 inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        class="text-ui-muted hover:bg-ui-danger-bg! hover:text-ui-danger! m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
         (click)="togglePlayStop()"
         [disabled]="!isPlaying() && !lastAudioIdentifier()"
         [title]="isPlaying() ? '停止' : '再生'"
@@ -119,7 +119,7 @@
         <i class="material-icons">{{ isPlaying() ? 'stop' : 'play_arrow' }}</i>
       </button>
       <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
         (click)="playNext()"
         [disabled]="!bgmList().length"
         title="次の曲"
@@ -127,14 +127,14 @@
         <i class="material-icons">skip_next</i>
       </button>
       <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
         [class.text-ui-accent!]="repeatMode() !== 'none'"
         (click)="cycleRepeatMode()"
         [title]="repeatMode() === 'one' ? 'リピート1曲' : repeatMode() === 'all' ? 'リピート全曲' : 'リピートなし'"
       >
         <i class="material-icons">{{ repeatMode() === 'one' ? 'repeat_one' : 'repeat' }}</i>
       </button>
-      <div class="flex min-w-0 flex-1 items-center gap-1 pr-1 pl-[2px]">
+      <div class="flex min-w-0 flex-1 items-center gap-1 pr-1 pl-0.5">
         <i class="material-icons text-ui-dim shrink-0 text-[14px]">volume_up</i>
         <input
           class="block h-1 max-w-20 min-w-0 flex-1 [accent-color:var(--ui-accent)]"
@@ -146,7 +146,7 @@
         />
       </div>
       <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]"
         [class.text-ui-accent!]="isPlaylistOpen()"
         (click)="togglePlaylist()"
         title="再生リスト"
@@ -159,11 +159,11 @@
     @if (isPlaylistOpen()) {
       <!-- playlist-dropdown クラスは scoped CSS の ::-webkit-scrollbar ターゲット -->
       <div
-        class="playlist-dropdown rounded-b-ui-lg border-ui-border-panel bg-ui-elevated max-h-[200px] overflow-hidden overflow-y-auto border-t border-solid"
+        class="playlist-dropdown rounded-b-ui-lg border-ui-border-panel bg-ui-elevated max-h-50 overflow-hidden overflow-y-auto border-t border-solid"
       >
         @for (audio of bgmList(); track audio.identifier) {
           <button
-            class="border-ui-border-panel text-ui-muted hover:border-b-ui-border-panel hover:bg-ui-hover hover:text-ui-text m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-b border-none border-solid bg-transparent px-3 py-[7px] text-left text-[12px] transition-colors last:border-b-0 hover:border-transparent hover:shadow-none"
+            class="border-ui-border-panel text-ui-muted hover:border-b-ui-border-panel hover:bg-ui-hover hover:text-ui-text m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-b border-none bg-transparent px-3 py-1.75 text-left text-[12px] transition-colors last:border-b-0 hover:border-transparent hover:shadow-none"
             [class.text-ui-accent!]="audio.identifier === lastAudioIdentifier()"
             [class.bg-ui-accent-bg!]="audio.identifier === lastAudioIdentifier()"
             (click)="playFromList(audio.identifier)"

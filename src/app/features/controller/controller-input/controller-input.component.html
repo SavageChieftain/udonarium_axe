@@ -1,7 +1,7 @@
 <div class="bg-ui-panel flex items-start gap-2 p-2" [ngClass]="{ 'bg-ui-elevated text-ui-text': isDirect }">
   <!-- アバター（立ち絵ナビゲーションオーバーレイ） -->
   <div
-    class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex size-[52px] shrink-0 items-center justify-center overflow-hidden border border-solid"
+    class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex size-13 shrink-0 items-center justify-center overflow-hidden border border-solid"
   >
     @if (0 < imageFile().url.length) {
       <img class="size-full object-cover object-[50%_0%]" [src]="imageFile().url | safe: 'resourceUrl'" />
@@ -10,7 +10,7 @@
     }
     @if (1 <= portraitCount()) {
       <div
-        class="rounded-b-ui-sm absolute inset-x-0 bottom-0 flex h-[18px] items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-[2px]"
+        class="rounded-b-ui-sm absolute inset-x-0 bottom-0 flex h-4.5 items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-0.5"
       >
         <button
           type="button"
@@ -58,22 +58,22 @@
     </div>
     <div class="flex min-w-0 flex-wrap items-center gap-1">
       <div
-        class="box-border inline-block size-[18px] shrink-0 cursor-pointer"
+        class="box-border inline-block size-4.5 shrink-0 cursor-pointer"
         (click)="setColorNum(0)"
         [ngStyle]="colorSelectorStyle(0)"
       ></div>
       <div
-        class="box-border inline-block size-[18px] shrink-0 cursor-pointer"
+        class="box-border inline-block size-4.5 shrink-0 cursor-pointer"
         (click)="setColorNum(1)"
         [ngStyle]="colorSelectorStyle(1)"
       ></div>
       <div
-        class="box-border inline-block size-[18px] shrink-0 cursor-pointer"
+        class="box-border inline-block size-4.5 shrink-0 cursor-pointer"
         (click)="setColorNum(2)"
         [ngStyle]="colorSelectorStyle(2)"
       ></div>
       <button
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text flex cursor-pointer items-center border border-solid bg-transparent px-[3px] py-px [&_i]:text-[14px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text flex cursor-pointer items-center border border-solid bg-transparent px-0.75 py-px [&_i]:text-[14px]"
         (click)="shoeColorSetting()"
         title="色設定"
       >
@@ -81,7 +81,7 @@
       </button>
       <span class="text-ui-muted ml-auto text-[11px] whitespace-nowrap">選択 {{ selectNum() }}</span>
       <button
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text cursor-pointer border border-solid bg-transparent px-[6px] py-[2px] text-[11px] whitespace-nowrap"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text cursor-pointer border border-solid bg-transparent px-1.5 py-0.5 text-[11px] whitespace-nowrap"
         (click)="allBoxCheck()"
       >
         @if (0 !== selectNum()) {

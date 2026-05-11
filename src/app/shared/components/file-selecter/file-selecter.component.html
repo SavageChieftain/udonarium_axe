@@ -1,6 +1,6 @@
 <div class="flex min-h-full flex-col">
   <div
-    class="border-ui-border-panel bg-ui-panel sticky top-[-8px] z-1 mx-[-8px] mt-[-8px] mb-0 flex shrink-0 flex-wrap gap-1 border-b border-solid px-[10px] py-2"
+    class="border-ui-border-panel bg-ui-panel sticky -top-2 z-1 -mx-2 -mt-2 mb-0 flex shrink-0 flex-wrap gap-1 border-b border-solid px-2.5 py-2"
   >
     @for (tag of tagList; track tag) {
       <label class="inline-flex cursor-pointer">
@@ -14,7 +14,7 @@
           (change)="resetBtn()"
         />
         <span
-          class="border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:bg-ui-hover hover:text-ui-text inline-flex items-center rounded-full border border-solid bg-transparent px-[10px] py-[3px] text-xs font-medium whitespace-nowrap transition-colors select-none"
+          class="border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:bg-ui-hover hover:text-ui-text inline-flex items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 text-xs font-medium whitespace-nowrap transition-colors select-none"
           >{{ tag.length === 0 ? '未設定' : tag }}</span
         >
       </label>
@@ -23,7 +23,7 @@
   <div class="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] content-start gap-2 px-0 pt-3 pb-0">
     @if (isAllowedEmpty) {
       <button
-        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text flex min-h-[112px] w-full transform-none cursor-pointer flex-col items-center justify-center gap-1 border border-solid p-[6px] shadow-none transition-colors outline-none hover:shadow-[0_0_0_2px_var(--ui-accent-glow)] active:transform-none"
+        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text flex min-h-28 w-full transform-none cursor-pointer flex-col items-center justify-center gap-1 border border-solid p-1.5 shadow-none transition-colors outline-none hover:shadow-[0_0_0_2px_var(--ui-accent-glow)] active:transform-none"
         (click)="onSelectedFile(empty)"
       >
         <i class="material-icons text-[30px] opacity-[0.45]">hide_image</i>
@@ -32,17 +32,17 @@
     }
     @for (file of images(); track file.identifier) {
       <button
-        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text flex w-full transform-none cursor-pointer flex-col items-center gap-1 border border-solid p-[6px] shadow-none transition-colors outline-none hover:shadow-[0_0_0_2px_var(--ui-accent-glow)] active:transform-none"
+        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text flex w-full transform-none cursor-pointer flex-col items-center gap-1 border border-solid p-1.5 shadow-none transition-colors outline-none hover:shadow-[0_0_0_2px_var(--ui-accent-glow)] active:transform-none"
         (click)="onSelectedFile(file)"
       >
         @if (file.url) {
           <img
-            class="block size-[100px] rounded-[2px] object-contain"
+            class="block size-25 rounded-xs object-contain"
             [src]="file.url | safe: 'resourceUrl'"
             [alt]="file.name"
           />
         } @else {
-          <div class="flex size-[100px] items-center justify-center opacity-40">
+          <div class="flex size-25 items-center justify-center opacity-40">
             <i class="material-icons text-[28px]">hourglass_empty</i>
           </div>
         }
@@ -50,7 +50,7 @@
       </button>
     }
     @if (images().length === 0 && !isAllowedEmpty) {
-      <div class="text-ui-dim col-span-full flex flex-col items-center justify-center gap-2 px-[20px] py-[40px]">
+      <div class="text-ui-dim col-span-full flex flex-col items-center justify-center gap-2 px-5 py-10">
         <i class="material-icons text-[40px] opacity-40">collections</i>
         <p class="m-0 text-[13px] opacity-70">この分類に画像はありません</p>
       </div>

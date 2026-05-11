@@ -7,7 +7,7 @@
             @for (slot of portraitSlots(); track slot.pos) {
               @if (slot.imageFileUrl) {
                 <img
-                  [class]="'pos absolute z-1 h-[250px] p-0 align-bottom' + (slot.pos < 10 ? ' 0 ' : '') + slot.pos"
+                  [class]="'pos absolute z-1 h-62.5 p-0 align-bottom' + (slot.pos < 10 ? ' 0 ' : '') + slot.pos"
                   [src]="slot.imageFileUrl | safe: 'resourceUrl'"
                   [ngStyle]="{
                     transform:

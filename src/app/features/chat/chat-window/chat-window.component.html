@@ -11,7 +11,7 @@
   >
     @if (!isNearBottom()) {
       <button
-        class="border-ui-border-panel bg-ui-elevated text-ui-muted shadow-ui-sm hover:border-ui-border-panel hover:bg-ui-accent-bg hover:text-ui-accent absolute top-[-32px] right-2 z-10 m-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-solid transition-colors hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
+        class="border-ui-border-panel bg-ui-elevated text-ui-muted shadow-ui-sm hover:border-ui-border-panel hover:bg-ui-accent-bg hover:text-ui-accent absolute -top-8 right-2 z-10 m-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-solid transition-colors hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
         [class.has-new-message]="hasNewMessage()"
         (click)="onClickScrollToBottom()"
         [title]="hasNewMessage() ? '新しいメッセージがあります' : '最新メッセージへ移動'"
@@ -22,13 +22,13 @@
     <form name="chat-window" class="m-0 min-w-0">
       <chat-portrait [chatTabidentifier]="chatTabidentifier"></chat-portrait>
       <div
-        class="border-ui-border-panel relative z-10 box-border flex min-w-0 flex-wrap items-center gap-1 overflow-visible border-b border-solid px-[6px] pt-2 pb-1 select-none @max-[340px]:px-1"
+        class="border-ui-border-panel relative z-10 box-border flex min-w-0 flex-wrap items-center gap-1 overflow-visible border-b border-solid px-1.5 pt-2 pb-1 select-none @max-[340px]:px-1"
       >
         <!-- 左スクロール矢印 -->
         @if (canScrollLeft()) {
           <button
             type="button"
-            class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 mr-[2px] inline-flex h-6 w-5 shrink-0 cursor-pointer items-center justify-center border border-solid p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[16px]"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 mr-0.5 inline-flex h-6 w-5 shrink-0 cursor-pointer items-center justify-center border border-solid p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[16px]"
             (click)="scrollTabsLeft()"
             tabindex="-1"
             title="左にスクロール"
@@ -39,7 +39,7 @@
 
         <!-- タブピル -->
         <div
-          class="-mx-1 my-[-3px] flex min-h-[30px] min-w-0 flex-[999_1_160px] items-center gap-[3px] overflow-x-auto overflow-y-hidden px-[6px] pt-[6px] pb-[3px] [scrollbar-width:none] @max-[340px]:order-3 @max-[340px]:basis-full"
+          class="-mx-1 -my-0.75 flex min-h-7.5 min-w-0 flex-[999_1_160px] items-center gap-0.75 overflow-x-auto overflow-y-hidden px-1.5 pt-1.5 pb-0.75 [scrollbar-width:none] @max-[340px]:order-3 @max-[340px]:basis-full"
           #tabPillsContainer
           (scroll)="onTabPillsScroll()"
         >
@@ -54,12 +54,12 @@
                 [(ngModel)]="chatTabidentifier"
               />
               <div
-                class="chat-tab-pill border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center rounded-full border border-solid bg-transparent px-[10px] py-[3px] align-middle text-[11px] whitespace-nowrap outline-0 transition-colors peer-checked:font-medium peer-checked:shadow-[0_0_0_1px_var(--ui-accent-glow)]"
+                class="chat-tab-pill border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 align-middle text-[11px] whitespace-nowrap outline-0 transition-colors peer-checked:font-medium peer-checked:shadow-[0_0_0_1px_var(--ui-accent-glow)]"
               >
                 {{ chatTab.name }}
                 @if (chatTab.hasUnread) {
                   <badge
-                    class="pointer-events-none absolute top-[-6px] right-[-6px] z-2"
+                    class="pointer-events-none absolute -top-1.5 -right-1.5 z-2"
                     [count]="chatTab.unreadLength"
                   ></badge>
                 }
@@ -72,7 +72,7 @@
         @if (canScrollRight()) {
           <button
             type="button"
-            class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 ml-[2px] inline-flex h-6 w-5 shrink-0 cursor-pointer items-center justify-center border border-solid p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[16px]"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 ml-0.5 inline-flex h-6 w-5 shrink-0 cursor-pointer items-center justify-center border border-solid p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[16px]"
             (click)="scrollTabsRight()"
             tabindex="-1"
             title="右にスクロール"
@@ -83,11 +83,11 @@
 
         <!-- 操作ボタン（点呼・アラーム） -->
         <div
-          class="border-ui-border-panel ml-auto flex shrink-0 items-center gap-[2px] border-l border-solid pl-[6px] @max-[500px]:pl-1 @max-[340px]:ml-0"
+          class="border-ui-border-panel ml-auto flex shrink-0 items-center gap-0.5 border-l border-solid pl-1.5 @max-[500px]:pl-1 @max-[340px]:ml-0"
         >
           <button
             type="button"
-            class="text-ui-muted hover:border-ui-border-panel hover:bg-ui-hover hover:text-ui-text m-0 flex cursor-pointer items-center justify-center gap-[2px] rounded-full border border-solid border-transparent bg-transparent px-[6px] py-[3px] text-[11px] transition-colors hover:shadow-none @max-[500px]:h-[26px] @max-[500px]:w-7 @max-[500px]:p-[2px]"
+            class="text-ui-muted hover:border-ui-border-panel hover:bg-ui-hover hover:text-ui-text m-0 flex cursor-pointer items-center justify-center gap-0.5 rounded-full border border-solid border-transparent bg-transparent px-1.5 py-0.75 text-[11px] transition-colors hover:shadow-none @max-[500px]:h-6.5 @max-[500px]:w-7 @max-[500px]:p-0.5"
             title="点呼・投票"
             (click)="showVoteMenu()"
           >
@@ -96,7 +96,7 @@
           </button>
           <button
             type="button"
-            class="text-ui-muted hover:border-ui-border-panel hover:bg-ui-hover hover:text-ui-text m-0 flex cursor-pointer items-center justify-center gap-[2px] rounded-full border border-solid border-transparent bg-transparent px-[6px] py-[3px] text-[11px] transition-colors hover:shadow-none @max-[500px]:h-[26px] @max-[500px]:w-7 @max-[500px]:p-[2px]"
+            class="text-ui-muted hover:border-ui-border-panel hover:bg-ui-hover hover:text-ui-text m-0 flex cursor-pointer items-center justify-center gap-0.5 rounded-full border border-solid border-transparent bg-transparent px-1.5 py-0.75 text-[11px] transition-colors hover:shadow-none @max-[500px]:h-6.5 @max-[500px]:w-7 @max-[500px]:p-0.5"
             title="アラーム"
             (click)="showAlarmMenu()"
           >
@@ -108,34 +108,34 @@
         <!-- 設定ドロップダウン (タブ設定 / ダイス表設定 / チャット設定) -->
         <details
           #chatSettings
-          class="border-ui-border-panel relative ml-[2px] shrink-0 border-l border-solid pl-[6px] @max-[500px]:pl-1 [&>summary]:list-none [&>summary::-webkit-details-marker]:hidden"
+          class="border-ui-border-panel relative ml-0.5 shrink-0 border-l border-solid pl-1.5 @max-[500px]:pl-1 [&>summary]:list-none [&>summary::-webkit-details-marker]:hidden"
         >
           <summary
-            class="text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 flex cursor-pointer items-center justify-center gap-[2px] rounded-full border border-solid border-transparent bg-transparent px-[6px] py-[3px] text-[11px] transition-colors hover:shadow-none @max-[500px]:h-[26px] @max-[500px]:w-7 @max-[500px]:p-[2px]"
+            class="text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 flex cursor-pointer items-center justify-center gap-0.5 rounded-full border border-solid border-transparent bg-transparent px-1.5 py-0.75 text-[11px] transition-colors hover:shadow-none @max-[500px]:h-6.5 @max-[500px]:w-7 @max-[500px]:p-0.5"
             title="チャット設定"
           >
             <i class="material-icons align-middle text-[12px]">settings</i>
           </summary>
           <div
-            class="rounded-ui border-ui-border-menu bg-ui-menu shadow-ui-lg absolute top-[calc(100%+4px)] right-0 z-100 min-w-[140px] border border-solid px-0 py-1 whitespace-nowrap [backdrop-filter:blur(20px)_saturate(1.8)] [-webkit-backdrop-filter:blur(20px)_saturate(1.8)]"
+            class="rounded-ui border-ui-border-menu bg-ui-menu shadow-ui-lg absolute top-[calc(100%+4px)] right-0 z-100 min-w-35 border border-solid px-0 py-1 whitespace-nowrap [backdrop-filter:blur(20px)_saturate(1.8)] [-webkit-backdrop-filter:blur(20px)_saturate(1.8)]"
           >
             <button
               type="button"
-              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-[6px] text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px] [&_.material-icons]:opacity-80"
+              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-1.5 text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px] [&_.material-icons]:opacity-80"
               (click)="showTabSetting(); chatSettings.open = false"
             >
               <i class="material-icons align-middle text-base">tab</i>タブ設定
             </button>
             <button
               type="button"
-              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-[6px] text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px] [&_.material-icons]:opacity-80"
+              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-1.5 text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px] [&_.material-icons]:opacity-80"
               (click)="showDiceTableSetting(); chatSettings.open = false"
             >
               <i class="material-icons align-middle text-base">casino</i>ダイス表設定
             </button>
             <button
               type="button"
-              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-[6px] text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px] [&_.material-icons]:opacity-80"
+              class="text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent m-0 flex w-full cursor-pointer items-center gap-2 rounded-none border-none bg-transparent px-4 py-1.5 text-left text-[12px] shadow-none transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[15px] [&_.material-icons]:opacity-80"
               (click)="showChatSetting(); chatSettings.open = false"
             >
               <i class="material-icons align-middle text-base">tune</i>チャット設定

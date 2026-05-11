@@ -1,6 +1,6 @@
 <button (click)="openModal()">画像を選ぶ</button>
 <div>
-  <img class="size-[120px] object-contain" [src]="tableBackgroundImage().url | safe: 'resourceUrl'" />
+  <img class="size-30 object-contain" [src]="tableBackgroundImage().url | safe: 'resourceUrl'" />
 </div>
 <input [(ngModel)]="name" placeholder="Name" name="name" />
 <div>

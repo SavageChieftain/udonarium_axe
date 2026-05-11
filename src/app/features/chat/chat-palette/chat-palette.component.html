@@ -70,7 +70,7 @@
     </button>
   </div>
 
-  <div [hidden]="isEdit()" class="palette-list h-0 min-h-[100px] grow overflow-y-auto" #paletteList>
+  <div [hidden]="isEdit()" class="palette-list h-0 min-h-25 grow overflow-y-auto" #paletteList>
     @for (row of paletteRows(); track row.lineIndex) {
       @if (row.kind === 'heading') {
         <div class="palette-row palette-row--heading" [attr.data-line]="row.lineIndex">
@@ -93,7 +93,7 @@
     }
   </div>
 
-  <div [hidden]="!isEdit()" class="h-0 min-h-[100px] grow">
+  <div [hidden]="!isEdit()" class="h-0 min-h-25 grow">
     <textarea
       name="edit-palette"
       class="palette resize-none"

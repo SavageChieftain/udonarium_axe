@@ -1,4 +1,4 @@
-<div class="box-border table w-full p-[5px]">
+<div class="box-border table w-full p-1.25">
   <textarea
     class="table-cell max-h-[calc(6em+7px)] min-h-[calc(1em+7px)] resize-none overflow-auto p-px align-bottom font-[inherit] text-[13px] wrap-anywhere whitespace-pre-wrap"
     [(ngModel)]="text"
@@ -7,7 +7,7 @@
     (keydown.enter)="fix($event)"
     #textArea
   ></textarea>
-  <div class="table-cell w-[180px] align-middle whitespace-nowrap">
+  <div class="table-cell w-45 align-middle whitespace-nowrap">
     <button type="submit" (click)="fix(null)">変更</button>
     <button type="submit" (click)="cancel()">キャンセル</button>
   </div>

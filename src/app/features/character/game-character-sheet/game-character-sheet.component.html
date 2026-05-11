@@ -15,7 +15,7 @@
     <button (click)="clone()">コピーを作る</button>
     <button (click)="saveToXML()">保存</button>
     @if (cardStack) {
-      <div class="extra-setting w-[400px]">
+      <div class="extra-setting w-100">
         <div>ポップアップ横幅 /></div>
         <div>
           ポップアップ縦幅最大
@@ -44,7 +44,7 @@
       </div>
     }
     @if (card) {
-      <div class="extra-setting w-[400px]">
+      <div class="extra-setting w-100">
         <div>
           ポップアップ横幅
           <input
@@ -99,7 +99,7 @@
       <!-- インベントリ設定はキャラクターシート左列下部に移動 -->
     }
     @if (textNote) {
-      <div class="extra-setting w-[400px]">
+      <div class="extra-setting w-100">
         <div>
           height設定値に高さを制限
           <input
