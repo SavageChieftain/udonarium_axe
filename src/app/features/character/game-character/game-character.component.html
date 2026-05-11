@@ -1,6 +1,6 @@
 @if (gameCharacter()) {
   <div
-    class="component is-3d is-grab is-pointer-events-none"
+    class="component is-3d is-grab pointer-events-none"
     [style.width.px]="size() * gridSize"
     [style.height.px]="size() * gridSize"
     appMovable
@@ -11,9 +11,9 @@
     (pointerdown)="checkKey($event)"
     #root
   >
-    <div class="component-content is-3d bounce-in">
+    <div class="component-content is-3d animate-bounce-in">
       <div
-        class="component-content is-3d is-pointer-events-auto"
+        class="component-content is-3d pointer-events-auto"
         appRotable
         [rotable.option]="rotableOption()"
         (rotable.ondragstart)="onMove()"
@@ -38,7 +38,7 @@
         <!--影-->
         @if (isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
           <img
-            class="is-pointer-events-none chrome-smooth-image-trick is-drop-shadow"
+            class="chrome-smooth-image-trick is-drop-shadow pointer-events-none"
             [ngStyle]="{
               position: 'absolute',
               bottom: '0',
@@ -53,7 +53,7 @@
         }
         @if (isDropShadow && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
           <img
-            class="image is-pointer-events-none chrome-smooth-image-trick"
+            class="image chrome-smooth-image-trick pointer-events-none"
             [ngStyle]="{
               width: '100%',
               transform:
@@ -99,7 +99,7 @@
                       transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY(-100%)',
                     }"
                   >
-                    <div [hidden]="!isTargeted()" class="target-icon-buff scrolldown5">
+                    <div [hidden]="!isTargeted()" class="target-icon-buff animate-arrowmove2 absolute">
                       <img src="./assets/images/target/target.png" />
                     </div>
                     <div class="buff-balloon-inner">
@@ -138,7 +138,7 @@
                     }"
                   >
                     <div
-                      class="target-icon-buff2 scrolldown5"
+                      class="target-icon-buff2 animate-arrowmove2 absolute"
                       [hidden]="!isTargeted()"
                       [ngStyle]="{ transform: 'rotateY(180deg)' }"
                     >
@@ -175,7 +175,7 @@
               <!-- クロームver102の描画問題に対処するため構成を修正している -->
               <div [hidden]="!(buffNum() === 0)">
                 <div
-                  class="target-icon scrolldown4"
+                  class="target-icon animate-arrowmove absolute"
                   [hidden]="!isTargeted()"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
                 >
@@ -326,13 +326,13 @@
             <span class="elevation-indicator is-3d absolute"
               ><i>{{ elevation }}</i></span
             >
-            <span class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
+            <span class="elevation-indicator is-3d absolute transform-[rotateY(-180deg)]"
               ><i>{{ elevation }}</i></span
             >
           </div>
           <div class="is-3d">
             <span class="altitude-indicator is-3d absolute">{{ math.abs(altitude()) }}</span>
-            <span class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]">{{
+            <span class="altitude-indicator is-3d absolute transform-[rotateY(-180deg)]">{{
               math.abs(altitude())
             }}</span>
           </div>
@@ -344,7 +344,7 @@
             <span class="elevation-indicator is-3d absolute"
               ><i>{{ elevation }}</i></span
             >
-            <span class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
+            <span class="elevation-indicator is-3d absolute transform-[rotateY(-180deg)]"
               ><i>{{ elevation }}</i></span
             >
           </div>

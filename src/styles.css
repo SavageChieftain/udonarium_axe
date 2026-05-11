@@ -100,6 +100,11 @@
   --animate-disc-spin: spin 4s linear infinite;
   /* Tailwind 標準と同じ 1s spin。保存ボタンの sync アイコン等のローディング表現で利用。 */
   --animate-spin: spin 1s linear infinite;
+  /* game-character (タップ後フォーカス強調) と ターゲット矢印 (arrowmove*) アニメーション。
+     既存 @keyframes は styles.css 後半に定義済み。 */
+  --animate-focused: focused 1s ease;
+  --animate-arrowmove: arrowmove 1s ease-in-out infinite;
+  --animate-arrowmove2: arrowmove2 1s ease-in-out infinite;
 }
 
 /* mini-jukebox の再生中ディスクが回るアニメーション (4s)、

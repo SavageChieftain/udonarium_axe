@@ -86,21 +86,21 @@ export class GameCharacterComponent {
       if (this.highlightTimer != null) return;
 
       // アニメーション中であればアニメーションを初期化
-      if (root.nativeElement.classList.contains('focused')) {
+      if (root.nativeElement.classList.contains('animate-focused')) {
         clearTimeout(this.unhighlightTimer);
-        root.nativeElement.classList.remove('focused');
+        root.nativeElement.classList.remove('animate-focused');
       }
 
       // アニメーション開始処理タイマー
       this.highlightTimer = setTimeout(() => {
         this.highlightTimer = undefined;
-        root.nativeElement.classList.add('focused');
+        root.nativeElement.classList.add('animate-focused');
       }, 0);
 
       // アニメーション終了処理タイマー
       this.unhighlightTimer = setTimeout(() => {
         this.unhighlightTimer = undefined;
-        root.nativeElement.classList.remove('focused');
+        root.nativeElement.classList.remove('animate-focused');
       }, 1010);
     });
 

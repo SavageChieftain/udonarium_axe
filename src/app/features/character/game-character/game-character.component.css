@@ -1,13 +1,16 @@
+/* game-character は 3D 駒・状態フラグが大量で、装飾完全一致を保つには scoped CSS の
+   多くを残置する必要がある。Tailwind 化で取り除いたものは:
+   - .is-pointer-events-none → HTML 側の pointer-events-none に置換
+   - .bounce-in → animate-bounce-in (@theme)
+   - .scrolldown4 / .scrolldown5 → HTML の absolute + animate-arrowmove(2)
+   - .focused → animate-focused (@theme、TS 側もリネーム済み)
+   - .is-grabbing / .is-transition / .fill-frame / .is-fill → dead code として削除
+*/
+
 .is-grab {
   cursor: -moz-grab;
   cursor: -webkit-grab;
   cursor: grab;
-}
-
-.is-grabbing {
-  cursor: -moz-grabbing;
-  cursor: -webkit-grabbing;
-  cursor: grabbing;
 }
 
 .is-3d {
@@ -21,19 +24,6 @@
 
 .backface-off {
   backface-visibility: hidden;
-}
-
-.is-transition {
-  -webkit-transition: -webkit-transform 132ms linear;
-  transition: transform 132ms linear;
-}
-
-.is-pointer-events-none {
-  pointer-events: none;
-}
-
-.is-pointer-events-auto {
-  pointer-events: auto;
 }
 
 .component {
@@ -110,13 +100,6 @@
   width: 100%;
 }
 
-.fill-frame {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
 .image {
   bottom: 0;
   left: 0;
@@ -174,10 +157,6 @@
 .is-black-background {
   color: var(--ui-text);
   background-color: var(--ui-panel-bg);
-  backface-visibility: hidden;
-}
-
-.backface-off {
   backface-visibility: hidden;
 }
 
@@ -285,12 +264,6 @@
   display: inline;
 }
 
-.component.focused {
-  animation-name: focused;
-  animation-timing-function: ease;
-  animation-duration: 1s;
-}
-
 .lock-icon {
   font-size: 15px;
   vertical-align: middle;
@@ -349,23 +322,6 @@
   position: absolute;
 }
 
-.scrolldown4 {
-  position: absolute;
-  animation: arrowmove 1s ease-in-out infinite;
-}
-
-/* 矢印の描写 */
-.scrolldown4:before {
-  top: -60px;
-}
-
-/*描画位置*/
-.scrolldown4:after {
-  content: '';
-  position: absolute;
-  top: -80px;
-}
-
 .target-icon-buff {
   width: 30px;
   font-size: 20px;
@@ -384,21 +340,4 @@
   box-sizing: border-box;
   position: absolute;
   margin-top: 1px;
-}
-
-.scrolldown5 {
-  position: absolute;
-  animation: arrowmove2 1s ease-in-out infinite;
-}
-
-/* 矢印の描写 */
-.scrolldown5:before {
-  top: -30px;
-}
-
-/*描画位置*/
-.scrolldown5:after {
-  content: '';
-  position: absolute;
-  top: -50px;
 }
