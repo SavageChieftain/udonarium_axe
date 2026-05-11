@@ -13,7 +13,7 @@
     [ngClass]="{ fall: altitude === 0 }"
   >
     <div
-      class="range-clip-layer is-3d absolute pointer-events-auto"
+      class="range-clip-layer is-3d pointer-events-auto absolute"
       [style.width.px]="0"
       [style.height.px]="0"
       [style.clip-path]="clipPathText"
@@ -52,7 +52,7 @@
             </div>
           } @else {
             <div
-              class="absolute rotate-grab of-corn-tip rotate-grab-icon is-3d will-change"
+              class="rotate-grab of-corn-tip rotate-grab-icon is-3d will-change absolute"
               [style.left.px]="rotateGrabDistancePx"
             >
               <i class="material-icons">autorenew</i>
@@ -70,7 +70,7 @@
   </div>
   @if (isAltitudeIndicate && (altitude <= -0.5 || 0.5 <= altitude)) {
     <div
-      class="is-3d flex flex-col flex-nowrap justify-between border-l-2 border-dashed border-black origin-top-left"
+      class="is-3d flex origin-top-left flex-col flex-nowrap justify-between border-l-2 border-dashed border-black"
       [style.border-left-color]="range().rangeColor"
       [style.height.px]="math.abs(altitude * gridSize) - (altitude > 0 ? 0 : 0)"
       [ngStyle]="{
@@ -84,13 +84,13 @@
     >
       <div class="is-3d" [style.visibility]="altitude > 0 ? 'visible' : 'hidden'">
         <span
-          class="absolute elevation-indicator is-3d"
+          class="elevation-indicator is-3d absolute"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
         >
         <span
-          class="absolute [transform:rotateY(-180deg)] elevation-indicator is-3d"
+          class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
@@ -98,13 +98,13 @@
       </div>
       <div class="is-3d">
         <span
-          class="absolute altitude-indicator is-3d"
+          class="altitude-indicator is-3d absolute"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           >{{ math.abs(altitude) }}</span
         >
         <span
-          class="absolute [transform:rotateY(-180deg)] altitude-indicator is-3d"
+          class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           >{{ math.abs(altitude) }}</span
@@ -118,13 +118,13 @@
         }"
       >
         <span
-          class="absolute elevation-indicator is-3d"
+          class="elevation-indicator is-3d absolute"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
         >
         <span
-          class="absolute [transform:rotateY(-180deg)] elevation-indicator is-3d"
+          class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span

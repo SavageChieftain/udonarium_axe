@@ -9,9 +9,9 @@
   }
   <div class="flex items-start">
     @if (altitudeHande) {
-      <div class="altitude ruler flex self-stretch flex-col content-center">
+      <div class="altitude ruler flex flex-col content-center self-stretch">
         <div class="mt-[2em]">高</div>
-        <div class="self-center my-auto">0</div>
+        <div class="my-auto self-center">0</div>
         <div class="mb-[2em]">低</div>
       </div>
     }
@@ -43,7 +43,7 @@
                   name="altitude-number"
                   type="number"
                   step="0.1"
-                  class="text-[small] w-[3.6em] text-right"
+                  class="w-[3.6em] text-right text-[small]"
                   [(ngModel)]="altitudeHande.altitude"
                 />)</span
               >
@@ -96,7 +96,7 @@
     </div>
     @if (action.subActions) {
       <div class="sub-menu-arrow">
-        <i class="material-icons text-[1em] align-bottom">arrow_forward_ios</i>
+        <i class="material-icons align-bottom text-[1em]">arrow_forward_ios</i>
       </div>
     }
     @if (subMenu() && parentMenu() === action) {

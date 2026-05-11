@@ -1,7 +1,7 @@
 @if (gameDataElement()) {
   @if (!gameDataElement().children.length) {
     @if (isEdit() && !isImage()) {
-      <div class="table-cell elm-structure-cell" aria-label="ドラッグ操作">
+      <div class="elm-structure-cell table-cell" aria-label="ドラッグ操作">
         <button
           class="elm-act-btn elm-structure-btn elm-structure-btn--drag elm-drag-handle"
           type="button"
@@ -14,7 +14,7 @@
         </button>
       </div>
     }
-    <div class="table-cell table-cell_solid elm-name-cell" [class.elm-name-cell--hidden]="isImage()">
+    <div class="table-cell_solid elm-name-cell table-cell" [class.elm-name-cell--hidden]="isImage()">
       @if (!isImage()) {
         @if (isTagLocked() || !isEdit()) {
           <div class="elm-name">{{ name }}</div>
@@ -32,7 +32,7 @@
         }
       }
     </div>
-    <div class="table-cell elm-value-cell" [class.elm-value-cell--editable]="isEdit() && !isImage()">
+    <div class="elm-value-cell table-cell" [class.elm-value-cell--editable]="isEdit() && !isImage()">
       <div class="elm-value-content">
         @switch (gameDataElement().fieldType) {
           @case ('resource') {
@@ -87,7 +87,7 @@
               />
             </span>
             <textarea
-              class="textarea-url w-full h-[5em] min-w-[50px] resize-none text-[0.8em]"
+              class="textarea-url h-[5em] w-full min-w-[50px] resize-none text-[0.8em]"
               name="data-value"
               name="data-value"
               [(ngModel)]="value"
@@ -115,7 +115,7 @@
             }
           }
           @case ('number') {
-            <div class="hidden-spacer text-[1em] font-[Cambria,Georgia]">
+            <div class="hidden-spacer font-[Cambria,Georgia] text-[1em]">
               {{ value }}
             </div>
             <input
@@ -174,7 +174,7 @@
           }
           @default {
             @if (!isImage()) {
-              <div class="hidden-spacer text-[1em] font-[Cambria,Georgia]">
+              <div class="hidden-spacer font-[Cambria,Georgia] text-[1em]">
                 {{ value }}
               </div>
               <input
@@ -391,7 +391,7 @@
                 }
               </div>
               <input
-                class="w-full min-w-[10px] elm-name-input"
+                class="elm-name-input w-full min-w-[10px]"
                 [class.elm-name-input--duplicate]="isDuplicateName()"
                 [attr.aria-invalid]="isDuplicateName()"
                 [title]="isDuplicateName() ? '同じキャラクターシート内に同名タグがあります' : null"

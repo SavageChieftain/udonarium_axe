@@ -307,7 +307,7 @@
       </div>
       @if (isAltitudeIndicate && (altitude() <= -0.5 || 0.5 <= altitude())) {
         <div
-          class="is-3d flex flex-col justify-between border-l-2 border-dashed border-l-black origin-top-left"
+          class="is-3d flex origin-top-left flex-col justify-between border-l-2 border-dashed border-l-black"
           [style.height.px]="math.abs(altitude() * gridSize) - (altitude() > 0 ? 0 : 0)"
           [ngStyle]="{
             transform:

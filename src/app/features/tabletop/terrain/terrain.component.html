@@ -20,7 +20,7 @@
     @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
       @if (isDropShadow() && (terreinAltitude() !== 0 || (isSlope() && !hasWall()))) {
         <div
-          class="opacity-70 [filter:brightness(0)_blur(1px)] [transform:translateZ(0.3px)_scale(0.98)] [backface-visibility:visible] is-3d texture chrome-smooth-image-trick"
+          class="is-3d texture chrome-smooth-image-trick [transform:translateZ(0.3px)_scale(0.98)] opacity-70 [filter:brightness(0)_blur(1px)] [backface-visibility:visible]"
           [ngClass]="{ 'blinking-animation': !isLocked() }"
           [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
           [style.clip-path]="hexFloorClipPath()"
@@ -222,7 +222,7 @@
     (terreinAltitude() <= -0.5 || 0.5 <= terreinAltitude())
   ) {
     <div
-      class="is-3d flex items-center [border-left:2px_dashed_blanchedalmond] absolute [transform-origin:top_left]"
+      class="is-3d absolute flex [transform-origin:top_left] items-center [border-left:2px_dashed_blanchedalmond]"
       [style.height.px]="math.abs(terreinAltitude() * gridSize)"
       [ngStyle]="{
         transform:

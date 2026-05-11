@@ -78,28 +78,28 @@ chore(release): bump version to 1.2.2
 
 ## 開発コマンド
 
-| コマンド             | 用途                                                |
-| -------------------- | --------------------------------------------------- |
-| `npm start`          | 開発サーバー（`ng serve`）                          |
-| `npm run build`      | プロダクションビルド（`ng build`）                  |
-| `npm test`           | ユニットテスト（Angular builder + Vitest）          |
-| `npx vitest run`     | ユニットテスト（直接 Vitest、上記とは別経路）       |
-| `npm run e2e`        | Playwright E2E                                      |
-| `npm run e2e:ui`     | Playwright UI モード                                |
-| `npm run lint`       | ESLint                                              |
-| `npm run format`     | Prettier 整形                                       |
-| `npm run format:check` | Prettier チェックのみ                              |
+| コマンド               | 用途                                          |
+| ---------------------- | --------------------------------------------- |
+| `npm start`            | 開発サーバー（`ng serve`）                    |
+| `npm run build`        | プロダクションビルド（`ng build`）            |
+| `npm test`             | ユニットテスト（Angular builder + Vitest）    |
+| `npx vitest run`       | ユニットテスト（直接 Vitest、上記とは別経路） |
+| `npm run e2e`          | Playwright E2E                                |
+| `npm run e2e:ui`       | Playwright UI モード                          |
+| `npm run lint`         | ESLint                                        |
+| `npm run format`       | Prettier 整形                                 |
+| `npm run format:check` | Prettier チェックのみ                         |
 
 ## アーキテクチャ（4 層構造）
 
 依存方向: `features` → (`shared` →) `domain` → `core`。逆流させない。
 
-| レイヤー                  | 役割                                                         | 依存可能                         |
-| ------------------------- | ------------------------------------------------------------ | -------------------------------- |
-| `@axe/core/*`             | インフラ層（network, storage, sync, di, logging, input, event, transform, util） | なし                             |
-| `@axe/domain/*`           | ドメインモデル（character, chat, tabletop, card, dice, vote, alarm, media, peer, data）。Angular 無依存。`@SyncObject` / `@SyncVar` のみ利用 | `core`                           |
-| `@axe/shared/*`           | 横断 UI（components, directives, pipes, ui, sync, chat, inventory, tabletop） | `core`, `domain`                 |
-| `@axe/features/*`         | UI 機能単位（chat, tabletop, character, card, controller, dice, file, inventory, lobby, media, vote, alarm） | `core`, `domain`, `shared`       |
+| レイヤー          | 役割                                                                                                                                         | 依存可能                   |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `@axe/core/*`     | インフラ層（network, storage, sync, di, logging, input, event, transform, util）                                                             | なし                       |
+| `@axe/domain/*`   | ドメインモデル（character, chat, tabletop, card, dice, vote, alarm, media, peer, data）。Angular 無依存。`@SyncObject` / `@SyncVar` のみ利用 | `core`                     |
+| `@axe/shared/*`   | 横断 UI（components, directives, pipes, ui, sync, chat, inventory, tabletop）                                                                | `core`, `domain`           |
+| `@axe/features/*` | UI 機能単位（chat, tabletop, character, card, controller, dice, file, inventory, lobby, media, vote, alarm）                                 | `core`, `domain`, `shared` |
 
 エントリは [src/main.ts](src/main.ts) → [src/app/app.component.ts](src/app/app.component.ts)。
 

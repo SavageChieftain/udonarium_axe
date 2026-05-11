@@ -68,7 +68,7 @@
   </div>
   @if (isAltitudeIndicate && math.abs(textNoteAltitude) >= 0.5) {
     <div
-      class="is-3d flex items-center [border-left:2px_dashed_blanchedalmond] [transform-origin:top_left]"
+      class="is-3d flex [transform-origin:top_left] items-center [border-left:2px_dashed_blanchedalmond]"
       [style.height.px]="math.abs(textNoteAltitude * gridSize)"
       [ngStyle]="{
         transform:

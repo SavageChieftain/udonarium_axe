@@ -1,13 +1,13 @@
-<div class="box-border p-[5px] table w-full">
+<div class="box-border table w-full p-[5px]">
   <textarea
-    class="table-cell font-[inherit] text-[13px] min-h-[calc(1em+7px)] max-h-[calc(6em+7px)] resize-none overflow-auto p-[1px] whitespace-pre-wrap [overflow-wrap:anywhere] align-bottom"
+    class="table-cell max-h-[calc(6em+7px)] min-h-[calc(1em+7px)] resize-none overflow-auto p-[1px] align-bottom font-[inherit] text-[13px] [overflow-wrap:anywhere] whitespace-pre-wrap"
     [(ngModel)]="text"
     [ngModelOptions]="{ standalone: true }"
     (input)="onInput()"
     (keydown.enter)="fix($event)"
     #textArea
   ></textarea>
-  <div class="table-cell align-middle w-[180px] whitespace-nowrap">
+  <div class="table-cell w-[180px] align-middle whitespace-nowrap">
     <button type="submit" (click)="fix(null)">変更</button>
     <button type="submit" (click)="cancel()">キャンセル</button>
   </div>

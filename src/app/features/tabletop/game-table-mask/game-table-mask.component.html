@@ -25,7 +25,7 @@
         [ngStyle]="hexOutlineMask ? { '-webkit-mask': hexOutlineMask, mask: hexOutlineMask } : null"
       >
         <div
-          class="is-fit-full is-3d chrome-smooth-image-trick absolute pointer-events-auto backface-hidden"
+          class="is-fit-full is-3d chrome-smooth-image-trick pointer-events-auto absolute backface-hidden"
           [attr.data-table-passthrough]="isLock && !isScratching ? '' : null"
           (mousedown)="onMaskMouseDown($event)"
           [ngStyle]="{
@@ -38,7 +38,7 @@
         >
           @if (imageFile().url.length >= 1) {
             <img
-              class="is-fit-full is-3d chrome-smooth-image-trick absolute pointer-events-none"
+              class="is-fit-full is-3d chrome-smooth-image-trick pointer-events-none absolute"
               [style.mix-blend-mode]="blendType === 1 ? null : 'hard-light'"
               [src]="imageFile().url | safe: 'resourceUrl'"
             />
@@ -319,7 +319,7 @@
         }
       </div>
       @if (isScratching && ownerIsOnline) {
-        <div class="scratching is-center is-3d pointer-events-none z-10 -top-[10px] left-[1px] backface-hidden">
+        <div class="scratching is-center is-3d pointer-events-none -top-[10px] left-[1px] z-10 backface-hidden">
           <div
             class="name-tag has-length-limit is-nowrap is-black-background text-[whitesmoke]"
             [ngStyle]="{ 'background-color': ownerColor + 'E6' }"
@@ -353,7 +353,7 @@
     </div>
     @if (isAltitudeIndicate && math.abs(gameTableMaskAltitude) >= 0.5) {
       <div
-        class="is-3d flex items-center border-l-2 border-dashed border-l-[blanchedalmond] origin-top-left pointer-events-none"
+        class="is-3d pointer-events-none flex origin-top-left items-center border-l-2 border-dashed border-l-[blanchedalmond]"
         [style.height.px]="math.abs(gameTableMaskAltitude * gridSize)"
         [ngStyle]="{
           transform:
@@ -369,10 +369,10 @@
         }"
       >
         <div class="is-3d pointer-events-none">
-          <span class="altitude-indicator is-3d absolute pointer-events-none">{{
+          <span class="altitude-indicator is-3d pointer-events-none absolute">{{
             math.abs(gameTableMaskAltitude)
           }}</span>
-          <span class="altitude-indicator is-3d absolute pointer-events-none [transform:rotateY(-180deg)]">{{
+          <span class="altitude-indicator is-3d pointer-events-none absolute [transform:rotateY(-180deg)]">{{
             gameTableMaskAltitude
           }}</span>
         </div>

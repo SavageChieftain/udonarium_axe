@@ -68,6 +68,7 @@
     "happy-dom": "^20.8.4",
     "lefthook": "^2.1.4",
     "prettier": "^3.0.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.2.4",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.0.0",

@@ -5,18 +5,18 @@
     <div class="border-b border-dotted border-[#888]">
       <div class="inline-block align-top" [appTooltip]="card">
         <div
-          class="p-0 w-16 h-16 inline-block align-top bg-center bg-no-repeat bg-contain"
+          class="inline-block h-16 w-16 bg-contain bg-center bg-no-repeat p-0 align-top"
           [style.background-image]="'url(' + card?.frontImage?.url + ')' | safe: 'style'"
         ></div>
         <div
-          class="p-0 w-16 h-16 inline-block align-top bg-center bg-no-repeat bg-contain"
+          class="inline-block h-16 w-16 bg-contain bg-center bg-no-repeat p-0 align-top"
           [style.background-image]="'url(' + card?.backImage?.url + ')' | safe: 'style'"
         ></div>
       </div>
       <div class="inline-block">
         <button type="submit" (click)="drawCard(card)">山札から出す</button>
         <button (click)="showDetail(card)">
-          <i class="material-icons text-[1.1em] align-text-bottom">settings</i>編集
+          <i class="material-icons align-text-bottom text-[1.1em]">settings</i>編集
         </button>
         <br />
         <button (click)="up(card)">↑</button>
