@@ -18,7 +18,6 @@
       }
     }
     @if (!chatMessages.length) {
-      <!--      <span>使用している <a href= "3rdpartylicenses.txt" target="_blank">3rdpartylicenses</a>についてはこちらを参照してください</span>-->
       @for (chatMessage of sampleMessages; track chatMessage) {
         <chat-message
           [chatMessage]="chatMessage"
@@ -30,22 +29,39 @@
       }
     }
     @if (writingSpeakers().length && bottomSpace <= 0) {
-      <div class="writing-speakers" aria-live="polite">
+      <div class="box-border w-full space-y-1 px-2 pt-1 pb-2" aria-live="polite">
         @for (speaker of writingSpeakers(); track speaker.peerId) {
-          <div class="writing-speaker">
-            <div class="writing-speaker-image">
+          <div class="flex max-w-[280px] items-end gap-2">
+            <div
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-dim flex h-[38px] w-[38px] flex-none items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[24px]"
+            >
               @if (speaker.imageFile.url) {
-                <img [src]="speaker.imageFile.url | safe: 'resourceUrl'" [alt]="speaker.name" />
+                <img
+                  class="h-full w-full object-cover object-[50%_0%]"
+                  [src]="speaker.imageFile.url | safe: 'resourceUrl'"
+                  [alt]="speaker.name"
+                />
               } @else {
                 <i class="material-icons">person</i>
               }
             </div>
-            <div class="writing-speaker-body">
-              <div class="writing-speaker-name">{{ speaker.name }}</div>
-              <div class="writing-speaker-text">
-                <span></span>
-                <span></span>
-                <span></span>
+            <div
+              class="rounded-ui border-ui-border-panel bg-ui-elevated text-ui-muted relative min-w-0 border border-solid px-[10px] pt-1 pb-[6px] before:absolute before:bottom-[10px] before:left-[-8px] before:border-y-[5px] before:border-r-[8px] before:border-l-0 before:border-solid before:border-y-transparent before:border-r-[var(--ui-panel-border)] before:content-[''] after:absolute after:bottom-[11px] after:left-[-6px] after:border-y-[4px] after:border-r-[7px] after:border-l-0 after:border-solid after:border-y-transparent after:border-r-[var(--ui-elevated)] after:content-['']"
+            >
+              <!-- writing-speaker-name は chat-tab.component.spec.ts の querySelector ターゲット (マーカー) -->
+              <div
+                class="writing-speaker-name max-w-[180px] overflow-hidden text-[11px] leading-[1.2] text-ellipsis whitespace-nowrap"
+              >
+                {{ speaker.name }}
+              </div>
+              <div class="flex h-4 items-center gap-1">
+                <span class="animate-writing-dot bg-ui-muted block h-[5px] w-[5px] rounded-full"></span>
+                <span
+                  class="animate-writing-dot bg-ui-muted block h-[5px] w-[5px] rounded-full [animation-delay:0.15s]"
+                ></span>
+                <span
+                  class="animate-writing-dot bg-ui-muted block h-[5px] w-[5px] rounded-full [animation-delay:0.3s]"
+                ></span>
               </div>
             </div>
           </div>

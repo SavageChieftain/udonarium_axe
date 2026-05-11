@@ -49,7 +49,6 @@ interface WritingSpeaker {
 @Component({
   selector: 'chat-tab',
   templateUrl: './chat-tab.component.html',
-  styleUrls: ['./chat-tab.component.css'],
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChatMessageComponent, SafePipe],

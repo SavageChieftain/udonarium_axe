@@ -28,7 +28,6 @@ import { BatchService } from '@axe/shared/ui/batch.service';
   selector: 'peer-cursor, [peer-cursor]',
   templateUrl: './peer-cursor.component.html',
   host: { class: 'block' },
-  styleUrls: ['./peer-cursor.component.css'],
   imports: [NgClass, SafePipe],
 })
 export class PeerCursorComponent {
