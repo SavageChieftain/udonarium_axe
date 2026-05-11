@@ -34,7 +34,6 @@ import GameSystemClass from 'bcdice/lib/game_system';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-window',
   templateUrl: './chat-window.component.html',
-  styleUrls: ['./chat-window.component.css'],
   imports: [ChatTabComponent, FormsModule, ChatPortraitComponent, BadgeComponent, ChatInputComponent],
 })
 export class ChatWindowComponent {
