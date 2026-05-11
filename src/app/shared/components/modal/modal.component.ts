@@ -7,7 +7,6 @@ import { ModalService } from '@axe/shared/ui/modal.service';
   selector: 'modal',
   templateUrl: './modal.component.html',
   host: { class: 'block' },
-  styleUrls: ['./modal.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModalComponent {

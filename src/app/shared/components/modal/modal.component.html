@@ -1,13 +1,27 @@
-<div class="component">
-  <div class="modal-background bg-fade-in" (click)="clickBackground($event)"></div>
-  <div class="modal-panel fly-in">
-    <div class="title">
-      <div class="title-button">
-        <button (click)="resolve()"><i class="material-icons text-[14px]">close</i></button>
+<div class="absolute inset-0 z-[1899999] flex items-center justify-center overscroll-contain">
+  <div
+    class="animate-bg-fade-in text-ui-text absolute inset-0 z-[-1] bg-[rgba(0,0,0,0.3)]"
+    (click)="clickBackground($event)"
+  ></div>
+  <div
+    class="animate-fly-in border-ui-border-panel bg-ui-panel text-ui-text box-border h-auto max-h-[calc(100%-10px)] w-[800px] max-w-full overflow-hidden border border-solid"
+  >
+    <div
+      class="bg-ui-elevated text-ui-text relative box-border h-[25px] w-full overflow-hidden px-[5px] py-[2px] text-[12px] whitespace-nowrap"
+    >
+      <div class="absolute top-0 right-0">
+        <button
+          class="text-ui-text hover:text-ui-text rounded-none border-none bg-transparent outline-none hover:bg-transparent"
+          (click)="resolve()"
+        >
+          <i class="material-icons text-[14px]">close</i>
+        </button>
       </div>
-      <span class="title-text" [appTextTooltip]="titleTooltip">{{ title }}</span>
+      <span class="block overflow-hidden pr-[30px] text-ellipsis whitespace-nowrap" [appTextTooltip]="titleTooltip">{{
+        title
+      }}</span>
     </div>
-    <div class="scrollable-panel">
+    <div class="box-border max-h-[calc(100vh-41px)] w-full overflow-auto p-2">
       <ng-content></ng-content>
       <div #content></div>
     </div>
