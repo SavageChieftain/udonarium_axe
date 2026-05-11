@@ -5,8 +5,8 @@
 }
 
 .is-perspective {
-  -webkit-perspective: 1000px;
-  perspective: 1000px;
+  -webkit-perspective: 3000px;
+  perspective: 3000px;
 }
 
 .is-fill {
@@ -85,8 +85,8 @@
 }
 
 .component-content {
-  height: 2000px;
-  width: 2000px;
+  height: 6000px;
+  width: 6000px;
 }
 
 .grid-canvas {

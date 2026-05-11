@@ -126,12 +126,18 @@ export class GameTableGestureService {
 
     if (srcEvent.cancelable) srcEvent.preventDefault();
 
-    const scale = (1000 + Math.abs(this.viewPositionZ)) / 1000;
+    const scale = (3000 + Math.abs(this.viewPositionZ)) / 3000;
     transformX *= scale;
     transformY *= scale;
+    transformZ *= 3;
     if (80 < rotateX + this.viewRotateX) rotateX += 80 - (rotateX + this.viewRotateX);
     if (rotateX + this.viewRotateX < 0) rotateX += 0 - (rotateX + this.viewRotateX);
-    if (750 < transformZ + this.viewPositionZ) transformZ += 750 - (transformZ + this.viewPositionZ);
+
+    const maxZ = 0;
+    if (maxZ < transformZ + this.viewPositionZ) transformZ += maxZ - (transformZ + this.viewPositionZ);
+
+    const minZ = -6000;
+    if (transformZ + this.viewPositionZ < minZ) transformZ += minZ - (transformZ + this.viewPositionZ);
 
     this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
     this.isTableTransformed = true;
@@ -182,9 +188,10 @@ export class GameTableGestureService {
 
     if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
 
-    const scale = (1000 + Math.abs(this.viewPositionZ)) / 1000;
+    const scale = (3000 + Math.abs(this.viewPositionZ)) / 3000;
     transformX *= scale;
     transformY *= scale;
+    transformZ *= 3; // マウスホイールの感度維持
 
     this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
     this.isTableTransformed = true;
