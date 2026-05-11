@@ -36,16 +36,6 @@ interface JudgeCandidatesState {
 @Component({
   selector: 'game-data-element, [game-data-element]',
   templateUrl: './game-data-element.component.html',
-  styleUrls: [
-    './game-data-element.component.css',
-    './game-data-element-rows.css',
-    './game-data-element-row-actions.css',
-    './game-data-element-field-values.css',
-    './game-data-element-sections.css',
-    './game-data-element-judge.css',
-    './game-data-element-options.css',
-    './game-data-element-icons.css',
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, LinkifyPipe, SafePipe, NgSelectComponent, NgOptionComponent],
   host: {
