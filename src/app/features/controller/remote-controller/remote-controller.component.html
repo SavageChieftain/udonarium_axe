@@ -45,7 +45,7 @@
         type="button"
         (click)="buffSectionOpen.set(!buffSectionOpen())"
       >
-        <i class="material-icons shrink-0 text-base opacity-60">{{
+        <i class="material-icons shrink-0 text-base! opacity-60">{{
           buffSectionOpen() ? 'expand_more' : 'chevron_right'
         }}</i>
         <span class="text-ui-accent flex-1 text-[11px] font-bold tracking-[0.08em] uppercase">バフ付与</span>
@@ -69,15 +69,15 @@
               (click)="toggleEditMode()"
             >
               @if (!isEdit()) {
-                <i class="material-icons align-middle text-[14px]">edit</i>パレット編集
+                <i class="material-icons align-middle text-[14px]!">edit</i>パレット編集
               } @else {
-                <i class="material-icons align-middle text-[14px]">check</i>確定
+                <i class="material-icons align-middle text-[14px]!">check</i>確定
               }
             </button>
             @if (isEdit()) {
               <span
                 class="text-ui-accent border-ui-accent-glow bg-ui-accent-bg inline-flex items-center gap-0.5 rounded-[10px] border border-solid px-2 py-0.5 text-[11px] select-none"
-                ><i class="material-icons align-middle text-[14px]">edit</i>編集中</span
+                ><i class="material-icons align-middle text-[14px]!">edit</i>編集中</span
               >
             }
           </div>
@@ -139,7 +139,7 @@
               (keydown.enter)="sendBuffChat($any($event))"
             ></textarea>
             <button
-              class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap transition-[background,border-color] select-none hover:text-white [&_.material-icons]:text-[14px]"
+              class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap transition-[background,border-color] select-none hover:text-white [&_.material-icons]:text-[14px]!"
               (click)="sendBuffChat(null)"
             >
               付与
@@ -156,13 +156,13 @@
             <div class="flex items-center gap-1.25">
               <span class="text-ui-muted min-w-[5em] text-[12px] select-none">R 減少</span>
               <button
-                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]"
+                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="decBuffRoundSelect()"
               >
                 選択
               </button>
               <button
-                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]"
+                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="decBuffRoundAll()"
               >
                 全員
@@ -171,13 +171,13 @@
             <div class="flex items-center gap-1.25">
               <span class="text-ui-muted min-w-[5em] text-[12px] select-none">0R 消去</span>
               <button
-                class="text-ui-muted border-ui-border-panel hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]"
+                class="text-ui-muted border-ui-border-panel hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="deleteZeroRoundBuffSelect()"
               >
                 選択
               </button>
               <button
-                class="text-ui-muted border-ui-border-panel hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]"
+                class="text-ui-muted border-ui-border-panel hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="deleteZeroRoundBuffAll()"
               >
                 全員
@@ -195,7 +195,7 @@
         type="button"
         (click)="counterSectionOpen.set(!counterSectionOpen())"
       >
-        <i class="material-icons shrink-0 text-base opacity-60">{{
+        <i class="material-icons shrink-0 text-base! opacity-60">{{
           counterSectionOpen() ? 'expand_more' : 'chevron_right'
         }}</i>
         <span class="text-ui-success flex-1 text-[11px] font-bold tracking-[0.08em] uppercase">リソース操作</span>
@@ -282,14 +282,14 @@
               placeholder="0"
             />
             <button
-              class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]"
+              class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
               (click)="reverseValue()"
               title="符号を反転"
             >
               ±
             </button>
             <button
-              class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap transition-[background,border-color] select-none hover:text-white [&_.material-icons]:text-[14px]"
+              class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap transition-[background,border-color] select-none hover:text-white [&_.material-icons]:text-[14px]!"
               (click)="remoteChangeValue()"
             >
               操作
@@ -336,7 +336,7 @@
     @let objects = getGameObjects(selectTab());
     @if (objects.length < 1) {
       <div
-        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40"
+        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">group</i>
         <p class="m-0 text-[12px]">{{ getTabTitle(selectTab()) }}インベントリは空です</p>
@@ -356,7 +356,7 @@
     <!-- キャラクターカード テンプレート -->
     <ng-template #gameObjectCard let-gameObject="gameObject">
       <div
-        class="bg-ui-input border-ui-border-panel rounded-ui-sm [&_.material-icons]:text-ui-dim relative flex size-10.5 shrink-0 cursor-pointer items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[24px]"
+        class="bg-ui-input border-ui-border-panel rounded-ui-sm [&_.material-icons]:text-ui-dim relative flex size-10.5 shrink-0 cursor-pointer items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[24px]!"
         (click)="targetBlockClick(gameObject)"
       >
         @if (gameObject.imageFile.url) {
@@ -382,7 +382,7 @@
             >{{ gameObject.name }}</span
           >
           <button
-            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]"
+            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
             (click)="buffEdit(gameObject)"
           >
             <i class="material-icons">auto_fix_high</i>バフ編集

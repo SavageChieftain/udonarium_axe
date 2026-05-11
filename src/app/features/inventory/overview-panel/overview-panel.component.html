@@ -45,7 +45,7 @@
           [src]="imageUrl() | safe: 'resourceUrl'"
         />
         <button class="absolute -bottom-5.25 left-2 size-10.5 rounded-full p-1" (click)="chanageImageView(true)">
-          <i class="material-icons align-bottom text-[24px]">zoom_in</i>
+          <i class="material-icons align-bottom text-[24px]!">zoom_in</i>
         </button>
         @if (card.hasOwner && card.ownerName) {
           <div
@@ -486,7 +486,7 @@
     class="text-ui-text animate-fade-in absolute inset-0 z-9900 bg-[color-mix(in_srgb,var(--ui-panel-bg)_80%,transparent)]"
     (click)="chanageImageView(false)"
   >
-    <div class="pointer-events-none absolute top-4 right-4"><i class="material-icons text-[36px]">close</i></div>
+    <div class="pointer-events-none absolute top-4 right-4"><i class="material-icons text-[36px]!">close</i></div>
     <img class="box-border size-full object-contain p-4 align-bottom" [src]="imageUrl() | safe: 'resourceUrl'" />
   </div>
 </ng-template>

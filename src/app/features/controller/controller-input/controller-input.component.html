@@ -6,7 +6,7 @@
     @if (0 < imageFile().url.length) {
       <img class="size-full object-cover object-[50%_0%]" [src]="imageFile().url | safe: 'resourceUrl'" />
     } @else {
-      <i class="material-icons text-ui-dim text-[24px]">person</i>
+      <i class="material-icons text-ui-dim text-[24px]!">person</i>
     }
     @if (1 <= portraitCount()) {
       <div

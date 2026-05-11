@@ -5,7 +5,7 @@
       <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">チャットタブ</span>
       <button
         type="button"
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
         title="タブを追加"
         (click)="create()"
       >
@@ -23,7 +23,7 @@
           role="option"
           [attr.aria-selected]="selectedTab()?.identifier === chatTab.identifier"
         >
-          <i class="material-icons shrink-0 text-[15px] opacity-70">chat_bubble_outline</i>
+          <i class="material-icons shrink-0 text-[15px]! opacity-70">chat_bubble_outline</i>
           <span class="truncate text-[13px]">{{ chatTab.name }}</span>
         </li>
       }
@@ -32,13 +32,13 @@
     <div class="border-ui-border-panel flex shrink-0 flex-col gap-1 border-t border-solid p-2">
       <button
         type="button"
-        class="rounded-ui-sm text-ui-muted hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex w-full cursor-pointer items-center gap-1 border-none bg-transparent px-1.5 py-1 text-left text-[12px] transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[14px]"
+        class="rounded-ui-sm text-ui-muted hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex w-full cursor-pointer items-center gap-1 border-none bg-transparent px-1.5 py-1 text-left text-[12px] transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[14px]!"
         (click)="onChangeSystemTab()"
       >
         <i class="material-icons">settings_input_component</i>
         システム表示先を設定
       </button>
-      <div class="text-ui-dim flex items-center gap-1 px-1 text-[11px] [&_.material-icons]:text-[13px]">
+      <div class="text-ui-dim flex items-center gap-1 px-1 text-[11px] [&_.material-icons]:text-[13px]!">
         <i class="material-icons">info_outline</i>
         現在: {{ systemTab()?.name ?? '—' }}
       </div>
@@ -49,13 +49,13 @@
   <main class="bg-ui-elevated flex flex-col gap-0 overflow-y-auto px-3.5 py-3">
     @if (isEmpty) {
       <div
-        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]"
+        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]!"
       >
         <i class="material-icons">tab</i>
         <p>チャットタブが存在しません</p>
         <button
           type="button"
-          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           (click)="create()"
         >
           タブを作成
@@ -77,7 +77,7 @@
           />
           <button
             type="button"
-            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
             title="上に移動"
             (click)="upTabIndex()"
             [disabled]="isDeleted"
@@ -86,7 +86,7 @@
           </button>
           <button
             type="button"
-            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
             title="下に移動"
             (click)="downTabIndex()"
             [disabled]="isDeleted"
@@ -98,13 +98,13 @@
 
       @if (isDeleted) {
         <div
-          class="rounded-ui-sm flex flex-wrap items-center gap-2 border border-solid border-[#e67e2244] bg-[#e67e2222] px-2.5 py-2 text-[12px] text-[#e67e22] [&_.material-icons]:text-[16px]"
+          class="rounded-ui-sm flex flex-wrap items-center gap-2 border border-solid border-[#e67e2244] bg-[#e67e2222] px-2.5 py-2 text-[12px] text-[#e67e22] [&_.material-icons]:text-[16px]!"
         >
           <i class="material-icons">undo</i>
           このタブは削除されています
           <button
             type="button"
-            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
             (click)="restore()"
           >
             元に戻す
@@ -118,7 +118,7 @@
           <div class="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
-              class="save-btn rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              class="save-btn rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
               [disabled]="isSaving()"
               (click)="save()"
             >
@@ -141,7 +141,7 @@
             </label>
             <button
               type="button"
-              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]!"
               [disabled]="!allowDeleteTab"
               (click)="delete()"
             >
@@ -158,14 +158,14 @@
           <div class="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]!"
               (click)="saveLog()"
             >
               <i class="material-icons">download</i>このタブ
             </button>
             <button
               type="button"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]!"
               (click)="saveAllLog()"
             >
               <i class="material-icons">download_for_offline</i>全タブ
@@ -203,7 +203,7 @@
             </label>
             <button
               type="button"
-              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]!"
               [disabled]="!allowDeleteLog"
               (click)="deleteLog()"
             >
@@ -211,7 +211,7 @@
             </button>
             <button
               type="button"
-              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]!"
               [disabled]="!allowDeleteLog"
               (click)="deleteLogALL()"
             >

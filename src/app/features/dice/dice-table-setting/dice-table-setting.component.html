@@ -5,7 +5,7 @@
       <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">ダイス表</span>
       <button
         type="button"
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
         title="新しい表を作る"
         (click)="createDiceTable()"
         [disabled]="isEdit()"
@@ -26,7 +26,7 @@
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === diceTable.identifier"
         >
-          <i class="material-icons shrink-0 text-[15px] opacity-70">casino</i>
+          <i class="material-icons shrink-0 text-[15px]! opacity-70">casino</i>
           <span class="truncate text-[13px]">{{ diceTable.name }}</span>
         </li>
       }
@@ -37,13 +37,13 @@
   <main class="bg-ui-elevated flex flex-col gap-0 overflow-y-auto px-3.5 py-3">
     @if (getDiceTables().length === 0) {
       <div
-        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]"
+        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]!"
       >
         <i class="material-icons">casino</i>
         <p>ダイス表がありません</p>
         <button
           type="button"
-          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           (click)="createDiceTable()"
         >
           表を作成
@@ -53,7 +53,7 @@
 
     @if (getDiceTables().length > 0 && !selectedTable) {
       <div
-        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]"
+        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]!"
       >
         <i class="material-icons">touch_app</i>
         <p>左のリストから表を選択してください</p>
@@ -120,7 +120,7 @@
           <span class="text-ui-muted flex-1 text-[11px] font-semibold tracking-[0.04em] uppercase">ダイス表</span>
           @if (isEdit()) {
             <span
-              class="rounded-ui-sm bg-ui-accent-bg text-ui-accent inline-flex items-center gap-0.75 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]"
+              class="rounded-ui-sm bg-ui-accent-bg text-ui-accent inline-flex items-center gap-0.75 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
             >
               <i class="material-icons">edit</i>編集中
             </span>
@@ -128,7 +128,7 @@
           @if (!isEdit()) {
             <button
               type="button"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
               (click)="toggleEditMode()"
               [disabled]="!isEditable"
             >
@@ -137,7 +137,7 @@
           } @else {
             <button
               type="button"
-              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
               (click)="toggleEditMode()"
               [disabled]="!isEditable"
             >
@@ -178,7 +178,7 @@
         <div class="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
-            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
             [disabled]="isSaving() || isEdit()"
             (click)="save()"
           >
@@ -190,7 +190,7 @@
           </button>
           <button
             type="button"
-            class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+            class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]!"
             [disabled]="isEdit()"
             (click)="delete()"
           >

@@ -5,7 +5,7 @@
       <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">テーブル</span>
       <button
         type="button"
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
         title="新しいテーブルを作る"
         (click)="createGameTable()"
       >
@@ -22,7 +22,7 @@
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === gameTable.identifier"
         >
-          <i class="material-icons shrink-0 text-[15px] opacity-70">table_view</i>
+          <i class="material-icons shrink-0 text-[15px]! opacity-70">table_view</i>
           <span class="truncate text-[13px]">{{ gameTable.name }}</span>
         </li>
       }
@@ -33,13 +33,13 @@
   <main class="bg-ui-elevated row-[1/2] flex flex-col gap-0 overflow-y-auto px-3.5 py-3">
     @if (getGameTables().length === 0) {
       <div
-        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40"
+        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">table_view</i>
         <p>テーブルがありません</p>
         <button
           type="button"
-          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           (click)="createGameTable()"
         >
           <i class="material-icons">add</i>テーブルを作成
@@ -49,7 +49,7 @@
 
     @if (getGameTables().length > 0 && !selectedTable) {
       <div
-        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40"
+        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">touch_app</i>
         <p>左のリストからテーブルを選択してください</p>
@@ -263,7 +263,7 @@
           <div class="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
-              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
               [disabled]="isSaving()"
               (click)="save()"
             >
@@ -275,7 +275,7 @@
             </button>
             <button
               type="button"
-              class="rounded-ui-sm border-ui-danger text-ui-danger hover:border-ui-danger hover:text-ui-danger m-0 inline-flex cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-3 py-1.25 text-[12px] font-semibold transition-[background,opacity] hover:bg-[color-mix(in_srgb,var(--ui-danger)_15%,transparent)] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[15px]"
+              class="rounded-ui-sm border-ui-danger text-ui-danger hover:border-ui-danger hover:text-ui-danger m-0 inline-flex cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-3 py-1.25 text-[12px] font-semibold transition-[background,opacity] hover:bg-[color-mix(in_srgb,var(--ui-danger)_15%,transparent)] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[15px]!"
               (click)="delete()"
               [attr.disabled]="getGameTables().length <= 1 ? '' : null"
             >
@@ -287,7 +287,7 @@
           <div class="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
-              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[12px] font-semibold text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
               (click)="restore()"
             >
               <i class="material-icons">undo</i>元に戻す

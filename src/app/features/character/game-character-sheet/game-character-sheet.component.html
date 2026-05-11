@@ -196,7 +196,7 @@
       <!-- タブヘッダー -->
       <div class="border-ui-border-panel bg-ui-surface flex items-end gap-px border-b border-solid px-2 pt-1.5">
         <button
-          class="hover:text-ui-text text-ui-muted border-ui-border-panel -mb-px inline-flex cursor-pointer items-center gap-1 rounded-t-xs border border-solid bg-[color-mix(in_srgb,var(--ui-elevated)_58%,var(--ui-surface))] px-3.5 py-1.5 text-[0.8em] font-semibold whitespace-nowrap transition-[background,border-color,color,box-shadow] hover:bg-[color-mix(in_srgb,var(--ui-elevated)_82%,var(--ui-surface))] [&_.material-icons]:text-[14px]"
+          class="hover:text-ui-text text-ui-muted border-ui-border-panel -mb-px inline-flex cursor-pointer items-center gap-1 rounded-t-xs border border-solid bg-[color-mix(in_srgb,var(--ui-elevated)_58%,var(--ui-surface))] px-3.5 py-1.5 text-[0.8em] font-semibold whitespace-nowrap transition-[background,border-color,color,box-shadow] hover:bg-[color-mix(in_srgb,var(--ui-elevated)_82%,var(--ui-surface))] [&_.material-icons]:text-[14px]!"
           [class.relative]="activeTab() === 'sheet'"
           [class.z-1]="activeTab() === 'sheet'"
           [class.bg-ui-elevated!]="activeTab() === 'sheet'"
@@ -209,7 +209,7 @@
           <i class="material-icons">article</i>シート
         </button>
         <button
-          class="hover:text-ui-text text-ui-muted border-ui-border-panel -mb-px inline-flex cursor-pointer items-center gap-1 rounded-t-xs border border-solid bg-[color-mix(in_srgb,var(--ui-elevated)_58%,var(--ui-surface))] px-3.5 py-1.5 text-[0.8em] font-semibold whitespace-nowrap transition-[background,border-color,color,box-shadow] hover:bg-[color-mix(in_srgb,var(--ui-elevated)_82%,var(--ui-surface))] [&_.material-icons]:text-[14px]"
+          class="hover:text-ui-text text-ui-muted border-ui-border-panel -mb-px inline-flex cursor-pointer items-center gap-1 rounded-t-xs border border-solid bg-[color-mix(in_srgb,var(--ui-elevated)_58%,var(--ui-surface))] px-3.5 py-1.5 text-[0.8em] font-semibold whitespace-nowrap transition-[background,border-color,color,box-shadow] hover:bg-[color-mix(in_srgb,var(--ui-elevated)_82%,var(--ui-surface))] [&_.material-icons]:text-[14px]!"
           [class.relative]="activeTab() === 'settings'"
           [class.z-1]="activeTab() === 'settings'"
           [class.bg-ui-elevated!]="activeTab() === 'settings'"
@@ -230,7 +230,7 @@
           <div class="flex w-45 min-w-0 shrink-0 flex-col gap-1.5 overflow-hidden">
             <!-- ① ポートレート -->
             <div
-              class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">portrait</i>ポートレート
             </div>
@@ -246,12 +246,12 @@
                   alt="ポートレート"
                 />
               } @else {
-                <div class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[4em]">
+                <div class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[4em]!">
                   <i class="material-icons">person</i>
                 </div>
               }
               <div
-                class="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 [&_.material-icons]:text-[2em]"
+                class="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 [&_.material-icons]:text-[2em]!"
               >
                 <i class="material-icons">edit</i>
               </div>
@@ -259,14 +259,14 @@
 
             <!-- ② 立ち絵リスト -->
             <div
-              class="border-ui-border-panel text-ui-accent my-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent my-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">photo_library</i>立ち絵
             </div>
             <div class="flex flex-wrap gap-1">
               @for (portrait of portraitImages(); track portrait.index) {
                 <div
-                  class="border-ui-border-panel bg-ui-elevated text-ui-dim hover:border-ui-text-muted relative flex size-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-[3px] border-2 border-solid transition-[border-color] duration-[0.12s] [&_.material-icons]:text-base"
+                  class="border-ui-border-panel bg-ui-elevated text-ui-dim hover:border-ui-text-muted relative flex size-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-[3px] border-2 border-solid transition-[border-color] duration-[0.12s] [&_.material-icons]:text-base!"
                   [class.border-ui-accent!]="portrait.index === komaImageIndex()"
                   (click)="setKomaIndex(portrait.index)"
                   [title]="'立ち絵 ' + (portrait.index + 1)"
@@ -282,7 +282,7 @@
                   }
                   @if (portrait.index === komaImageIndex()) {
                     <div
-                      class="bg-ui-accent pointer-events-none absolute right-0 bottom-0 flex size-3.5 items-center justify-center rounded-tl-xs text-white [&_.material-icons]:text-[10px]"
+                      class="bg-ui-accent pointer-events-none absolute right-0 bottom-0 flex size-3.5 items-center justify-center rounded-tl-xs text-white [&_.material-icons]:text-[10px]!"
                     >
                       <i class="material-icons">person_pin</i>
                     </div>
@@ -290,7 +290,7 @@
                 </div>
               }
               <button
-                class="border-ui-accent bg-ui-accent-bg text-ui-accent hover:bg-ui-accent-glow flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-[3px] border border-dashed transition-[background] [&_.material-icons]:text-[18px]"
+                class="border-ui-accent bg-ui-accent-bg text-ui-accent hover:bg-ui-accent-glow flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-[3px] border border-dashed transition-[background] [&_.material-icons]:text-[18px]!"
                 type="button"
                 title="立ち絵を追加"
                 (click)="addPortrait()"
@@ -301,7 +301,7 @@
             <div class="flex flex-wrap gap-1">
               @if (portraitImages().length > 1) {
                 <button
-                  class="bg-ui-danger-bg border-ui-danger text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+                  class="bg-ui-danger-bg border-ui-danger text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
                   type="button"
                   title="現在の立ち絵を削除"
                   (click)="removePortrait(komaImageIndex())"
@@ -310,7 +310,7 @@
                 </button>
               }
               <button
-                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
                 type="button"
                 (click)="showImportImages()"
               >
@@ -321,7 +321,7 @@
             <!-- チャット表示位置 -->
             <div class="border-ui-border-panel mt-0.5 flex flex-col gap-1.25 border-t border-solid pt-1.5">
               <div
-                class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+                class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
               >
                 <i class="material-icons">chat</i>チャット表示位置
               </div>
@@ -363,7 +363,7 @@
                 class="bg-ui-elevated border-ui-border-panel mb-0.5 flex w-full flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
               >
                 <div
-                  class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+                  class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
                 >
                   <i class="material-icons">info</i>基本情報
                 </div>
@@ -381,7 +381,7 @@
             }
             <!-- ゲームデータ見出し -->
             <div
-              class="border-ui-border-panel text-ui-accent my-1 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent my-1 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">grid_view</i>ゲームデータ
             </div>
@@ -428,7 +428,7 @@
                       </span>
                       @if (isElementEditing(childElement.identifier)) {
                         <button
-                          class="inline-flex size-5.5 min-w-5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-[0.7em] font-bold text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]"
+                          class="inline-flex size-5.5 min-w-5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-[0.7em] font-bold text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]!"
                           type="button"
                           title="カラム幅を切り替え"
                           (click)="cycleCardColspan(childElement)"
@@ -438,7 +438,7 @@
                           }}</span>
                         </button>
                         <button
-                          class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]"
+                          class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]!"
                           [class.bg-ui-accent-bg!]="isPopupDataElement(childElement)"
                           [class.text-ui-accent!]="isPopupDataElement(childElement)"
                           [class.hover:bg-[color-mix(in_srgb,var(--ui-accent)_24%,transparent)]!]="
@@ -451,7 +451,7 @@
                           <i class="material-icons">open_in_new</i>
                         </button>
                         <button
-                          class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-[color-mix(in_srgb,var(--ui-danger)_50%,transparent)] p-0 text-white transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-danger)_75%,transparent)] [&_.material-icons]:text-[13px]"
+                          class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-[color-mix(in_srgb,var(--ui-danger)_50%,transparent)] p-0 text-white transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-danger)_75%,transparent)] [&_.material-icons]:text-[13px]!"
                           type="button"
                           title="この項目を削除"
                           (click)="deleteTopLevelElement(childElement.identifier)"
@@ -460,7 +460,7 @@
                         </button>
                       }
                       <button
-                        class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]"
+                        class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]!"
                         type="button"
                         title="編集"
                         (click)="toggleElementEdit(childElement.identifier)"
@@ -485,7 +485,7 @@
             }
             <div class="px-2.5 pt-1 pb-2">
               <button
-                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex w-full cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex w-full cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
                 (click)="addDataElement()"
               >
                 新しい項目を追加
@@ -503,7 +503,7 @@
             class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
           >
             <div
-              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">inventory_2</i>インベントリ設定
             </div>
@@ -538,7 +538,7 @@
             class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
           >
             <div
-              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">person_pin</i>コマ設定
             </div>
@@ -656,7 +656,7 @@
               class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
             >
               <div
-                class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+                class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
               >
                 <i class="material-icons">upgrade</i>データ移行
               </div>
@@ -665,7 +665,7 @@
                   >構造化できる旧チェック表が {{ legacyCheckTableCount() }} 件あります</span
                 >
                 <button
-                  class="border-ui-accent text-ui-accent hover:bg-ui-accent-bg inline-flex cursor-pointer items-center gap-1 rounded-xs border border-solid bg-transparent px-2.5 py-0.75 text-[0.78em] leading-[1.6] whitespace-nowrap [&_.material-icons]:text-[14px]"
+                  class="border-ui-accent text-ui-accent hover:bg-ui-accent-bg inline-flex cursor-pointer items-center gap-1 rounded-xs border border-solid bg-transparent px-2.5 py-0.75 text-[0.78em] leading-[1.6] whitespace-nowrap [&_.material-icons]:text-[14px]!"
                   type="button"
                   (click)="convertLegacyCheckTables()"
                 >
@@ -680,7 +680,7 @@
             class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
           >
             <div
-              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">open_in_new</i>ポップアップ設定
             </div>
@@ -727,7 +727,7 @@
           class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
         >
           <div
-            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
           >
             <i class="material-icons">category</i>形状
           </div>
@@ -735,7 +735,7 @@
             @for (item of rangeTypeItems; track item.type) {
               <button
                 type="button"
-                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex cursor-pointer flex-col items-center gap-0.75 border border-solid px-1 pt-2 pb-1.5 text-[0.75em] leading-[1.2] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[18px]"
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex cursor-pointer flex-col items-center gap-0.75 border border-solid px-1 pt-2 pb-1.5 text-[0.75em] leading-[1.2] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[18px]!"
                 [class.bg-ui-accent-bg!]="rangeArea.type === item.type"
                 [class.text-ui-accent!]="rangeArea.type === item.type"
                 [class.border-ui-accent!]="rangeArea.type === item.type"
@@ -754,7 +754,7 @@
           class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
         >
           <div
-            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
           >
             <i class="material-icons">palette</i>カラー
           </div>
@@ -778,7 +778,7 @@
           class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
         >
           <div
-            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
           >
             <i class="material-icons">grid_on</i>塗りオプション
           </div>
@@ -835,7 +835,7 @@
             class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
           >
             <div
-              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
             >
               <i class="material-icons">info</i>基本情報
             </div>
@@ -859,7 +859,7 @@
             class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm border border-solid p-3 [&_.table-row>div:first-child]:w-[7em]"
           >
             <h3
-              class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base"
+              class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base!"
             >
               <i class="material-icons">info</i>基本設定
             </h3>
@@ -878,7 +878,7 @@
 
         <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm border border-solid p-3">
           <h3
-            class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base"
+            class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base!"
           >
             <i class="material-icons">grid_on</i>表示
           </h3>
@@ -908,7 +908,7 @@
 
         <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm border border-solid p-3">
           <h3
-            class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base"
+            class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base!"
           >
             <i class="material-icons">image</i>画像設定
           </h3>
@@ -920,7 +920,7 @@
               title="床画像を変更"
             >
               <span
-                class="text-ui-text [&_.material-icons]:text-ui-accent flex items-center gap-1 text-[12px] leading-none font-bold [&_.material-icons]:text-[15px]"
+                class="text-ui-text [&_.material-icons]:text-ui-accent flex items-center gap-1 text-[12px]! leading-none font-bold [&_.material-icons]:text-[15px]!"
                 ><i class="material-icons">layers</i>床画像</span
               >
               <span
@@ -929,13 +929,13 @@
                 @if (terrainFloorImage().url) {
                   <img [src]="terrainFloorImage().url | safe: 'resourceUrl'" [alt]="terrainFloorImage().name" />
                 } @else {
-                  <span class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[32px]"
+                  <span class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[32px]!"
                     ><i class="material-icons">image_not_supported</i></span
                   >
                 }
               </span>
               <span
-                class="border-ui-accent bg-ui-accent rounded-ui-sm box-border inline-flex w-full items-center justify-center gap-0.75 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] text-white [&_.material-icons]:text-[13px]"
+                class="border-ui-accent bg-ui-accent rounded-ui-sm box-border inline-flex w-full items-center justify-center gap-0.75 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] text-white [&_.material-icons]:text-[13px]!"
                 ><i class="material-icons">edit</i>変更</span
               >
             </button>
@@ -947,7 +947,7 @@
               title="壁画像を変更"
             >
               <span
-                class="text-ui-text [&_.material-icons]:text-ui-accent flex items-center gap-1 text-[12px] leading-none font-bold [&_.material-icons]:text-[15px]"
+                class="text-ui-text [&_.material-icons]:text-ui-accent flex items-center gap-1 text-[12px]! leading-none font-bold [&_.material-icons]:text-[15px]!"
                 ><i class="material-icons">view_in_ar</i>壁画像</span
               >
               <span
@@ -956,13 +956,13 @@
                 @if (terrainWallImage().url) {
                   <img [src]="terrainWallImage().url | safe: 'resourceUrl'" [alt]="terrainWallImage().name" />
                 } @else {
-                  <span class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[32px]"
+                  <span class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[32px]!"
                     ><i class="material-icons">image_not_supported</i></span
                   >
                 }
               </span>
               <span
-                class="border-ui-accent bg-ui-accent rounded-ui-sm box-border inline-flex w-full items-center justify-center gap-0.75 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] text-white [&_.material-icons]:text-[13px]"
+                class="border-ui-accent bg-ui-accent rounded-ui-sm box-border inline-flex w-full items-center justify-center gap-0.75 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] text-white [&_.material-icons]:text-[13px]!"
                 ><i class="material-icons">edit</i>変更</span
               >
             </button>
@@ -971,7 +971,7 @@
 
         <section class="flex justify-end gap-2 border-none bg-transparent p-0">
           <button
-            class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+            class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
             type="button"
             (click)="clone()"
           >
@@ -979,7 +979,7 @@
             コピーを作る
           </button>
           <button
-            class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow hover:text-ui-accent-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+            class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow hover:text-ui-accent-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
             type="button"
             [disabled]="isSaving()"
             (click)="saveToXML()"

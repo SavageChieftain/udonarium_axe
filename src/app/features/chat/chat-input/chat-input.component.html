@@ -12,7 +12,7 @@
     @if (0 < imageFile.url.length) {
       <img class="block size-full min-h-0 object-cover object-[50%_0%]" [src]="imageFile.url | safe: 'resourceUrl'" />
     } @else {
-      <i class="material-icons text-ui-dim text-[42px] @max-[320px]:text-[28px]">person</i>
+      <i class="material-icons text-ui-dim text-[42px]! @max-[320px]:text-[28px]!">person</i>
     }
     @if (1 <= portraitCount) {
       <div
@@ -107,7 +107,7 @@
           type="button"
           (click)="showColorSetting()"
         >
-          <i class="material-icons align-middle text-[13px] @max-[320px]:m-0 @max-[320px]:text-[14px]">settings</i
+          <i class="material-icons align-middle text-[13px]! @max-[320px]:m-0 @max-[320px]:text-[14px]!">settings</i
           >色設定
         </button>
       </div>

@@ -36,7 +36,7 @@
             <span class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'y/M/d H:mm' }}</span>
             @if (chatMessage.changeable) {
               <i
-                class="material-icons text-ui-dim ml-1 cursor-pointer align-middle text-[14px] opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                class="material-icons text-ui-dim ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
                 (click)="clickFix()"
                 >edit</i
               >
@@ -128,7 +128,7 @@
               }
               @if (chatMessage.changeable) {
                 <i
-                  class="material-icons text-ui-dim ml-1 cursor-pointer align-middle text-[14px] opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                  class="material-icons text-ui-dim ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
                   (click)="clickFix()"
                   >edit</i
                 >
