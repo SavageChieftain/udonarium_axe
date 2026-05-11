@@ -1,8 +1,11 @@
-<div class="fs-layout">
-  <div class="tag-bar">
+<div class="flex min-h-full flex-col">
+  <div
+    class="border-ui-border-panel bg-ui-panel sticky top-[-8px] z-[1] mx-[-8px] mt-[-8px] mb-0 flex flex-shrink-0 flex-wrap gap-1 border-b border-solid px-[10px] py-2"
+  >
     @for (tag of tagList; track tag) {
-      <label class="tag-pill">
+      <label class="inline-flex cursor-pointer">
         <input
+          class="peer hidden"
           name="image-chg"
           type="radio"
           [value]="tag"
@@ -10,31 +13,52 @@
           (ngModelChange)="selectTag.set($event)"
           (change)="resetBtn()"
         />
-        <span>{{ tag.length === 0 ? '未設定' : tag }}</span>
+        <span
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent inline-flex items-center rounded-full border border-solid bg-transparent px-[10px] py-[3px] text-xs font-medium whitespace-nowrap transition-colors select-none"
+          >{{ tag.length === 0 ? '未設定' : tag }}</span
+        >
       </label>
     }
   </div>
-  <div class="image-grid">
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] content-start gap-2 px-0 pt-3 pb-0">
     @if (isAllowedEmpty) {
-      <button class="image-cell empty-cell" (click)="onSelectedFile(empty)">
-        <i class="material-icons">hide_image</i>
-        <span class="cell-name">画像なし</span>
+      <button
+        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text flex min-h-[112px] w-full transform-none cursor-pointer flex-col items-center justify-center gap-1 border border-solid p-[6px] shadow-none transition-colors outline-none hover:shadow-[0_0_0_2px_var(--ui-accent-glow)] active:transform-none"
+        (click)="onSelectedFile(empty)"
+      >
+        <i class="material-icons text-[30px] opacity-[0.45]">hide_image</i>
+        <span
+          class="block max-w-full overflow-hidden text-center text-[11px] leading-[1.3] text-ellipsis whitespace-nowrap"
+          >画像なし</span
+        >
       </button>
     }
     @for (file of images(); track file.identifier) {
-      <button class="image-cell" (click)="onSelectedFile(file)">
+      <button
+        class="rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text flex w-full transform-none cursor-pointer flex-col items-center gap-1 border border-solid p-[6px] shadow-none transition-colors outline-none hover:shadow-[0_0_0_2px_var(--ui-accent-glow)] active:transform-none"
+        (click)="onSelectedFile(file)"
+      >
         @if (file.url) {
-          <img [src]="file.url | safe: 'resourceUrl'" [alt]="file.name" />
+          <img
+            class="block h-[100px] w-[100px] rounded-[2px] object-contain"
+            [src]="file.url | safe: 'resourceUrl'"
+            [alt]="file.name"
+          />
         } @else {
-          <div class="cell-loading"><i class="material-icons">hourglass_empty</i></div>
+          <div class="flex h-[100px] w-[100px] items-center justify-center opacity-40">
+            <i class="material-icons text-[28px]">hourglass_empty</i>
+          </div>
         }
-        <span class="cell-name">{{ file.name }}</span>
+        <span
+          class="block max-w-full overflow-hidden text-center text-[11px] leading-[1.3] text-ellipsis whitespace-nowrap"
+          >{{ file.name }}</span
+        >
       </button>
     }
     @if (images().length === 0 && !isAllowedEmpty) {
-      <div class="empty-state">
-        <i class="material-icons">collections</i>
-        <p>この分類に画像はありません</p>
+      <div class="text-ui-dim col-span-full flex flex-col items-center justify-center gap-2 px-[20px] py-[40px]">
+        <i class="material-icons text-[40px] opacity-40">collections</i>
+        <p class="m-0 text-[13px] opacity-70">この分類に画像はありません</p>
       </div>
     }
   </div>
