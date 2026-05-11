@@ -26,7 +26,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'ui-panel',
   templateUrl: './ui-panel.component.html',
-  styleUrls: ['./ui-panel.component.css'],
   host: { class: 'block' },
   providers: [PanelService],
   imports: [

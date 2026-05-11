@@ -1,7 +1,9 @@
+<!-- draggable-panel class is a marker used by DraggableDirective stack option,
+     ui-panel.component.spec.ts と testing/panel-drag-recovery.ts の querySelector の対象。
+     見た目用ではなく API マーカーなので Tailwind 化後も保持する。 -->
 <div
-  class="fly-in"
+  class="draggable-panel animate-fly-in rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text absolute top-[200px] box-border h-[200px] max-h-full w-[300px] max-w-full overflow-visible border border-solid p-0 shadow-[var(--ui-shadow-md),inset_0_1px_0_rgba(255,255,255,0.06)] [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
   [ngClass]="{ 'pointer-events-none': isPointerDragging }"
-  class="draggable-panel"
   [style.left.px]="left"
   [style.top.px]="top"
   [style.width.px]="width"
@@ -18,19 +20,41 @@
   (mouseenter)="showPortrait(true)"
   (mouseleave)="showPortrait(false)"
 >
-  <div class="title" #titleBar [style.display]="showTitle() ? '' : 'none'">
+  <div
+    class="rounded-tl-ui-lg rounded-tr-ui-lg border-ui-border-titlebar bg-ui-titlebar text-ui-muted relative box-border h-[28px] w-full border-b border-solid px-2 text-[12px] leading-[28px] font-medium tracking-[0.02em] select-none"
+    #titleBar
+    [style.display]="showTitle() ? '' : 'none'"
+  >
     @if (title !== 'メニュー') {
-      <div class="title-button">
-        <button [disabled]="isFullScreen()" (click)="toggleMinimize()">
+      <div class="absolute top-0 right-0 flex h-[28px] items-center gap-[2px] px-[6px]">
+        <button
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[22px] transform-none items-center justify-center border-none bg-transparent px-1 py-[2px] leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+          [disabled]="isFullScreen()"
+          (click)="toggleMinimize()"
+        >
           <i class="material-icons text-[14px]">remove</i>
         </button>
-        <button [disabled]="isMinimized()" (click)="toggleFullScreen()">
+        <button
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[22px] transform-none items-center justify-center border-none bg-transparent px-1 py-[2px] leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+          [disabled]="isMinimized()"
+          (click)="toggleFullScreen()"
+        >
           <i class="material-icons text-[14px]">fullscreen</i>
         </button>
-        <button (click)="close()"><i class="material-icons text-[14px]">close</i></button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-[22px] transform-none items-center justify-center border-none bg-transparent px-1 py-[2px] leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+          (click)="close()"
+        >
+          <i class="material-icons text-[14px]">close</i>
+        </button>
       </div>
     }
-    <div class="title-text" [appTextTooltip]="panelService.titleTooltip">{{ panelService.title }}</div>
+    <div
+      class="block overflow-hidden pr-[86px] text-ellipsis whitespace-nowrap"
+      [appTextTooltip]="panelService.titleTooltip"
+    >
+      {{ panelService.title }}
+    </div>
   </div>
   @if (panelService.chatTab) {
     <chat-portrait-img
@@ -43,7 +67,7 @@
     <card-stack-list-img [cardStackidentifier]="panelService.cardStack.identifier"></card-stack-list-img>
   }
   <div
-    class="scrollable-panel"
+    class="rounded-bl-ui-lg rounded-br-ui-lg absolute bottom-0 box-border w-full overflow-auto overscroll-contain"
     [ngStyle]="{
       padding: padding_,
       top: showTitle() ? '28px' : '0',
