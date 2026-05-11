@@ -43,7 +43,6 @@ export interface PaletteRow {
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
   host: { class: 'block h-full' },
-  styleUrls: ['./chat-palette.component.css'],
   imports: [FormsModule, BadgeComponent, ChatInputComponent],
 })
 export class ChatPaletteComponent {

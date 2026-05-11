@@ -35,7 +35,6 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 @Component({
   selector: 'text-note',
   templateUrl: './text-note.component.html',
-  styleUrls: ['./text-note.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, FormsModule, SafePipe],
   host: {

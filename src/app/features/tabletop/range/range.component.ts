@@ -50,7 +50,6 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 @Component({
   selector: 'range',
   templateUrl: './range.component.html',
-  styleUrls: ['./range.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, TooltipDirective, RotableDirective, NgStyle],
   host: {

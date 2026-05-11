@@ -68,7 +68,6 @@ interface TerrainGridViewport extends TerrainGridBounds {
 @Component({
   selector: 'terrain',
   templateUrl: './terrain.component.html',
-  styleUrls: ['./terrain.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
   host: {

@@ -35,7 +35,6 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
 @Component({
   selector: 'card',
   templateUrl: './card.component.html',
-  styleUrls: ['./card.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgStyle, SafePipe],
   host: {
