@@ -61,7 +61,6 @@ interface PaletteRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'remote-controller',
   templateUrl: './remote-controller.component.html',
-  styleUrls: ['./remote-controller.component.css', './remote-controller-palette.css', './remote-controller-cards.css'],
   imports: [FormsModule, ControllerInputComponent, NgTemplateOutlet, SafePipe],
 })
 export class RemoteControllerComponent {
