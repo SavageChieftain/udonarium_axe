@@ -1,34 +1,32 @@
 <div class="bg-ui-panel flex items-start gap-2 p-2" [ngClass]="{ 'bg-ui-elevated text-ui-text': isDirect }">
   <!-- アバター（立ち絵ナビゲーションオーバーレイ） -->
   <div
-    class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center overflow-hidden border border-solid"
+    class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex size-[52px] shrink-0 items-center justify-center overflow-hidden border border-solid"
   >
     @if (0 < imageFile().url.length) {
-      <img class="h-full w-full object-cover object-[50%_0%]" [src]="imageFile().url | safe: 'resourceUrl'" />
+      <img class="size-full object-cover object-[50%_0%]" [src]="imageFile().url | safe: 'resourceUrl'" />
     } @else {
       <i class="material-icons text-ui-dim text-[24px]">person</i>
     }
     @if (1 <= portraitCount()) {
       <div
-        class="rounded-bl-ui-sm rounded-br-ui-sm absolute right-0 bottom-0 left-0 flex h-[18px] items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-[2px]"
+        class="rounded-b-ui-sm absolute inset-x-0 bottom-0 flex h-[18px] items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-[2px]"
       >
         <button
           type="button"
-          class="flex flex-shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
+          class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex() <= 0"
           (click)="stepPortrait(-1)"
           aria-label="前の立ち絵"
         >
           <i class="material-icons">chevron_left</i>
         </button>
-        <span
-          class="min-w-0 flex-1 overflow-hidden text-center text-[10px] text-ellipsis whitespace-nowrap text-white/90"
-          [title]="portraitLabel"
-          >{{ portraitLabel }}</span
-        >
+        <span class="min-w-0 flex-1 truncate text-center text-[10px] text-white/90" [title]="portraitLabel">{{
+          portraitLabel
+        }}</span>
         <button
           type="button"
-          class="flex flex-shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
+          class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex() >= portraitCount() - 1"
           (click)="stepPortrait(1)"
           aria-label="次の立ち絵"
@@ -60,22 +58,22 @@
     </div>
     <div class="flex min-w-0 flex-wrap items-center gap-1">
       <div
-        class="box-border inline-block h-[18px] w-[18px] flex-shrink-0 cursor-pointer"
+        class="box-border inline-block size-[18px] shrink-0 cursor-pointer"
         (click)="setColorNum(0)"
         [ngStyle]="colorSelectorStyle(0)"
       ></div>
       <div
-        class="box-border inline-block h-[18px] w-[18px] flex-shrink-0 cursor-pointer"
+        class="box-border inline-block size-[18px] shrink-0 cursor-pointer"
         (click)="setColorNum(1)"
         [ngStyle]="colorSelectorStyle(1)"
       ></div>
       <div
-        class="box-border inline-block h-[18px] w-[18px] flex-shrink-0 cursor-pointer"
+        class="box-border inline-block size-[18px] shrink-0 cursor-pointer"
         (click)="setColorNum(2)"
         [ngStyle]="colorSelectorStyle(2)"
       ></div>
       <button
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text flex cursor-pointer items-center border border-solid bg-transparent px-[3px] py-[1px] [&_i]:text-[14px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text flex cursor-pointer items-center border border-solid bg-transparent px-[3px] py-px [&_i]:text-[14px]"
         (click)="shoeColorSetting()"
         title="色設定"
       >

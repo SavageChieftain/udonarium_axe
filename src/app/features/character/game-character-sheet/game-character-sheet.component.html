@@ -326,8 +326,18 @@
                   <div
                     class="cs-data-card"
                     [class.cs-data-card--editing]="isElementEditing(childElement.identifier)"
-                    [class.cs-data-card--span2]="getCardColspan(childElement) === '2'"
-                    [class.cs-data-card--full]="getCardColspan(childElement) === 'full'"
+                    [class.cs-data-card--span2]="
+                      getCardColspan(childElement) ===
+                      '
+                      2
+                    '
+                    "
+                    [class.cs-data-card--full]="
+                      getCardColspan(childElement) ===
+                      '
+                      full
+                    '
+                    "
                     [class.cs-drag-over]="dragOverId() === childElement.identifier"
                     (dragover)="onDragOver($event, childElement.identifier)"
                     (dragleave)="onDragLeave(childElement.identifier)"

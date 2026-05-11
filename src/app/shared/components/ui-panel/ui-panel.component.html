@@ -21,7 +21,7 @@
   (mouseleave)="showPortrait(false)"
 >
   <div
-    class="rounded-tl-ui-lg rounded-tr-ui-lg border-ui-border-titlebar bg-ui-titlebar text-ui-muted relative box-border h-[28px] w-full border-b border-solid px-2 text-[12px] leading-[28px] font-medium tracking-[0.02em] select-none"
+    class="rounded-t-ui-lg border-ui-border-titlebar bg-ui-titlebar text-ui-muted relative box-border h-[28px] w-full border-b border-solid px-2 text-[12px] leading-[28px] font-medium tracking-[0.02em] select-none"
     #titleBar
     [style.display]="showTitle() ? '' : 'none'"
   >
@@ -49,10 +49,7 @@
         </button>
       </div>
     }
-    <div
-      class="block overflow-hidden pr-[86px] text-ellipsis whitespace-nowrap"
-      [appTextTooltip]="panelService.titleTooltip"
-    >
+    <div class="block truncate pr-[86px]" [appTextTooltip]="panelService.titleTooltip">
       {{ panelService.title }}
     </div>
   </div>
@@ -67,7 +64,7 @@
     <card-stack-list-img [cardStackidentifier]="panelService.cardStack.identifier"></card-stack-list-img>
   }
   <div
-    class="rounded-bl-ui-lg rounded-br-ui-lg absolute bottom-0 box-border w-full overflow-auto overscroll-contain"
+    class="rounded-b-ui-lg absolute bottom-0 box-border w-full overflow-auto overscroll-contain"
     [ngStyle]="{
       padding: padding_,
       top: showTitle() ? '28px' : '0',

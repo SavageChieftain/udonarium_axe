@@ -10,34 +10,29 @@
     class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex aspect-square min-h-0 w-full min-w-0 items-center justify-center self-start overflow-hidden border border-solid"
   >
     @if (0 < imageFile.url.length) {
-      <img
-        class="block h-full min-h-0 w-full object-cover object-[50%_0%]"
-        [src]="imageFile.url | safe: 'resourceUrl'"
-      />
+      <img class="block size-full min-h-0 object-cover object-[50%_0%]" [src]="imageFile.url | safe: 'resourceUrl'" />
     } @else {
       <i class="material-icons text-ui-dim text-[42px] @max-[320px]:text-[28px]">person</i>
     }
     @if (1 <= portraitCount) {
       <div
-        class="rounded-bl-ui-sm rounded-br-ui-sm absolute right-0 bottom-0 left-0 flex h-[18px] items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-[2px]"
+        class="rounded-b-ui-sm absolute inset-x-0 bottom-0 flex h-[18px] items-center justify-between overflow-hidden bg-[rgba(0,0,0,0.55)] px-[2px]"
       >
         <button
           type="button"
-          class="flex flex-shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
+          class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex <= 0"
           (click)="stepPortrait(-1)"
           aria-label="前の立ち絵"
         >
           <i class="material-icons">chevron_left</i>
         </button>
-        <span
-          class="min-w-0 flex-1 overflow-hidden text-center text-[10px] text-ellipsis whitespace-nowrap text-white/90"
-          [title]="portraitLabel"
-          >{{ portraitLabel }}</span
-        >
+        <span class="min-w-0 flex-1 truncate text-center text-[10px] text-white/90" [title]="portraitLabel">{{
+          portraitLabel
+        }}</span>
         <button
           type="button"
-          class="flex flex-shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
+          class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex >= portraitCount - 1"
           (click)="stepPortrait(1)"
           aria-label="次の立ち絵"
@@ -96,10 +91,10 @@
 
       <!-- カラー設定（チャット設定） -->
       <div class="ml-auto flex min-w-0 items-center gap-1 @max-[420px]:ml-0">
-        <div class="flex flex-shrink-0 items-center gap-1 px-[2px]">
+        <div class="flex shrink-0 items-center gap-1 px-[2px]">
           @for (i of [0, 1, 2]; track i) {
             <div
-              class="h-[14px] w-[14px] flex-shrink-0 cursor-pointer rounded-full transition-[transform,box-shadow] hover:scale-[1.35] hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
+              class="size-[14px] shrink-0 cursor-pointer rounded-full transition-[transform,box-shadow] hover:scale-[1.35] hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
               [class.shadow-[0_0_0_2px_var(--ui-accent)]]="colorSelectNo() === i"
               [class.scale-[1.15]]="colorSelectNo() === i"
               (click)="setColorNum(i)"
@@ -108,7 +103,7 @@
           }
         </div>
         <button
-          class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent m-0 flex-shrink-0 cursor-pointer border border-solid bg-transparent px-[6px] py-[2px] text-[11px] whitespace-nowrap transition-colors hover:shadow-none @max-[320px]:h-6 @max-[320px]:w-[26px] @max-[320px]:p-0 @max-[320px]:text-[0px]"
+          class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 shrink-0 cursor-pointer border border-solid bg-transparent px-[6px] py-[2px] text-[11px] whitespace-nowrap transition-colors hover:shadow-none @max-[320px]:h-6 @max-[320px]:w-[26px] @max-[320px]:p-0 @max-[320px]:text-[0px]"
           type="button"
           (click)="showColorSetting()"
         >
@@ -122,7 +117,7 @@
     <form name="chat-input" class="m-0 flex min-w-0 items-center gap-2">
       <textarea
         name="chat-input-text"
-        class="chat-input rounded-ui-sm border-ui-input-border bg-ui-input text-ui-text focus:border-ui-accent box-border max-h-[100px] min-h-[40px] w-full min-w-0 flex-1 resize-none border border-solid px-2 py-[6px] align-bottom font-[inherit] text-[13px] leading-[1.4] transition-colors focus:shadow-[0_0_0_2px_var(--ui-accent-glow)] focus:outline-none"
+        class="chat-input border-ui-input-border rounded-ui-sm bg-ui-input text-ui-text focus:border-ui-accent box-border max-h-[100px] min-h-[40px] w-full min-w-0 flex-1 resize-none border border-solid px-2 py-[6px] align-bottom font-[inherit] text-[13px] leading-[1.4] transition-colors focus:shadow-[0_0_0_2px_var(--ui-accent-glow)] focus:outline-none"
         placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
         [(ngModel)]="text"
         [ngModelOptions]="{ standalone: true }"
@@ -138,7 +133,7 @@
       ></textarea>
       <button
         type="submit"
-        class="border-ui-accent bg-ui-accent hover:bg-ui-accent hover:border-ui-accent m-0 flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid p-0 text-[12px] font-semibold text-white transition-[background,border-color,filter] hover:text-white hover:shadow-none hover:brightness-110 [&_i]:text-[18px] [&_i]:leading-none"
+        class="border-ui-accent bg-ui-accent hover:border-ui-accent hover:bg-ui-accent m-0 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid p-0 text-[12px] font-semibold text-white transition-[background,border-color,filter] hover:text-white hover:shadow-none hover:brightness-110 [&_i]:text-[18px] [&_i]:leading-none"
         (click)="sendChat(null)"
         aria-label="送信"
       >

@@ -1,5 +1,5 @@
 <div
-  class="rounded-ui border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg absolute z-[9900] box-border overflow-visible border border-solid px-0 py-[4px] whitespace-nowrap [backdrop-filter:blur(24px)_saturate(1.8)] select-none [-moz-user-drag:none] [-webkit-backdrop-filter:blur(24px)_saturate(1.8)] [-webkit-user-drag:none]"
+  class="rounded-ui border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg absolute z-9900 box-border overflow-visible border border-solid px-0 py-[4px] whitespace-nowrap [backdrop-filter:blur(24px)_saturate(1.8)] select-none [-moz-user-drag:none] [-webkit-backdrop-filter:blur(24px)_saturate(1.8)] [-webkit-user-drag:none]"
   [ngClass]="{
     'top-[-16px] left-[calc(100%-4px)]': isSubmenu(),
     'max-h-full max-w-full': !isSubmenu(),
@@ -10,7 +10,7 @@
 >
   @if (title) {
     <div
-      class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] overflow-hidden border-b border-solid px-[16px] pt-[4px] pb-[6px] text-center text-[11px] font-semibold tracking-[0.04em] text-ellipsis whitespace-nowrap"
+      class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] truncate border-b border-solid px-[16px] pt-[4px] pb-[6px] text-center text-[11px] font-semibold tracking-[0.04em]"
     >
       {{ title }}
     </div>
@@ -43,7 +43,7 @@
       @if (altitudeHande) {
         <div>
           <div
-            class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] overflow-hidden border-b border-solid px-[16px] pt-[4px] pb-[6px] text-center text-[11px] font-semibold tracking-[0.04em] text-ellipsis whitespace-nowrap"
+            class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] truncate border-b border-solid px-[16px] pt-[4px] pb-[6px] text-center text-[11px] font-semibold tracking-[0.04em]"
             [style.color]="titleColor()"
             [style.font-weight]="titleBold() ? 'bolder' : 'normal'"
           >
@@ -113,7 +113,7 @@
       {{ action.name.replace('☑', '').replace('☐', '').replace('◉', '').replace('○', '') }}
     </div>
     @if (action.subActions) {
-      <div class="absolute top-[2px] right-[1px] bottom-0 inline-block">
+      <div class="absolute top-[2px] right-px bottom-0 inline-block">
         <i class="material-icons align-bottom text-[1em]">arrow_forward_ios</i>
       </div>
     }

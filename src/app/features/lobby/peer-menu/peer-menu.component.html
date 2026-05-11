@@ -1,17 +1,17 @@
 <!-- プロフィール行 -->
 <div class="flex gap-3 p-3">
   <!-- アバター -->
-  <div class="flex-shrink-0">
+  <div class="shrink-0">
     @if (myPeer.image?.url) {
       <img
-        class="block h-24 w-24 cursor-pointer rounded-[var(--ui-radius)] object-cover object-top"
+        class="block size-24 cursor-pointer rounded-(--ui-radius) object-cover object-top"
         [src]="myPeer.image!.url | safe: 'resourceUrl'"
         (click)="changeIcon()"
         title="アイコンを変更する"
       />
     } @else {
       <button
-        class="flex h-24 w-24 items-center justify-center rounded-[var(--ui-radius)] border border-dashed border-[var(--ui-panel-border)] bg-[var(--ui-elevated)] text-xs text-[var(--ui-text-muted)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-accent)]"
+        class="flex size-24 items-center justify-center rounded-(--ui-radius) border border-dashed border-(--ui-panel-border) bg-(--ui-elevated) text-xs text-(--ui-text-muted) hover:border-(--ui-accent) hover:text-(--ui-accent)"
         aria-label="アイコンを変更する"
         (click)="changeIcon()"
       >
@@ -21,29 +21,29 @@
   </div>
   <!-- 情報 -->
   <div class="flex min-w-0 flex-col justify-center gap-1.5">
-    <label class="text-xs text-[var(--ui-text-muted)]">ニックネーム</label>
+    <label class="text-xs text-(--ui-text-muted)">ニックネーム</label>
     <input class="w-full" name="peer-name" [(ngModel)]="myPeer.name" placeholder="ニックネーム" />
-    <div class="space-y-0.5 text-xs text-[var(--ui-text-muted)]">
+    <div class="space-y-0.5 text-xs text-(--ui-text-muted)">
       <div>
         <span>ID：</span>
         @if (networkService.isOpen) {
-          <span class="font-bold text-[var(--ui-accent)]">{{ networkService.peerContext.userId }}</span>
+          <span class="font-bold text-(--ui-accent)">{{ networkService.peerContext.userId }}</span>
         } @else {
-          <span class="font-bold text-[var(--ui-text-dim)]">???</span>
+          <span class="font-bold text-(--ui-text-dim)">???</span>
         }
       </div>
-      <div class="text-[var(--ui-text-dim)]">{{ myTime() | date: 'yy/MM/dd HH:mm:ss' }}</div>
+      <div class="text-(--ui-text-dim)">{{ myTime() | date: 'yy/MM/dd HH:mm:ss' }}</div>
     </div>
   </div>
 </div>
 
 @if (networkService.peerContext.isRoom) {
-  <hr class="mx-3 border-[var(--ui-panel-border)]" />
-  <div class="space-y-1 px-3 py-2 text-sm text-[var(--ui-text-muted)]">
+  <hr class="mx-3 border-(--ui-panel-border)" />
+  <div class="space-y-1 px-3 py-2 text-sm text-(--ui-text-muted)">
     <div>
       ルーム名：
       @if (networkService.isOpen) {
-        <span class="font-bold text-[var(--ui-text)]"
+        <span class="font-bold text-(--ui-text)"
           >{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span
         >
       }
@@ -52,11 +52,11 @@
       <div class="flex items-center gap-2">
         <span>パスワード：</span>
         @if (networkService.isOpen) {
-          <span class="font-bold text-[var(--ui-text)]">{{
+          <span class="font-bold text-(--ui-text)">{{
             isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●'
           }}</span>
         }
-        <button class="p-0.5 text-[var(--ui-text-muted)]" (click)="togglePasswordVisibility()">
+        <button class="p-0.5 text-(--ui-text-muted)" (click)="togglePasswordVisibility()">
           <span class="material-icons align-text-bottom text-[1em]">{{
             isPasswordVisible() ? 'visibility' : 'visibility_off'
           }}</span>
@@ -69,9 +69,9 @@
   </div>
 }
 
-<hr class="mx-3 border-[var(--ui-panel-border)]" />
+<hr class="mx-3 border-(--ui-panel-border)" />
 
-<div class="space-y-2 px-3 py-2 text-xs text-[var(--ui-text-muted)]">
+<div class="space-y-2 px-3 py-2 text-xs text-(--ui-text-muted)">
   <label class="flex items-center gap-2">
     <input class="w-16" name="peer-timeout" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
     <span>秒以上通信できない参加者情報をチャットに表示</span>
@@ -89,15 +89,15 @@
 </div>
 
 @for (context of networkService.peerContexts; track context) {
-  <div class="border-t border-[var(--ui-panel-border)] px-3 py-1 text-xs text-[var(--ui-text-muted)]">
+  <div class="border-t border-(--ui-panel-border) px-3 py-1 text-xs text-(--ui-text-muted)">
     @if (!context.isOpen) {
-      <span class="text-[var(--ui-accent)]">[接続中] </span>
+      <span class="text-(--ui-accent)">[接続中] </span>
     }
     <span>{{ findUserId(context.peerId) }} [{{ findPeerName(context.peerId) }}]</span>
     @if (findPeerTimeReceive(context.peerId) <= 0) {
-      <span class="ml-2 text-[var(--ui-text-dim)]">[-:--:--]</span>
+      <span class="ml-2 text-(--ui-text-dim)">[-:--:--]</span>
     } @else {
-      <span class="ml-2 text-[var(--ui-text-dim)]">{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}</span>
+      <span class="ml-2 text-(--ui-text-dim)">{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}</span>
     }
     @if (dispDetailFlag() && findPeerTimeReceive(context.peerId) > 0) {
       <span class="ml-2">往復：{{ findPeerTimeLatency(context.peerId) }}秒</span>
@@ -111,5 +111,5 @@
   }
 </div>
 <div class="px-3 pb-2">
-  <span class="text-xs text-[var(--ui-text-dim)]">{{ help() }}</span>
+  <span class="text-xs text-(--ui-text-dim)">{{ help() }}</span>
 </div>

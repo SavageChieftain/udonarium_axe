@@ -68,7 +68,7 @@
   </div>
   @if (isAltitudeIndicate && math.abs(textNoteAltitude) >= 0.5) {
     <div
-      class="is-3d flex [transform-origin:top_left] items-center [border-left:2px_dashed_blanchedalmond]"
+      class="is-3d flex origin-[top_left] items-center [border-left:2px_dashed_blanchedalmond]"
       [style.height.px]="math.abs(textNoteAltitude * gridSize)"
       [ngStyle]="{
         transform:
@@ -81,7 +81,7 @@
     >
       <div class="is-3d">
         <span class="altitude-indicator is-3d absolute">{{ math.abs(textNoteAltitude) }}</span>
-        <span class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]">{{ textNoteAltitude }}</span>
+        <span class="altitude-indicator is-3d absolute transform-[rotateY(-180deg)]">{{ textNoteAltitude }}</span>
       </div>
     </div>
   }

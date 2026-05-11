@@ -26,7 +26,7 @@
       </div>
     </div>
     <div
-      class="range-rotate-layer component-content is-3d pointer-events-auto [transform:rotateZ(0deg)]"
+      class="range-rotate-layer component-content is-3d pointer-events-auto transform-[rotateZ(0deg)]"
       appRotable
       [rotable.option]="rotableOption()"
       (rotable.ondragstart)="onMove()"
@@ -90,7 +90,7 @@
           ><i>{{ elevation }}</i></span
         >
         <span
-          class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
+          class="elevation-indicator is-3d absolute transform-[rotateY(-180deg)]"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span
@@ -104,7 +104,7 @@
           >{{ math.abs(altitude) }}</span
         >
         <span
-          class="altitude-indicator is-3d absolute [transform:rotateY(-180deg)]"
+          class="altitude-indicator is-3d absolute transform-[rotateY(-180deg)]"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           >{{ math.abs(altitude) }}</span
@@ -124,7 +124,7 @@
           ><i>{{ elevation }}</i></span
         >
         <span
-          class="elevation-indicator is-3d absolute [transform:rotateY(-180deg)]"
+          class="elevation-indicator is-3d absolute transform-[rotateY(-180deg)]"
           [style.color]="range().rangeColor"
           [style.text-shadow]="textShadowCss"
           ><i>{{ elevation }}</i></span

@@ -1,13 +1,11 @@
 <div class="text-ui-text grid h-full grid-cols-[170px_1fr] overflow-hidden text-[13px]">
   <!-- ── 左カラム: 表リスト ── -->
   <aside class="border-ui-border-panel bg-ui-panel flex flex-col overflow-hidden border-r border-solid">
-    <div
-      class="border-ui-border-panel flex flex-shrink-0 items-center justify-between border-b border-solid px-[10px] py-2"
-    >
-      <span class="text-ui-muted text-[11px] font-semibold tracking-[0.05em] uppercase">ダイス表</span>
+    <div class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid px-[10px] py-2">
+      <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">ダイス表</span>
       <button
         type="button"
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
         title="新しい表を作る"
         (click)="createDiceTable()"
         [disabled]="isEdit()"
@@ -20,16 +18,16 @@
       @for (diceTable of getDiceTables(); track diceTable.identifier) {
         <li
           class="text-ui-muted not-disabled:hover:bg-ui-hover not-disabled:hover:text-ui-text mx-1 my-0 flex cursor-pointer items-center gap-[6px] rounded-[4px] px-[10px] py-[6px] transition-colors"
-          [class.!bg-ui-accent-bg]="selectedTable?.identifier === diceTable.identifier"
-          [class.!text-ui-accent]="selectedTable?.identifier === diceTable.identifier"
+          [class.bg-ui-accent-bg!]="selectedTable?.identifier === diceTable.identifier"
+          [class.text-ui-accent!]="selectedTable?.identifier === diceTable.identifier"
           [class.cursor-not-allowed]="isEdit()"
           [class.opacity-50]="isEdit()"
           (click)="!isEdit() && selectDiceTable(diceTable.identifier)"
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === diceTable.identifier"
         >
-          <i class="material-icons flex-shrink-0 text-[15px] opacity-70">casino</i>
-          <span class="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap">{{ diceTable.name }}</span>
+          <i class="material-icons shrink-0 text-[15px] opacity-70">casino</i>
+          <span class="truncate text-[13px]">{{ diceTable.name }}</span>
         </li>
       }
     </ul>
@@ -45,7 +43,7 @@
         <p>ダイス表がありません</p>
         <button
           type="button"
-          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
           (click)="createDiceTable()"
         >
           表を作成
@@ -118,7 +116,7 @@
 
       <!-- パレット -->
       <div class="mb-1 flex flex-1 flex-col gap-[6px]">
-        <div class="flex flex-shrink-0 items-center gap-2">
+        <div class="flex shrink-0 items-center gap-2">
           <span class="text-ui-muted flex-1 text-[11px] font-semibold tracking-[0.04em] uppercase">ダイス表</span>
           @if (isEdit()) {
             <span
@@ -130,7 +128,7 @@
           @if (!isEdit()) {
             <button
               type="button"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-[5px] border border-solid px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]"
               (click)="toggleEditMode()"
               [disabled]="!isEditable"
             >
@@ -139,7 +137,7 @@
           } @else {
             <button
               type="button"
-              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
               (click)="toggleEditMode()"
               [disabled]="!isEditable"
             >
@@ -154,7 +152,7 @@
           >
             @if (selectedTable.diceTablePalette) {
               @for (palette of selectedTable.diceTablePalette.getPalette(); track palette) {
-                <div class="text-ui-text py-[1px] whitespace-pre">{{ palette }}</div>
+                <div class="text-ui-text py-px whitespace-pre">{{ palette }}</div>
               } @empty {
                 <div class="text-ui-dim text-[11px] italic">（エントリなし）</div>
               }
@@ -180,7 +178,7 @@
         <div class="flex flex-wrap items-center gap-[6px]">
           <button
             type="button"
-            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
             [disabled]="isSaving() || isEdit()"
             (click)="save()"
           >
@@ -192,7 +190,7 @@
           </button>
           <button
             type="button"
-            class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+            class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
             [disabled]="isEdit()"
             (click)="delete()"
           >

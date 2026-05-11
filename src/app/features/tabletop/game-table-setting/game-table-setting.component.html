@@ -1,13 +1,11 @@
 <div class="text-ui-text grid h-full grid-cols-[170px_1fr] grid-rows-[1fr_auto] overflow-hidden text-[13px]">
   <!-- ── 左カラム: テーブルリスト ── -->
-  <aside class="border-ui-border-panel bg-ui-panel [grid-row:1/2] flex flex-col overflow-hidden border-r border-solid">
-    <div
-      class="border-ui-border-panel flex flex-shrink-0 items-center justify-between border-b border-solid px-[10px] py-2"
-    >
-      <span class="text-ui-muted text-[11px] font-semibold tracking-[0.05em] uppercase">テーブル</span>
+  <aside class="border-ui-border-panel bg-ui-panel row-[1/2] flex flex-col overflow-hidden border-r border-solid">
+    <div class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid px-[10px] py-2">
+      <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">テーブル</span>
       <button
         type="button"
-        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
         title="新しいテーブルを作る"
         (click)="createGameTable()"
       >
@@ -18,21 +16,21 @@
       @for (gameTable of getGameTables(); track gameTable.identifier) {
         <li
           class="text-ui-muted hover:bg-ui-hover hover:text-ui-text mx-1 my-0 flex cursor-pointer items-center gap-[6px] rounded-[4px] px-[10px] py-[6px] transition-colors"
-          [class.!bg-ui-accent-bg]="selectedTable?.identifier === gameTable.identifier"
-          [class.!text-ui-accent]="selectedTable?.identifier === gameTable.identifier"
+          [class.bg-ui-accent-bg!]="selectedTable?.identifier === gameTable.identifier"
+          [class.text-ui-accent!]="selectedTable?.identifier === gameTable.identifier"
           (click)="selectGameTable(gameTable.identifier)"
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === gameTable.identifier"
         >
-          <i class="material-icons flex-shrink-0 text-[15px] opacity-70">table_view</i>
-          <span class="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap">{{ gameTable.name }}</span>
+          <i class="material-icons shrink-0 text-[15px] opacity-70">table_view</i>
+          <span class="truncate text-[13px]">{{ gameTable.name }}</span>
         </li>
       }
     </ul>
   </aside>
 
   <!-- ── 右カラム: 詳細設定 ── -->
-  <main class="bg-ui-elevated [grid-row:1/2] flex flex-col gap-0 overflow-y-auto px-[14px] py-3">
+  <main class="bg-ui-elevated row-[1/2] flex flex-col gap-0 overflow-y-auto px-[14px] py-3">
     @if (getGameTables().length === 0) {
       <div
         class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40"
@@ -75,7 +73,7 @@
             } @else {
               <button
                 type="button"
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:bg-ui-input hover:border-ui-accent hover:text-ui-accent m-0 flex h-[66px] w-[88px] cursor-pointer items-center justify-center border border-dashed p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:border-ui-accent hover:bg-ui-input hover:text-ui-accent m-0 flex h-[66px] w-[88px] cursor-pointer items-center justify-center border border-dashed p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none"
                 (click)="openBgImageModal()"
               >
                 テーブル画像を追加
@@ -94,7 +92,7 @@
             } @else {
               <button
                 type="button"
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:bg-ui-input hover:border-ui-accent hover:text-ui-accent m-0 flex h-[66px] w-[88px] cursor-pointer items-center justify-center border border-dashed p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:border-ui-accent hover:bg-ui-input hover:text-ui-accent m-0 flex h-[66px] w-[88px] cursor-pointer items-center justify-center border border-dashed p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none"
                 (click)="openDistanceViewImageModal()"
               >
                 背景画像を追加
@@ -191,7 +189,7 @@
             <span class="text-ui-muted text-[11px] whitespace-nowrap">グリッド</span>
             <input
               type="color"
-              class="rounded-ui-sm border-ui-border-panel h-[26px] w-8 cursor-pointer border border-solid bg-transparent px-[2px] py-[1px] disabled:cursor-not-allowed disabled:opacity-50"
+              class="rounded-ui-sm border-ui-border-panel h-[26px] w-8 cursor-pointer border border-solid bg-transparent px-[2px] py-px disabled:cursor-not-allowed disabled:opacity-50"
               [(ngModel)]="tableGridColor"
               name="tableGridColor"
               list="table-grid-color-list"
@@ -202,7 +200,7 @@
             <span class="text-ui-muted text-[11px] whitespace-nowrap">座標</span>
             <input
               type="color"
-              class="rounded-ui-sm border-ui-border-panel h-[26px] w-8 cursor-pointer border border-solid bg-transparent px-[2px] py-[1px] disabled:cursor-not-allowed disabled:opacity-50"
+              class="rounded-ui-sm border-ui-border-panel h-[26px] w-8 cursor-pointer border border-solid bg-transparent px-[2px] py-px disabled:cursor-not-allowed disabled:opacity-50"
               [(ngModel)]="tableGridFontColor"
               name="tableGridFontColor"
               list="table-grid-color-list"
@@ -216,7 +214,7 @@
         <label class="text-ui-text flex cursor-pointer items-center gap-[6px] text-[13px] select-none">
           <input
             type="checkbox"
-            class="h-[14px] w-[14px] cursor-pointer [accent-color:var(--ui-accent)]"
+            class="size-[14px] cursor-pointer [accent-color:var(--ui-accent)]"
             [(ngModel)]="tableGridShow"
             name="tableGridShow"
           />
@@ -302,7 +300,7 @@
 
   <!-- ── フッター: 部屋全体設定 ── -->
   <footer
-    class="border-ui-border-panel bg-ui-panel col-span-full [grid-row:2/3] flex flex-shrink-0 items-center gap-[10px] border-t border-solid px-[14px] py-[10px]"
+    class="border-ui-border-panel bg-ui-panel col-span-full row-[2/3] flex shrink-0 items-center gap-[10px] border-t border-solid px-[14px] py-[10px]"
   >
     <span class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
       >標準ダイスボット</span

@@ -5,7 +5,7 @@
   >
     @if (!chatSimpleDispFlag()) {
       <div
-        class="message break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-[6px] break-words transition-colors"
+        class="message break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-[6px] wrap-break-word transition-colors"
         [ngClass]="{
           'border-l-ui-accent bg-ui-accent-bg hover:bg-ui-accent-glow border-l-[3px] pl-[5px]':
             (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
@@ -14,7 +14,7 @@
         }"
       >
         <div
-          class="rounded-ui-sm [&_img]:rounded-ui-sm h-16 w-16 flex-shrink-0 overflow-hidden p-0 align-top [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-[50%_0%] [&_img]:align-bottom"
+          class="rounded-ui-sm [&_img]:rounded-ui-sm size-16 shrink-0 overflow-hidden p-0 align-top [&_img]:size-full [&_img]:object-cover [&_img]:object-[50%_0%] [&_img]:align-bottom"
         >
           @if (isSystemMessage) {
             <img [src]="SYSTEM_ICON_URL | safe: 'resourceUrl'" />
@@ -25,7 +25,7 @@
           }
         </div>
         <div
-          class="group/body rounded-ui border-ui-border-panel bg-ui-elevated text-ui-text break-anywhere relative ml-2 min-w-0 grow border border-solid px-[6px] pt-[3px] pb-[5px] [--bubble-bg:var(--ui-elevated)] before:absolute before:top-3 before:left-[-9px] before:border-y-[6px] before:border-r-[9px] before:border-l-0 before:border-solid before:border-y-transparent before:border-r-[var(--ui-panel-border)] before:content-[''] after:absolute after:top-[13px] after:left-[-7px] after:border-y-[5px] after:border-r-[8px] after:border-l-0 after:border-solid after:border-y-transparent after:border-r-[var(--bubble-bg)] after:content-['']"
+          class="group/body break-anywhere rounded-ui border-ui-border-panel bg-ui-elevated text-ui-text relative ml-2 min-w-0 grow border border-solid px-[6px] pt-[3px] pb-[5px] [--bubble-bg:var(--ui-elevated)] before:absolute before:top-3 before:left-[-9px] before:border-y-[6px] before:border-r-[9px] before:border-l-0 before:border-solid before:border-y-transparent before:border-r-(--ui-panel-border) before:content-[''] after:absolute after:top-[13px] after:left-[-7px] after:border-y-[5px] after:border-r-8 after:border-l-0 after:border-solid after:border-y-transparent after:border-r-(--bubble-bg) after:content-['']"
           [ngStyle]="chatMessage.messColor | chatColorStyle"
         >
           <div class="pl-[10px] align-top text-[13px] font-medium text-inherit">
@@ -43,7 +43,7 @@
             }
           </div>
           <div
-            class="msg-text [&_a]:text-ui-accent px-[10px] pt-[2px] align-top text-[13px] leading-[1.5] whitespace-pre-line text-inherit"
+            class="msg-text [&_a]:text-ui-accent px-[10px] pt-[2px] align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
           >
             @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
@@ -52,7 +52,7 @@
                   @for (image of attachmentImageFiles(); track image.identifier) {
                     <!-- message-attachment-image マーカークラスは chat-message.component.spec の querySelector ターゲット -->
                     <img
-                      class="message-attachment-image border-ui-border-panel bg-ui-elevated block h-auto max-h-30 w-auto max-w-[min(180px,100%)] rounded-sm border border-solid object-contain"
+                      class="message-attachment-image border-ui-border-panel bg-ui-elevated block size-auto max-h-30 max-w-[min(180px,100%)] rounded-sm border border-solid object-contain"
                       [src]="image.url | safe: 'resourceUrl'"
                       alt="添付画像"
                     />
@@ -74,7 +74,7 @@
     }
     @if (chatSimpleDispFlag()) {
       <div
-        class="message-small break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-[3px] break-words transition-colors"
+        class="message-small break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-[3px] wrap-break-word transition-colors"
         [ngClass]="{
           'border-l-ui-accent bg-ui-accent-bg hover:bg-ui-accent-glow border-l-[3px] pl-[5px]':
             (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
@@ -102,7 +102,7 @@
               <span class="tip">　</span>
             }
             <font
-              class="msg-text [&_a]:text-ui-accent px-[10px] pt-[2px] align-top text-[13px] leading-[1.5] whitespace-pre-line text-inherit"
+              class="msg-text [&_a]:text-ui-accent px-[10px] pt-[2px] align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
             >
               @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
@@ -110,7 +110,7 @@
                   <span class="ml-[6px] inline-flex align-middle">
                     @for (image of attachmentImageFiles(); track image.identifier) {
                       <img
-                        class="message-attachment-image border-ui-border-panel bg-ui-elevated block h-auto max-h-12 w-auto max-w-18 rounded-sm border border-solid object-contain"
+                        class="message-attachment-image border-ui-border-panel bg-ui-elevated block size-auto max-h-12 max-w-18 rounded-sm border border-solid object-contain"
                         [src]="image.url | safe: 'resourceUrl'"
                         alt="添付画像"
                       />

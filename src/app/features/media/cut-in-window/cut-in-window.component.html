@@ -1,5 +1,5 @@
 @if (cutIn) {
-  <div class="relative h-full w-full overflow-hidden p-0" #cutInArea>
+  <div class="relative size-full overflow-hidden p-0" #cutInArea>
     <youtube-player
       #videoPlayerComponent
       [style.visibility]="isVisible()"
@@ -30,7 +30,7 @@
       <div class="yt-click-guard"></div>
     }
     @if (!videoId) {
-      <img class="h-full w-full" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
+      <img class="size-full" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
     }
   </div>
 }

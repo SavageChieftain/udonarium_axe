@@ -1,4 +1,4 @@
-<div class="absolute inset-0 z-[1899999] flex items-center justify-center overscroll-contain">
+<div class="absolute inset-0 z-1899999 flex items-center justify-center overscroll-contain">
   <div
     class="animate-bg-fade-in text-ui-text absolute inset-0 z-[-1] bg-[rgba(0,0,0,0.3)]"
     (click)="clickBackground($event)"
@@ -17,9 +17,7 @@
           <i class="material-icons text-[14px]">close</i>
         </button>
       </div>
-      <span class="block overflow-hidden pr-[30px] text-ellipsis whitespace-nowrap" [appTextTooltip]="titleTooltip">{{
-        title
-      }}</span>
+      <span class="block truncate pr-[30px]" [appTextTooltip]="titleTooltip">{{ title }}</span>
     </div>
     <div class="box-border max-h-[calc(100vh-41px)] w-full overflow-auto p-2">
       <ng-content></ng-content>

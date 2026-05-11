@@ -319,7 +319,7 @@
         }
       </div>
       @if (isScratching && ownerIsOnline) {
-        <div class="scratching is-center is-3d pointer-events-none -top-[10px] left-[1px] z-10 backface-hidden">
+        <div class="scratching is-center is-3d pointer-events-none top-[-10px] left-px z-10 backface-hidden">
           <div
             class="name-tag has-length-limit is-nowrap is-black-background text-[whitesmoke]"
             [ngStyle]="{ 'background-color': ownerColor + 'E6' }"
@@ -372,7 +372,7 @@
           <span class="altitude-indicator is-3d pointer-events-none absolute">{{
             math.abs(gameTableMaskAltitude)
           }}</span>
-          <span class="altitude-indicator is-3d pointer-events-none absolute [transform:rotateY(-180deg)]">{{
+          <span class="altitude-indicator is-3d pointer-events-none absolute transform-[rotateY(-180deg)]">{{
             gameTableMaskAltitude
           }}</span>
         </div>
