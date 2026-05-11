@@ -46,7 +46,6 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 @Component({
   selector: 'game-character',
   templateUrl: './game-character.component.html',
-  styleUrls: ['./game-character.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, NgStyle, GameDataElementBuffComponent, SafePipe],
   host: {
