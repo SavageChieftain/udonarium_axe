@@ -51,12 +51,6 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   host: { class: 'block' },
-  styleUrls: [
-    './game-character-sheet.component.css',
-    './game-character-sheet-data.component.css',
-    './game-character-sheet-portrait.css',
-    './game-character-sheet-fields.css',
-  ],
   imports: [FormsModule, GameDataElementComponent, SafePipe],
 })
 export class GameCharacterSheetComponent {

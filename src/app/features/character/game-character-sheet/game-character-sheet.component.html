@@ -1,5 +1,7 @@
 @if (tabletopObject && !terrain) {
-  <div class="top-header">
+  <div
+    class="border-ui-border-panel [&_button]:bg-ui-elevated [&_button]:border-ui-border-panel [&_button]:text-ui-muted [&_button]:hover:bg-ui-hover [&_button]:hover:text-ui-text [&_button]:rounded-ui-sm mb-1 flex flex-wrap items-center gap-1 border-b border-solid px-1.5 pt-1.5 pb-1 [&_button]:inline-flex [&_button]:cursor-pointer [&_button]:items-center [&_button]:gap-0.75 [&_button]:border [&_button]:border-solid [&_button]:px-2 [&_button]:py-0.75 [&_button]:text-[0.8em] [&_button]:whitespace-nowrap [&_button]:transition-[background,color]"
+  >
     @if (!character && !rangeArea) {
       <button (click)="toggleEditMode()">編集切り替え</button>
     }
@@ -15,7 +17,7 @@
     <button (click)="clone()">コピーを作る</button>
     <button (click)="saveToXML()">保存</button>
     @if (cardStack) {
-      <div class="extra-setting w-100">
+      <div class="w-100 text-right">
         <div>ポップアップ横幅 /></div>
         <div>
           ポップアップ縦幅最大
@@ -44,7 +46,7 @@
       </div>
     }
     @if (card) {
-      <div class="extra-setting w-100">
+      <div class="w-100 text-right">
         <div>
           ポップアップ横幅
           <input
@@ -99,7 +101,7 @@
       <!-- インベントリ設定はキャラクターシート左列下部に移動 -->
     }
     @if (textNote) {
-      <div class="extra-setting w-100">
+      <div class="w-100 text-right">
         <div>
           height設定値に高さを制限
           <input
@@ -190,20 +192,30 @@
     <!-- ═══════════════════════════════════════════
          TRPG キャラクターシート レイアウト
     ════════════════════════════════════════════ -->
-    <div class="cs-sheet">
+    <div class="flex w-full flex-col gap-0">
       <!-- タブヘッダー -->
-      <div class="cs-tabs">
+      <div class="border-ui-border-panel bg-ui-surface flex items-end gap-px border-b border-solid px-2 pt-1.5">
         <button
-          class="cs-tab"
-          [class.cs-tab--active]="activeTab() === 'sheet'"
+          class="hover:text-ui-text text-ui-muted border-ui-border-panel -mb-px inline-flex cursor-pointer items-center gap-1 rounded-t-xs border border-solid bg-[color-mix(in_srgb,var(--ui-elevated)_58%,var(--ui-surface))] px-3.5 py-1.5 text-[0.8em] font-semibold whitespace-nowrap transition-[background,border-color,color,box-shadow] hover:bg-[color-mix(in_srgb,var(--ui-elevated)_82%,var(--ui-surface))] [&_.material-icons]:text-[14px]"
+          [class.relative]="activeTab() === 'sheet'"
+          [class.z-1]="activeTab() === 'sheet'"
+          [class.bg-ui-elevated!]="activeTab() === 'sheet'"
+          [class.border-b-ui-elevated!]="activeTab() === 'sheet'"
+          [class.text-ui-accent!]="activeTab() === 'sheet'"
+          [class.shadow-[inset_0_2px_0_var(--ui-accent)]]="activeTab() === 'sheet'"
           type="button"
           (click)="activeTab.set('sheet')"
         >
           <i class="material-icons">article</i>シート
         </button>
         <button
-          class="cs-tab"
-          [class.cs-tab--active]="activeTab() === 'settings'"
+          class="hover:text-ui-text text-ui-muted border-ui-border-panel -mb-px inline-flex cursor-pointer items-center gap-1 rounded-t-xs border border-solid bg-[color-mix(in_srgb,var(--ui-elevated)_58%,var(--ui-surface))] px-3.5 py-1.5 text-[0.8em] font-semibold whitespace-nowrap transition-[background,border-color,color,box-shadow] hover:bg-[color-mix(in_srgb,var(--ui-elevated)_82%,var(--ui-surface))] [&_.material-icons]:text-[14px]"
+          [class.relative]="activeTab() === 'settings'"
+          [class.z-1]="activeTab() === 'settings'"
+          [class.bg-ui-elevated!]="activeTab() === 'settings'"
+          [class.border-b-ui-elevated!]="activeTab() === 'settings'"
+          [class.text-ui-accent!]="activeTab() === 'settings'"
+          [class.shadow-[inset_0_2px_0_var(--ui-accent)]]="activeTab() === 'settings'"
           type="button"
           (click)="activeTab.set('settings')"
         >
@@ -213,52 +225,83 @@
 
       <!-- ── シートタブ ── -->
       @if (activeTab() === 'sheet') {
-        <div class="cs-identity">
+        <div class="grid grid-cols-[180px_1fr] items-start gap-3 px-2.5 pt-2.5">
           <!-- 左: ポートレート + 立ち絵 -->
-          <div class="cs-portrait-col">
+          <div class="flex w-45 min-w-0 shrink-0 flex-col gap-1.5 overflow-hidden">
             <!-- ① ポートレート -->
-            <div class="cs-sec-title"><i class="material-icons">portrait</i>ポートレート</div>
-            <div class="cs-portrait-hero" (click)="changePortrait(komaImageIndex())" title="クリックして画像を差し替え">
+            <div
+              class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">portrait</i>ポートレート
+            </div>
+            <div
+              class="border-ui-border-panel bg-ui-elevated group rounded-ui-sm relative aspect-3/4 w-full shrink-0 cursor-pointer overflow-hidden border-2 border-solid"
+              (click)="changePortrait(komaImageIndex())"
+              title="クリックして画像を差し替え"
+            >
               @if (komaImageFile().url) {
-                <img [src]="komaImageFile().url | safe: 'resourceUrl'" alt="ポートレート" />
+                <img
+                  class="block size-full object-contain"
+                  [src]="komaImageFile().url | safe: 'resourceUrl'"
+                  alt="ポートレート"
+                />
               } @else {
-                <div class="cs-portrait-empty">
+                <div class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[4em]">
                   <i class="material-icons">person</i>
                 </div>
               }
-              <div class="cs-portrait-overlay">
+              <div
+                class="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 [&_.material-icons]:text-[2em]"
+              >
                 <i class="material-icons">edit</i>
               </div>
             </div>
 
             <!-- ② 立ち絵リスト -->
-            <div class="cs-sec-title" style="margin-top: 8px"><i class="material-icons">photo_library</i>立ち絵</div>
-            <div class="cs-portrait-strip">
+            <div
+              class="border-ui-border-panel text-ui-accent my-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">photo_library</i>立ち絵
+            </div>
+            <div class="flex flex-wrap gap-1">
               @for (portrait of portraitImages(); track portrait.index) {
                 <div
-                  class="cs-strip-item"
-                  [class.cs-strip-item--active]="portrait.index === komaImageIndex()"
+                  class="border-ui-border-panel bg-ui-elevated text-ui-dim hover:border-ui-text-muted relative flex size-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-[3px] border-2 border-solid transition-[border-color] duration-[0.12s] [&_.material-icons]:text-base"
+                  [class.border-ui-accent!]="portrait.index === komaImageIndex()"
                   (click)="setKomaIndex(portrait.index)"
                   [title]="'立ち絵 ' + (portrait.index + 1)"
                 >
                   @if (portrait.imageFile.url) {
-                    <img [src]="portrait.imageFile.url | safe: 'resourceUrl'" alt="" />
+                    <img
+                      class="block size-full object-cover"
+                      [src]="portrait.imageFile.url | safe: 'resourceUrl'"
+                      alt=""
+                    />
                   } @else {
                     <i class="material-icons">image</i>
                   }
                   @if (portrait.index === komaImageIndex()) {
-                    <div class="cs-strip-badge"><i class="material-icons">person_pin</i></div>
+                    <div
+                      class="bg-ui-accent pointer-events-none absolute right-0 bottom-0 flex size-3.5 items-center justify-center rounded-tl-xs text-white [&_.material-icons]:text-[10px]"
+                    >
+                      <i class="material-icons">person_pin</i>
+                    </div>
                   }
                 </div>
               }
-              <button class="cs-strip-add" type="button" title="立ち絵を追加" (click)="addPortrait()">
+              <button
+                class="border-ui-accent bg-ui-accent-bg text-ui-accent hover:bg-ui-accent-glow flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-[3px] border border-dashed transition-[background] [&_.material-icons]:text-[18px]"
+                type="button"
+                title="立ち絵を追加"
+                (click)="addPortrait()"
+              >
                 <i class="material-icons">add</i>
               </button>
             </div>
-            <div class="cs-portrait-btns">
+            <div class="flex flex-wrap gap-1">
               @if (portraitImages().length > 1) {
                 <button
-                  class="cs-btn cs-btn--danger"
+                  class="bg-ui-danger-bg border-ui-danger text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
                   type="button"
                   title="現在の立ち絵を削除"
                   (click)="removePortrait(komaImageIndex())"
@@ -266,48 +309,67 @@
                   <i class="material-icons">delete</i>
                 </button>
               }
-              <button class="cs-btn" type="button" (click)="showImportImages()">
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+                type="button"
+                (click)="showImportImages()"
+              >
                 <i class="material-icons">file_copy</i>インポート
               </button>
             </div>
 
             <!-- チャット表示位置 -->
-            <div class="cs-setting-block">
-              <div class="cs-sec-title"><i class="material-icons">chat</i>チャット表示位置</div>
-              <div class="cs-field-row">
-                <div class="cs-slot-stepper">
+            <div class="border-ui-border-panel mt-0.5 flex flex-col gap-1.25 border-t border-solid pt-1.5">
+              <div
+                class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              >
+                <i class="material-icons">chat</i>チャット表示位置
+              </div>
+              <div class="flex min-w-0 flex-wrap items-center gap-1.5 gap-y-0.75 text-[0.82em]">
+                <div
+                  class="border-ui-border-panel rounded-ui-sm inline-flex items-stretch overflow-hidden border border-solid"
+                >
                   <button
                     type="button"
-                    class="cs-step-btn"
+                    class="bg-ui-elevated text-ui-muted hover:not-disabled:bg-ui-hover hover:not-disabled:text-ui-text flex size-5.5 cursor-pointer items-center justify-center border-none p-0 text-[1em] leading-none transition-[background,color] disabled:cursor-not-allowed disabled:opacity-30"
                     (click)="setPortraitPos(portraitPosIndex() - 1)"
                     [disabled]="portraitPosIndex() <= 0"
                   >
                     ‹
                   </button>
-                  <span class="cs-slot-num">{{ portraitPosIndex() }}</span>
+                  <span
+                    class="bg-ui-input text-ui-text border-ui-border-panel flex h-5.5 min-w-[2em] items-center justify-center border-x border-solid px-1 text-center text-[0.9em] font-semibold"
+                    >{{ portraitPosIndex() }}</span
+                  >
                   <button
                     type="button"
-                    class="cs-step-btn"
+                    class="bg-ui-elevated text-ui-muted hover:not-disabled:bg-ui-hover hover:not-disabled:text-ui-text flex size-5.5 cursor-pointer items-center justify-center border-none p-0 text-[1em] leading-none transition-[background,color] disabled:cursor-not-allowed disabled:opacity-30"
                     (click)="setPortraitPos(portraitPosIndex() + 1)"
                     [disabled]="portraitPosIndex() >= 11"
                   >
                     ›
                   </button>
                 </div>
-                <span class="cs-unit">/ 11</span>
+                <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">/ 11</span>
               </div>
             </div>
           </div>
 
           <!-- 右: キャラクターデータ -->
-          <div class="cs-data-col">
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
             <!-- 基本情報 (common) -->
             @if (tabletopObject.commonDataElement) {
-              <div class="cs-settings-section cs-data-card--common">
-                <div class="cs-sec-title"><i class="material-icons">info</i>基本情報</div>
-                <div class="table">
+              <div
+                class="bg-ui-elevated border-ui-border-panel mb-0.5 flex w-full flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+              >
+                <div
+                  class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+                >
+                  <i class="material-icons">info</i>基本情報
+                </div>
+                <div class="box-border table w-full">
                   <div
-                    class="table-row"
+                    class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
                     game-data-element
                     [gameDataElement]="tabletopObject.commonDataElement"
                     [isTagLocked]="true"
@@ -318,35 +380,37 @@
               </div>
             }
             <!-- ゲームデータ見出し -->
-            <div class="cs-sec-title cs-sec-title--game-data"><i class="material-icons">grid_view</i>ゲームデータ</div>
+            <div
+              class="border-ui-border-panel text-ui-accent my-1 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">grid_view</i>ゲームデータ
+            </div>
             <!-- 詳細データ（ステータス・スキル等）-->
             @if (detailElements().length > 0) {
-              <div class="cs-data-section">
+              <div class="flex min-w-0 flex-row flex-wrap items-stretch justify-start gap-1 pt-1">
                 @for (childElement of detailElements(); track childElement.identifier) {
                   <div
-                    class="cs-data-card"
-                    [class.cs-data-card--editing]="isElementEditing(childElement.identifier)"
-                    [class.cs-data-card--span2]="
-                      getCardColspan(childElement) ===
-                      '
-                      2
-                    '
+                    class="bg-ui-elevated border-ui-border-panel text-ui-text box-border max-w-full min-w-50 flex-[1_1_200px] overflow-hidden rounded-sm border border-solid px-2.5 py-2 transition-[outline] duration-100"
+                    [class.flex-[1_1_100%]!]="isElementEditing(childElement.identifier)"
+                    [class.min-w-0!]="isElementEditing(childElement.identifier)"
+                    [class.overflow-x-auto!]="isElementEditing(childElement.identifier)"
+                    [class.border-[color-mix(in_srgb,var(--ui-accent)_62%,var(--ui-panel-border))]!]="
+                      isElementEditing(childElement.identifier)
                     "
-                    [class.cs-data-card--full]="
-                      getCardColspan(childElement) ===
-                      '
-                      full
-                    '
-                    "
-                    [class.cs-drag-over]="dragOverId() === childElement.identifier"
+                    [class.grow-2!]="getCardColspan(childElement) === '2'"
+                    [class.min-w-[min(420px,100%)]!]="getCardColspan(childElement) === '2'"
+                    [class.flex-[1_1_100%]]="getCardColspan(childElement) === 'full'"
+                    [class.outline-2]="dragOverId() === childElement.identifier"
+                    [class.outline-ui-accent]="dragOverId() === childElement.identifier"
+                    [class.-outline-offset-2]="dragOverId() === childElement.identifier"
                     (dragover)="onDragOver($event, childElement.identifier)"
                     (dragleave)="onDragLeave(childElement.identifier)"
                     (drop)="onDrop($event, childElement.identifier)"
                   >
-                    <div class="cs-card-toolbar">
+                    <div class="border-ui-border-panel mb-1 flex items-center gap-1 border-b border-solid pb-1">
                       @if (isElementEditing(childElement.identifier)) {
                         <span
-                          class="cs-drag-handle material-icons"
+                          class="material-icons text-ui-dim shrink-0 cursor-grab px-0.5 text-base! select-none active:cursor-grabbing"
                           draggable="true"
                           (dragstart)="onDragStart($event, childElement.identifier)"
                           (dragend)="onDragEnd()"
@@ -354,15 +418,17 @@
                           >drag_indicator</span
                         >
                       }
-                      <span class="cs-card-title">
+                      <span class="text-ui-text flex flex-1 items-center gap-1 truncate text-[0.78em] font-semibold">
                         @if (getCardIcon(childElement)) {
-                          <i class="material-icons cs-card-title-icon">{{ getCardIcon(childElement) }}</i>
+                          <i class="material-icons text-ui-accent shrink-0 text-[13px]!">{{
+                            getCardIcon(childElement)
+                          }}</i>
                         }
                         {{ getCardName(childElement) }}
                       </span>
                       @if (isElementEditing(childElement.identifier)) {
                         <button
-                          class="cs-icon-btn cs-colspan-btn"
+                          class="inline-flex size-5.5 min-w-5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-[0.7em] font-bold text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]"
                           type="button"
                           title="カラム幅を切り替え"
                           (click)="cycleCardColspan(childElement)"
@@ -372,8 +438,12 @@
                           }}</span>
                         </button>
                         <button
-                          class="cs-icon-btn"
-                          [class.cs-icon-btn--active]="isPopupDataElement(childElement)"
+                          class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]"
+                          [class.bg-ui-accent-bg!]="isPopupDataElement(childElement)"
+                          [class.text-ui-accent!]="isPopupDataElement(childElement)"
+                          [class.hover:bg-[color-mix(in_srgb,var(--ui-accent)_24%,transparent)]!]="
+                            isPopupDataElement(childElement)
+                          "
                           type="button"
                           title="ポップアップ表示"
                           (click)="togglePopupDataElement(childElement, $event)"
@@ -381,7 +451,7 @@
                           <i class="material-icons">open_in_new</i>
                         </button>
                         <button
-                          class="cs-icon-btn cs-icon-btn--danger"
+                          class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-[color-mix(in_srgb,var(--ui-danger)_50%,transparent)] p-0 text-white transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-danger)_75%,transparent)] [&_.material-icons]:text-[13px]"
                           type="button"
                           title="この項目を削除"
                           (click)="deleteTopLevelElement(childElement.identifier)"
@@ -390,7 +460,7 @@
                         </button>
                       }
                       <button
-                        class="cs-icon-btn"
+                        class="inline-flex size-5.5 cursor-pointer items-center justify-center rounded-[3px] border-none bg-white/15 p-0 text-white transition-[background] hover:bg-white/30 [&_.material-icons]:text-[13px]"
                         type="button"
                         title="編集"
                         (click)="toggleElementEdit(childElement.identifier)"
@@ -400,9 +470,9 @@
                         }}</i>
                       </button>
                     </div>
-                    <div class="table">
+                    <div class="box-border table w-full">
                       <div
-                        class="table-row"
+                        class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
                         game-data-element
                         [gameDataElement]="childElement"
                         [isEdit]="isElementEditing(childElement.identifier)"
@@ -413,8 +483,13 @@
                 }
               </div>
             }
-            <div class="cs-add-item-row">
-              <button class="cs-btn" style="width: 100%" (click)="addDataElement()">新しい項目を追加</button>
+            <div class="px-2.5 pt-1 pb-2">
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex w-full cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+                (click)="addDataElement()"
+              >
+                新しい項目を追加
+              </button>
             </div>
           </div>
         </div>
@@ -422,15 +497,21 @@
 
       <!-- ── 設定タブ ── -->
       @if (activeTab() === 'settings') {
-        <div class="cs-settings-panel">
+        <div class="grid grid-cols-2 gap-2 px-2.5 pt-2.5 pb-3.5">
           <!-- インベントリ設定 -->
-          <div class="cs-settings-section">
-            <div class="cs-sec-title"><i class="material-icons">inventory_2</i>インベントリ設定</div>
+          <div
+            class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+          >
+            <div
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">inventory_2</i>インベントリ設定
+            </div>
             <select
+              class="bg-ui-input text-ui-text border-ui-border-input rounded-ui-sm cursor-pointer border border-solid px-1.5 py-0.75 text-[0.82em]"
               (change)="onSetLocation($event)"
               name="location"
               [ngModel]="character.location.name"
-              class="cs-location-select"
               title="配置場所"
             >
               <option value="table">テーブル</option>
@@ -438,27 +519,43 @@
               <option value="{{ networkService.peerId }}">個人インベントリ</option>
               <option value="graveyard">墓地</option>
             </select>
-            <div class="cs-flags-row">
-              <label class="cs-flag-label">
+            <div class="flex flex-wrap items-center gap-2">
+              <label
+                class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+              >
                 <input type="checkbox" [(ngModel)]="character.hideInventory" />非表示
               </label>
-              <label class="cs-flag-label">
+              <label
+                class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+              >
                 <input type="checkbox" [(ngModel)]="character.nonTalkFlag" />発言しない
               </label>
             </div>
           </div>
 
           <!-- コマ設定 -->
-          <div class="cs-settings-section">
-            <div class="cs-sec-title"><i class="material-icons">person_pin</i>コマ設定</div>
-            <label class="cs-flag-label">
+          <div
+            class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+          >
+            <div
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">person_pin</i>コマ設定
+            </div>
+            <label
+              class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+            >
               <input
                 type="checkbox"
                 [ngModel]="character.specifyKomaImageFlag"
                 (ngModelChange)="setSpecifyKomaImageFlag($event)"
               />コマ高さを指定
             </label>
-            <div [class.cs-disabled]="!character.specifyKomaImageFlag" class="cs-field-row">
+            <div
+              class="flex items-center gap-1.5 text-[0.82em] [&_input[type=range]]:min-w-0 [&_input[type=range]]:flex-[1_1_0]"
+              [class.opacity-40]="!character.specifyKomaImageFlag"
+              [class.pointer-events-none]="!character.specifyKomaImageFlag"
+            >
               <input
                 type="range"
                 min="50"
@@ -469,7 +566,7 @@
                 (change)="onChkKomaSize($event)"
               />
               <input
-                class="cs-num-input"
+                class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[4.5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
                 type="number"
                 min="50"
                 max="750"
@@ -477,71 +574,101 @@
                 [disabled]="!character.specifyKomaImageFlag"
                 (change)="onChkKomaSize($event)"
               />
-              <span class="cs-unit">px</span>
+              <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">px</span>
             </div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">高度</span>
+            <div class="flex items-center gap-1.5 text-[0.82em]">
+              <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">高度</span>
               <input
-                class="cs-num-input cs-num-input--wide"
+                class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
                 type="number"
                 [(ngModel)]="character.altitude"
                 (change)="onChkAltitude($event)"
               />
-              <span class="cs-unit">マス</span>
+              <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">マス</span>
             </div>
-            <div class="cs-flags-row">
-              <label class="cs-flag-label">
+            <div class="flex flex-wrap items-center gap-2">
+              <label
+                class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+              >
                 <input type="checkbox" [(ngModel)]="character.isAltitudeIndicate" />高度表示
               </label>
-              <label class="cs-flag-label">
+              <label
+                class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+              >
                 <input type="checkbox" [(ngModel)]="character.isDropShadow" />影の表示
               </label>
             </div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">位置 X</span>
-              <span class="cs-num-input cs-num-input--wide cs-num-readonly">{{
-                characterPieceSignals().locationX
-              }}</span>
-              <span class="cs-unit">px</span>
+            <div class="flex items-center gap-1.5 text-[0.82em]">
+              <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">位置 X</span>
+              <span
+                class="text-ui-muted inline-block w-[5em] border border-solid border-transparent bg-transparent text-right text-[0.82em] italic"
+                >{{ characterPieceSignals().locationX }}</span
+              >
+              <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">px</span>
             </div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">位置 Y</span>
-              <span class="cs-num-input cs-num-input--wide cs-num-readonly">{{
-                characterPieceSignals().locationY
-              }}</span>
-              <span class="cs-unit">px</span>
+            <div class="flex items-center gap-1.5 text-[0.82em]">
+              <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">位置 Y</span>
+              <span
+                class="text-ui-muted inline-block w-[5em] border border-solid border-transparent bg-transparent text-right text-[0.82em] italic"
+                >{{ characterPieceSignals().locationY }}</span
+              >
+              <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">px</span>
             </div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">回転</span>
+            <div class="flex items-center gap-1.5 text-[0.82em]">
+              <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">回転</span>
               <input
-                class="cs-num-input cs-num-input--wide"
+                class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
                 type="number"
                 [ngModel]="characterPieceSignals().rotate"
                 (change)="onChkRotate($event)"
               />
-              <span class="cs-unit">°</span>
-              <button class="cs-reset-btn" type="button" (click)="resetRotate()">リセット</button>
+              <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">°</span>
+              <button
+                class="text-ui-text border-ui-border-panel hover:border-ui-accent hover:text-ui-accent cursor-pointer rounded-xs border border-solid bg-transparent px-2 py-px text-[0.78em] leading-[1.6]"
+                type="button"
+                (click)="resetRotate()"
+              >
+                リセット
+              </button>
             </div>
-            <div class="cs-field-row">
-              <span class="cs-field-label">縦回転</span>
+            <div class="flex items-center gap-1.5 text-[0.82em]">
+              <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">縦回転</span>
               <input
-                class="cs-num-input cs-num-input--wide"
+                class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
                 type="number"
                 [ngModel]="characterPieceSignals().roll"
                 (change)="onChkRoll($event)"
               />
-              <span class="cs-unit">°</span>
-              <button class="cs-reset-btn" type="button" (click)="resetRoll()">リセット</button>
+              <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">°</span>
+              <button
+                class="text-ui-text border-ui-border-panel hover:border-ui-accent hover:text-ui-accent cursor-pointer rounded-xs border border-solid bg-transparent px-2 py-px text-[0.78em] leading-[1.6]"
+                type="button"
+                (click)="resetRoll()"
+              >
+                リセット
+              </button>
             </div>
           </div>
 
           <!-- データ移行 -->
           @if (legacyCheckTableCount() > 0) {
-            <div class="cs-settings-section cs-settings-section--full">
-              <div class="cs-sec-title"><i class="material-icons">upgrade</i>データ移行</div>
-              <div class="cs-migrate-row">
-                <span class="cs-field-label">構造化できる旧チェック表が {{ legacyCheckTableCount() }} 件あります</span>
-                <button class="cs-migrate-btn" type="button" (click)="convertLegacyCheckTables()">
+            <div
+              class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+            >
+              <div
+                class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+              >
+                <i class="material-icons">upgrade</i>データ移行
+              </div>
+              <div class="flex items-center gap-2.5 py-1">
+                <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap"
+                  >構造化できる旧チェック表が {{ legacyCheckTableCount() }} 件あります</span
+                >
+                <button
+                  class="border-ui-accent text-ui-accent hover:bg-ui-accent-bg inline-flex cursor-pointer items-center gap-1 rounded-xs border border-solid bg-transparent px-2.5 py-0.75 text-[0.78em] leading-[1.6] whitespace-nowrap [&_.material-icons]:text-[14px]"
+                  type="button"
+                  (click)="convertLegacyCheckTables()"
+                >
                   <i class="material-icons">auto_fix_high</i>構造化テーブルに一括変換
                 </button>
               </div>
@@ -549,14 +676,22 @@
           }
 
           <!-- ポップアップ設定 -->
-          <div class="cs-settings-section cs-settings-section--full">
-            <div class="cs-sec-title"><i class="material-icons">open_in_new</i>ポップアップ設定</div>
-            <div class="cs-settings-fields">
-              <div class="cs-field-row">
-                <span class="cs-field-label">横幅</span>
+          <div
+            class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+          >
+            <div
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">open_in_new</i>ポップアップ設定
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <div
+                class="flex items-center gap-1.5 text-[0.82em] [&_input[type=range]]:min-w-0 [&_input[type=range]]:flex-[1_1_0]"
+              >
+                <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">横幅</span>
                 <input type="range" min="270" max="1000" [(ngModel)]="character.overViewWidth" />
                 <input
-                  class="cs-num-input"
+                  class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[4.5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
                   type="number"
                   min="270"
                   max="1000"
@@ -564,11 +699,13 @@
                   (change)="onChkPopWidth($event)"
                 />
               </div>
-              <div class="cs-field-row">
-                <span class="cs-field-label">高さ最大</span>
+              <div
+                class="flex items-center gap-1.5 text-[0.82em] [&_input[type=range]]:min-w-0 [&_input[type=range]]:flex-[1_1_0]"
+              >
+                <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">高さ最大</span>
                 <input type="range" min="250" max="1000" [(ngModel)]="character.overViewMaxHeight" />
                 <input
-                  class="cs-num-input"
+                  class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[4.5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
                   type="number"
                   min="250"
                   max="1000"
@@ -584,16 +721,25 @@
   } @else {
     @if (rangeArea) {
       <!-- ── 射程範囲設定パネル ── -->
-      <div class="cs-settings-panel">
+      <div class="grid grid-cols-2 gap-2 px-2.5 pt-2.5 pb-3.5">
         <!-- 形状 -->
-        <div class="cs-settings-section cs-settings-section--full">
-          <div class="cs-sec-title"><i class="material-icons">category</i>形状</div>
-          <div class="range-type-grid">
+        <div
+          class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+        >
+          <div
+            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+          >
+            <i class="material-icons">category</i>形状
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
             @for (item of rangeTypeItems; track item.type) {
               <button
                 type="button"
-                class="range-type-btn"
-                [class.range-type-btn--active]="rangeArea.type === item.type"
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex cursor-pointer flex-col items-center gap-0.75 border border-solid px-1 pt-2 pb-1.5 text-[0.75em] leading-[1.2] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[18px]"
+                [class.bg-ui-accent-bg!]="rangeArea.type === item.type"
+                [class.text-ui-accent!]="rangeArea.type === item.type"
+                [class.border-ui-accent!]="rangeArea.type === item.type"
+                [class.font-semibold]="rangeArea.type === item.type"
                 (click)="rangeArea.type = item.type"
               >
                 <i class="material-icons">{{ item.icon }}</i>
@@ -604,10 +750,16 @@
         </div>
 
         <!-- カラー設定 -->
-        <div class="cs-settings-section">
-          <div class="cs-sec-title"><i class="material-icons">palette</i>カラー</div>
-          <div class="cs-field-row">
-            <span class="cs-field-label">境界線</span>
+        <div
+          class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+        >
+          <div
+            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+          >
+            <i class="material-icons">palette</i>カラー
+          </div>
+          <div class="flex items-center gap-1.5 text-[0.82em]">
+            <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">境界線</span>
             <input
               type="color"
               name="color01"
@@ -615,18 +767,26 @@
               value="{{ rangeArea.rangeColor }}"
             />
           </div>
-          <div class="cs-field-row">
-            <span class="cs-field-label">塗りつぶし</span>
+          <div class="flex items-center gap-1.5 text-[0.82em]">
+            <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">塗りつぶし</span>
             <input type="color" name="color02" (change)="onChangeGridColor($event)" value="{{ rangeArea.gridColor }}" />
           </div>
         </div>
 
         <!-- 塗りオプション -->
-        <div class="cs-settings-section">
-          <div class="cs-sec-title"><i class="material-icons">grid_on</i>塗りオプション</div>
-          <div class="cs-flags-row">
+        <div
+          class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+        >
+          <div
+            class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+          >
+            <i class="material-icons">grid_on</i>塗りオプション
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
             @if (rangeArea.type !== 'CIRCLE') {
-              <label class="cs-flag-label">
+              <label
+                class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+              >
                 <input
                   type="checkbox"
                   [(ngModel)]="rangeArea.subDivisionSnapPolygonal"
@@ -636,18 +796,24 @@
                 回転スナップ細分
               </label>
             }
-            <label class="cs-flag-label">
+            <label
+              class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+            >
               <input type="checkbox" [(ngModel)]="rangeArea.fillOutLine" name="fillOutLine" (click)="fillOutLine()" />
               輪郭に沿って塗る
             </label>
           </div>
-          <div class="cs-field-row">
-            <span class="cs-field-label">半マスずらす</span>
-            <label class="cs-flag-label">
+          <div class="flex items-center gap-1.5 text-[0.82em]">
+            <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">半マスずらす</span>
+            <label
+              class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+            >
               <input type="checkbox" [(ngModel)]="rangeArea.offSetX" name="offSetX" (click)="clickRangeOffSetX()" />
               横
             </label>
-            <label class="cs-flag-label">
+            <label
+              class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+            >
               <input type="checkbox" [(ngModel)]="rangeArea.offSetY" name="offSetY" (click)="clickRangeOffSetY()" />
               縦
             </label>
@@ -659,17 +825,23 @@
             rangeArea.type === 'PENTAGON' ||
             rangeArea.type === 'HEXAGON'
           ) {
-            <div class="cs-field-hint">※ この形状では範囲の幅項目は不使用</div>
+            <div class="text-ui-muted mb-1 text-[0.75em]">※ この形状では範囲の幅項目は不使用</div>
           }
         </div>
 
         <!-- 基本情報 -->
         @if (tabletopObject.commonDataElement) {
-          <div class="cs-settings-section cs-settings-section--full">
-            <div class="cs-sec-title"><i class="material-icons">info</i>基本情報</div>
-            <div class="table">
+          <div
+            class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
+          >
+            <div
+              class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]"
+            >
+              <i class="material-icons">info</i>基本情報
+            </div>
+            <div class="box-border table w-full">
               <div
-                class="table-row"
+                class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
                 game-data-element
                 [gameDataElement]="tabletopObject.commonDataElement"
                 [isTagLocked]="true"
@@ -681,13 +853,19 @@
         }
       </div>
     } @else if (terrain) {
-      <div class="terrain-sheet">
+      <div class="bg-ui-panel box-border flex h-full flex-col gap-3 overflow-y-auto p-3">
         @if (tabletopObject.commonDataElement) {
-          <section class="terrain-section terrain-data-section">
-            <h3 class="terrain-section-title"><i class="material-icons">info</i>基本設定</h3>
-            <div class="terrain-data-table table">
+          <section
+            class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm border border-solid p-3 [&_.table-row>div:first-child]:w-[7em]"
+          >
+            <h3
+              class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base"
+            >
+              <i class="material-icons">info</i>基本設定
+            </h3>
+            <div class="bg-ui-panel rounded-ui-sm box-border table w-full overflow-hidden">
               <div
-                class="table-row"
+                class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
                 game-data-element
                 [gameDataElement]="tabletopObject.commonDataElement"
                 [isTagLocked]="true"
@@ -698,53 +876,114 @@
           </section>
         }
 
-        <section class="terrain-section">
-          <h3 class="terrain-section-title"><i class="material-icons">grid_on</i>表示</h3>
-          <div class="terrain-row">
-            <span class="terrain-label">床グリッド</span>
-            <label class="terrain-toggle-row">
-              <input type="checkbox" value="isGrid" [(ngModel)]="terrain.isGrid" name="isGrid" (click)="clickGrid()" />
-              <span class="terrain-toggle-visual"><span></span></span>
+        <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm border border-solid p-3">
+          <h3
+            class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base"
+          >
+            <i class="material-icons">grid_on</i>表示
+          </h3>
+          <div class="flex items-center gap-2">
+            <span class="text-ui-muted min-w-22.5 text-[12px]">床グリッド</span>
+            <label
+              class="text-ui-text flex min-h-7.5 cursor-pointer items-center gap-2 text-[13px] select-none [&_input[type=checkbox]]:pointer-events-none [&_input[type=checkbox]]:absolute [&_input[type=checkbox]]:opacity-0"
+            >
+              <input
+                type="checkbox"
+                class="peer"
+                value="isGrid"
+                [(ngModel)]="terrain.isGrid"
+                name="isGrid"
+                (click)="clickGrid()"
+              />
+              <span
+                class="bg-ui-input border-ui-border-panel peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent relative h-4.5 w-8.5 flex-none rounded-full border border-solid transition-[background,border-color]"
+                ><span
+                  class="bg-ui-muted peer-checked:bg-ui-accent absolute top-0.5 left-0.5 size-3 rounded-full transition-[transform,background] peer-checked:translate-x-4"
+                ></span
+              ></span>
               <span>{{ terrain.isGrid ? '表示' : '非表示' }}</span>
             </label>
           </div>
         </section>
 
-        <section class="terrain-section">
-          <h3 class="terrain-section-title"><i class="material-icons">image</i>画像設定</h3>
-          <div class="terrain-image-grid">
-            <button class="terrain-image-card" type="button" (click)="openModal('floor')" title="床画像を変更">
-              <span class="terrain-image-label"><i class="material-icons">layers</i>床画像</span>
-              <span class="terrain-image-preview">
+        <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm border border-solid p-3">
+          <h3
+            class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2.5 flex items-center gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base"
+          >
+            <i class="material-icons">image</i>画像設定
+          </h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              class="bg-ui-panel border-ui-border-panel hover:border-ui-accent text-ui-muted rounded-ui-sm flex w-full min-w-0 cursor-pointer flex-col items-stretch gap-1.5 border-2 border-solid p-2 transition-[border-color,box-shadow] hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ui-accent)_20%,transparent)]"
+              type="button"
+              (click)="openModal('floor')"
+              title="床画像を変更"
+            >
+              <span
+                class="text-ui-text [&_.material-icons]:text-ui-accent flex items-center gap-1 text-[12px] leading-none font-bold [&_.material-icons]:text-[15px]"
+                ><i class="material-icons">layers</i>床画像</span
+              >
+              <span
+                class="bg-ui-input border-ui-border-panel rounded-ui-sm flex h-[18] items-center justify-center overflow-hidden border border-solid [&_img]:size-full [&_img]:object-contain"
+              >
                 @if (terrainFloorImage().url) {
                   <img [src]="terrainFloorImage().url | safe: 'resourceUrl'" [alt]="terrainFloorImage().name" />
                 } @else {
-                  <span class="terrain-image-empty"><i class="material-icons">image_not_supported</i></span>
+                  <span class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[32px]"
+                    ><i class="material-icons">image_not_supported</i></span
+                  >
                 }
               </span>
-              <span class="terrain-image-action"><i class="material-icons">edit</i>変更</span>
+              <span
+                class="border-ui-accent bg-ui-accent rounded-ui-sm box-border inline-flex w-full items-center justify-center gap-0.75 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] text-white [&_.material-icons]:text-[13px]"
+                ><i class="material-icons">edit</i>変更</span
+              >
             </button>
 
-            <button class="terrain-image-card" type="button" (click)="openModal('wall')" title="壁画像を変更">
-              <span class="terrain-image-label"><i class="material-icons">view_in_ar</i>壁画像</span>
-              <span class="terrain-image-preview">
+            <button
+              class="bg-ui-panel border-ui-border-panel hover:border-ui-accent text-ui-muted rounded-ui-sm flex w-full min-w-0 cursor-pointer flex-col items-stretch gap-1.5 border-2 border-solid p-2 transition-[border-color,box-shadow] hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ui-accent)_20%,transparent)]"
+              type="button"
+              (click)="openModal('wall')"
+              title="壁画像を変更"
+            >
+              <span
+                class="text-ui-text [&_.material-icons]:text-ui-accent flex items-center gap-1 text-[12px] leading-none font-bold [&_.material-icons]:text-[15px]"
+                ><i class="material-icons">view_in_ar</i>壁画像</span
+              >
+              <span
+                class="bg-ui-input border-ui-border-panel rounded-ui-sm flex h-[18] items-center justify-center overflow-hidden border border-solid [&_img]:size-full [&_img]:object-contain"
+              >
                 @if (terrainWallImage().url) {
                   <img [src]="terrainWallImage().url | safe: 'resourceUrl'" [alt]="terrainWallImage().name" />
                 } @else {
-                  <span class="terrain-image-empty"><i class="material-icons">image_not_supported</i></span>
+                  <span class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[32px]"
+                    ><i class="material-icons">image_not_supported</i></span
+                  >
                 }
               </span>
-              <span class="terrain-image-action"><i class="material-icons">edit</i>変更</span>
+              <span
+                class="border-ui-accent bg-ui-accent rounded-ui-sm box-border inline-flex w-full items-center justify-center gap-0.75 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] text-white [&_.material-icons]:text-[13px]"
+                ><i class="material-icons">edit</i>変更</span
+              >
             </button>
           </div>
         </section>
 
-        <section class="terrain-section terrain-section--actions">
-          <button class="cs-btn" type="button" (click)="clone()">
+        <section class="flex justify-end gap-2 border-none bg-transparent p-0">
+          <button
+            class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+            type="button"
+            (click)="clone()"
+          >
             <i class="material-icons">content_copy</i>
             コピーを作る
           </button>
-          <button class="cs-btn cs-btn--primary" type="button" [disabled]="isSaving()" (click)="saveToXML()">
+          <button
+            class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow hover:text-ui-accent-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]"
+            type="button"
+            [disabled]="isSaving()"
+            (click)="saveToXML()"
+          >
             @if (isSaving()) {
               <i class="material-icons">hourglass_empty</i>
               保存中 {{ progressPercent() }}%
@@ -757,17 +996,19 @@
       </div>
     } @else {
       <!-- 非キャラクターオブジェクト -->
-      <div class="flex-container">
+      <div class="flex flex-row flex-wrap items-stretch justify-start">
         @if (imageFile().url) {
-          <div class="box main-image-box">
-            <img class="main-image" [src]="imageFile().url | safe: 'resourceUrl'" [alt]="imageFile().name" />
+          <div class="m-1.25 box-border inline-block size-62.5">
+            <img class="w-62.5" [src]="imageFile().url | safe: 'resourceUrl'" [alt]="imageFile().name" />
           </div>
         }
         @if (tabletopObject.commonDataElement) {
-          <div class="flex-item">
-            <div class="table">
+          <div
+            class="bg-ui-elevated border-ui-border-panel text-ui-text rounded-ui-sm m-1 box-border min-w-50 flex-[1_0_auto] border border-solid px-2.5 py-2"
+          >
+            <div class="box-border table w-full">
               <div
-                class="table-row"
+                class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
                 game-data-element
                 [gameDataElement]="tabletopObject.commonDataElement"
                 [isTagLocked]="true"
@@ -777,19 +1018,28 @@
         }
         @if (tabletopObject.detailDataElement) {
           @for (childElement of tabletopObject.detailDataElement.children; track childElement.identifier) {
-            <div class="flex-item">
-              <div class="table">
-                <div class="table-row" game-data-element [gameDataElement]="childElement" [isEdit]="isEdit()"></div>
+            <div
+              class="bg-ui-elevated border-ui-border-panel text-ui-text rounded-ui-sm m-1 box-border min-w-50 flex-[1_0_auto] border border-solid px-2.5 py-2"
+            >
+              <div class="box-border table w-full">
+                <div
+                  class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
+                  game-data-element
+                  [gameDataElement]="childElement"
+                  [isEdit]="isEdit()"
+                ></div>
               </div>
             </div>
           }
         }
         @if (!(card || cardStack || terrain || diceSymbol || scratchMask)) {
           @if (tabletopObject.imageDataElement) {
-            <div class="flex-item">
-              <div class="table">
+            <div
+              class="bg-ui-elevated border-ui-border-panel text-ui-text rounded-ui-sm m-1 box-border min-w-50 flex-[1_0_auto] border border-solid px-2.5 py-2"
+            >
+              <div class="box-border table w-full">
                 <div
-                  class="table-row"
+                  class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
                   game-data-element
                   [gameDataElement]="tabletopObject.imageDataElement"
                   [isTagLocked]="true"
@@ -801,7 +1051,9 @@
           }
         }
         @if (isEdit()) {
-          <div class="flex-item">
+          <div
+            class="bg-ui-elevated border-ui-border-panel text-ui-text rounded-ui-sm m-1 box-border min-w-50 flex-[1_0_auto] border border-solid px-2.5 py-2"
+          >
             <button class="w-full text-[#555]" (click)="addDataElement()">新しい項目を追加</button>
           </div>
         }
