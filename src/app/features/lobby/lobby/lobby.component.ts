@@ -15,7 +15,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'lobby',
   templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.css'],
   host: { class: 'block' },
   imports: [TextTooltipDirective],
 })

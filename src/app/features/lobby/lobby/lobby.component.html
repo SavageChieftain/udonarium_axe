@@ -1,39 +1,77 @@
 @if (!isConnected()) {
-  <div class="lobby-actions">
+  <div class="mb-4 flex gap-2">
     <button (click)="reload()" [disabled]="isReloading()">
       <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 3px">refresh</i>一覧を更新
     </button>
-    <button class="btn-primary" (click)="showRoomSetting()">
+    <button
+      class="rounded-ui-sm border-ui-accent bg-ui-accent hover:border-ui-accent-hover hover:bg-ui-accent-hover cursor-pointer border border-solid px-[1em] py-[0.4em] text-[0.875rem] whitespace-nowrap text-white hover:shadow-[0_0_0_3px_var(--ui-accent-glow)]"
+      (click)="showRoomSetting()"
+    >
       <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 3px">add</i
       >新しいルームを作成する
     </button>
   </div>
   @if (rooms().length) {
-    <table class="room-table">
+    <table class="w-full border-collapse text-[0.8rem]">
       <thead>
         <tr>
-          <th>ルームID</th>
-          <th>ルーム名</th>
-          <th>PW</th>
-          <th>参加者</th>
-          <th></th>
+          <th
+            class="border-ui-border-panel text-ui-muted border-b border-solid px-[10px] py-[6px] text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
+          >
+            ルームID
+          </th>
+          <th
+            class="border-ui-border-panel text-ui-muted border-b border-solid px-[10px] py-[6px] text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
+          >
+            ルーム名
+          </th>
+          <th
+            class="border-ui-border-panel text-ui-muted border-b border-solid px-[10px] py-[6px] text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
+          >
+            PW
+          </th>
+          <th
+            class="border-ui-border-panel text-ui-muted border-b border-solid px-[10px] py-[6px] text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
+          >
+            参加者
+          </th>
+          <th
+            class="border-ui-border-panel text-ui-muted border-b border-solid px-[10px] py-[6px] text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
+          ></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="[&_tr:hover_td]:bg-ui-hover [&_tr:last-child_td]:border-b-0">
         @for (room of rooms(); track room) {
           <tr>
-            <td class="room-id-cell">{{ room.peerContexts[0]?.roomId }}</td>
-            <td class="room-name-cell" [appTextTooltip]="room.roomName">{{ room.roomName }}</td>
+            <td
+              class="border-ui-border-panel text-ui-muted border-b border-solid px-[10px] py-[7px] text-center font-mono text-[0.72rem] whitespace-nowrap"
+            >
+              {{ room.peerContexts[0]?.roomId }}
+            </td>
+            <td
+              class="border-ui-border-panel max-w-[200px] min-w-20 overflow-hidden border-b border-solid px-[10px] py-[7px] text-left text-ellipsis whitespace-nowrap"
+              [appTextTooltip]="room.roomName"
+            >
+              {{ room.roomName }}
+            </td>
             @if (room.peerContexts[0].hasPassword) {
-              <td><i class="material-icons lock-icon">lock</i></td>
+              <td class="border-ui-border-panel border-b border-solid px-[10px] py-[7px] text-center whitespace-nowrap">
+                <i class="material-icons text-ui-accent align-middle text-[14px]">lock</i>
+              </td>
             } @else {
-              <td class="no-password-dash">—</td>
+              <td
+                class="border-ui-border-panel text-ui-dim border-b border-solid px-[10px] py-[7px] text-center whitespace-nowrap"
+              >
+                —
+              </td>
             }
-            <td>{{ room.peerContexts.length }}人</td>
-            <td>
+            <td class="border-ui-border-panel border-b border-solid px-[10px] py-[7px] text-center whitespace-nowrap">
+              {{ room.peerContexts.length }}人
+            </td>
+            <td class="border-ui-border-panel border-b border-solid px-[10px] py-[7px] text-center whitespace-nowrap">
               @if (0 < room.alias.length) {
                 <button
-                  class="btn-connect"
+                  class="rounded-ui-sm border-ui-accent text-ui-accent hover:bg-ui-accent-bg cursor-pointer border border-solid bg-transparent px-[10px] py-[2px] text-[0.8rem] whitespace-nowrap hover:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
                   [disabled]="room.peerContexts[0]?.roomId === currentRoom"
                   type="button"
                   (click)="connect(room.peerContexts)"
@@ -47,10 +85,10 @@
       </tbody>
     </table>
   } @else {
-    <p class="help-text">{{ help() }}</p>
+    <p class="text-ui-muted text-[0.8rem] leading-[1.6]">{{ help() }}</p>
   }
 } @else {
-  <p class="connected-note">
+  <p class="text-ui-muted text-[0.8rem] leading-[1.7]">
     別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）
   </p>
 }

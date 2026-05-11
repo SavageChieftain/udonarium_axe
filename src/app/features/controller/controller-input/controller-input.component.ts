@@ -28,7 +28,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'controller-input',
   templateUrl: './controller-input.component.html',
-  styleUrls: ['./controller-input.component.css'],
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
 })
 export class ControllerInputComponent {
