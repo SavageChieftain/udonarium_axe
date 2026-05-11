@@ -1,4 +1,9 @@
-<div class="component is-pointer-events-none fade-in" appDraggable #draggablePanel [attr.data-v]="objectVersion()">
+<div
+  class="text-ui-text animate-fade-in pointer-events-none absolute z-9000 box-border max-h-full max-w-full overflow-visible overscroll-contain"
+  appDraggable
+  #draggablePanel
+  [attr.data-v]="objectVersion()"
+>
   @if (tabletopObject) {
     @switch (tabletopObject.aliasName) {
       @case ('numberResource') {}
@@ -32,28 +37,33 @@
 }
 
 <ng-template #overviewCard let-card="card">
-  <div
-    class="component-content is-small-size"
-    [ngClass]="pointerEventsStyle"
-    [ngStyle]="{ width: overViewCardWidth + 'px' }"
-  >
+  <div class="max-w-62.5 text-[12px]" [ngClass]="pointerEventsStyle" [ngStyle]="{ width: overViewCardWidth + 'px' }">
     @if (hasImage()) {
       <div class="relative">
-        <img class="card-image" [src]="imageUrl() | safe: 'resourceUrl'" />
-        <button class="zoom-button" (click)="chanageImageView(true)">
-          <i class="material-icons">zoom_in</i>
+        <img
+          class="bg-ui-input box-border block max-h-82.5 w-62.5 object-contain p-2 align-bottom"
+          [src]="imageUrl() | safe: 'resourceUrl'"
+        />
+        <button class="absolute -bottom-5.25 left-2 size-10.5 rounded-full p-1" (click)="chanageImageView(true)">
+          <i class="material-icons align-bottom text-[24px]">zoom_in</i>
         </button>
         @if (card.hasOwner && card.ownerName) {
-          <div class="component-owner position-right-bottom">
-            <div class="owner-tag">{{ card.ownerName }}</div>
+          <div
+            class="text-ui-muted absolute right-0 bottom-0 box-border max-w-full overflow-hidden px-[1em] py-0.5 text-right align-middle text-[0.8em]"
+          >
+            <div
+              class="text-ui-muted bg-ui-elevated mr-0 ml-auto box-border w-min max-w-full truncate rounded-md px-2.25 py-0.75"
+            >
+              {{ card.ownerName }}
+            </div>
           </div>
         }
       </div>
     }
     @if (card?.name) {
       <div
-        class="component-title title-background"
-        [ngClass]="{ 'with-button-marign': hasImage() }"
+        class="text-ui-text bg-ui-elevated border-ui-border-panel h-8 truncate border-x border-t border-solid px-[1em] text-[1em]/8"
+        [class.pl-15]="hasImage()"
         [ngStyle]="{ width: overViewCardWidthNoMargin + 'px' }"
       >
         @if (card.isVisible !== null && !card.isVisible) {
@@ -64,15 +74,15 @@
       </div>
     }
     <div
-      class="component-background"
+      class="bg-ui-panel border-ui-border-panel border-b border-solid"
       [ngStyle]="{ width: overViewCardWidth + 'px', 'max-height': overViewCardMaxHeight + 'px' }"
     >
       @if (hasDataElms && card.isVisible) {
         <div
-          class="grid-container-root"
+          class="border-ui-border-panel box-border max-h-62.5 overflow-x-hidden overflow-y-auto border-x border-solid px-[1.2em] py-[0.5em]"
           [ngStyle]="{ width: overViewCardWidth + 'px', 'max-height': overViewCardMaxHeight + 'px' }"
         >
-          <div class="grid-container">
+          <div class="grid grid-cols-[1fr_fit-content(80%)]">
             @for (dataElm of dataElms; track dataElm.myIdentifer) {
               <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
             }
@@ -85,52 +95,70 @@
 
 <ng-template #overviewNote let-note="note">
   <div
-    class="component-content is-large-size"
+    class="max-w-87.5 text-[12px]"
     [ngStyle]="{ 'max-width': 1000 + 'px', width: overViewNoteWidth + 'px' }"
     [ngClass]="pointerEventsStyle"
   >
-    <div class="component-title title-background" [ngStyle]="{ 'max-width': 1000 + 'px' }">{{ note.title }}</div>
     <div
-      class="component-background text-note-container"
+      class="text-ui-text bg-ui-elevated border-ui-border-panel h-8 truncate border-x border-t border-solid px-[1em] text-[1em]/8"
+      [ngStyle]="{ 'max-width': 1000 + 'px' }"
+    >
+      {{ note.title }}
+    </div>
+    <div
+      class="bg-ui-panel border-ui-border-panel box-border max-h-100 w-full overflow-x-hidden overflow-y-auto border-x border-b border-solid px-[1.2em] py-[0.6em] leading-[1.8]"
       [ngStyle]="{ width: overViewNoteWidth + 'px', 'max-height': overViewNoteMaxHeight + 'px' }"
     >
       <div class="relative w-full">
-        <div class="is-fill">
+        <div class="absolute inset-0">
           <textarea
-            class="textarea"
+            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border size-full resize-none overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap text-[inherit] outline-none"
             name="note-text"
             name="note-text"
             [(ngModel)]="note.text"
             spellcheck="false"
           ></textarea>
         </div>
-        <div class="textarea-spacer">{{ note.text }}</div>
+        <div
+          class="invisible h-auto min-h-6 min-w-12 overflow-hidden [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap"
+        >
+          {{ note.text }}
+        </div>
       </div>
     </div>
   </div>
 </ng-template>
 
 <ng-template #overviewCharacter let-character="character">
-  <div class="component-content character-grid-container is-middle-size">
-    <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
+  <div class="grid max-w-67.5 grid-cols-[min-content_auto] grid-rows-[1fr_auto_auto_auto] text-[12px]">
+    <div
+      class="bg-ui-elevated border-ui-border-panel border-x border-t border-solid [grid-area:3/1/4/3]"
+      [ngClass]="pointerEventsStyle"
+    ></div>
     @if (hasImage()) {
-      <div class="image-area character-image-box" [ngClass]="pointerEventsStyle">
-        <img class="character-image" [src]="imageUrl() | safe: 'resourceUrl'" />
+      <div
+        class="z-1 -mb-1.5 ml-2 max-h-30 w-25 overflow-hidden rounded-2xl align-bottom [grid-area:1/1/4/2]"
+        [ngClass]="pointerEventsStyle"
+      >
+        <img class="w-full p-0 align-bottom" [src]="imageUrl() | safe: 'resourceUrl'" />
       </div>
     }
-    <div class="title-area component-title" [ngClass]="pointerEventsStyle">
+    <div class="text-ui-text h-8 truncate px-[1em] text-[1em]/8 [grid-area:3/2/4/3]" [ngClass]="pointerEventsStyle">
       {{ character.name }}
     </div>
-    <div class="void-area is-pointer-events-none"></div>
-    <div class="dataElm-area component-background" [ngClass]="pointerEventsStyle">
+    <div class="pointer-events-none [grid-area:1/2/3/3]"></div>
+    <div
+      class="bg-ui-panel border-ui-border-panel border-b border-solid [grid-area:4/1/5/3]"
+      [ngClass]="pointerEventsStyle"
+    >
       @if (hasDataElms) {
         <div
-          class="grid-container-root"
+          class="border-ui-border-panel box-border max-h-62.5 overflow-x-hidden overflow-y-auto border-x border-solid px-[1.2em] py-[0.5em]"
           [ngStyle]="{ width: overViewCharacterWidth + 'px', 'max-height': overViewCharacterMaxHeight + 'px' }"
         >
           @for (dataElm of inventoryDataElms; track dataElm.myIdentifer) {
             @if (dataElm && dataElm.name !== newLineString) {
-              <div class="grid-container">
+              <div class="grid grid-cols-[1fr_fit-content(80%)]">
                 <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
               </div>
             }
@@ -142,9 +170,12 @@
 </ng-template>
 
 <ng-template #overviewDiceSymbol let-dice="dice">
-  <div class="component-content character-grid-container is-middle-size">
-    <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
-    <div class="title-area component-title" [ngClass]="pointerEventsStyle">
+  <div class="grid max-w-67.5 grid-cols-[min-content_auto] grid-rows-[1fr_auto_auto_auto] text-[12px]">
+    <div
+      class="bg-ui-elevated border-ui-border-panel border-x border-t border-solid [grid-area:3/1/4/3]"
+      [ngClass]="pointerEventsStyle"
+    ></div>
+    <div class="text-ui-text h-8 truncate px-[1em] text-[1em]/8 [grid-area:3/2/4/3]" [ngClass]="pointerEventsStyle">
       {{ dice.name }}:
       @if (dice.isVisible) {
         {{ dice.face }}
@@ -153,24 +184,40 @@
       }
     </div>
     @if (dice.hasOwner && dice.ownerName) {
-      <div class="owner-name-area component-owner" [ngClass]="pointerEventsStyle">
-        <div class="owner-tag">{{ dice.ownerName }}</div>
+      <div
+        class="text-ui-muted box-border max-w-full overflow-hidden px-[1em] py-0.5 text-right align-middle text-[0.8em] [grid-area:2/2/3/3]"
+        [ngClass]="pointerEventsStyle"
+      >
+        <div
+          class="text-ui-muted bg-ui-elevated mr-0 ml-auto box-border w-min max-w-full truncate rounded-md px-2.25 py-0.75"
+        >
+          {{ dice.ownerName }}
+        </div>
       </div>
     }
     @if (hasImage()) {
-      <div class="image-area character-image-box" [ngClass]="pointerEventsStyle">
+      <div
+        class="z-1 -mb-1.5 ml-2 max-h-30 w-25 overflow-hidden rounded-2xl align-bottom [grid-area:1/1/4/2]"
+        [ngClass]="pointerEventsStyle"
+      >
         <img
-          class="character-image"
-          [ngClass]="{ 'is-black-mask': !dice.isVisible, 'is-harf-black-mask': dice.isMine }"
+          class="w-full p-0 align-bottom"
+          [class.filter-[brightness(0)]]="!dice.isVisible"
+          [class.[filter:brightness(0.5)]]="dice.isMine"
           [src]="imageUrl() | safe: 'resourceUrl'"
         />
       </div>
     }
-    <div class="void-area is-pointer-events-none"></div>
-    <div class="dataElm-area component-background" [ngClass]="pointerEventsStyle">
+    <div class="pointer-events-none [grid-area:1/2/3/3]"></div>
+    <div
+      class="bg-ui-panel border-ui-border-panel border-b border-solid [grid-area:4/1/5/3]"
+      [ngClass]="pointerEventsStyle"
+    >
       @if (hasDataElms && dice.isVisible) {
-        <div class="grid-container-root">
-          <div class="grid-container">
+        <div
+          class="border-ui-border-panel box-border max-h-62.5 overflow-x-hidden overflow-y-auto border-x border-solid px-[1.2em] py-[0.5em]"
+        >
+          <div class="grid grid-cols-[1fr_fit-content(80%)]">
             @for (dataElm of dataElms; track dataElm.myIdentifer) {
               @if (dataElm && dataElm.name !== newLineString) {
                 <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
@@ -184,22 +231,28 @@
 </ng-template>
 
 <ng-template #overviewRange let-range="range">
-  <div class="component-content character-grid-container is-middle-size">
-    <div class="title-bg-area title-background" [ngClass]="pointerEventsStyle"></div>
-    <div class="title-area component-title" [ngClass]="pointerEventsStyle">
+  <div class="grid max-w-67.5 grid-cols-[min-content_auto] grid-rows-[1fr_auto_auto_auto] text-[12px]">
+    <div
+      class="bg-ui-elevated border-ui-border-panel border-x border-t border-solid [grid-area:3/1/4/3]"
+      [ngClass]="pointerEventsStyle"
+    ></div>
+    <div class="text-ui-text h-8 truncate px-[1em] text-[1em]/8 [grid-area:3/2/4/3]" [ngClass]="pointerEventsStyle">
       {{ range.name }}
     </div>
-    <div class="void-area is-pointer-events-none"></div>
-    <div class="dataElm-area component-background" [ngClass]="pointerEventsStyle">
+    <div class="pointer-events-none [grid-area:1/2/3/3]"></div>
+    <div
+      class="bg-ui-panel border-ui-border-panel border-b border-solid [grid-area:4/1/5/3]"
+      [ngClass]="pointerEventsStyle"
+    >
       @if (hasRangeElms) {
         <div
-          class="grid-container-root"
+          class="border-ui-border-panel box-border max-h-62.5 overflow-x-hidden overflow-y-auto border-x border-solid px-[1.2em] py-[0.5em]"
           [ngStyle]="{ width: overViewCharacterWidth + 'px', 'max-height': overViewCharacterMaxHeight + 'px' }"
         >
           @for (dataElm of rangeElms; track dataElm.myIdentifer) {
             @if (dataElm && dataElm.name !== 'name') {
               @if ((range.type !== 'CIRCLE' && range.type !== 'SQUARE') || dataElm.name !== 'width') {
-                <div class="grid-container">
+                <div class="grid grid-cols-[1fr_fit-content(80%)]">
                   <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: dataElm }"></ng-container>
                 </div>
               }
@@ -213,13 +266,13 @@
 
 <ng-template #dataElement let-dataElm="dataElm">
   @if (dataElm.children.length) {
-    <div class="section pt-[0.5em]">
+    <div class="col-span-2 box-border max-w-full pt-[0.5em] leading-6">
       @if (dataElm.name.trim()) {
-        <div class="section-text">{{ dataElm.name }}</div>
+        <div class="truncate text-[1.1em] font-bold">{{ dataElm.name }}</div>
       }
       @if (shouldRenderTableView(dataElm)) {
-        <div class="overview-table-wrap">
-          <table class="overview-table">
+        <div class="overview-table-wrap mt-1 max-w-full overflow-x-auto [scrollbar-width:thin]">
+          <table class="overview-table text-ui-text w-max min-w-full border-collapse text-[0.95em]">
             <thead>
               <tr>
                 <th class="overview-table-row-heading"></th>
@@ -236,11 +289,12 @@
                     >
                       @if (isGapTableColumn(column)) {
                         <label
-                          class="overview-table-gap-toggle"
+                          class="overview-table-gap-toggle inline-flex min-h-[1.35rem] w-full min-w-0 cursor-pointer items-center justify-center border-none bg-transparent p-0"
                           [title]="getGapTableColumnTitle(dataElm, column)"
                           (click)="$event.stopPropagation()"
                         >
                           <input
+                            class="m-0 size-3.25 [accent-color:var(--ui-accent)]"
                             type="checkbox"
                             [checked]="isGapTableColumnActive(dataElm, column)"
                             (change)="setGapTableColumnActive(dataElm, column, $event)"
@@ -277,8 +331,9 @@
                     >
                       @if (getTableCell(rowElement, column.name); as cell) {
                         @if (cell.fieldType === 'check') {
-                          <label class="overview-table-check-cell">
+                          <label class="inline-flex max-w-full min-w-0 items-center gap-1">
                             <input
+                              class="m-0 flex-none"
                               type="checkbox"
                               [checked]="isTableCheckCellChecked(cell)"
                               (change)="toggleTableCheckCell(cell, $event)"
@@ -289,13 +344,13 @@
                           </label>
                         } @else if (cell.fieldType === 'image' && getTableCellImageUrl(cell)) {
                           <img
-                            class="overview-table-image"
+                            class="block size-12 rounded-sm object-cover"
                             [src]="getTableCellImageUrl(cell) | safe: 'resourceUrl'"
                             alt=""
                           />
                         } @else if (cell.fieldType === 'select') {
                           <select
-                            class="overview-table-select"
+                            class="overview-table-select text-ui-text hover:bg-ui-input focus:bg-ui-input w-full min-w-14 rounded-xs border-none bg-transparent font-[inherit] outline-none"
                             [value]="cell.value"
                             (change)="setTableSelectCellValueFromEvent(cell, $event)"
                           >
@@ -318,7 +373,7 @@
           </table>
         </div>
       } @else {
-        <div class="grid-container indetnt">
+        <div class="grid grid-cols-[1fr_fit-content(80%)] pl-2">
           @for (childElm of dataElm.children; track childElm.myIdentifer) {
             <ng-container *ngTemplateOutlet="dataElement; context: { dataElm: childElm }"></ng-container>
           }
@@ -328,7 +383,7 @@
   } @else {
     @switch (dataElm.type) {
       @case ('note') {
-        <div class="section">
+        <div class="col-span-2 box-border max-w-full leading-6">
           <div>
             {{ dataElm.name }}
             <span [hidden]="!isUrlText(dataElm.value)">
@@ -339,10 +394,10 @@
               />
             </span>
           </div>
-          <div class="note relative">
-            <div class="is-fill">
+          <div class="relative ml-2 text-[1em] leading-[1.8]">
+            <div class="absolute inset-0">
               <textarea
-                class="textarea"
+                class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border size-full resize-none overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap text-[inherit] outline-none"
                 name="data-value"
                 name="data-value"
                 [(ngModel)]="dataElm.value"
@@ -351,32 +406,39 @@
                 [hidden]="!isEditUrl(dataElm.myIdentifer) && isUrlText(dataElm.value)"
               ></textarea>
               <span
-                class="textarea-url"
+                class="text-ui-text box-border size-full overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap text-[inherit] outline-none"
                 [innerHTML]="escapeHtml(dataElm.value) | linkify"
                 [hidden]="isEditUrl(dataElm.myIdentifer) || !isUrlText(dataElm.value)"
               ></span>
             </div>
-            <div class="textarea-spacer">{{ dataElm.value }}</div>
+            <div
+              class="invisible h-auto min-h-6 min-w-12 overflow-hidden [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap"
+            >
+              {{ dataElm.value }}
+            </div>
           </div>
         </div>
       }
       @case ('markdown') {
-        <div class="section">
+        <div class="col-span-2 box-border max-w-full leading-6">
           <div>{{ dataElm.name }}</div>
-          <div class="note relative">
-            <div class="is-fill">
+          <div class="relative ml-2 text-[1em] leading-[1.8]">
+            <div class="absolute inset-0">
               <span
                 class="textarea-markdown"
                 [innerHTML]="escapeHtmlMarkDown(dataElm.value, dataElm.myIdentifer)"
               ></span>
             </div>
-            <div class="textarea-spacer" [innerHTML]="escapeHtmlMarkDown(dataElm.value, dataElm.myIdentifer)"></div>
+            <div
+              class="invisible h-auto min-h-6 min-w-12 overflow-hidden [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap"
+              [innerHTML]="escapeHtmlMarkDown(dataElm.value, dataElm.myIdentifer)"
+            ></div>
           </div>
         </div>
       }
       @case ('check') {
-        <div class="tag">{{ dataElm.name }}</div>
-        <div class="value">
+        <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
+        <div class="box-border truncate text-right text-[1.2em]/6">
           @if (dataElm.value !== 0) {
             <input type="checkbox" checked (click)="dataElm.value = 0" />
           } @else {
@@ -385,11 +447,11 @@
         </div>
       }
       @case ('numberResource') {
-        <div class="tag">{{ dataElm.name }}</div>
-        <div class="value resource-value">
-          <div class="resource-value-current">
+        <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
+        <div class="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1 truncate text-right text-[1.2em]/6">
+          <div class="min-w-0">
             <input
-              class="input"
+              class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 [appearance:textfield] rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] font-bold text-[inherit] outline-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
               type="number"
               [style.color]="getPopupCurrentValueColor(dataElm)"
               size="1"
@@ -397,25 +459,34 @@
               [(ngModel)]="dataElm.currentValue"
             />
           </div>
-          <span>/</span>
-          <span>{{ dataElm.value }}</span>
+          <span class="text-ui-text font-bold">/</span>
+          <span class="text-ui-text font-bold">{{ dataElm.value }}</span>
         </div>
       }
       @default {
-        <div class="tag">{{ dataElm.name }}</div>
-        <div class="value">
-          <div class="hidden-spacer">{{ dataElm.value }}</div>
-          <input class="input" size="1" name="data-value" name="data-value" [(ngModel)]="dataElm.value" />
+        <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
+        <div class="box-border truncate text-right text-[1.2em]/6">
+          <div class="invisible h-0 min-w-12 overflow-hidden whitespace-pre-wrap">{{ dataElm.value }}</div>
+          <input
+            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] text-[inherit] outline-none"
+            size="1"
+            name="data-value"
+            name="data-value"
+            [(ngModel)]="dataElm.value"
+          />
         </div>
       }
     }
-    <div class="section border"></div>
+    <div class="border-ui-border-panel col-span-2 box-border max-w-full border-b border-dotted leading-6"></div>
   }
 </ng-template>
 
 <ng-template #imageView>
-  <div class="image-view-background is-fill fade-in" (click)="chanageImageView(false)">
-    <div class="close-button is-pointer-events-none"><i class="material-icons">close</i></div>
-    <img class="contain-image" [src]="imageUrl() | safe: 'resourceUrl'" />
+  <div
+    class="text-ui-text animate-fade-in absolute inset-0 z-9900 bg-[color-mix(in_srgb,var(--ui-panel-bg)_80%,transparent)]"
+    (click)="chanageImageView(false)"
+  >
+    <div class="pointer-events-none absolute top-4 right-4"><i class="material-icons text-[36px]">close</i></div>
+    <img class="box-border size-full object-contain p-4 align-bottom" [src]="imageUrl() | safe: 'resourceUrl'" />
   </div>
 </ng-template>

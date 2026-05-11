@@ -219,6 +219,78 @@
   white-space: nowrap;
 }
 
+/* overview-panel の独自テーブル表示。.overview-table を親マーカーに、
+   .overview-table-* 系のサブマーカーは overview-panel.component.spec.ts の
+   querySelector ターゲットとして spec 側で参照されている (例: .overview-table,
+   .overview-table-column--gap, .overview-table-row-heading--group)。
+   動的トグル (--gap / --gap-active) は [class.X] バインディングで切替えるため
+   グローバル保持する。 */
+.overview-table th,
+.overview-table td {
+  min-width: 5.5rem;
+  max-width: 12rem;
+  padding: 3px 6px;
+  border: 1px solid color-mix(in srgb, var(--ui-panel-border) 82%, transparent);
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-table thead th {
+  color: var(--ui-text-muted);
+  font-weight: 700;
+}
+
+.overview-table-column-group {
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+.overview-table-row-heading {
+  min-width: 3rem !important;
+  max-width: 5rem !important;
+  color: var(--ui-text);
+}
+
+.overview-table-row-heading--group {
+  width: 1.5rem !important;
+  min-width: 1.5rem !important;
+  max-width: 2rem !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+.overview-table th.overview-table-column--gap,
+.overview-table td.overview-table-column--gap {
+  width: 1.75rem;
+  min-width: 1.75rem;
+  max-width: 1.75rem;
+  padding-inline: 0;
+  background: color-mix(in srgb, var(--ui-surface) 76%, var(--ui-elevated));
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.overview-table thead th.overview-table-column--gap {
+  color: var(--ui-accent);
+}
+
+.overview-table th.overview-table-column--gap-active,
+.overview-table td.overview-table-column--gap-active {
+  border-color: color-mix(in srgb, var(--ui-accent) 76%, var(--ui-panel-border));
+  background: color-mix(in srgb, var(--ui-accent) 72%, var(--ui-elevated)) !important;
+  box-shadow:
+    inset 0 0 0 9999px color-mix(in srgb, var(--ui-accent) 18%, transparent),
+    inset 2px 0 0 var(--ui-accent),
+    inset -2px 0 0 var(--ui-accent);
+}
+
 /* mini-jukebox の再生中ディスクが回るアニメーション (4s)、
    および各種ローディングアイコン用 (1s)。Tailwind の animate-spin /
    animate-disc-spin ユーティリティから参照される。 */

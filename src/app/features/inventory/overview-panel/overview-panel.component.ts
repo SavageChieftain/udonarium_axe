@@ -39,7 +39,6 @@ type OverviewTableColumnHeaderGroup = { key: string; label: string; span: number
 @Component({
   selector: 'overview-panel',
   templateUrl: './overview-panel.component.html',
-  styleUrls: ['./overview-panel.component.css', './overview-panel-table.css', './overview-panel-form.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkifyPipe, SafePipe],
   host: {
@@ -391,7 +390,7 @@ export class OverviewPanelComponent {
   }
 
   get pointerEventsStyle(): Record<string, boolean> {
-    return { 'is-pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging };
+    return { 'pointer-events-auto': !this.isPointerDragging, 'pointer-events-none': this.isPointerDragging };
   }
 
   isOpenImageView: boolean = false;
