@@ -19,7 +19,6 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'context-menu',
   templateUrl: './context-menu.component.html',
-  styleUrls: ['./context-menu.component.css'],
   imports: [NgClass, FormsModule, NgTemplateOutlet],
   host: { class: 'block', '(contextmenu)': 'onContextMenu($event)' },
 })
