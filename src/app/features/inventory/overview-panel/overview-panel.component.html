@@ -112,7 +112,7 @@
       <div class="relative w-full">
         <div class="absolute inset-0">
           <textarea
-            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border size-full resize-none overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap text-[inherit] outline-none"
+            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border size-full resize-none overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] wrap-anywhere [word-break:break-word] whitespace-pre-wrap outline-none"
             name="note-text"
             name="note-text"
             [(ngModel)]="note.text"
@@ -120,7 +120,7 @@
           ></textarea>
         </div>
         <div
-          class="invisible h-auto min-h-6 min-w-12 overflow-hidden [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap"
+          class="invisible h-auto min-h-6 min-w-12 overflow-hidden wrap-anywhere [word-break:break-word] whitespace-pre-wrap"
         >
           {{ note.text }}
         </div>
@@ -397,7 +397,7 @@
           <div class="relative ml-2 text-[1em] leading-[1.8]">
             <div class="absolute inset-0">
               <textarea
-                class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border size-full resize-none overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap text-[inherit] outline-none"
+                class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border size-full resize-none overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] wrap-anywhere [word-break:break-word] whitespace-pre-wrap outline-none"
                 name="data-value"
                 name="data-value"
                 [(ngModel)]="dataElm.value"
@@ -406,13 +406,13 @@
                 [hidden]="!isEditUrl(dataElm.myIdentifer) && isUrlText(dataElm.value)"
               ></textarea>
               <span
-                class="text-ui-text box-border size-full overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap text-[inherit] outline-none"
+                class="text-ui-text box-border size-full overflow-hidden rounded-xs border-none bg-transparent p-0 font-[inherit] leading-[inherit] wrap-anywhere [word-break:break-word] whitespace-pre-wrap outline-none"
                 [innerHTML]="escapeHtml(dataElm.value) | linkify"
                 [hidden]="isEditUrl(dataElm.myIdentifer) || !isUrlText(dataElm.value)"
               ></span>
             </div>
             <div
-              class="invisible h-auto min-h-6 min-w-12 overflow-hidden [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap"
+              class="invisible h-auto min-h-6 min-w-12 overflow-hidden wrap-anywhere [word-break:break-word] whitespace-pre-wrap"
             >
               {{ dataElm.value }}
             </div>
@@ -430,7 +430,7 @@
               ></span>
             </div>
             <div
-              class="invisible h-auto min-h-6 min-w-12 overflow-hidden [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap"
+              class="invisible h-auto min-h-6 min-w-12 overflow-hidden wrap-break-word [word-break:break-word] whitespace-pre-wrap"
               [innerHTML]="escapeHtmlMarkDown(dataElm.value, dataElm.myIdentifer)"
             ></div>
           </div>
@@ -451,7 +451,7 @@
         <div class="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1 truncate text-right text-[1.2em]/6">
           <div class="min-w-0">
             <input
-              class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 [appearance:textfield] rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] font-bold text-[inherit] outline-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+              class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 [appearance:textfield] rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] font-bold outline-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
               type="number"
               [style.color]="getPopupCurrentValueColor(dataElm)"
               size="1"
@@ -468,7 +468,7 @@
         <div class="box-border truncate text-right text-[1.2em]/6">
           <div class="invisible h-0 min-w-12 overflow-hidden whitespace-pre-wrap">{{ dataElm.value }}</div>
           <input
-            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] text-[inherit] outline-none"
+            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] outline-none"
             size="1"
             name="data-value"
             name="data-value"
