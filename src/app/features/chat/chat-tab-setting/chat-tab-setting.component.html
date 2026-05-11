@@ -1,34 +1,46 @@
-<div class="tab-setting-layout">
+<div class="text-ui-text grid h-full grid-cols-[160px_1fr] overflow-hidden text-[13px]">
   <!-- ── 左カラム: タブリスト ── -->
-  <aside class="tab-list-col">
-    <div class="tab-list-header">
-      <span class="col-heading">チャットタブ</span>
-      <button type="button" class="icon-btn" title="タブを追加" (click)="create()">
+  <aside class="border-ui-border-panel bg-ui-panel flex flex-col overflow-hidden border-r border-solid">
+    <div
+      class="border-ui-border-panel flex flex-shrink-0 items-center justify-between border-b border-solid px-[10px] py-2"
+    >
+      <span class="text-ui-muted text-[11px] font-semibold tracking-[0.05em] uppercase">チャットタブ</span>
+      <button
+        type="button"
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+        title="タブを追加"
+        (click)="create()"
+      >
         <i class="material-icons">add</i>
       </button>
     </div>
 
-    <ul class="tab-list" role="listbox">
+    <ul class="m-0 flex-1 list-none overflow-y-auto px-0 py-1" role="listbox">
       @for (chatTab of chatTabs; track chatTab.identifier) {
         <li
-          class="tab-list-item"
-          [class.selected]="selectedTab()?.identifier === chatTab.identifier"
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text mx-1 my-0 flex cursor-pointer items-center gap-[6px] rounded-[4px] px-[10px] py-[6px] transition-colors"
+          [class.!bg-ui-accent-bg]="selectedTab()?.identifier === chatTab.identifier"
+          [class.!text-ui-accent]="selectedTab()?.identifier === chatTab.identifier"
           (click)="onChangeSelectTab(chatTab.identifier)"
           role="option"
           [attr.aria-selected]="selectedTab()?.identifier === chatTab.identifier"
         >
-          <i class="material-icons tab-item-icon">chat_bubble_outline</i>
-          <span class="tab-item-name">{{ chatTab.name }}</span>
+          <i class="material-icons flex-shrink-0 text-[15px] opacity-70">chat_bubble_outline</i>
+          <span class="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap">{{ chatTab.name }}</span>
         </li>
       }
     </ul>
 
-    <div class="system-tab-info">
-      <button type="button" class="text-btn" (click)="onChangeSystemTab()">
+    <div class="border-ui-border-panel flex flex-shrink-0 flex-col gap-1 border-t border-solid p-2">
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-muted hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex w-full cursor-pointer items-center gap-1 border-none bg-transparent px-[6px] py-1 text-left text-[12px] transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[14px]"
+        (click)="onChangeSystemTab()"
+      >
         <i class="material-icons">settings_input_component</i>
         システム表示先を設定
       </button>
-      <div class="system-tab-current">
+      <div class="text-ui-dim flex items-center gap-1 px-1 text-[11px] [&_.material-icons]:text-[13px]">
         <i class="material-icons">info_outline</i>
         現在: {{ systemTab()?.name ?? '—' }}
       </div>
@@ -36,98 +48,175 @@
   </aside>
 
   <!-- ── 右カラム: タブ詳細 ── -->
-  <main class="tab-detail-col">
+  <main class="bg-ui-elevated flex flex-col gap-0 overflow-y-auto px-[14px] py-3">
     @if (isEmpty) {
-      <div class="empty-state">
+      <div
+        class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px] [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]"
+      >
         <i class="material-icons">tab</i>
         <p>チャットタブが存在しません</p>
-        <button type="button" class="primary-btn" (click)="create()">タブを作成</button>
+        <button
+          type="button"
+          class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+          (click)="create()"
+        >
+          タブを作成
+        </button>
       </div>
     }
 
     @if (!isEmpty && selectedTab()) {
       <!-- タブ名 -->
-      <div class="detail-section">
-        <label class="field-label">タブ名</label>
-        <div class="name-row">
+      <div class="mb-[2px] flex flex-col gap-[6px]">
+        <label class="text-ui-muted mb-[2px] text-[11px] font-semibold tracking-[0.04em] uppercase">タブ名</label>
+        <div class="flex items-center gap-[6px]">
           <input
-            class="name-input"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent min-w-0 flex-1 border border-solid px-2 py-[5px] text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             name="tab-name"
             [(ngModel)]="tabName"
             placeholder="タブ名を入力"
             [attr.disabled]="!isEditable ? '' : null"
           />
-          <button type="button" class="icon-btn" title="上に移動" (click)="upTabIndex()" [disabled]="isDeleted">
+          <button
+            type="button"
+            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+            title="上に移動"
+            (click)="upTabIndex()"
+            [disabled]="isDeleted"
+          >
             <i class="material-icons">arrow_upward</i>
           </button>
-          <button type="button" class="icon-btn" title="下に移動" (click)="downTabIndex()" [disabled]="isDeleted">
+          <button
+            type="button"
+            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:border-ui-accent hover:text-ui-text m-0 inline-flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]"
+            title="下に移動"
+            (click)="downTabIndex()"
+            [disabled]="isDeleted"
+          >
             <i class="material-icons">arrow_downward</i>
           </button>
         </div>
       </div>
 
       @if (isDeleted) {
-        <div class="deleted-notice">
+        <div
+          class="rounded-ui-sm flex flex-wrap items-center gap-2 border border-solid border-[#e67e2244] bg-[#e67e2222] px-[10px] py-2 text-[12px] text-[#e67e22] [&_.material-icons]:text-[16px]"
+        >
           <i class="material-icons">undo</i>
           このタブは削除されています
-          <button type="button" class="primary-btn" (click)="restore()">元に戻す</button>
+          <button
+            type="button"
+            class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+            (click)="restore()"
+          >
+            元に戻す
+          </button>
         </div>
       }
 
       @if (!isDeleted) {
         <!-- 保存 / 削除 -->
-        <div class="detail-section">
-          <div class="action-row">
-            <button type="button" class="primary-btn save-btn" [disabled]="isSaving()" (click)="save()">
+        <div class="mb-[2px] flex flex-col gap-[6px]">
+          <div class="flex flex-wrap items-center gap-[6px]">
+            <button
+              type="button"
+              class="save-btn rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border-none px-3 py-[5px] text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]"
+              [disabled]="isSaving()"
+              (click)="save()"
+            >
               @if (isSaving()) {
-                <i class="material-icons spin">sync</i>{{ progressPercent() }}%
+                <i class="material-icons animate-spin">sync</i>{{ progressPercent() }}%
               } @else {
                 <i class="material-icons">save</i>保存
               }
             </button>
-            <label class="check-label">
-              <input type="checkbox" name="allow-delete-tab" [(ngModel)]="allowDeleteTab" />
+            <label
+              class="text-ui-muted inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] text-[12px] select-none"
+            >
+              <input
+                type="checkbox"
+                class="m-0 h-[13px] w-[13px] cursor-pointer [accent-color:var(--ui-accent)]"
+                name="allow-delete-tab"
+                [(ngModel)]="allowDeleteTab"
+              />
               削除を有効化
             </label>
-            <button type="button" class="danger-btn" [disabled]="!allowDeleteTab" (click)="delete()">
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+              [disabled]="!allowDeleteTab"
+              (click)="delete()"
+            >
               <i class="material-icons">delete</i>タブ削除
             </button>
           </div>
         </div>
 
-        <hr class="divider" />
+        <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
         <!-- ログ保存 -->
-        <div class="detail-section">
-          <div class="section-label">ログ保存</div>
-          <div class="log-row">
-            <button type="button" class="secondary-btn" (click)="saveLog()">
+        <div class="mb-[2px] flex flex-col gap-[6px]">
+          <div class="text-ui-muted mb-[2px] text-[11px] font-semibold tracking-[0.04em] uppercase">ログ保存</div>
+          <div class="flex flex-wrap items-center gap-[6px]">
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]"
+              (click)="saveLog()"
+            >
               <i class="material-icons">download</i>このタブ
             </button>
-            <button type="button" class="secondary-btn" (click)="saveAllLog()">
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]"
+              (click)="saveAllLog()"
+            >
               <i class="material-icons">download_for_offline</i>全タブ
             </button>
           </div>
-          <label class="check-label">
-            <input type="checkbox" name="mode-coc-log" [(ngModel)]="modeCocLog" />
+          <label
+            class="text-ui-muted inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] text-[12px] select-none"
+          >
+            <input
+              type="checkbox"
+              class="m-0 h-[13px] w-[13px] cursor-pointer [accent-color:var(--ui-accent)]"
+              name="mode-coc-log"
+              [(ngModel)]="modeCocLog"
+            />
             CoCログ形式で出力
           </label>
         </div>
 
-        <hr class="divider" />
+        <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
         <!-- ログ消去 -->
-        <div class="detail-section">
-          <div class="section-label">ログ消去</div>
-          <div class="log-row">
-            <label class="check-label">
-              <input type="checkbox" name="allow-delete-log" [(ngModel)]="allowDeleteLog" />
+        <div class="mb-[2px] flex flex-col gap-[6px]">
+          <div class="text-ui-muted mb-[2px] text-[11px] font-semibold tracking-[0.04em] uppercase">ログ消去</div>
+          <div class="flex flex-wrap items-center gap-[6px]">
+            <label
+              class="text-ui-muted inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] text-[12px] select-none"
+            >
+              <input
+                type="checkbox"
+                class="m-0 h-[13px] w-[13px] cursor-pointer [accent-color:var(--ui-accent)]"
+                name="allow-delete-log"
+                [(ngModel)]="allowDeleteLog"
+              />
               消去を有効化
             </label>
-            <button type="button" class="danger-btn" [disabled]="!allowDeleteLog" (click)="deleteLog()">
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+              [disabled]="!allowDeleteLog"
+              (click)="deleteLog()"
+            >
               <i class="material-icons">delete_sweep</i>このタブ
             </button>
-            <button type="button" class="danger-btn" [disabled]="!allowDeleteLog" (click)="deleteLogALL()">
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger m-0 inline-flex flex-shrink-0 cursor-pointer items-center gap-[5px] border border-solid bg-transparent px-[10px] py-[5px] text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]"
+              [disabled]="!allowDeleteLog"
+              (click)="deleteLogALL()"
+            >
               <i class="material-icons">delete_forever</i>全タブ
             </button>
           </div>
