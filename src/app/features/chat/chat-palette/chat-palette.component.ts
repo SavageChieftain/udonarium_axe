@@ -14,12 +14,14 @@ import { FormsModule } from '@angular/forms';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement } from '@axe/domain/data/data-element';
 import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatPalette, PaletteIndex } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
 import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
@@ -43,7 +45,7 @@ export interface PaletteRow {
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
   host: { class: 'block h-full' },
-  imports: [FormsModule, BadgeComponent, ChatInputComponent],
+  imports: [FormsModule, BadgeComponent, ChatInputComponent, GameDataElementComponent],
 })
 export class ChatPaletteComponent {
   private readonly contextMenuService = inject(ContextMenuService);
@@ -123,6 +125,8 @@ export class ChatPaletteComponent {
 
   readonly isEdit = signal(false);
   readonly editPalette = signal('');
+  /** 表示モード: 'palette' = チャットパレット、'character' = キャラクターのゲームデータ情報 (読み取り専用) */
+  readonly viewMode = signal<'palette' | 'character'>('palette');
 
   /** 全タブの unreadLength 変化に反応させるための computed signal。 */
   readonly chatTabsVersion = computed(() => {
@@ -373,6 +377,21 @@ export class ChatPaletteComponent {
   resetPaletteSelect() {
     this.selectedLine.set(-1);
   }
+
+  /** チャットパレット表示とキャラクターデータ表示を切り替える */
+  toggleCharacterDataView() {
+    // 編集中だった場合は確定して抜けてから切替（編集状態を引きずらない）
+    if (this.isEdit()) this.toggleEditMode();
+    this.viewMode.update((m) => (m === 'palette' ? 'character' : 'palette'));
+  }
+
+  /** キャラクターデータ表示の対象となる detailDataElement.children */
+  readonly characterDetailChildren = computed<DataElement[]>(() => {
+    const char = this.character();
+    if (!char?.detailDataElement) return [];
+    this.objectChange.versionOf(char.detailDataElement.identifier)();
+    return [...char.detailDataElement.children];
+  });
 
   toggleEditMode() {
     this.isEdit.update((v) => !v);

@@ -62,37 +62,66 @@
   </div>
 
   <div class="bg-ui-panel border-ui-border-panel flex grow-0 items-center gap-1 border-y border-solid px-1 py-0.5">
-    <button
-      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
-      (click)="indexBtn()"
-      title="見出し一覧へジャンプ"
-    >
-      <i class="material-icons">bookmarks</i>見出し
-    </button>
-    <span class="flex-1"></span>
-    @if (isEdit()) {
-      <span
-        class="text-ui-accent border-ui-accent bg-ui-accent-bg inline-flex items-center gap-0.5 rounded-[10px] border border-solid px-1.75 py-px text-[0.72em] select-none [&_.material-icons]:text-base!"
+    @if (viewMode() === 'palette') {
+      <button
+        class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
+        (click)="indexBtn()"
+        title="見出し一覧へジャンプ"
       >
-        <i class="material-icons">edit</i>編集中
+        <i class="material-icons">bookmarks</i>見出し
+      </button>
+      <button
+        class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
+        (click)="toggleCharacterDataView()"
+        title="キャラクターのゲームデータを表示"
+      >
+        <i class="material-icons">badge</i>キャラ情報
+      </button>
+    } @else {
+      <button
+        class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
+        (click)="toggleCharacterDataView()"
+        title="チャットパレットに戻る"
+      >
+        <i class="material-icons">arrow_back</i>パレットに戻る
+      </button>
+    }
+    <span class="flex-1"></span>
+    @if (viewMode() === 'palette') {
+      @if (isEdit()) {
+        <span
+          class="text-ui-accent border-ui-accent bg-ui-accent-bg inline-flex items-center gap-0.5 rounded-[10px] border border-solid px-1.75 py-px text-[0.72em] select-none [&_.material-icons]:text-base!"
+        >
+          <i class="material-icons">edit</i>編集中
+        </span>
+      }
+      <button
+        class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
+        [class.bg-ui-accent-bg!]="isEdit()"
+        [class.border-ui-accent!]="isEdit()"
+        [class.text-ui-accent!]="isEdit()"
+        (click)="toggleEditMode()"
+      >
+        @if (!isEdit()) {
+          <i class="material-icons">edit</i>編集
+        } @else {
+          <i class="material-icons">check</i>確定
+        }
+      </button>
+    } @else {
+      <span
+        class="text-ui-muted inline-flex items-center gap-0.5 rounded-[10px] px-1.75 py-px text-[0.72em] select-none [&_.material-icons]:text-base!"
+      >
+        <i class="material-icons">visibility</i>読み取り専用
       </span>
     }
-    <button
-      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
-      [class.bg-ui-accent-bg!]="isEdit()"
-      [class.border-ui-accent!]="isEdit()"
-      [class.text-ui-accent!]="isEdit()"
-      (click)="toggleEditMode()"
-    >
-      @if (!isEdit()) {
-        <i class="material-icons">edit</i>編集
-      } @else {
-        <i class="material-icons">check</i>確定
-      }
-    </button>
   </div>
 
-  <div [hidden]="isEdit()" class="box-border h-0 min-h-25 w-full grow overflow-y-auto font-sans" #paletteList>
+  <div
+    [hidden]="isEdit() || viewMode() !== 'palette'"
+    class="box-border h-0 min-h-25 w-full grow overflow-y-auto font-sans"
+    #paletteList
+  >
     @for (row of paletteRows(); track row.lineIndex) {
       @if (row.kind === 'heading') {
         <div
@@ -126,7 +155,36 @@
     }
   </div>
 
-  <div [hidden]="!isEdit()" class="h-0 min-h-25 grow">
+  @if (viewMode() === 'character') {
+    <div class="box-border h-0 min-h-25 w-full grow overflow-y-auto font-sans">
+      @if (character(); as char) {
+        @if (characterDetailChildren().length) {
+          @for (childElement of characterDetailChildren(); track childElement.identifier) {
+            <div
+              class="bg-ui-elevated border-ui-border-panel text-ui-text rounded-ui-sm m-1 box-border border border-solid px-2.5 py-2"
+            >
+              <div class="box-border table w-full">
+                <div
+                  class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
+                  game-data-element
+                  [gameDataElement]="childElement"
+                  [isEdit]="false"
+                  [isTagLocked]="true"
+                  [isValueLocked]="true"
+                ></div>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="text-ui-dim p-4 text-center text-[0.8em] select-none">表示できる情報がありません</div>
+        }
+      } @else {
+        <div class="text-ui-dim p-4 text-center text-[0.8em] select-none">キャラクターが選択されていません</div>
+      }
+    </div>
+  }
+
+  <div [hidden]="!isEdit() || viewMode() !== 'palette'" class="h-0 min-h-25 grow">
     <textarea
       class="box-border size-full resize-none font-sans"
       name="edit-palette"
@@ -137,7 +195,7 @@
     ></textarea>
   </div>
 
-  @if (!isEdit()) {
+  @if (!isEdit() && viewMode() === 'palette') {
     <div
       class="text-ui-dim border-ui-border-panel grow-0 border-t border-solid px-1.5 py-0.5 text-center text-[0.68em] select-none"
     >
