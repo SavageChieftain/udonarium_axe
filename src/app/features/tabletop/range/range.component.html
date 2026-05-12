@@ -20,13 +20,13 @@
     >
       <div class="absolute" [style.top.px]="0" [style.left.px]="-1 * areaQuadrantSize * gridSize">
         <div [appTooltip]="range()">
-          <canvas class="absolute inset-0 m-auto block size-full" #gridCanvas></canvas>
-          <canvas class="absolute inset-0 m-auto block size-full" #rangeCanvas></canvas>
+          <canvas class="absolute inset-0 m-auto block" #gridCanvas></canvas>
+          <canvas class="absolute inset-0 m-auto block" #rangeCanvas></canvas>
         </div>
       </div>
     </div>
     <div
-      class="pointer-events-auto size-full transform-[rotateZ(0deg)] transform-3d"
+      class="pointer-events-auto absolute top-0 left-0 size-0 transform-[rotateZ(0deg)] overflow-visible transform-3d"
       appRotable
       [rotable.option]="rotableOption()"
       (rotable.ondragstart)="onMove()"
@@ -142,6 +142,6 @@
     [style.top.px]="0"
     [style.left.px]="-1 * areaQuadrantSize * gridSize"
   >
-    <canvas class="absolute inset-0 m-auto block size-full transform-3d" #centerPunch></canvas>
+    <canvas class="absolute inset-0 m-auto block transform-3d" #centerPunch></canvas>
   </div>
 </div>

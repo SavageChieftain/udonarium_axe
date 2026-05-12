@@ -1,4 +1,4 @@
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -51,7 +51,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'range',
   templateUrl: './range.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgClass, TooltipDirective, RotableDirective, NgStyle],
+  imports: [MovableDirective, TooltipDirective, RotableDirective, NgStyle],
   host: {
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',

@@ -1,4 +1,4 @@
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -36,7 +36,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'text-note',
   templateUrl: './text-note.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgClass, NgStyle, FormsModule, SafePipe],
+  imports: [MovableDirective, RotableDirective, NgStyle, FormsModule, SafePipe],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',

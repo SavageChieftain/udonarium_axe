@@ -1,4 +1,4 @@
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -34,9 +34,8 @@ import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service'
 @Component({
   selector: 'dice-symbol',
   templateUrl: './dice-symbol.component.html',
-  styleUrls: ['./dice-symbol.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
+  imports: [MovableDirective, RotableDirective, NgStyle, SafePipe],
   host: {
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',

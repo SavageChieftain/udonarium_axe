@@ -1,4 +1,4 @@
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -46,7 +46,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   selector: 'game-table-mask',
   templateUrl: './game-table-mask.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgClass, NgStyle, SafePipe],
+  imports: [MovableDirective, NgStyle, SafePipe],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
