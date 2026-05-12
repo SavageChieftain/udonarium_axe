@@ -1,65 +1,106 @@
 @if (diceSymbol) {
-  <div class="ds-sheet">
+  <div class="flex flex-col gap-4">
     <!-- 基本設定 -->
-    <section class="ds-section">
-      <h3 class="ds-section-title">
+    <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
+      <h3
+        class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
+      >
         <i class="material-icons">casino</i>
         基本設定
       </h3>
-      <div class="ds-row">
-        <label class="ds-label">名前</label>
-        <input class="ds-input" type="text" [(ngModel)]="name" />
+      <div class="mb-2 flex items-center gap-2 last:mb-0">
+        <label class="text-ui-muted min-w-22.5 text-[12px]">名前</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border min-w-0 flex-1 border px-2 py-1 text-[13px]"
+          type="text"
+          [(ngModel)]="name"
+        />
       </div>
-      <div class="ds-row">
-        <label class="ds-label">サイズ</label>
-        <input class="ds-input ds-input--narrow" type="number" min="1" max="10" [(ngModel)]="size" />
+      <div class="mb-2 flex items-center gap-2 last:mb-0">
+        <label class="text-ui-muted min-w-22.5 text-[12px]">サイズ</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border w-17.5 flex-none border px-2 py-1 text-[13px]"
+          type="number"
+          min="1"
+          max="10"
+          [(ngModel)]="size"
+        />
       </div>
     </section>
 
     <!-- コマ画像設定 -->
-    <section class="ds-section">
-      <h3 class="ds-section-title">
+    <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
+      <h3
+        class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
+      >
         <i class="material-icons">straighten</i>
         コマ画像設定
       </h3>
-      <div class="ds-row">
-        <label class="ds-label">高さを指定</label>
+      <div class="mb-2 flex items-center gap-2 last:mb-0">
+        <label class="text-ui-muted min-w-22.5 text-[12px]">高さを指定</label>
         <input type="checkbox" [(ngModel)]="specifyKomaImageFlag" />
       </div>
       @if (specifyKomaImageFlag) {
-        <div class="ds-row ds-row--indent">
-          <label class="ds-label">コマ高さ (px)</label>
-          <input class="ds-range" type="range" min="50" max="750" [(ngModel)]="komaImageHeight" />
-          <input class="ds-input ds-input--narrow" type="number" min="50" max="750" [(ngModel)]="komaImageHeight" />
+        <div class="mb-2 flex items-center gap-2 pl-3 last:mb-0">
+          <label class="text-ui-muted min-w-22.5 text-[12px]">コマ高さ (px)</label>
+          <input
+            class="accent-ui-accent min-w-0 flex-1"
+            type="range"
+            min="50"
+            max="750"
+            [(ngModel)]="komaImageHeight"
+          />
+          <input
+            class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border w-17.5 flex-none border px-2 py-1 text-[13px]"
+            type="number"
+            min="50"
+            max="750"
+            [(ngModel)]="komaImageHeight"
+          />
         </div>
       }
     </section>
 
     <!-- 面ごとの画像設定 -->
-    <section class="ds-section">
-      <h3 class="ds-section-title">
+    <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
+      <h3
+        class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
+      >
         <i class="material-icons">image</i>
         面ごとの画像設定
-        <span class="ds-hint"
+        <span class="text-ui-muted ml-auto text-[12px] font-normal"
           >現在の面: <strong>{{ diceSymbol.face }}</strong></span
         >
       </h3>
-      <div class="ds-faces-grid">
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-2">
         @for (face of faceImages(); track face.faceName) {
-          <div class="ds-face-card" [class.ds-face-card--current]="face.isCurrent" (click)="selectFace(face.faceName)">
-            <div class="ds-face-label">{{ face.faceName }}</div>
-            <div class="ds-face-image-wrap">
+          <div
+            class="border-ui-border-panel rounded-ui-sm bg-ui-panel hover:border-ui-accent flex cursor-pointer flex-col items-center gap-1 border-2 px-1.5 py-2 transition-[border-color,box-shadow] hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ui-accent)_20%,transparent)]"
+            [class.border-ui-accent]="face.isCurrent"
+            [class.bg-[color-mix(in_srgb,var(--ui-accent)_12%,var(--ui-panel-bg))]]="face.isCurrent"
+            (click)="selectFace(face.faceName)"
+          >
+            <div class="text-ui-text text-[12px] leading-none font-bold" [class.text-ui-accent!]="face.isCurrent">
+              {{ face.faceName }}
+            </div>
+            <div
+              class="border-ui-border-panel rounded-ui-sm bg-ui-input flex size-15 items-center justify-center overflow-hidden border"
+            >
               @if (face.imageUrl) {
-                <img class="ds-face-image" [src]="face.imageUrl | safe: 'resourceUrl'" alt="face {{ face.faceName }}" />
+                <img
+                  class="size-full object-contain"
+                  [src]="face.imageUrl | safe: 'resourceUrl'"
+                  alt="face {{ face.faceName }}"
+                />
               } @else {
-                <div class="ds-face-empty">
-                  <i class="material-icons">image_not_supported</i>
+                <div class="text-ui-muted flex size-full items-center justify-center">
+                  <i class="material-icons text-[28px]! opacity-40">image_not_supported</i>
                 </div>
               }
             </div>
-            <div class="ds-face-actions">
+            <div class="flex w-full items-center justify-center gap-1">
               <button
-                class="ds-btn ds-btn--primary ds-btn--set"
+                class="bg-ui-accent border-ui-accent rounded-ui-sm inline-flex min-w-0 flex-1 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap text-white transition-[background] hover:brightness-110 [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
                 type="button"
                 (click)="openFaceImageModal(face.faceName); $event.stopPropagation()"
                 title="画像を設定"
@@ -69,7 +110,7 @@
               </button>
               @if (face.imageUrl || hasDiceDefault()) {
                 <button
-                  class="ds-btn ds-btn--ghost ds-btn--clear"
+                  class="text-ui-muted border-ui-border-panel rounded-ui-sm hover:bg-ui-hover hover:text-ui-text inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-1.25 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap transition-[background] [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
                   type="button"
                   (click)="clearFaceImage(face.faceName); $event.stopPropagation()"
                   title="デフォルトに戻す"
@@ -84,12 +125,21 @@
     </section>
 
     <!-- 操作 -->
-    <section class="ds-section ds-section--actions">
-      <button class="ds-btn ds-btn--ghost" type="button" (click)="clone()">
+    <section class="flex justify-end gap-2">
+      <button
+        class="text-ui-muted border-ui-border-panel rounded-ui-sm hover:bg-ui-hover hover:text-ui-text inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-1.5 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap transition-[background] [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
+        type="button"
+        (click)="clone()"
+      >
         <i class="material-icons">content_copy</i>
         コピーを作る
       </button>
-      <button class="ds-btn ds-btn--primary" type="button" [disabled]="isSaving()" (click)="saveToXML()">
+      <button
+        class="bg-ui-accent border-ui-accent rounded-ui-sm inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap text-white transition-[background] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [disabled]="isSaving()"
+        (click)="saveToXML()"
+      >
         @if (isSaving()) {
           <i class="material-icons">hourglass_empty</i>
           保存中 {{ progressPercent() }}%

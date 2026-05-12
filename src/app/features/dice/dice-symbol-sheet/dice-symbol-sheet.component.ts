@@ -38,7 +38,7 @@ function getDiceImagePrefix(faces: string[]): string | null {
 @Component({
   selector: 'app-dice-symbol-sheet',
   templateUrl: './dice-symbol-sheet.component.html',
-  styleUrls: ['./dice-symbol-sheet.component.css'],
+  host: { class: 'block box-border h-full overflow-y-auto p-3 text-ui-text bg-ui-panel' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, SafePipe],
 })
