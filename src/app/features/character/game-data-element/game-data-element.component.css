@@ -30,63 +30,72 @@
   grid-template-columns: var(--gde-structure-width) minmax(6.5rem, 30%) minmax(0, 1fr);
 }
 
-:host(.elm-editing) .table-cell {
-  min-height: 32px;
-  padding-top: 3px;
-  padding-bottom: 3px;
-}
-
 :host + :host {
   margin-top: 2px;
-}
-
-:host(:not(.elm-editing)) .elm-name-cell {
-  border-left: none;
-  border-bottom: none;
-  background: transparent;
-}
-
-:host(.elm-editing) .elm-name-cell {
-  border-left: 0;
-}
-
-:host(:not(.elm-editing)) .elm-value-cell {
-  border-bottom: none;
-  background: transparent;
-}
-
-:host(.elm-editing) .elm-value-content {
-  grid-column: 1;
-  grid-row: 1;
-  max-height: 48px;
-  overflow: hidden;
-}
-
-:host(.elm-editing) .elm-value-content > input:not([type='range']):not([type='checkbox']),
-:host(.elm-editing) .elm-value-content > select,
-:host(.elm-editing) .elm-value-content > textarea {
-  height: 24px !important;
-  min-height: 24px;
-  max-height: 24px;
-  line-height: 18px;
-}
-
-:host(.elm-editing) .elm-value-content > textarea {
-  resize: none;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-:host(.elm-editing) .elm-value-content > input[type='checkbox'] {
-  width: 14px;
-  height: 14px;
-  margin: 0;
 }
 
 .elm-name-cell--hidden + .elm-value-cell {
   grid-column: 1 / -1;
   border-left: 2px solid var(--gde-accent-border);
   border-radius: var(--gde-radius-line);
+}
+
+input,
+button,
+textarea,
+select {
+  box-sizing: border-box;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ui-text);
+  font-family: inherit;
+  font-size: 1em;
+  outline: none;
+}
+
+input,
+textarea,
+select {
+  padding: 2px 4px;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 2px 4px;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
+}
+
+button:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+button .material-icons {
+  font-size: 16px;
+}
+
+button i {
+  font-size: 1rem;
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  background: var(--ui-hover);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background: var(--ui-input-bg);
+  box-shadow: 0 0 0 1px var(--ui-accent);
 }
 
 .portrait-button {
@@ -153,72 +162,4 @@
 .elm-markdown-view {
   max-width: min(560px, calc(60vw));
   overflow-x: auto;
-}
-
-input,
-button,
-textarea,
-select {
-  box-sizing: border-box;
-  border: none;
-  border-radius: 2px;
-  background: transparent;
-  color: var(--ui-text);
-  font-family: inherit;
-  font-size: 1em;
-  outline: none;
-}
-
-input,
-textarea,
-select {
-  padding: 2px 4px;
-}
-
-button {
-  display: inline-flex;
-  align-items: center;
-  margin: 0;
-  padding: 2px 4px;
-  color: var(--ui-text-muted);
-  cursor: pointer;
-  transition:
-    background var(--ui-transition),
-    color var(--ui-transition);
-}
-
-button:hover {
-  background: var(--ui-hover);
-  color: var(--ui-text);
-}
-
-button .material-icons {
-  font-size: 16px;
-}
-
-input:hover,
-textarea:hover,
-select:hover {
-  background: var(--ui-hover);
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  background: var(--ui-input-bg);
-  box-shadow: 0 0 0 1px var(--ui-accent);
-}
-
-.invisible,
-.dummy {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-button i {
-  font-size: 1rem;
-}
-
-.table-cell button {
-  font-size: 0.5rem;
 }
