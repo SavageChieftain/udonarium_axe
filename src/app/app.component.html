@@ -2,31 +2,64 @@
   <game-table></game-table>
 </div>
 <app-mini-jukebox></app-mini-jukebox>
-<div class="fab-nav" [class.open]="fabOpen()">
-  <nav class="fab-panel">
-    <ul>
-      <li data-label="接続" (click)="open('PeerMenuComponent')">
+<div class="group absolute top-3 left-3 z-200" [class.open]="fabOpen()">
+  <nav
+    class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md pointer-events-none absolute top-[calc(100%+10px)] left-0 z-8 w-14 origin-top-left -translate-y-4 overflow-visible border border-solid opacity-0 [backdrop-filter:blur(24px)_saturate(1.5)] transition-[transform,opacity] duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:pointer-events-auto group-[.open]:translate-y-0 group-[.open]:opacity-100"
+  >
+    <ul class="m-0 list-none p-1.5">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="接続"
+        (click)="open('PeerMenuComponent')"
+      >
         <i class="material-icons">people</i>
       </li>
-      <li data-label="チャット" (click)="open('ChatWindowComponent')">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="チャット"
+        (click)="open('ChatWindowComponent')"
+      >
         <i class="material-icons">speaker_notes</i>
       </li>
-      <li data-label="テーブル設定" (click)="open('GameTableSettingComponent')">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="テーブル設定"
+        (click)="open('GameTableSettingComponent')"
+      >
         <i class="material-icons">layers</i>
       </li>
-      <li data-label="画像" (click)="open('FileStorageComponent')">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="画像"
+        (click)="open('FileStorageComponent')"
+      >
         <i class="material-icons">photo_library</i>
       </li>
-      <li data-label="ジュークボックス" (click)="open('JukeboxComponent')">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="ジュークボックス"
+        (click)="open('JukeboxComponent')"
+      >
         <i class="material-icons">queue_music</i>
       </li>
-      <li data-label="カットイン" (click)="open('CutInListComponent')">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="カットイン"
+        (click)="open('CutInListComponent')"
+      >
         <i class="material-icons">slideshow</i>
       </li>
-      <li data-label="インベントリ" (click)="open('GameObjectInventoryComponent')">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        data-label="インベントリ"
+        (click)="open('GameObjectInventoryComponent')"
+      >
         <i class="material-icons">folder_shared</i>
       </li>
-      <li data-label="ZIP読込">
+      <li
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px] [&>label]:flex [&>label]:size-full [&>label]:cursor-pointer [&>label]:items-center [&>label]:justify-center [&>label]:text-inherit"
+        data-label="ZIP読込"
+      >
         <label>
           <i class="material-icons">open_in_browser</i>
           <input
@@ -39,22 +72,29 @@
         </label>
       </li>
     </ul>
-    <div class="fab-footer">
+    <div class="flex flex-col gap-0 px-1.5 pb-1.5">
       @if (!isSaving()) {
-        <div class="fab-footer-item" data-label="保存" (click)="save()">
+        <div
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          data-label="保存"
+          (click)="save()"
+        >
           <i class="material-icons">sd_storage</i>
         </div>
       }
       @if (isSaving()) {
         <div
-          class="fab-footer-item"
+          class="text-ui-dim rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm pointer-events-none relative flex size-11 items-center justify-center opacity-60 after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
           [attr.data-label]="progressPercent() + '%'"
-          style="pointer-events: none; opacity: 0.6"
         >
           <i class="material-icons vibration-amine">sd_storage</i>
         </div>
       }
-      <div class="fab-footer-item" [attr.data-label]="themeLabel()" (click)="theme.cycle()">
+      <div
+        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+        [attr.data-label]="themeLabel()"
+        (click)="theme.cycle()"
+      >
         @switch (theme.theme()) {
           @case ('auto') {
             <i class="material-icons">brightness_auto</i>
@@ -70,7 +110,7 @@
     </div>
   </nav>
   <button
-    class="fab-btn"
+    class="border-ui-border-panel bg-ui-panel shadow-ui-md text-ui-muted hover:text-ui-accent group-[.open]:bg-ui-elevated group-[.open]:text-ui-accent relative z-10 flex size-12 cursor-pointer items-center justify-center rounded-full border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] transition-[color,background,box-shadow,transform] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:shadow-[0_0_0_2px_var(--ui-accent-glow),var(--ui-shadow-md)] hover:shadow-[0_0_0_2px_var(--ui-accent-glow),var(--ui-shadow-md)] [&_i]:text-[22px] [&_i]:transition-transform [&_i]:duration-220 [&_i]:ease-in-out group-[.open]:[&_i]:rotate-90"
     (click)="fabOpen.set(!fabOpen())"
     [attr.aria-label]="fabOpen() ? 'メニューを閉じる' : 'メニューを開く'"
     [attr.aria-expanded]="fabOpen()"
@@ -79,4 +119,4 @@
   </button>
 </div>
 <div #modalLayer></div>
-<network-indicator class="networkIndicator"></network-indicator>
+<network-indicator class="pointer-events-none absolute top-0.75 right-0.75 z-9999 hidden size-7.5"></network-indicator>
