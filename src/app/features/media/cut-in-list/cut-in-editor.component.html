@@ -1,25 +1,31 @@
-<div class="editor-scroll">
+<div class="text-ui-text flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3.5 py-3 text-[13px]">
   <!-- ── プレビュー & 名称 ── -->
-  <div class="editor-preview-row">
+  <div class="mb-1 flex items-start gap-3">
     <div
-      class="preview-thumb"
-      [class.youtube]="isYouTubeCutIn()"
+      class="bg-ui-input border-ui-border-panel rounded-ui-sm group relative size-24 shrink-0 cursor-pointer overflow-hidden border border-solid"
       (click)="openCutInImageModal()"
       title="画像を選択"
       role="button"
     >
-      <img [src]="cutInImageUrl() | safe: 'resourceUrl'" alt="プレビュー" />
+      <img class="block size-full object-contain" [src]="cutInImageUrl() | safe: 'resourceUrl'" alt="プレビュー" />
       @if (isYouTubeCutIn()) {
-        <i class="material-icons yt-badge">movie</i>
+        <i
+          class="material-icons text-ui-danger absolute right-1 bottom-1 text-[18px]! [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]"
+          >movie</i
+        >
       }
-      <div class="preview-overlay"><i class="material-icons">photo_camera</i></div>
+      <div
+        class="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 [&_.material-icons]:text-[28px]! [&_.material-icons]:text-white"
+      >
+        <i class="material-icons">photo_camera</i>
+      </div>
     </div>
 
-    <div class="preview-meta">
-      <div class="detail-section">
-        <label class="field-label">名称</label>
+    <div class="flex min-w-0 flex-1 flex-col gap-2">
+      <div class="mb-1 flex flex-col gap-1">
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">名称</label>
         <input
-          class="field-input"
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
           name="cut-in-name"
           [(ngModel)]="cutInName"
           placeholder="カットイン名"
@@ -28,16 +34,31 @@
       </div>
 
       <!-- 再生コントロール -->
-      <div class="transport-row">
-        <button type="button" class="transport-btn" (click)="playCutIn()" title="全員に再生">
+      <div class="flex flex-wrap gap-1.5">
+        <button
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,border-color,color] [&_.material-icons]:text-[15px]!"
+          type="button"
+          (click)="playCutIn()"
+          title="全員に再生"
+        >
           <i class="material-icons">play_arrow</i>
           <span>全員再生</span>
         </button>
-        <button type="button" class="transport-btn" (click)="previewCutIn()" title="自分だけ再生">
+        <button
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,border-color,color] [&_.material-icons]:text-[15px]!"
+          type="button"
+          (click)="previewCutIn()"
+          title="自分だけ再生"
+        >
           <i class="material-icons">person_play</i>
           <span>自分だけ</span>
         </button>
-        <button type="button" class="transport-btn stop" (click)="stopCutIn()" title="停止">
+        <button
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-danger hover:text-ui-danger inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,border-color,color] [&_.material-icons]:text-[15px]!"
+          type="button"
+          (click)="stopCutIn()"
+          title="停止"
+        >
           <i class="material-icons">stop</i>
           <span>停止</span>
         </button>
@@ -45,13 +66,15 @@
     </div>
   </div>
 
-  <hr class="divider" />
+  <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
   <!-- ── 表示設定 ── -->
-  <div class="section-heading">表示設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">表示設定</div>
 
-  <div class="detail-section">
-    <label class="field-label checkbox-label">
+  <div class="mb-1 flex flex-col gap-1">
+    <label
+      class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[12px] font-medium select-none [&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+    >
       <input
         type="checkbox"
         [(ngModel)]="cutInOriginalSize"
@@ -62,11 +85,11 @@
     </label>
   </div>
 
-  <div class="field-row">
-    <div class="detail-section">
-      <label class="field-label">Width</label>
+  <div class="mb-1 flex items-end gap-2.5">
+    <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">Width</label>
       <input
-        class="field-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-width"
         [(ngModel)]="cutInWidth"
         type="number"
@@ -75,10 +98,10 @@
         [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
       />
     </div>
-    <div class="detail-section">
-      <label class="field-label">Height</label>
+    <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">Height</label>
       <input
-        class="field-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-height"
         [(ngModel)]="cutInHeight"
         type="number"
@@ -89,8 +112,10 @@
     </div>
   </div>
 
-  <div class="detail-section">
-    <label class="field-label checkbox-label">
+  <div class="mb-1 flex flex-col gap-1">
+    <label
+      class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[12px] font-medium select-none [&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+    >
       <input
         type="checkbox"
         [(ngModel)]="keepImageAspect"
@@ -102,11 +127,11 @@
     </label>
   </div>
 
-  <div class="detail-section">
-    <label class="field-label">X 位置</label>
-    <div class="slider-row">
+  <div class="mb-1 flex flex-col gap-1">
+    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">X 位置</label>
+    <div class="flex items-center gap-2">
       <input
-        class="slider"
+        class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-x-pos"
         [(ngModel)]="cutInX_Pos"
         type="range"
@@ -115,7 +140,7 @@
         [attr.disabled]="!isEditable() ? '' : null"
       />
       <input
-        class="field-input num-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-16! shrink-0 border border-solid px-2 py-1.25 text-right text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-x-pos-num"
         [(ngModel)]="cutInX_Pos"
         type="number"
@@ -126,11 +151,11 @@
     </div>
   </div>
 
-  <div class="detail-section">
-    <label class="field-label">Y 位置</label>
-    <div class="slider-row">
+  <div class="mb-1 flex flex-col gap-1">
+    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">Y 位置</label>
+    <div class="flex items-center gap-2">
       <input
-        class="slider"
+        class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-y-pos"
         [(ngModel)]="cutInY_Pos"
         type="range"
@@ -139,7 +164,7 @@
         [attr.disabled]="!isEditable() ? '' : null"
       />
       <input
-        class="field-input num-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-16! shrink-0 border border-solid px-2 py-1.25 text-right text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-y-pos-num"
         [(ngModel)]="cutInY_Pos"
         type="number"
@@ -150,14 +175,16 @@
     </div>
   </div>
 
-  <hr class="divider" />
+  <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
   <!-- ── 再生設定 ── -->
-  <div class="section-heading">再生設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">再生設定</div>
 
-  <div class="field-row">
-    <div class="detail-section">
-      <label class="field-label checkbox-label">
+  <div class="mb-1 flex items-end gap-2.5">
+    <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1">
+      <label
+        class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[12px] font-medium select-none [&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+      >
         <input
           type="checkbox"
           [(ngModel)]="cutInIsLoop"
@@ -167,10 +194,10 @@
         <span>ループ再生</span>
       </label>
     </div>
-    <div class="detail-section">
-      <label class="field-label">再生時間 (秒)</label>
+    <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">再生時間 (秒)</label>
       <input
-        class="field-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-out-time"
         [(ngModel)]="cutInOutTime"
         type="number"
@@ -180,24 +207,26 @@
     </div>
   </div>
 
-  <hr class="divider" />
+  <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
   <!-- ── タグ & トリガー ── -->
-  <div class="section-heading">タグ & トリガー</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">タグ & トリガー</div>
 
-  <div class="field-row">
-    <div class="detail-section flex2">
-      <label class="field-label">タグ名称</label>
+  <div class="mb-1 flex items-end gap-2.5">
+    <div class="mb-1 flex min-w-0 flex-2 flex-col gap-1">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">タグ名称</label>
       <input
-        class="field-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-tag-name"
         [(ngModel)]="cutInTagName"
         placeholder="（空欄可）"
         [attr.disabled]="!isEditable() ? '' : null"
       />
     </div>
-    <div class="detail-section input-centered">
-      <label class="field-label checkbox-label">
+    <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1 pb-2">
+      <label
+        class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[12px] font-medium select-none [&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+      >
         <input
           type="checkbox"
           [(ngModel)]="chatActivate"
@@ -209,23 +238,33 @@
     </div>
   </div>
 
-  <div class="tag-hint">
+  <div
+    class="bg-ui-elevated border-l-ui-accent text-ui-muted rounded-r-ui-sm [&_.material-icons]:text-ui-accent flex items-start gap-1.25 border-l-[3px] border-solid px-2.5 py-1.75 text-[11px] leading-[1.6] [&_.material-icons]:mt-px [&_.material-icons]:shrink-0 [&_.material-icons]:text-[14px]!"
+  >
     <i class="material-icons">info_outline</i>
     <span
       >同名タグのカットインは先行するものを停止します（空欄含む）。タグ空欄かつ音楽設定ありの場合はジュークボックスのBGMを停止します。SEを同時再生したい場合はタグを設定してください。</span
     >
   </div>
 
-  <hr class="divider" />
+  <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
   <!-- ── 音楽設定 ── -->
-  <div class="section-heading">音楽設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">音楽設定</div>
 
-  <div class="detail-section bgm-row">
-    <button type="button" class="secondary-btn" (click)="openCutInBgmModal()">
+  <div class="mb-1 flex flex-row items-center gap-2.5">
+    <button
+      class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-accent inline-flex shrink-0 cursor-pointer items-center gap-1 border border-solid px-2.5 py-1 text-[12px] transition-[background,border-color] [&_.material-icons]:text-[14px]!"
+      type="button"
+      (click)="openCutInBgmModal()"
+    >
       <i class="material-icons">music_note</i>BGM 設定
     </button>
-    <span class="bgm-status" [class.ok]="isCutInBgmUploaded()" [class.ng]="!isCutInBgmUploaded()">
+    <span
+      class="text-ui-muted inline-flex min-w-0 items-center gap-1 truncate text-[12px] [&_.material-icons]:shrink-0 [&_.material-icons]:text-[14px]!"
+      [class.text-ui-success!]="isCutInBgmUploaded()"
+      [class.text-ui-danger!]="!isCutInBgmUploaded()"
+    >
       @if (isCutInBgmUploaded()) {
         <i class="material-icons">check_circle</i>{{ cutInAudioName }}
       }
@@ -236,13 +275,15 @@
     </span>
   </div>
 
-  <hr class="divider" />
+  <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
   <!-- ── YouTube 設定 ── -->
-  <div class="section-heading">YouTube 設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">YouTube 設定</div>
 
-  <div class="detail-section">
-    <label class="field-label checkbox-label">
+  <div class="mb-1 flex flex-col gap-1">
+    <label
+      class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[12px] font-medium select-none [&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+    >
       <input
         type="checkbox"
         [(ngModel)]="cutInIsVideo"
@@ -255,10 +296,10 @@
   </div>
 
   @if (cutInIsVideo) {
-    <div class="detail-section">
-      <label class="field-label">YouTube URL</label>
+    <div class="mb-1 flex flex-col gap-1">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">YouTube URL</label>
       <input
-        class="field-input"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-video-url"
         [(ngModel)]="cutInVideoURL"
         placeholder="https://www.youtube.com/watch?v=..."
@@ -266,11 +307,11 @@
         (input)="changeYouTubeInfo()"
       />
     </div>
-    <div class="detail-section">
-      <label class="field-label">個別音量</label>
-      <div class="slider-row">
+    <div class="mb-1 flex flex-col gap-1">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">個別音量</label>
+      <div class="flex items-center gap-2">
         <input
-          class="slider"
+          class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
           name="cut-in-video-volume"
           [(ngModel)]="cutInVideoVolume"
           type="range"
@@ -280,7 +321,7 @@
           [attr.disabled]="!isEditable() ? '' : null"
         />
         <input
-          class="field-input num-input"
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-16! shrink-0 border border-solid px-2 py-1.25 text-right text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
           name="cut-in-video-volume-num"
           [(ngModel)]="cutInVideoVolume"
           type="number"
@@ -291,7 +332,7 @@
         />
       </div>
     </div>
-    <p class="yt-terms">
+    <p class="text-ui-muted [&_a]:text-ui-accent my-0.5 text-[11px] [&_a]:underline">
       <a href="https://www.youtube.com/terms" target="_blank" (click)="openYouTubeTerms()">YouTube 利用規約</a
       >をご確認の上ご利用ください。
     </p>
