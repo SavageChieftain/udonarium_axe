@@ -3,45 +3,72 @@
     @if (!childrenCount()) {
       @switch (gameDataElement().type) {
         @case ('numberResource') {
-          <div class="buff-row">
-            <div class="buff-name">
+          <div
+            class="border-ui-border-panel grid grid-cols-[1fr_auto_auto] items-center gap-x-1.5 gap-y-1 border-b border-solid px-0.5 py-1.5"
+          >
+            <div class="relative min-w-0">
               @if (!isTagLocked()) {
-                <div class="hidden-spacer">{{ name }}</div>
-                <input class="name-input" name="data-elm-name" [(ngModel)]="name" placeholder="バフ名" />
+                <div
+                  class="invisible box-border h-0 max-w-80 overflow-hidden px-0.75 font-[Cambria,Georgia] text-[0.9rem]"
+                >
+                  {{ name }}
+                </div>
+                <input
+                  class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-0 rounded-xs border-none bg-transparent px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem] outline-none"
+                  name="data-elm-name"
+                  [(ngModel)]="name"
+                  placeholder="バフ名"
+                />
               } @else {
-                <span class="name-locked">{{ name }}</span>
+                <span class="text-ui-text block px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem]">{{ name }}</span>
               }
             </div>
-            <div class="buff-values">
-              <input class="val-input" [(ngModel)]="currentValue" placeholder="現在値" />
-              <span class="sep">/</span>
-              <input class="val-input-sm" [(ngModel)]="value" placeholder="最大" />
-              <span class="unit">R</span>
+            <div class="flex items-center gap-0.75 whitespace-nowrap">
+              <input
+                class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-20 rounded-xs border-none bg-transparent px-0.75 py-0.5 text-right font-[Cambria,Georgia] text-[0.9rem] outline-none"
+                [(ngModel)]="currentValue"
+                placeholder="現在値"
+              />
+              <span class="text-ui-dim text-[0.8em] select-none">/</span>
+              <input
+                class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-12 rounded-xs border-none bg-transparent px-0.75 py-0.5 text-right font-[Cambria,Georgia] text-[0.9rem] outline-none"
+                [(ngModel)]="value"
+                placeholder="最大"
+              />
+              <span class="text-ui-dim text-[0.8em] select-none">R</span>
             </div>
             @if (!isTagLocked()) {
-              <button class="delete-btn" (click)="deletBuff(gameDataElement())" title="バフを削除">
+              <button
+                class="text-ui-dim hover:bg-ui-danger-bg hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0.75 opacity-45 transition-[opacity,color,background] hover:opacity-100 [&_i]:text-base!"
+                (click)="deletBuff(gameDataElement())"
+                title="バフを削除"
+              >
                 <i class="material-icons">delete_outline</i>
               </button>
             }
           </div>
         }
         @default {
-          <div class="group-header">
+          <div class="border-ui-accent mx-0 mt-1.5 mb-0.5 border-l-[3px] border-solid pl-2">
             @if (!isTagLocked()) {
-              <div class="group-name">{{ gameDataElement().name }}</div>
+              <div class="text-ui-text py-0.5 font-[Cambria,Georgia] text-[0.9rem] font-bold">
+                {{ gameDataElement().name }}
+              </div>
             }
           </div>
         }
       }
     }
     @if (childrenCount()) {
-      <div class="group-section">
-        <div class="group-header">
+      <div>
+        <div class="border-ui-accent mx-0 mt-1.5 mb-0.5 border-l-[3px] border-solid pl-2">
           @if (!isTagLocked()) {
-            <div class="group-name">{{ gameDataElement().name }}</div>
+            <div class="text-ui-text py-0.5 font-[Cambria,Georgia] text-[0.9rem] font-bold">
+              {{ gameDataElement().name }}
+            </div>
           }
         </div>
-        <div class="group-children">
+        <div class="pl-2">
           @for (childElement of gameDataElement().children; track childElement.identifier) {
             <div
               game-data-element-buff
@@ -60,7 +87,10 @@
   @if (!childrenCount()) {
     @switch (gameDataElement().type) {
       @case ('numberResource') {
-        <span class="piece-buff">{{ name }} / {{ currentValue }} / {{ value }}R</span>
+        <span
+          class="text-ui-text font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] text-[12px] [-webkit-font-smoothing:antialiased]"
+          >{{ name }} / {{ currentValue }} / {{ value }}R</span
+        >
       }
     }
   }

@@ -6,7 +6,6 @@ import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',
   templateUrl: './game-data-element-buff.component.html',
-  styleUrls: ['./game-data-element-buff.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
 })
