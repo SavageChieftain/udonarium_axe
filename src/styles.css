@@ -2,7 +2,6 @@
 
 /* @import はすべて最初にまとめる */
 @import '@ng-select/ng-select/themes/default.theme.css';
-@import './app/features/media/jukebox/jukebox-global.css';
 
 /* Tailwind v4 — フルインポート (@tailwindcss/postcss がユーティリティを生成するには @import 'tailwindcss' が必要)
    Preflight は @layer base に配置されるため、アンレイヤードの既存スタイルが優先される */

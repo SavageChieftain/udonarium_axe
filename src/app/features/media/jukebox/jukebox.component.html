@@ -1,41 +1,53 @@
-<div class="jb-layout">
+<div class="text-ui-text flex flex-col gap-0 text-[13px]">
   <!-- ── Now Playing ── -->
-  <div class="now-playing" [class.has-artwork]="nowPlayingArtwork()">
+  <div
+    class="bg-ui-elevated border-ui-border-panel flex min-h-14 items-center gap-2.5 border-b border-solid px-3 py-2.5"
+    [class.block!]="nowPlayingArtwork()"
+    [class.p-0!]="nowPlayingArtwork()"
+  >
     @if (nowPlayingArtwork()) {
-      <div class="now-playing-artwork-wrap">
-        <img class="now-playing-artwork-full" [src]="nowPlayingArtwork()" alt="" />
-        <div class="now-playing-artwork-overlay">
-          <div class="now-playing-label">NOW PLAYING</div>
+      <div class="relative w-full overflow-hidden">
+        <img class="block h-40 w-full object-cover" [src]="nowPlayingArtwork()" alt="" />
+        <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-3 py-2.5">
+          <div class="mb-0.5 text-[9px] font-bold tracking-widest text-white/70 uppercase">NOW PLAYING</div>
           @if (jukebox.audio) {
-            <div class="now-playing-title">{{ jukebox.audio.name }}</div>
-            <div class="now-playing-tag">{{ getTagOf(jukebox.audio) }}</div>
+            <div class="truncate text-[13px] font-semibold text-white">{{ jukebox.audio.name }}</div>
+            <div class="mt-px text-[11px] text-white/60">{{ getTagOf(jukebox.audio) }}</div>
           }
         </div>
         @if (jukebox.audio) {
-          <button class="transport-stop" (click)="stopBGM(jukebox.audio)" title="BGM/SE 停止">
+          <button
+            class="border-ui-border-panel absolute top-2 right-2 inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid bg-black/45 p-0 text-white/80 transition-[background,color] hover:border-(--ui-danger) hover:bg-(--ui-danger-bg) hover:text-(--ui-danger) [&_.material-icons]:text-[18px]!"
+            (click)="stopBGM(jukebox.audio)"
+            title="BGM/SE 停止"
+          >
             <i class="material-icons">stop</i>
           </button>
         }
       </div>
     } @else {
-      <div class="now-playing-icon">
+      <div class="text-ui-accent w-8 shrink-0 text-center text-[28px] [&_.material-icons]:text-[28px]!">
         @if (jukebox.audio && jukebox.isPlaying) {
-          <i class="material-icons playing-anim">music_note</i>
+          <i class="material-icons text-ui-accent animate-[pulse_1.4s_ease-in-out_infinite]">music_note</i>
         } @else {
           <i class="material-icons">music_note</i>
         }
       </div>
-      <div class="now-playing-info">
-        <div class="now-playing-label">NOW PLAYING</div>
+      <div class="min-w-0 flex-1">
+        <div class="text-ui-accent mb-0.5 text-[9px] font-bold tracking-widest uppercase">NOW PLAYING</div>
         @if (jukebox.audio) {
-          <div class="now-playing-title">{{ jukebox.audio.name }}</div>
-          <div class="now-playing-tag">{{ getTagOf(jukebox.audio) }}</div>
+          <div class="text-ui-text truncate text-[13px] font-semibold">{{ jukebox.audio.name }}</div>
+          <div class="text-ui-muted mt-px text-[11px]">{{ getTagOf(jukebox.audio) }}</div>
         } @else {
-          <div class="now-playing-title now-playing-idle">— 停止中 —</div>
+          <div class="text-ui-dim truncate text-[13px] font-normal italic">— 停止中 —</div>
         }
       </div>
       @if (jukebox.audio) {
-        <button class="transport-stop" (click)="stopBGM(jukebox.audio)" title="BGM/SE 停止">
+        <button
+          class="bg-ui-hover border-ui-border-panel text-ui-muted inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid p-0 transition-[background,color] hover:border-(--ui-danger) hover:bg-(--ui-danger-bg) hover:text-(--ui-danger) [&_.material-icons]:text-[18px]!"
+          (click)="stopBGM(jukebox.audio)"
+          title="BGM/SE 停止"
+        >
           <i class="material-icons">stop</i>
         </button>
       }
@@ -43,12 +55,12 @@
   </div>
 
   <!-- ── Volume Controls ── -->
-  <div class="volume-section">
-    <div class="vol-row">
-      <i class="material-icons vol-icon" title="試聴">headphones</i>
-      <span class="vol-label">試聴</span>
+  <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-0 border-b border-solid px-3 py-2">
+    <div class="flex items-center gap-1.5 py-0.75">
+      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="試聴">headphones</i>
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">試聴</span>
       <input
-        class="vol-slider"
+        class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
         name="audition-volume"
         [(ngModel)]="auditionVolume"
         type="range"
@@ -57,21 +69,37 @@
         step="0.01"
       />
     </div>
-    <div class="vol-row">
-      <i class="material-icons vol-icon" title="BGM">library_music</i>
-      <span class="vol-label">BGM</span>
-      <input class="vol-slider" name="bgm-volume" [(ngModel)]="volume" type="range" min="0" max="1" step="0.01" />
-    </div>
-    <div class="vol-row">
-      <i class="material-icons vol-icon" title="SE">star</i>
-      <span class="vol-label">SE</span>
-      <input class="vol-slider" name="se-volume" [(ngModel)]="seVolume" type="range" min="0" max="1" step="0.01" />
-    </div>
-    <div class="vol-row vol-row--room">
-      <i class="material-icons vol-icon" title="全体（GM制御）">group</i>
-      <span class="vol-label">全体</span>
+    <div class="flex items-center gap-1.5 py-0.75">
+      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="BGM">library_music</i>
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">BGM</span>
       <input
-        class="vol-slider"
+        class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
+        name="bgm-volume"
+        [(ngModel)]="volume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+      />
+    </div>
+    <div class="flex items-center gap-1.5 py-0.75">
+      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="SE">star</i>
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">SE</span>
+      <input
+        class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
+        name="se-volume"
+        [(ngModel)]="seVolume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+      />
+    </div>
+    <div class="border-ui-border-panel mt-1 flex items-center gap-1.5 border-t border-solid pt-1.5">
+      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="全体（GM制御）">group</i>
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">全体</span>
+      <input
+        class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
         name="room-volume"
         [(ngModel)]="roomVolume"
         type="range"
@@ -80,7 +108,10 @@
         step="0.01"
         [disabled]="!roomVolumeChange"
       />
-      <label class="gm-toggle" title="全プレイヤー共通 GM制御">
+      <label
+        class="text-ui-dim inline-flex shrink-0 cursor-pointer items-center gap-0.75 text-[10px] font-semibold select-none [&_input[type=checkbox]]:size-3 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+        title="全プレイヤー共通 GM制御"
+      >
         <input type="checkbox" name="room-volume-change" [(ngModel)]="roomVolumeChange" />
         <span>GM</span>
       </label>
@@ -88,12 +119,26 @@
   </div>
 
   <!-- ── View Mode tabs ── -->
-  <div class="view-tabs">
-    <div class="view-tabs-track">
-      <button class="view-tab" [class.is-active]="viewMode() === 'library'" (click)="viewMode.set('library')">
+  <div class="bg-ui-panel border-ui-border-panel shrink-0 border-b border-solid px-2.5 py-2">
+    <div class="flex gap-0.5 rounded-[7px] bg-black/22 p-0.75">
+      <button
+        class="text-ui-muted inline-flex flex-1 cursor-pointer items-center justify-center gap-1.25 rounded-[5px] border-none bg-transparent px-2.5 py-1.75 text-[12px] font-medium transition-[background,color,box-shadow] select-none hover:bg-white/7 hover:text-(--ui-text) [&_.material-icons]:text-[15px]!"
+        [class.bg-ui-elevated!]="viewMode() === 'library'"
+        [class.text-ui-accent!]="viewMode() === 'library'"
+        [class.font-semibold!]="viewMode() === 'library'"
+        [class.shadow-[0_1px_4px_rgba(0,0,0,0.45)]]="viewMode() === 'library'"
+        (click)="viewMode.set('library')"
+      >
         <i class="material-icons">library_music</i>ライブラリ
       </button>
-      <button class="view-tab" [class.is-active]="viewMode() === 'playlist'" (click)="viewMode.set('playlist')">
+      <button
+        class="text-ui-muted inline-flex flex-1 cursor-pointer items-center justify-center gap-1.25 rounded-[5px] border-none bg-transparent px-2.5 py-1.75 text-[12px] font-medium transition-[background,color,box-shadow] select-none hover:bg-white/7 hover:text-(--ui-text) [&_.material-icons]:text-[15px]!"
+        [class.bg-ui-elevated!]="viewMode() === 'playlist'"
+        [class.text-ui-accent!]="viewMode() === 'playlist'"
+        [class.font-semibold!]="viewMode() === 'playlist'"
+        [class.shadow-[0_1px_4px_rgba(0,0,0,0.45)]]="viewMode() === 'playlist'"
+        (click)="viewMode.set('playlist')"
+      >
         <i class="material-icons">queue_music</i>再生リスト
       </button>
     </div>
@@ -101,35 +146,50 @@
 
   @if (viewMode() === 'library') {
     <!-- ── Tag Filter ── -->
-    <div class="tag-bar">
+    <div
+      class="bg-ui-panel border-ui-border-panel sticky -top-2 z-2 -mx-2 flex shrink-0 flex-wrap gap-1 border-b border-solid px-2.5 py-1.5"
+    >
       @for (tag of tagList(); track tag) {
-        <button class="tag-pill" [class.is-active]="selectTag() === tag" (click)="selectTag.set(tag)">{{ tag }}</button>
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 text-[11px] font-medium whitespace-nowrap transition-[background,color,border-color] select-none"
+          [class.bg-ui-accent-bg!]="selectTag() === tag"
+          [class.text-ui-accent!]="selectTag() === tag"
+          [class.border-ui-accent!]="selectTag() === tag"
+          (click)="selectTag.set(tag)"
+        >
+          {{ tag }}
+        </button>
       }
     </div>
 
     <!-- ── Library Playlist ── -->
-    <div class="playlist">
+    <div class="flex flex-1 flex-col overflow-y-auto">
       @for (audio of audios(); track audio.identifier) {
         <div
-          class="track-row"
-          [class.is-playing]="audio === jukebox.audio"
-          [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused"
+          class="border-ui-border-panel hover:bg-ui-hover flex items-center gap-2 border-b border-solid px-2.5 py-1.5 transition-[background]"
+          [class.bg-ui-accent-bg!]="
+            audio === jukebox.audio || (audio === auditionPlayer.audio && !auditionPlayer.paused)
+          "
+          [class.pl-1.75!]="audio === jukebox.audio || (audio === auditionPlayer.audio && !auditionPlayer.paused)"
+          [class.border-l-[3px]]="audio === jukebox.audio || (audio === auditionPlayer.audio && !auditionPlayer.paused)"
+          [class.border-l-ui-accent!]="audio === jukebox.audio"
+          [class.border-l-ui-dim!]="audio === auditionPlayer.audio && !auditionPlayer.paused && audio !== jukebox.audio"
         >
-          <div class="track-status">
+          <div class="w-5 shrink-0 text-center">
             @if (audio === jukebox.audio) {
-              <i class="material-icons track-status-icon playing">{{
+              <i class="material-icons text-ui-accent text-base!">{{
                 getTagOf(audio) === 'SE' ? 'star' : 'library_music'
               }}</i>
             } @else if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-              <i class="material-icons track-status-icon auditioning">headphones</i>
+              <i class="material-icons text-ui-muted text-base!">headphones</i>
             } @else {
-              <i class="material-icons track-status-icon idle">music_note</i>
+              <i class="material-icons text-ui-dim text-base! opacity-40">music_note</i>
             }
           </div>
-          <div class="track-info">
-            <div class="track-name">{{ audio.name }}</div>
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <div class="text-ui-text truncate text-[12px] font-medium">{{ audio.name }}</div>
             <select
-              class="track-tag-select"
+              class="bg-ui-input border-ui-border-panel text-ui-muted rounded-ui-sm focus:border-ui-accent w-fit cursor-pointer border border-solid px-1 py-px text-[10px] outline-none disabled:cursor-not-allowed disabled:opacity-40"
               [ngModel]="getTagOf(audio)"
               (ngModelChange)="setTagOf(audio, $event)"
               [disabled]="isInPlaylist(audio)"
@@ -142,19 +202,28 @@
               }
             </select>
           </div>
-          <div class="track-actions">
+          <div class="flex shrink-0 gap-1">
             @if (audio !== auditionPlayer.audio || auditionPlayer.paused) {
-              <button class="action-btn" (click)="play(audio)" [disabled]="!audio.isReady" title="試聴">
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
+                (click)="play(audio)"
+                [disabled]="!audio.isReady"
+                title="試聴"
+              >
                 <i class="material-icons">headphones</i>
               </button>
             } @else {
-              <button class="action-btn is-active" (click)="stop()" title="試聴停止">
+              <button
+                class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+                (click)="stop()"
+                title="試聴停止"
+              >
                 <i class="material-icons">stop</i>
               </button>
             }
             @if (audio !== jukebox.audio) {
               <button
-                class="action-btn"
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
                 (click)="playBGM(audio)"
                 [disabled]="!audio.isReady"
                 title="{{ getTagOf(audio) === 'SE' ? 'SE再生' : 'BGM再生' }}"
@@ -162,17 +231,29 @@
                 <i class="material-icons">{{ getTagOf(audio) === 'SE' ? 'star' : 'play_arrow' }}</i>
               </button>
             } @else {
-              <button class="action-btn is-active" (click)="stopBGM(audio)" title="停止">
+              <button
+                class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+                (click)="stopBGM(audio)"
+                title="停止"
+              >
                 <i class="material-icons">stop</i>
               </button>
             }
             @if (getTagOf(audio) === 'BGM') {
               @if (!isInPlaylist(audio)) {
-                <button class="action-btn" (click)="addToPlaylist(audio)" title="再生リストに追加">
+                <button
+                  class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+                  (click)="addToPlaylist(audio)"
+                  title="再生リストに追加"
+                >
                   <i class="material-icons">playlist_add</i>
                 </button>
               } @else {
-                <button class="action-btn is-active" (click)="removeFromPlaylist(audio)" title="再生リストから削除">
+                <button
+                  class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+                  (click)="removeFromPlaylist(audio)"
+                  title="再生リストから削除"
+                >
                   <i class="material-icons">playlist_add_check</i>
                 </button>
               }
@@ -181,7 +262,9 @@
         </div>
       }
       @if (!audios().length) {
-        <div class="playlist-empty">
+        <div
+          class="text-ui-dim flex flex-col items-center gap-2 px-4 py-8 text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
+        >
           <i class="material-icons">queue_music</i>
           <span>この分類に音楽ファイルはありません</span>
         </div>
@@ -189,55 +272,79 @@
     </div>
   } @else {
     <!-- ── My Playlist ── -->
-    <div class="playlist">
+    <div class="flex flex-1 flex-col overflow-y-auto">
       @for (audio of playlistAudios(); track audio.identifier; let i = $index) {
         <div
-          class="track-row track-row--draggable"
-          [class.is-playing]="audio === jukebox.audio"
+          class="border-ui-border-panel hover:bg-ui-hover flex cursor-default items-center gap-2 border-b border-solid px-2.5 py-1.5 transition-[background]"
+          [class.bg-ui-accent-bg!]="audio === jukebox.audio"
+          [class.pl-1.75!]="audio === jukebox.audio"
+          [class.border-l-[3px]]="audio === jukebox.audio"
+          [class.border-l-ui-accent!]="audio === jukebox.audio"
           draggable="true"
           (dragstart)="onPlaylistDragStart(i)"
           (dragover)="onPlaylistDragOver($event, i)"
           (dragend)="onPlaylistDragEnd()"
         >
-          <div class="drag-handle">
+          <div
+            class="text-ui-dim w-5 shrink-0 cursor-grab text-center opacity-40 active:cursor-grabbing [&_.material-icons]:text-[18px]!"
+          >
             <i class="material-icons">drag_indicator</i>
           </div>
-          <div class="track-status">
+          <div class="w-5 shrink-0 text-center">
             @if (audio === jukebox.audio) {
-              <i class="material-icons track-status-icon playing">library_music</i>
+              <i class="material-icons text-ui-accent text-base!">library_music</i>
             } @else {
-              <i class="material-icons track-status-icon idle">music_note</i>
+              <i class="material-icons text-ui-dim text-base! opacity-40">music_note</i>
             }
           </div>
-          <div class="track-info">
-            <div class="track-name">{{ audio.name }}</div>
-            <div class="track-tag-label">BGM</div>
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <div class="text-ui-text truncate text-[12px] font-medium">{{ audio.name }}</div>
+            <div
+              class="text-ui-accent bg-ui-accent-bg border-ui-accent rounded-ui-sm w-fit border border-solid px-1.25 text-[10px] leading-normal"
+            >
+              BGM
+            </div>
           </div>
-          <div class="track-actions">
+          <div class="flex shrink-0 gap-1">
             @if (audio !== jukebox.audio) {
-              <button class="action-btn" (click)="playBGM(audio)" [disabled]="!audio.isReady" title="BGM再生">
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
+                (click)="playBGM(audio)"
+                [disabled]="!audio.isReady"
+                title="BGM再生"
+              >
                 <i class="material-icons">play_arrow</i>
               </button>
             } @else {
-              <button class="action-btn is-active" (click)="stopBGM(audio)" title="停止">
+              <button
+                class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+                (click)="stopBGM(audio)"
+                title="停止"
+              >
                 <i class="material-icons">stop</i>
               </button>
             }
-            <button class="action-btn" (click)="removeFromPlaylist(audio)" title="再生リストから削除">
+            <button
+              class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+              (click)="removeFromPlaylist(audio)"
+              title="再生リストから削除"
+            >
               <i class="material-icons">remove_circle_outline</i>
             </button>
           </div>
         </div>
       }
       @if (!playlistAudios().length) {
-        <div class="playlist-empty">
+        <div
+          class="text-ui-dim flex flex-col items-center gap-2 px-4 py-8 text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
+        >
           <i class="material-icons">playlist_play</i>
           <span>再生リストにBGMを追加してください</span>
-          <span class="playlist-empty-hint"
-            >ライブラリタブで
-            <i class="material-icons" style="font-size: 14px; vertical-align: middle">playlist_add</i>
-            ボタンで追加できます</span
-          >
+          <span class="text-ui-dim text-center text-[11px] opacity-70">
+            ライブラリタブで
+            <i class="material-icons align-middle text-[14px]!">playlist_add</i>
+            ボタンで追加できます
+          </span>
         </div>
       }
     </div>
@@ -245,19 +352,25 @@
 
   @if (viewMode() === 'library') {
     <!-- ── Drop Zone ── -->
-    <label class="drop-zone">
-      <i class="material-icons drop-zone-icon">playlist_add</i>
-      <span class="drop-zone-main">ここに音楽をドロップ</span>
-      <span class="drop-zone-sub">またはここをクリックして選択</span>
+    <label
+      class="border-ui-border-panel text-ui-dim hover:bg-ui-accent-bg hover:border-ui-accent hover:text-ui-text rounded-ui-sm mt-2.5 flex cursor-pointer flex-col items-center gap-1 border-2 border-dashed p-3 text-center transition-[background,border-color,color]"
+    >
+      <i class="material-icons text-[36px]! opacity-50">playlist_add</i>
+      <span class="text-[13px] font-medium">ここに音楽をドロップ</span>
+      <span class="text-[11px] opacity-70">またはここをクリックして選択</span>
       <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
-      <span class="drop-zone-limit">１ファイルにつき10MBまで</span>
+      <span class="text-[11px] opacity-45">１ファイルにつき10MBまで</span>
     </label>
 
     <!-- ── Notes ── -->
-    <div class="jb-notes">
-      <p>※「試聴」は自分のスピーカーだけで1回再生します。</p>
-      <p>※「BGM/SE」はルーム内全員で再生します。</p>
-      <p>※セーブデータ（zip）に音楽ファイルは含まれません。</p>
+    <div class="flex flex-col gap-0.5 px-3 pt-2 pb-1">
+      <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">
+        ※「試聴」は自分のスピーカーだけで1回再生します。
+      </p>
+      <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">※「BGM/SE」はルーム内全員で再生します。</p>
+      <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">
+        ※セーブデータ（zip）に音楽ファイルは含まれません。
+      </p>
     </div>
   }
 </div>

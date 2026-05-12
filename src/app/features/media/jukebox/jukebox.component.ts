@@ -20,7 +20,6 @@ import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-jukebox',
   templateUrl: './jukebox.component.html',
-  styleUrls: ['./jukebox.component.css'],
   host: { class: 'block' },
   imports: [FormsModule],
 })
