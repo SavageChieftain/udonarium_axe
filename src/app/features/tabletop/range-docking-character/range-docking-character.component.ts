@@ -31,7 +31,9 @@ export class RangeDockingCharacterComponent {
 
   readonly gameCharacters = computed(() => {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
-    return this.objectStore.getObjects<GameCharacter>(GameCharacter).filter((character) => this.allowsChat(character));
+    const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
+    for (const c of all) this.objectChange.versionOf(c.identifier)();
+    return all.filter((character) => this.allowsChat(character));
   });
 
   constructor() {

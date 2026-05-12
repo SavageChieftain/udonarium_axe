@@ -287,9 +287,10 @@ export class ChatInputComponent {
 
   readonly gameCharacters = computed(() => {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
-    return this.objectStore
-      .getObjects<GameCharacter>(GameCharacter)
-      .filter((character) => allowsChat(character, this.myPeer.peerId));
+    const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
+    // nonTalkFlag や location 変更で allowsChat の結果が変わるため各キャラの versionOf を tracking
+    for (const c of all) this.objectChange.versionOf(c.identifier)();
+    return all.filter((character) => allowsChat(character, this.myPeer.peerId));
   });
 
   private writingEventInterval: ReturnType<typeof setTimeout> | null = null;
