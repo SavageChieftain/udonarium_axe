@@ -1,10 +1,11 @@
-<div class="flex-container" #root>
+<div class="flex h-full flex-col" #root>
   <div class="grow-0">
     <form name="chat-palette">
-      <div class="chat-tab">
+      <div class="px-1.25 pb-1.25 select-none">
         @for (chatTab of chatTabsVersion(); track chatTab) {
-          <label>
+          <label class="relative inline-block">
             <input
+              class="peer hidden"
               name="chat-tab"
               type="radio"
               value="{{ chatTab.identifier }}"
@@ -12,10 +13,12 @@
               [ngModel]="chatTabidentifier()"
               (ngModelChange)="chatTabidentifier.set($event)"
             />
-            <div>
+            <div
+              class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-elevated peer-checked:text-ui-text m-0.5 inline-block cursor-pointer rounded-full border border-solid bg-transparent px-2 py-0.5 align-middle text-[8px] outline-0 transition-[background,color,border-color]"
+            >
               {{ chatTab.name }}
               @if (chatTab.hasUnread) {
-                <badge class="badge" [count]="chatTab.unreadLength"></badge>
+                <badge class="absolute -top-1 right-0" [count]="chatTab.unreadLength"></badge>
               }
             </div>
           </label>
@@ -36,10 +39,10 @@
       (tabSwitch)="chatTabSwitchRelative($event)"
       #chatInput
     ></chat-input>
-    <div class="complete-box">
+    <div class="relative h-0 w-full">
       @if ((autoCompleteList().length === 1 && autoCompleteList()[0] !== text) || autoCompleteList().length > 1) {
         <select
-          class="complete overflow-y-auto"
+          class="absolute -top-5 left-[15] z-10 box-border w-[calc(100%-155px)] min-w-55 resize-none overflow-y-auto font-sans opacity-80"
           #completeSelect
           size="5"
           (input)="onSelectAutoComplete(text, $event)"
@@ -53,37 +56,62 @@
     </div>
   </div>
 
-  <div class="palette-toolbar grow-0">
-    <button class="toolbar-btn" (click)="indexBtn()" title="見出し一覧へジャンプ">
-      <i class="material-icons small-font">bookmarks</i>見出し
+  <div class="bg-ui-panel border-ui-border-panel flex grow-0 items-center gap-1 border-y border-solid px-1 py-0.5">
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
+      (click)="indexBtn()"
+      title="見出し一覧へジャンプ"
+    >
+      <i class="material-icons">bookmarks</i>見出し
     </button>
-    <span class="toolbar-spacer"></span>
+    <span class="flex-1"></span>
     @if (isEdit()) {
-      <span class="edit-badge"> <i class="material-icons small-font">edit</i>編集中 </span>
+      <span
+        class="text-ui-accent border-ui-accent bg-ui-accent-bg inline-flex items-center gap-0.5 rounded-[10px] border border-solid px-1.75 py-px text-[0.72em] select-none [&_.material-icons]:text-base!"
+      >
+        <i class="material-icons">edit</i>編集中
+      </span>
     }
-    <button class="toolbar-btn" [class.toolbar-btn--active]="isEdit()" (click)="toggleEditMode()">
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
+      [class.bg-ui-accent-bg!]="isEdit()"
+      [class.border-ui-accent!]="isEdit()"
+      [class.text-ui-accent!]="isEdit()"
+      (click)="toggleEditMode()"
+    >
       @if (!isEdit()) {
-        <i class="material-icons small-font">edit</i>編集
+        <i class="material-icons">edit</i>編集
       } @else {
-        <i class="material-icons small-font">check</i>確定
+        <i class="material-icons">check</i>確定
       }
     </button>
   </div>
 
-  <div [hidden]="isEdit()" class="palette-list h-0 min-h-25 grow overflow-y-auto" #paletteList>
+  <div [hidden]="isEdit()" class="box-border h-0 min-h-25 w-full grow overflow-y-auto font-sans" #paletteList>
     @for (row of paletteRows(); track row.lineIndex) {
       @if (row.kind === 'heading') {
-        <div class="palette-row palette-row--heading" [attr.data-line]="row.lineIndex">
-          <span class="palette-heading-mark">◆</span>{{ row.headingName }}
+        <div
+          class="text-ui-accent bg-ui-elevated border-ui-border-panel box-border cursor-default border-t border-solid px-2 pt-1.25 pb-0.5 text-[0.8em] leading-[1.65] font-bold whitespace-pre select-none first:border-t-0"
+          [attr.data-line]="row.lineIndex"
+        >
+          <span class="mr-0.75 opacity-60">◆</span>{{ row.headingName }}
         </div>
       } @else if (row.kind === 'variable') {
-        <div class="palette-row palette-row--variable" [attr.data-line]="row.lineIndex">{{ row.text }}</div>
+        <div
+          class="text-ui-dim box-border cursor-default overflow-hidden px-2 py-0.5 text-[0.78em] leading-[1.65] text-ellipsis whitespace-pre italic select-none"
+          [attr.data-line]="row.lineIndex"
+        >
+          {{ row.text }}
+        </div>
       } @else if (row.kind === 'empty') {
-        <div class="palette-row palette-row--empty" [attr.data-line]="row.lineIndex"></div>
+        <div
+          class="box-border h-[0.55em] cursor-default overflow-hidden p-0 text-[0.88em] whitespace-pre select-none"
+          [attr.data-line]="row.lineIndex"
+        ></div>
       } @else {
         <div
-          class="palette-row palette-row--command"
-          [class.palette-row--selected]="selectedLine() === row.lineIndex"
+          class="text-ui-text hover:bg-ui-hover box-border cursor-pointer overflow-hidden px-2 py-0.5 text-[0.88em] leading-[1.65] text-ellipsis whitespace-pre"
+          [class.bg-ui-accent-bg!]="selectedLine() === row.lineIndex"
           [attr.data-line]="row.lineIndex"
           (click)="onClickPaletteRow(row)"
         >
@@ -95,8 +123,8 @@
 
   <div [hidden]="!isEdit()" class="h-0 min-h-25 grow">
     <textarea
+      class="box-border size-full resize-none font-sans"
       name="edit-palette"
-      class="palette resize-none"
       #editText
       [ngModel]="editPalette()"
       (ngModelChange)="editPalette.set($event)"
@@ -105,6 +133,10 @@
   </div>
 
   @if (!isEdit()) {
-    <div class="palette-hint grow-0">クリック: 入力 ／ 2回クリック: 送信</div>
+    <div
+      class="text-ui-dim border-ui-border-panel grow-0 border-t border-solid px-1.5 py-0.5 text-center text-[0.68em] select-none"
+    >
+      クリック: 入力 ／ 2回クリック: 送信
+    </div>
   }
 </div>
