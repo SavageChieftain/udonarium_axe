@@ -413,13 +413,24 @@
     </div>
   }
   @if (gameDataElement().children.length) {
-    <div class="table-cell_inner-table">
+    <div
+      class="relative col-span-full box-border w-full max-w-full min-w-0 overflow-hidden py-0.75 pr-0 pl-[calc(var(--gde-depth,0)*7px)] contain-[inline-size] before:pointer-events-none before:absolute before:top-2 before:bottom-1.5 before:left-[calc(var(--gde-depth,0)*7px+1px)] before:w-0.5 before:rounded-none before:bg-(--gde-nested-line,var(--ui-accent)) before:content-['']"
+    >
       @if (!hideSectionTitle()) {
-        <div class="table-cell_inner-table-title" [class.table-cell_inner-table-title--editing]="isEdit()">
+        <div
+          class="relative z-1 m-0 mb-1 min-w-0 rounded-l-none rounded-r-xs border border-l-[3px] border-(--gde-row-border) border-l-(--gde-accent-border) bg-(--gde-section-bg) px-2 py-1.25 pl-2.5 text-[0.82em] shadow-(--gde-section-shadow)"
+          [class.px-2!]="isEdit()"
+          [class.py-1.25!]="isEdit()"
+        >
           @if (!isTagLocked() && isEdit()) {
-            <div class="title-edit-row">
+            <div
+              class="[&_input]:border-b-ui-border-panel [&_input]:text-ui-text [&_input:hover]:bg-ui-hover [&_input:focus]:border-ui-accent [&_input:focus]:bg-ui-input flex w-full min-w-0 items-center gap-1 [&_input]:min-w-0 [&_input]:flex-[1_1_auto] [&_input]:rounded-xs [&_input]:border [&_input]:border-transparent [&_input]:bg-transparent [&_input]:px-1.25 [&_input]:py-0.75 [&_input]:text-[0.9em] [&_input]:outline-none [&_input:focus]:shadow-[0_0_0_2px_var(--ui-accent-glow)]"
+            >
               @if (!isImage()) {
-                <div class="elm-title-structure-actions" aria-label="ドラッグ操作">
+                <div
+                  class="flex flex-[0_0_auto] items-center rounded-none border-none bg-transparent p-0"
+                  aria-label="ドラッグ操作"
+                >
                   <button
                     class="text-ui-dim hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-grab items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 active:cursor-grabbing disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                     type="button"
@@ -633,11 +644,13 @@
               </div>
             }
           } @else {
-            <div class="title-view-row">
+            <div class="flex min-h-5.5 w-full min-w-0 items-center gap-1.5">
               @if (icon) {
-                <i class="material-icons title-icon">{{ icon }}</i>
+                <i class="material-icons text-ui-accent shrink-0 text-[15px]!">{{ icon }}</i>
               }
-              <span class="title-text">{{ name }}</span>
+              <span class="text-ui-text min-w-0 truncate text-[0.9em] leading-[1.4] font-bold tracking-normal">{{
+                name
+              }}</span>
             </div>
           }
         </div>
@@ -663,25 +676,53 @@
             </button>
           </div>
         }
-        <div class="elm-view-table-wrap" tabindex="0" (wheel)="onTableWheel($event)">
-          <table class="elm-view-table">
+        <div
+          class="relative box-border block w-full max-w-full min-w-0 [touch-action:pan-x_pan-y] overflow-x-scroll overflow-y-hidden overscroll-x-contain pb-1.5 pl-2.25 contain-[inline-size] [scrollbar-color:var(--ui-accent)_color-mix(in_srgb,var(--ui-elevated)_78%,var(--ui-surface))] [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-[color-mix(in_srgb,var(--ui-elevated)_78%,var(--ui-surface))] [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--ui-accent)_82%,var(--ui-text-muted))] [&::-webkit-scrollbar-track]:bg-[color-mix(in_srgb,var(--ui-elevated)_78%,var(--ui-surface))]"
+          tabindex="0"
+          (wheel)="onTableWheel($event)"
+        >
+          <table
+            class="elm-view-table text-ui-text [&_thead_th]:text-ui-muted [&_tbody_th]:text-ui-text w-max min-w-full table-auto border-collapse bg-[color-mix(in_srgb,var(--ui-elevated)_74%,var(--ui-surface))] text-[0.78em] [&_tbody_td]:bg-[color-mix(in_srgb,var(--ui-input-bg)_84%,var(--ui-surface))] [&_tbody_th]:w-32 [&_tbody_th]:max-w-48 [&_tbody_th]:min-w-32 [&_tbody_th]:bg-[color-mix(in_srgb,var(--ui-accent-bg)_26%,var(--ui-elevated))] [&_tbody_th]:font-bold [&_td]:max-w-72 [&_td]:min-w-30 [&_td]:truncate [&_td]:border [&_td]:border-(--gde-row-border,var(--ui-panel-border)) [&_td]:px-2 [&_td]:py-1.5 [&_td]:text-left [&_td]:align-top [&_th]:max-w-72 [&_th]:min-w-30 [&_th]:truncate [&_th]:border [&_th]:border-(--gde-row-border,var(--ui-panel-border)) [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:align-top [&_thead_th]:bg-[color-mix(in_srgb,var(--ui-surface)_70%,var(--ui-elevated))] [&_thead_th]:font-bold"
+          >
             <thead>
               <tr>
-                <th class="elm-view-table-row-heading"></th>
+                <th class="w-32 max-w-48 min-w-32"></th>
                 @if (hasTableColumnGroups()) {
                   @for (group of tableColumnHeaderGroups(); track group.key) {
-                    <th class="elm-view-table-column-group" [attr.colspan]="group.span">{{ group.label }}</th>
+                    <th class="elm-view-table-column-group text-center! align-middle" [attr.colspan]="group.span">
+                      {{ group.label }}
+                    </th>
                   }
                 } @else {
                   @for (column of tableColumns(); track column.name) {
                     <th
                       [class.elm-view-table-column--gap]="isGapTableColumn(column)"
                       [class.elm-view-table-column--gap-active]="isGapTableColumnActive(column)"
+                      [class.w-7]="isGapTableColumn(column)"
+                      [class.min-w-7!]="isGapTableColumn(column)"
+                      [class.max-w-7!]="isGapTableColumn(column)"
+                      [class.px-0]="isGapTableColumn(column)"
+                      [class.bg-[color-mix(in_srgb,var(--ui-surface)_76%,var(--ui-elevated))]]="
+                        isGapTableColumn(column)
+                      "
+                      [class.cursor-pointer]="isGapTableColumn(column)"
+                      [class.text-center]="isGapTableColumn(column)"
+                      [class.align-middle]="isGapTableColumn(column)"
+                      [class.text-ui-accent]="isGapTableColumn(column)"
+                      [class.border-[color-mix(in_srgb,var(--ui-accent)_76%,var(--gde-row-border))]!]="
+                        isGapTableColumnActive(column)
+                      "
+                      [class.bg-[color-mix(in_srgb,var(--ui-accent)_72%,var(--ui-elevated))]!]="
+                        isGapTableColumnActive(column)
+                      "
+                      [class.shadow-[inset_0_0_0_9999px_color-mix(in_srgb,var(--ui-accent)_18%,transparent),inset_2px_0_0_var(--ui-accent),inset_-2px_0_0_var(--ui-accent)]]="
+                        isGapTableColumnActive(column)
+                      "
                       (click)="toggleGapTableColumn(column, $event)"
                     >
                       @if (isGapTableColumn(column)) {
                         <label
-                          class="elm-view-table-gap-toggle"
+                          class="inline-flex min-h-6 w-full min-w-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 [&_input]:m-0 [&_input]:size-3.25 [&_input]:[accent-color:var(--ui-accent)]"
                           [title]="getGapTableColumnTitle(column)"
                           (click)="$event.stopPropagation()"
                         >
@@ -705,34 +746,54 @@
                   @if (tableRowHeaderLabel()) {
                     @if (isFirstRow) {
                       <th
-                        class="elm-view-table-row-heading elm-view-table-row-heading--group"
+                        class="elm-view-table-row-heading--group w-7! max-w-[2.4rem]! min-w-7! text-center! align-middle! whitespace-normal! [text-orientation:upright] [writing-mode:vertical-rl]"
                         [attr.rowspan]="tableBodyRows().length"
                       >
                         {{ tableRowHeaderLabel() }}
                       </th>
                     }
                   } @else {
-                    <th class="elm-view-table-row-heading">{{ rowElement.name }}</th>
+                    <th class="w-32 max-w-48 min-w-32">{{ rowElement.name }}</th>
                   }
                   @for (column of tableColumns(); track column.name) {
                     <td
                       [class.elm-view-table-column--gap]="isGapTableColumn(column)"
                       [class.elm-view-table-column--gap-active]="isGapTableColumnActive(column)"
+                      [class.w-7]="isGapTableColumn(column)"
+                      [class.min-w-7!]="isGapTableColumn(column)"
+                      [class.max-w-7!]="isGapTableColumn(column)"
+                      [class.px-0]="isGapTableColumn(column)"
+                      [class.bg-[color-mix(in_srgb,var(--ui-surface)_76%,var(--ui-elevated))]]="
+                        isGapTableColumn(column)
+                      "
+                      [class.cursor-pointer]="isGapTableColumn(column)"
+                      [class.text-center]="isGapTableColumn(column)"
+                      [class.align-middle]="isGapTableColumn(column)"
+                      [class.text-ui-accent]="isGapTableColumn(column)"
+                      [class.border-[color-mix(in_srgb,var(--ui-accent)_76%,var(--gde-row-border))]!]="
+                        isGapTableColumnActive(column)
+                      "
+                      [class.bg-[color-mix(in_srgb,var(--ui-accent)_72%,var(--ui-elevated))]!]="
+                        isGapTableColumnActive(column)
+                      "
+                      [class.shadow-[inset_0_0_0_9999px_color-mix(in_srgb,var(--ui-accent)_18%,transparent),inset_2px_0_0_var(--ui-accent),inset_-2px_0_0_var(--ui-accent)]]="
+                        isGapTableColumnActive(column)
+                      "
                       (click)="toggleGapTableColumn(column, $event)"
                     >
                       @if (getTableCell(rowElement, column.name); as cell) {
                         @switch (cell.fieldType) {
                           @case ('check') {
                             <label
-                              class="elm-view-table-check-cell"
+                              class="text-ui-text inline-flex max-w-full min-w-0 items-center gap-1"
                               [class.cursor-pointer]="isJudgeMode()"
                               [class.hover:bg-[var(--ui-accent-mute,rgba(100,160,255,0.15))]]="isJudgeMode()"
                               [class.hover:rounded-[3px]]="isJudgeMode()"
-                              [class.[&_.elm-view-table-check]:pointer-events-none]="isJudgeMode()"
+                              [class.[&_input]:pointer-events-none]="isJudgeMode()"
                               (click)="isJudgeMode() ? onJudgeCheckCellClick(rowElement, column.name, $event) : null"
                             >
                               <input
-                                class="elm-view-table-check"
+                                class="m-0 size-3.5 flex-[0_0_auto] cursor-pointer [accent-color:var(--ui-accent)]"
                                 type="checkbox"
                                 [checked]="isTableCheckCellChecked(cell)"
                                 (change)="!isJudgeMode() && toggleTableCheckCell(cell, $event)"
@@ -743,14 +804,18 @@
                             </label>
                           }
                           @case ('resource') {
-                            <span class="elm-view-table-resource">{{ getTableCellDisplayText(cell) }}</span>
+                            <span class="font-[Cambria,Georgia,serif] font-bold">{{
+                              getTableCellDisplayText(cell)
+                            }}</span>
                           }
                           @case ('calc') {
-                            <span class="elm-view-table-calc">{{ getTableCellDisplayText(cell) }}</span>
+                            <span class="font-[Cambria,Georgia,serif] font-bold">{{
+                              getTableCellDisplayText(cell)
+                            }}</span>
                           }
                           @case ('select') {
                             <select
-                              class="elm-view-table-select"
+                              class="elm-view-table-select text-ui-text hover:bg-ui-input focus:bg-ui-input font-inherit w-full min-w-[3.8rem] rounded-xs border-none bg-transparent outline-none"
                               [value]="cell.value"
                               (change)="setTableSelectCellValueFromEvent(cell, $event)"
                             >
@@ -765,13 +830,13 @@
                           @case ('image') {
                             @if (getTableCellImageUrl(cell); as imageUrl) {
                               <img
-                                class="elm-view-table-image"
+                                class="elm-view-table-image block size-14 max-w-full rounded-xs border border-(--gde-row-border,var(--ui-panel-border)) bg-[color-mix(in_srgb,var(--ui-surface)_82%,transparent)] object-contain"
                                 [src]="imageUrl | safe: 'resourceUrl'"
                                 [alt]="cell.name"
                                 [title]="cell.name"
                               />
                             } @else {
-                              <span class="elm-view-table-muted">{{ getTableCellDisplayText(cell) }}</span>
+                              <span class="text-ui-muted">{{ getTableCellDisplayText(cell) }}</span>
                             }
                           }
                           @default {
@@ -838,7 +903,7 @@
           </div>
         }
       } @else if (gameDataElement().children.length) {
-        <div class="box-border flex w-full min-w-0 flex-col gap-0.5">
+        <div class="relative box-border flex w-full min-w-0 flex-col gap-0.5 pl-2.25">
           @for (childElement of gameDataElement().children; track childElement.identifier; let i = $index) {
             <div
               game-data-element
