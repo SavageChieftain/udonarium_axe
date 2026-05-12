@@ -13,7 +13,6 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   selector: 'file-storage',
   templateUrl: './file-storage.component.html',
   host: { class: 'block' },
-  styleUrls: ['./file-storage.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, SafePipe],
 })
