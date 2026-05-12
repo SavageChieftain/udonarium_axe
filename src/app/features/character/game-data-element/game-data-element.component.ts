@@ -43,7 +43,6 @@ interface JudgeCandidatesState {
     './game-data-element-field-values.css',
     './game-data-element-sections.css',
     './game-data-element-judge.css',
-    './game-data-element-options.css',
     './game-data-element-icons.css',
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -268,37 +268,33 @@
         </div>
       }
       @if (fieldOptionsOpen() && shouldShowFieldOptions()) {
-        <div class="elm-field-options">
+        <div
+          class="elm-field-options [&_label]:text-ui-muted [&_span]:text-ui-dim [&_input]:bg-ui-input [&_textarea]:bg-ui-input col-span-full mt-1.5 flex flex-wrap gap-x-1.5 gap-y-1 border border-[color-mix(in_srgb,var(--gde-row-border)_75%,transparent)] p-1.5 [background:color-mix(in_srgb,var(--ui-input-bg)_72%,transparent)] [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-(--gde-radius-control) [&_input]:border [&_input]:border-(--gde-row-border) [&_input[type='checkbox']]:m-0 [&_input[type='checkbox']]:size-3.5! [&_label]:grid [&_label]:min-w-28 [&_label]:items-center [&_label]:gap-1 [&_label]:text-[0.86em] [&_span]:whitespace-nowrap [&_textarea]:min-h-[3.2em] [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:rounded-(--gde-radius-control) [&_textarea]:border [&_textarea]:border-(--gde-row-border)"
+        >
           @if (gameDataElement().fieldType === 'select') {
-            <label class="elm-field-option elm-field-option--wide">
+            <label class="flex-[1_1_14rem] grid-cols-[auto_minmax(8rem,1fr)]">
               <span>選択肢</span>
-              <textarea
-                class="elm-option-textarea"
-                name="data-choices"
-                [(ngModel)]="choicesText"
-                placeholder="1行またはカンマ区切り"
-              ></textarea>
+              <textarea name="data-choices" [(ngModel)]="choicesText" placeholder="1行またはカンマ区切り"></textarea>
             </label>
           }
           @if (gameDataElement().fieldType === 'number' || gameDataElement().fieldType === 'resource') {
-            <label class="elm-field-option">
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>単位</span>
               <input name="data-unit" [(ngModel)]="unitText" placeholder="例: 点" />
             </label>
-            <label class="elm-field-option">
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>最小</span>
               <input type="number" name="data-min" [(ngModel)]="minText" placeholder="任意" />
             </label>
-            <label class="elm-field-option">
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>最大</span>
               <input type="number" name="data-max" [(ngModel)]="maxText" placeholder="任意" />
             </label>
           }
           @if (gameDataElement().fieldType === 'calc') {
-            <label class="elm-field-option elm-field-option--wide">
+            <label class="flex-[1_1_14rem] grid-cols-[auto_minmax(8rem,1fr)]">
               <span>計算式</span>
               <textarea
-                class="elm-option-textarea"
                 name="data-formula"
                 [(ngModel)]="formulaText"
                 placeholder="例: HP + レベル * 2&#10;利用可: +, -, *, /, **, (, )&#10;関数: floor, ceil, round, abs, min, max"
@@ -306,21 +302,21 @@
             </label>
           }
           @if (isTableCellField()) {
-            <label class="elm-field-option">
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>列表示</span>
               <input name="data-column-label" [(ngModel)]="columnLabelText" placeholder="空なら名前" />
             </label>
-            <label class="elm-field-option">
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>列グループ</span>
               <input name="data-column-group" [(ngModel)]="columnGroupText" placeholder="上段見出し" />
             </label>
             @if (gameDataElement().fieldType === 'check') {
-              <label class="elm-field-option">
+              <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
                 <span>セル表示</span>
                 <input name="data-cell-text" [(ngModel)]="tableCellText" placeholder="チェック横の表示" />
               </label>
             }
-            <label class="elm-field-option elm-field-option--check">
+            <label class="grid-cols-[auto_auto] justify-start">
               <span>ギャップ列</span>
               <input type="checkbox" name="data-cell-kind-gap" [(ngModel)]="isGapCell" />
             </label>
@@ -457,12 +453,14 @@
               </button>
             </div>
             @if (fieldOptionsOpen() && shouldShowContainerOptions()) {
-              <div class="elm-field-options">
-                <label class="elm-field-option">
+              <div
+                class="elm-field-options [&_label]:text-ui-muted [&_span]:text-ui-dim [&_input]:bg-ui-input [&_textarea]:bg-ui-input col-span-full mt-1.5 flex flex-wrap gap-x-1.5 gap-y-1 border border-[color-mix(in_srgb,var(--gde-row-border)_75%,transparent)] p-1.5 [background:color-mix(in_srgb,var(--ui-input-bg)_72%,transparent)] [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-(--gde-radius-control) [&_input]:border [&_input]:border-(--gde-row-border) [&_input[type='checkbox']]:m-0 [&_input[type='checkbox']]:size-3.5! [&_label]:grid [&_label]:min-w-28 [&_label]:items-center [&_label]:gap-1 [&_label]:text-[0.86em] [&_span]:whitespace-nowrap [&_textarea]:min-h-[3.2em] [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:rounded-(--gde-radius-control) [&_textarea]:border [&_textarea]:border-(--gde-row-border)"
+              >
+                <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
                   <span>行見出し</span>
                   <input name="data-row-header-label" [(ngModel)]="rowHeaderLabelText" placeholder="例: 技能" />
                 </label>
-                <label class="elm-field-option elm-field-option--check">
+                <label class="grid-cols-[auto_auto] justify-start">
                   <span>GAP判定テーブル</span>
                   <input
                     type="checkbox"
@@ -472,7 +470,7 @@
                   />
                 </label>
                 @if (isJudgeModeEnabled()) {
-                  <label class="elm-field-option">
+                  <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
                     <span>基礎難易度</span>
                     <input
                       type="number"
@@ -482,7 +480,7 @@
                       placeholder="5"
                     />
                   </label>
-                  <label class="elm-field-option">
+                  <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
                     <span>GAP距離</span>
                     <input
                       type="number"
@@ -492,7 +490,7 @@
                       placeholder="1"
                     />
                   </label>
-                  <label class="elm-field-option elm-field-option--check">
+                  <label class="grid-cols-[auto_auto] justify-start">
                     <span>左右ループ</span>
                     <input
                       type="checkbox"
@@ -501,7 +499,7 @@
                       (change)="toggleLoopHorizontal()"
                     />
                   </label>
-                  <label class="elm-field-option elm-field-option--check">
+                  <label class="grid-cols-[auto_auto] justify-start">
                     <span>上下ループ</span>
                     <input
                       type="checkbox"
