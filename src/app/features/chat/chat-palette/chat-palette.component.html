@@ -34,8 +34,9 @@
       [(gameType)]="gameType"
       [(sendFrom)]="sendFrom"
       [autoCompleteIndex]="completeIndex()"
-      [autoCompleteListLen]="autoCompleteList().length"
-      [(text)]="text"
+      [autoCompleteListLen]="autoCompleteListSignal().length"
+      [text]="text()"
+      (textChange)="text.set($event)"
       (chat)="sendChat($event)"
       (autoCompleteSwitch)="autoCompleteSwitchRelative($event)"
       (autoCompleteDo)="autoCompleteDoRelative($event)"
@@ -43,15 +44,16 @@
       #chatInput
     ></chat-input>
     <div class="relative h-0 w-full">
-      @if ((autoCompleteList().length === 1 && autoCompleteList()[0] !== text) || autoCompleteList().length > 1) {
+      @let list = autoCompleteListSignal();
+      @if ((list.length === 1 && list[0] !== text()) || list.length > 1) {
         <select
           class="absolute -top-5 left-[15] z-10 box-border w-[calc(100%-155px)] min-w-55 resize-none overflow-y-auto font-sans opacity-80"
           #completeSelect
           size="5"
-          (input)="onSelectAutoComplete(text, $event)"
-          (click)="onSelectAutoComplete(text, $event)"
+          (input)="onSelectAutoComplete(text(), $event)"
+          (click)="onSelectAutoComplete(text(), $event)"
         >
-          @for (palette of autoCompleteList(); track palette) {
+          @for (palette of list; track palette) {
             <option value="{{ palette }}">{{ palette }}</option>
           }
         </select>

@@ -108,8 +108,18 @@ export class ChatPaletteComponent {
   }
 
   readonly chatTabidentifier = signal('');
-  text: string = '';
+  readonly text = signal<string>('');
   sendTo: string = '';
+
+  /** 発言予測候補リスト。computed なので複数参照されても再計算は 1 回だけ。 */
+  readonly autoCompleteListSignal = computed<string[]>(() => {
+    const t = this.text();
+    if (t.length <= 1) return [];
+    const palette = this.character()?.chatPalette ?? null;
+    if (!palette) return [];
+    this.objectChange.versionOf(palette.identifier)();
+    return palette.paletteMatch(t);
+  });
 
   readonly isEdit = signal(false);
   readonly editPalette = signal('');
@@ -219,12 +229,12 @@ export class ChatPaletteComponent {
   autoCompleteDoRelative(index: number) {
     const selectObj = this.completeSelectRef()?.nativeElement;
     if (!selectObj || index != selectObj.selectedIndex) return;
-    this.selectAutoComplete(this.text, selectObj.value);
+    this.selectAutoComplete(this.text(), selectObj.value);
   }
 
   selectPalette(line: string) {
     const multiLine = line.replace(/\\n/g, '\n');
-    this.text = multiLine;
+    this.text.set(multiLine);
     const selectObj = this.completeSelectRef()?.nativeElement;
     if (selectObj) {
       selectObj.selectedIndex = -1;
@@ -247,21 +257,17 @@ export class ChatPaletteComponent {
   }
 
   autoCompleteList(): string[] {
-    let paletteMatch: string[] = [];
-    if (this.text.length > 1) {
-      paletteMatch = this.palette?.paletteMatch(this.text) ?? [];
-    }
-    return paletteMatch;
+    return this.autoCompleteListSignal();
   }
 
   clickPalette(line: string) {
     const multiLine = line.replace(/\\n/g, '\n');
-    if (this.doubleClickTimer && this.text === multiLine) {
+    if (this.doubleClickTimer && this.text() === multiLine) {
       clearTimeout(this.doubleClickTimer);
       this.doubleClickTimer = null;
       this.chatInputComponent().sendChat(null);
     } else {
-      this.text = multiLine;
+      this.text.set(multiLine);
       this.doubleClickTimer = setTimeout(() => {
         this.doubleClickTimer = null;
       }, 400);
