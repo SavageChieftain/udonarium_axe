@@ -1,36 +1,65 @@
-<div class="bgm-select">
-  <div class="tag-tabs">
+<div class="text-ui-text flex h-full flex-col overflow-hidden text-[13px]">
+  <div class="border-ui-border-panel flex shrink-0 gap-0.5 border-b border-solid px-2 pt-1.5 pb-1">
     @for (tab of ['全て', 'BGM', 'SE']; track tab) {
-      <button type="button" class="tag-tab" [class.is-active]="selectTag() === tab" (click)="selectTag.set(tab)">
+      <button
+        class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm cursor-pointer border border-solid px-3 py-0.75 text-[12px] transition-[background,color,border-color]"
+        [class.bg-ui-accent!]="selectTag() === tab"
+        [class.text-white!]="selectTag() === tab"
+        [class.border-ui-accent!]="selectTag() === tab"
+        type="button"
+        (click)="selectTag.set(tab)"
+      >
         {{ tab }}
       </button>
     }
   </div>
 
   @if (filteredAudios().length) {
-    <ul class="bgm-list">
+    <ul class="m-0 flex-1 list-none overflow-y-auto px-0 py-1">
       @for (audio of filteredAudios(); track audio.identifier) {
-        <li class="bgm-row" [class.is-auditioning]="audio === auditionPlayer.audio && !auditionPlayer.paused">
-          <div class="bgm-info">
+        <li
+          class="border-ui-border-panel hover:bg-ui-hover flex items-center gap-1.5 border-b border-solid px-2.5 py-1.5 transition-[background] last:border-b-0"
+          [class.bg-ui-accent-bg!]="audio === auditionPlayer.audio && !auditionPlayer.paused"
+        >
+          <div class="flex min-w-0 flex-1 items-center gap-1.5">
             @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-              <i class="material-icons bgm-playing-icon">volume_up</i>
+              <i class="material-icons text-ui-accent w-4.5 shrink-0 text-center text-base!">volume_up</i>
             } @else {
-              <i class="material-icons bgm-playing-icon" style="opacity: 0.25">music_note</i>
+              <i class="material-icons text-ui-accent w-4.5 shrink-0 text-center text-base! opacity-25">music_note</i>
             }
-            <span class="tag-badge" [class.is-se]="tagOf(audio) === 'SE'">{{ tagOf(audio) }}</span>
-            <span class="bgm-name" [title]="audio.name">{{ audio.name }}</span>
+            <span
+              class="bg-ui-accent-bg text-ui-accent border-ui-accent shrink-0 rounded-[3px] border border-solid px-1.25 py-px text-[10px] font-bold tracking-wider"
+              [class.bg-[color-mix(in_srgb,#f59e0b_15%,transparent)]!]="tagOf(audio) === 'SE'"
+              [class.text-[#f59e0b]!]="tagOf(audio) === 'SE'"
+              [class.border-[#f59e0b]!]="tagOf(audio) === 'SE'"
+              >{{ tagOf(audio) }}</span
+            >
+            <span class="text-ui-text truncate text-[13px] font-medium" [title]="audio.name">{{ audio.name }}</span>
           </div>
-          <div class="bgm-actions">
+          <div class="flex shrink-0 gap-1">
             @if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
-              <button type="button" class="action-btn is-playing" (click)="stop()">
+              <button
+                class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center justify-center gap-0.75 border border-solid px-2 py-1 text-[12px] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[15px]!"
+                type="button"
+                (click)="stop()"
+              >
                 <i class="material-icons">stop</i>停止
               </button>
             } @else {
-              <button type="button" class="action-btn" (click)="play(audio)" [disabled]="!audio.isReady">
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center justify-center gap-0.75 border border-solid px-2 py-1 text-[12px] whitespace-nowrap transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-[15px]!"
+                type="button"
+                (click)="play(audio)"
+                [disabled]="!audio.isReady"
+              >
                 <i class="material-icons">play_arrow</i>試聴
               </button>
             }
-            <button type="button" class="action-btn is-select" (click)="selectBgm(audio)">
+            <button
+              class="bg-ui-accent border-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center justify-center gap-0.75 border border-solid px-2 py-1 text-[12px] whitespace-nowrap text-white transition-[background,color,border-color] hover:opacity-85 [&_.material-icons]:text-[15px]!"
+              type="button"
+              (click)="selectBgm(audio)"
+            >
               <i class="material-icons">check</i>選択
             </button>
           </div>
@@ -38,9 +67,11 @@
       }
     </ul>
   } @else {
-    <div class="bgm-empty">
+    <div
+      class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
+    >
       <i class="material-icons">music_off</i>
-      <p>音楽がアップロードされていません。</p>
+      <p class="m-0 text-[13px]">音楽がアップロードされていません。</p>
     </div>
   }
 </div>
