@@ -38,8 +38,11 @@ export class MiniJukeboxComponent {
   readonly isPlaylistOpen = signal(false);
   readonly isMinimized = signal(false);
   readonly isTitleScrolling = signal(false);
-  /** シークバーのロック状態。ロック中は再生に合わせて表示は動くがユーザーは seek できない。 */
-  readonly isSeekLocked = signal(true);
+  /** シークバーのロック状態。Jukebox の SyncVar を見ているので peer 間で共有される。 */
+  readonly isSeekLocked = computed<boolean>(() => {
+    this.objectChange.versionOf('Jukebox')();
+    return this.jukebox?.isSeekLocked ?? true;
+  });
   readonly playerEl = viewChild.required<ElementRef<HTMLElement>>('playerEl');
   readonly titleTextEl = viewChild<ElementRef<HTMLElement>>('titleTextEl');
 
@@ -234,7 +237,7 @@ export class MiniJukeboxComponent {
   }
 
   toggleSeekLock() {
-    this.isSeekLocked.update((v) => !v);
+    if (this.jukebox) this.jukebox.isSeekLocked = !this.jukebox.isSeekLocked;
   }
 
   toggleMinimize() {

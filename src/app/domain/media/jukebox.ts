@@ -17,6 +17,8 @@ export class Jukebox extends GameObject {
   @SyncVar() startTime: number = 0;
   @SyncVar() repeatMode: RepeatMode = 'none';
   @SyncVar() isPlaying: boolean = false;
+  /** シークバーのロック状態。peer 間で共有して全員のシーク操作を同時に許可/禁止する */
+  @SyncVar() isSeekLocked: boolean = true;
 
   get audio(): AudioFile | null {
     return AudioStorage.instance.get(this.audioIdentifier);
