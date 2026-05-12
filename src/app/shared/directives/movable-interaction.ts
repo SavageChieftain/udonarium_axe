@@ -38,12 +38,12 @@ export interface MovableInteractionContext {
 }
 
 export function handleInputStart(context: MovableInteractionContext, e: MouseEvent | TouchEvent): void {
-  if (
-    (context.isDisable() && !context.isScratcOwner()) ||
-    (e as MouseEvent).button === 1 ||
-    (e as MouseEvent).button === 2
-  ) {
-    context.cancelTableGesture();
+  const isLocked = context.isDisable() && !context.isScratcOwner();
+  const isContextMenuButton = (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2;
+  if (isLocked || isContextMenuButton) {
+    // 中/右クリックは誤回転を避けるため table gesture もキャンセルする。
+    // ロック時は table gesture を残してカメラ操作（回転/移動）を通す。
+    if (isContextMenuButton) context.cancelTableGesture();
     return context.cancel();
   }
 
