@@ -83,6 +83,40 @@ export function buildGameCharacterContextMenu(
       name: 'バフ編集',
       action: () => callbacks.onShowBuffEdit(),
     },
+    char.hideInventory
+      ? {
+          name: '☑ インベントリ非表示',
+          action: () => {
+            char.hideInventory = false;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+      : {
+          name: '☐ インベントリ非表示',
+          action: () => {
+            char.hideInventory = true;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
+    char.nonTalkFlag
+      ? {
+          name: '☑ 発言しない',
+          action: () => {
+            char.nonTalkFlag = false;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+      : {
+          name: '☐ 発言しない',
+          action: () => {
+            char.nonTalkFlag = true;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
     ContextMenuSeparator,
     {
       name: '共有イベントリに移動',

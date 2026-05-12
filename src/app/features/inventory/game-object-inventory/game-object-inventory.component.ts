@@ -151,6 +151,10 @@ export class GameObjectInventoryComponent {
     this.objectChange.collectionOf('character')();
     switch (inventoryType) {
       case 'table': {
+        // 一括移動モード or 表示設定パネル展開時は hideInventory なキャラも含めて
+        // 表示し、UI 側で薄く描画して管理操作を可能にする。
+        const showHidden = this.isMultiMove() || this.isEdit();
+        if (showHidden) return [...this.inventoryService.tableInventory.tabletopObjects];
         const tableCharacterList_dest = [];
         const tableCharacterList_scr = this.inventoryService.tableInventory.tabletopObjects;
         for (const character of tableCharacterList_scr) {
@@ -163,6 +167,11 @@ export class GameObjectInventoryComponent {
       default:
         return this.getInventory(inventoryType).tabletopObjects;
     }
+  }
+
+  /** 行の見た目を「非表示扱い」に切り替えるべきか判定する */
+  isInventoryHiddenObject(gameObject: TabletopObject): boolean {
+    return gameObject instanceof GameCharacter && gameObject.hideInventory;
   }
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
@@ -202,6 +211,26 @@ export class GameObjectInventoryComponent {
           this.showRemoteController(gameObject as GameCharacter);
         },
       });
+      const character = gameObject as GameCharacter;
+      actions.push(
+        character.hideInventory
+          ? {
+              name: '☑ インベントリ非表示',
+              action: () => {
+                character.hideInventory = false;
+                this.inventoryService.notifyInventoryUpdate();
+                SoundEffect.play(PresetSound.sweep);
+              },
+            }
+          : {
+              name: '☐ インベントリ非表示',
+              action: () => {
+                character.hideInventory = true;
+                this.inventoryService.notifyInventoryUpdate();
+                SoundEffect.play(PresetSound.sweep);
+              },
+            }
+      );
     }
     actions.push(ContextMenuSeparator);
     const locations = [
@@ -347,6 +376,18 @@ export class GameObjectInventoryComponent {
     this.multiMove(location);
     this.toggleMultiMove();
     SoundEffect.play(PresetSound.piecePut);
+  }
+
+  multiSetHideInventory(hide: boolean) {
+    for (const gameObjectIdentifier of this.multiMoveTargets()) {
+      const gameObject = this.objectStore.get<GameCharacter>(gameObjectIdentifier);
+      if (gameObject instanceof GameCharacter) {
+        gameObject.hideInventory = hide;
+      }
+    }
+    this.inventoryService.notifyInventoryUpdate();
+    this.toggleMultiMove();
+    SoundEffect.play(PresetSound.sweep);
   }
 
   deleteAndClose() {

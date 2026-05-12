@@ -179,6 +179,22 @@
           <i class="material-icons">delete</i>削除
         </button>
       }
+      @if (selectTab() === 'table') {
+        <button
+          class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+          type="button"
+          (click)="multiSetHideInventory(true)"
+        >
+          <i class="material-icons">visibility_off</i>インベントリで非表示
+        </button>
+        <button
+          class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+          type="button"
+          (click)="multiSetHideInventory(false)"
+        >
+          <i class="material-icons">visibility</i>インベントリで表示
+        </button>
+      }
       <button
         class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background] [&_.material-icons]:text-[14px]!"
         type="button"
@@ -205,6 +221,12 @@
         class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color]"
         [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
         [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
+        [class.opacity-50]="isInventoryHiddenObject(gameObject)"
+        [class.italic]="isInventoryHiddenObject(gameObject)"
+        [class.border-dashed!]="isInventoryHiddenObject(gameObject)"
+        [class.border-ui-border-panel!]="
+          isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
+        "
         (contextmenu)="onContextMenu($event, gameObject)"
         (click)="selectGameObject(gameObject)"
         (dblclick)="focusToObject($event, gameObject)"
