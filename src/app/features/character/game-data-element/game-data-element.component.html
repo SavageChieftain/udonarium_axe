@@ -3,7 +3,7 @@
     @if (isEdit() && !isImage()) {
       <div class="elm-structure-cell table-cell" aria-label="ドラッグ操作">
         <button
-          class="elm-act-btn elm-structure-btn elm-structure-btn--drag elm-drag-handle"
+          class="elm-structure-btn elm-structure-btn--drag text-ui-dim hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-grab items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 active:cursor-grabbing disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
           type="button"
           draggable="true"
           (dragstart)="onStructureDragStart($event)"
@@ -217,9 +217,11 @@
         }
       </div>
       @if (isEdit() && !isImage()) {
-        <div class="elm-row-actions">
+        <div
+          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[74px_repeat(5,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
+        >
           <ng-select
-            class="ud-select elm-type-select"
+            class="ud-select min-h-5.5! w-18.5 min-w-18.5 text-[0.68em]! [&_.ng-select-container]:h-5.5! [&_.ng-select-container]:min-h-5.5! [&_.ng-select-container]:items-center [&_.ng-select-container_.ng-arrow-wrapper]:self-center [&_.ng-select-container_.ng-arrow-wrapper]:pb-0"
             [ngModel]="gameDataElement().fieldType"
             [ngModelOptions]="{ standalone: true }"
             [clearable]="false"
@@ -230,12 +232,18 @@
               <ng-option [value]="item.type">{{ item.label }}</ng-option>
             }
           </ng-select>
-          <button class="elm-act-btn" type="button" (click)="copyReferencePath($event)" title="参照名をコピー">
+          <button
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+            type="button"
+            (click)="copyReferencePath($event)"
+            title="参照名をコピー"
+          >
             <i class="material-icons">content_copy</i>
           </button>
           <button
-            class="elm-act-btn"
-            [class.elm-act-btn--active]="isPopupDataElement()"
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+            [class.bg-ui-accent-bg]="isPopupDataElement()"
+            [class.text-ui-accent!]="isPopupDataElement()"
             type="button"
             (click)="togglePopupDataElement($event)"
             title="ポップアップ表示"
@@ -244,8 +252,9 @@
           </button>
           @if (shouldShowFieldOptions()) {
             <button
-              class="elm-act-btn"
-              [class.elm-act-btn--active]="fieldOptionsOpen()"
+              class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+              [class.bg-ui-accent-bg]="fieldOptionsOpen()"
+              [class.text-ui-accent!]="fieldOptionsOpen()"
               type="button"
               (click)="toggleFieldOptions()"
               title="詳細設定"
@@ -253,16 +262,31 @@
               <i class="material-icons">tune</i>
             </button>
           } @else {
-            <button class="elm-act-btn elm-act-btn--placeholder" type="button" aria-hidden="true" tabindex="-1">
+            <button
+              class="pointer-events-none invisible inline-flex h-5.5 w-5 shrink-0 items-center justify-center rounded-(--gde-radius-control) [&_.material-icons]:text-[14px]"
+              type="button"
+              aria-hidden="true"
+              tabindex="-1"
+            >
               <i class="material-icons">tune</i>
             </button>
           }
           @if (canAddSiblingFieldElement()) {
-            <button class="elm-act-btn" type="button" (click)="addSiblingElement()" title="下に行を追加">
+            <button
+              class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+              type="button"
+              (click)="addSiblingElement()"
+              title="下に行を追加"
+            >
               <i class="material-icons">add</i>
             </button>
           }
-          <button class="elm-act-btn elm-act-btn--danger" type="button" (click)="deleteElement()" title="この行を削除">
+          <button
+            class="text-ui-muted hover:bg-ui-danger-bg hover:text-ui-danger disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+            type="button"
+            (click)="deleteElement()"
+            title="この行を削除"
+          >
             <i class="material-icons">delete_outline</i>
           </button>
         </div>
@@ -334,7 +358,7 @@
               @if (!isImage()) {
                 <div class="elm-title-structure-actions" aria-label="ドラッグ操作">
                   <button
-                    class="elm-act-btn elm-drag-handle"
+                    class="text-ui-dim hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-grab items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 active:cursor-grabbing disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                     type="button"
                     draggable="true"
                     (dragstart)="onStructureDragStart($event)"
@@ -412,8 +436,9 @@
               />
               @if (canToggleTableViewMode()) {
                 <button
-                  class="elm-act-btn"
-                  [class.elm-act-btn--active]="isTableViewMode()"
+                  class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+                  [class.bg-ui-accent-bg]="isTableViewMode()"
+                  [class.text-ui-accent!]="isTableViewMode()"
                   type="button"
                   (click)="toggleTableViewMode()"
                   [title]="isTableViewMode() ? '通常表示' : 'テーブル表示'"
@@ -423,8 +448,9 @@
               }
               @if (shouldShowContainerOptions()) {
                 <button
-                  class="elm-act-btn"
-                  [class.elm-act-btn--active]="fieldOptionsOpen()"
+                  class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+                  [class.bg-ui-accent-bg]="fieldOptionsOpen()"
+                  [class.text-ui-accent!]="fieldOptionsOpen()"
                   type="button"
                   (click)="toggleFieldOptions()"
                   title="表設定"
@@ -433,8 +459,9 @@
                 </button>
               }
               <button
-                class="elm-act-btn"
-                [class.elm-act-btn--active]="isPopupDataElement()"
+                class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+                [class.bg-ui-accent-bg]="isPopupDataElement()"
+                [class.text-ui-accent!]="isPopupDataElement()"
                 type="button"
                 (click)="togglePopupDataElement($event)"
                 title="ポップアップ表示"
@@ -442,23 +469,38 @@
                 <i class="material-icons">open_in_new</i>
               </button>
               @if (isImage()) {
-                <button class="elm-act-btn" type="button" (click)="addImageElement()" title="画像を追加">
+                <button
+                  class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+                  type="button"
+                  (click)="addImageElement()"
+                  title="画像を追加"
+                >
                   <i class="material-icons">add</i>
                 </button>
               } @else {
                 @if (canAddChildGroupElement()) {
-                  <button class="elm-act-btn" type="button" (click)="addGroupElement()" title="下位グループを追加">
+                  <button
+                    class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+                    type="button"
+                    (click)="addGroupElement()"
+                    title="下位グループを追加"
+                  >
                     <i class="material-icons">create_new_folder</i>
                   </button>
                 }
                 @if (canAddChildFieldElement()) {
-                  <button class="elm-act-btn" type="button" (click)="addElement()" title="行を追加">
+                  <button
+                    class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
+                    type="button"
+                    (click)="addElement()"
+                    title="行を追加"
+                  >
                     <i class="material-icons">add</i>
                   </button>
                 }
               }
               <button
-                class="elm-act-btn elm-act-btn--danger"
+                class="text-ui-muted hover:bg-ui-danger-bg hover:text-ui-danger disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                 type="button"
                 (click)="deleteElement()"
                 title="このセクションを削除"

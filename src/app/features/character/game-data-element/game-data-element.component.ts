@@ -39,7 +39,6 @@ interface JudgeCandidatesState {
   styleUrls: [
     './game-data-element.component.css',
     './game-data-element-rows.css',
-    './game-data-element-row-actions.css',
     './game-data-element-field-values.css',
     './game-data-element-sections.css',
     './game-data-element-judge.css',
@@ -47,6 +46,8 @@ interface JudgeCandidatesState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, LinkifyPipe, SafePipe, NgSelectComponent, NgOptionComponent],
   host: {
+    class:
+      "relative [&.elm-drop-before]:before:content-[''] [&.elm-drop-before]:before:absolute [&.elm-drop-before]:before:inset-x-0 [&.elm-drop-before]:before:top-0 [&.elm-drop-before]:before:h-0.5 [&.elm-drop-before]:before:max-h-[calc(var(--gde-row-min)*1.5)] [&.elm-drop-before]:before:bg-ui-accent [&.elm-drop-before]:before:z-10 [&.elm-drop-before]:before:pointer-events-none [&.elm-drop-before]:before:rounded-[1px] [&.elm-drop-after]:after:content-[''] [&.elm-drop-after]:after:absolute [&.elm-drop-after]:after:inset-x-0 [&.elm-drop-after]:after:bottom-0 [&.elm-drop-after]:after:h-0.5 [&.elm-drop-after]:after:bg-ui-accent [&.elm-drop-after]:after:z-10 [&.elm-drop-after]:after:pointer-events-none [&.elm-drop-after]:after:rounded-[1px]",
     '(dragover)': 'onStructureDragOver($event)',
     '(dragleave)': 'onStructureDragLeave($event)',
     '(drop)': 'onStructureDrop($event)',
