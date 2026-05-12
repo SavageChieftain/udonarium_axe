@@ -90,7 +90,6 @@ export class ChatPaletteComponent {
   private _paletteIndex: PaletteIndex[] = [];
   private _timeId: string = '';
   private _autoCompleteEnable = false;
-  private _completeIndex = -1;
 
   get gameType(): string {
     return this._gameType();
@@ -215,7 +214,6 @@ export class ChatPaletteComponent {
       newIndex = optionNum - 1;
     }
     selectObj.selectedIndex = newIndex;
-    this._completeIndex = newIndex;
   }
 
   autoCompleteDoRelative(index: number) {
@@ -231,7 +229,6 @@ export class ChatPaletteComponent {
     if (selectObj) {
       selectObj.selectedIndex = -1;
     }
-    this._completeIndex = -1;
   }
 
   selectAutoComplete(text: string, selectText: string) {
@@ -243,7 +240,10 @@ export class ChatPaletteComponent {
   }
 
   completeIndex(): number {
-    return this._completeIndex;
+    // 発言予測 select の selectedIndex を真実の源にする。select が破棄/再生成されると
+    // 自動的に -1 に戻り、リスト消失後も古い選択が残って送信不能になる事象を防ぐ。
+    const selectObj = this.completeSelectRef()?.nativeElement;
+    return selectObj ? selectObj.selectedIndex : -1;
   }
 
   autoCompleteList(): string[] {
