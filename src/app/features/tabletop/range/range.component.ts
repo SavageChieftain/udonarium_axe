@@ -368,14 +368,16 @@ export class RangeComponent {
   constructor() {
     this.objectChange.objectChanged$.subscribe((e) => {
       if (!this._initialized) return;
-      const object = this.objectStore.get(e.identifier);
-      if (!this.range() || !object) return;
+      const range = this.range();
+      if (!range) return;
+      // Range 自身・追従キャラ・テーブル設定の変更時だけ再描画。
+      // 部屋内の無関係なオブジェクト変更で毎回 canvas 再描画するとオブジェクトの多い部屋で重くなる。
+      const isRangeChange = e.identifier === range.identifier;
+      const isFollowingChange = e.identifier === range.followingCharctorIdentifier;
+      const isTableChange = e.identifier === this.currentTable.identifier;
+      if (!isRangeChange && !isFollowingChange && !isTableChange) return;
+      if (isFollowingChange) range.following();
       this.setRange();
-
-      if (object.identifier == this.range().followingCharctorIdentifier) {
-        this.range().following();
-        this.setRange();
-      }
     }, this.destroyRef);
     effect(() => {
       const range = this.range();

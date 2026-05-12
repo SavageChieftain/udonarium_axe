@@ -86,6 +86,7 @@ export class ChatTabSettingComponent {
       this.selectedTab.set(null);
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((e) => {
+      if (e.aliasName !== ChatTab.aliasName && e.aliasName !== ChatTabList.aliasName) return;
       const object = this.objectStore.get(e.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
         if (this.selectedTab() && !this.objectStore.get(this.selectedTab()!.identifier)) {

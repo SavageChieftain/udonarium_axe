@@ -163,6 +163,7 @@ export class ChatWindowComponent {
       if (this.isAutoScroll) this.chatTab()?.markForRead();
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
+      if (event.aliasName !== ChatTab.aliasName && event.aliasName !== ChatTabList.aliasName) return;
       const object = this.objectStore.get(event.identifier);
       if (object instanceof ChatTab || object instanceof ChatTabList) {
         if (!this.objectStore.get<ChatTab>(this._chatTabidentifier())) {

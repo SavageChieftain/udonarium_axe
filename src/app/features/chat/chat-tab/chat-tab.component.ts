@@ -116,6 +116,9 @@ export class ChatTabComponent {
       this.addWritingSpeaker(event.sendFrom, event.speakerIdentifier);
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
+      // 全オブジェクト変更で発火するため、aliasName で早期 return しないと
+      // 部屋のオブジェクト数 × 変更頻度に比例した無駄な ObjectStore.get / instanceof が走る。
+      if (event.aliasName !== ChatMessage.aliasName) return;
       const message = this.objectStore.get(event.identifier);
       if (
         message &&
