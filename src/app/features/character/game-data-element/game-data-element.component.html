@@ -617,11 +617,13 @@
       }
       @if (shouldRenderTableView()) {
         @if (isJudgeModeEnabled()) {
-          <div class="elm-judge-mode-toolbar">
+          <div class="bg-ui-elevated border-ui-border-panel flex items-center border-b px-1 py-0.5">
             <button
-              class="elm-judge-mode-toggle"
+              class="border-ui-border-panel text-ui-text hover:bg-ui-hover inline-flex cursor-pointer items-center gap-1 rounded-sm border bg-transparent px-2.5 py-0.75 text-[0.8rem] select-none [&_.material-icons]:text-[1rem]"
+              [class.border-ui-accent!]="isJudgeMode()"
+              [class.bg-ui-accent-bg!]="isJudgeMode()"
+              [class.text-ui-accent!]="isJudgeMode()"
               type="button"
-              [class.elm-judge-mode-toggle--active]="isJudgeMode()"
               (click)="toggleJudgeActive()"
             >
               @if (isJudgeMode()) {
@@ -696,7 +698,10 @@
                           @case ('check') {
                             <label
                               class="elm-view-table-check-cell"
-                              [class.elm-view-table-check-cell--judge]="isJudgeMode()"
+                              [class.cursor-pointer]="isJudgeMode()"
+                              [class.hover:bg-[var(--ui-accent-mute,rgba(100,160,255,0.15))]]="isJudgeMode()"
+                              [class.hover:rounded-[3px]]="isJudgeMode()"
+                              [class.[&_.elm-view-table-check]:pointer-events-none]="isJudgeMode()"
                               (click)="isJudgeMode() ? onJudgeCheckCellClick(rowElement, column.name, $event) : null"
                             >
                               <input
@@ -755,26 +760,43 @@
           </table>
         </div>
         @if (judgeCandidatesState(); as state) {
-          <div class="elm-judge-candidates-overlay" (click)="closeJudgeCandidates()">
-            <div class="elm-judge-candidates" (click)="$event.stopPropagation()">
-              <div class="elm-judge-candidates-header">
-                <span class="elm-judge-candidates-title">{{ state.clickedCellLabel }} の判定候補</span>
-                <button class="elm-judge-candidates-close" type="button" (click)="closeJudgeCandidates()">
+          <div
+            class="fixed inset-0 z-100 flex items-center justify-center bg-black/35"
+            (click)="closeJudgeCandidates()"
+          >
+            <div
+              class="bg-ui-bg border-ui-border-panel max-w-[90vw] min-w-[18rem] overflow-hidden rounded-md border shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+              (click)="$event.stopPropagation()"
+            >
+              <div class="bg-ui-titlebar text-ui-text flex items-center justify-between gap-2 px-3 py-2">
+                <span class="flex-1 truncate text-[0.85rem] font-bold"> {{ state.clickedCellLabel }} の判定候補 </span>
+                <button
+                  class="shrink-0 cursor-pointer border-none bg-transparent p-0 leading-none text-inherit"
+                  type="button"
+                  (click)="closeJudgeCandidates()"
+                >
                   <i class="material-icons">close</i>
                 </button>
               </div>
               @if (state.candidates.length === 0) {
-                <p class="elm-judge-candidates-empty">習得済みの技能が見つかりませんでした</p>
+                <p class="text-ui-dim m-0 p-4 text-center text-[0.85rem]">習得済みの技能が見つかりませんでした</p>
               } @else {
-                <ul class="elm-judge-candidates-list">
+                <ul class="m-0 max-h-[60vh] list-none overflow-y-auto p-0 py-1">
                   @for (candidate of state.candidates; track candidate.cell.identifier) {
-                    <li class="elm-judge-candidates-item">
-                      <span class="elm-judge-candidates-skill">{{ candidate.cellLabel || candidate.colLabel }}</span>
-                      <span class="elm-judge-candidates-dist" [title]="'距離: ' + candidate.distance">{{
-                        candidate.distance
-                      }}</span>
+                    <li
+                      class="border-ui-border-panel flex items-center gap-[0.4rem] border-b px-3 py-1.5 last:border-b-0"
+                    >
+                      <span class="flex-1 truncate text-[0.85rem]">
+                        {{ candidate.cellLabel || candidate.colLabel }}
+                      </span>
+                      <span
+                        class="text-ui-dim min-w-6 shrink-0 text-right text-[0.75rem]"
+                        [title]="'距離: ' + candidate.distance"
+                      >
+                        {{ candidate.distance }}
+                      </span>
                       <button
-                        class="elm-judge-candidates-chat"
+                        class="text-ui-accent hover:bg-ui-accent-bg shrink-0 cursor-pointer rounded-[3px] border-none bg-transparent p-[0.1rem] leading-none transition-[background] duration-150"
                         type="button"
                         title="チャットに入力"
                         (click)="sendCandidateToChat(candidate, $event)"
