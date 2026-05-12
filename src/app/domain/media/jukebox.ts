@@ -15,7 +15,7 @@ export type RepeatMode = 'none' | 'all' | 'one';
 export class Jukebox extends GameObject {
   @SyncVar() audioIdentifier: string = '';
   @SyncVar() startTime: number = 0;
-  @SyncVar() repeatMode: RepeatMode = 'none';
+  @SyncVar() repeatMode: RepeatMode = 'one';
   @SyncVar() isPlaying: boolean = false;
   /** シークバーのロック状態。peer 間で共有して全員のシーク操作を同時に許可/禁止する */
   @SyncVar() isSeekLocked: boolean = true;

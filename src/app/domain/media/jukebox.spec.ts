@@ -63,10 +63,10 @@ describe('Jukebox', () => {
       expect(jukebox.startTime).toBe(0);
     });
 
-    it('repeatMode がデフォルト none', () => {
+    it('repeatMode がデフォルト one', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
-      expect(jukebox.repeatMode).toBe('none');
+      expect(jukebox.repeatMode).toBe('one');
     });
 
     it('isPlayingがfalse', () => {
