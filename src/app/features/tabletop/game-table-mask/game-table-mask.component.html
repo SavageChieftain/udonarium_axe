@@ -1,11 +1,8 @@
 @if (gameTableMask()) {
   <div
-    class="component is-3d pointer-events-none"
-    [ngClass]="{
-      'is-grab': !isLock && !isScratching,
-      'is-scratching': isScratching && gameTableMask()!.isMine,
-      'is-border': true,
-    }"
+    class="group pointer-events-none absolute size-12.5 select-none [-moz-user-drag:none] [-webkit-user-drag:none] backface-hidden transform-3d"
+    [class.cursor-grab]="!isLock && !isScratching"
+    [class.cursor-pointer]="isScratching && gameTableMask()!.isMine"
     [attr.data-version]="maskVersion()"
     [style.width.px]="pixelWidth"
     [style.height.px]="pixelHeight"
@@ -16,16 +13,18 @@
     (movable.ondragend)="onMoved()"
   >
     <div
-      class="is-fit-full is-3d pointer-events-none"
-      [ngClass]="{ fall: altitude === 0 }"
+      class="pointer-events-none size-full transform-3d"
+      [class.[transition:transform_132ms_ease-in-out]]="altitude === 0"
       [ngStyle]="{ transform: 'translateZ(' + altitude * gridSize + 'px)' }"
     >
       <div
-        class="is-fit-full is-3d pointer-events-none"
+        class="pointer-events-none size-full transform-3d"
         [ngStyle]="hexOutlineMask ? { '-webkit-mask': hexOutlineMask, mask: hexOutlineMask } : null"
       >
         <div
-          class="is-fit-full is-3d chrome-smooth-image-trick pointer-events-auto absolute backface-hidden"
+          class="pointer-events-auto absolute size-full backface-hidden transform-3d"
+          [class.block!]="imageFile().url.length >= 1"
+          [class.box-border]="imageFile().url.length >= 1"
           [attr.data-table-passthrough]="isLock && !isScratching ? '' : null"
           (mousedown)="onMaskMouseDown($event)"
           [ngStyle]="{
@@ -34,31 +33,34 @@
             '-webkit-mask': masksCss,
             mask: masksCss,
           }"
-          [ngClass]="{ image: imageFile().url.length >= 1 }"
         >
           @if (imageFile().url.length >= 1) {
             <img
-              class="is-fit-full is-3d chrome-smooth-image-trick pointer-events-none absolute"
+              class="pointer-events-none absolute size-full transform-3d"
               [style.mix-blend-mode]="blendType === 1 ? null : 'hard-light'"
               [src]="imageFile().url | safe: 'resourceUrl'"
             />
           }
         </div>
         <div
-          class="is-fit-full is-3d scratching-area pointer-events-none backface-hidden"
-          [class.border]="!hexOutlineMask"
+          class="pointer-events-none size-full overflow-hidden backface-hidden transform-3d"
+          [class.outline-2]="!hexOutlineMask"
+          [class.outline-ui-border-panel]="!hexOutlineMask"
+          [class.-outline-offset-2]="!hexOutlineMask"
+          [class.group-hover:outline]="!hexOutlineMask"
+          [class.group-active:outline]="!hexOutlineMask"
           [ngStyle]="hexOuterBorder ? { background: hexOuterBorder } : null"
         >
           @if (isScratching) {
             <svg
-              class="fade-in"
+              class="animate-fade-in"
               [attr.width]="pixelWidth"
               [attr.height]="pixelHeight"
               [attr.viewBox]="'0, 0, ' + pixelWidth + ', ' + pixelHeight"
               #elementToDetach
             >
               @for (gridInfo of scratchingGridInfos; track gridInfo.x + '_' + gridInfo.y) {
-                <g class="rotate-state" [style.transform-origin]="gridInfo.cx + 'px ' + gridInfo.cy + 'px'">
+                <g [style.transform-origin]="gridInfo.cx + 'px ' + gridInfo.cy + 'px'">
                   <desc>{{ gridInfo.state }}</desc>
                   <ng-container>
                     @if (gridInfo.hexPoints) {
@@ -313,37 +315,39 @@
       </div>
       <div class="pointer-events-none z-10 backface-hidden">
         @if (isLock && dispLockMark) {
-          <div class="lock-icon is-center is-3d">
+          <div class="bg-ui-elevated text-ui-muted absolute inset-0 m-auto size-6.25 rounded-full transform-3d">
             <i class="material-icons pointer-events-none backface-hidden">lock</i>
           </div>
         }
       </div>
       @if (isScratching && ownerIsOnline) {
-        <div class="scratching is-center is-3d pointer-events-none -top-2.5 left-px z-10 backface-hidden">
+        <div
+          class="pointer-events-none absolute inset-x-0 -top-2.5 left-px z-10 m-auto translate-z-[0.5px] backface-hidden transform-3d"
+        >
           <div
-            class="name-tag has-length-limit is-nowrap is-black-background text-[whitesmoke]"
+            class="bg-ui-panel pointer-events-none inline-block max-w-[18em] truncate rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap text-[whitesmoke]"
             [ngStyle]="{ 'background-color': ownerColor + 'E6' }"
           >
-            <span class="inline-block" [ngClass]="{ 'is-inverse': isInverse }"
+            <span class="inline-block" [class.transform-[rotateZ(180deg)]]="isInverse"
               ><b>{{ ownerName }}</b> が操作中
               @if (gameTableMask()!.isMine) {
                 <button
-                  class="edit-button"
+                  class="pointer-events-auto m-0 mr-px px-1 py-0 align-[10%]"
                   (pointerdown)="onScratchDonePointerDown($event)"
                   (click)="scratchDone($event)"
                   [title]="gameTableMask()!.scratchingGrids ? '確定' : '終了'"
                 >
-                  <i class="material-icons small-font">done</i>
+                  <i class="material-icons align-bottom text-[14px]!">done</i>
                 </button>
               }
               @if (gameTableMask()!.isMine) {
                 <button
-                  class="edit-button"
+                  class="pointer-events-auto m-0 mr-px px-1 py-0 align-[10%]"
                   (pointerdown)="onScratchCancelPointerDown($event)"
                   (click)="scratchCancel($event)"
                   title="キャンセル"
                 >
-                  <i class="material-icons small-font">clear</i>
+                  <i class="material-icons align-bottom text-[14px]!">clear</i>
                 </button>
               }
             </span>
@@ -353,7 +357,7 @@
     </div>
     @if (isAltitudeIndicate && math.abs(gameTableMaskAltitude) >= 0.5) {
       <div
-        class="is-3d pointer-events-none flex origin-top-left items-center border-l-2 border-dashed border-l-[blanchedalmond]"
+        class="pointer-events-none flex origin-top-left items-center border-l-2 border-dashed border-l-[blanchedalmond] transform-3d"
         [style.height.px]="math.abs(gameTableMaskAltitude * gridSize)"
         [ngStyle]="{
           transform:
@@ -368,13 +372,15 @@
             'deg)',
         }"
       >
-        <div class="is-3d pointer-events-none">
-          <span class="altitude-indicator is-3d pointer-events-none absolute">{{
-            math.abs(gameTableMaskAltitude)
-          }}</span>
-          <span class="altitude-indicator is-3d pointer-events-none absolute transform-[rotateY(-180deg)]">{{
-            gameTableMaskAltitude
-          }}</span>
+        <div class="pointer-events-none transform-3d">
+          <span
+            class="pointer-events-none absolute pl-0.5 text-[11px] font-extrabold text-[blanchedalmond] [text-shadow:var(--ui-elevated)_0px_0px_3px] backface-hidden transform-3d"
+            >{{ math.abs(gameTableMaskAltitude) }}</span
+          >
+          <span
+            class="pointer-events-none absolute transform-[rotateY(-180deg)] pl-0.5 text-[11px] font-extrabold text-[blanchedalmond] [text-shadow:var(--ui-elevated)_0px_0px_3px] backface-hidden transform-3d"
+            >{{ gameTableMaskAltitude }}</span
+          >
         </div>
       </div>
     }
