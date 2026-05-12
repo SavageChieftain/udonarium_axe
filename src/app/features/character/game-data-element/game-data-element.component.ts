@@ -184,6 +184,7 @@ export class GameDataElementComponent {
     return this._value();
   }
   set value(value: number | string) {
+    if (this.isValueLocked()) return;
     this._value.set(value);
     this.setUpdateTimer();
   }
@@ -193,6 +194,7 @@ export class GameDataElementComponent {
     return this._currentValue();
   }
   set currentValue(currentValue: number | string) {
+    if (this.isValueLocked()) return;
     this._currentValue.set(currentValue);
     this.setUpdateTimer();
   }
@@ -741,6 +743,11 @@ export class GameDataElementComponent {
   }
 
   setTableSelectCellValueFromEvent(cell: DataElement, event: Event): void {
+    if (this.isValueLocked()) {
+      // 読み取り専用時は元の選択に戻す
+      if (event.target instanceof HTMLSelectElement) event.target.value = String(cell.value ?? '');
+      return;
+    }
     const value = event.target instanceof HTMLSelectElement ? event.target.value : '';
     this.setTableSelectCellValue(cell, value);
   }
@@ -992,6 +999,7 @@ export class GameDataElementComponent {
   toggleGapTableColumn(column: DataElementTableColumn, event?: Event): void {
     if (!this.isGapTableColumn(column)) return;
     event?.stopPropagation();
+    if (this.isValueLocked()) return;
     const gapCell = this.getGapTableColumnCell(column);
     if (!gapCell) return;
     this.toggleTableCheckCell(gapCell);
@@ -1001,6 +1009,10 @@ export class GameDataElementComponent {
     event.stopPropagation();
     const gapCell = this.getGapTableColumnCell(column);
     if (!gapCell) return;
+    if (this.isValueLocked()) {
+      if (event.target instanceof HTMLInputElement) event.target.checked = this.isTableCheckCellChecked(gapCell);
+      return;
+    }
     const checked =
       event.target instanceof HTMLInputElement ? event.target.checked : !this.isTableCheckCellChecked(gapCell);
     gapCell.value = checked ? 1 : 0;
@@ -1060,6 +1072,11 @@ export class GameDataElementComponent {
   }
 
   toggleTableCheckCell(cell: DataElement, event?: Event): void {
+    if (this.isValueLocked()) {
+      // 読み取り専用時は state を巻き戻して送信防止
+      if (event?.target instanceof HTMLInputElement) event.target.checked = this.isTableCheckCellChecked(cell);
+      return;
+    }
     const checked =
       event?.target instanceof HTMLInputElement ? event.target.checked : !this.isTableCheckCellChecked(cell);
     cell.value = checked ? 1 : 0;

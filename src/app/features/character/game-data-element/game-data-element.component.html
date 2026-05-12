@@ -143,9 +143,18 @@
           }
           @case ('check') {
             @if (gameDataElement().isChecked) {
-              <input type="checkbox" checked (click)="gameDataElement().value = 0" />
+              <input
+                type="checkbox"
+                checked
+                [disabled]="isValueLocked()"
+                (click)="!isValueLocked() && (gameDataElement().value = 0)"
+              />
             } @else {
-              <input type="checkbox" (click)="gameDataElement().value = 1" />
+              <input
+                type="checkbox"
+                [disabled]="isValueLocked()"
+                (click)="!isValueLocked() && (gameDataElement().value = 1)"
+              />
             }
           }
           @case ('number') {
@@ -728,6 +737,7 @@
                           <input
                             type="checkbox"
                             [checked]="isGapTableColumnActive(column)"
+                            [disabled]="isValueLocked()"
                             (change)="setGapTableColumnActive(column, $event)"
                           />
                         </label>
@@ -795,6 +805,7 @@
                                 class="m-0 size-3.5 flex-[0_0_auto] cursor-pointer [accent-color:var(--ui-accent)]"
                                 type="checkbox"
                                 [checked]="isTableCheckCellChecked(cell)"
+                                [disabled]="isValueLocked()"
                                 (change)="!isJudgeMode() && toggleTableCheckCell(cell, $event)"
                               />
                               @if (getTableCellLabel(cell)) {
@@ -816,6 +827,7 @@
                             <select
                               class="elm-view-table-select text-ui-text hover:bg-ui-input focus:bg-ui-input font-inherit w-full min-w-[3.8rem] rounded-xs border-none bg-transparent outline-none"
                               [value]="cell.value"
+                              [disabled]="isValueLocked()"
                               (change)="setTableSelectCellValueFromEvent(cell, $event)"
                             >
                               @if (!isTableSelectValueListed(cell)) {
@@ -910,6 +922,7 @@
               [gameDataElement]="childElement"
               [isEdit]="isEdit()"
               [isTagLocked]="isTagLocked()"
+              [isValueLocked]="isValueLocked()"
               [isImage]="isImage()"
               [indexNum]="i"
               [depth]="depth() + 1"
