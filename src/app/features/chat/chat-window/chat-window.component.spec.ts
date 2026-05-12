@@ -146,7 +146,7 @@ describe('ChatWindowComponent', () => {
       vi.useFakeTimers();
       try {
         component.scrollToBottom(true);
-        await vi.runAllTimersAsync();
+        vi.runOnlyPendingTimers();
       } finally {
         vi.useRealTimers();
       }
