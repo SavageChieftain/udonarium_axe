@@ -1,40 +1,58 @@
 <div
-  class="background-image is-pointer-events-none"
+  class="pointer-events-none absolute inset-0 -m-1.25 bg-cover bg-center bg-no-repeat [&.is-filter]:filter-[blur(5px)] [&.is-filter]:will-change-[filter] [&.is-filter]:after:block [&.is-filter]:after:size-full [&.is-filter]:after:content-[''] [&.is-filter.black]:after:bg-[hsl(0,0%,10%)] [&.is-filter.black]:after:filter-[opacity(0.3)] [&.is-filter.white]:after:bg-[hsl(0,0%,97%)] [&.is-filter.white]:after:filter-[opacity(0.2)]"
   [ngClass]="[backgroundFilterType ? 'is-filter' : '', backgroundFilterType]"
   [style.background-image]="'url(' + backgroundImage.url + ')' | safe: 'style'"
 ></div>
-<div class="component is-fill is-perspective" [ngClass]="{ 'is-grabbing': isPointerDragging }" #root>
-  <div class="component-content is-fill is-3d-2" #gameTable>
-    <div id="app-game-table" class="game-table is-3d-2" #gameObjects>
+<div
+  class="absolute inset-0 m-auto block size-full touch-manipulation overflow-hidden select-none [-moz-user-drag:none] [-webkit-user-drag:none] perspective-[3000px]"
+  [class.cursor-grabbing]="isPointerDragging"
+  #root
+>
+  <div class="absolute inset-0 m-auto block size-1500 backface-hidden transform-3d" #gameTable>
+    <div id="app-game-table" class="absolute size-full backface-hidden transform-3d" #gameObjects>
       <div
-        class="table-surface table-image is-3d-2 is-pointer-events-none"
+        class="pointer-events-none absolute top-0 left-0 size-full overflow-hidden bg-white/15 bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
         [ngStyle]="tableSurfaceStyle()"
         [style.background-image]="'url(' + tableImage().url + ')' | safe: 'style'"
       >
-        <canvas class="grid-canvas is-fill is-pointer-events-none" #gridCanvas></canvas>
-        <div class="table-surface-border is-fill is-pointer-events-none" [ngStyle]="tableSurfaceBorderStyle()"></div>
+        <canvas
+          class="pointer-events-none absolute inset-0 m-auto block transform-[translateZ(0.15px)] opacity-0 transition-[0.3s_ease-out] backface-hidden"
+          #gridCanvas
+        ></canvas>
+        <div
+          class="pointer-events-none absolute inset-0 m-auto block transform-[translateZ(0.2px)] bg-size-[100%_100%] bg-no-repeat"
+          [ngStyle]="tableSurfaceBorderStyle()"
+        ></div>
       </div>
       @if (terrains().length) {
-        <div class="layer">
-          <div class="dummy"></div>
+        <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
+          <div
+            class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
+          ></div>
           @for (terrain of terrains(); track terrain.identifier) {
-            <terrain class="is-3d will-change-transform" [terrain]="terrain"></terrain>
+            <terrain class="absolute will-change-transform backface-visible transform-3d" [terrain]="terrain"></terrain>
           }
         </div>
       }
       @for (mask of tableMasks(); track mask.identifier) {
-        <game-table-mask class="is-3d will-change-transform" [gameTableMask]="mask"> </game-table-mask>
+        <game-table-mask class="absolute will-change-transform backface-visible transform-3d" [gameTableMask]="mask">
+        </game-table-mask>
       }
       @for (scratchMask of tableScratchMasks(); track scratchMask.identifier) {
-        <game-table-scratch-mask class="is-3d will-change-transform" [gameTableScratchMask]="scratchMask">
+        <game-table-scratch-mask
+          class="absolute will-change-transform backface-visible transform-3d"
+          [gameTableScratchMask]="scratchMask"
+        >
         </game-table-scratch-mask>
       }
       @if (textNotes().length) {
-        <div class="layer">
-          <div class="dummy"></div>
+        <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
+          <div
+            class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
+          ></div>
           @for (textNote of textNotes(); track textNote.identifier) {
             <text-note
-              class="is-3d will-change-transform"
+              class="absolute will-change-transform backface-visible transform-3d"
               [textNote]="textNote"
               [appTooltip]="textNote"
               [ngStyle]="{ 'z-index': textNote.zindex }"
@@ -44,7 +62,7 @@
       }
       @for (cardStack of cardStacks(); track cardStack.identifier) {
         <card-stack
-          class="is-3d will-change-transform"
+          class="absolute will-change-transform backface-visible transform-3d"
           [cardStack]="cardStack"
           [appTooltip]="cardStack"
           [ngStyle]="{
@@ -55,7 +73,7 @@
       }
       @for (card of cards(); track card.identifier) {
         <card
-          class="is-3d will-change-transform"
+          class="absolute will-change-transform backface-visible transform-3d"
           [card]="card"
           [appTooltip]="card"
           [ngStyle]="{
@@ -64,21 +82,28 @@
           }"
         ></card>
       }
-      <div class="range">
-        <div class="dummy"></div>
+      <div>
+        <div
+          class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
+        ></div>
         @for (cursor of peerCursors(); track cursor.identifier) {
-          <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
+          <peer-cursor
+            class="absolute will-change-transform backface-visible transform-3d"
+            [cursor]="cursor"
+          ></peer-cursor>
         }
       </div>
       @for (range of ranges(); track range.identifier) {
-        <range class="is-3d will-change-transform" [range]="range"></range>
+        <range class="absolute will-change-transform backface-visible transform-3d" [range]="range"></range>
       }
       @if (diceSymbols().length) {
-        <div class="layer">
-          <div class="dummy"></div>
+        <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
+          <div
+            class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
+          ></div>
           @for (diceSymbol of diceSymbols(); track diceSymbol.identifier) {
             <dice-symbol
-              class="is-3d will-change-transform"
+              class="absolute will-change-transform backface-visible transform-3d"
               [diceSymbol]="diceSymbol"
               [appTooltip]="diceSymbol"
             ></dice-symbol>
@@ -86,21 +111,28 @@
         </div>
       }
       @if (characters().length) {
-        <div class="layer">
-          <div class="dummy"></div>
+        <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
+          <div
+            class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
+          ></div>
           @for (character of characters(); track character.identifier) {
             <game-character
-              class="is-3d will-change-transform"
+              class="absolute will-change-transform backface-visible transform-3d"
               [gameCharacter]="character"
               [appTooltip]="character"
             ></game-character>
           }
         </div>
       }
-      <div class="layer cursor-layer">
-        <div class="dummy"></div>
+      <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
+        <div
+          class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
+        ></div>
         @for (cursor of peerCursors(); track cursor.identifier) {
-          <peer-cursor class="is-3d will-change-transform" [cursor]="cursor"></peer-cursor>
+          <peer-cursor
+            class="absolute will-change-transform backface-visible transform-3d"
+            [cursor]="cursor"
+          ></peer-cursor>
         }
       </div>
     </div>
