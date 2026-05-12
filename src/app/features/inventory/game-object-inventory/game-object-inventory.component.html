@@ -1,11 +1,22 @@
-<div class="inv-layout">
+<div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[13px]">
   @let objects = getGameObjects(selectTab());
 
   <!-- ── タブバー ── -->
-  <div class="inv-tabbar">
-    <form name="game-object-inventory" class="tab-form">
+  <div class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5">
+    <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
       @for (inventoryType of inventoryTypes(); track inventoryType) {
-        <label class="tab-label" [class.active]="selectTab() === inventoryType">
+        <label
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center gap-1 rounded-t-md border border-b-0 border-solid border-transparent px-2.5 py-1.25 text-[12px] whitespace-nowrap transition-[background,color] select-none [&_input[type=radio]]:hidden"
+          [class.bg-ui-elevated!]="selectTab() === inventoryType"
+          [class.text-ui-accent!]="selectTab() === inventoryType"
+          [class.border-ui-border-panel!]="selectTab() === inventoryType"
+          [class.after:absolute]="selectTab() === inventoryType"
+          [class.after:-bottom-px]="selectTab() === inventoryType"
+          [class.after:inset-x-0]="selectTab() === inventoryType"
+          [class.after:h-px]="selectTab() === inventoryType"
+          [class.after:bg-ui-elevated]="selectTab() === inventoryType"
+          [class.after:content-['']]="selectTab() === inventoryType"
+        >
           <input
             name="tab"
             type="radio"
@@ -14,18 +25,34 @@
             (ngModelChange)="selectTab.set($event)"
           />
           <span>{{ getTabTitle(inventoryType) }}</span>
-          <span class="tab-count">{{ getInventory(inventoryType).length }}</span>
+          <span
+            class="text-ui-accent bg-ui-accent-bg inline-flex h-4 min-w-4.5 items-center justify-center rounded-lg px-1 text-[10px] font-bold"
+            >{{ getInventory(inventoryType).length }}</span
+          >
         </label>
       }
     </form>
 
-    <div class="tabbar-actions">
+    <div class="flex gap-1 pb-1">
       @if (!isMultiMove()) {
-        <button type="button" class="icon-action-btn" title="一括移動" (click)="toggleMultiMove()">
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+          type="button"
+          title="一括移動"
+          (click)="toggleMultiMove()"
+        >
           <i class="material-icons">open_with</i>
         </button>
       }
-      <button type="button" class="icon-action-btn" [class.active]="isEdit()" title="表示設定" (click)="toggleEdit()">
+      <button
+        class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+        [class.bg-ui-accent-bg!]="isEdit()"
+        [class.text-ui-accent!]="isEdit()"
+        [class.border-ui-accent!]="isEdit()"
+        type="button"
+        title="表示設定"
+        (click)="toggleEdit()"
+      >
         <i class="material-icons">tune</i>
       </button>
     </div>
@@ -33,44 +60,68 @@
 
   <!-- ── 設定パネル（展開時） ── -->
   @if (isEdit()) {
-    <div class="inv-settings-panel">
-      <div class="settings-row">
-        <div class="settings-field">
-          <label class="settings-label">並び順 第1</label>
-          <div class="settings-input-row">
-            <input class="settings-input" name="sort-tag" [(ngModel)]="sortTag" placeholder="タグ名" />
-            <select class="settings-select" name="sort-order" [(ngModel)]="sortOrder">
+    <div class="bg-ui-elevated border-ui-border-panel flex shrink-0 flex-col gap-1.5 border-b border-solid px-2.5 py-2">
+      <div class="flex gap-2.5">
+        <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">並び順 第1</label>
+          <div class="flex gap-1">
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
+              name="sort-tag"
+              [(ngModel)]="sortTag"
+              placeholder="タグ名"
+            />
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 text-[12px] outline-none"
+              name="sort-order"
+              [(ngModel)]="sortOrder"
+            >
               <option value="ASC">昇順</option>
               <option value="DESC">降順</option>
             </select>
           </div>
         </div>
-        <div class="settings-field">
-          <label class="settings-label">並び順 第2</label>
-          <div class="settings-input-row">
-            <input class="settings-input" name="sort-tag-2nd" [(ngModel)]="sortTag2nd" placeholder="タグ名" />
-            <select class="settings-select" name="sort-order-2nd" [(ngModel)]="sortOrder2nd">
+        <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">並び順 第2</label>
+          <div class="flex gap-1">
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
+              name="sort-tag-2nd"
+              [(ngModel)]="sortTag2nd"
+              placeholder="タグ名"
+            />
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 text-[12px] outline-none"
+              name="sort-order-2nd"
+              [(ngModel)]="sortOrder2nd"
+            >
               <option value="ASC">昇順</option>
               <option value="DESC">降順</option>
             </select>
           </div>
         </div>
       </div>
-      <div class="settings-field">
-        <label class="settings-label">表示項目</label>
+      <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+        <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">表示項目</label>
         <input
-          class="settings-input full-width"
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
           name="data-tag"
           [(ngModel)]="dataTag"
           placeholder="スペース区切りでタグ名、スラッシュで改行 例: HP MP / メモ"
         />
       </div>
-      <div class="settings-summary">
+      <div class="flex flex-wrap gap-1.5">
         @if (sortTag) {
-          <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span>
+          <span
+            class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
+            ><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span
+          >
         }
         @if (sortTag2nd) {
-          <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span>
+          <span
+            class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
+            ><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span
+          >
         }
       </div>
     </div>
@@ -78,76 +129,118 @@
 
   <!-- ── ソートインジケーター（設定パネル非表示かつソート設定あり） ── -->
   @if (!isEdit() && sortTag) {
-    <div class="inv-sort-indicator">
-      <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span>
+    <div class="bg-ui-panel border-ui-border-panel flex shrink-0 flex-wrap gap-1.5 border-b border-solid px-2.5 py-1">
+      <span
+        class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
+        ><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span
+      >
       @if (sortTag2nd) {
-        <span class="sort-badge"><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span>
+        <span
+          class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
+          ><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span
+        >
       }
     </div>
   }
 
   <!-- ── 一括移動バー ── -->
   @if (isMultiMove()) {
-    <div class="inv-multimove-bar">
-      <span class="multimove-label"><i class="material-icons">open_with</i>一括移動</span>
-      <button type="button" class="mm-btn" (click)="allTabBoxCheck()">
+    <div
+      class="bg-ui-accent-bg border-ui-border-panel flex shrink-0 flex-wrap items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
+    >
+      <span
+        class="text-ui-accent flex flex-1 items-center gap-1 text-[12px] font-semibold [&_.material-icons]:text-[15px]!"
+      >
+        <i class="material-icons">open_with</i>一括移動
+      </span>
+      <button
+        class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background] [&_.material-icons]:text-[14px]!"
+        type="button"
+        (click)="allTabBoxCheck()"
+      >
         {{ existsMultiMoveSelectedInTab() ? '全解除' : '全選択' }}
       </button>
-      <span class="mm-dest-label">移動先:</span>
+      <span class="text-ui-muted text-[11px] whitespace-nowrap">移動先:</span>
       @for (loc of multiMoveLocations; track loc.name) {
-        <button type="button" class="mm-btn dest" (click)="moveToAndClose(loc.name)">
+        <button
+          class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color] hover:text-white [&_.material-icons]:text-[14px]!"
+          type="button"
+          (click)="moveToAndClose(loc.name)"
+        >
           <i class="material-icons">arrow_forward</i>{{ loc.label }}
         </button>
       }
       @if (selectTab() === 'graveyard') {
-        <button type="button" class="mm-btn danger" (click)="deleteAndClose()">
+        <button
+          class="border-ui-danger text-ui-danger hover:bg-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-2 py-1 text-[12px] transition-[background,color] hover:text-white [&_.material-icons]:text-[14px]!"
+          type="button"
+          (click)="deleteAndClose()"
+        >
           <i class="material-icons">delete</i>削除
         </button>
       }
-      <button type="button" class="mm-btn" (click)="toggleMultiMove()">
+      <button
+        class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background] [&_.material-icons]:text-[14px]!"
+        type="button"
+        (click)="toggleMultiMove()"
+      >
         <i class="material-icons">close</i>キャンセル
       </button>
     </div>
   }
 
   <!-- ── オブジェクトリスト ── -->
-  <div class="inv-list">
+  <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
     @if (objects.length < 1) {
-      <div class="inv-empty">
+      <div
+        class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
+      >
         <i class="material-icons">inbox</i>
-        <p>{{ getTabTitle(selectTab()) }}インベントリは空です</p>
+        <p class="m-0 text-[12px]">{{ getTabTitle(selectTab()) }}インベントリは空です</p>
       </div>
     }
 
     @for (gameObject of objects; track gameObject.identifier) {
       <div
-        class="inv-row"
-        [class.selected]="selectedIdentifier() === gameObject.identifier"
+        class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color]"
+        [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
+        [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
         (contextmenu)="onContextMenu($event, gameObject)"
         (click)="selectGameObject(gameObject)"
         (dblclick)="focusToObject($event, gameObject)"
       >
         @if (isMultiMove()) {
           <input
-            class="mm-checkbox"
+            class="size-3.5 shrink-0 cursor-pointer [accent-color:var(--ui-accent)]"
             type="checkbox"
             [checked]="multiMoveTargets().has(gameObject.identifier)"
             (change)="toggleMultiMoveTarget($event, $any(gameObject))"
           />
         }
 
-        <div class="inv-row-thumb">
+        <div
+          class="bg-ui-input border-ui-border-panel flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
+        >
           @if (gameObject.imageFile.url) {
-            <img [src]="gameObject.imageFile.url | safe: 'resourceUrl'" alt="" />
+            <img
+              class="size-full object-cover object-top"
+              [src]="gameObject.imageFile.url | safe: 'resourceUrl'"
+              alt=""
+            />
           } @else {
-            <i class="material-icons no-img">person</i>
+            <i class="material-icons text-ui-dim text-[20px]! opacity-50">person</i>
           }
         </div>
 
-        <div class="inv-row-body">
-          <div class="inv-row-name">{{ gameObject.name }}</div>
+        <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+          <div
+            class="text-ui-text truncate text-[13px] font-semibold"
+            [class.text-ui-accent!]="selectedIdentifier() === gameObject.identifier"
+          >
+            {{ gameObject.name }}
+          </div>
           @if (gameObject.rootDataElement) {
-            <div class="inv-row-tags">
+            <div class="grid w-full grid-cols-2 items-start gap-x-2 gap-y-0.75">
               @for (dataElm of getInventoryTags($any(gameObject)); track dataElm?.identifier ?? $index) {
                 <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
               }
@@ -155,7 +248,13 @@
           }
         </div>
 
-        <button class="row-menu-btn" type="button" title="メニュー" (click)="onContextMenu($event, gameObject)">
+        <button
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background] group-hover:inline-flex [&_.material-icons]:text-base!"
+          [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
+          type="button"
+          title="メニュー"
+          (click)="onContextMenu($event, gameObject)"
+        >
           <i class="material-icons">more_vert</i>
         </button>
       </div>
@@ -164,8 +263,13 @@
 
   <!-- ── 墓場フッター ── -->
   @if (selectTab() === 'graveyard') {
-    <div class="inv-footer">
-      <button type="button" class="danger-btn" (click)="cleanInventory()" [disabled]="objects.length < 1">
+    <div class="bg-ui-panel border-ui-border-panel shrink-0 border-t border-solid px-2.5 py-2">
+      <button
+        class="text-ui-danger border-ui-danger hover:bg-ui-danger-bg rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-3 py-1.25 text-[12px] font-semibold transition-[background] disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+        type="button"
+        (click)="cleanInventory()"
+        [disabled]="objects.length < 1"
+      >
         <i class="material-icons">delete_sweep</i>墓場を空にする
       </button>
     </div>
@@ -174,16 +278,16 @@
 
 <ng-template #dataElmTag let-dataElm="dataElm">
   @if (dataElm?.name === newLineString) {
-    <span class="tag-newline"></span>
+    <span class="border-ui-border-panel col-span-full my-px block h-0 border-t border-solid"></span>
   }
   @if (dataElm && dataElm.name !== newLineString) {
-    <span class="tag-cell">
+    <span class="flex min-w-0 flex-col gap-0.5">
       @switch (dataElm.attributes['type']) {
         @case ('numberResource') {
-          <span class="tag-header">
-            <span class="tag-label">{{ dataElm.name }}</span>
+          <span class="flex min-w-0 items-center gap-0.75">
+            <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ dataElm.name }}</span>
             <input
-              class="tag-input resource"
+              class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[13px] font-bold transition-[border-color] outline-none hover:[appearance:number-input] focus:[appearance:number-input]"
               type="number"
               [style]="'color:' + dataElm.nowValueColor"
               size="1"
@@ -192,7 +296,7 @@
             />
           </span>
           <input
-            class="tag-range"
+            class="block h-3.5 w-full [accent-color:var(--ui-accent)]"
             type="range"
             min="0"
             [max]="dataElm.value"
@@ -202,8 +306,8 @@
           />
         }
         @case ('check') {
-          <span class="tag-header">
-            <span class="tag-label">{{ dataElm.name }}</span>
+          <span class="flex min-w-0 items-center gap-0.75">
+            <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ dataElm.name }}</span>
             @if (dataElm.value !== 0) {
               <input type="checkbox" checked (click)="dataElm.value = 0" />
             } @else {
@@ -213,9 +317,14 @@
         }
         @case ('markdown') {}
         @default {
-          <span class="tag-header">
-            <span class="tag-label">{{ dataElm.name }}</span>
-            <input class="tag-input" size="1" name="data-value" [(ngModel)]="dataElm.value" />
+          <span class="flex min-w-0 items-center gap-0.75">
+            <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ dataElm.name }}</span>
+            <input
+              class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[13px] font-bold transition-[border-color] outline-none hover:[appearance:number-input] focus:[appearance:number-input]"
+              size="1"
+              name="data-value"
+              [(ngModel)]="dataElm.value"
+            />
           </span>
         }
       }

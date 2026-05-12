@@ -23,7 +23,6 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   selector: 'game-object-inventory',
   templateUrl: './game-object-inventory.component.html',
   host: { class: 'block' },
-  styleUrls: ['./game-object-inventory.component.css', './game-object-inventory-rows.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet, FormsModule, SafePipe],
 })
