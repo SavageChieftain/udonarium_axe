@@ -423,6 +423,7 @@ export class GameDataElementComponent {
   });
 
   openModal(_name: string = '', isAllowedEmpty: boolean = false) {
+    if (this.isValueLocked()) return;
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: isAllowedEmpty }).then((value) => {
       if (!value) return;
       const element = this.gameDataElement();
