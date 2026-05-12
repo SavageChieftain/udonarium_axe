@@ -14,6 +14,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-menu',
   templateUrl: './vote-menu.component.html',
+  styleUrls: ['./vote-menu.component.css'],
   imports: [FormsModule, SafePipe],
 })
 export class VoteMenuComponent {

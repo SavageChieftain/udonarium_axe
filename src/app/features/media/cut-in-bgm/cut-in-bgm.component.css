@@ -1,0 +1,201 @@
+/* ── Layout ── */
+.bgm-select {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--ui-text);
+}
+
+/* ── Tag filter tabs ── */
+.tag-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 4px;
+  border-bottom: 1px solid var(--ui-panel-border);
+  flex-shrink: 0;
+}
+
+.tag-tab {
+  padding: 3px 12px;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+}
+
+.tag-tab:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.tag-tab.is-active {
+  background: var(--ui-accent);
+  color: #fff;
+  border-color: var(--ui-accent);
+}
+
+/* ── Tag badge ── */
+.tag-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  border: 1px solid var(--ui-accent);
+  letter-spacing: 0.05em;
+}
+
+.tag-badge.is-se {
+  background: color-mix(in srgb, #f59e0b 15%, transparent);
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+/* ── Empty state ── */
+.bgm-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ui-text-dim);
+  padding: 24px;
+  text-align: center;
+}
+
+.bgm-empty .material-icons {
+  font-size: 36px;
+  opacity: 0.4;
+}
+
+.bgm-empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ── Audio list ── */
+.bgm-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.bgm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ui-panel-border);
+  transition: background var(--ui-transition);
+}
+
+.bgm-row:last-child {
+  border-bottom: none;
+}
+
+.bgm-row:hover {
+  background: var(--ui-hover);
+}
+
+/* auditioning highlight */
+.bgm-row.is-auditioning {
+  background: var(--ui-accent-bg);
+}
+
+/* ── Track info ── */
+.bgm-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bgm-playing-icon {
+  font-size: 16px;
+  color: var(--ui-accent);
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.bgm-name {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ui-text);
+}
+
+/* ── Action buttons ── */
+.bgm-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 8px;
+  background: var(--ui-elevated);
+  border: 1px solid var(--ui-panel-border);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition),
+    border-color var(--ui-transition);
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+  border-color: var(--ui-accent);
+}
+
+.action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.action-btn.is-playing {
+  background: var(--ui-accent-bg);
+  color: var(--ui-accent);
+  border-color: var(--ui-accent);
+}
+
+.action-btn.is-select {
+  background: var(--ui-accent);
+  color: #fff;
+  border-color: var(--ui-accent);
+}
+
+.action-btn.is-select:hover {
+  opacity: 0.85;
+  color: #fff;
+  border-color: var(--ui-accent);
+}
+
+.action-btn .material-icons {
+  font-size: 15px;
+}

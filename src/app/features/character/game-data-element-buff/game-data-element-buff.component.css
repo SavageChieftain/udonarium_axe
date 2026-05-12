@@ -1,0 +1,158 @@
+/* --- バフ行 --- */
+.buff-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--ui-panel-border);
+}
+
+.buff-name {
+  min-width: 0;
+  position: relative;
+}
+
+.hidden-spacer {
+  visibility: hidden;
+  height: 0;
+  max-width: 20em;
+  overflow: hidden;
+  padding: 0 3px;
+  box-sizing: border-box;
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+}
+
+.name-input {
+  width: 100%;
+  min-width: 0;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+  box-sizing: border-box;
+}
+
+.name-locked {
+  display: block;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+}
+
+/* --- 値エリア --- */
+.buff-values {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.val-input {
+  width: 5em;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.val-input-sm {
+  width: 3em;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  padding: 2px 3px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.sep,
+.unit {
+  color: var(--ui-text-dim);
+  font-size: 0.8em;
+  user-select: none;
+}
+
+/* hover / focus */
+.name-input:hover,
+.val-input:hover,
+.val-input-sm:hover {
+  background: var(--ui-hover);
+}
+
+.name-input:focus,
+.val-input:focus,
+.val-input-sm:focus {
+  background: var(--ui-input-bg);
+}
+
+/* --- 削除ボタン --- */
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: var(--ui-radius-sm);
+  border: none;
+  background: none;
+  color: var(--ui-text-dim);
+  cursor: pointer;
+  opacity: 0.45;
+  transition:
+    opacity var(--ui-transition),
+    color var(--ui-transition),
+    background var(--ui-transition);
+}
+
+.delete-btn i {
+  font-size: 1rem;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+  color: var(--ui-danger);
+  background: var(--ui-danger-bg);
+}
+
+/* --- グループヘッダー --- */
+.group-header {
+  border-left: 3px solid var(--ui-accent);
+  padding-left: 8px;
+  margin: 6px 0 2px;
+}
+
+.group-name {
+  color: var(--ui-text);
+  font-family: Cambria, Georgia;
+  font-size: 0.9rem;
+  font-weight: bold;
+  padding: 2px 0;
+}
+
+.group-children {
+  padding-left: 8px;
+}
+
+/* --- ピースモード --- */
+.piece-buff {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  color: var(--ui-text);
+}

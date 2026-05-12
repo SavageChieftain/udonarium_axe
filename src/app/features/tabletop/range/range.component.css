@@ -1,0 +1,242 @@
+.is-grab {
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.is-grabbing {
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+.is-transition {
+  -webkit-transition: -webkit-transform 132ms linear;
+  transition: transform 132ms linear;
+}
+
+.component {
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  backface-visibility: hidden;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+
+  -moz-user-drag: none;
+  -webkit-user-drag: none;
+}
+
+.image {
+  display: block;
+}
+
+.lock-icon {
+  background-color: var(--ui-elevated);
+  border-radius: 100%;
+  color: var(--ui-text-muted);
+  width: 25px;
+  height: 25px;
+}
+
+.is-center {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+
+.border {
+  box-sizing: border-box;
+  border: solid 2px var(--ui-panel-border);
+}
+
+.is-fit-full {
+  height: 100%;
+  width: 100%;
+}
+
+.pedestal-grab-corn {
+  z-index: -1;
+  position: absolute;
+  top: -14px;
+  left: -14px;
+  right: 14px;
+  bottom: -14px;
+  cursor: default;
+
+  box-sizing: border-box;
+  border-top: solid 7px var(--ui-panel-border);
+  border-left: solid 7px var(--ui-panel-border);
+  border-right: solid 7px var(--ui-panel-border);
+  border-bottom: solid 7px var(--ui-panel-border);
+  border-radius: 14px;
+}
+
+.pedestal-grab {
+  z-index: -1;
+  position: absolute;
+  top: -14px;
+  left: -14px;
+  right: -14px;
+  bottom: -14px;
+  cursor: default;
+
+  box-sizing: border-box;
+  border-top: solid 7px var(--ui-panel-border);
+  border-left: solid 7px var(--ui-panel-border);
+  border-right: solid 7px var(--ui-panel-border);
+  border-bottom: solid 7px var(--ui-panel-border);
+  border-radius: 14px;
+}
+
+.component:hover .rotate-grab,
+.component:active .rotate-grab {
+  opacity: 1;
+}
+
+.rotate-grab {
+  opacity: 0;
+  z-index: -1;
+}
+
+.range-rotate-layer,
+.range-rotate-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.range-rotate-controls {
+  pointer-events: none;
+}
+
+.range-rotate-controls .rotate-grab {
+  pointer-events: auto;
+}
+
+.rotate-grab-icon {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  border: solid 2px var(--ui-panel-border);
+  cursor: -moz-default;
+  cursor: -webkit-default;
+  cursor: default;
+  z-index: 1;
+  padding: 0;
+  background-color: var(--ui-elevated);
+  border-radius: 100%;
+  color: var(--ui-text-muted);
+  font-size: 24px;
+  transform-style: preserve-3d;
+  transform: translateZ(0.1px);
+}
+
+.range-rotate-grab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  opacity: 0.86;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-panel-bg) 70%, transparent);
+}
+
+.range-rotate-grab--single {
+  transform: translate(-50%, -50%) translateZ(0.1px);
+}
+
+.range-rotate-grab .material-icons {
+  font-size: 28px;
+}
+
+.is-3d {
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
+.will-change {
+  will-change: opacity;
+}
+
+.of-corn-top {
+  top: -30px;
+  left: -15px;
+  border-radius: 15px 15px 0px 0px;
+}
+
+.of-corn-bottom {
+  bottom: -30px;
+  left: -15px;
+  border-radius: 0px 0px 15px 15px;
+}
+
+.of-corn-tip {
+  top: -15px;
+  left: -15px;
+  border-radius: 15px 15px 15px 15px;
+}
+
+.of-left-top {
+  top: -14px;
+  left: -14px;
+  border-radius: 14px 7px 14px 7px;
+}
+
+.of-left-bottom {
+  bottom: -14px;
+  left: -14px;
+  border-radius: 7px 14px 7px 14px;
+}
+
+.of-right-bottom {
+  bottom: -14px;
+  right: -14px;
+  border-radius: 14px 7px 14px 7px;
+}
+
+.of-right-top {
+  top: -14px;
+  right: -14px;
+  border-radius: 7px 14px 7px 14px;
+}
+
+.is-fill {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+}
+
+.fall {
+  -webkit-transition: transform 132ms ease-in-out;
+  transition: transform 132ms ease-in-out;
+}
+
+.altitude-indicator {
+  font-size: 10px;
+}
+
+.elevation-indicator,
+.altitude-indicator {
+  padding-left: 2px;
+  color: var(--ui-text);
+  text-shadow: var(--ui-panel-bg) 0px 0px 3px;
+  backface-visibility: hidden;
+}
+
+.elevation-indicator {
+  font-weight: bolder;
+  font-size: 12px;
+}

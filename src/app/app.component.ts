@@ -38,6 +38,7 @@ import { ThemeService } from '@axe/shared/ui/theme.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
   imports: [GameTableComponent, NetworkIndicatorComponent, MiniJukeboxComponent],
 })
 export class AppComponent {

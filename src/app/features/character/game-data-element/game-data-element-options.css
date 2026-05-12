@@ -1,0 +1,56 @@
+.elm-field-options {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 6px;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--gde-row-border) 75%, transparent);
+  background: color-mix(in srgb, var(--ui-input-bg) 72%, transparent);
+}
+
+.elm-field-option {
+  display: grid;
+  grid-template-columns: auto minmax(3.8rem, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-width: 7rem;
+  color: var(--ui-text-muted);
+  font-size: 0.86em;
+}
+
+.elm-field-option--wide {
+  grid-template-columns: auto minmax(8rem, 1fr);
+  flex: 1 1 14rem;
+}
+
+.elm-field-option--check {
+  grid-template-columns: auto auto;
+  justify-content: start;
+}
+
+.elm-field-option span {
+  color: var(--ui-text-dim);
+  white-space: nowrap;
+}
+
+.elm-field-option input,
+.elm-option-textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--gde-row-border);
+  border-radius: var(--gde-radius-control);
+  background: var(--ui-input-bg);
+}
+
+.elm-field-option input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--ui-accent);
+}
+
+.elm-option-textarea {
+  min-height: 3.2em;
+  resize: vertical;
+}

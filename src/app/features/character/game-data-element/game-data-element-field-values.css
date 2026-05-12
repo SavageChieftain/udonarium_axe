@@ -1,0 +1,123 @@
+.resource-editor {
+  display: grid;
+  grid-template-columns: minmax(3.8em, 1fr) auto minmax(3.8em, 1fr);
+  align-items: center;
+  gap: 6px;
+  width: min(100%, 11.5em);
+  min-width: 0;
+}
+
+:host(:not(.elm-editing)) .resource-editor {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 100%;
+}
+
+.resource-values {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  width: 100%;
+  align-items: center;
+  gap: 4px;
+  color: var(--ui-text-muted);
+  white-space: nowrap;
+}
+
+.resource-number {
+  width: 100% !important;
+  min-width: 0 !important;
+  text-align: right;
+  appearance: textfield;
+}
+
+.resource-number::-webkit-inner-spin-button,
+.resource-number::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.resource-number--current {
+  color: var(--ui-text);
+  font-weight: 600;
+}
+
+.resource-separator {
+  color: var(--ui-text-dim);
+}
+
+.elm-value-cell input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='color']) {
+  width: 100%;
+  min-width: 0;
+}
+
+.elm-value-cell input[type='number'] {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Image field ────────────────────────────── */
+.image-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 40px;
+}
+
+:host(.elm-editing) .image-field {
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 28px;
+  overflow: hidden;
+}
+
+.image-field-preview {
+  max-height: 80px;
+  max-width: 120px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid var(--ui-panel-border);
+}
+
+:host(.elm-editing) .image-field-preview {
+  width: 32px;
+  height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+}
+
+:host(.elm-editing) .image-field .portrait-button {
+  height: 22px;
+  margin: 0;
+  padding: 2px 6px;
+  overflow: hidden;
+  font-size: 0.74em !important;
+  white-space: nowrap;
+}
+
+.image-field-empty {
+  font-size: 0.8em;
+  color: var(--ui-text-dim);
+  padding: 4px 8px;
+  border: 1px dashed var(--ui-panel-border);
+  border-radius: 4px;
+}
+
+/* ── Calc field ─────────────────────────────── */
+.calc-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+:host(.elm-editing) .calc-result {
+  display: none;
+}
+
+.calc-result-value {
+  font-size: 1.1em;
+  font-weight: 600;
+  font-family: Cambria, Georgia, serif;
+  color: var(--ui-text);
+  min-width: 2em;
+}

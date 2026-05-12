@@ -1,0 +1,133 @@
+.portrait-button {
+  width: auto;
+  margin: 5px 0;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--ui-panel-border);
+  border-radius: 2px;
+  background-color: var(--ui-elevated);
+  color: var(--ui-text-muted);
+  font-size: 0.82em;
+  cursor: pointer;
+}
+
+.portrait-button:hover {
+  background-color: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+.sub-image {
+  display: inline-block;
+  height: 120px;
+  max-height: 120px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.sub-image-box {
+  width: 120px;
+  height: 120px;
+}
+
+.sub-table {
+  width: calc(100% - 120px);
+}
+
+.table-cell-2 {
+  display: table-cell;
+}
+
+.table-2 {
+  display: table;
+  width: 100%;
+}
+
+.hidden-spacer {
+  visibility: hidden;
+  height: 0;
+  max-width: 20em;
+  overflow: hidden;
+  padding: 0 3px;
+  box-sizing: border-box;
+}
+
+.textarea-url,
+.textarea-markdown {
+  padding: 2px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.elm-markdown-view {
+  max-width: min(560px, calc(60vw));
+  overflow-x: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  box-sizing: border-box;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ui-text);
+  font-family: inherit;
+  font-size: 1em;
+  outline: none;
+}
+
+input,
+textarea,
+select {
+  padding: 2px 4px;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 2px 4px;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--ui-transition),
+    color var(--ui-transition);
+}
+
+button:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+
+button .material-icons {
+  font-size: 16px;
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  background: var(--ui-hover);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background: var(--ui-input-bg);
+  box-shadow: 0 0 0 1px var(--ui-accent);
+}
+
+.invisible,
+.dummy {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+button i {
+  font-size: 1rem;
+}
+
+.table-cell button {
+  font-size: 0.5rem;
+}

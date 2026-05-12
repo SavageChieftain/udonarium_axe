@@ -45,6 +45,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 @Component({
   selector: 'game-table-mask',
   templateUrl: './game-table-mask.component.html',
+  styleUrls: ['./game-table-mask.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, NgStyle, SafePipe],
   host: {

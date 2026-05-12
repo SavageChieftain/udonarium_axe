@@ -15,6 +15,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-alarm-menu',
   templateUrl: './alarm-menu.component.html',
+  styleUrls: ['./alarm-menu.component.css'],
   imports: [FormsModule, SafePipe],
 })
 export class AlarmMenuComponent {

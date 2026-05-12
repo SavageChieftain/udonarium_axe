@@ -49,6 +49,7 @@ import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table',
   templateUrl: './game-table.component.html',
+  styleUrls: ['./game-table.component.css'],
   providers: [GameTableGestureService],
   imports: [
     NgClass,

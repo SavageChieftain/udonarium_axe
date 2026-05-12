@@ -11,6 +11,7 @@ import { PanelService } from '@axe/shared/ui/panel.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-list',
   templateUrl: './cut-in-list.component.html',
+  styleUrls: ['./cut-in-list.component.css'],
   imports: [FormsModule, CutInEditorComponent],
 })
 export class CutInListComponent {
