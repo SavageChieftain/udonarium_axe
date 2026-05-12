@@ -1,4 +1,4 @@
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -68,9 +68,8 @@ interface TerrainGridViewport extends TerrainGridBounds {
 @Component({
   selector: 'terrain',
   templateUrl: './terrain.component.html',
-  styleUrls: ['./terrain.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgClass, NgStyle, SafePipe],
+  imports: [MovableDirective, RotableDirective, NgStyle, SafePipe],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',

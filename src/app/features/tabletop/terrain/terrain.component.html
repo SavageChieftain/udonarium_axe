@@ -1,5 +1,5 @@
 <div
-  class="component is-3d is-pointer-events-none"
+  class="group pointer-events-none absolute box-border select-none [-moz-user-drag:none] [-webkit-user-drag:none] backface-hidden transform-3d"
   [style.width.px]="width() * gridSize"
   [style.height.px]="depth() * gridSize"
   appMovable
@@ -9,8 +9,8 @@
   (movable.ondragend)="onMoved()"
 >
   <div
-    class="component-content is-3d is-pointer-events-auto"
-    [ngClass]="{ 'is-grab': !isLocked() }"
+    class="pointer-events-auto size-full transform-3d"
+    [class.cursor-grab]="!isLocked()"
     appRotable
     [rotable.option]="rotableOption()"
     (rotable.ondragstart)="onMove()"
@@ -20,8 +20,8 @@
     @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
       @if (isDropShadow() && (terreinAltitude() !== 0 || (isSlope() && !hasWall()))) {
         <div
-          class="is-3d texture chrome-smooth-image-trick transform-[translateZ(0.3px)_scale(0.98)] opacity-70 filter-[brightness(0)_blur(1px)] backface-visible"
-          [ngClass]="{ 'blinking-animation': !isLocked() }"
+          class="chrome-smooth-image-trick absolute size-full transform-[translateZ(0.3px)_scale(0.98)] bg-size-[100%_100%] bg-no-repeat opacity-70 filter-[brightness(0)_blur(1px)] backface-visible transform-3d"
+          [class.blinking-animation]="!isLocked()"
           [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
           [style.clip-path]="hexFloorClipPath()"
           [ngStyle]="hexFloorDimStyle()"
@@ -29,16 +29,16 @@
       }
     }
     <div
-      class="is-3d texture z-1"
-      [ngClass]="{ 'upright-transform': height() < 0.5 && altitude() === 0, fall: height() >= 0.5 && altitude() === 0 }"
+      class="absolute z-1 size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+      [class.transition-[transform_132ms_cubic-bezier(0.21,0.97,0.75,1.25)]]="height() >= 0.5 && altitude() === 0"
       [ngStyle]="{ transform: 'translateZ(' + altitude() * gridSize + 'px)' }"
     >
       @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
           @for (step of hexSlopeSteps().floors; track $index) {
             <div
-              class="is-3d texture chrome-smooth-image-trick"
-              [ngClass]="{ 'blinking-animation': !isLocked() }"
+              class="chrome-smooth-image-trick absolute size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+              [class.blinking-animation]="!isLocked()"
               [ngStyle]="{
                 'backface-visibility': 'visible',
                 transform: 'translateZ(' + step.heightPx + 'px)',
@@ -52,8 +52,8 @@
           }
         } @else {
           <div
-            class="is-3d texture chrome-smooth-image-trick"
-            [ngClass]="{ 'blinking-animation': !isLocked() }"
+            class="chrome-smooth-image-trick absolute size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+            [class.blinking-animation]="!isLocked()"
             [ngStyle]="{
               'backface-visibility': isSlope() ? 'visible' : 'hidden',
               transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
@@ -67,21 +67,35 @@
       }
       @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
         @for (step of hexSlopeSteps().floors; track $index) {
-          <div class="terrain-grid-clip is-3d" [ngStyle]="terrainGridClipStepStyle(step)">
-            <canvas class="grid-canvas terrain-grid-canvas" [ngStyle]="terrainGridCanvasStyle()" #gridCanvas></canvas>
+          <div
+            class="pointer-events-none absolute origin-center overflow-hidden transform-3d"
+            [ngStyle]="terrainGridClipStepStyle(step)"
+          >
+            <canvas
+              class="pointer-events-none absolute origin-center opacity-0 transition-[0.3s_ease-out] backface-hidden"
+              [ngStyle]="terrainGridCanvasStyle()"
+              #gridCanvas
+            ></canvas>
           </div>
         }
       } @else {
-        <div class="terrain-grid-clip is-3d" [ngStyle]="terrainGridClipStyle()">
-          <canvas class="grid-canvas terrain-grid-canvas" [ngStyle]="terrainGridCanvasStyle()" #gridCanvas></canvas>
+        <div
+          class="pointer-events-none absolute origin-center overflow-hidden transform-3d"
+          [ngStyle]="terrainGridClipStyle()"
+        >
+          <canvas
+            class="pointer-events-none absolute origin-center opacity-0 transition-[0.3s_ease-out] backface-hidden"
+            [ngStyle]="terrainGridCanvasStyle()"
+            #gridCanvas
+          ></canvas>
         </div>
       }
       @if (hasWall() && 0 < wallImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().walls.length > 0) {
           @for (wall of hexSlopeSteps().walls; track $index) {
             <div
-              class="is-3d hex-wall chrome-smooth-image-trick"
-              [ngClass]="{ 'blinking-animation': !isLocked() }"
+              class="chrome-smooth-image-trick absolute top-0 left-0 origin-top-left bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+              [class.blinking-animation]="!isLocked()"
               [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
               [style.width.px]="wall.edgeLength"
               [style.height.px]="wall.wallHeightPx"
@@ -103,8 +117,8 @@
         } @else if (isHex()) {
           @for (wall of hexWalls(); track $index) {
             <div
-              class="is-3d hex-wall chrome-smooth-image-trick"
-              [ngClass]="{ 'blinking-animation': !isLocked() }"
+              class="chrome-smooth-image-trick absolute top-0 left-0 origin-top-left bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+              [class.blinking-animation]="!isLocked()"
               [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
               [style.width.px]="wall.edgeLength"
               [style.height.px]="height() * gridSize"
@@ -126,13 +140,11 @@
           @if (slopeDirection() !== slopeDirectionState.TOP) {
             @if (isVisibleWallTopBottom()) {
               <div
-                [ngClass]="{
-                  'blinking-animation': !isLocked(),
-                  'no-shadow': !isSurfaceShading(),
-                  'is-slope': slopeDirection() === slopeDirectionState.LEFT,
-                  'is-inverse-slope': slopeDirection() === slopeDirectionState.RIGHT,
-                }"
-                class="is-3d texture of-wall-top chrome-smooth-image-trick"
+                [class.blinking-animation]="!isLocked()"
+                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
+                [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.LEFT"
+                [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.RIGHT"
+                class="chrome-smooth-image-trick absolute top-0 left-0 size-full origin-[50%_100%] transform-[translateY(-100%)_rotateX(90deg)_rotateZ(180deg)_scaleX(-1)] bg-size-[100%_100%] bg-no-repeat filter-[brightness(0.3)] backface-hidden transform-3d"
                 [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
@@ -142,13 +154,11 @@
           @if (slopeDirection() !== slopeDirectionState.BOTTOM) {
             @if (isVisibleWallTopBottom()) {
               <div
-                [ngClass]="{
-                  'blinking-animation': !isLocked(),
-                  'no-shadow': !isSurfaceShading(),
-                  'is-slope': slopeDirection() === slopeDirectionState.LEFT,
-                  'is-inverse-slope': slopeDirection() === slopeDirectionState.RIGHT,
-                }"
-                class="is-3d texture of-wall-bottom chrome-smooth-image-trick"
+                [class.blinking-animation]="!isLocked()"
+                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
+                [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.LEFT"
+                [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.RIGHT"
+                class="chrome-smooth-image-trick absolute bottom-0 left-0 size-full origin-[50%_100%] transform-[rotateX(-90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
                 [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
@@ -158,13 +168,11 @@
           @if (slopeDirection() !== slopeDirectionState.LEFT) {
             @if (isVisibleWallLeftRight()) {
               <div
-                [ngClass]="{
-                  'blinking-animation': !isLocked(),
-                  'no-shadow': !isSurfaceShading(),
-                  'is-slope': slopeDirection() === slopeDirectionState.BOTTOM,
-                  'is-inverse-slope': slopeDirection() === slopeDirectionState.TOP,
-                }"
-                class="is-3d texture of-wall-left chrome-smooth-image-trick"
+                [class.blinking-animation]="!isLocked()"
+                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
+                [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.BOTTOM"
+                [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.TOP"
+                class="chrome-smooth-image-trick absolute top-0 left-0 size-full origin-[0%_0%] transform-[rotateZ(90deg)_rotateX(-90deg)_scaleX(-1)_translateX(-100%)_translateY(-100%)] bg-size-[100%_100%] bg-no-repeat filter-[brightness(0.5)] backface-hidden transform-3d"
                 [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
@@ -174,13 +182,11 @@
           @if (slopeDirection() !== slopeDirectionState.RIGHT) {
             @if (isVisibleWallLeftRight()) {
               <div
-                [ngClass]="{
-                  'blinking-animation': !isLocked(),
-                  'no-shadow': !isSurfaceShading(),
-                  'is-slope': slopeDirection() === slopeDirectionState.BOTTOM,
-                  'is-inverse-slope': slopeDirection() === slopeDirectionState.TOP,
-                }"
-                class="is-3d texture of-wall-right chrome-smooth-image-trick"
+                [class.blinking-animation]="!isLocked()"
+                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
+                [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.BOTTOM"
+                [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.TOP"
+                class="chrome-smooth-image-trick absolute top-0 right-0 size-full origin-[100%_0%] transform-[rotateZ(-90deg)_rotateX(-90deg)_translateY(-100%)] bg-size-[100%_100%] bg-no-repeat filter-[brightness(0.8)] backface-hidden transform-3d"
                 [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
@@ -190,26 +196,50 @@
         }
       }
       @if (!isLocked()) {
-        <div class="pedestal-grab rotate-grab is-3d will-change" [ngStyle]="pedestalStyle()"></div>
+        <div
+          class="rotate-grab pointer-events-auto absolute -inset-3.5 -z-1 box-border cursor-default rounded-[14px] border-7 border-solid border-(--ui-panel-border) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+          [ngStyle]="pedestalStyle()"
+        ></div>
         @if (!isHex()) {
-          <div class="rotate-grab of-left-top rotate-grab-icon is-3d will-change">
+          <div
+            class="rotate-grab pointer-events-auto absolute -top-3.5 -left-3.5 z-1 box-border size-7 transform-[translateZ(0.1px)] cursor-default rounded-[14px_7px_14px_7px] border-2 border-solid border-(--ui-panel-border) bg-(--ui-elevated) p-0 text-[8px] text-(--ui-text-muted) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+          >
             <i class="material-icons">autorenew</i>
           </div>
-          <div class="rotate-grab of-left-bottom rotate-grab-icon is-3d will-change">
+          <div
+            class="rotate-grab pointer-events-auto absolute -bottom-3.5 -left-3.5 z-1 box-border size-7 transform-[translateZ(0.1px)] cursor-default rounded-[7px_14px_7px_14px] border-2 border-solid border-(--ui-panel-border) bg-(--ui-elevated) p-0 text-[8px] text-(--ui-text-muted) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+          >
             <i class="material-icons">autorenew</i>
           </div>
-          <div class="rotate-grab of-right-bottom rotate-grab-icon is-3d will-change">
+          <div
+            class="rotate-grab pointer-events-auto absolute -right-3.5 -bottom-3.5 z-1 box-border size-7 transform-[translateZ(0.1px)] cursor-default rounded-[14px_7px_14px_7px] border-2 border-solid border-(--ui-panel-border) bg-(--ui-elevated) p-0 text-[8px] text-(--ui-text-muted) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+          >
             <i class="material-icons">autorenew</i>
           </div>
-          <div class="rotate-grab of-right-top rotate-grab-icon is-3d will-change">
+          <div
+            class="rotate-grab pointer-events-auto absolute -top-3.5 -right-3.5 z-1 box-border size-7 transform-[translateZ(0.1px)] cursor-default rounded-[7px_14px_7px_14px] border-2 border-solid border-(--ui-panel-border) bg-(--ui-elevated) p-0 text-[8px] text-(--ui-text-muted) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+          >
             <i class="material-icons">autorenew</i>
           </div>
         }
         @if (isHex()) {
-          <div class="pedestal-grab rotate-grab is-3d will-change" [ngStyle]="pedestalGrabStyle">
-            <div class="pedestal-grab-circle">
-              <div class="material-icons of-front">autorenew</div>
-              <div class="material-icons of-back">autorenew</div>
+          <div
+            class="rotate-grab pointer-events-auto absolute -inset-3.5 -z-1 box-border cursor-default rounded-[14px] border-7 border-solid border-(--ui-panel-border) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+            [ngStyle]="pedestalGrabStyle"
+          >
+            <div
+              class="absolute inset-0 box-border rounded-full border-7 border-solid border-(--ui-panel-border) transform-3d"
+            >
+              <div
+                class="material-icons absolute -top-3.5 left-1/2 -translate-x-1/2 text-[28px]! text-(--ui-text-muted) backface-hidden"
+              >
+                autorenew
+              </div>
+              <div
+                class="material-icons absolute -top-3.5 left-1/2 transform-[translateX(-50%)_rotateY(180deg)] text-[28px]! text-(--ui-text-muted) backface-hidden"
+              >
+                autorenew
+              </div>
             </div>
           </div>
         }
@@ -222,7 +252,7 @@
     (terreinAltitude() <= -0.5 || 0.5 <= terreinAltitude())
   ) {
     <div
-      class="is-3d absolute flex origin-[top_left] items-center [border-left:2px_dashed_blanchedalmond]"
+      class="absolute flex origin-[top_left] items-center [border-left:2px_dashed_blanchedalmond] transform-3d"
       [style.height.px]="math.abs(terreinAltitude() * gridSize)"
       [ngStyle]="{
         transform:
@@ -237,8 +267,14 @@
           'deg)',
       }"
     >
-      <div class="altitude-indicator is-3d absolute">{{ math.abs(terreinAltitude()) }}</div>
-      <div class="altitude-indicator is-3d absolute transform-[rotateY(-180deg)]">
+      <div
+        class="absolute pl-0.5 text-[11px] font-extrabold text-[blanchedalmond] [text-shadow:var(--ui-elevated)_0px_0px_3px] backface-hidden transform-3d"
+      >
+        {{ math.abs(terreinAltitude()) }}
+      </div>
+      <div
+        class="absolute transform-[rotateY(-180deg)] pl-0.5 text-[11px] font-extrabold text-[blanchedalmond] [text-shadow:var(--ui-elevated)_0px_0px_3px] backface-hidden transform-3d"
+      >
         {{ math.abs(terreinAltitude()) }}
       </div>
     </div>
