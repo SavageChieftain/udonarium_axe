@@ -41,9 +41,10 @@ export class RangeDockingCharacterComponent {
   }
 
   private allowsChat(gameCharacter: GameCharacter): boolean {
+    // レンジドッキング先候補は「テーブル上に居るキャラ」だけ。発言しない (nonTalkFlag) は無関係。
     switch (gameCharacter.location.name) {
       case 'table':
-        return !gameCharacter.nonTalkFlag;
+        return true;
       case 'graveyard':
         return false;
       default:

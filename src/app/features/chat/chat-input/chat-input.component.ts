@@ -140,7 +140,7 @@ export class ChatInputComponent {
       if (event.aliasName !== GameCharacter.aliasName) return;
       if (event.identifier !== this.sendFrom) return;
       const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
-      if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId)) {
+      if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId, this.onlyCharacters())) {
         if (0 < this.gameCharacters().length && this.onlyCharacters()) {
           this.sendFrom = this.gameCharacters()[0].identifier;
         } else {
@@ -290,7 +290,9 @@ export class ChatInputComponent {
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     // nonTalkFlag や location 変更で allowsChat の結果が変わるため各キャラの versionOf を tracking
     for (const c of all) this.objectChange.versionOf(c.identifier)();
-    return all.filter((character) => allowsChat(character, this.myPeer.peerId));
+    // onlyCharacters=true はチャットパレット等のキャラ専用入力欄。発言しないフラグでは除外しない
+    const ignoreNonTalk = this.onlyCharacters();
+    return all.filter((character) => allowsChat(character, this.myPeer.peerId, ignoreNonTalk));
   });
 
   private writingEventInterval: ReturnType<typeof setTimeout> | null = null;
