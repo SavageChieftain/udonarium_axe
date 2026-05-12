@@ -32,23 +32,31 @@
         }
       }
     </div>
-    <div class="elm-value-cell table-cell" [class.elm-value-cell--editable]="isEdit() && !isImage()">
+    <div
+      class="elm-value-cell table-cell [&_input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color])]:w-full [&_input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color])]:min-w-0 [&_input[type=number]]:w-full [&_input[type=number]]:min-w-0"
+      [class.elm-value-cell--editable]="isEdit() && !isImage()"
+    >
       <div class="elm-value-content">
         @switch (gameDataElement().fieldType) {
           @case ('resource') {
-            <div class="resource-editor">
+            <div
+              class="grid w-[min(100%,11.5em)] min-w-0 grid-cols-[minmax(3.8em,1fr)_auto_minmax(3.8em,1fr)] items-center gap-1.5"
+              [class.grid-cols-[minmax(0,1fr)]!]="!isEdit() || isImage()"
+              [class.w-full!]="!isEdit() || isImage()"
+              [class.max-w-full]="!isEdit() || isImage()"
+            >
               @if (isEdit()) {
                 <input
-                  class="resource-number resource-number--current"
+                  class="resource-number text-ui-text appearance-textfield w-full! min-w-0! text-right font-semibold [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                   size="1"
                   type="number"
                   name="data-current-value"
                   [(ngModel)]="currentValue"
                   placeholder="Value"
                 />
-                <span class="resource-separator">/</span>
+                <span class="text-ui-dim">/</span>
                 <input
-                  class="resource-number"
+                  class="resource-number appearance-textfield w-full! min-w-0! text-right [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                   size="1"
                   type="number"
                   name="data-value"
@@ -56,18 +64,20 @@
                   placeholder="Value"
                 />
               } @else {
-                <div class="resource-values">
+                <div
+                  class="text-ui-muted grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 whitespace-nowrap"
+                >
                   <input
-                    class="resource-number resource-number--current"
+                    class="resource-number text-ui-text appearance-textfield w-full! min-w-0! text-right font-semibold [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                     size="1"
                     type="number"
                     name="data-current-value"
                     [(ngModel)]="currentValue"
                     placeholder="Value"
                   />
-                  <span class="resource-separator">/</span>
+                  <span class="text-ui-dim">/</span>
                   <input
-                    class="resource-number"
+                    class="resource-number appearance-textfield w-full! min-w-0! text-right [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                     size="1"
                     type="number"
                     name="data-value"
@@ -145,14 +155,40 @@
             }
           }
           @case ('image') {
-            <div class="image-field">
+            <div
+              class="flex min-h-10 flex-wrap items-center gap-2"
+              [class.flex-nowrap]="isEdit() && !isImage()"
+              [class.gap-1.5!]="isEdit() && !isImage()"
+              [class.min-h-7!]="isEdit() && !isImage()"
+              [class.overflow-hidden]="isEdit() && !isImage()"
+            >
               @if (imageFileUrl()) {
-                <img class="image-field-preview" [src]="imageFileUrl() | safe: 'resourceUrl'" [alt]="name" />
+                <img
+                  class="border-ui-border-panel max-h-20 max-w-30 rounded-sm border object-contain"
+                  [class.size-8!]="isEdit() && !isImage()"
+                  [class.max-w-8!]="isEdit() && !isImage()"
+                  [class.max-h-8!]="isEdit() && !isImage()"
+                  [src]="imageFileUrl() | safe: 'resourceUrl'"
+                  [alt]="name"
+                />
               } @else {
-                <div class="image-field-empty">画像未設定</div>
+                <div class="text-ui-dim border-ui-border-panel rounded-sm border border-dashed px-2 py-1 text-[0.8em]">
+                  画像未設定
+                </div>
               }
               @if (isEdit()) {
-                <button class="portrait-button text-[1em]" type="button" (click)="openModal('imageIdentifier', true)">
+                <button
+                  class="portrait-button text-[1em]"
+                  [class.h-5.5!]="isEdit() && !isImage()"
+                  [class.m-0!]="isEdit() && !isImage()"
+                  [class.px-1.5!]="isEdit() && !isImage()"
+                  [class.py-0.5!]="isEdit() && !isImage()"
+                  [class.overflow-hidden]="isEdit() && !isImage()"
+                  [class.text-[0.74em]!]="isEdit() && !isImage()"
+                  [class.whitespace-nowrap]="isEdit() && !isImage()"
+                  type="button"
+                  (click)="openModal('imageIdentifier', true)"
+                >
                   画像変更
                 </button>
               }
@@ -168,8 +204,10 @@
                 placeholder="式 (HP + レベル * 2)"
               />
             }
-            <div class="calc-result">
-              <span class="calc-result-value">{{ calcResult() }}</span>
+            <div class="inline-flex items-center gap-1" [class.hidden!]="isEdit() && !isImage()">
+              <span class="text-ui-text min-w-[2em] font-[Cambria,Georgia,serif] text-[1.1em] font-semibold">
+                {{ calcResult() }}
+              </span>
             </div>
           }
           @default {

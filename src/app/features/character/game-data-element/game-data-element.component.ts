@@ -39,7 +39,6 @@ interface JudgeCandidatesState {
   styleUrls: [
     './game-data-element.component.css',
     './game-data-element-rows.css',
-    './game-data-element-field-values.css',
     './game-data-element-sections.css',
     './game-data-element-judge.css',
   ],
