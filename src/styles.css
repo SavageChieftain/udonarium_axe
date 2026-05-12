@@ -510,7 +510,7 @@ app-root .networkIndicator {
    他コンポーネントへ漏れないようにする。 */
 
 /* ── component base & inputs ── */
-game-data-element .portrait-button {
+:is(game-data-element, [game-data-element]) .portrait-button {
   width: auto;
   margin: 5px 0;
   padding: 4px 8px;
@@ -523,12 +523,12 @@ game-data-element .portrait-button {
   cursor: pointer;
 }
 
-game-data-element .portrait-button:hover {
+:is(game-data-element, [game-data-element]) .portrait-button:hover {
   background-color: var(--ui-hover);
   color: var(--ui-text);
 }
 
-game-data-element .sub-image {
+:is(game-data-element, [game-data-element]) .sub-image {
   display: inline-block;
   height: 120px;
   max-height: 120px;
@@ -536,25 +536,25 @@ game-data-element .sub-image {
   vertical-align: top;
 }
 
-game-data-element .sub-image-box {
+:is(game-data-element, [game-data-element]) .sub-image-box {
   width: 120px;
   height: 120px;
 }
 
-game-data-element .sub-table {
+:is(game-data-element, [game-data-element]) .sub-table {
   width: calc(100% - 120px);
 }
 
-game-data-element .table-cell-2 {
+:is(game-data-element, [game-data-element]) .table-cell-2 {
   display: table-cell;
 }
 
-game-data-element .table-2 {
+:is(game-data-element, [game-data-element]) .table-2 {
   display: table;
   width: 100%;
 }
 
-game-data-element .hidden-spacer {
+:is(game-data-element, [game-data-element]) .hidden-spacer {
   visibility: hidden;
   height: 0;
   max-width: 20em;
@@ -563,23 +563,23 @@ game-data-element .hidden-spacer {
   box-sizing: border-box;
 }
 
-game-data-element .textarea-url,
-game-data-element .textarea-markdown {
+:is(game-data-element, [game-data-element]) .textarea-url,
+:is(game-data-element, [game-data-element]) .textarea-markdown {
   padding: 2px;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-game-data-element .elm-markdown-view {
+:is(game-data-element, [game-data-element]) .elm-markdown-view {
   max-width: min(560px, calc(60vw));
   overflow-x: auto;
 }
 
-game-data-element input,
-game-data-element button,
-game-data-element textarea,
-game-data-element select {
+:is(game-data-element, [game-data-element]) input,
+:is(game-data-element, [game-data-element]) button,
+:is(game-data-element, [game-data-element]) textarea,
+:is(game-data-element, [game-data-element]) select {
   box-sizing: border-box;
   border: none;
   border-radius: 2px;
@@ -590,13 +590,13 @@ game-data-element select {
   outline: none;
 }
 
-game-data-element input,
-game-data-element textarea,
-game-data-element select {
+:is(game-data-element, [game-data-element]) input,
+:is(game-data-element, [game-data-element]) textarea,
+:is(game-data-element, [game-data-element]) select {
   padding: 2px 4px;
 }
 
-game-data-element button {
+:is(game-data-element, [game-data-element]) button {
   display: inline-flex;
   align-items: center;
   margin: 0;
@@ -608,44 +608,44 @@ game-data-element button {
     color var(--ui-transition);
 }
 
-game-data-element button:hover {
+:is(game-data-element, [game-data-element]) button:hover {
   background: var(--ui-hover);
   color: var(--ui-text);
 }
 
-game-data-element button .material-icons {
+:is(game-data-element, [game-data-element]) button .material-icons {
   font-size: 16px;
 }
 
-game-data-element input:hover,
-game-data-element textarea:hover,
-game-data-element select:hover {
+:is(game-data-element, [game-data-element]) input:hover,
+:is(game-data-element, [game-data-element]) textarea:hover,
+:is(game-data-element, [game-data-element]) select:hover {
   background: var(--ui-hover);
 }
 
-game-data-element input:focus,
-game-data-element textarea:focus,
-game-data-element select:focus {
+:is(game-data-element, [game-data-element]) input:focus,
+:is(game-data-element, [game-data-element]) textarea:focus,
+:is(game-data-element, [game-data-element]) select:focus {
   background: var(--ui-input-bg);
   box-shadow: 0 0 0 1px var(--ui-accent);
 }
 
-game-data-element .invisible,
-game-data-element .dummy {
+:is(game-data-element, [game-data-element]) .invisible,
+:is(game-data-element, [game-data-element]) .dummy {
   visibility: hidden;
   pointer-events: none;
 }
 
-game-data-element button i {
+:is(game-data-element, [game-data-element]) button i {
   font-size: 1rem;
 }
 
-game-data-element .table-cell button {
+:is(game-data-element, [game-data-element]) .table-cell button {
   font-size: 0.5rem;
 }
 
 /* ── rows (旧 game-data-element-rows.css) ── */
-game-data-element {
+:is(game-data-element, [game-data-element]) {
   --gde-depth: 0;
   --gde-radius-control: 2px;
   --gde-radius-line: 0;
@@ -673,21 +673,21 @@ game-data-element {
   color: var(--ui-text);
 }
 
-game-data-element.elm-editing {
+:is(game-data-element, [game-data-element]).elm-editing {
   grid-template-columns: var(--gde-structure-width) minmax(6.5rem, 30%) minmax(0, 1fr);
 }
 
-game-data-element.elm-editing .table-cell {
+:is(game-data-element, [game-data-element]).elm-editing .table-cell {
   min-height: 32px;
   padding-top: 3px;
   padding-bottom: 3px;
 }
 
-game-data-element + game-data-element {
+:is(game-data-element, [game-data-element]) + game-data-element {
   margin-top: 2px;
 }
 
-game-data-element .table {
+:is(game-data-element, [game-data-element]) .table {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -696,11 +696,11 @@ game-data-element .table {
   box-sizing: border-box;
 }
 
-game-data-element .table-row {
+:is(game-data-element, [game-data-element]) .table-row {
   box-sizing: border-box;
 }
 
-game-data-element .table-cell {
+:is(game-data-element, [game-data-element]) .table-cell {
   min-width: 0;
   min-height: var(--gde-row-min);
   padding: 4px 7px;
@@ -709,7 +709,7 @@ game-data-element .table-cell {
   font-size: 0.78em;
 }
 
-game-data-element .elm-name-cell {
+:is(game-data-element, [game-data-element]) .elm-name-cell {
   display: flex;
   align-items: center;
   border-left: 2px solid var(--gde-accent-border);
@@ -718,17 +718,17 @@ game-data-element .elm-name-cell {
   background: var(--gde-label-bg);
 }
 
-game-data-element:not(.elm-editing) .elm-name-cell {
+:is(game-data-element, [game-data-element]):not(.elm-editing) .elm-name-cell {
   border-left: none;
   border-bottom: none;
   background: transparent;
 }
 
-game-data-element.elm-editing .elm-name-cell {
+:is(game-data-element, [game-data-element]).elm-editing .elm-name-cell {
   border-left: 0;
 }
 
-game-data-element .elm-structure-cell {
+:is(game-data-element, [game-data-element]) .elm-structure-cell {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -739,16 +739,16 @@ game-data-element .elm-structure-cell {
   background: color-mix(in srgb, var(--gde-structure-bg) 42%, transparent);
 }
 
-game-data-element .elm-structure-btn {
+:is(game-data-element, [game-data-element]) .elm-structure-btn {
   width: 22px;
   height: 24px;
 }
 
-game-data-element .elm-structure-btn--drag {
+:is(game-data-element, [game-data-element]) .elm-structure-btn--drag {
   height: 24px;
 }
 
-game-data-element .elm-value-cell {
+:is(game-data-element, [game-data-element]) .elm-value-cell {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -760,17 +760,17 @@ game-data-element .elm-value-cell {
   background: var(--gde-value-bg);
 }
 
-game-data-element:not(.elm-editing) .elm-value-cell {
+:is(game-data-element, [game-data-element]):not(.elm-editing) .elm-value-cell {
   border-bottom: none;
   background: transparent;
 }
 
-game-data-element .elm-value-cell--editable {
+:is(game-data-element, [game-data-element]) .elm-value-cell--editable {
   grid-template-columns: minmax(0, 1fr) var(--gde-actions-width);
   align-items: center;
 }
 
-game-data-element .elm-value-content {
+:is(game-data-element, [game-data-element]) .elm-value-content {
   display: grid;
   align-items: center;
   align-self: center;
@@ -779,45 +779,45 @@ game-data-element .elm-value-content {
   min-height: calc(var(--gde-row-min) - 8px);
 }
 
-game-data-element.elm-editing .elm-value-content {
+:is(game-data-element, [game-data-element]).elm-editing .elm-value-content {
   grid-column: 1;
   grid-row: 1;
   max-height: 48px;
   overflow: hidden;
 }
 
-game-data-element.elm-editing .elm-value-content > input:not([type='range']):not([type='checkbox']),
-game-data-element.elm-editing .elm-value-content > select,
-game-data-element.elm-editing .elm-value-content > textarea {
+:is(game-data-element, [game-data-element]).elm-editing .elm-value-content > input:not([type='range']):not([type='checkbox']),
+:is(game-data-element, [game-data-element]).elm-editing .elm-value-content > select,
+:is(game-data-element, [game-data-element]).elm-editing .elm-value-content > textarea {
   height: 24px !important;
   min-height: 24px;
   max-height: 24px;
   line-height: 18px;
 }
 
-game-data-element.elm-editing .elm-value-content > textarea {
+:is(game-data-element, [game-data-element]).elm-editing .elm-value-content > textarea {
   resize: none;
   overflow: hidden;
   white-space: nowrap;
 }
 
-game-data-element.elm-editing .elm-value-content > input[type='checkbox'] {
+:is(game-data-element, [game-data-element]).elm-editing .elm-value-content > input[type='checkbox'] {
   width: 14px;
   height: 14px;
   margin: 0;
 }
 
-game-data-element .elm-name-cell--hidden {
+:is(game-data-element, [game-data-element]) .elm-name-cell--hidden {
   display: none;
 }
 
-game-data-element .elm-name-cell--hidden + .elm-value-cell {
+:is(game-data-element, [game-data-element]) .elm-name-cell--hidden + .elm-value-cell {
   grid-column: 1 / -1;
   border-left: 2px solid var(--gde-accent-border);
   border-radius: var(--gde-radius-line);
 }
 
-game-data-element .elm-name {
+:is(game-data-element, [game-data-element]) .elm-name {
   min-width: 0;
   overflow: hidden;
   color: color-mix(in srgb, var(--ui-text) 68%, var(--ui-text-muted));
@@ -827,7 +827,7 @@ game-data-element .elm-name {
   white-space: nowrap;
 }
 
-game-data-element .elm-name-input {
+:is(game-data-element, [game-data-element]) .elm-name-input {
   width: 100%;
   min-width: 4em;
   padding: 2px 3px;
@@ -844,25 +844,25 @@ game-data-element .elm-name-input {
     box-shadow var(--ui-transition);
 }
 
-game-data-element .elm-name-input:hover {
+:is(game-data-element, [game-data-element]) .elm-name-input:hover {
   background: var(--ui-hover);
 }
 
-game-data-element .elm-name-input:focus {
+:is(game-data-element, [game-data-element]) .elm-name-input:focus {
   border-color: var(--ui-accent);
   background: var(--ui-input-bg);
   box-shadow: 0 0 0 2px var(--ui-accent-glow);
 }
 
-game-data-element .elm-name-input--duplicate,
-game-data-element .elm-name-input--duplicate:focus {
+:is(game-data-element, [game-data-element]) .elm-name-input--duplicate,
+:is(game-data-element, [game-data-element]) .elm-name-input--duplicate:focus {
   border-color: var(--ui-danger);
   background: var(--ui-danger-bg);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-danger) 24%, transparent);
 }
 
 /* ── row actions (旧 game-data-element-row-actions.css) ── */
-game-data-element .elm-row-actions {
+:is(game-data-element, [game-data-element]) .elm-row-actions {
   position: static;
   z-index: 2;
   display: grid;
@@ -883,25 +883,25 @@ game-data-element .elm-row-actions {
   pointer-events: auto;
 }
 
-game-data-element .elm-type-select {
+:is(game-data-element, [game-data-element]) .elm-type-select {
   width: 74px;
   min-width: 74px;
   min-height: 22px !important;
   font-size: 0.68em !important;
 }
 
-game-data-element .elm-type-select .ng-select-container {
+:is(game-data-element, [game-data-element]) .elm-type-select .ng-select-container {
   align-items: center;
   height: 22px !important;
   min-height: 22px !important;
 }
 
-game-data-element .elm-type-select .ng-select-container .ng-arrow-wrapper {
+:is(game-data-element, [game-data-element]) .elm-type-select .ng-select-container .ng-arrow-wrapper {
   align-self: center;
   padding-bottom: 0;
 }
 
-game-data-element .elm-act-btn {
+:is(game-data-element, [game-data-element]) .elm-act-btn {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
@@ -916,47 +916,47 @@ game-data-element .elm-act-btn {
   cursor: pointer;
 }
 
-game-data-element .elm-act-btn:hover {
+:is(game-data-element, [game-data-element]) .elm-act-btn:hover {
   background: var(--ui-hover);
   color: var(--ui-text);
 }
 
-game-data-element .elm-act-btn--active {
+:is(game-data-element, [game-data-element]) .elm-act-btn--active {
   background: var(--ui-accent-bg);
   color: var(--ui-accent);
 }
 
-game-data-element .elm-act-btn:disabled {
+:is(game-data-element, [game-data-element]) .elm-act-btn:disabled {
   background: transparent;
   color: var(--ui-text-dim);
   cursor: default;
   opacity: 0.36;
 }
 
-game-data-element .elm-act-btn--danger:hover {
+:is(game-data-element, [game-data-element]) .elm-act-btn--danger:hover {
   background: var(--ui-danger-bg);
   color: var(--ui-danger);
 }
 
-game-data-element .elm-act-btn--placeholder {
+:is(game-data-element, [game-data-element]) .elm-act-btn--placeholder {
   visibility: hidden;
   pointer-events: none;
 }
 
-game-data-element .elm-act-btn .material-icons {
+:is(game-data-element, [game-data-element]) .elm-act-btn .material-icons {
   font-size: 14px;
 }
 
-game-data-element .elm-drag-handle {
+:is(game-data-element, [game-data-element]) .elm-drag-handle {
   color: var(--ui-text-dim);
   cursor: grab;
 }
 
-game-data-element .elm-drag-handle:active {
+:is(game-data-element, [game-data-element]) .elm-drag-handle:active {
   cursor: grabbing;
 }
 
-game-data-element.elm-drop-before::before {
+:is(game-data-element, [game-data-element]).elm-drop-before::before {
   content: '';
   position: absolute;
   top: 0;
@@ -970,7 +970,7 @@ game-data-element.elm-drop-before::before {
   border-radius: 1px;
 }
 
-game-data-element.elm-drop-after::after {
+:is(game-data-element, [game-data-element]).elm-drop-after::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -984,7 +984,7 @@ game-data-element.elm-drop-after::after {
 }
 
 /* ── field values (旧 game-data-element-field-values.css) ── */
-game-data-element .resource-editor {
+:is(game-data-element, [game-data-element]) .resource-editor {
   display: grid;
   grid-template-columns: minmax(3.8em, 1fr) auto minmax(3.8em, 1fr);
   align-items: center;
@@ -993,13 +993,13 @@ game-data-element .resource-editor {
   min-width: 0;
 }
 
-game-data-element:not(.elm-editing) .resource-editor {
+:is(game-data-element, [game-data-element]):not(.elm-editing) .resource-editor {
   grid-template-columns: minmax(0, 1fr);
   width: 100%;
   max-width: 100%;
 }
 
-game-data-element .resource-values {
+:is(game-data-element, [game-data-element]) .resource-values {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   width: 100%;
@@ -1009,41 +1009,41 @@ game-data-element .resource-values {
   white-space: nowrap;
 }
 
-game-data-element .resource-number {
+:is(game-data-element, [game-data-element]) .resource-number {
   width: 100% !important;
   min-width: 0 !important;
   text-align: right;
   appearance: textfield;
 }
 
-game-data-element .resource-number::-webkit-inner-spin-button,
-game-data-element .resource-number::-webkit-outer-spin-button {
+:is(game-data-element, [game-data-element]) .resource-number::-webkit-inner-spin-button,
+:is(game-data-element, [game-data-element]) .resource-number::-webkit-outer-spin-button {
   margin: 0;
   appearance: none;
 }
 
-game-data-element .resource-number--current {
+:is(game-data-element, [game-data-element]) .resource-number--current {
   color: var(--ui-text);
   font-weight: 600;
 }
 
-game-data-element .resource-separator {
+:is(game-data-element, [game-data-element]) .resource-separator {
   color: var(--ui-text-dim);
 }
 
-game-data-element
+:is(game-data-element, [game-data-element])
   .elm-value-cell
   input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='color']) {
   width: 100%;
   min-width: 0;
 }
 
-game-data-element .elm-value-cell input[type='number'] {
+:is(game-data-element, [game-data-element]) .elm-value-cell input[type='number'] {
   width: 100%;
   min-width: 0;
 }
 
-game-data-element .image-field {
+:is(game-data-element, [game-data-element]) .image-field {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1051,14 +1051,14 @@ game-data-element .image-field {
   min-height: 40px;
 }
 
-game-data-element.elm-editing .image-field {
+:is(game-data-element, [game-data-element]).elm-editing .image-field {
   flex-wrap: nowrap;
   gap: 6px;
   min-height: 28px;
   overflow: hidden;
 }
 
-game-data-element .image-field-preview {
+:is(game-data-element, [game-data-element]) .image-field-preview {
   max-height: 80px;
   max-width: 120px;
   object-fit: contain;
@@ -1066,14 +1066,14 @@ game-data-element .image-field-preview {
   border: 1px solid var(--ui-panel-border);
 }
 
-game-data-element.elm-editing .image-field-preview {
+:is(game-data-element, [game-data-element]).elm-editing .image-field-preview {
   width: 32px;
   height: 32px;
   max-width: 32px;
   max-height: 32px;
 }
 
-game-data-element.elm-editing .image-field .portrait-button {
+:is(game-data-element, [game-data-element]).elm-editing .image-field .portrait-button {
   height: 22px;
   margin: 0;
   padding: 2px 6px;
@@ -1082,7 +1082,7 @@ game-data-element.elm-editing .image-field .portrait-button {
   white-space: nowrap;
 }
 
-game-data-element .image-field-empty {
+:is(game-data-element, [game-data-element]) .image-field-empty {
   font-size: 0.8em;
   color: var(--ui-text-dim);
   padding: 4px 8px;
@@ -1090,17 +1090,17 @@ game-data-element .image-field-empty {
   border-radius: 4px;
 }
 
-game-data-element .calc-result {
+:is(game-data-element, [game-data-element]) .calc-result {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-game-data-element.elm-editing .calc-result {
+:is(game-data-element, [game-data-element]).elm-editing .calc-result {
   display: none;
 }
 
-game-data-element .calc-result-value {
+:is(game-data-element, [game-data-element]) .calc-result-value {
   font-size: 1.1em;
   font-weight: 600;
   font-family: Cambria, Georgia, serif;
@@ -1109,7 +1109,7 @@ game-data-element .calc-result-value {
 }
 
 /* ── sections + view table (旧 game-data-element-sections.css) ── */
-game-data-element .table-cell_inner-table {
+:is(game-data-element, [game-data-element]) .table-cell_inner-table {
   position: relative;
   grid-column: 1 / -1;
   width: 100%;
@@ -1121,7 +1121,7 @@ game-data-element .table-cell_inner-table {
   overflow: hidden;
 }
 
-game-data-element .table-cell_inner-table::before {
+:is(game-data-element, [game-data-element]) .table-cell_inner-table::before {
   position: absolute;
   top: 8px;
   bottom: 6px;
@@ -1133,12 +1133,12 @@ game-data-element .table-cell_inner-table::before {
   pointer-events: none;
 }
 
-game-data-element .table-cell_inner-table > .table {
+:is(game-data-element, [game-data-element]) .table-cell_inner-table > .table {
   position: relative;
   padding-left: 9px;
 }
 
-game-data-element .table-cell_inner-table-title {
+:is(game-data-element, [game-data-element]) .table-cell_inner-table-title {
   position: relative;
   z-index: 1;
   min-width: 0;
@@ -1152,30 +1152,30 @@ game-data-element .table-cell_inner-table-title {
   font-size: 0.82em;
 }
 
-game-data-element .table-cell_inner-table-title--editing {
+:is(game-data-element, [game-data-element]) .table-cell_inner-table-title--editing {
   padding: 5px 8px;
   border-color: var(--gde-row-border, var(--ui-panel-border));
   background: var(--gde-section-bg, var(--ui-elevated));
 }
 
-game-data-element .title-view-row,
-game-data-element .title-edit-row {
+:is(game-data-element, [game-data-element]) .title-view-row,
+:is(game-data-element, [game-data-element]) .title-edit-row {
   display: flex;
   align-items: center;
   width: 100%;
   min-width: 0;
 }
 
-game-data-element .title-view-row {
+:is(game-data-element, [game-data-element]) .title-view-row {
   gap: 6px;
   min-height: 22px;
 }
 
-game-data-element .title-edit-row {
+:is(game-data-element, [game-data-element]) .title-edit-row {
   gap: 4px;
 }
 
-game-data-element .elm-title-structure-actions {
+:is(game-data-element, [game-data-element]) .elm-title-structure-actions {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -1185,13 +1185,13 @@ game-data-element .elm-title-structure-actions {
   background: transparent;
 }
 
-game-data-element .title-icon {
+:is(game-data-element, [game-data-element]) .title-icon {
   flex-shrink: 0;
   color: var(--ui-accent);
   font-size: 15px !important;
 }
 
-game-data-element .title-text {
+:is(game-data-element, [game-data-element]) .title-text {
   min-width: 0;
   overflow: hidden;
   color: var(--ui-text);
@@ -1203,7 +1203,7 @@ game-data-element .title-text {
   white-space: nowrap;
 }
 
-game-data-element .title-edit-row input {
+:is(game-data-element, [game-data-element]) .title-edit-row input {
   flex: 1 1 auto;
   min-width: 0;
   padding: 3px 5px;
@@ -1216,17 +1216,17 @@ game-data-element .title-edit-row input {
   outline: none;
 }
 
-game-data-element .title-edit-row input:hover {
+:is(game-data-element, [game-data-element]) .title-edit-row input:hover {
   background: var(--ui-hover);
 }
 
-game-data-element .title-edit-row input:focus {
+:is(game-data-element, [game-data-element]) .title-edit-row input:focus {
   border-color: var(--ui-accent);
   background: var(--ui-input-bg);
   box-shadow: 0 0 0 2px var(--ui-accent-glow);
 }
 
-game-data-element .elm-view-table-wrap {
+:is(game-data-element, [game-data-element]) .elm-view-table-wrap {
   position: relative;
   display: block;
   inline-size: 100%;
@@ -1245,21 +1245,21 @@ game-data-element .elm-view-table-wrap {
   touch-action: pan-x pan-y;
 }
 
-game-data-element .elm-view-table-wrap::-webkit-scrollbar {
+:is(game-data-element, [game-data-element]) .elm-view-table-wrap::-webkit-scrollbar {
   height: 10px;
 }
 
-game-data-element .elm-view-table-wrap::-webkit-scrollbar-track {
+:is(game-data-element, [game-data-element]) .elm-view-table-wrap::-webkit-scrollbar-track {
   background: color-mix(in srgb, var(--ui-elevated) 78%, var(--ui-surface));
 }
 
-game-data-element .elm-view-table-wrap::-webkit-scrollbar-thumb {
+:is(game-data-element, [game-data-element]) .elm-view-table-wrap::-webkit-scrollbar-thumb {
   border: 2px solid color-mix(in srgb, var(--ui-elevated) 78%, var(--ui-surface));
   border-radius: 999px;
   background: color-mix(in srgb, var(--ui-accent) 82%, var(--ui-text-muted));
 }
 
-game-data-element .elm-view-table {
+:is(game-data-element, [game-data-element]) .elm-view-table {
   width: max-content;
   min-width: 100%;
   border-collapse: collapse;
@@ -1269,8 +1269,8 @@ game-data-element .elm-view-table {
   font-size: 0.78em;
 }
 
-game-data-element .elm-view-table th,
-game-data-element .elm-view-table td {
+:is(game-data-element, [game-data-element]) .elm-view-table th,
+:is(game-data-element, [game-data-element]) .elm-view-table td {
   min-width: 7.5rem;
   max-width: 18rem;
   padding: 6px 8px;
@@ -1282,18 +1282,18 @@ game-data-element .elm-view-table td {
   white-space: nowrap;
 }
 
-game-data-element .elm-view-table thead th {
+:is(game-data-element, [game-data-element]) .elm-view-table thead th {
   background: color-mix(in srgb, var(--ui-surface) 70%, var(--ui-elevated));
   color: var(--ui-text-muted);
   font-weight: 700;
 }
 
-game-data-element .elm-view-table-column-group {
+:is(game-data-element, [game-data-element]) .elm-view-table-column-group {
   text-align: center !important;
   vertical-align: middle;
 }
 
-game-data-element .elm-view-table tbody th {
+:is(game-data-element, [game-data-element]) .elm-view-table tbody th {
   width: 8rem;
   min-width: 8rem;
   max-width: 12rem;
@@ -1302,12 +1302,12 @@ game-data-element .elm-view-table tbody th {
   font-weight: 700;
 }
 
-game-data-element .elm-view-table tbody td {
+:is(game-data-element, [game-data-element]) .elm-view-table tbody td {
   background: color-mix(in srgb, var(--ui-input-bg) 84%, var(--ui-surface));
 }
 
-game-data-element .elm-view-table th.elm-view-table-column--gap,
-game-data-element .elm-view-table td.elm-view-table-column--gap {
+:is(game-data-element, [game-data-element]) .elm-view-table th.elm-view-table-column--gap,
+:is(game-data-element, [game-data-element]) .elm-view-table td.elm-view-table-column--gap {
   width: 1.85rem;
   min-width: 1.85rem;
   max-width: 1.85rem;
@@ -1319,12 +1319,12 @@ game-data-element .elm-view-table td.elm-view-table-column--gap {
   vertical-align: middle;
 }
 
-game-data-element .elm-view-table thead th.elm-view-table-column--gap {
+:is(game-data-element, [game-data-element]) .elm-view-table thead th.elm-view-table-column--gap {
   color: var(--ui-accent);
 }
 
-game-data-element .elm-view-table th.elm-view-table-column--gap-active,
-game-data-element .elm-view-table td.elm-view-table-column--gap-active {
+:is(game-data-element, [game-data-element]) .elm-view-table th.elm-view-table-column--gap-active,
+:is(game-data-element, [game-data-element]) .elm-view-table td.elm-view-table-column--gap-active {
   border-color: color-mix(in srgb, var(--ui-accent) 76%, var(--gde-row-border));
   background: color-mix(in srgb, var(--ui-accent) 72%, var(--ui-elevated)) !important;
   box-shadow:
@@ -1333,7 +1333,7 @@ game-data-element .elm-view-table td.elm-view-table-column--gap-active {
     inset -2px 0 0 var(--ui-accent);
 }
 
-game-data-element .elm-view-table-gap-toggle {
+:is(game-data-element, [game-data-element]) .elm-view-table-gap-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1346,14 +1346,14 @@ game-data-element .elm-view-table-gap-toggle {
   cursor: pointer;
 }
 
-game-data-element .elm-view-table-gap-toggle input {
+:is(game-data-element, [game-data-element]) .elm-view-table-gap-toggle input {
   width: 13px;
   height: 13px;
   margin: 0;
   accent-color: var(--ui-accent);
 }
 
-game-data-element .elm-view-table-check-cell {
+:is(game-data-element, [game-data-element]) .elm-view-table-check-cell {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1362,7 +1362,7 @@ game-data-element .elm-view-table-check-cell {
   color: var(--ui-text);
 }
 
-game-data-element .elm-view-table-check {
+:is(game-data-element, [game-data-element]) .elm-view-table-check {
   flex: 0 0 auto;
   width: 14px;
   height: 14px;
@@ -1371,13 +1371,13 @@ game-data-element .elm-view-table-check {
   cursor: pointer;
 }
 
-game-data-element .elm-view-table-resource,
-game-data-element .elm-view-table-calc {
+:is(game-data-element, [game-data-element]) .elm-view-table-resource,
+:is(game-data-element, [game-data-element]) .elm-view-table-calc {
   font-family: Cambria, Georgia, serif;
   font-weight: 700;
 }
 
-game-data-element .elm-view-table-image {
+:is(game-data-element, [game-data-element]) .elm-view-table-image {
   display: block;
   width: 56px;
   height: 56px;
@@ -1388,17 +1388,17 @@ game-data-element .elm-view-table-image {
   object-fit: contain;
 }
 
-game-data-element .elm-view-table-muted {
+:is(game-data-element, [game-data-element]) .elm-view-table-muted {
   color: var(--ui-text-muted);
 }
 
-game-data-element .elm-view-table-row-heading {
+:is(game-data-element, [game-data-element]) .elm-view-table-row-heading {
   width: 8rem;
   min-width: 8rem;
   max-width: 12rem;
 }
 
-game-data-element .elm-view-table-row-heading--group {
+:is(game-data-element, [game-data-element]) .elm-view-table-row-heading--group {
   width: 1.75rem !important;
   min-width: 1.75rem !important;
   max-width: 2.4rem !important;
@@ -1409,7 +1409,7 @@ game-data-element .elm-view-table-row-heading--group {
   text-orientation: upright;
 }
 
-game-data-element .elm-view-table-select {
+:is(game-data-element, [game-data-element]) .elm-view-table-select {
   width: 100%;
   min-width: 3.8rem;
   border: none;
@@ -1420,26 +1420,26 @@ game-data-element .elm-view-table-select {
   outline: none;
 }
 
-game-data-element .elm-view-table-select:hover,
-game-data-element .elm-view-table-select:focus {
+:is(game-data-element, [game-data-element]) .elm-view-table-select:hover,
+:is(game-data-element, [game-data-element]) .elm-view-table-select:focus {
   background: var(--ui-input-bg);
 }
 
 /* ── judge mode (旧 game-data-element-judge.css) ── */
-game-data-element .elm-view-table-check-cell--judge {
+:is(game-data-element, [game-data-element]) .elm-view-table-check-cell--judge {
   cursor: pointer;
 }
 
-game-data-element .elm-view-table-check-cell--judge .elm-view-table-check {
+:is(game-data-element, [game-data-element]) .elm-view-table-check-cell--judge .elm-view-table-check {
   pointer-events: none;
 }
 
-game-data-element .elm-view-table-check-cell--judge:hover {
+:is(game-data-element, [game-data-element]) .elm-view-table-check-cell--judge:hover {
   background: var(--ui-accent-mute, rgba(100, 160, 255, 0.15));
   border-radius: 3px;
 }
 
-game-data-element .elm-judge-mode-toolbar {
+:is(game-data-element, [game-data-element]) .elm-judge-mode-toolbar {
   display: flex;
   align-items: center;
   padding: 2px 4px;
@@ -1447,7 +1447,7 @@ game-data-element .elm-judge-mode-toolbar {
   border-bottom: 1px solid var(--ui-border, #444);
 }
 
-game-data-element .elm-judge-mode-toggle {
+:is(game-data-element, [game-data-element]) .elm-judge-mode-toggle {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1461,15 +1461,15 @@ game-data-element .elm-judge-mode-toggle {
   user-select: none;
 }
 
-game-data-element .elm-judge-mode-toggle:hover {
+:is(game-data-element, [game-data-element]) .elm-judge-mode-toggle:hover {
   background: var(--ui-bg-hover, rgba(255, 255, 255, 0.08));
 }
 
-game-data-element .elm-judge-mode-toggle .material-icons {
+:is(game-data-element, [game-data-element]) .elm-judge-mode-toggle .material-icons {
   font-size: 1rem;
 }
 
-game-data-element .elm-judge-mode-toggle--active {
+:is(game-data-element, [game-data-element]) .elm-judge-mode-toggle--active {
   border-color: var(--ui-accent, #6495ed);
   background: var(--ui-accent-mute, rgba(100, 149, 237, 0.2));
   color: var(--ui-accent-text, #9bb8f8);
@@ -1587,7 +1587,7 @@ game-data-element .elm-judge-mode-toggle--active {
 }
 
 /* ── options (旧 game-data-element-options.css) ── */
-game-data-element .elm-field-options {
+:is(game-data-element, [game-data-element]) .elm-field-options {
   display: flex;
   grid-column: 1 / -1;
   flex-wrap: wrap;
@@ -1598,7 +1598,7 @@ game-data-element .elm-field-options {
   background: color-mix(in srgb, var(--ui-input-bg) 72%, transparent);
 }
 
-game-data-element .elm-field-option {
+:is(game-data-element, [game-data-element]) .elm-field-option {
   display: grid;
   grid-template-columns: auto minmax(3.8rem, 1fr);
   align-items: center;
@@ -1608,23 +1608,23 @@ game-data-element .elm-field-option {
   font-size: 0.86em;
 }
 
-game-data-element .elm-field-option--wide {
+:is(game-data-element, [game-data-element]) .elm-field-option--wide {
   grid-template-columns: auto minmax(8rem, 1fr);
   flex: 1 1 14rem;
 }
 
-game-data-element .elm-field-option--check {
+:is(game-data-element, [game-data-element]) .elm-field-option--check {
   grid-template-columns: auto auto;
   justify-content: start;
 }
 
-game-data-element .elm-field-option span {
+:is(game-data-element, [game-data-element]) .elm-field-option span {
   color: var(--ui-text-dim);
   white-space: nowrap;
 }
 
-game-data-element .elm-field-option input,
-game-data-element .elm-option-textarea {
+:is(game-data-element, [game-data-element]) .elm-field-option input,
+:is(game-data-element, [game-data-element]) .elm-option-textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--gde-row-border);
@@ -1632,25 +1632,25 @@ game-data-element .elm-option-textarea {
   background: var(--ui-input-bg);
 }
 
-game-data-element .elm-field-option input[type='checkbox'] {
+:is(game-data-element, [game-data-element]) .elm-field-option input[type='checkbox'] {
   width: 14px;
   height: 14px;
   margin: 0;
   accent-color: var(--ui-accent);
 }
 
-game-data-element .elm-option-textarea {
+:is(game-data-element, [game-data-element]) .elm-option-textarea {
   min-height: 3.2em;
   resize: vertical;
 }
 
 /* ── icon picker (旧 game-data-element-icons.css) ── */
-game-data-element .icon-picker-wrap {
+:is(game-data-element, [game-data-element]) .icon-picker-wrap {
   position: relative;
   flex-shrink: 0;
 }
 
-game-data-element .icon-picker-btn {
+:is(game-data-element, [game-data-element]) .icon-picker-btn {
   width: 26px;
   height: 26px;
   padding: 0;
@@ -1664,25 +1664,25 @@ game-data-element .icon-picker-btn {
   color: var(--ui-accent);
 }
 
-game-data-element .icon-picker-btn:hover {
+:is(game-data-element, [game-data-element]) .icon-picker-btn:hover {
   background: var(--ui-hover);
 }
 
-game-data-element .icon-picker-btn .material-icons {
+:is(game-data-element, [game-data-element]) .icon-picker-btn .material-icons {
   font-size: 15px;
 }
 
-game-data-element .icon-placeholder {
+:is(game-data-element, [game-data-element]) .icon-placeholder {
   opacity: 0.35;
 }
 
-game-data-element .icon-picker-overlay {
+:is(game-data-element, [game-data-element]) .icon-picker-overlay {
   position: fixed;
   inset: 0;
   z-index: 100;
 }
 
-game-data-element .icon-picker-popup {
+:is(game-data-element, [game-data-element]) .icon-picker-popup {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -1697,7 +1697,7 @@ game-data-element .icon-picker-popup {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-game-data-element .icon-picker-header {
+:is(game-data-element, [game-data-element]) .icon-picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1708,7 +1708,7 @@ game-data-element .icon-picker-header {
   border-bottom: 1px solid var(--ui-panel-border);
 }
 
-game-data-element .icon-clear-btn {
+:is(game-data-element, [game-data-element]) .icon-clear-btn {
   font-size: 0.72em;
   padding: 1px 6px;
   background: transparent;
@@ -1718,12 +1718,12 @@ game-data-element .icon-clear-btn {
   cursor: pointer;
 }
 
-game-data-element .icon-clear-btn:hover {
+:is(game-data-element, [game-data-element]) .icon-clear-btn:hover {
   background: var(--ui-hover);
   color: var(--ui-text);
 }
 
-game-data-element .icon-picker-group-label {
+:is(game-data-element, [game-data-element]) .icon-picker-group-label {
   font-size: 0.65em;
   color: var(--ui-text-muted);
   text-transform: uppercase;
@@ -1731,14 +1731,14 @@ game-data-element .icon-picker-group-label {
   margin: 5px 0 2px 1px;
 }
 
-game-data-element .icon-picker-grid {
+:is(game-data-element, [game-data-element]) .icon-picker-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
   margin-bottom: 2px;
 }
 
-game-data-element .icon-picker-item {
+:is(game-data-element, [game-data-element]) .icon-picker-item {
   width: 28px;
   height: 28px;
   padding: 0;
@@ -1752,18 +1752,18 @@ game-data-element .icon-picker-item {
   color: var(--ui-text);
 }
 
-game-data-element .icon-picker-item:hover {
+:is(game-data-element, [game-data-element]) .icon-picker-item:hover {
   background: var(--ui-hover);
   border-color: var(--ui-panel-border);
 }
 
-game-data-element .icon-picker-item--active {
+:is(game-data-element, [game-data-element]) .icon-picker-item--active {
   background: var(--ui-accent-bg);
   border-color: var(--ui-accent) !important;
   color: var(--ui-accent);
 }
 
-game-data-element .icon-picker-item .material-icons {
+:is(game-data-element, [game-data-element]) .icon-picker-item .material-icons {
   font-size: 16px;
 }
 
