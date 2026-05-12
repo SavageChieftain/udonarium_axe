@@ -148,10 +148,11 @@ export class AudioSharingSystem {
     const task = BufferSharingTask.createReceiveTask<AudioFileContext>(identifier);
     this.receiveTaskMap.set(identifier, task);
 
-    task.onprogress = (task, loded, total) => {
-      const context = audio.toContext();
-      context.name = `${((loded * 100) / total).toFixed(1)}%`;
-      audio.apply(context);
+    task.onprogress = (_task, _loded, _total) => {
+      // 進捗を audio.context.name に上書きするとカタログ同期で受け取った曲名が
+      // "0.0%" 等で潰れて全表示箇所に漏れるため、name は書き換えない。
+      // 進捗表示が必要になった場合は audio.apply とは別経路 (専用の signal/Map 等) で扱う。
+      audio.apply(audio.toContext());
     };
     task.onfinish = (task, data) => {
       this.stopReceiveTask(task.identifier);
