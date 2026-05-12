@@ -1,40 +1,58 @@
-<div class="vm-root">
+<div class="w-full">
   <!-- sticky header -->
-  <div class="vm-header">
-    <div class="vm-mode-row">
-      <label class="vm-mode-btn">
+  <div
+    class="bg-ui-panel border-ui-border-panel sticky top-0 z-1 flex flex-col gap-1.5 border-b border-solid px-2.5 py-2"
+  >
+    <div class="flex flex-wrap items-center gap-1.5">
+      <label
+        class="bg-ui-input border-ui-border-panel hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid px-2.5 py-0.75 text-[13px] transition-(--ui-transition) select-none [&_input[type=radio]]:cursor-pointer [&_input[type=radio]]:[accent-color:var(--ui-accent)]"
+      >
         <input type="radio" name="vm_type" [checked]="isRollCall" (change)="onChangeType('rollcall')" />
         <span>点呼</span>
       </label>
-      <label class="vm-mode-btn">
+      <label
+        class="bg-ui-input border-ui-border-panel hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid px-2.5 py-0.75 text-[13px] transition-(--ui-transition) select-none [&_input[type=radio]]:cursor-pointer [&_input[type=radio]]:[accent-color:var(--ui-accent)]"
+      >
         <input type="radio" name="vm_type" [checked]="!isRollCall" (change)="onChangeType('vote')" />
         <span>投票</span>
       </label>
-      <label class="vm-chk-label">
+      <label
+        class="text-ui-muted ml-auto inline-flex cursor-pointer items-center gap-1 text-[12px] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+      >
         <input type="checkbox" [(ngModel)]="includSelf" name="includSelf" />
         <span>自分を含める</span>
       </label>
     </div>
     @if (!isRollCall) {
-      <div class="vm-fields-row">
-        <label class="vm-field">
-          <span class="vm-field-label">タイトル</span>
-          <input [(ngModel)]="voteTitle" placeholder="投票" name="voteTitle" class="vm-input" />
-        </label>
-        <label class="vm-field">
-          <span class="vm-field-label">選択肢</span>
+      <div class="flex flex-wrap gap-2">
+        <label class="flex items-center gap-1">
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">タイトル</span>
           <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-40 border border-solid px-1.5 py-0.75 text-[13px]"
+            [(ngModel)]="voteTitle"
+            placeholder="投票"
+            name="voteTitle"
+          />
+        </label>
+        <label class="flex items-center gap-1">
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">選択肢</span>
+          <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-72 border border-solid px-1.5 py-0.75 text-[13px]"
             [(ngModel)]="voteContentsText"
             placeholder="スペース区切 未入力で賛成/反対"
             name="voteContents"
-            class="vm-input vm-input-wide"
           />
         </label>
       </div>
     }
-    <div class="vm-actions-row">
-      <span class="vm-count-label">対象 {{ selectedNum() }}人</span>
-      <button type="button" class="vm-send-btn" (click)="send()" [disabled]="selectedNum() === 0">
+    <div class="flex items-center gap-2">
+      <span class="text-ui-muted text-[12px]">対象 {{ selectedNum() }}人</span>
+      <button
+        class="bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border-none px-3.5 py-1 text-[13px] text-white transition-(--ui-transition) hover:not-disabled:opacity-85 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+        type="button"
+        (click)="send()"
+        [disabled]="selectedNum() === 0"
+      >
         <i class="material-icons">send</i>送信
       </button>
     </div>
@@ -42,39 +60,52 @@
 
   <!-- peer list -->
   @if (!peerList.length) {
-    <div class="vm-empty">自分しか部屋にいません</div>
+    <div class="text-ui-muted p-4 text-center text-[13px]">自分しか部屋にいません</div>
   }
-  <div class="vm-peer-list">
+  <div class="flex flex-col gap-1 px-2 py-1.5">
     @for (peer of peerList; track peer) {
       @let peerImage = findPeerImage(peer.peerId);
       @let controlName = findPeerLastControlName(peer.peerId);
       @let controlImage = findPeerLastControlImage(peer.peerId);
       <div
-        class="vm-peer-card"
-        [class.is-checked]="checkedPeers.has(peer.peerId)"
-        [class.is-disconnected]="isPeerIsDisConnect(peer.peerId)"
+        class="bg-ui-input border-ui-border-panel hover:bg-ui-hover rounded-ui-sm flex cursor-pointer items-center gap-2 border border-l-[3px] border-solid border-l-transparent px-2 py-1.5 transition-(--ui-transition)"
+        [class.border-l-ui-accent!]="checkedPeers.has(peer.peerId)"
+        [class.bg-ui-accent-bg!]="checkedPeers.has(peer.peerId)"
+        [class.opacity-60]="isPeerIsDisConnect(peer.peerId)"
         (click)="voteBlockClick(peer.peerId)"
       >
-        <div class="vm-peer-check">
+        <div
+          class="[&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+        >
           <input type="checkbox" [checked]="checkedPeers.has(peer.peerId)" name="vote_chk" readonly />
         </div>
-        <div class="vm-peer-avatar">
+        <div class="bg-ui-border-panel rounded-ui-sm size-12 shrink-0 overflow-hidden">
           @if (peerImage) {
-            <div class="vm-avatar-img" [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"></div>
+            <div
+              class="size-full bg-cover bg-top bg-no-repeat"
+              [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"
+            ></div>
           } @else {
-            <div class="vm-avatar-placeholder"><i class="material-icons">person</i></div>
+            <div class="text-ui-muted flex size-full items-center justify-center [&_.material-icons]:text-[28px]!">
+              <i class="material-icons">person</i>
+            </div>
           }
         </div>
-        <div class="vm-peer-info">
-          <div class="vm-peer-name">{{ findPeerName(peer.peerId) }}</div>
-          <div class="vm-peer-char">{{ controlName || '操作キャラなし' }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-ui-text truncate text-[13px] font-semibold">{{ findPeerName(peer.peerId) }}</div>
+          <div class="text-ui-muted mt-0.5 truncate text-[11px]">{{ controlName || '操作キャラなし' }}</div>
           @if (isPeerIsDisConnect(peer.peerId)) {
-            <div class="vm-disconnected-warn"><i class="material-icons">wifi_off</i>接続切断中</div>
+            <div class="text-ui-danger mt-0.5 flex items-center gap-0.5 text-[10px] [&_.material-icons]:text-[12px]!">
+              <i class="material-icons">wifi_off</i>接続切断中
+            </div>
           }
         </div>
         @if (controlImage) {
-          <div class="vm-peer-ctrl-avatar">
-            <div class="vm-avatar-img" [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"></div>
+          <div class="bg-ui-border-panel rounded-ui-sm size-10 shrink-0 overflow-hidden opacity-85">
+            <div
+              class="size-full bg-cover bg-top bg-no-repeat"
+              [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"
+            ></div>
           </div>
         }
       </div>
