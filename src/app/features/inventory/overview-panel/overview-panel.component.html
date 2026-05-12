@@ -439,7 +439,7 @@
       @case ('check') {
         <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
         <div class="box-border truncate text-right text-[1.2em]/6">
-          @if (dataElm.value !== 0) {
+          @if (dataElm.isChecked) {
             <input type="checkbox" checked (click)="dataElm.value = 0" />
           } @else {
             <input type="checkbox" (click)="dataElm.value = 1" />

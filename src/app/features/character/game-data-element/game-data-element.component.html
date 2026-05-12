@@ -142,10 +142,9 @@
             </div>
           }
           @case ('check') {
-            @if (gameDataElement().value !== 0) {
+            @if (gameDataElement().isChecked) {
               <input type="checkbox" checked (click)="gameDataElement().value = 0" />
-            }
-            @if (gameDataElement().value === 0) {
+            } @else {
               <input type="checkbox" (click)="gameDataElement().value = 1" />
             }
           }

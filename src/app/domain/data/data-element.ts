@@ -146,6 +146,12 @@ export class DataElement extends ObjectNode {
     return this.type != null && this.type === DataElementType.NOTE;
   }
 
+  /** check 系フィールドのチェック状態。XML 直列化で number 0 → string "0" に変わるため、
+   *  どちらでも「未チェック」とみなす（旧 `value !== 0` 比較の互換動作）。 */
+  get isChecked(): boolean {
+    return this.value !== 0 && this.value !== '0';
+  }
+
   get fieldRole(): DataElementRoleValue {
     const role = this.getAttribute(DataElementAttribute.ROLE);
     if (isDataElementRole(role)) return role;

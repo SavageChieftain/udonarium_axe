@@ -429,7 +429,7 @@
           @case ('check') {
             <div class="flex min-w-0 flex-col items-center gap-px overflow-visible">
               <span class="text-ui-muted max-w-[6em] truncate text-center text-[10px]">{{ dataElm.name }}</span>
-              @if (dataElm.value !== 0) {
+              @if (dataElm.isChecked) {
                 <input type="checkbox" checked (click)="dataElm.value = 0" />
               } @else {
                 <input type="checkbox" (click)="dataElm.value = 1" />
