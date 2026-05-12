@@ -441,10 +441,10 @@ export class GameCharacterComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: gameObject.name + ' のチャットパレット',
-      left: coordinate.x - 250,
-      top: coordinate.y - 175,
-      width: 615,
-      height: 350,
+      left: coordinate.x - 320,
+      top: coordinate.y - 250,
+      width: 760,
+      height: 500,
     };
     this.panelService.openLazy(
       () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
