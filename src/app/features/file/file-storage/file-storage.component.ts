@@ -41,13 +41,17 @@ export class FileStorageComponent {
 
   readonly images = computed(() => {
     this.objectChange.fileVersion();
+    // ImageTag コレクションの増減と各タグ値の変更を tracking する
+    this.objectChange.collectionOf('image-tag')();
     const imageFileList: ImageFile[] = [];
     if (this.selectTag() == '全て') return this.getAllImage();
     for (const imageFile of this.fileStorageService.images) {
       const identifier = imageFile.context.identifier;
+      const imageTag = ImageTag.get(identifier);
 
-      if (ImageTag.get(identifier)) {
-        const tag: string = ImageTag.get(identifier).tag;
+      if (imageTag) {
+        this.objectChange.versionOf(imageTag.identifier)();
+        const tag: string = imageTag.tag;
         if (tag == this.selectTag()) {
           imageFileList.push(imageFile);
         }
@@ -71,12 +75,15 @@ export class FileStorageComponent {
     return imageTag ? imageTag : ImageTag.create(this.selectedFile.identifier);
   }
 
-  get tagList(): string[] {
+  readonly tagList = computed<string[]>(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf('image-tag')();
     const tags: string[] = [];
     for (const imageFile of this.fileStorageService.images) {
       const identifier = imageFile.context.identifier;
       const imageTag = ImageTag.get(identifier);
       if (imageTag) {
+        this.objectChange.versionOf(imageTag.identifier)();
         if (imageTag.tag) {
           if (imageTag.tag != 'システム予約')
             //システム予約名を非表示
@@ -89,7 +96,7 @@ export class FileStorageComponent {
     tags2.unshift('全て');
     tags2.unshift('');
     return tags2;
-  }
+  });
 
   fileStorageService = this.imageStorage;
 
