@@ -219,8 +219,54 @@ export class AudioPlayer {
   }
 
   seekTo(time: number) {
-    if (this._audioElm) this._audioElm.currentTime = time;
+    if (!this._audioElm) return;
+    // メタデータ未読込のうちに currentTime を設定すると一部ブラウザで無視されるため、
+    // readyState を見て必要なら loadedmetadata まで遅延する。
+    if (this._audioElm.readyState >= 1 /* HAVE_METADATA */) {
+      this._audioElm.currentTime = time;
+    } else {
+      const elm = this._audioElm;
+      const handler = () => {
+        elm.removeEventListener('loadedmetadata', handler);
+        elm.currentTime = time;
+      };
+      elm.addEventListener('loadedmetadata', handler);
+    }
   }
+
+  /**
+   * `_audioElm.volume` を target まで durationMs かけて線形ランプする。
+   * 同じ audioElm 上で fade をキャンセル/重ね掛けされても安全。
+   */
+  fadeVolumeTo(target: number, durationMs: number): Promise<void> {
+    if (!this._audioElm) return Promise.resolve();
+    const audioElm = this._audioElm;
+    const startVol = audioElm.volume;
+    if (Math.abs(startVol - target) < 1e-3 || durationMs <= 0) {
+      audioElm.volume = target;
+      this._volume = target;
+      return Promise.resolve();
+    }
+    this._fadeToken += 1;
+    const myToken = this._fadeToken;
+    return new Promise((resolve) => {
+      const startTime = performance.now();
+      const tick = () => {
+        // 別の fade に上書きされた / 別の audioElm に置き換わった場合は中止
+        if (this._audioElm !== audioElm || this._fadeToken !== myToken) return resolve();
+        const elapsed = performance.now() - startTime;
+        const t = Math.min(elapsed / durationMs, 1);
+        const v = startVol + (target - startVol) * t;
+        audioElm.volume = v;
+        this._volume = v;
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve();
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  private _fadeToken = 0;
 
   stop() {
     if (!this._audioElm) return;

@@ -23,8 +23,13 @@ export class Jukebox extends GameObject {
   }
 
   private audioPlayer: AudioPlayer = new AudioPlayer();
+  private fadingPlayer: AudioPlayer | null = null;
   private audioUpdateCleanup: (() => void) | null = null;
   private isInitialSync = true;
+  /** sync 経由の seek でクロスフェードする秒数 (UI シークは即時) */
+  private static readonly CROSSFADE_MS = 600;
+  /** ms 単位の許容ずれ。これ未満は再生バラつきとして無視する */
+  private static readonly SYNC_SEEK_THRESHOLD_MS = 250;
 
   get config(): Config {
     return ObjectStore.instance.get<Config>('Config')!;
@@ -122,6 +127,51 @@ export class Jukebox extends GameObject {
   private _stop() {
     this.unregisterEvent();
     this.audioPlayer.stop();
+    if (this.fadingPlayer) {
+      this.fadingPlayer.stop();
+      this.fadingPlayer = null;
+    }
+  }
+
+  /**
+   * sync で受け取った位置に滑らかに移動する。
+   * 旧プレーヤーをフェードアウト、新プレーヤーを新位置から開始してフェードインする。
+   * 音声ファイル未到着時など crossfade できないケースは即時 seek にフォールバックする。
+   */
+  private crossfadeSeek(time: number, fadeMs: number = Jukebox.CROSSFADE_MS) {
+    if (!this.audio || !this.audio.isReady) {
+      this.audioPlayer.seekTo(time);
+      return;
+    }
+    // 既存のクロスフェードを片付ける（旧の旧は捨てる）
+    if (this.fadingPlayer) {
+      this.fadingPlayer.stop();
+      this.fadingPlayer = null;
+    }
+    // 現プレーヤーを fading 役に退避し、onEnded のチェーン暴発を防ぐ
+    const fading = this.audioPlayer;
+    fading.onEnded = null;
+    this.fadingPlayer = fading;
+
+    // 新プレーヤーを新位置から、無音で起動
+    const isSE = AudioTag.get(this.audioIdentifier)?.tag === 'SE';
+    const newPlayer = new AudioPlayer();
+    newPlayer.volumeType = isSE ? VolumeType.SE : VolumeType.MASTER;
+    newPlayer.loop = !isSE && this.repeatMode === 'one';
+    newPlayer.onEnded = isSE ? null : () => this.onTrackNaturallyEnded();
+    newPlayer.volume = 0;
+    newPlayer.play(this.audio);
+    newPlayer.seekTo(time);
+    this.audioPlayer = newPlayer;
+
+    // 旧をフェードアウト → 完了したら停止＆破棄。新は通常音量へフェードイン
+    newPlayer.fadeVolumeTo(1, fadeMs);
+    fading.fadeVolumeTo(0, fadeMs).then(() => {
+      if (this.fadingPlayer === fading) {
+        fading.stop();
+        this.fadingPlayer = null;
+      }
+    });
   }
 
   private playAfterFileUpdate() {
@@ -194,7 +244,10 @@ export class Jukebox extends GameObject {
     } else if (isPlaying !== this.isPlaying && !this.isPlaying) {
       this._stop();
     } else if (startTime !== this.startTime && this.isPlaying) {
-      this.audioPlayer.seekTo(this.startTime);
+      // sync 経由の seek: 微小ずれは無視、有意なずれはクロスフェードで滑らかに合わせる
+      const driftMs = Math.abs((this.audioPlayer.currentTime - this.startTime) * 1000);
+      if (driftMs < Jukebox.SYNC_SEEK_THRESHOLD_MS) return;
+      this.crossfadeSeek(this.startTime);
     }
   }
 }
