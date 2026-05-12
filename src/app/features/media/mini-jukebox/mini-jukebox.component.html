@@ -82,10 +82,26 @@
   @if (!isMinimized()) {
     <!-- プログレスバー + 時刻 -->
     <div class="flex h-5 items-center gap-2 px-3 pt-0.5">
-      <!-- seek-bar クラスは scoped CSS のベンダー擬似要素ターゲット -->
+      <!-- ロックボタン: クリックで isSeekLocked をトグル。ロック中はシークバーは
+           再生位置に合わせて動くが、ユーザーのドラッグ操作は受け付けない。 -->
+      <button
+        type="button"
+        class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-4.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[12px]!"
+        [class.text-ui-accent!]="isSeekLocked()"
+        (mousedown)="$event.stopPropagation()"
+        (click)="toggleSeekLock()"
+        [title]="isSeekLocked() ? 'シークバーのロック解除' : 'シークバーをロック'"
+        [attr.aria-label]="isSeekLocked() ? 'シークバーのロック解除' : 'シークバーをロック'"
+      >
+        <i class="material-icons">{{ isSeekLocked() ? 'lock' : 'lock_open' }}</i>
+      </button>
+      <!-- seek-bar クラスは scoped CSS のベンダー擬似要素ターゲット。
+           [&.locked]: でロック中の見た目を切り替え、pointer-events で操作を遮断する。 -->
       <input
         type="range"
         class="seek-bar m-0 h-5 flex-1 cursor-pointer appearance-none bg-transparent p-0 [-webkit-appearance:none] disabled:pointer-events-none disabled:cursor-default disabled:opacity-40"
+        [class.pointer-events-none]="isSeekLocked()"
+        [class.cursor-default]="isSeekLocked()"
         [value]="displayProgress() * 100"
         [style.--seek-progress]="displayProgress() * 100 + '%'"
         min="0"
