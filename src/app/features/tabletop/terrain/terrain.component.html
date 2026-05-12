@@ -11,6 +11,7 @@
   <div
     class="pointer-events-auto size-full transform-3d"
     [class.cursor-grab]="!isLocked()"
+    [attr.data-table-passthrough]="isLocked() ? '' : null"
     appRotable
     [rotable.option]="rotableOption()"
     (rotable.ondragstart)="onMove()"
