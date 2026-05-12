@@ -1,3 +1,94 @@
+:host {
+  --gde-depth: 0;
+  --gde-radius-control: 2px;
+  --gde-radius-line: 0;
+  --gde-row-min: 30px;
+  --gde-accent-border: color-mix(in srgb, var(--ui-accent) 82%, var(--ui-panel-border));
+  --gde-action-bg: color-mix(in srgb, var(--ui-elevated) 86%, var(--ui-surface));
+  --gde-label-bg: color-mix(in srgb, var(--ui-elevated) 86%, var(--ui-surface));
+  --gde-nested-line: color-mix(in srgb, var(--ui-accent) 70%, var(--ui-panel-border));
+  --gde-row-border: color-mix(in srgb, var(--ui-panel-border) 82%, var(--ui-text-dim));
+  --gde-section-bg: color-mix(in srgb, var(--ui-elevated) 72%, var(--ui-surface));
+  --gde-section-bg-editing: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-elevated));
+  --gde-section-shadow: inset 0 1px 0 color-mix(in srgb, var(--ui-text) 9%, transparent);
+  --gde-structure-bg: color-mix(in srgb, var(--ui-accent-bg) 34%, var(--ui-elevated));
+  --gde-structure-width: 30px;
+  --gde-actions-width: 186px;
+  --gde-value-bg: color-mix(in srgb, var(--ui-input-bg) 88%, var(--ui-surface));
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(4.25rem, 34%) minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  color: var(--ui-text);
+}
+
+:host(.elm-editing) {
+  grid-template-columns: var(--gde-structure-width) minmax(6.5rem, 30%) minmax(0, 1fr);
+}
+
+:host(.elm-editing) .table-cell {
+  min-height: 32px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+:host + :host {
+  margin-top: 2px;
+}
+
+:host(:not(.elm-editing)) .elm-name-cell {
+  border-left: none;
+  border-bottom: none;
+  background: transparent;
+}
+
+:host(.elm-editing) .elm-name-cell {
+  border-left: 0;
+}
+
+:host(:not(.elm-editing)) .elm-value-cell {
+  border-bottom: none;
+  background: transparent;
+}
+
+:host(.elm-editing) .elm-value-content {
+  grid-column: 1;
+  grid-row: 1;
+  max-height: 48px;
+  overflow: hidden;
+}
+
+:host(.elm-editing) .elm-value-content > input:not([type='range']):not([type='checkbox']),
+:host(.elm-editing) .elm-value-content > select,
+:host(.elm-editing) .elm-value-content > textarea {
+  height: 24px !important;
+  min-height: 24px;
+  max-height: 24px;
+  line-height: 18px;
+}
+
+:host(.elm-editing) .elm-value-content > textarea {
+  resize: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+:host(.elm-editing) .elm-value-content > input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.elm-name-cell--hidden + .elm-value-cell {
+  grid-column: 1 / -1;
+  border-left: 2px solid var(--gde-accent-border);
+  border-radius: var(--gde-radius-line);
+}
+
 .portrait-button {
   width: auto;
   margin: 5px 0;
