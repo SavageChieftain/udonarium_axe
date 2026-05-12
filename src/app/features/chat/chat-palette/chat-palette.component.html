@@ -1,9 +1,9 @@
 <div class="flex h-full flex-col" #root>
   <div class="grow-0">
     <form name="chat-palette">
-      <div class="px-1.25 pb-1.25 select-none">
+      <div class="flex flex-wrap items-center gap-0.75 px-1.5 pt-1.5 pb-0.75 select-none">
         @for (chatTab of chatTabsVersion(); track chatTab) {
-          <label class="relative inline-block">
+          <label class="relative inline-block flex-none overflow-visible">
             <input
               class="peer hidden"
               name="chat-tab"
@@ -14,11 +14,14 @@
               (ngModelChange)="chatTabidentifier.set($event)"
             />
             <div
-              class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-elevated peer-checked:text-ui-text m-0.5 inline-block cursor-pointer rounded-full border border-solid bg-transparent px-2 py-0.5 align-middle text-[8px] outline-0 transition-[background,color,border-color]"
+              class="border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 align-middle text-[11px] whitespace-nowrap outline-0 transition-colors peer-checked:font-medium peer-checked:shadow-[0_0_0_1px_var(--ui-accent-glow)]"
             >
               {{ chatTab.name }}
               @if (chatTab.hasUnread) {
-                <badge class="absolute -top-1 right-0" [count]="chatTab.unreadLength"></badge>
+                <badge
+                  class="pointer-events-none absolute -top-1.5 -right-1.5 z-2"
+                  [count]="chatTab.unreadLength"
+                ></badge>
               }
             </div>
           </label>
