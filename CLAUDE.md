@@ -3,71 +3,46 @@
 Udonarium Axe はブラウザベースの TRPG オンラインセッション支援ツール。
 WebRTC (SkyWay SDK) による P2P 通信でサーバレスにオブジェクトを同期する。
 
-`.github/copilot-instructions.md` も同趣旨だが、本ファイルが現状実装に対する正です。
+本ファイルは **日々の開発で守るべき最小限の規範** のみを記す。詳細は以下を参照:
 
-## 技術スタック
+- 設計思想・各層の役割・実装パターン → [docs/architecture.md](docs/architecture.md)
+- コーディング規範・コードスタイル → [docs/coding-guidelines.md](docs/coding-guidelines.md)
+- コミット規約・lefthook 詳細 → [docs/contribution.md](docs/contribution.md)
 
-- **Angular 21.2** — Zoneless (`provideZonelessChangeDetection()`)、OnPush
-- **Signals** — `signal` / `computed` / `effect` / `toSignal` / `input`、および
-  プロジェクト独自の `versionOf(identifier)` / `collectionOf(aliasName)`
-  ([src/app/shared/sync/object-change.service.ts](src/app/shared/sync/object-change.service.ts))
-- **スタイル** — Tailwind v4 (`@tailwindcss/postcss`) を `src/styles.css` で
-  `@import 'tailwindcss';` してグローバル適用。コンポーネント単位の
-  CSS ファイルも併用（SCSS は使わない）
-- **テスト** — Vitest + happy-dom。**2 系統の実行経路があり、同じ Vitest を呼ぶが設定は別物**:
-  - `ng test` … Angular CLI の `@angular/build:unit-test` ビルダー (`runner: vitest`) +
-    `tsconfig.spec.json` 経由
-  - `npx vitest run` … `vitest.config.ts` + `@analogjs/vite-plugin-angular` 経由
-  - 共通の setup は [src/app/testing/test-setup.ts](src/app/testing/test-setup.ts)
-- **E2E** — Playwright (`npm run e2e` / `npm run e2e:ui`)
-- **P2P / シリアライズ** — `@skyway-sdk/core` v2 + `@msgpack/msgpack` v3
-- **ダイス** — `bcdice` v4 / **UI セレクト** — `@ng-select/ng-select`
-- **コミット** — Conventional Commits + lefthook
-  （**コミットメッセージは必ず英語**、後述のフォーマット参照）
+## アーキテクチャ規範
 
-### Conventional Commits フォーマット
-
-形式: `type(scope): subject`
-
-- **type**: `feat` / `fix` / `docs` / `chore` / `style` / `refactor` / `test` / `perf` / `build` / `ci`
-- **scope**: 変更対象の領域名。よく使うもの: `chat` / `tabletop` / `character` / `card` / `dice` / `lobby` / `media` / `controller` / `vote` / `shared` / `network` / `storage` / `sync` / `css` / `release`
-- **subject**: 英語・命令形（"add" / "fix" / "update"）・冒頭小文字・末尾ピリオドなし・72 文字以内
-- **body** (任意): 何より「なぜ」を書く。箇条書きは `- ` で始める
-- 複数の論理的変更を 1 コミットに混ぜない（バージョンバンプ・機能変更・ドキュメント整備は別コミット）
-- `BREAKING CHANGE:` フッタは現状未使用だが必要時はフッタとして追加
-
-例:
+依存方向（ESLint で自動検査、`pre-commit` で必ず検出）:
 
 ```
-feat(tabletop): expand table area to 6000px and adjust zoom range
-fix(chat): prevent duplicate logout message and invisible messages from late-timestamp peers
-chore(release): bump version to 1.2.2
+composition → features → ui → application → infrastructure → domain → core
+                          ↘────────────────↗  application は domain も直接読む
 ```
 
-### lefthook フック（迂回は手段を問わず絶対禁止）
+| レイヤー                       | 一行サマリ                                          |
+| ------------------------------ | --------------------------------------------------- |
+| `@axe/core/*`                  | 純粋インフラ。Angular 非依存、Web API ラッパ        |
+| `@axe/domain/*`                | 純粋ドメインモデル。Angular / DOM 非依存            |
+| `@axe/infrastructure/*` (予約) | domain ↔ DOM/Web のアダプタ層。現状空               |
+| `@axe/application/*`           | Angular DI ラップ層（`@Injectable` サービス群）     |
+| `@axe/ui/*`                    | feature 非依存の汎用 UI 部品                        |
+| `@axe/features/*`              | ユーザ向け 1 機能 = 1 サブフォルダ                  |
+| `@axe/composition/*` + `src/app/*.ts` | composition root。すべての層に依存可能       |
 
-`--no-verify` / `LEFTHOOK=0` / `core.hooksPath` の変更 / lefthook 設定の一時無効化、
-いずれも禁止。フックが落ちたら原因を直してから再コミットする。
+各層の詳細・「入れる / 入れない」基準・composition root の使い方は
+[docs/architecture.md](docs/architecture.md) を参照。
 
-- `commit-msg` … `commitlint`
-- `pre-commit` … `ng lint` + `ng test`（並列）
-- `pre-push` … `ng build`
+## 規範ハイライト
 
-## コードスタイル
+実装中に最低限意識すべき強制事項（詳細は [docs/coding-guidelines.md](docs/coding-guidelines.md)）:
 
-- **TypeScript**: `strict: true`、ただし `strictPropertyInitialization: false`
-  （`tsconfig.json`）。`target: ES2022` / `module: es2020` /
-  `experimentalDecorators: true` / `useDefineForClassFields: false`
-- **インデント**: スペース 2、シングルクォート、`printWidth: 120`、`trailingComma: 'es5'`
-  ([.prettierrc](.prettierrc) / [.editorconfig](.editorconfig))
-- **import 順序**: `simple-import-sort` で自動整列（`npm run lint -- --fix`）
-- **未使用 import / vars**: `unused-imports` プラグイン
-  （`_` 始まりは無視）
-- **相対パス import 禁止**: ESLint の `no-restricted-imports` で `^\.` を拒否。
-  必ず後述のパスエイリアス (`@axe/*` / `@env/*`) を使う
-  ([eslint.config.ts](eslint.config.ts))
-- **整形**: Prettier（`npm run format` / `npm run format:check`）
-- **コンポーネント prefix**: `app`
+- **コンポーネント**: `OnPush` 必須、`templateUrl` 外部分離、`styleUrls` / `styles` 禁止
+  （Tailwind utility class を inline）
+- **Signals**: `versionOf()` / `collectionOf()` で配線。`markForCheck()` 禁止
+- **イベント購読**: `ObjectChangeService.onObjectChangedFor()` / `onObjectChangedForAlias()` を使う
+- **feature 副作用**: 各 feature 配下の `*-event-handler.service.ts` を `providedIn: 'root'` で書く
+- **context-menu**: 各 feature 配下に `*-context-menu.ts` を純関数で置き、spec で固定
+- **ドメインモデルから DI サービスを呼ばない** — サービス側からモデルを操作する向きを保つ
+- **import**: 相対パス禁止（`@axe/*` / `@env/*`）、層境界は ESLint で error 化
 
 ## パスエイリアス
 
@@ -75,6 +50,17 @@ chore(release): bump version to 1.2.2
 
 - `@axe/*` → `src/app/*`
 - `@env/*` → `src/environments/*`
+
+## 技術スタック
+
+- **Angular 21.2** — Zoneless (`provideZonelessChangeDetection()`)、OnPush
+- **スタイル** — Tailwind v4。`src/styles.css` で `@import 'tailwindcss';` グローバル適用
+- **テスト** — Vitest + happy-dom。`ng test`（`@angular/build:unit-test`）と
+  `npx vitest run`（`vitest.config.ts`）の 2 経路があり共に通す必要あり。
+  共通 setup は [src/app/testing/test-setup.ts](src/app/testing/test-setup.ts)
+- **E2E** — Playwright (`npm run e2e` / `npm run e2e:ui`)
+- **P2P / シリアライズ** — `@skyway-sdk/core` v2 + `@msgpack/msgpack` v3
+- **ダイス** — `bcdice` v4 / **UI セレクト** — `@ng-select/ng-select`
 
 ## 開発コマンド
 
@@ -90,57 +76,19 @@ chore(release): bump version to 1.2.2
 | `npm run format`       | Prettier 整形                                 |
 | `npm run format:check` | Prettier チェックのみ                         |
 
-## アーキテクチャ（4 層構造）
+## コミット・フック規約（要点）
 
-依存方向: `features` → (`shared` →) `domain` → `core`。逆流させない。
+詳細は [docs/contribution.md](docs/contribution.md)。要点のみ:
 
-| レイヤー          | 役割                                                                                                                                         | 依存可能                   |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `@axe/core/*`     | インフラ層（network, storage, sync, di, logging, input, event, transform, util）                                                             | なし                       |
-| `@axe/domain/*`   | ドメインモデル（character, chat, tabletop, card, dice, vote, alarm, media, peer, data）。Angular 無依存。`@SyncObject` / `@SyncVar` のみ利用 | `core`                     |
-| `@axe/shared/*`   | 横断 UI（components, directives, pipes, ui, sync, chat, inventory, tabletop）                                                                | `core`, `domain`           |
-| `@axe/features/*` | UI 機能単位（chat, tabletop, character, card, controller, dice, file, inventory, lobby, media, vote, alarm）                                 | `core`, `domain`, `shared` |
-
-エントリは [src/main.ts](src/main.ts) → [src/app/app.component.ts](src/app/app.component.ts)。
-
-## 同期 / DI 基盤
-
-- ドメインモデルは `@SyncObject(alias)` クラス + `@SyncVar()` プロパティで宣言
-  ([src/app/core/sync/decorator.ts](src/app/core/sync/decorator.ts))
-- `@SyncObject` クラス群は **Angular DI 外**（`ObjectFactory` が `new` で生成）
-- それらシングルトン（`ObjectStore` / `ObjectFactory` / `ObjectSerializer` /
-  `ObjectSynchronizer` / `ImageStorage` / `AudioStorage` / `FileArchiver` /
-  `ChatTabList` / `Config` / `DataSummarySetting` / `TableSelecter` 等）は
-  `CLASS_SINGLETON_PROVIDERS` で DI に橋渡しされている
-  ([src/app/core/di/class-provider.ts](src/app/core/di/class-provider.ts))。
-  Angular 側は `inject(ObjectStore)` 等で取得する
-- DI 管理外のクラスから DI サービスに触る必要があるときだけ
-  `ServiceLocator.get<T>(token)` を使う
-  ([src/app/core/di/service-locator.ts](src/app/core/di/service-locator.ts))。
-  **新規でドメインモデルから DI サービスを呼ぶ箇所を増やさないこと** —
-  サービス側からモデルを操作する向きを保つ
-
-## コンポーネントパターン
-
-```typescript
-@Component({
-  selector: 'app-xxx',
-  templateUrl: './xxx.component.html',
-  styleUrls: ['./xxx.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-```
-
-- テンプレート・スタイルは外部ファイル分離（CSS、SCSS ではない）
-- 変更検知は `OnPush` + Signals で駆動
-- `markForCheck()` は使わない。`detectChanges()` は DOM 計測用途のみ
-  （現状の使用箇所はテストヘルパー
-  [src/app/testing/panel-drag-recovery.ts](src/app/testing/panel-drag-recovery.ts) のみ）
-- `@SyncObject` 由来の値を template でリアクティブに使うときは
-  `versionOf()` / `collectionOf()` で signal を取り、依存配線する
+- **コミットメッセージは必ず英語**。形式は `type(scope): subject`（Conventional Commits）
+  - 例: `feat(tabletop): expand table area to 6000px and adjust zoom range`
+- 複数の論理的変更を 1 コミットに混ぜない
+- **lefthook 迂回は絶対禁止**（`--no-verify` / `LEFTHOOK=0` / `core.hooksPath` 変更等）。
+  フックが落ちたら原因を直してから再コミットする
+  - `commit-msg`: `commitlint` / `pre-commit`: `ng lint` + `ng test` / `pre-push`: `ng build`
 
 ## 留意事項
 
 - `package.json` の `version` がリリース番号。更新は `chore(release): ...` で
-- `ng build` の予算は initial 10MB 警告 / 15MB エラー、コンポーネント CSS は 6KB 警告 / 10KB エラー
-- ドキュメントの更新ノート: [docs/update-1.2.0.md](docs/update-1.2.0.md) などに履歴あり
+- `ng build` の予算は initial 10MB 警告 / 15MB エラー（[angular.json](angular.json) の `budgets`）
+- `.github/copilot-instructions.md` も同趣旨だが、本ファイルが現状実装に対する正
