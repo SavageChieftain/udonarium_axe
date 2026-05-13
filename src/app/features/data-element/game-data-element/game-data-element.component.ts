@@ -13,7 +13,6 @@ import {
   DataElementFieldType,
   type DataElementFieldTypeValue,
   DataElementRole,
-  type DataElementRoleValue,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
 import { findJudgementCandidates, type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
@@ -35,7 +34,15 @@ import {
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
-import { type CalcEnv, evalCalcFormula } from '@axe/features/data-element/game-data-element/game-data-element-calc';
+import { evalCalcFormula } from '@axe/features/data-element/game-data-element/game-data-element-calc';
+import { buildCalcEnv } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
+import {
+  canAcceptChildRole,
+  canDropStructureElement,
+  type DataElementDropPosition,
+  resolveDropPosition as resolveDropPositionShared,
+} from '@axe/features/data-element/game-data-element/game-data-element-structure-drop';
+import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-element/game-data-element-utils';
 import {
   type JudgeCandidatesState,
   JudgementCandidatesModalComponent,
@@ -44,8 +51,6 @@ import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-sel
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-
-type DataElementDropPosition = 'before' | 'after' | 'inside';
 
 @Component({
   selector: 'game-data-element, [game-data-element]',
@@ -73,8 +78,6 @@ type DataElementDropPosition = 'before' | 'after' | 'inside';
   },
 })
 export class GameDataElementComponent {
-  private static readonly MAX_STANDARD_DEPTH = 3;
-
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectStore = inject(ObjectStore);
@@ -285,39 +288,9 @@ export class GameDataElementComponent {
   private evaluateCalcElement(element: DataElement): string {
     const formula = element.getAttribute(DataElementAttribute.FORMULA);
     if (!formula) return '';
-    const env = this.buildCalcEnv(element);
+    const env = buildCalcEnv(element);
     const result = evalCalcFormula(formula, env);
     return Number.isNaN(result) ? '?' : String(result % 1 === 0 ? result : parseFloat(result.toFixed(4)));
-  }
-
-  private buildCalcEnv(self: DataElement): CalcEnv {
-    const env: CalcEnv = {};
-    const root = DataElement.getDetailNameScope(self);
-    const entries: { name: string; path: string; value: number }[] = [];
-    this.collectEnv(root, root, entries);
-
-    const nameCounts = new Map<string, number>();
-    for (const entry of entries) nameCounts.set(entry.name, (nameCounts.get(entry.name) ?? 0) + 1);
-    for (const entry of entries) {
-      env[entry.path] = entry.value;
-      if (nameCounts.get(entry.name) === 1) env[entry.name] = entry.value;
-    }
-    return env;
-  }
-
-  private collectEnv(
-    node: DataElement,
-    root: DataElement,
-    entries: { name: string; path: string; value: number }[]
-  ): void {
-    if (!node.children.length) {
-      const num = Number(node.value);
-      if (!Number.isNaN(num) && node.name) {
-        entries.push({ name: node.name, path: DataElement.formatReferencePath(node, root), value: num });
-      }
-      return;
-    }
-    for (const child of node.children) this.collectEnv(child, root, entries);
   }
 
   readonly iconPickerOpen = signal(false);
@@ -434,7 +407,7 @@ export class GameDataElementComponent {
 
   addSiblingElement() {
     const parentElement = this.getDataElementParent();
-    if (!parentElement || !this.canAcceptChildRole(parentElement, DataElementRole.FIELD)) return;
+    if (!parentElement || !canAcceptChildRole(parentElement, DataElementRole.FIELD)) return;
 
     const fieldElement = this.createFieldElement('タグ', parentElement);
     this.insertElementAfter(fieldElement, this.gameDataElement(), parentElement);
@@ -451,16 +424,16 @@ export class GameDataElementComponent {
   }
 
   canAddChildGroupElement(): boolean {
-    return this.canAcceptChildRole(this.gameDataElement(), DataElementRole.GROUP);
+    return canAcceptChildRole(this.gameDataElement(), DataElementRole.GROUP);
   }
 
   canAddChildFieldElement(): boolean {
-    return this.canAcceptChildRole(this.gameDataElement(), DataElementRole.FIELD);
+    return canAcceptChildRole(this.gameDataElement(), DataElementRole.FIELD);
   }
 
   canAddSiblingFieldElement(): boolean {
     const parentElement = this.getDataElementParent();
-    return !!parentElement && this.canAcceptChildRole(parentElement, DataElementRole.FIELD);
+    return !!parentElement && canAcceptChildRole(parentElement, DataElementRole.FIELD);
   }
 
   private createContainerElement(
@@ -554,13 +527,7 @@ export class GameDataElementComponent {
   private resolveDropPosition(event: DragEvent, targetElement: DataElement): DataElementDropPosition {
     const currentTarget = event.currentTarget as HTMLElement | null;
     const rect = currentTarget?.getBoundingClientRect();
-    if (!rect || rect.height <= 0) return this.canDropInside(targetElement) ? 'inside' : 'after';
-
-    const edgeSize = Math.min(12, rect.height * 0.28);
-    const offsetY = event.clientY - rect.top;
-    if (offsetY <= edgeSize) return 'before';
-    if (offsetY >= rect.height - edgeSize) return 'after';
-    return this.canDropInside(targetElement) ? 'inside' : 'after';
+    return resolveDropPositionShared(rect ?? null, event.clientY, targetElement);
   }
 
   private canDropStructureElement(
@@ -569,66 +536,12 @@ export class GameDataElementComponent {
     position: DataElementDropPosition
   ): boolean {
     if (!this.isEdit() || this.isImage()) return false;
-    if (draggedElement === targetElement) return false;
-
-    const newDepth = position === 'inside' ? this.depth() + 1 : this.depth();
-    if (newDepth + this.getSubtreeDepth(draggedElement) > GameDataElementComponent.MAX_STANDARD_DEPTH) return false;
-
-    if (position === 'inside') {
-      return (
-        this.canDropInside(targetElement) &&
-        this.canAcceptChild(targetElement, draggedElement) &&
-        !draggedElement.contains(targetElement)
-      );
-    }
-
-    const parent = targetElement.parent;
-    return (
-      parent instanceof DataElement && this.canAcceptChild(parent, draggedElement) && !draggedElement.contains(parent)
-    );
-  }
-
-  private canDropInside(targetElement: DataElement): boolean {
-    return targetElement.fieldRole !== DataElementRole.FIELD;
-  }
-
-  private canAcceptChild(parentElement: DataElement, childElement: DataElement): boolean {
-    return this.canAcceptChildRole(parentElement, childElement.fieldRole);
-  }
-
-  private canAcceptChildRole(parentElement: DataElement, childRole: DataElementRoleValue): boolean {
-    if (parentElement.name === 'detail') return childRole === DataElementRole.SECTION;
-    if (parentElement.fieldRole === DataElementRole.SECTION) return childRole === DataElementRole.GROUP;
-    if (parentElement.fieldRole === DataElementRole.GROUP) {
-      if (childRole === DataElementRole.FIELD) return true;
-      if (childRole === DataElementRole.GROUP) {
-        return this.getElementDepth(parentElement) < GameDataElementComponent.MAX_STANDARD_DEPTH - 1;
-      }
-    }
-    return false;
-  }
-
-  private getElementDepth(element: DataElement): number {
-    let depth = 0;
-    let parent = element.parent;
-    while (parent instanceof DataElement && parent.name !== 'detail') {
-      depth++;
-      parent = parent.parent;
-    }
-    return depth;
+    return canDropStructureElement(draggedElement, targetElement, position, this.depth());
   }
 
   private getDataElementParent(element: DataElement = this.gameDataElement()): DataElement | null {
     const parent = element.parent;
     return parent instanceof DataElement ? parent : null;
-  }
-
-  private getSubtreeDepth(element: DataElement): number {
-    let depth = 0;
-    for (const child of element.children) {
-      depth = Math.max(depth, this.getSubtreeDepth(child) + 1);
-    }
-    return depth;
   }
 
   private moveStructureElement(
@@ -1099,19 +1012,8 @@ export class GameDataElementComponent {
     return !!parentElement && DataElement.hasSiblingName(parentElement, name, element.identifier);
   }
 
-  escapeHtml(text: string | number): string {
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  isUrlText(text: string | number): boolean {
-    if (typeof text !== 'string') return false;
-    return text.startsWith('https://') || text.startsWith('http://');
-  }
+  readonly escapeHtml = escapeHtml;
+  readonly isUrlText = isUrlText;
 
   protected editCheckedIds = new Set<string>();
 
