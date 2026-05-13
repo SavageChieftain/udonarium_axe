@@ -218,6 +218,7 @@
 
     @for (gameObject of objects; track gameObject.identifier) {
       <div
+        data-testid="inventory-item"
         class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color]"
         [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
         [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"

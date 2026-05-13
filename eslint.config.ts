@@ -80,5 +80,14 @@ export default defineConfig([
       },
     },
   },
+  /* e2e/ ディレクトリ配下では相対インポートを許可する (e2e 用のパスエイリアスは
+     未設定、かつ Playwright 設定が tsconfig 別ファイル参照のため src との切り分けが
+     不要)。 */
+  {
+    files: ['e2e/**/*.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
+  },
   prettierPlugin,
 ]);

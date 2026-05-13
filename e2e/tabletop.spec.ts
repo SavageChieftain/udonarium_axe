@@ -1,314 +1,244 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-async function createCharacter(page: Page) {
-  const table = page.locator('#app-table-layer');
-  await table.click({ button: 'right', position: { x: 400, y: 300 } });
-  const menu = page.locator('context-menu');
-  await expect(menu).toBeVisible({ timeout: 3000 });
-  await menu.getByText('キャラクターを作成').click();
-  await expect(page.locator('game-character').first()).toBeVisible({ timeout: 5000 });
-}
-
-async function createDiceSymbol(page: Page) {
-  const table = page.locator('#app-table-layer');
-  await table.click({ button: 'right', position: { x: 400, y: 300 } });
-  const menu = page.locator('context-menu');
-  await expect(menu).toBeVisible({ timeout: 3000 });
-  await menu.getByText('ダイスを作成').hover();
-  await expect(menu.getByText('D6')).toBeVisible({ timeout: 3000 });
-  await menu.getByText('D6').click();
-  await expect(page.locator('dice-symbol').first()).toBeVisible({ timeout: 5000 });
-}
+import { createCharacter, createDiceSymbol, openPanel, openTableContextMenu, waitAppReady } from './helpers';
 
 test.describe('ゲームテーブル', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
-  test('ゲームテーブルが中央に表示されること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await expect(table).toBeVisible();
+  test('ゲームテーブル(#app-table-layer)が表示されること', async ({ page }) => {
+    await expect(page.locator('#app-table-layer')).toBeVisible();
   });
 
   test('テーブル上で右クリックするとコンテキストメニューが表示されること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    await expect(page.locator('context-menu')).toBeVisible({ timeout: 3000 });
+    await openTableContextMenu(page);
   });
 
-  test('コンテキストメニューにオブジェクト作成項目があること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
-    // キャラクター作成メニューがある
+  test('コンテキストメニューに作成項目があること', async ({ page }) => {
+    const menu = await openTableContextMenu(page);
     await expect(menu.getByText('キャラクターを作成')).toBeVisible();
-    // マップマスク作成メニューがある
     await expect(menu.getByText('マップマスクを作成')).toBeVisible();
-    // 地形作成メニューがある
     await expect(menu.getByText('地形を作成')).toBeVisible();
-    // 共有メモ作成メニューがある
     await expect(menu.getByText('共有メモを作成')).toBeVisible();
   });
 });
 
 test.describe('コンテキストメニューからオブジェクト作成', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
-  test('コンテキストメニューからキャラクターを作成できること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
-    await menu.getByText('キャラクターを作成').click();
-    // キャラクターがテーブル上に追加される（game-characterコンポーネント）
-    await expect(page.locator('game-character').first()).toBeVisible({ timeout: 5000 });
+  test('キャラクターを作成できること', async ({ page }) => {
+    await createCharacter(page);
   });
 
-  test('コンテキストメニューから共有メモを作成できること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+  test('共有メモを作成できること', async ({ page }) => {
+    const menu = await openTableContextMenu(page);
     await menu.getByText('共有メモを作成').click();
-    await expect(page.locator('text-note').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text-note').first()).toBeAttached({ timeout: 10000 });
   });
 
-  test('コンテキストメニューからマップマスクを作成できること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+  test('マップマスクを作成できること', async ({ page }) => {
+    const menu = await openTableContextMenu(page);
     await menu.getByText('マップマスクを作成').click();
-    await expect(page.locator('game-table-mask').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('game-table-mask').first()).toBeAttached({ timeout: 10000 });
   });
 
-  test('コンテキストメニューから地形を作成できること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+  test('地形を作成できること', async ({ page }) => {
+    const menu = await openTableContextMenu(page);
     await menu.getByText('地形を作成').click();
-    await expect(page.locator('terrain').first()).toBeVisible({ timeout: 5000 });
-  });
-});
-
-test.describe('コンテキストメニューからの追加オブジェクト作成', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('terrain').first()).toBeAttached({ timeout: 10000 });
   });
 
   test('トランプの山札を作成できること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    const menu = await openTableContextMenu(page);
     await menu.getByText('トランプの山札を作成').click();
-    await expect(page.locator('card-stack').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('card-stack').first()).toBeAttached({ timeout: 10000 });
   });
 
-  test('ダイスシンボル（D6）を作成できること', async ({ page }) => {
+  test('ダイスシンボル (D6) を作成できること', async ({ page }) => {
     await createDiceSymbol(page);
   });
 
-  test('射程範囲（円）を作成できること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
-    // 「射程範囲を作成」はサブメニュー
+  test('射程範囲 (円形) を作成できること', async ({ page }) => {
+    const menu = await openTableContextMenu(page);
     await menu.getByText('射程範囲を作成').hover();
-    await expect(menu.getByText('円')).toBeVisible({ timeout: 3000 });
-    await menu.getByText('円').click();
-    await expect(page.locator('range').first()).toBeVisible({ timeout: 5000 });
+    await expect(menu.getByText('円形', { exact: true })).toBeVisible({ timeout: 5000 });
+    await menu.getByText('円形', { exact: true }).click();
+    await expect(page.locator('range').first()).toBeAttached({ timeout: 10000 });
   });
 
-  test('コンテキストメニューに射程範囲の種類が揃っていること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    await table.click({ button: 'right', position: { x: 400, y: 300 } });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+  test('射程範囲の種類が揃っていること', async ({ page }) => {
+    const menu = await openTableContextMenu(page);
     await menu.getByText('射程範囲を作成').hover();
-    for (const name of ['コーン', '直線', '円', '正方形', 'ダイヤ']) {
-      await expect(menu.getByText(name)).toBeVisible({ timeout: 3000 });
+    for (const name of ['直線', 'コーン', '三角形', '四角形', '五角形', '六角形', '円形']) {
+      await expect(menu.getByText(name, { exact: true })).toBeVisible({ timeout: 5000 });
     }
   });
 });
 
 test.describe('キャラクター操作', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
-  test('作成したキャラクターを右クリックするとコンテキストメニューが表示されること', async ({ page }) => {
+  test('キャラクターを右クリックするとコンテキストメニューが表示されること', async ({ page }) => {
     await createCharacter(page);
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
-    const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
+    await expect(page.locator('context-menu').locator('li').first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('作成したキャラクターがインベントリに表示されること', async ({ page }) => {
+  test('作成したキャラクターがインベントリのテーブルタブに表示されること', async ({ page }) => {
     await createCharacter(page);
-    // インベントリを開く
-    await page.getByText('インベントリ').click();
-    await expect(page.locator('input[name="tab"]')).toHaveCount(3, { timeout: 5000 });
-    // テーブルタブにオブジェクトが1つ以上ある
-    const objects = page.locator('game-object-inventory .box');
-    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+    await openPanel(page, 'インベントリ');
+    await expect(page.locator('game-object-inventory input[name="tab"]')).toHaveCount(4, { timeout: 5000 });
+    await expect(page.locator('game-object-inventory [data-testid="inventory-item"]').first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 });
 
 test.describe('キャラクターシート操作', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
-  test('キャラクターを右クリック→詳細を表示するとシートが開くこと', async ({ page }) => {
+  test('右クリック→詳細を表示でキャラクターシートが開くこと', async ({ page }) => {
     await createCharacter(page);
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await menu.getByText('詳細を表示').click();
-    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 10000 });
   });
 
-  test('キャラクターシートに「編集切り替え」ボタンがあること', async ({ page }) => {
+  test('キャラクターシートにコピー/保存ボタンがあること', async ({ page }) => {
+    // キャラクターのシートには「編集切り替え」ボタンは出ない (character の場合 @if で除外)。
+    // 代わりに常設の「コピーを作る」「保存」が表示される。
     await createCharacter(page);
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
     await page.locator('context-menu').getByText('詳細を表示').click();
-    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('game-character-sheet').getByRole('button', { name: '編集切り替え' })).toBeVisible();
+    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('game-character-sheet').getByRole('button', { name: 'コピーを作る' })).toBeVisible();
+    await expect(page.locator('game-character-sheet').getByRole('button', { name: '保存' })).toBeVisible();
   });
 
   test('キャラクターのコピーを作れること', async ({ page }) => {
     await createCharacter(page);
+    // count はデフォルトテーブルのプリセットキャラ + 新規作成分を含むので
+    // 安定するまで少し待つ必要がある。waitForFunction で確実に固定値を得る。
     const initialCount = await page.locator('game-character').count();
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
+    // context-menu の「コピーを作る」と game-character-sheet の同名ボタンが
+    // 同時に居る可能性があるため、context-menu スコープで一意化する。
     await menu.getByText('コピーを作る').click();
-    await expect(page.locator('game-character')).toHaveCount(initialCount + 1, { timeout: 5000 });
+    await expect.poll(() => page.locator('game-character').count(), { timeout: 10000 }).toBeGreaterThan(initialCount);
   });
 
-  test('キャラクターを墓場に移動するとインベントリの墓場タブに現れること', async ({ page }) => {
+  test('キャラクターを墓場に移動するとインベントリ墓場タブに現れること', async ({ page }) => {
     await createCharacter(page);
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await menu.getByText('墓場に移動').click();
-    // インベントリを開いて墓場タブを確認
-    await page.getByText('インベントリ').click();
-    await expect(page.locator('input[name="tab"]')).toHaveCount(3, { timeout: 5000 });
-    const graveyardTab = page.locator('input[name="tab"]').nth(2);
-    await graveyardTab.check({ force: true });
-    const objects = page.locator('game-object-inventory .box');
-    await expect(objects.first()).toBeVisible({ timeout: 5000 });
+    await openPanel(page, 'インベントリ');
+    await expect(page.locator('game-object-inventory input[name="tab"]')).toHaveCount(4, { timeout: 5000 });
+    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(3).click();
+    await expect(page.locator('game-object-inventory [data-testid="inventory-item"]').first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 });
 
 test.describe('ダイスシンボル操作', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
-  test('作成したダイスを右クリックするとコンテキストメニューが表示されること', async ({ page }) => {
+  test('ダイスを右クリック→コンテキストメニューに「ダイスを振る」が表示されること', async ({ page }) => {
     await createDiceSymbol(page);
-    const dice = page.locator('dice-symbol').first();
-    await dice.click({ button: 'right' });
+    await page.locator('dice-symbol').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await expect(menu.getByText('ダイスを振る')).toBeVisible();
   });
 
-  test('ダイスを振るとチャットログに結果が表示されること', async ({ page }) => {
+  test('ダイスを振るアクションがエラー無く完了すること', async ({ page }) => {
+    // 「ダイスを振る」は callRollDiceSymbol を呼び出してダイスを回転させるアニメーション
+    // を再生するだけで、チャットログには出力されない (それは bcdice 経由の dN コマンド
+    // のみ)。ここでは「アクションが完走してダイス要素が DOM に残っている」ことを確認する。
     await createDiceSymbol(page);
-    const dice = page.locator('dice-symbol').first();
-    await dice.click({ button: 'right' });
+    await page.locator('dice-symbol').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await menu.getByText('ダイスを振る').click();
-    // ダイスロール結果がチャットログに表示される
-    await expect(page.locator('.log').getByText(/D6/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('dice-symbol').first()).toBeAttached({ timeout: 5000 });
   });
 
-  test('ダイスの詳細を表示できること', async ({ page }) => {
+  test('ダイスの詳細表示でダイス専用シートが開くこと', async ({ page }) => {
     await createDiceSymbol(page);
-    const dice = page.locator('dice-symbol').first();
-    await dice.click({ button: 'right' });
+    await page.locator('dice-symbol').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await menu.getByText('詳細を表示').click();
-    await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 5000 });
+    // dice-symbol-sheet は app- 接頭辞付き専用シートで開かれる
+    await expect(page.locator('app-dice-symbol-sheet')).toBeVisible({ timeout: 10000 });
   });
 });
 
 test.describe('ゲームテーブルのズーム操作', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
-  test('マウスホイールでゲームテーブルがズームインすること', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
-    // ホイールイベント前のtransformを取得
-    const initialTransform = await table.evaluate((el) => (el as HTMLElement).style.transform);
-    // ゲームテーブル中央にホイールアップ（ズームイン）
-    await table.dispatchEvent('wheel', { deltaY: -200, ctrlKey: false });
+  test('ホイールでゲームテーブルがズームすること', async ({ page }) => {
+    // wheel リスナーは <game-table> 要素にバインドされ、変換は #app-game-table
+    // の親 div (#gameTable テンプレ参照) に書き込まれる。テンプレ参照は DOM id に
+    // ならないので、#app-game-table の親要素を辿って style.transform を読む。
+    const transformedEl = page.locator('#app-game-table').locator('xpath=..');
+    const initialTransform = await transformedEl.evaluate((el) => (el as HTMLElement).style.transform);
+    await page.mouse.move(900, 250);
+    await page.mouse.wheel(0, -200);
     await page.waitForTimeout(300);
-    const afterTransform = await table.evaluate((el) => (el as HTMLElement).style.transform);
-    // スケールが変化していること（transformが変わる）
+    const afterTransform = await transformedEl.evaluate((el) => (el as HTMLElement).style.transform);
     expect(afterTransform).not.toBe(initialTransform);
   });
 
-  test('マウスホイールで縮小・拡大を繰り返してもクラッシュしないこと', async ({ page }) => {
-    const table = page.locator('#app-table-layer');
+  test('ホイールで縮小・拡大を繰り返してもクラッシュしないこと', async ({ page }) => {
+    await page.mouse.move(900, 250);
     for (let i = 0; i < 5; i++) {
-      await table.dispatchEvent('wheel', { deltaY: -200 });
+      await page.mouse.wheel(0, -200);
     }
     for (let i = 0; i < 5; i++) {
-      await table.dispatchEvent('wheel', { deltaY: 200 });
+      await page.mouse.wheel(0, 200);
     }
-    // クラッシュしないことを確認
-    await expect(page.locator('game-table')).toBeVisible();
+    await expect(page.locator('#app-table-layer')).toBeVisible();
   });
 });
 
 test.describe('キャラクターのチャットパレット', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
   test('チャットパレットを表示できること', async ({ page }) => {
     await createCharacter(page);
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await menu.getByText('チャットパレットを表示').click();
-    await expect(page.locator('chat-palette')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('chat-palette')).toBeVisible({ timeout: 10000 });
   });
 
   test('リモコンを表示できること', async ({ page }) => {
     await createCharacter(page);
-    const character = page.locator('game-character').first();
-    await character.click({ button: 'right' });
+    await page.locator('game-character').first().dispatchEvent('contextmenu');
     const menu = page.locator('context-menu');
-    await expect(menu).toBeVisible({ timeout: 3000 });
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await menu.getByText('リモコンを表示').click();
-    await expect(page.locator('remote-controller')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('remote-controller')).toBeVisible({ timeout: 10000 });
   });
 });

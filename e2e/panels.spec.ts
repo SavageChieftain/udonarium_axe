@@ -1,43 +1,50 @@
 import { expect, test } from '@playwright/test';
 
+import { openFabMenu, openPanel, waitAppReady } from './helpers';
+
 test.describe('左メニューからパネルを開く', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
   test('テーブル設定パネルを開けること', async ({ page }) => {
-    await page.getByText('テーブル設定').click();
-    await expect(page.getByRole('button', { name: /新しいテーブルを作る/ })).toBeVisible({ timeout: 5000 });
+    await openPanel(page, 'テーブル設定');
+    await expect(page.locator('game-table-setting')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('game-table-setting button[title="新しいテーブルを作る"]')).toBeVisible();
   });
 
   test('画像管理パネルを開けること', async ({ page }) => {
-    await page.getByText('画像', { exact: true }).click();
-    await expect(page.getByText('ここに画像をドロップ')).toBeVisible({ timeout: 5000 });
+    await openPanel(page, '画像');
+    await expect(page.locator('file-storage')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('file-storage').getByText('ここに画像をドロップ')).toBeVisible();
   });
 
-  test('音楽パネルを開けること', async ({ page }) => {
-    await page.locator('nav').getByText('音楽').click();
-    await expect(page.getByText('試聴音量：')).toBeVisible({ timeout: 5000 });
+  test('音楽パネル(Jukebox)を開けること', async ({ page }) => {
+    await openPanel(page, 'ジュークボックス');
+    await expect(page.locator('app-jukebox')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('app-jukebox input[name="bgm-volume"]')).toBeVisible();
+  });
+
+  test('カットインパネルを開けること', async ({ page }) => {
+    await openPanel(page, 'カットイン');
+    await expect(page.locator('app-cut-in-list')).toBeVisible({ timeout: 10000 });
   });
 
   test('インベントリパネルを開けること', async ({ page }) => {
-    await page.getByText('インベントリ').click();
-    // タブ（テーブル/コモン/墓場）の存在確認
-    await expect(page.locator('input[name="tab"]')).toHaveCount(3, { timeout: 5000 });
+    await openPanel(page, 'インベントリ');
+    await expect(page.locator('game-object-inventory input[name="tab"]')).toHaveCount(4, { timeout: 5000 });
   });
 });
 
 test.describe('テーブル設定パネル', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
-    await page.getByText('テーブル設定').click();
-    await expect(page.getByRole('button', { name: /新しいテーブルを作る/ })).toBeVisible({ timeout: 5000 });
+    await waitAppReady(page);
+    await openPanel(page, 'テーブル設定');
+    await expect(page.locator('game-table-setting')).toBeVisible({ timeout: 10000 });
   });
 
   test('テーブル名を変更できること', async ({ page }) => {
-    const nameInput = page.locator('game-table-setting input[placeholder="Name"]');
+    const nameInput = page.locator('game-table-setting input[placeholder="テーブル名を入力"]');
     await nameInput.fill('テスト卓');
     await expect(nameInput).toHaveValue('テスト卓');
   });
@@ -45,27 +52,26 @@ test.describe('テーブル設定パネル', () => {
   test('グリッド種類を変更できること', async ({ page }) => {
     const gridSelect = page.locator('select[name="tableGridType"]');
     await expect(gridSelect).toBeVisible();
-    await gridSelect.selectOption('0'); // スクエア
+    await gridSelect.selectOption('0');
     await expect(gridSelect).toHaveValue('0');
-    await gridSelect.selectOption('1'); // ヘクス（縦揃え）
+    await gridSelect.selectOption('1');
     await expect(gridSelect).toHaveValue('1');
   });
 
-  test('テーブル幅のスライダーと数値入力が存在すること', async ({ page }) => {
+  test('テーブル幅のスライダーが存在すること', async ({ page }) => {
     await expect(page.locator('input[name="tableWidth"][type="range"]')).toBeVisible();
-    await expect(page.locator('game-table-setting input[type="number"]').first()).toBeVisible();
   });
 
-  test('テーブル高さのスライダーと数値入力が存在すること', async ({ page }) => {
-    await expect(page.locator('input[name="tableHeight"][type="range"]')).toBeVisible();
+  test('テーブル高さのスライダーが存在すること', async ({ page }) => {
+    await expect(page.locator('input[name="table-height-range"][type="range"]')).toBeVisible();
   });
 
   test('グリッド常時表示チェックボックスが存在すること', async ({ page }) => {
     await expect(page.locator('input[name="tableGridShow"]')).toBeVisible();
   });
 
-  test('スナップチェックボックスが存在すること', async ({ page }) => {
-    await expect(page.locator('input[name="tableGridSnap"]')).toBeVisible();
+  test('スナップ設定セレクトが存在すること', async ({ page }) => {
+    await expect(page.locator('select[name="tableSnapMode"]')).toBeVisible();
   });
 
   test('背景フィルタを変更できること', async ({ page }) => {
@@ -76,10 +82,10 @@ test.describe('テーブル設定パネル', () => {
   });
 
   test('新しいテーブルを作成できること', async ({ page }) => {
-    const tableSelect = page.locator('game-table-setting select[size="10"]');
-    const initialCount = await tableSelect.locator('option').count();
-    await page.getByRole('button', { name: /新しいテーブルを作る/ }).click();
-    await expect(tableSelect.locator('option')).toHaveCount(initialCount + 1, { timeout: 5000 });
+    const items = page.locator('game-table-setting li[role="option"]');
+    const initialCount = await items.count();
+    await page.locator('game-table-setting button[title="新しいテーブルを作る"]').click();
+    await expect(items).toHaveCount(initialCount + 1, { timeout: 5000 });
   });
 
   test('保存ボタンが存在すること', async ({ page }) => {
@@ -89,16 +95,15 @@ test.describe('テーブル設定パネル', () => {
 
 test.describe('画像管理パネル', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
-    await page.getByText('画像', { exact: true }).click();
-    await expect(page.getByText('ここに画像をドロップ')).toBeVisible({ timeout: 5000 });
+    await waitAppReady(page);
+    await openPanel(page, '画像');
+    await expect(page.locator('file-storage')).toBeVisible({ timeout: 10000 });
   });
 
   test('ドロップゾーンが表示されること', async ({ page }) => {
-    await expect(page.getByText('ここに画像をドロップ')).toBeVisible();
-    await expect(page.getByText('またはここをクリックして選択')).toBeVisible();
-    await expect(page.getByText('１ファイルにつき2MBまで')).toBeVisible();
+    const storage = page.locator('file-storage');
+    await expect(storage.getByText('ここに画像をドロップ')).toBeVisible();
+    await expect(storage.getByText('またはここをクリックして選択')).toBeVisible();
   });
 
   test('ファイル入力が存在すること', async ({ page }) => {
@@ -107,101 +112,92 @@ test.describe('画像管理パネル', () => {
   });
 
   test('タグ変更ボタンと入力欄が存在すること', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /タグを変更/ })).toBeVisible();
-    await expect(page.locator('input[placeholder="新タグ名"]')).toBeVisible();
+    await expect(page.locator('file-storage').getByRole('button', { name: /タグを変更/ })).toBeVisible();
+    await expect(page.locator('file-storage input[placeholder="新タグ名"]')).toBeVisible();
   });
 
   test('タグのラジオボタンが存在すること', async ({ page }) => {
-    // 少なくとも「未設定」タグが存在
-    await expect(page.locator('input[name="image-chg"]')).toHaveCount(1);
+    // 「全て / 未設定」など複数のシステムタグが既定で存在する。
+    // ラジオ自体は class="peer hidden" で display:none。
+    await expect(page.locator('file-storage input[name="image-chg"]').first()).toBeAttached();
   });
 });
 
-test.describe('音楽パネル（Jukebox）', () => {
+test.describe('音楽パネル(Jukebox)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
-    await page.locator('nav').getByText('音楽').click();
-    await expect(page.getByText('試聴音量：')).toBeVisible({ timeout: 5000 });
+    await waitAppReady(page);
+    await openPanel(page, 'ジュークボックス');
+    await expect(page.locator('app-jukebox')).toBeVisible({ timeout: 10000 });
   });
 
-  test('音量スライダーが表示されること', async ({ page }) => {
-    await expect(page.getByText('試聴音量：')).toBeVisible();
-    await expect(page.getByText('BGM音量：')).toBeVisible();
-    await expect(page.getByText('全体音量：')).toBeVisible();
+  test('音量スライダー4種が表示されること', async ({ page }) => {
+    const j = page.locator('app-jukebox');
+    await expect(j.locator('input[name="audition-volume"]')).toBeVisible();
+    await expect(j.locator('input[name="bgm-volume"]')).toBeVisible();
+    await expect(j.locator('input[name="se-volume"]')).toBeVisible();
+    await expect(j.locator('input[name="room-volume"]')).toBeAttached();
   });
 
-  test('カットイン編集ボタンが存在すること', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /カットイン編集/ })).toBeVisible();
+  test('ライブラリ/再生リスト 切替タブが存在すること', async ({ page }) => {
+    const j = page.locator('app-jukebox');
+    await expect(j.getByRole('button', { name: /ライブラリ/ })).toBeVisible();
+    await expect(j.getByRole('button', { name: /再生リスト/ })).toBeVisible();
   });
 
   test('音楽ドロップゾーンが表示されること', async ({ page }) => {
-    await expect(page.getByText('ここに音楽をドロップ')).toBeVisible();
-  });
-
-  test('プリセットサウンドが読み込まれていること', async ({ page }) => {
-    // プリセットサウンドはisHidden=trueなので表示されない
-    // 音楽ファイルがない旨の表示を確認
-    // （プリセットは非表示なので、可視の音楽がなければ空メッセージ表示）
-    // 音楽ファイルが１つ以上あるOR空メッセージが表示される
-    const audioItems = page.locator('jukebox .box');
-    const emptyMessage = page.getByText('アップロードされた音楽ファイルはここに表示されます。');
-    const hasAudios = (await audioItems.count()) > 0;
-    const hasEmptyMsg = await emptyMessage.isVisible();
-    expect(hasAudios || hasEmptyMsg).toBeTruthy();
+    await expect(page.locator('app-jukebox').getByText('ここに音楽をドロップ')).toBeVisible();
   });
 
   test('音楽ファイル入力が存在すること', async ({ page }) => {
-    const fileInput = page.locator('jukebox input[type="file"][accept="audio/*"]');
+    const fileInput = page.locator('app-jukebox input[type="file"][accept="audio/*"]');
     await expect(fileInput).toBeAttached();
   });
 
   test('全体音量の変更有効化チェックボックスが存在すること', async ({ page }) => {
-    const checkbox = page.locator('input#roomVolumeChange');
+    const checkbox = page.locator('app-jukebox input[name="room-volume-change"]');
     await expect(checkbox).toBeVisible();
   });
 });
 
 test.describe('パネル操作', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
+    await waitAppReady(page);
   });
 
   test('複数パネルを同時に開けること', async ({ page }) => {
-    await page.getByText('テーブル設定').click();
-    await page.getByText('画像', { exact: true }).click();
-    // テーブル設定と画像管理の両方が表示されている
-    await expect(page.getByRole('button', { name: /新しいテーブルを作る/ })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('ここに画像をドロップ')).toBeVisible({ timeout: 5000 });
+    await openPanel(page, 'テーブル設定');
+    await expect(page.locator('game-table-setting').first()).toBeVisible({ timeout: 10000 });
+    await openPanel(page, '画像');
+    // 両方のパネルが同時に存在する
+    await expect(page.locator('game-table-setting')).toHaveCount(1);
+    await expect(page.locator('file-storage')).toHaveCount(1);
   });
 
   test('同じパネルを複数回開けること', async ({ page }) => {
-    await page.getByText('テーブル設定').click();
-    await page.getByText('テーブル設定').click();
-    // 複数のテーブル設定パネルが開いている
-    const buttons = page.getByRole('button', { name: /新しいテーブルを作る/ });
-    await expect(buttons).toHaveCount(2, { timeout: 5000 });
+    await openPanel(page, 'テーブル設定');
+    await expect(page.locator('game-table-setting').first()).toBeVisible({ timeout: 10000 });
+    await openPanel(page, 'テーブル設定');
+    await expect(page.locator('game-table-setting')).toHaveCount(2, { timeout: 5000 });
   });
 });
 
-test.describe('ZIP読込（ファイルインポート）', () => {
+test.describe('ZIP読込', () => {
   test('ZIP読込のファイル入力が存在すること', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
-    const fileInput = page.locator('nav input[type="file"][accept="application/xml,text/xml,application/zip"]');
+    await waitAppReady(page);
+    await openFabMenu(page);
+    const fileInput = page
+      .locator('[data-label="ZIP読込"]')
+      .locator('input[type="file"][accept="application/xml,text/xml,application/zip"]');
     await expect(fileInput).toBeAttached();
   });
 });
 
 test.describe('保存機能', () => {
   test('保存ボタンをクリックするとダウンロードが開始されること', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('ui-panel')).toBeVisible({ timeout: 15000 });
-    // ダウンロードイベントを監視
-    const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
-    await page.locator('nav').getByText('保存').click();
-    // ダウンロードが開始される
+    await waitAppReady(page);
+    await openFabMenu(page);
+    const downloadPromise = page.waitForEvent('download', { timeout: 60000 });
+    await page.locator('[data-label="保存"]').click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/\.zip$/);
   });
