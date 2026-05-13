@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('LobbyComponent', () => {

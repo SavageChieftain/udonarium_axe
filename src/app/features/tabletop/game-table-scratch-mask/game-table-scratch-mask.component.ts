@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { buildScratchMaskContextMenu } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask-context-menu';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
 
 @Component({
   selector: 'game-table-scratch-mask',
@@ -82,26 +83,13 @@ export class GameTableScratchMaskComponent {
     event.stopPropagation();
     event.preventDefault();
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+    const mask = this.gameTableScratchMask();
+    if (!mask) return;
     const coordinate = this.pointerDeviceService.pointers[0];
-    const actions: ContextMenuAction[] = [];
-
-    actions.push({
-      name: this.isLock ? '固定解除' : '固定する',
-      action: () => {
-        if (this.isLock) this.unlock();
-        else this.lock();
-      },
+    const actions = buildScratchMaskContextMenu(mask, this.isLock, {
+      lock: () => this.lock(),
+      unlock: () => this.unlock(),
     });
-
-    actions.push(ContextMenuSeparator);
-    actions.push({
-      name: '削除する',
-      action: () => {
-        this.gameTableScratchMask()?.destroy();
-        SoundEffect.play(PresetSound.sweep);
-      },
-    });
-
     this.contextMenuService.open(coordinate, actions, this.name());
   }
 

@@ -1,3 +1,4 @@
+import { callSoundEffect, sendMessage$, soundEffect$ } from '@axe/core/event/domain-events';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -5,7 +6,6 @@ import { SyncObject } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
-import { callSoundEffect, sendMessage$, soundEffect$ } from '@axe/domain/domain-events';
 
 export class PresetSound {
   static dicePick: string = '';

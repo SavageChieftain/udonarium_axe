@@ -1,10 +1,11 @@
+import { updateAudioResource$ } from '@axe/core/event/domain-events';
+import { onFirstUserInteraction } from '@axe/core/input/user-interaction-unlock';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { updateAudioResource$ } from '@axe/domain/domain-events';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Playlist } from '@axe/domain/media/playlist';
 import { Config } from '@axe/domain/peer/config';
@@ -216,14 +217,10 @@ export class Jukebox extends GameObject {
   }
 
   private unlockAfterUserInteraction() {
-    const callback = () => {
-      document.body.removeEventListener('touchstart', callback, true);
-      document.body.removeEventListener('mousedown', callback, true);
+    onFirstUserInteraction(() => {
       this.audioPlayer.stop();
       if (this.isPlaying) this._play();
-    };
-    document.body.addEventListener('touchstart', callback, true);
-    document.body.addEventListener('mousedown', callback, true);
+    });
   }
 
   private unregisterEvent() {

@@ -1,4 +1,4 @@
-import { Network } from '@axe/core/index';
+import { getPeerContext, getPeerContexts } from '@axe/core/network/peer-context-source';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -52,7 +52,7 @@ export class GameTableMask extends TabletopObject {
     return this.owner.length > 0;
   }
   get ownerIsOnline(): boolean {
-    return this.isOwnerOnline(Network.peerContext, Network.peerContexts);
+    return this.isOwnerOnline(getPeerContext(), getPeerContexts());
   }
   isOwnerOnline(
     self: { userId: string; isOpen: boolean },
@@ -69,7 +69,7 @@ export class GameTableMask extends TabletopObject {
   }
 
   get isMine(): boolean {
-    return this.isOwnedBy(Network.peerContext.userId);
+    return this.isOwnedBy(getPeerContext().userId);
   }
   isOwnedBy(userId: string): boolean {
     return userId === this.owner;

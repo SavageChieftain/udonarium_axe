@@ -12,6 +12,13 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -32,20 +39,15 @@ import {
   RangeRender,
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
+import { clipAreaToPolygonCss, clipCircleCss } from '@axe/features/tabletop/range/range-render-util';
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
-import { InputHandler } from '@axe/shared/directives/input-handler';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { RotableOption } from '@axe/shared/directives/rotable.directive';
-import { RotableDirective } from '@axe/shared/directives/rotable.directive';
-import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { InputHandler } from '@axe/ui/directives/input-handler';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { RotableOption } from '@axe/ui/directives/rotable.directive';
+import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { translateZCss, Z_OFFSET_RANGE_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
   selector: 'range',
@@ -75,92 +77,31 @@ export class RangeComponent {
 
   readonly gridCanvas = viewChild<ElementRef<HTMLCanvasElement>>('gridCanvas');
   readonly rangeCanvas = viewChild<ElementRef<HTMLCanvasElement>>('rangeCanvas');
-  readonly rotate = viewChild<ElementRef<HTMLElement>>('rotate');
 
-  public get clipPathText() {
-    let text: string;
-    switch (this.range().type) {
+  /** clip-path 文字列を `_clipVersion` 連動の 1 つの computed に集約。setRange() が
+   *  ClipArea を書き換えた後 `_clipVersion.update()` で本 computed が再評価される。
+   *  形状ごとの分岐は data dispatch、polygon 文字列構築は `clipAreaToPolygonCss` へ委譲。 */
+  readonly clipPath = computed<string>(() => {
+    this._clipVersion();
+    const range = this.range();
+    switch (range.type) {
       case 'LINE':
-        text = this.clipLine;
-        break;
+        return clipAreaToPolygonCss(this.clipAreaLine);
       case 'CIRCLE':
-        text = this.clipCircle;
-        break;
+        return clipCircleCss(range.length, this.gridSize);
       case 'SQUARE':
-        text = this.clipSquare;
-        break;
+        return clipAreaToPolygonCss(this.clipAreaSquare);
       case 'TRIANGLE':
-        text = this.clipTriangle;
-        break;
+        return clipAreaToPolygonCss(this.clipAreaTriangle);
       case 'PENTAGON':
-        text = this.clipPentagon;
-        break;
+        return clipAreaToPolygonCss(this.clipAreaPentagon);
       case 'HEXAGON':
-        text = this.clipHexagon;
-        break;
+        return clipAreaToPolygonCss(this.clipAreaHexagon);
       case 'CORN':
       default:
-        text = this.clipCorn;
-        break;
+        return clipAreaToPolygonCss(this.clipAreaCorn);
     }
-    return text;
-  }
-
-  public get clipCircle() {
-    const clipSize = (this.range().length + 1.5) * this.gridSize;
-    const circle = 'circle(' + clipSize + 'px)';
-    return circle;
-  }
-
-  public get clipCorn() {
-    this._clipVersion();
-    let clipCorn = 'polygon(' + this.clipAreaCorn.clip01x + 'px ' + this.clipAreaCorn.clip01y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip02x + 'px ' + this.clipAreaCorn.clip02y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip03x + 'px ' + this.clipAreaCorn.clip03y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip04x + 'px ' + this.clipAreaCorn.clip04y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip05x + 'px ' + this.clipAreaCorn.clip05y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip06x + 'px ' + this.clipAreaCorn.clip06y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip07x + 'px ' + this.clipAreaCorn.clip07y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip08x + 'px ' + this.clipAreaCorn.clip08y + 'px, ';
-    clipCorn += this.clipAreaCorn.clip09x + 'px ' + this.clipAreaCorn.clip09y + 'px)';
-    return clipCorn;
-  }
-
-  public get clipLine() {
-    this._clipVersion();
-    let clipLine = 'polygon(' + this.clipAreaLine.clip01x + 'px ' + this.clipAreaLine.clip01y + 'px, ';
-    clipLine += this.clipAreaLine.clip02x + 'px ' + this.clipAreaLine.clip02y + 'px, ';
-    clipLine += this.clipAreaLine.clip03x + 'px ' + this.clipAreaLine.clip03y + 'px, ';
-    clipLine += this.clipAreaLine.clip04x + 'px ' + this.clipAreaLine.clip04y + 'px)';
-    return clipLine;
-  }
-
-  public get clipSquare() {
-    this._clipVersion();
-    let clipSquare = 'polygon(' + this.clipAreaSquare.clip01x + 'px ' + this.clipAreaSquare.clip01y + 'px, ';
-    clipSquare += this.clipAreaSquare.clip02x + 'px ' + this.clipAreaSquare.clip02y + 'px, ';
-    clipSquare += this.clipAreaSquare.clip03x + 'px ' + this.clipAreaSquare.clip03y + 'px, ';
-    clipSquare += this.clipAreaSquare.clip04x + 'px ' + this.clipAreaSquare.clip04y + 'px)';
-    return clipSquare;
-  }
-
-  public get clipTriangle() {
-    this._clipVersion();
-    const c = this.clipAreaTriangle;
-    return `polygon(${c.clip01x}px ${c.clip01y}px, ${c.clip02x}px ${c.clip02y}px, ${c.clip03x}px ${c.clip03y}px)`;
-  }
-
-  public get clipPentagon() {
-    this._clipVersion();
-    const c = this.clipAreaPentagon;
-    return `polygon(${c.clip01x}px ${c.clip01y}px, ${c.clip02x}px ${c.clip02y}px, ${c.clip03x}px ${c.clip03y}px, ${c.clip04x}px ${c.clip04y}px, ${c.clip05x}px ${c.clip05y}px)`;
-  }
-
-  public get clipHexagon() {
-    this._clipVersion();
-    const c = this.clipAreaHexagon;
-    return `polygon(${c.clip01x}px ${c.clip01y}px, ${c.clip02x}px ${c.clip02y}px, ${c.clip03x}px ${c.clip03y}px, ${c.clip04x}px ${c.clip04y}px, ${c.clip05x}px ${c.clip05y}px, ${c.clip06x}px ${c.clip06y}px)`;
-  }
+  });
 
   private clipAreaCorn: ClipAreaCorn = {
     clip01x: 0, // 根本始点
@@ -249,107 +190,80 @@ export class RangeComponent {
     return this.tabletopService.currentTable;
   }
 
+  /** range の identifier に対する versionOf 購読をまとめる内部 helper。
+   *  下位 @SyncVar 単位の computed が全てこの version を読むことで OnPush 配線を統一する。 */
+  private readonly rangeVersion = computed(() => this.objectChange.versionOf(this.range().identifier)());
+
   readonly name = computed(() => {
-    this.objectChange.versionOf(this.range().identifier)();
+    this.rangeVersion();
     return this.range().name;
   });
-  get width(): number {
+  readonly width = computed(() => {
+    this.rangeVersion();
     return this.adjustMinBounds(this.range().width);
-  }
-  get length(): number {
+  });
+  readonly length = computed(() => {
+    this.rangeVersion();
     return this.adjustMinBounds(this.range().length);
-  }
-  get opacity(): number {
+  });
+  readonly opacity = computed(() => {
+    this.rangeVersion();
     return this.range().opacity;
-  }
+  });
   readonly imageFile = computed(() => {
     this.objectChange.fileVersion();
-    const range = this.range();
-    this.objectChange.versionOf(range.identifier)();
-    return range.imageFile;
+    this.rangeVersion();
+    return this.range().imageFile;
   });
-  get isLock(): boolean {
+  readonly isLock = computed(() => {
+    this.rangeVersion();
     return this.range().isLock;
-  }
-  set isLock(isLock: boolean) {
-    this.range().isLock = isLock;
-  }
+  });
 
-  get areaQuadrantSize(): number {
-    const w = this.width < 1 ? 1 : this.width;
-    const l = this.length < 1 ? 1 : this.length;
+  readonly areaQuadrantSize = computed(() => {
+    const w = this.width() < 1 ? 1 : this.width();
+    const l = this.length() < 1 ? 1 : this.length();
     return Math.ceil(Math.sqrt(w * w + l * l)) + 1;
-  }
+  });
 
-  get isRotatableRangeType(): boolean {
+  readonly isRotatableRangeType = computed(() => {
+    this.rangeVersion();
     return ['LINE', 'CORN', 'SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(this.range().type);
-  }
+  });
 
-  get usesSingleRotateGrab(): boolean {
+  readonly usesSingleRotateGrab = computed(() => {
+    this.rangeVersion();
     return ['SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(this.range().type);
-  }
+  });
 
-  get rotateGrabDistancePx(): number {
-    return Math.max(1, this.length) * this.gridSize;
-  }
+  readonly rotateGrabDistancePx = computed(() => Math.max(1, this.length()) * this.gridSize);
 
-  get singleRotateGrabX(): number {
-    return 0;
-  }
+  readonly singleRotateGrabX = 0;
 
-  get singleRotateGrabY(): number {
-    return -Math.max(1, this.length) * this.gridSize;
-  }
+  readonly singleRotateGrabY = computed(() => -Math.max(1, this.length()) * this.gridSize);
 
-  get rotateDeg(): number {
-    let data2: string;
-    const rotateEl = this.rotate();
-    if (!rotateEl) {
-      return 0;
-    }
-    if (!rotateEl.nativeElement) {
-      return 0;
-    }
-    if (!rotateEl.nativeElement.style) {
-      return 0;
-    }
-    if (!rotateEl.nativeElement.style.transform) {
-      return 0;
-    }
-
-    const data = rotateEl.nativeElement.style.transform;
-    data2 = data.replace(/[^0-9.-]/g, '');
-    if (!data2) data2 = '0.0';
-    return parseFloat(data2);
-  }
-
-  get altitude(): number {
+  readonly altitude = computed(() => {
+    this.rangeVersion();
     return this.range().altitude;
-  }
-  set altitude(altitude: number) {
-    this.range().altitude = altitude;
-  }
+  });
 
-  get isFollowed(): boolean {
+  readonly isFollowed = computed(() => {
+    this.rangeVersion();
     return this.objectStore.get(this.range().followingCharctorIdentifier) != null;
-  }
-  get followingCharactor(): GameCharacter | null {
+  });
+  readonly followingCharactor = computed(() => {
+    this.rangeVersion();
     const obj = this.objectStore.get(this.range().followingCharctorIdentifier);
     return obj instanceof GameCharacter ? obj : null;
-  }
-  get elevation(): number {
-    return this.altitude;
-  }
-  get textShadowCss(): string {
-    return '0px 0px 2px #fff, 0px 0px 2px #fff, 0px 0px 2px #fff';
-  }
+  });
+  /** altitude エイリアス（テンプレートの "現在高度" 表記用に意味分かれている）。 */
+  readonly elevation = this.altitude;
+  readonly textShadowCss = '0px 0px 2px #fff, 0px 0px 2px #fff, 0px 0px 2px #fff';
 
-  get isAltitudeIndicate(): boolean {
+  readonly isAltitudeIndicate = computed(() => {
+    this.rangeVersion();
     return this.range().isAltitudeIndicate;
-  }
-  set isAltitudeIndicate(isAltitudeIndicate: boolean) {
-    this.range().isAltitudeIndicate = isAltitudeIndicate;
-  }
+  });
 
   private readonly _clipVersion = signal(0);
 
@@ -366,19 +280,24 @@ export class RangeComponent {
   private _initialized = false;
 
   constructor() {
-    this.objectChange.objectChanged$.subscribe((e) => {
-      if (!this._initialized) return;
-      const range = this.range();
-      if (!range) return;
-      // Range 自身・追従キャラ・テーブル設定の変更時だけ再描画。
-      // 部屋内の無関係なオブジェクト変更で毎回 canvas 再描画するとオブジェクトの多い部屋で重くなる。
-      const isRangeChange = e.identifier === range.identifier;
-      const isFollowingChange = e.identifier === range.followingCharctorIdentifier;
-      const isTableChange = e.identifier === this.currentTable.identifier;
-      if (!isRangeChange && !isFollowingChange && !isTableChange) return;
-      if (isFollowingChange) range.following();
-      this.setRange();
-    }, this.destroyRef);
+    // Range 自身・追従キャラ・テーブル設定の変更時だけ再描画。
+    // 部屋内の無関係なオブジェクト変更で毎回 canvas 再描画するとオブジェクトの多い部屋で重くなる。
+    // input.required<RangeArea> は `_initialized` (afterNextRender 後) より前に読むと NG0950 で落ちるため、
+    // getIdentifiers / listener どちらも初期化前は no-op で返す。
+    this.objectChange.onObjectChangedFor(
+      () => {
+        if (!this._initialized) return [];
+        const range = this.range();
+        return [range.identifier, range.followingCharctorIdentifier, this.currentTable.identifier];
+      },
+      (e) => {
+        if (!this._initialized) return;
+        const range = this.range();
+        if (e.identifier === range.followingCharctorIdentifier) range.following();
+        this.setRange();
+      },
+      this.destroyRef
+    );
     effect(() => {
       const range = this.range();
       // range の posX は起点（キャスター中心）を表す。
@@ -388,7 +307,7 @@ export class RangeComponent {
       const snapXY = isHexGrid(this.currentTable.gridType) ? 0 : half;
       this.movableOption.set({
         tabletopObject: range,
-        transformCssOffset: 'translateZ(0.25px)',
+        transformCssOffset: translateZCss(Z_OFFSET_RANGE_PX),
         colideLayers: ['terrain'],
         snapOrigin: { x: snapXY, y: snapXY },
       });
@@ -493,11 +412,13 @@ export class RangeComponent {
     if (!gridCanvasRef.nativeElement.getContext('2d')) return;
     const render = new RangeRender(gridCanvasRef.nativeElement, rangeCanvasRef.nativeElement);
 
+    const w = this.width();
+    const l = this.length();
     const setting: RangeRenderSetting = {
-      areaWidth: this.areaQuadrantSize * 2,
-      areaHeight: this.areaQuadrantSize * 2,
-      range: this.length < 1 ? 1 : this.length,
-      width: this.width < 0.1 ? 0.1 : this.width,
+      areaWidth: this.areaQuadrantSize() * 2,
+      areaHeight: this.areaQuadrantSize() * 2,
+      range: l < 1 ? 1 : l,
+      width: w < 0.1 ? 0.1 : w,
       centerX: this.range().location.x,
       centerY: this.range().location.y,
       gridSize: this.gridSize,
@@ -538,8 +459,6 @@ export class RangeComponent {
         break;
     }
 
-    const opacity: number = this.range().opacity;
-    gridCanvasRef.nativeElement.style.opacity = opacity + '';
     this._clipVersion.update((v) => v + 1);
   }
 }

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   selector: 'chat-color-setting',

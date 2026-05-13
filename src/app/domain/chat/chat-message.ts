@@ -1,4 +1,4 @@
-import { Network } from '@axe/core/index';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
@@ -115,13 +115,13 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.sendTo.length > 0;
   }
   get isSendFromSelf(): boolean {
-    return this.isSentBy(Network.peerContext.userId);
+    return this.isSentBy(getPeerContext().userId);
   }
   isSentBy(userId: string): boolean {
     return this.from === userId || this.originFrom === userId;
   }
   get isRelatedToMe(): boolean {
-    return this.isRelatedTo(Network.peerContext.userId);
+    return this.isRelatedTo(getPeerContext().userId);
   }
   isRelatedTo(userId: string): boolean {
     return this.sendTo.includes(userId) || this.isSentBy(userId);
@@ -149,7 +149,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.tags.includes('to-pl-system-message');
   }
   get changeable(): boolean {
-    return this.isChangeableBy(Network.peerContext.userId);
+    return this.isChangeableBy(getPeerContext().userId);
   }
   isChangeableBy(userId: string): boolean {
     return userId === this.from && this.name !== 'システムメッセージ';

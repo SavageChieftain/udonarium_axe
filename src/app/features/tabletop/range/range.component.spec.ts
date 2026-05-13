@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('RangeComponent', () => {
@@ -62,8 +62,11 @@ describe('RangeComponent', () => {
       expect(priv._clipVersion()).toBe(1);
     });
 
-    it('clipCornゲッターがpolygon文字列を返すこと', () => {
-      expect(component.clipCorn).toContain('polygon(');
+    it('clipPath computed が CORN 形状で polygon 文字列を返すこと', () => {
+      const range = RangeArea.create('テスト', 3, 5, 1);
+      range.type = 'CORN';
+      fixture.componentRef.setInput('range', range);
+      expect(component.clipPath()).toContain('polygon(');
     });
   });
 
@@ -90,7 +93,7 @@ describe('RangeComponent', () => {
       fixture.componentRef.setInput('range', range);
       fixture.detectChanges();
 
-      expect(component.usesSingleRotateGrab).toBe(true);
+      expect(component.usesSingleRotateGrab()).toBe(true);
       expect(fixture.nativeElement.querySelector('.rotate-grab')).toBeTruthy();
     });
 
@@ -100,8 +103,8 @@ describe('RangeComponent', () => {
       fixture.componentRef.setInput('range', range);
       fixture.detectChanges();
 
-      expect(component.isRotatableRangeType).toBe(false);
-      expect(component.usesSingleRotateGrab).toBe(false);
+      expect(component.isRotatableRangeType()).toBe(false);
+      expect(component.usesSingleRotateGrab()).toBe(false);
       expect(fixture.nativeElement.querySelector('.rotate-grab')).toBeNull();
     });
 

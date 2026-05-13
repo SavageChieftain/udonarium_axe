@@ -1,4 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -6,10 +9,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PasswordCheckComponent } from '@axe/features/lobby/password-check/password-check.component';
 import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
-import { TextTooltipDirective } from '@axe/shared/directives/text-tooltip.directive';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

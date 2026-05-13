@@ -1,17 +1,17 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
-import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',

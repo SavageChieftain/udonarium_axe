@@ -1,11 +1,9 @@
-import { Network } from '@axe/core/index';
-import { AudioStorage } from '@axe/core/storage/audio-storage';
+import { emitSoundOnlyCutIn, emitStartCutIn, emitStopCutIn, emitStopCutInByBgm } from '@axe/core/event/domain-events';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { emitSoundOnlyCutIn, emitStartCutIn, emitStopCutIn, emitStopCutInByBgm } from '@axe/domain/domain-events';
 import { CutIn } from '@axe/domain/media/cut-in';
-import { Jukebox } from '@axe/domain/media/jukebox';
 
 @SyncObject('cut-in-launcher')
 export class CutInLauncher extends GameObject {
@@ -21,41 +19,8 @@ export class CutInLauncher extends GameObject {
   reloadDummy = 5;
   private isInitialSync = true;
 
-  get jukebox(): Jukebox {
-    return ObjectStore.instance.get<Jukebox>('Jukebox')!;
-  }
-
-  isCutInBgmUploaded(audioIdentifier: string) {
-    const audio = AudioStorage.instance.get(audioIdentifier);
-    return audio !== null;
-  }
-
-  chatActivateCutIn(text: string, sendTo: string) {
-    const text2 = ` ${text}`;
-    const matches_array = text2.match(/\s(@?)(\S+)$/i);
-    let activateName: string;
-
-    if (matches_array) {
-      const isSoundOnly = matches_array[1] === '@';
-      activateName = matches_array[2];
-      const allCutIn = this.getCutIns();
-
-      for (const cutIn_ of allCutIn) {
-        if (cutIn_.chatActivate && cutIn_.name == activateName) {
-          if (isSoundOnly) {
-            this.startSoundOnlyCutIn(cutIn_, sendTo);
-          } else {
-            // 無タグで音声付きの場合BGM停止
-            if (this.isCutInBgmUploaded(cutIn_.audioIdentifier) && cutIn_.tagName == '') {
-              this.jukebox.stop();
-            }
-            this.startCutIn(cutIn_, sendTo);
-          }
-          return;
-        }
-      }
-    }
-  }
+  // chatActivateCutIn / isCutInBgmUploaded は application/media/cut-in.service.ts へ移動済み。
+  // 当クラスは startCutIn / stopCutIn / startSoundOnlyCutIn の同期辞書に専念する。
 
   startSoundOnlyCutIn(cutIn: CutIn, sendTo?: string) {
     this.soundOnlyCutInIdentifier = cutIn.identifier;
@@ -167,7 +132,7 @@ export class CutInLauncher extends GameObject {
 
     if (this.sendTo != '') {
       // 秘話再生
-      if (this.sendTo != Network.peerContext.userId) {
+      if (this.sendTo != getPeerContext().userId) {
         return;
       }
     }

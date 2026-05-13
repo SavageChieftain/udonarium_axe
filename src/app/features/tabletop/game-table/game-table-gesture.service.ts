@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 
 /**
  * ジェスチャー入力（マウス・タッチ）とビュー変換（X/Y/Z 移動・回転）を管理するコンポーネントスコープサービス。
@@ -92,7 +92,13 @@ export class GameTableGestureService {
       this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
     }
 
-    this.gameTableEl.style.transform = `translateZ(${this.viewPositionZ.toFixed(4)}px) translateY(${this.viewPositionY.toFixed(4)}px) translateX(${this.viewPositionX.toFixed(4)}px) rotateY(${this.viewRotateY.toFixed(4)}deg) rotateX(${this.viewRotateX.toFixed(4) + 'deg) rotateZ(' + this.viewRotateZ.toFixed(4)}deg)`;
+    const tx = this.viewPositionX.toFixed(4);
+    const ty = this.viewPositionY.toFixed(4);
+    const tz = this.viewPositionZ.toFixed(4);
+    const rx = this.viewRotateX.toFixed(4);
+    const ry = this.viewRotateY.toFixed(4);
+    const rz = this.viewRotateZ.toFixed(4);
+    this.gameTableEl.style.transform = `translateZ(${tz}px) translateY(${ty}px) translateX(${tx}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
   }
 
   /** TouchGesture 開始: マウスジェスチャーをキャンセル。 */

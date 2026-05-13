@@ -13,13 +13,13 @@ import { basename, join, resolve } from 'path';
 Logger.setLevel(LogLevel.NONE);
 
 // 非 providedIn:'root' なサービス — 全テストで自動提供する
-import { AppConfigService } from '@axe/core/app/app-config.service';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
+import { AppConfigService } from '@axe/composition/app-config.service';
 import { LoggerService } from '@axe/core/logging/logger.service';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
 
 // src/app 以下の全 HTML/CSS ファイルをファイル名でインデックス化
 const srcAppDir = resolve(process.cwd(), 'src/app');

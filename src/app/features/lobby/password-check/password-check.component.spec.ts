@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PasswordCheckComponent } from '@axe/features/lobby/password-check/password-check.component';
-import { ModalService } from '@axe/shared/ui/modal.service';
 
 describe('PasswordCheckComponent', () => {
   let component: PasswordCheckComponent;

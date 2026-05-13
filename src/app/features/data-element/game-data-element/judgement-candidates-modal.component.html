@@ -1,0 +1,46 @@
+@if (state(); as s) {
+  <div class="fixed inset-0 z-100 flex items-center justify-center bg-black/35" (click)="onClose()">
+    <div
+      class="bg-ui-bg border-ui-border-panel max-w-[90vw] min-w-[18rem] overflow-hidden rounded-md border shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="bg-ui-titlebar text-ui-text flex items-center justify-between gap-2 px-3 py-2">
+        <span class="flex-1 truncate text-[0.85rem] font-bold"> {{ s.clickedCellLabel }} の判定候補 </span>
+        <button
+          class="shrink-0 cursor-pointer border-none bg-transparent p-0 leading-none text-inherit"
+          type="button"
+          (click)="onClose()"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+      @if (s.candidates.length === 0) {
+        <p class="text-ui-dim m-0 p-4 text-center text-[0.85rem]">習得済みの技能が見つかりませんでした</p>
+      } @else {
+        <ul class="m-0 max-h-[60vh] list-none overflow-y-auto p-0 py-1">
+          @for (candidate of s.candidates; track candidate.cell.identifier) {
+            <li class="border-ui-border-panel flex items-center gap-[0.4rem] border-b px-3 py-1.5 last:border-b-0">
+              <span class="flex-1 truncate text-[0.85rem]">
+                {{ candidate.cellLabel || candidate.colLabel }}
+              </span>
+              <span
+                class="text-ui-dim min-w-6 shrink-0 text-right text-[0.75rem]"
+                [title]="'距離: ' + candidate.distance"
+              >
+                {{ candidate.distance }}
+              </span>
+              <button
+                class="text-ui-accent hover:bg-ui-accent-bg shrink-0 cursor-pointer rounded-[3px] border-none bg-transparent p-[0.1rem] leading-none transition-[background] duration-150"
+                type="button"
+                title="チャットに入力"
+                (click)="onSendToChat(candidate, $event)"
+              >
+                <i class="material-icons">chat</i>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+}

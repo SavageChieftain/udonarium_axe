@@ -9,10 +9,10 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

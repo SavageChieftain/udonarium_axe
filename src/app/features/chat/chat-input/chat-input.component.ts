@@ -15,6 +15,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { BatchService } from '@axe/application/ui/batch.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { callWritingAMessage } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -23,19 +29,13 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { callWritingAMessage } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
 import { ChatInputDiceBotHelper } from '@axe/features/chat/chat-input/chat-input-dicebot';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatInputHistory } from '@axe/features/chat/chat-input/chat-input-history';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { BatchService } from '@axe/shared/ui/batch.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -136,18 +136,21 @@ export class ChatInputComponent {
   readonly autoCompleteDo = output<number>();
 
   constructor() {
-    this.objectChange.objectChanged$.subscribe((event) => {
-      if (event.aliasName !== GameCharacter.aliasName) return;
-      if (event.identifier !== this.sendFrom) return;
-      const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
-      if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId, this.onlyCharacters())) {
-        if (0 < this.gameCharacters().length && this.onlyCharacters()) {
-          this.sendFrom = this.gameCharacters()[0].identifier;
-        } else {
-          this.sendFrom = this.myPeer.identifier;
+    this.objectChange.onObjectChangedForAlias(
+      [GameCharacter.aliasName],
+      (event) => {
+        if (event.identifier !== this.sendFrom) return;
+        const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
+        if (gameCharacter && !allowsChat(gameCharacter, this.myPeer.peerId, this.onlyCharacters())) {
+          if (0 < this.gameCharacters().length && this.onlyCharacters()) {
+            this.sendFrom = this.gameCharacters()[0].identifier;
+          } else {
+            this.sendFrom = this.myPeer.identifier;
+          }
         }
-      }
-    }, this.destroyRef);
+      },
+      this.destroyRef
+    );
     this.objectChange.peerDisconnect$.subscribe((event) => {
       const object = this.objectStore.get(this.sendTo);
       if (object instanceof PeerCursor && object.peerId === event.peerId) {

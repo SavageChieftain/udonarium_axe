@@ -1,26 +1,26 @@
 <div
   class="group pointer-events-none absolute size-12.5 select-none [-moz-user-drag:none] [-webkit-user-drag:none] backface-hidden transform-3d"
-  [class.cursor-grab]="!isLock"
+  [class.cursor-grab]="!isLock()"
   appMovable
   [movable.option]="movableOption()"
-  [movable.disable]="isLock"
+  [movable.disable]="isLock()"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >
   <div
     class="transform-3d"
-    [class.[transition:transform_132ms_ease-in-out]]="altitude === 0"
-    [style.transform]="'translateZ(' + altitude * gridSize + 'px)'"
+    [class.[transition:transform_132ms_ease-in-out]]="altitude() === 0"
+    [style.transform]="'translateZ(' + altitude() * gridSize + 'px)'"
   >
     <div
       class="pointer-events-auto absolute transform-3d"
       [style.width.px]="0"
       [style.height.px]="0"
-      [style.clip-path]="clipPathText"
+      [style.clip-path]="clipPath()"
     >
-      <div class="absolute" [style.top.px]="0" [style.left.px]="-1 * areaQuadrantSize * gridSize">
+      <div class="absolute" [style.top.px]="0" [style.left.px]="-1 * areaQuadrantSize() * gridSize">
         <div [appTooltip]="range()">
-          <canvas class="absolute inset-0 m-auto block" #gridCanvas></canvas>
+          <canvas class="absolute inset-0 m-auto block" [style.opacity]="opacity()" #gridCanvas></canvas>
           <canvas class="absolute inset-0 m-auto block" #rangeCanvas></canvas>
         </div>
       </div>
@@ -32,28 +32,28 @@
       (rotable.ondragstart)="onMove()"
       (rotable.valueChange)="onRotateChanged($event)"
       (rotable.ondragend)="onMoved()"
-      [rotable.disable]="isLock || !isRotatableRangeType"
+      [rotable.disable]="isLock() || !isRotatableRangeType()"
       #rotate
     >
-      @if (isLock) {
+      @if (isLock()) {
         <div class="bg-ui-elevated text-ui-muted absolute inset-0 m-auto size-6.25 rounded-full">
           <i class="material-icons">lock</i>
         </div>
       }
-      @if (!isLock && isRotatableRangeType) {
+      @if (!isLock() && isRotatableRangeType()) {
         <div class="pointer-events-none absolute top-0 left-0 size-0 overflow-visible">
-          @if (usesSingleRotateGrab) {
+          @if (usesSingleRotateGrab()) {
             <div
               class="rotate-grab range-rotate-grab--single border-ui-border-panel bg-ui-elevated text-ui-muted pointer-events-auto absolute -z-1 box-border flex size-10.5 transform-[translate(-50%,-50%)_translateZ(0.1px)] cursor-default items-center justify-center rounded-full border-2 border-solid p-0 text-[24px] opacity-0 shadow-[0_0_0_3px_color-mix(in_srgb,var(--ui-panel-bg)_70%,transparent)] will-change-[opacity] transform-3d group-hover:opacity-86 group-active:opacity-86 [&_.material-icons]:text-[28px]!"
               [style.left.px]="singleRotateGrabX"
-              [style.top.px]="singleRotateGrabY"
+              [style.top.px]="singleRotateGrabY()"
             >
               <i class="material-icons">autorenew</i>
             </div>
           } @else {
             <div
               class="rotate-grab border-ui-border-panel bg-ui-elevated text-ui-muted pointer-events-auto absolute -top-3.75 -left-3.75 -z-1 box-border size-7.5 transform-[translateZ(0.1px)] cursor-default rounded-full border-2 border-solid p-0 text-[24px] opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
-              [style.left.px]="rotateGrabDistancePx"
+              [style.left.px]="rotateGrabDistancePx()"
             >
               <i class="material-icons">autorenew</i>
             </div>
@@ -72,75 +72,73 @@
       }
     </div>
   </div>
-  @if (isAltitudeIndicate && (altitude <= -0.5 || 0.5 <= altitude)) {
+  @if (isAltitudeIndicate() && (altitude() <= -0.5 || 0.5 <= altitude())) {
     <div
       class="flex origin-top-left flex-col flex-nowrap justify-between border-l-2 border-dashed border-black transform-3d"
       [style.border-left-color]="range().rangeColor"
-      [style.height.px]="math.abs(altitude * gridSize) - (altitude > 0 ? 0 : 0)"
+      [style.height.px]="math.abs(altitude() * gridSize) - (altitude() > 0 ? 0 : 0)"
       [ngStyle]="{
         transform:
           'rotateX(-90deg) translateY(' +
-          (altitude > 0 ? -altitude * gridSize : 0) +
+          (altitude() > 0 ? -altitude() * gridSize : 0) +
           'px) rotateY(' +
           viewRotateZ() +
           'deg)',
       }"
     >
-      <div class="transform-3d" [style.visibility]="altitude > 0 ? 'visible' : 'hidden'">
-        <span
-          class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold backface-hidden transform-3d"
-          [style.color]="range().rangeColor"
-          [style.text-shadow]="textShadowCss"
-          ><i>{{ elevation }}</i></span
+      <!-- 上端(sign=1)・下端(sign=-1)の elevation 表示。altitude * sign > 0 のとき可視。
+           下端は追従キャラのチャットバブル分だけ Y 方向にずらす。中央の絶対値ラベルは
+           上端ブロックの直後に 1 度だけ描画する。 -->
+      @for (sign of [1, -1]; track sign; let isFirst = $first) {
+        <div
+          class="transform-3d"
+          [style.visibility]="altitude() * sign > 0 ? 'visible' : 'hidden'"
+          [ngStyle]="
+            isFirst
+              ? null
+              : {
+                  transform:
+                    'translateY(' + (isFollowed() ? (followingCharactor()?.chatBubbleAltitude ?? 0) + 4 : 0) + 'px)',
+                }
+          "
         >
-        <span
-          class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold backface-hidden transform-3d"
-          [style.color]="range().rangeColor"
-          [style.text-shadow]="textShadowCss"
-          ><i>{{ elevation }}</i></span
-        >
-      </div>
-      <div class="transform-3d">
-        <span
-          class="text-ui-text absolute pl-0.5 text-[10px] backface-hidden transform-3d"
-          [style.color]="range().rangeColor"
-          [style.text-shadow]="textShadowCss"
-          >{{ math.abs(altitude) }}</span
-        >
-        <span
-          class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[10px] backface-hidden transform-3d"
-          [style.color]="range().rangeColor"
-          [style.text-shadow]="textShadowCss"
-          >{{ math.abs(altitude) }}</span
-        >
-      </div>
-      <div
-        class="transform-3d"
-        [style.visibility]="altitude < 0 ? 'visible' : 'hidden'"
-        [ngStyle]="{
-          transform: 'translateY(' + (isFollowed ? (followingCharactor?.chatBubbleAltitude ?? 0) + 4 : 0) + 'px)',
-        }"
-      >
-        <span
-          class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold backface-hidden transform-3d"
-          [style.color]="range().rangeColor"
-          [style.text-shadow]="textShadowCss"
-          ><i>{{ elevation }}</i></span
-        >
-        <span
-          class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold backface-hidden transform-3d"
-          [style.color]="range().rangeColor"
-          [style.text-shadow]="textShadowCss"
-          ><i>{{ elevation }}</i></span
-        >
-      </div>
+          <span
+            class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold backface-hidden transform-3d"
+            [style.color]="range().rangeColor"
+            [style.text-shadow]="textShadowCss"
+            ><i>{{ elevation() }}</i></span
+          >
+          <span
+            class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold backface-hidden transform-3d"
+            [style.color]="range().rangeColor"
+            [style.text-shadow]="textShadowCss"
+            ><i>{{ elevation() }}</i></span
+          >
+        </div>
+        @if (isFirst) {
+          <div class="transform-3d">
+            <span
+              class="text-ui-text absolute pl-0.5 text-[10px] backface-hidden transform-3d"
+              [style.color]="range().rangeColor"
+              [style.text-shadow]="textShadowCss"
+              >{{ math.abs(altitude()) }}</span
+            >
+            <span
+              class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[10px] backface-hidden transform-3d"
+              [style.color]="range().rangeColor"
+              [style.text-shadow]="textShadowCss"
+              >{{ math.abs(altitude()) }}</span
+            >
+          </div>
+        }
+      }
     </div>
   }
   <div
     class="absolute z-0 transform-3d"
-    [style.visibility]="altitude !== 0 ? 'visible' : 'hidden'"
+    [style.visibility]="altitude() !== 0 ? 'visible' : 'hidden'"
     [style.top.px]="0"
-    [style.left.px]="-1 * areaQuadrantSize * gridSize"
+    [style.left.px]="-1 * areaQuadrantSize() * gridSize"
   >
     <canvas class="absolute inset-0 m-auto block transform-3d" #centerPunch></canvas>
   </div>

@@ -1,12 +1,12 @@
-import { Network } from '@axe/core/index';
+import { domainPeerDisconnect$ } from '@axe/core/event/domain-events';
 import { Logger } from '@axe/core/logging/logger';
+import { getMyPeerId, getPeerIds } from '@axe/core/network/peer-context-source';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
-import { domainPeerDisconnect$ } from '@axe/domain/domain-events';
 import { Vote } from '@axe/domain/vote/vote';
 
 const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
@@ -194,7 +194,7 @@ export class PeerCursor extends GameObject {
         domainPeerDisconnect$.subscribe((data) => {
           if (data.peerId !== this.peerId) return;
           setTimeout(() => {
-            if (Network.peerIds.includes(this.peerId)) return;
+            if (getPeerIds().includes(this.peerId)) return;
             PeerCursor.userIdMap.delete(this.userId);
             PeerCursor.peerIdMap.delete(this.peerId);
             ObjectStore.instance.remove(this);
@@ -242,7 +242,7 @@ export class PeerCursor extends GameObject {
       return PeerCursor.myCursor;
     }
     PeerCursor.myCursor = new PeerCursor();
-    PeerCursor.myCursor.peerId = Network.peerId;
+    PeerCursor.myCursor.peerId = getMyPeerId();
     PeerCursor.myCursor.isDisConnect = false;
     PeerCursor.myCursor.initialize();
     return PeerCursor.myCursor;

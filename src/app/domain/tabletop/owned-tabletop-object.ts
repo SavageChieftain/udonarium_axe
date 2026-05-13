@@ -1,4 +1,4 @@
-import { Network } from '@axe/core/index';
+import { getPeerContext, getPeerContexts } from '@axe/core/network/peer-context-source';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
@@ -21,7 +21,7 @@ export abstract class OwnedTabletopObject extends TabletopObject {
   }
 
   get isMine(): boolean {
-    return this.isOwnedBy(Network.peerContext.userId);
+    return this.isOwnedBy(getPeerContext().userId);
   }
 
   isOwnedBy(userId: string): boolean {
@@ -29,7 +29,7 @@ export abstract class OwnedTabletopObject extends TabletopObject {
   }
 
   get ownerIsOnline(): boolean {
-    return this.isOwnerOnline(Network.peerContexts);
+    return this.isOwnerOnline(getPeerContexts());
   }
 
   isOwnerOnline(peerContexts: { userId: string; isOpen: boolean }[]): boolean {

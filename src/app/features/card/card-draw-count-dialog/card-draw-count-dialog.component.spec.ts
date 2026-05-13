@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { CardDrawCountDialogComponent } from '@axe/features/card/card-draw-count-dialog/card-draw-count-dialog.component';
-import { ModalService } from '@axe/shared/ui/modal.service';
 
 describe('CardDrawCountDialogComponent', () => {
   let fixture: ComponentFixture<CardDrawCountDialogComponent>;

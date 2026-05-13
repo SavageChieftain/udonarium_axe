@@ -1,4 +1,4 @@
-import { CLASS_SINGLETON_PROVIDERS } from '@axe/core/di/class-provider';
+import { CLASS_SINGLETON_PROVIDERS } from '@axe/composition/class-provider';
 
 /**
  * テスト用のプロバイダ配列。

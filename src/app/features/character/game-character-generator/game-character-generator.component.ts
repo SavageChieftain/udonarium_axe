@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

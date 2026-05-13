@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ModalService } from '@axe/shared/ui/modal.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 
 export interface CardDrawCountDialogOption {
   maxCount: number;

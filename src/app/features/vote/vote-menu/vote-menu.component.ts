@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

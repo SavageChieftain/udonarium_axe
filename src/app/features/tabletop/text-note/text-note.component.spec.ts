@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('TextNoteComponent', () => {

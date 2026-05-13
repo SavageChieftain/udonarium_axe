@@ -11,6 +11,8 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -21,20 +23,30 @@ import {
   DataElement,
   DataElementAttribute,
   DataElementFieldType,
-  DataElementRole,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
+import {
+  buildTableColumnHeaderGroups,
+  canRenderAsTable,
+  findGapCellInColumn,
+  getCellLabel,
+  getSelectOptions,
+  getTableBodyRows,
+  getTableCell,
+  getTableColumns,
+  isCheckCellChecked,
+  isGapColumn,
+  isSelectValueListed,
+  nextCheckCellValue,
+  type TableColumn as OverviewTableColumn,
+  type TableColumnHeaderGroup as OverviewTableColumnHeaderGroup,
+} from '@axe/domain/data/table-layout';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TextNote } from '@axe/domain/tabletop/text-note'; //
-import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-
-type OverviewTableColumn = { name: string; label: string; group: string; kind: string };
-type OverviewTableColumnHeaderGroup = { key: string; label: string; span: number };
+import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   selector: 'overview-panel',
@@ -178,38 +190,18 @@ export class OverviewPanelComponent {
   shouldRenderTableView(element: DataElement): boolean {
     return (
       element.viewMode === DataElementViewMode.TABLE &&
-      this.canRenderTableRows(element) &&
+      canRenderAsTable(element) &&
       this.getTableRows(element).length > 0 &&
       this.getTableColumns(element).length > 0
     );
   }
 
   getTableRows(element: DataElement): DataElement[] {
-    return this.getRawTableRows(element).filter((row) => !this.isTableControlRow(row));
-  }
-
-  private getRawTableRows(element: DataElement): DataElement[] {
-    return element.children.filter((child) => child.children.length > 0);
+    return getTableBodyRows(element);
   }
 
   getTableColumns(element: DataElement): OverviewTableColumn[] {
-    const columns: OverviewTableColumn[] = [];
-    for (const row of this.getRawTableRows(element)) {
-      for (const child of row.children) {
-        if (child.fieldRole !== DataElementRole.FIELD || columns.some((column) => column.name === child.name)) continue;
-        columns.push(this.createTableColumn(child));
-      }
-    }
-    return columns;
-  }
-
-  private createTableColumn(cell: DataElement): OverviewTableColumn {
-    return {
-      name: cell.name,
-      label: cell.getAttribute(DataElementAttribute.COLUMN_LABEL).trim() || cell.name,
-      group: cell.getAttribute(DataElementAttribute.COLUMN_GROUP).trim(),
-      kind: cell.getAttribute(DataElementAttribute.CELL_KIND).trim(),
-    };
+    return getTableColumns(element);
   }
 
   hasTableColumnGroups(element: DataElement): boolean {
@@ -217,17 +209,7 @@ export class OverviewPanelComponent {
   }
 
   getTableColumnHeaderGroups(element: DataElement): OverviewTableColumnHeaderGroup[] {
-    const groups: OverviewTableColumnHeaderGroup[] = [];
-    for (const [index, column] of this.getTableColumns(element).entries()) {
-      const label = column.group || column.label;
-      const lastGroup = groups[groups.length - 1];
-      if (lastGroup && lastGroup.label === label) {
-        lastGroup.span += 1;
-      } else {
-        groups.push({ key: `${index}:${label}`, label, span: 1 });
-      }
-    }
-    return groups;
+    return buildTableColumnHeaderGroups(this.getTableColumns(element));
   }
 
   getTableRowHeaderLabel(element: DataElement): string {
@@ -235,11 +217,11 @@ export class OverviewPanelComponent {
   }
 
   getTableCell(row: DataElement, columnName: string): DataElement | null {
-    return row.children.find((child) => child.fieldRole === DataElementRole.FIELD && child.name === columnName) ?? null;
+    return getTableCell(row, columnName);
   }
 
   isGapTableColumn(column: OverviewTableColumn): boolean {
-    return column.kind === 'gap';
+    return isGapColumn(column);
   }
 
   isGapTableColumnActive(element: DataElement, column: OverviewTableColumn): boolean {
@@ -270,12 +252,7 @@ export class OverviewPanelComponent {
   }
 
   private getGapTableColumnCell(element: DataElement, column: OverviewTableColumn): DataElement | null {
-    if (!this.isGapTableColumn(column)) return null;
-    for (const row of this.getRawTableRows(element)) {
-      const cell = this.getTableCell(row, column.name);
-      if (cell?.getAttribute(DataElementAttribute.CELL_KIND).trim() === 'gap') return cell;
-    }
-    return null;
+    return findGapCellInColumn(element, column);
   }
 
   getTableCellDisplayText(cell: DataElement): string {
@@ -283,7 +260,7 @@ export class OverviewPanelComponent {
       case DataElementFieldType.RESOURCE:
         return `${cell.currentValue}/${cell.value}`;
       case DataElementFieldType.CHECK:
-        return this.getTableCellLabel(cell);
+        return getCellLabel(cell);
       default:
         return String(cell.value ?? '')
           .replace(/\s+/g, ' ')
@@ -292,15 +269,11 @@ export class OverviewPanelComponent {
   }
 
   getTableSelectOptions(cell: DataElement): string[] {
-    return cell
-      .getAttribute(DataElementAttribute.CHOICES)
-      .split(/\r?\n|,/)
-      .map((choice) => choice.trim())
-      .filter((choice) => choice.length > 0);
+    return getSelectOptions(cell);
   }
 
   isTableSelectValueListed(cell: DataElement): boolean {
-    return this.getTableSelectOptions(cell).includes(String(cell.value ?? ''));
+    return isSelectValueListed(cell);
   }
 
   setTableSelectCellValue(cell: DataElement, value: string): void {
@@ -318,7 +291,7 @@ export class OverviewPanelComponent {
   }
 
   getTableCellLabel(cell: DataElement): string {
-    return cell.getAttribute(DataElementAttribute.CELL_TEXT).trim();
+    return getCellLabel(cell);
   }
 
   getPopupCurrentValueColor(element: DataElement): string | null {
@@ -327,41 +300,11 @@ export class OverviewPanelComponent {
   }
 
   isTableCheckCellChecked(cell: DataElement): boolean {
-    const value = String(cell.value).trim().toLowerCase();
-    return value === '1' || value === 'true' || value === 'x' || value === 'checked';
+    return isCheckCellChecked(cell);
   }
 
   toggleTableCheckCell(cell: DataElement, event?: Event): void {
-    if (event?.target instanceof HTMLInputElement) {
-      cell.value = event.target.checked ? 1 : 0;
-      return;
-    }
-    cell.value = this.isTableCheckCellChecked(cell) ? 0 : 1;
-  }
-
-  private canRenderTableRows(element: DataElement): boolean {
-    if (element.children.length < 1) return false;
-    for (const row of element.children) {
-      if (row.fieldRole === DataElementRole.FIELD || row.children.length < 1) return false;
-      for (const child of row.children) {
-        if (child.fieldRole !== DataElementRole.FIELD) return false;
-      }
-    }
-    return true;
-  }
-
-  private isTableControlRow(row: DataElement): boolean {
-    const hasGapCell = row.children.some(
-      (child) => child.getAttribute(DataElementAttribute.CELL_KIND).trim() === 'gap'
-    );
-    if (!hasGapCell) return false;
-
-    return row.children.every((child) => {
-      if (child.getAttribute(DataElementAttribute.CELL_KIND).trim() === 'gap') return true;
-      return (
-        String(child.value ?? '').trim() === '' && child.getAttribute(DataElementAttribute.CELL_TEXT).trim() === ''
-      );
-    });
+    cell.value = nextCheckCellValue(cell, event);
   }
 
   get dataElms(): DataElement[] {

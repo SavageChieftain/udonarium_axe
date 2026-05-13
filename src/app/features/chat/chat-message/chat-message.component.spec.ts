@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatMessageComponent', () => {

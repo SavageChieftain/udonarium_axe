@@ -1,6 +1,6 @@
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 export interface RemoteControllerSelect {

@@ -12,6 +12,13 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -21,27 +28,17 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
-import {
-  buildHexRingClipPath,
-  calcHexFlowerParams,
-  HexFlowerParams,
-} from '@axe/features/character/game-character/hex-pedestal-geometry';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
-import { InputHandler } from '@axe/shared/directives/input-handler';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { RotableOption } from '@axe/shared/directives/rotable.directive';
-import { RotableDirective } from '@axe/shared/directives/rotable.directive';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { InputHandler } from '@axe/ui/directives/input-handler';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { RotableOption } from '@axe/ui/directives/rotable.directive';
+import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
+import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
   selector: 'game-character',
@@ -108,7 +105,7 @@ export class GameCharacterComponent {
       if (!char) return;
       this.movableOption.set({
         tabletopObject: char,
-        transformCssOffset: 'translateZ(1.0px)',
+        transformCssOffset: translateZCss(Z_OFFSET_TALL_OBJECT_PX),
         colideLayers: ['terrain'],
         snapStyle: char.size % 1 !== 0 ? GridSnapStyle.VERTEX : undefined,
       });

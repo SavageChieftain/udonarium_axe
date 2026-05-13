@@ -9,11 +9,16 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -30,21 +35,22 @@ import {
 } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
+import { CharacterSheetTarget } from '@axe/domain/tabletop/character-sheet-target';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
-import { DataElementDragService } from '@axe/features/character/data-element-drag.service';
-import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
+import { cloneTabletopObject } from '@axe/features/character/game-character-sheet/character-sheet-target-helpers';
+import {
+  canReorderDetailElement,
+  reorderDetailElement,
+} from '@axe/features/character/game-character-sheet/detail-element-reorder-helpers';
+import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
-import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,44 +71,11 @@ export class GameCharacterSheetComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly dataElementDrag = inject(DataElementDragService);
 
-  private readonly _tabletopObject = signal<
-    | GameCharacter
-    | DiceSymbol
-    | Card
-    | CardStack
-    | Terrain
-    | TextNote
-    | RangeArea
-    | GameTableMask
-    | GameTableScratchMask
-    | null
-  >(null);
-  get tabletopObject():
-    | GameCharacter
-    | DiceSymbol
-    | Card
-    | CardStack
-    | Terrain
-    | TextNote
-    | RangeArea
-    | GameTableMask
-    | GameTableScratchMask
-    | null {
+  private readonly _tabletopObject = signal<CharacterSheetTarget | null>(null);
+  get tabletopObject(): CharacterSheetTarget | null {
     return this._tabletopObject();
   }
-  set tabletopObject(
-    value:
-      | GameCharacter
-      | DiceSymbol
-      | Card
-      | CardStack
-      | Terrain
-      | TextNote
-      | RangeArea
-      | GameTableMask
-      | GameTableScratchMask
-      | null
-  ) {
+  set tabletopObject(value: CharacterSheetTarget | null) {
     this._tabletopObject.set(value);
     this.editingIds.set(new Set());
     this.activeTab.set('sheet');
@@ -146,7 +119,8 @@ export class GameCharacterSheetComponent {
 
   onDragOver(event: DragEvent, id: string) {
     const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;
-    if (!draggedId || draggedId === id || !this.canMoveDetailElementBefore(draggedId, id)) return;
+    if (!draggedId || draggedId === id || !canReorderDetailElement(this.character, this.objectStore, draggedId, id))
+      return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     this.dragOverId.set(id);
@@ -163,33 +137,7 @@ export class GameCharacterSheetComponent {
     this._draggedId = null;
     this.dataElementDrag.end();
     if (!draggedId || draggedId === targetId) return;
-    this.moveDetailElement(draggedId, targetId);
-  }
-
-  private canMoveDetailElementBefore(draggedId: string, targetId: string): boolean {
-    const char = this.character;
-    if (!char?.detailDataElement || draggedId === targetId) return false;
-    const draggedEl = this.objectStore.get<DataElement>(draggedId);
-    const targetEl = char.detailDataElement.children.find((e) => e.identifier === targetId);
-    if (!draggedEl || !targetEl) return false;
-    return !draggedEl.contains(char.detailDataElement);
-  }
-
-  private moveDetailElement(draggedId: string, targetId: string) {
-    const char = this.character;
-    if (!char?.detailDataElement) return;
-    const draggedEl = this.objectStore.get<DataElement>(draggedId);
-    const targetEl = char.detailDataElement.children.find((e) => e.identifier === targetId);
-    if (!draggedEl || !targetEl) return;
-    const oldParent = draggedEl.parent as DataElement | null;
-    char.detailDataElement.insertBefore(draggedEl, targetEl);
-    draggedEl.syncFieldRoleToHierarchy();
-    oldParent?.update();
-    char.detailDataElement.update();
-    this.objectChange.notifyChanged(draggedEl.identifier);
-    if (oldParent) this.objectChange.notifyChanged(oldParent.identifier);
-    this.objectChange.notifyChanged(char.detailDataElement.identifier);
-    char.update();
+    reorderDetailElement(this.character, this.objectStore, this.objectChange, draggedId, targetId);
   }
 
   // ── カード占有幅（colspan）──
@@ -409,38 +357,7 @@ export class GameCharacterSheetComponent {
   }
 
   clone() {
-    const obj = this.tabletopObject;
-    if (!obj) return;
-    const cloneObject = obj.clone();
-    cloneObject.location.x += 50;
-    cloneObject.location.y += 50;
-    if (obj.parent) obj.parent.appendChild(cloneObject);
-    cloneObject.update();
-    if (cloneObject instanceof Terrain) {
-      cloneObject.isLocked = false;
-      SoundEffect.play(PresetSound.blockPut);
-    } else if (cloneObject instanceof Card) {
-      cloneObject.owner = '';
-      cloneObject.toTopmost();
-      cloneObject.isLock = false;
-      SoundEffect.play(PresetSound.cardPut);
-    } else if (cloneObject instanceof CardStack) {
-      cloneObject.owner = '';
-      cloneObject.toTopmost();
-      cloneObject.isLock = false;
-      SoundEffect.play(PresetSound.cardPut);
-    } else if (cloneObject instanceof GameTableMask) {
-      cloneObject.isLock = false;
-      SoundEffect.play(PresetSound.cardPut);
-    } else if (cloneObject instanceof TextNote) {
-      cloneObject.toTopmost();
-      SoundEffect.play(PresetSound.cardPut);
-    } else if (cloneObject instanceof DiceSymbol) {
-      SoundEffect.play(PresetSound.dicePut);
-      SoundEffect.play(PresetSound.piecePut);
-    } else {
-      SoundEffect.play(PresetSound.piecePut);
-    }
+    if (this.tabletopObject) cloneTabletopObject(this.tabletopObject);
   }
 
   clickHide() {
@@ -599,37 +516,25 @@ export class GameCharacterSheetComponent {
 
   chkKomaSize(height: number) {
     const character = this.tabletopObject as GameCharacter;
-    character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
+    character.komaImageHeight = clampInRange(Number(height), 50, 750, character.komaImageHeight);
     this.objectChange.notifyChanged(character.identifier);
     this.pointerDeviceService.isDragging = false;
   }
 
   chkDiceKomaSize(height: number) {
     const character = this.tabletopObject as DiceSymbol;
-    character.komaImageHeight = this.normalizeKomaImageHeight(height, character.komaImageHeight);
+    character.komaImageHeight = clampInRange(Number(height), 50, 750, character.komaImageHeight);
     this.pointerDeviceService.isDragging = false;
-  }
-
-  private normalizeKomaImageHeight(height: number, currentValue: number): number {
-    const numericHeight = Number(height);
-    if (!Number.isFinite(numericHeight)) return currentValue;
-    if (numericHeight < 50) return 50;
-    if (numericHeight > 750) return 750;
-    return numericHeight;
   }
 
   chkPopWidth(width: number) {
     const character = this.tabletopObject as GameCharacter;
-    if (width < 270) width = 270;
-    if (width > 800) width = 800;
-    character.overViewWidth = width;
+    character.overViewWidth = clampInRange(width, 270, 800, character.overViewWidth);
   }
 
   chkPopMaxHeight(maxHeight: number) {
     const character = this.tabletopObject as GameCharacter;
-    if (maxHeight < 250) maxHeight = 250;
-    if (maxHeight > 1000) maxHeight = 1000;
-    character.overViewMaxHeight = maxHeight;
+    character.overViewMaxHeight = clampInRange(maxHeight, 250, 1000, character.overViewMaxHeight);
   }
   async saveToXML() {
     const obj = this.tabletopObject;
@@ -699,27 +604,21 @@ export class GameCharacterSheetComponent {
   }
   onChkAltitude(event: Event): void {
     const character = this.tabletopObject as GameCharacter;
-    let value = (event.target as HTMLInputElement).valueAsNumber;
-    if (!Number.isFinite(value)) value = 0;
-    character.altitude = Math.round(value);
+    character.altitude = roundOr((event.target as HTMLInputElement).valueAsNumber, 0);
   }
   onChkLocationX(event: Event): void {
     const character = this.tabletopObject as GameCharacter;
-    let value = (event.target as HTMLInputElement).valueAsNumber;
-    if (!Number.isFinite(value)) value = 0;
-    character.location = { ...character.location, x: Math.round(value) };
+    const x = roundOr((event.target as HTMLInputElement).valueAsNumber, 0);
+    character.location = { ...character.location, x };
   }
   onChkLocationY(event: Event): void {
     const character = this.tabletopObject as GameCharacter;
-    let value = (event.target as HTMLInputElement).valueAsNumber;
-    if (!Number.isFinite(value)) value = 0;
-    character.location = { ...character.location, y: Math.round(value) };
+    const y = roundOr((event.target as HTMLInputElement).valueAsNumber, 0);
+    character.location = { ...character.location, y };
   }
   onChkRotate(event: Event): void {
     const character = this.tabletopObject as GameCharacter;
-    let value = (event.target as HTMLInputElement).valueAsNumber;
-    if (!Number.isFinite(value)) value = 0;
-    character.rotate = value;
+    character.rotate = floatOr((event.target as HTMLInputElement).valueAsNumber, 0);
   }
   resetRotate(): void {
     const character = this.tabletopObject as GameCharacter;
@@ -728,9 +627,7 @@ export class GameCharacterSheetComponent {
   }
   onChkRoll(event: Event): void {
     const character = this.tabletopObject as GameCharacter;
-    let value = (event.target as HTMLInputElement).valueAsNumber;
-    if (!Number.isFinite(value)) value = 0;
-    character.roll = value;
+    character.roll = floatOr((event.target as HTMLInputElement).valueAsNumber, 0);
   }
   resetRoll(): void {
     const character = this.tabletopObject as GameCharacter;

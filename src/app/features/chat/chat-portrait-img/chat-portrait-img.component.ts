@@ -11,15 +11,15 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 const PORTRAIT_COUNT = 12;
 const PORTRAIT_OPACITY_BACKGROUND = 0.66;

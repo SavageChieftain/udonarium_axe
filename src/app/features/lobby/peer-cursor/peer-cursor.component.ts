@@ -10,18 +10,19 @@ import {
   input,
   viewChild,
 } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { BatchService } from '@axe/application/ui/batch.service';
+import { callCursorMove, callHeartBeat } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { callCursorMove, callHeartBeat } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { BatchService } from '@axe/shared/ui/batch.service';
+import { toTransformCss } from '@axe/ui/directives/movable-helpers';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -289,6 +290,6 @@ export class PeerCursorComponent {
   }
 
   private setPosition(x: number, y: number, z: number) {
-    this.cursorElement!.style.transform = `translateX(${x.toFixed(4)}px) translateY(${y.toFixed(4)}px) translateZ(${z.toFixed(4)}px)`;
+    this.cursorElement!.style.transform = toTransformCss(x, y, z, '');
   }
 }

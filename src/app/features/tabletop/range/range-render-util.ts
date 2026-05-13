@@ -7,7 +7,43 @@ import {
   hexStartAngle,
   isHexGrid as isHexGridType,
 } from '@axe/domain/tabletop/hex-geometry';
-import { GridPosition, RangeRenderSetting, StrokeGridFunc } from '@axe/features/tabletop/range/range-render-types';
+import {
+  ClipAreaCorn,
+  ClipAreaHexagon,
+  ClipAreaLine,
+  ClipAreaPentagon,
+  ClipAreaSquare,
+  ClipAreaTriangle,
+  GridPosition,
+  RangeRenderSetting,
+  StrokeGridFunc,
+} from '@axe/features/tabletop/range/range-render-types';
+
+type ClipArea = ClipAreaLine | ClipAreaSquare | ClipAreaTriangle | ClipAreaPentagon | ClipAreaHexagon | ClipAreaCorn;
+
+/**
+ * `clip01x/y` 形式のレンジ多角形クリップ領域を CSS `polygon(...)` 文字列にする。
+ * 任意のキー数に対応（3 点〜9 点）。連番を読み続け、欠番が出た時点で終了する。
+ */
+export function clipAreaToPolygonCss(clip: ClipArea): string {
+  // 個別の Clip インターフェース群はインデックスシグネチャを持たないため、
+  // 動的キーで読むには Record 経由に変換する必要がある（unknown 経由で安全に）。
+  const c = clip as unknown as Record<string, number>;
+  const points: string[] = [];
+  for (let i = 1; ; i++) {
+    const key = `clip${i.toString().padStart(2, '0')}`;
+    const x = c[`${key}x`];
+    const y = c[`${key}y`];
+    if (typeof x !== 'number' || typeof y !== 'number') break;
+    points.push(`${x}px ${y}px`);
+  }
+  return `polygon(${points.join(', ')})`;
+}
+
+/** CIRCLE 形状のクリップ。`circle(<radius>px)` 形式。`length` セル + 0.5 余白でカバー。 */
+export function clipCircleCss(lengthCells: number, gridSize: number): string {
+  return `circle(${(lengthCells + 1.5) * gridSize}px)`;
+}
 
 export interface GridOffsets {
   gridSize: number;

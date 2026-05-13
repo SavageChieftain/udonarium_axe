@@ -12,9 +12,17 @@ import {
   signal,
   viewChildren,
 } from '@angular/core';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ImageService } from '@axe/application/storage/image.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageService } from '@axe/core/storage/image.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -22,11 +30,6 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
-import {
-  buildHexRingClipPath,
-  calcHexFlowerParams,
-  HexFlowerParams,
-} from '@axe/features/character/game-character/hex-pedestal-geometry';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
 import {
   computeHexSlopeSteps,
@@ -34,20 +37,14 @@ import {
   HexSlopeStepFloor,
 } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
-import { InputHandler } from '@axe/shared/directives/input-handler';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { RotableOption } from '@axe/shared/directives/rotable.directive';
-import { RotableDirective } from '@axe/shared/directives/rotable.directive';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { InputHandler } from '@axe/ui/directives/input-handler';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { RotableOption } from '@axe/ui/directives/rotable.directive';
+import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
+import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 interface TerrainGridBounds {
   left: number;
@@ -133,24 +130,25 @@ export class TerrainComponent {
         tabletopObject: terrain,
       });
     });
-    this.objectChange.objectChanged$.subscribe((e) => {
-      if (!this._initialized) return;
-      if (!this.terrain()) return;
-      if (
-        e.identifier !== this.currentTable.identifier &&
-        e.identifier !== this.tableSelecter.identifier &&
-        e.identifier !== this.terrain().identifier
-      )
-        return;
-      this.setGameTableGrid(
-        this.width(),
-        this.depth(),
-        this.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor,
-        this.currentTable.gridFontColor
-      );
-    }, this.destroyRef);
+    this.objectChange.onObjectChangedFor(
+      // input.required を _initialized 前に呼ぶと NG0950 のためガードを入れる。
+      () => {
+        if (!this._initialized) return [];
+        return [this.currentTable.identifier, this.tableSelecter.identifier, this.terrain().identifier];
+      },
+      () => {
+        if (!this._initialized) return;
+        this.setGameTableGrid(
+          this.width(),
+          this.depth(),
+          this.gridSize,
+          this.currentTable.gridType,
+          this.currentTable.gridColor,
+          this.currentTable.gridFontColor
+        );
+      },
+      this.destroyRef
+    );
     afterNextRender(() => {
       this._initialized = true;
       this.input = new InputHandler(this.elementRef.nativeElement);
@@ -427,7 +425,7 @@ export class TerrainComponent {
       left: `${viewport.canvasLeft}px`,
       top: `${viewport.canvasTop}px`,
       'backface-visibility': this.isSlope() ? 'visible' : 'hidden',
-      transform: `rotateZ(${-this.terrainRotate()}deg) translateZ(0.15px)`,
+      transform: `rotateZ(${-this.terrainRotate()}deg) ${translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX)}`,
     };
   });
 

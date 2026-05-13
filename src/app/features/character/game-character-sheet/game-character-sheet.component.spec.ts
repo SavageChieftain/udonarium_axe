@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
@@ -12,7 +13,6 @@ import {
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GameCharacterSheetComponent', () => {

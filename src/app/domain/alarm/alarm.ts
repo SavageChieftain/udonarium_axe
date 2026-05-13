@@ -1,8 +1,8 @@
+import { emitAlarmPop, emitAlarmTimeUp } from '@axe/core/event/domain-events';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
-import { emitAlarmPop, emitAlarmTimeUp } from '@axe/domain/domain-events';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 

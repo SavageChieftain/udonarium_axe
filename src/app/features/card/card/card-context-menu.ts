@@ -1,7 +1,7 @@
+import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
 import { Card, CardState } from '@axe/domain/card/card';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
 export function buildCardContextMenu(
   card: Card,

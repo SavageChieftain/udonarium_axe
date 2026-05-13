@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { BatchService } from '@axe/application/ui/batch.service';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { BatchService } from '@axe/shared/ui/batch.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('PeerCursorComponent', () => {

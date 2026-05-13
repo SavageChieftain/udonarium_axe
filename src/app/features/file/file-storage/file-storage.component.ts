@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelService } from '@axe/application/ui/panel.service';
+import { emitSelectFile } from '@axe/core/event/domain-events';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { emitSelectFile } from '@axe/domain/domain-events';
 import { ImageTag } from '@axe/domain/media/image-tag';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   selector: 'file-storage',

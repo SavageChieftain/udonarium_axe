@@ -1,5 +1,8 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -7,12 +10,9 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/chat-message-fix.component';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { ChatColorStylePipe } from '@axe/shared/pipes/chat-color-style.pipe';
-import { LinkifyPipe } from '@axe/shared/pipes/linkify.pipe';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
+import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   selector: 'chat-message',

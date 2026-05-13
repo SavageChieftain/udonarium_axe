@@ -1,9 +1,11 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { RangeRenderSetting } from '@axe/features/tabletop/range/range-render-types';
+import { ClipAreaCorn, ClipAreaSquare, RangeRenderSetting } from '@axe/features/tabletop/range/range-render-types';
 import {
   calcGridOffsets,
   chkInCircle,
   chkOuterProduct,
+  clipAreaToPolygonCss,
+  clipCircleCss,
   fillSquare,
   generateCalcGridPositionFunc,
   isHexGrid,
@@ -123,6 +125,65 @@ describe('range-render-util', () => {
 
     it('辺上の点で true（丸め誤差許容）', () => {
       expect(chkOuterProduct(0, 0, 10, 0, 5, 0)).toBe(true);
+    });
+  });
+
+  describe('clipAreaToPolygonCss', () => {
+    it('4 点の Square 形状を polygon CSS にする', () => {
+      const square: ClipAreaSquare = {
+        clip01x: 0,
+        clip01y: 0,
+        clip02x: 100,
+        clip02y: 0,
+        clip03x: 100,
+        clip03y: 100,
+        clip04x: 0,
+        clip04y: 100,
+      };
+      expect(clipAreaToPolygonCss(square)).toBe('polygon(0px 0px, 100px 0px, 100px 100px, 0px 100px)');
+    });
+
+    it('9 点の Corn 形状を polygon CSS にする', () => {
+      const corn: ClipAreaCorn = {
+        clip01x: 1,
+        clip01y: 2,
+        clip02x: 3,
+        clip02y: 4,
+        clip03x: 5,
+        clip03y: 6,
+        clip04x: 7,
+        clip04y: 8,
+        clip05x: 9,
+        clip05y: 10,
+        clip06x: 11,
+        clip06y: 12,
+        clip07x: 13,
+        clip07y: 14,
+        clip08x: 15,
+        clip08y: 16,
+        clip09x: 17,
+        clip09y: 18,
+      };
+      expect(clipAreaToPolygonCss(corn)).toBe(
+        'polygon(1px 2px, 3px 4px, 5px 6px, 7px 8px, 9px 10px, 11px 12px, 13px 14px, 15px 16px, 17px 18px)'
+      );
+    });
+
+    it('連番欠落で打ち切る（clip03 欠の例）', () => {
+      // 3 点目を欠落させる
+      const partial = { clip01x: 1, clip01y: 2, clip02x: 3, clip02y: 4 } as unknown as ClipAreaSquare;
+      expect(clipAreaToPolygonCss(partial)).toBe('polygon(1px 2px, 3px 4px)');
+    });
+  });
+
+  describe('clipCircleCss', () => {
+    it('length + 1.5 セル分の半径を持つ circle 文字列', () => {
+      // length=3, gridSize=50 → (3+1.5)*50 = 225
+      expect(clipCircleCss(3, 50)).toBe('circle(225px)');
+    });
+
+    it('length=0 でも 1.5 セル分の半径', () => {
+      expect(clipCircleCss(0, 50)).toBe('circle(75px)');
     });
   });
 

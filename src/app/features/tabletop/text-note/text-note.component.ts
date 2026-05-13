@@ -13,24 +13,25 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
-import { InputHandler } from '@axe/shared/directives/input-handler';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { RotableOption } from '@axe/shared/directives/rotable.directive';
-import { RotableDirective } from '@axe/shared/directives/rotable.directive';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { InputHandler } from '@axe/ui/directives/input-handler';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { RotableOption } from '@axe/ui/directives/rotable.directive';
+import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
   selector: 'text-note',
@@ -67,7 +68,7 @@ export class TextNoteComponent {
     effect(() => {
       this.movableOption.set({
         tabletopObject: this.textNote(),
-        transformCssOffset: 'translateZ(0.15px)',
+        transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
         colideLayers: ['terrain'],
       });
       this.rotableOption.set({

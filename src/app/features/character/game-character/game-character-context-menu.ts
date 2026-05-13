@@ -1,8 +1,8 @@
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
 export function buildGameCharacterContextMenu(
   char: GameCharacter,

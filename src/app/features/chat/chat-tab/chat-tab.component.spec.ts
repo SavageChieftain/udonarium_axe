@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService, type WritingMessageEvent } from '@axe/application/sync/object-change.service';
+import { PanelService } from '@axe/application/ui/panel.service';
+import { emitMessageAdded } from '@axe/core/event/domain-events';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
-import { emitMessageAdded } from '@axe/domain/domain-events';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
-import { ObjectChangeService, type WritingMessageEvent } from '@axe/shared/sync/object-change.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatTabComponent', () => {

@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
@@ -85,18 +85,21 @@ export class ChatTabSettingComponent {
       }
       this.selectedTab.set(null);
     }, this.destroyRef);
-    this.objectChange.objectChanged$.subscribe((e) => {
-      if (e.aliasName !== ChatTab.aliasName && e.aliasName !== ChatTabList.aliasName) return;
-      const object = this.objectStore.get(e.identifier);
-      if (object instanceof ChatTab || object instanceof ChatTabList) {
-        if (this.selectedTab() && !this.objectStore.get(this.selectedTab()!.identifier)) {
-          this.selectedTab.set(null);
+    this.objectChange.onObjectChangedForAlias(
+      [ChatTab.aliasName, ChatTabList.aliasName],
+      (e) => {
+        const object = this.objectStore.get(e.identifier);
+        if (object instanceof ChatTab || object instanceof ChatTabList) {
+          if (this.selectedTab() && !this.objectStore.get(this.selectedTab()!.identifier)) {
+            this.selectedTab.set(null);
+          }
+          if (!this.selectedTab() && this.chatTabs.length > 0) {
+            this.selectedTab.set(this.chatTabs[0]);
+          }
         }
-        if (!this.selectedTab() && this.chatTabs.length > 0) {
-          this.selectedTab.set(this.chatTabs[0]);
-        }
-      }
-    }, this.destroyRef);
+      },
+      this.destroyRef
+    );
   }
 
   onChangeSelectTab(identifier: string) {

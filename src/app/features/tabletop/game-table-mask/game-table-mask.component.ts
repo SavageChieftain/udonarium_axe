@@ -11,6 +11,13 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -30,17 +37,11 @@ import {
   computeHexMaskGeometry,
   type ScratchGridInfo,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
-import { InputHandler } from '@axe/shared/directives/input-handler';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { InputHandler } from '@axe/ui/directives/input-handler';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { translateZCss, Z_OFFSET_MASK_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
   selector: 'game-table-mask',
@@ -78,7 +79,7 @@ export class GameTableMaskComponent {
       const geo = computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType());
       this.movableOption.set({
         tabletopObject: mask,
-        transformCssOffset: 'translateZ(0.10px)',
+        transformCssOffset: translateZCss(Z_OFFSET_MASK_PX),
         colideLayers: ['terrain'],
         snapOrigin: geo ? { x: geo.offsetX, y: geo.offsetY } : undefined,
       });

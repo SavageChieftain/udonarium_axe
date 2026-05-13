@@ -1,10 +1,10 @@
+import { emitMessageAdded } from '@axe/core/event/domain-events';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
 import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
-import { emitMessageAdded } from '@axe/domain/domain-events';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 
 const PORTRAIT_SLOT_COUNT = 12;
@@ -199,9 +199,8 @@ export class ChatTab extends ObjectNode implements InnerXml {
     }
     chat.initialize();
 
-    if (!chat.tags.includes('secret')) {
-      this.cutInLauncher?.chatActivateCutIn(chat.text, message.to ?? ''); // カットイン末尾発動
-    }
+    // カットイン末尾発動: appendChild → emitMessageAdded$ → application/media/CutInService が
+    // 購読側として処理する（domain は副作用の orchestration を持たない）。
 
     this.appendChild(chat);
     return chat;

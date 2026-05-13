@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import * as domainEvents from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import * as domainEvents from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 

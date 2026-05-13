@@ -1,6 +1,6 @@
+import { emitEndOldVote, emitFinishVote, emitStartVote } from '@axe/core/event/domain-events';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
-import { emitEndOldVote, emitFinishVote, emitStartVote } from '@axe/domain/domain-events';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 export interface VoteContext {

@@ -1,9 +1,9 @@
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
 export function buildTerrainContextMenu(
   terrain: Terrain,

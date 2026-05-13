@@ -11,25 +11,26 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { ImageService } from '@axe/application/storage/image.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { callRollDiceSymbol } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageService } from '@axe/core/storage/image.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
-import { callRollDiceSymbol } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildDiceSymbolContextMenu } from '@axe/features/dice/dice-symbol/dice-symbol-context-menu';
-import { InputHandler } from '@axe/shared/directives/input-handler';
-import { MovableOption } from '@axe/shared/directives/movable.directive';
-import { MovableDirective } from '@axe/shared/directives/movable.directive';
-import { RotableOption } from '@axe/shared/directives/rotable.directive';
-import { RotableDirective } from '@axe/shared/directives/rotable.directive';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
+import { InputHandler } from '@axe/ui/directives/input-handler';
+import { MovableOption } from '@axe/ui/directives/movable.directive';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { RotableOption } from '@axe/ui/directives/rotable.directive';
+import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
   selector: 'dice-symbol',
@@ -157,7 +158,7 @@ export class DiceSymbolComponent {
       const diceSymbol = this.diceSymbol();
       this.movableOption.set({
         tabletopObject: diceSymbol,
-        transformCssOffset: 'translateZ(1.0px)',
+        transformCssOffset: translateZCss(Z_OFFSET_TALL_OBJECT_PX),
         colideLayers: ['terrain'],
       });
       this.rotableOption.set({

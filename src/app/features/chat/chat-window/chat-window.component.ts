@@ -11,6 +11,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -24,10 +27,7 @@ import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-set
 import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
@@ -162,16 +162,19 @@ export class ChatWindowComponent {
       }
       if (this.isAutoScroll) this.chatTab()?.markForRead();
     }, this.destroyRef);
-    this.objectChange.objectChanged$.subscribe((event) => {
-      if (event.aliasName !== ChatTab.aliasName && event.aliasName !== ChatTabList.aliasName) return;
-      const object = this.objectStore.get(event.identifier);
-      if (object instanceof ChatTab || object instanceof ChatTabList) {
-        if (!this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
-          const chatTabs = this.chatMessageService.chatTabs;
-          this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
+    this.objectChange.onObjectChangedForAlias(
+      [ChatTab.aliasName, ChatTabList.aliasName],
+      (event) => {
+        const object = this.objectStore.get(event.identifier);
+        if (object instanceof ChatTab || object instanceof ChatTabList) {
+          if (!this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
+            const chatTabs = this.chatMessageService.chatTabs;
+            this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
+          }
         }
-      }
-    }, this.destroyRef);
+      },
+      this.destroyRef
+    );
     this.objectChange.objectDeleted$.subscribe((event) => {
       if (event.aliasName !== 'chat-tab') return;
       if (this._chatTabidentifier() === event.identifier) {
@@ -228,7 +231,7 @@ export class ChatWindowComponent {
     if (isForce) this.isAutoScroll = true;
     if (!this.isAutoScroll) return;
     if (!this.panelService.scrollablePanel) return;
-    this.panelService.scrollToBottom$.next();
+    this.panelService.scrollToBottom$.emit();
     if (this.scrollToBottomTimer != null) return;
     this.scrollToBottomTimer = setTimeout(() => {
       this.chatTab()?.markForRead();

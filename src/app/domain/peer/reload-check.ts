@@ -1,3 +1,4 @@
+import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import { SyncObject } from '@axe/core/sync/decorator';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
@@ -18,7 +19,7 @@ export class ReloadCheck extends TabletopObject {
 
   answerCheck(): boolean {
     if (!this.isAnswer) {
-      this.reloadOK = window.confirm(
+      this.reloadOK = confirmDialog(
         'プレイ中にルーム根幹設定を含むデータが入力されました\nこのデータを本当に読み込んでいいですか？ 古いデータは上書きされます'
       );
       this.isAnswer = true;

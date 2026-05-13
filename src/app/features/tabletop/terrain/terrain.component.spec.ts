@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('TerrainComponent', () => {

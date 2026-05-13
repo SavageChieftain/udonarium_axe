@@ -1,6 +1,6 @@
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject } from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/index';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

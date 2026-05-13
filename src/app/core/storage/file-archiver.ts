@@ -1,17 +1,25 @@
+import { emitFileLoaded, emitXmlLoaded } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
+import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { downloadBlob } from '@axe/core/util/download-blob';
 import { xml2element } from '@axe/core/util/xml-util';
-import { emitFileLoaded, emitXmlLoaded } from '@axe/domain/domain-events';
-import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { type AsyncZippable, unzip, type Unzipped, zip } from 'fflate';
 
 type MetaData = { percent: number; currentFile: string };
 type UpdateCallback = (metadata: MetaData) => void;
+
+/** ReloadCheck（domain）の構造的契約。core は domain を直接知らないため、
+ *  ObjectStore 経由でこの shape を満たすシングルトン（alias `'ReloadCheck'`）に依存する。 */
+interface LoadGuard extends GameObject {
+  reloadCheckStart(isOnline: boolean): void;
+  isLoadOk(): boolean;
+}
 
 const MEGA_BYTE = 1024 * 1024;
 
@@ -23,8 +31,8 @@ export class FileArchiver {
   }
 
   networkService = Network;
-  get reloadCheck(): ReloadCheck {
-    return ObjectStore.instance.get<ReloadCheck>('ReloadCheck')!;
+  get reloadCheck(): LoadGuard {
+    return ObjectStore.instance.get<LoadGuard>('ReloadCheck')!;
   }
 
   private maxImageSize = 2 * MEGA_BYTE;
@@ -189,13 +197,4 @@ export class FileArchiver {
 
 function toArrayOfFileList(fileList: FileList): File[] {
   return Array.from(fileList);
-}
-
-function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }

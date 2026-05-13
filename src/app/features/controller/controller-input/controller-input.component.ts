@@ -11,6 +11,8 @@ import {
   output,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -19,9 +21,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
@@ -186,22 +186,21 @@ export class ControllerInputComponent {
   }
 
   constructor() {
-    this.objectChange.objectChanged$.subscribe((event) => {
-      if (event.aliasName !== GameCharacter.aliasName) {
-        return;
-      }
-      if (event.identifier !== this.sendFrom()) {
-        return;
-      }
-      const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
-      if (gameCharacter && !this.allowsChat(gameCharacter)) {
-        if (0 < this.gameCharacters().length && this.onlyCharacters()) {
-          this.sendFrom.set(this.gameCharacters()[0].identifier);
-        } else {
-          this.sendFrom.set(this.myPeer.identifier);
+    this.objectChange.onObjectChangedForAlias(
+      [GameCharacter.aliasName],
+      (event) => {
+        if (event.identifier !== this.sendFrom()) return;
+        const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
+        if (gameCharacter && !this.allowsChat(gameCharacter)) {
+          if (0 < this.gameCharacters().length && this.onlyCharacters()) {
+            this.sendFrom.set(this.gameCharacters()[0].identifier);
+          } else {
+            this.sendFrom.set(this.myPeer.identifier);
+          }
         }
-      }
-    }, this.destroyRef);
+      },
+      this.destroyRef
+    );
 
     this.objectChange.peerDisconnect$.subscribe((event) => {
       const object = this.objectStore.get(this.sendTo());

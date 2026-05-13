@@ -1,8 +1,8 @@
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
 
 describe('buildRangeContextMenu', () => {
   it('形状変更メニューにひし形を表示しないこと', () => {

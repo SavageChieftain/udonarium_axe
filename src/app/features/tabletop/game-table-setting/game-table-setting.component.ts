@@ -1,20 +1,20 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageService } from '@axe/core/storage/image.service';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { ImageService } from '@axe/application/storage/image.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
+import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/domain/domain-events';
 import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({

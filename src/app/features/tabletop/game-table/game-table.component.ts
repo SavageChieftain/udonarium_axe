@@ -10,9 +10,16 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
+import { ImageService } from '@axe/application/storage/image.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ImageService } from '@axe/core/storage/image.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
@@ -35,15 +42,8 @@ import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-set
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
-import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { TabletopService } from '@axe/shared/tabletop/tabletop.service';
-import { TabletopActionService } from '@axe/shared/tabletop/tabletop-action.service';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -125,9 +125,11 @@ export class GameTableComponent {
       }, 50);
     });
 
-    this.objectChangeService.objectChanged$.subscribe((event) => {
-      if (!this._initialized) return;
-      if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
+    this.objectChangeService.onObjectChangedFor(
+      // initialize 前は currentTable / tableSelecter の参照が未確定の可能性があるためガード。
+      () => (this._initialized ? [this.currentTable.identifier, this.tableSelecter.identifier] : []),
+      () => {
+        if (!this._initialized) return;
         this.setGameTableGrid(
           this.currentTable.width,
           this.currentTable.height,
@@ -136,8 +138,9 @@ export class GameTableComponent {
           this.currentTable.gridColor,
           this.currentTable.gridFontColor
         );
-      }
-    }, this.destroyRef);
+      },
+      this.destroyRef
+    );
     this.tabletopActionService.makeDefaultTable();
     this.tabletopActionService.makeDefaultTabletopObjects();
     this.tabletopActionService.initAprilDiceImage();

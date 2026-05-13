@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -20,8 +21,7 @@ import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { Playlist } from '@axe/domain/media/playlist';
 import { Config } from '@axe/domain/peer/config';
-import { DraggableDirective } from '@axe/shared/directives/draggable.directive';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
+import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

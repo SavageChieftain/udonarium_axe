@@ -1,4 +1,4 @@
-import { InputHandler } from '@axe/shared/directives/input-handler';
+import { InputHandler } from '@axe/ui/directives/input-handler';
 
 type Callback = (srcEvent: TouchEvent | MouseEvent | PointerEvent) => void;
 type OnTransformCallback = (

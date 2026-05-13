@@ -1,13 +1,3 @@
-import { Logger } from '@axe/core/logging/logger';
-import { SyncObject } from '@axe/core/sync/decorator';
-import { GameObject } from '@axe/core/sync/game-object';
-import { ObjectStore } from '@axe/core/sync/object-store';
-import { PromiseQueue } from '@axe/core/util/promise-queue';
-import { toHalfWidth } from '@axe/core/util/string-util';
-import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
-import { ChatTab } from '@axe/domain/chat/chat-tab';
-import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
-import { DiceTable } from '@axe/domain/dice/dice-table';
 import {
   diceTableMessage$,
   DiceTableMessageEvent,
@@ -16,7 +6,17 @@ import {
   ResourceEditMessageEvent,
   sendMessage$,
   SendMessageEvent,
-} from '@axe/domain/domain-events';
+} from '@axe/core/event/domain-events';
+import { Logger } from '@axe/core/logging/logger';
+import { SyncObject } from '@axe/core/sync/decorator';
+import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { PromiseQueue } from '@axe/core/util/promise-queue';
+import { toHalfWidth } from '@axe/core/util/string-util';
+import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
+import { DiceTable } from '@axe/domain/dice/dice-table';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
 import GameSystemClass from 'bcdice/lib/game_system';
@@ -326,7 +326,9 @@ export class DiceBot extends GameObject {
 
     this.resourceProcessor.checkResourceEditCommand(
       chatMessage,
-      data.messageTargetContext ? data.messageTargetContext : []
+      // ResourceEditMessageEvent.messageTargetContext は core/event 層で unknown[] 化
+      // されているので、domain で消費する側で具象型に narrowing する。
+      (data.messageTargetContext as ChatMessageTargetContext[] | null) ?? []
     );
   }
 

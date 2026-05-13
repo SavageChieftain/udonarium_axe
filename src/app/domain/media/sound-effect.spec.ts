@@ -74,7 +74,7 @@ describe('SoundEffect', () => {
 
   describe('sendMessage$購読によるダイス音再生', () => {
     it('isDicebotがtrueのメッセージでSoundEffect.playが呼ばれる', async () => {
-      const { emitSendMessage } = await import('@axe/domain/domain-events');
+      const { emitSendMessage } = await import('@axe/core/event/domain-events');
       const { ChatMessage } = await import('@axe/domain/chat/chat-message');
       const { Network } = await import('@axe/core/network/network');
 
@@ -105,7 +105,7 @@ describe('SoundEffect', () => {
     });
 
     it('isDicebotがfalseのメッセージではplayが呼ばれない', async () => {
-      const { emitSendMessage } = await import('@axe/domain/domain-events');
+      const { emitSendMessage } = await import('@axe/core/event/domain-events');
       const { ChatMessage } = await import('@axe/domain/chat/chat-message');
       const { Network } = await import('@axe/core/network/network');
 

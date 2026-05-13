@@ -1,9 +1,9 @@
+import { emitCardStackDecreased } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { Card } from '@axe/domain/card/card';
 import { DataElement } from '@axe/domain/data/data-element';
-import { emitCardStackDecreased } from '@axe/domain/domain-events';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 

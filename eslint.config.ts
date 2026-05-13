@@ -7,6 +7,41 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 
+/* レイヤー境界ルール
+ * 依存方向（厳格）: features → ui → application → infrastructure → domain → core
+ *                                  ↘──────────────────↗ (application は domain も直接読む)
+ * `composition`（src/app/*.ts 直下: app.component / *-event-handler.service 等）は
+ *  全層に依存可能（コンポジションルート）。
+ */
+const NO_RELATIVE_IMPORT = {
+  regex: '^\\.',
+  message: '相対パスインポートは禁止です。パスエイリアス（@axe/...）を使用してください。',
+};
+const LAYER_MESSAGE = (forbidden: string) =>
+  `[layer] ${forbidden} 層への逆流 import は禁止です。依存方向: features → ui → application → infrastructure → domain → core`;
+
+const FORBID_FOR_CORE = {
+  regex: '^@axe/(domain|infrastructure|application|ui|features)/',
+  message: LAYER_MESSAGE('domain/infrastructure/application/ui/features'),
+};
+const FORBID_FOR_DOMAIN = {
+  regex: '^@axe/(infrastructure|application|ui|features)/',
+  message: LAYER_MESSAGE('infrastructure/application/ui/features'),
+};
+const FORBID_FOR_INFRASTRUCTURE = {
+  regex: '^@axe/(application|ui|features)/',
+  message: LAYER_MESSAGE('application/ui/features'),
+};
+const FORBID_FOR_APPLICATION = {
+  // application は domain / core / infrastructure を呼べる。ui / features は不可。
+  regex: '^@axe/(ui|features)/',
+  message: LAYER_MESSAGE('ui/features'),
+};
+const FORBID_FOR_UI = {
+  regex: '^@axe/features/',
+  message: LAYER_MESSAGE('features'),
+};
+
 export default defineConfig([
   {
     ignores: ['projects/**/*'],
@@ -25,17 +60,7 @@ export default defineConfig([
       '@angular-eslint/no-output-rename': 'off',
       'no-irregular-whitespace': ['error', { skipStrings: true, skipTemplates: true, skipComments: true }],
       '@typescript-eslint/no-unused-vars': 'off',
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              regex: '^\\.',
-              message: '相対パスインポートは禁止です。パスエイリアス（@axe/...）を使用してください。',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT] }],
       'unused-imports/no-unused-imports': 'warn',
       'unused-imports/no-unused-vars': [
         'error',
@@ -44,6 +69,52 @@ export default defineConfig([
       'simple-import-sort/imports': 'warn',
       'simple-import-sort/exports': 'warn',
     },
+  },
+  /* レイヤー境界ルール: 上位レイヤーへの逆流 import を禁止。
+   * 末尾の config block が同じ rule を上書きするため、各レイヤー専用の
+   * `no-restricted-imports` ブロックを追加して上書きする。 */
+  {
+    files: ['src/app/core/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT, FORBID_FOR_CORE] }],
+    },
+  },
+  /* core 内 spec の例外
+   *  **.spec.ts は domain インスタンスを使って統合テストする必要があるため、
+   *  実装側より広めに import を許す。 */
+  {
+    files: ['src/app/core/**/*.spec.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT] }] },
+  },
+  {
+    files: ['src/app/domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT, FORBID_FOR_DOMAIN] }],
+    },
+  },
+  {
+    files: ['src/app/infrastructure/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT, FORBID_FOR_INFRASTRUCTURE] }],
+    },
+  },
+  {
+    files: ['src/app/application/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT, FORBID_FOR_APPLICATION] }],
+    },
+  },
+  {
+    files: ['src/app/ui/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT, FORBID_FOR_UI] }],
+    },
+  },
+  /* composition root: すべての層に依存可能（features を含む）。
+   *  明示することで「ここはレイヤー制約から意図的に外している」と宣言する。 */
+  {
+    files: ['src/app/composition/**/*.ts', 'src/app/app.component.ts', 'src/main.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT] }] },
   },
   {
     files: ['src/app/**/*.html'],

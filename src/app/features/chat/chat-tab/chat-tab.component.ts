@@ -12,7 +12,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelService } from '@axe/application/ui/panel.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
@@ -31,10 +33,7 @@ import {
   getBoundedScrollPosition,
   ScrollPosition,
 } from '@axe/features/chat/chat-tab/chat-tab-scroll-helpers';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 const ua = window.navigator.userAgent.toLowerCase();
 const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);
@@ -115,22 +114,25 @@ export class ChatTabComponent {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTab?.identifier) return;
       this.addWritingSpeaker(event.sendFrom, event.speakerIdentifier);
     }, this.destroyRef);
-    this.objectChange.objectChanged$.subscribe((event) => {
-      // 全オブジェクト変更で発火するため、aliasName で早期 return しないと
-      // 部屋のオブジェクト数 × 変更頻度に比例した無駄な ObjectStore.get / instanceof が走る。
-      if (event.aliasName !== ChatMessage.aliasName) return;
-      const message = this.objectStore.get(event.identifier);
-      if (
-        message &&
-        message instanceof ChatMessage &&
-        this.topTimestamp <= message.timestamp &&
-        message.timestamp <= this.botomTimestamp &&
-        this.chatTab?.contains(message)
-      ) {
-        this.renderVersion.update((v) => v + 1);
-      }
-    }, this.destroyRef);
-    this.panelService.scrollToBottom$.pipe(takeUntilDestroyed()).subscribe(() => this.resetMessages());
+    // aliasName で早期フィルタしないと、部屋のオブジェクト数 × 変更頻度に比例した
+    // 無駄な ObjectStore.get / instanceof が走る。
+    this.objectChange.onObjectChangedForAlias(
+      [ChatMessage.aliasName],
+      (event) => {
+        const message = this.objectStore.get(event.identifier);
+        if (
+          message &&
+          message instanceof ChatMessage &&
+          this.topTimestamp <= message.timestamp &&
+          message.timestamp <= this.botomTimestamp &&
+          this.chatTab?.contains(message)
+        ) {
+          this.renderVersion.update((v) => v + 1);
+        }
+      },
+      this.destroyRef
+    );
+    this.panelService.scrollToBottom$.subscribe(() => this.resetMessages(), this.destroyRef);
     afterNextRender(() => {
       this.scrollEventShortTimer = new ResettableTimeout(() => this.lazyScrollUpdate(), 33);
       this.scrollEventLongTimer = new ResettableTimeout(() => this.lazyScrollUpdate(false), 66);

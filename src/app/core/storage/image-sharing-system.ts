@@ -1,3 +1,4 @@
+import { xmlLoaded$ } from '@axe/core/event/domain-events';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
@@ -7,7 +8,6 @@ import { ImageContext, ImageFile, ImageState } from '@axe/core/storage/image-fil
 import { CatalogItem, ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { generateUuid } from '@axe/core/util/uuid';
-import { xmlLoaded$ } from '@axe/domain/domain-events';
 
 export class ImageSharingSystem {
   private static _instance: ImageSharingSystem;

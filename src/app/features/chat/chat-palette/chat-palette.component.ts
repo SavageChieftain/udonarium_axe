@@ -11,6 +11,11 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelService } from '@axe/application/ui/panel.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -21,14 +26,9 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { GameDataElementComponent } from '@axe/features/character/game-data-element/game-data-element.component';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { BadgeComponent } from '@axe/shared/components/badge/badge.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
+import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';

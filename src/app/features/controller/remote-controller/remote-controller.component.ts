@@ -12,6 +12,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -39,13 +45,7 @@ import {
   getTabTitle,
   getTargetCharacters,
 } from '@axe/features/controller/remote-controller/remote-controller-helpers';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
-import { UiSignalService } from '@axe/shared/ui/ui-signal.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';

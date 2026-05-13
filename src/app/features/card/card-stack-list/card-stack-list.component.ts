@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { callShuffleCardStack } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
-import { callShuffleCardStack } from '@axe/domain/domain-events';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { TooltipDirective } from '@axe/shared/directives/tooltip.directive';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
+import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   selector: 'card-stack-list',
@@ -33,12 +33,15 @@ export class CardStackListComponent {
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
-    this.objectChange.objectChanged$.subscribe((e) => {
-      if (!this.cardStack) return;
-      if (e.identifier === this.cardStack.identifier && this.cardStack.owner !== this.owner) {
-        this.panelService.close();
-      }
-    }, this.destroyRef);
+    this.objectChange.onObjectChangedFor(
+      () => [this.cardStack?.identifier ?? ''],
+      () => {
+        if (this.cardStack && this.cardStack.owner !== this.owner) {
+          this.panelService.close();
+        }
+      },
+      this.destroyRef
+    );
     this.objectChange.objectDeleted$.subscribe((e) => {
       if (this.cardStack && this.cardStack.identifier === e.identifier) {
         this.panelService.close();

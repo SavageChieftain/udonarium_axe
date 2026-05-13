@@ -1,6 +1,6 @@
 import { SlopeDirection } from '@axe/domain/tabletop/terrain';
-import { calcHexFlowerParams } from '@axe/features/character/game-character/hex-pedestal-geometry';
 import { computeHexSlopeSteps } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
+import { calcHexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 
 describe('computeHexSlopeSteps', () => {
   const gridSize = 50;

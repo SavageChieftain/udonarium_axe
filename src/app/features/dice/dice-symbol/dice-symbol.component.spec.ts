@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('DiceSymbolComponent', () => {

@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ImageService } from '@axe/core/storage/image.service';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { ImageService } from '@axe/application/storage/image.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { FileSelecterComponent } from '@axe/shared/components/file-selecter/file-selecter.component';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 /** face 配列からデフォルト画像パスの prefix を導出する */
 function getDiceImagePrefix(faces: string[]): string | null {

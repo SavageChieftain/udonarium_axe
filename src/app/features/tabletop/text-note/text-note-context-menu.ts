@@ -1,7 +1,7 @@
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { ContextMenuAction, ContextMenuSeparator } from '@axe/shared/ui/context-menu.service';
 
 export function buildTextNoteContextMenu(
   textNote: TextNote,

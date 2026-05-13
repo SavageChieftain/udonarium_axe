@@ -1,6 +1,11 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
@@ -10,12 +15,11 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { GameObjectInventoryService } from '@axe/shared/inventory/game-object-inventory.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { SelectionSignalService } from '@axe/shared/ui/selection-signal.service';
+import {
+  buildInventoryMultiMoveContextMenu,
+  buildInventoryObjectContextMenu,
+} from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
 
@@ -189,83 +193,12 @@ export class GameObjectInventoryComponent {
     this.selectGameObject(gameObject);
 
     const position = this.pointerDeviceService.pointers[0];
-
-    const actions: ContextMenuAction[] = [];
-
-    actions.push({
-      name: '詳細を表示',
-      action: () => {
-        this.showDetail(gameObject as GameCharacter);
-      },
-    });
-    if (gameObject.location.name !== 'graveyard') {
-      actions.push({
-        name: 'チャットパレットを表示',
-        action: () => {
-          this.showChatPalette(gameObject as GameCharacter);
-        },
-      });
-      actions.push({
-        name: 'リモコンを表示',
-        action: () => {
-          this.showRemoteController(gameObject as GameCharacter);
-        },
-      });
-      const character = gameObject as GameCharacter;
-      actions.push(
-        character.hideInventory
-          ? {
-              name: '☑ インベントリ非表示',
-              action: () => {
-                character.hideInventory = false;
-                this.inventoryService.notifyInventoryUpdate();
-                SoundEffect.play(PresetSound.sweep);
-              },
-            }
-          : {
-              name: '☐ インベントリ非表示',
-              action: () => {
-                character.hideInventory = true;
-                this.inventoryService.notifyInventoryUpdate();
-                SoundEffect.play(PresetSound.sweep);
-              },
-            }
-      );
-    }
-    actions.push(ContextMenuSeparator);
-    const locations = [
-      { name: 'table', alias: 'テーブルに移動' },
-      { name: 'common', alias: '共有イベントリに移動' },
-      { name: Network.peerId, alias: '個人イベントリに移動' },
-      { name: 'graveyard', alias: '墓場に移動' },
-    ];
-    for (const location of locations) {
-      if (gameObject.location.name === location.name) continue;
-      actions.push({
-        name: location.alias,
-        action: () => {
-          gameObject.setLocation(location.name);
-          SoundEffect.play(PresetSound.piecePut);
-        },
-      });
-    }
-
-    if (gameObject.location.name === 'graveyard') {
-      actions.push({
-        name: '削除する',
-        action: () => {
-          this.deleteGameObject(gameObject);
-          SoundEffect.play(PresetSound.sweep);
-        },
-      });
-    }
-    actions.push(ContextMenuSeparator);
-    actions.push({
-      name: 'コピーを作る',
-      action: () => {
-        this.cloneGameObject(gameObject);
-        SoundEffect.play(PresetSound.piecePut);
-      },
+    const actions = buildInventoryObjectContextMenu(gameObject, this.inventoryService, {
+      showDetail: (c) => this.showDetail(c),
+      showChatPalette: (c) => this.showChatPalette(c),
+      showRemoteController: (c) => this.showRemoteController(c),
+      cloneGameObject: (o) => this.cloneGameObject(o),
+      deleteGameObject: (o) => this.deleteGameObject(o),
     });
 
     this.contextMenuService.open(position, actions, gameObject.name);
@@ -331,34 +264,11 @@ export class GameObjectInventoryComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
-    const actions: ContextMenuAction[] = [];
-    const locations = [
-      { name: 'table', alias: 'テーブルに移動' },
-      { name: 'common', alias: '共有イベントリに移動' },
-      { name: Network.peerId, alias: '個人イベントリに移動' },
-      { name: 'graveyard', alias: '墓場に移動' },
-    ];
-    for (const location of locations) {
-      if (this.selectTab() === location.name) continue;
-      actions.push({
-        name: location.alias,
-        action: () => {
-          this.multiMove(location.name);
-          this.toggleMultiMove();
-          SoundEffect.play(PresetSound.piecePut);
-        },
-      });
-    }
-    if (this.selectTab() == 'graveyard') {
-      actions.push({
-        name: '墓場から削除',
-        action: () => {
-          this.multiDelete();
-          this.toggleMultiMove();
-          SoundEffect.play(PresetSound.sweep);
-        },
-      });
-    }
+    const actions = buildInventoryMultiMoveContextMenu(this.selectTab(), {
+      multiMove: (loc) => this.multiMove(loc),
+      toggleMultiMove: () => this.toggleMultiMove(),
+      multiDelete: () => this.multiDelete(),
+    });
 
     this.contextMenuService.open(position, actions, '一括移動');
   }

@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
-import { PanelService } from '@axe/shared/ui/panel.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('VoteWindowComponent', () => {

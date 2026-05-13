@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
-import { ChatMessageService } from '@axe/shared/chat/chat-message.service';
-import { SafePipe } from '@axe/shared/pipes/safe.pipe';
-import { ObjectChangeService } from '@axe/shared/sync/object-change.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelService } from '@axe/shared/ui/panel.service';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,12 +68,22 @@ export class VoteWindowComponent {
       }
     }, this.destroyRef);
 
-    this.objectChange.objectChanged$.subscribe((event) => {
-      if (event.identifier !== this.vote().identifier) return;
-      if (this.timestamp !== this.vote().initTimeStamp) return;
-      if (!this.vote().isFinish) return;
-      this.panelService.close();
-    }, this.destroyRef);
+    this.objectChange.onObjectChangedFor(
+      // vote は input.required のため未バインド時の参照を避ける。
+      () => {
+        try {
+          return [this.vote().identifier];
+        } catch {
+          return [];
+        }
+      },
+      () => {
+        if (this.timestamp !== this.vote().initTimeStamp) return;
+        if (!this.vote().isFinish) return;
+        this.panelService.close();
+      },
+      this.destroyRef
+    );
 
     this.destroyRef.onDestroy(() => {
       const currentVote = this.objectStore.get<Vote>('Vote');

@@ -8,31 +8,39 @@ import {
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
-import { AppEventHandlerService } from '@axe/core/app/app-event-handler.service';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { CutInService } from '@axe/application/media/cut-in.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { ThemeService } from '@axe/application/ui/theme.service';
 import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
-import { SaveDataService } from '@axe/core/storage/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
+import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handler.service';
+import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
+import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
+import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
+import { NetworkEventHandlerService } from '@axe/features/lobby/network-event-handler.service';
 import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator/network-indicator.component';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
+import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handler.service';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
-import { ContextMenuComponent } from '@axe/shared/components/context-menu/context-menu.component';
-import { ModalComponent } from '@axe/shared/components/modal/modal.component';
-import { UIPanelComponent } from '@axe/shared/components/ui-panel/ui-panel.component';
-import { ContextMenuService } from '@axe/shared/ui/context-menu.service';
-import { ModalService } from '@axe/shared/ui/modal.service';
-import { PanelOption, PanelService } from '@axe/shared/ui/panel.service';
-import { ThemeService } from '@axe/shared/ui/theme.service';
+import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
+import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
+import { ModalComponent } from '@axe/ui/components/modal/modal.component';
+import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
+import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,7 +54,6 @@ export class AppComponent {
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly objectStore = inject(ObjectStore);
-  private readonly eventHandler = inject(AppEventHandlerService);
 
   readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
 
@@ -62,7 +69,15 @@ export class AppComponent {
   private openPanelCount = 0;
 
   constructor() {
-    this.eventHandler.initialize();
+    // 各 feature のイベントハンドラ / application 層 orchestration サービス群を eager 起動する。
+    // 各サービスは @Injectable({ providedIn: 'root' }) で自身の constructor 内で購読を開始するため、
+    // ここでは inject() の戻り値を保持する必要はない（副作用のみ目的）。
+    inject(AlarmEventHandlerService);
+    inject(VoteEventHandlerService);
+    inject(CutInEventHandlerService);
+    inject(NetworkEventHandlerService);
+    inject(CutInService);
+
     afterNextRender(() => {
       PanelService.defaultParentViewContainerRef =
         ModalService.defaultParentViewContainerRef =
@@ -172,5 +187,8 @@ export class AppComponent {
 }
 
 PanelService.UIPanelComponentClass = UIPanelComponent;
+PanelService.chatPortraitComponentClass = ChatPortraitImageComponent;
+PanelService.cardStackListComponentClass = CardStackListImageComponent;
 ContextMenuService.ContextMenuComponentClass = ContextMenuComponent;
 ModalService.ModalComponentClass = ModalComponent;
+TooltipDirective.TooltipPanelComponentClass = OverviewPanelComponent;
