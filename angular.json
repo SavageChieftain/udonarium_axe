@@ -32,7 +32,7 @@
             ],
             "styles": ["src/styles.css"],
             "scripts": [],
-            "allowedCommonJsDependencies": ["bcdice", "file-saver", "jszip", "lodash", "lzbase62", "pako"],
+            "allowedCommonJsDependencies": ["bcdice"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -53,11 +53,6 @@
                   "type": "initial",
                   "maximumWarning": "10mb",
                   "maximumError": "15mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "10kb"
                 }
               ]
             },
@@ -71,7 +66,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {},
           "configurations": {
             "production": {
@@ -82,12 +77,6 @@
             }
           },
           "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "udonarium_axe:build"
-          }
         },
         "test": {
           "builder": "@angular/build:unit-test",
@@ -103,25 +92,15 @@
           "options": {
             "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
-        },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:browser",
-          "options": {}
         }
       }
     }
   },
   "cli": {
-    "analytics": "fedd9061-c6ec-4f58-b40d-888820605663",
+    "analytics": false,
     "schematicCollections": ["@angular-eslint/schematics"]
   },
   "schematics": {
-    "@angular-eslint/schematics:application": {
-      "setParserOptionsProject": true
-    },
-    "@angular-eslint/schematics:library": {
-      "setParserOptionsProject": true
-    },
     "@schematics/angular:component": {
       "type": "component"
     },
