@@ -18,9 +18,9 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -510,7 +510,7 @@ export class GameTableMaskComponent {
           clearTimeout(this._scratchingTimerId);
           this._currentScratchingSet = null;
         }
-        mask.owner = Network.peerContext.userId;
+        mask.owner = getPeerContext().userId;
         this._scratchingGridX = -1;
         this._scratchingGridY = -1;
       },

@@ -14,9 +14,9 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { callCursorMove, callHeartBeat } from '@axe/core/event/domain-events';
-import { Network } from '@axe/core/index';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
+import { getPeerContexts, getPeerIds } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -73,15 +73,13 @@ export class PeerCursorComponent {
   private _y = 0;
   private _target!: HTMLElement;
 
-  networkService = Network;
-
   get delayMs(): number {
-    const maxDelay = Network.peerIds.length * 16.6;
+    const maxDelay = getPeerIds().length * 16.6;
     return maxDelay < 100 ? 100 : maxDelay;
   }
 
   get delayMsHb(): number {
-    const maxDelay = Network.peerIds.length * 166;
+    const maxDelay = getPeerIds().length * 166;
     return maxDelay < 1000 ? 1000 : maxDelay;
   }
 
@@ -219,15 +217,15 @@ export class PeerCursorComponent {
         this.timestampInterval = null;
 
         if (PeerCursor.myCursor.peerId == this.cursor().peerId) {
-          const peerlength = this.networkService.peerContexts.length;
+          const peerlength = getPeerContexts().length;
           if (peerlength) {
             if (peerlength <= this.indexCounter) this.indexCounter = 0;
             const timestanmp = Date.now() + PeerCursor.myCursor.debugTimeShift;
-            const peerContext = this.networkService.peerContexts[this.indexCounter] || null;
+            const peerContext = getPeerContexts()[this.indexCounter] || null;
             let id = '';
             if (peerContext) {
-              if (this.networkService.peerContexts[this.indexCounter].isOpen) {
-                id = this.networkService.peerContexts[this.indexCounter].peerId;
+              if (getPeerContexts()[this.indexCounter].isOpen) {
+                id = getPeerContexts()[this.indexCounter].peerId;
               }
             }
 

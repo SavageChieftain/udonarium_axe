@@ -11,8 +11,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
+import { getMyPeerId, getPeerIds } from '@axe/core/network/peer-context-source';
 
 @Component({
   selector: 'password-check',
@@ -34,9 +34,9 @@ export class PasswordCheckComponent {
   title: string = '';
 
   get peerId(): string {
-    return Network.peerId;
+    return getMyPeerId();
   }
-  readonly isConnected = computed(() => Network.peerIds.length > 1);
+  readonly isConnected = computed(() => getPeerIds().length > 1);
 
   constructor() {
     const modalService = this.modalService;

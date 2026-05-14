@@ -18,8 +18,8 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { getMyPeerId } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
@@ -142,12 +142,12 @@ export class RemoteControllerComponent {
       }
     }, this.destroyRef);
     this.objectChange.networkOpen$.subscribe(() => {
-      this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
+      this.inventoryTypes.set(['table', 'common', getMyPeerId(), 'graveyard']);
       if (!this.inventoryTypes().includes(this.selectTab())) {
-        this.selectTab.set(Network.peerId);
+        this.selectTab.set(getMyPeerId());
       }
     }, this.destroyRef);
-    this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
+    this.inventoryTypes.set(['table', 'common', getMyPeerId(), 'graveyard']);
     this.destroyRef.onDestroy(() => {
       if (this.isEdit()) this.toggleEditMode();
     });
