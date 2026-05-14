@@ -15,7 +15,6 @@ import { DataElementDragService } from '@axe/application/ui/data-element-drag.se
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -24,17 +23,12 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
-  convertLegacyCheckTableElements,
-  countConvertibleCheckTableElements,
-} from '@axe/domain/data/check-table-converter';
-import {
   DataElement,
   DataElementAttribute,
   DataElementFieldType,
   DataElementRole,
 } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
-import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { CharacterSheetTarget } from '@axe/domain/tabletop/character-sheet-target';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
@@ -46,7 +40,8 @@ import {
   canReorderDetailElement,
   reorderDetailElement,
 } from '@axe/features/character/game-character-sheet/detail-element-reorder-helpers';
-import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
+import { GameCharacterSettingsTabComponent } from '@axe/features/character/game-character-sheet/game-character-settings-tab.component';
+import { clampInRange, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
@@ -57,7 +52,7 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   host: { class: 'block' },
-  imports: [FormsModule, GameDataElementComponent, SafePipe],
+  imports: [FormsModule, GameCharacterSettingsTabComponent, GameDataElementComponent, SafePipe],
 })
 export class GameCharacterSheetComponent {
   private readonly saveDataService = inject(SaveDataService);
@@ -228,18 +223,6 @@ export class GameCharacterSheetComponent {
     return terrain.wallImage ?? ImageFile.Empty;
   });
 
-  readonly characterPieceSignals = computed(() => {
-    const char = this.character;
-    if (!char) return { roll: 0, rotate: 0, locationX: 0, locationY: 0 };
-    this.objectChange.versionOf(char.identifier)();
-    return {
-      roll: char.roll,
-      rotate: char.rotate,
-      locationX: char.location.x,
-      locationY: char.location.y,
-    };
-  });
-
   readonly portraitImages = computed(() => {
     this.objectChange.fileVersion();
     const char = this.character;
@@ -296,8 +279,6 @@ export class GameCharacterSheetComponent {
     const HIDDEN = new Set(['\u7acb\u3061\u7d75\u4f4d\u7f6e', '\u30b3\u30de\u753b\u50cf']);
     return char.detailDataElement.children.filter((el) => !HIDDEN.has(el.name));
   });
-
-  networkService = Network;
 
   readonly isSaving = signal(false);
   readonly progressPercent = signal(0);
@@ -366,13 +347,6 @@ export class GameCharacterSheetComponent {
 
   clickNoTalk() {
     //処理なし
-  }
-
-  setSpecifyKomaImageFlag(value: boolean) {
-    const character = this.character;
-    if (!character) return;
-    character.specifyKomaImageFlag = value;
-    this.objectChange.notifyChanged(character.identifier);
   }
 
   clickGrid() {
@@ -514,13 +488,6 @@ export class GameCharacterSheetComponent {
     }, 100);
   }
 
-  chkKomaSize(height: number) {
-    const character = this.tabletopObject as GameCharacter;
-    character.komaImageHeight = clampInRange(Number(height), 50, 750, character.komaImageHeight);
-    this.objectChange.notifyChanged(character.identifier);
-    this.pointerDeviceService.isDragging = false;
-  }
-
   chkDiceKomaSize(height: number) {
     const character = this.tabletopObject as DiceSymbol;
     character.komaImageHeight = clampInRange(Number(height), 50, 750, character.komaImageHeight);
@@ -599,13 +566,6 @@ export class GameCharacterSheetComponent {
   onChkDiceKomaSize(event: Event): void {
     this.chkDiceKomaSize((event.target as HTMLInputElement).valueAsNumber);
   }
-  onChkKomaSize(event: Event): void {
-    this.chkKomaSize((event.target as HTMLInputElement).valueAsNumber);
-  }
-  onChkAltitude(event: Event): void {
-    const character = this.tabletopObject as GameCharacter;
-    character.altitude = roundOr((event.target as HTMLInputElement).valueAsNumber, 0);
-  }
   onChkLocationX(event: Event): void {
     const character = this.tabletopObject as GameCharacter;
     const x = roundOr((event.target as HTMLInputElement).valueAsNumber, 0);
@@ -615,24 +575,6 @@ export class GameCharacterSheetComponent {
     const character = this.tabletopObject as GameCharacter;
     const y = roundOr((event.target as HTMLInputElement).valueAsNumber, 0);
     character.location = { ...character.location, y };
-  }
-  onChkRotate(event: Event): void {
-    const character = this.tabletopObject as GameCharacter;
-    character.rotate = floatOr((event.target as HTMLInputElement).valueAsNumber, 0);
-  }
-  resetRotate(): void {
-    const character = this.tabletopObject as GameCharacter;
-    character.rotate = 0;
-    SoundEffect.play(PresetSound.sweep);
-  }
-  onChkRoll(event: Event): void {
-    const character = this.tabletopObject as GameCharacter;
-    character.roll = floatOr((event.target as HTMLInputElement).valueAsNumber, 0);
-  }
-  resetRoll(): void {
-    const character = this.tabletopObject as GameCharacter;
-    character.roll = 0;
-    SoundEffect.play(PresetSound.sweep);
   }
   onChkPopWidth(event: Event): void {
     this.chkPopWidth((event.target as HTMLInputElement).valueAsNumber);
@@ -675,24 +617,5 @@ export class GameCharacterSheetComponent {
 
     char.overViewDataTags = legacyTags;
     this.objectChange.notifyChanged(element.identifier);
-  }
-
-  /** 旧チェック/表フィールドの要素数（移行バナー表示判定用） */
-  legacyCheckTableCount(): number {
-    const char = this.character;
-    if (!char?.detailDataElement) return 0;
-    return countConvertibleCheckTableElements(char.detailDataElement);
-  }
-
-  /** 旧チェック/表フィールド → 構造化テーブルに一括変換 */
-  convertLegacyCheckTables(): void {
-    const char = this.character;
-    if (!char?.detailDataElement) return;
-
-    const convertedCount = convertLegacyCheckTableElements(char.detailDataElement);
-    if (convertedCount < 1) return;
-
-    this.objectChange.notifyChanged(char.detailDataElement.identifier);
-    char.update();
   }
 }

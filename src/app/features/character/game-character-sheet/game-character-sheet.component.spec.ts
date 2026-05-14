@@ -1,15 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import {
-  DataElement,
-  DataElementAttribute,
-  DataElementFieldType,
-  DataElementRole,
-  DataElementType,
-  DataElementViewMode,
-} from '@axe/domain/data/data-element';
+import { DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -77,36 +69,6 @@ describe('GameCharacterSheetComponent', () => {
     }
   });
 
-  it('convertLegacyCheckTables() は旧チェック表フィールドを構造化テーブルへ変換すること', () => {
-    const character = GameCharacter.create('migration-test', 1, '');
-    const section = DataElement.create('旧情報', '', { [DataElementAttribute.ROLE]: DataElementRole.SECTION });
-    const group = DataElement.create('基本', '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP });
-    const legacy = DataElement.create('旧表', '|項目|済み|\n|灯火|[]|', {
-      [DataElementAttribute.ROLE]: DataElementRole.FIELD,
-      [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK_TABLE,
-      type: DataElementType.CHECK_TABLE,
-    });
-    section.appendChild(group);
-    group.appendChild(legacy);
-    character.detailDataElement!.appendChild(section);
-    component.tabletopObject = character;
-
-    try {
-      component.convertLegacyCheckTables();
-
-      const migrated = character.detailDataElement!.children.find((child) => child.name === '旧表');
-      const checkCell = migrated?.children[0].getFirstElementByName('済み');
-
-      expect(migrated?.fieldRole).toBe(DataElementRole.SECTION);
-      expect(migrated?.viewMode).toBe(DataElementViewMode.TABLE);
-      expect(checkCell?.fieldType).toBe(DataElementFieldType.CHECK);
-      expect(checkCell?.value).toBe(0);
-      expect(group.getFirstElementByName('旧表')).toBeNull();
-    } finally {
-      character.destroy();
-    }
-  });
-
   it('ポップアップ表示設定はDataElement属性として切り替えること', () => {
     const character = GameCharacter.create('popup-toggle-test', 1, '');
     const section = character.detailDataElement!.getFirstElementByName('能力')!;
@@ -125,50 +87,6 @@ describe('GameCharacterSheetComponent', () => {
     } finally {
       character.destroy();
     }
-  });
-
-  it('コマ画像高さの変更時は範囲内に丸めてドラッグ状態を解除すること', () => {
-    const objectChange = TestBed.inject(ObjectChangeService);
-    const notifySpy = vi.spyOn(objectChange, 'notifyChanged');
-    const character = GameCharacter.create('height-test', 1, '');
-    character.komaImageHeight = 120;
-    component.tabletopObject = character;
-    pointerDeviceService.isDragging = true;
-
-    try {
-      component.chkKomaSize(900);
-
-      expect(character.komaImageHeight).toBe(750);
-      expect(pointerDeviceService.isDragging).toBe(false);
-      expect(notifySpy).toHaveBeenCalledWith(character.identifier);
-    } finally {
-      character.destroy();
-    }
-  });
-
-  it('コマ高さ指定チェックの変更時は即時更新通知を出すこと', () => {
-    const objectChange = TestBed.inject(ObjectChangeService);
-    const notifySpy = vi.spyOn(objectChange, 'notifyChanged');
-    const character = GameCharacter.create('height-flag-sheet-test', 1, '');
-    component.tabletopObject = character;
-
-    try {
-      component.setSpecifyKomaImageFlag(true);
-
-      expect(character.specifyKomaImageFlag).toBe(true);
-      expect(notifySpy).toHaveBeenCalledWith(character.identifier);
-    } finally {
-      character.destroy();
-    }
-  });
-
-  it('不正な高さ入力時は既存値を維持すること', () => {
-    const character = { komaImageHeight: 180 } as GameCharacter;
-    component.tabletopObject = character;
-
-    component.chkKomaSize(Number.NaN);
-
-    expect(character.komaImageHeight).toBe(180);
   });
 
   it('ダイスのコマ画像高さ変更でもドラッグ状態を解除すること', () => {
