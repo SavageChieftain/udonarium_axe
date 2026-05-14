@@ -2,7 +2,6 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
-  computed,
   ElementRef,
   inject,
   signal,
@@ -12,7 +11,21 @@ import { FormsModule } from '@angular/forms';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { PeerContext } from '@axe/core/network/peer-context';
-import { getMyPeerId, getPeerIds } from '@axe/core/network/peer-context-source';
+
+/**
+ * パスワード保護されたルームへの入室前にパスワード入力を受け付ける modal。
+ *
+ * 入力された PeerContext そのものを使って verifyPassword するため、
+ * 呼び出し側 (lobby) は roomName を含む完全な PeerContext を渡す必要がある。
+ * peerId 文字列だけを渡された場合は PeerContext.parse() が roomName を空にしてしまい、
+ * digest 計算がずれて検証が常に失敗する。
+ */
+export interface PasswordCheckOptions {
+  /** 対象ルームの PeerContext（roomName まで埋まっていること）。 */
+  peerContext: PeerContext;
+  /** タイトルバー表示用ラベル（任意）。 */
+  title?: string;
+}
 
 @Component({
   selector: 'password-check',
@@ -30,20 +43,16 @@ export class PasswordCheckComponent {
   readonly password = signal<string>('');
   readonly help = signal('');
 
-  private targetPeerContext!: PeerContext;
-  title: string = '';
-
-  get peerId(): string {
-    return getMyPeerId();
-  }
-  readonly isConnected = computed(() => getPeerIds().length > 1);
+  private readonly targetPeerContext: PeerContext;
+  readonly title: string;
 
   constructor() {
-    const modalService = this.modalService;
-    const option = modalService.option as Record<string, unknown>;
-
-    this.targetPeerContext = option.peerId ? PeerContext.parse(option.peerId as string) : PeerContext.parse('???');
-    this.title = option.title ? (option.title as string) : '';
+    const option = this.modalService.option as Partial<PasswordCheckOptions> | undefined;
+    // verifyPassword は this.roomName / this.digestUserId / this.roomId など複数フィールドを
+    // 参照するため、呼び出し側で完全に組み立てた PeerContext をそのまま受け取る設計。
+    // peerId だけを渡されると roomName が空になり digest がずれて常に false になる。
+    this.targetPeerContext = option?.peerContext ?? PeerContext.parse('???');
+    this.title = option?.title ?? '';
 
     queueMicrotask(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
     afterNextRender(() => {

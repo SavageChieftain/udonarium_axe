@@ -7,7 +7,10 @@ import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { PasswordCheckComponent } from '@axe/features/lobby/password-check/password-check.component';
+import {
+  PasswordCheckComponent,
+  type PasswordCheckOptions,
+} from '@axe/features/lobby/password-check/password-check.component';
 import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
 import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
 
@@ -110,10 +113,11 @@ export class LobbyComponent {
     let password = '';
 
     if (context.hasPassword) {
-      password = await this.modalService.open<string>(PasswordCheckComponent, {
-        peerId: context.peerId,
+      const options: PasswordCheckOptions = {
+        peerContext: context,
         title: `${context.roomName}/${context.roomId}`,
-      });
+      };
+      password = await this.modalService.open<string>(PasswordCheckComponent, options);
       if (password == null) password = '';
       this.myPeer.reConnectPass = password;
     }
