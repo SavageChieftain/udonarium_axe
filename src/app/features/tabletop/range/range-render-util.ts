@@ -21,13 +21,9 @@ import {
 
 type ClipArea = ClipAreaLine | ClipAreaSquare | ClipAreaTriangle | ClipAreaPentagon | ClipAreaHexagon | ClipAreaCorn;
 
-/**
- * `clip01x/y` 形式のレンジ多角形クリップ領域を CSS `polygon(...)` 文字列にする。
- * 任意のキー数に対応（3 点〜9 点）。連番を読み続け、欠番が出た時点で終了する。
- */
+/** `clip01x/y` 形式の連番を `polygon(...)` CSS にする。欠番が出た時点で終了 (3 点〜9 点)。 */
 export function clipAreaToPolygonCss(clip: ClipArea): string {
-  // 個別の Clip インターフェース群はインデックスシグネチャを持たないため、
-  // 動的キーで読むには Record 経由に変換する必要がある（unknown 経由で安全に）。
+  // 個別の Clip インターフェース群はインデックスシグネチャを持たないため Record 経由で読む。
   const c = clip as unknown as Record<string, number>;
   const points: string[] = [];
   for (let i = 1; ; i++) {
@@ -40,7 +36,7 @@ export function clipAreaToPolygonCss(clip: ClipArea): string {
   return `polygon(${points.join(', ')})`;
 }
 
-/** CIRCLE 形状のクリップ。`circle(<radius>px)` 形式。`length` セル + 0.5 余白でカバー。 */
+/** `length` セル + 0.5 セル余白の `circle(<radius>px)`。 */
 export function clipCircleCss(lengthCells: number, gridSize: number): string {
   return `circle(${(lengthCells + 1.5) * gridSize}px)`;
 }
@@ -82,7 +78,7 @@ export function calcGridOffsets(setting: RangeRenderSetting): GridOffsets {
   return { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px };
 }
 
-// ホットループ内でのオブジェクト生成を避けるための共有結果バッファ（シングルスレッドなので安全）
+// ホットループ内でのオブジェクト生成を避けるための共有バッファ (シングルスレッドなので安全)
 const _gridPos: GridPosition = { gx: 0, gy: 0 };
 
 export function generateCalcGridPositionFunc(
@@ -95,8 +91,6 @@ export function generateCalcGridPositionFunc(
 ): StrokeGridFunc {
   switch (gridType) {
     case GridType.HEX_VERTICAL: {
-      // ヘクス縦揃え
-      // ループ不変定数をクロージャ生成時に一度だけ計算する
       const isHalfSlideXLine = centerX % (gridSize * 2) < gridSize ? 1 : 0;
       const idAreaWidthMulti4 = areaWidth % 4 === 0 ? 1 : 0;
       const parity = isHalfSlideXLine + idAreaWidthMulti4;
@@ -107,8 +101,6 @@ export function generateCalcGridPositionFunc(
       };
     }
     case GridType.HEX_HORIZONTAL: {
-      // ヘクス横揃え(どどんとふ互換)
-      // ループ不変定数をクロージャ生成時に一度だけ計算する
       const isHalfSlideYLine = centerY % (gridSize * 2) < gridSize ? 1 : 0;
       const idAreaHeightMulti4 = areaHeight % 4 === 0 ? 1 : 0;
       const parity = isHalfSlideYLine + idAreaHeightMulti4;
@@ -118,7 +110,7 @@ export function generateCalcGridPositionFunc(
         return _gridPos;
       };
     }
-    default: // スクエア(default)
+    default:
       return (w, h) => {
         _gridPos.gx = w * gridSize;
         _gridPos.gy = h * gridSize;
@@ -142,8 +134,10 @@ export function makeBrush(
   return context;
 }
 
-// 多角形の構成ベクトルを盤面見下ろしで右回転にとる
-// ベクトルP1P2 x Px1Pchk の外積が+ならば図形の内側にある
+/**
+ * 多角形の構成ベクトルを盤面見下ろしで右回転にとり、
+ * ベクトル P1P2 × P1Pchk の外積が +ならば pchk は内側。
+ */
 export function chkOuterProduct(
   p1x: number,
   p1y: number,
@@ -157,7 +151,7 @@ export function chkOuterProduct(
   const bx = pchkx - p1x;
   const by = pchky - p1y;
   const calc = ax * by - ay * bx;
-  return calc >= -0.01; // 丸め誤差対策で少し許容範囲を広くする
+  return calc >= -0.01; // 丸め誤差対策で許容範囲を少し広くする。
 }
 
 export function chkInCircle(radius: number, pchkx: number, pchky: number): boolean {
@@ -172,12 +166,7 @@ export function isHexGrid(gridType: GridType): boolean {
   return isHexGridType(gridType);
 }
 
-/**
- * ヘクスグリッド上のセルを塗りつぶす。
- * GridLineRender と同じジオメトリ (circumradius = gridSize / √3) でタイリングし、
- * hitTest に合格したセルのみ描画する。
- * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
- */
+/** @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)。 */
 function fillHexGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,
@@ -194,11 +183,9 @@ function fillHexGridCells(
   const offsetX = canvasW / 2;
   const offsetY = canvasH / 2;
 
-  // レンジのテーブル上位置
   const cx0 = setting.centerX;
   const cy0 = setting.centerY;
 
-  // キャンバス全域をカバーするイテレーション範囲
   const colMin = Math.floor((cx0 - canvasW / 2) / colSpacing) - 1;
   const colMax = Math.ceil((cx0 + canvasW / 2) / colSpacing) + 1;
   const rowMin = Math.floor((cy0 - canvasH / 2) / rowSpacing) - 1;
@@ -221,11 +208,7 @@ function fillHexGridCells(
   }
 }
 
-/**
- * スクエアグリッド上のセルを塗りつぶす。
- * hitTest に合格したセルのみ描画する。
- * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
- */
+/** @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)。 */
 function fillSquareGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,
@@ -254,11 +237,7 @@ function fillSquareGridCells(
   }
 }
 
-/**
- * グリッド種別に応じたセル塗りつぶしを行う統合関数。
- * ヘクスグリッドなら fillHexGridCells、スクエアグリッドなら fillSquareGridCells にディスパッチする。
- * @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)
- */
+/** @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)。 */
 export function fillGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,
