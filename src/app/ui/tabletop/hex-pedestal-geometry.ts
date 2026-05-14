@@ -1,8 +1,3 @@
-/**
- * ヘクスマップ上のペデスタル（花形）のジオメトリを計算するユーティリティ。
- * UIフレームワーク非依存の純粋関数群。
- */
-
 import { hexCircumradius, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
 
 export interface HexFlowerParams {
@@ -25,16 +20,14 @@ interface BoundingBox {
 }
 
 /**
- * ヘクス距離 ≤ (size-1) の全セルの集合体（花形）の外周アウトラインを計算する。
- * 座標はヘクス中心 (0,0) 基準のピクセル座標。
- * パスは画面上で CW (時計回り)。
+ * ヘクス距離 ≤ (size-1) の全セルの集合体 (花形) の外周アウトラインを返す。
+ * 座標はヘクス中心 (0,0) 基準のピクセル座標。パスは CW (時計回り)。
  */
 export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop: boolean): Point[] {
   const s = hexCircumradius(gridSize);
   const g = gridSize;
   const d = size - 1;
 
-  // キューブ座標でヘクス距離 ≤ d のセルを列挙
   const cells = new Set<string>();
   for (let q = -d; q <= d; q++) {
     const rMin = Math.max(-d, -q - d);
@@ -44,7 +37,6 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
     }
   }
 
-  // キューブ座標 → ピクセル座標
   const cubeToPixel = (q: number, r: number): Point => {
     if (isFlatTop) {
       return { x: 1.5 * s * q, y: (g / 2) * q + g * r };
@@ -53,7 +45,6 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
     }
   };
 
-  // 各辺インデックスに対応するキューブ座標上の隣接方向
   const neighborDirs: number[][] = isFlatTop
     ? [
         [1, 0],
@@ -78,7 +69,6 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
     return { x: cx + s * Math.cos(angle), y: cy + s * Math.sin(angle) };
   };
 
-  // 境界辺を収集し、始点座標 → 辺インデックスのマップを構築
   type Segment = { from: Point; to: Point };
   const segments: Segment[] = [];
   const fromMap = new Map<string, number>();
@@ -99,7 +89,6 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
     }
   }
 
-  // 辺を頂点共有順に連結して閉パスを構築
   const path: Point[] = [];
   const visited = new Array(segments.length).fill(false);
   let current = 0;
@@ -114,10 +103,7 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
   return path;
 }
 
-/**
- * CW ポリゴンを内側に bw ピクセルだけインセットする。
- * 各頂点で隣接辺の法線ベクトルのバイセクタ方向に移動。
- */
+/** CW ポリゴンを内側に bw ピクセルだけインセットする (隣接辺の法線バイセクタ方向)。 */
 export function insetPolygon(vertices: Point[], bw: number): Point[] {
   const n = vertices.length;
   const result: Point[] = [];
@@ -149,11 +135,8 @@ export function insetPolygon(vertices: Point[], bw: number): Point[] {
   return result;
 }
 
-/**
- * evenodd SVG パスで外側花形から内側花形を抜いたリング clip-path を返す。
- */
+/** evenodd SVG パスで外側花形から内側花形を抜いたリング clip-path を返す。 */
 export function buildHexRingClipPath(outline: Point[], bbox: BoundingBox, borderWidth: number): string {
-  // ペデスタル要素座標に変換（左上を原点にシフト）
   const outer = outline.map((v) => ({ x: v.x - bbox.minX, y: v.y - bbox.minY }));
   const inner = insetPolygon(outer, borderWidth);
   const f = (v: number): string => v.toFixed(2);
@@ -173,9 +156,6 @@ export function buildHexRingClipPath(outline: Point[], bbox: BoundingBox, border
   return `path(evenodd, "${outerPath} ${innerPath}")`;
 }
 
-/**
- * ヘクスフラワーのアウトラインから HexFlowerParams を計算する。
- */
 export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: boolean): HexFlowerParams {
   const L = size * gridSize;
   const outline =
@@ -196,31 +176,28 @@ export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: b
 }
 
 /**
- * 頂点（ヘクス交差点）中心のクラスターアウトラインを計算する。
- * 座標は頂点 (0,0) 基準。size に応じた距離ティアのセル群の外周パスを返す。
+ * 頂点 (ヘクス交差点) 中心のクラスターアウトラインを計算する。座標は頂点 (0,0) 基準。
+ * size に応じた距離ティアのセル群の外周パスを返す。
  *
- * ティア構成（flat-topの場合）:
- *   Tier 1 (d²= s²): 3セル  → size 1.5
- *   Tier 2 (d²=4s²): +3セル → size 2.5 (計6)
- *   Tier 3 (d²=7s²): +6セル → size 3.5 (計12)
- *   Tier 4 (d²=13s²): +6セル → size 4.5 (計18)
- *   Tier 5 (d²=16s²): +3セル → size 5.5 (計21)
+ * flat-top のティア構成:
+ *   Tier 1 (d²= s²):   3セル  → size 1.5
+ *   Tier 2 (d²=4s²):  +3セル  → size 2.5 (計 6)
+ *   Tier 3 (d²=7s²):  +6セル  → size 3.5 (計 12)
+ *   Tier 4 (d²=13s²): +6セル  → size 4.5 (計 18)
+ *   Tier 5 (d²=16s²): +3セル  → size 5.5 (計 21)
  */
 export function buildVertexClusterOutline(size: number, gridSize: number, isFlatTop: boolean): Point[] {
   const s = hexCircumradius(gridSize);
   const g = gridSize;
   const startAngle = hexStartAngle(isFlatTop);
 
-  // 含めるティア数（size 1.5→1, 2.5→2, 3.5→3, …）
   const tierCount = Math.max(1, Math.floor(size));
 
   const cubeToPixel = (q: number, r: number): Point =>
     isFlatTop ? { x: 1.5 * s * q, y: (g / 2) * q + g * r } : { x: g * q + (g / 2) * r, y: 1.5 * s * r };
 
-  // 頂点0のピクセル座標（原点からのオフセット）
   const vertexPos: Point = isFlatTop ? { x: s, y: 0 } : { x: 0, y: -s };
 
-  // 十分な範囲の候補セルを生成し、頂点からの正規化距離でソート
   const maxRange = tierCount + 2;
   const candidates: { q: number; r: number; ndist: number }[] = [];
   const s2 = s * s;
@@ -234,7 +211,6 @@ export function buildVertexClusterOutline(size: number, gridSize: number, isFlat
   }
   candidates.sort((a, b) => a.ndist - b.ndist);
 
-  // 距離ティアごとにグループ化し、tierCount 分のセルを選択
   const cubes: [number, number][] = [];
   let tiersFound = 0;
   let prevNdist = -1;
@@ -247,7 +223,6 @@ export function buildVertexClusterOutline(size: number, gridSize: number, isFlat
     cubes.push([c.q, c.r]);
   }
 
-  // 境界辺トレースで外周パスを構築
   const cells = new Set(cubes.map(([q, r]) => `${q},${r}`));
 
   const neighborDirs: number[][] = isFlatTop

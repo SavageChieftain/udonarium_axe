@@ -1,13 +1,13 @@
 /**
- * Simple arithmetic formula evaluator for calc-type fields.
- * Supports: numbers, +, -, *, /, **, (, ), unary minus,
- *           floor(), ceil(), round(), abs(), min(), max()
- * Variable names are matched against the env map (case-insensitive lookup).
+ * Calc-type フィールド用の簡易算術式エバリュエータ。
+ * 構文: number, +, -, *, /, **, (, ), unary minus,
+ *       floor(), ceil(), round(), abs(), min(), max().
+ * 変数名は env マップに大文字小文字無視で照合する。
  */
 
 export type CalcEnv = Record<string, number>;
 
-/** Evaluate a formula string and return a number, or NaN on error. */
+/** 式文字列を評価して数値を返す。失敗時は NaN。 */
 export function evalCalcFormula(formula: string, env: CalcEnv): number {
   try {
     const tokens = tokenize(formula);
@@ -19,8 +19,6 @@ export function evalCalcFormula(formula: string, env: CalcEnv): number {
     return NaN;
   }
 }
-
-// ─── Tokenizer ────────────────────────────────────────────────────────────────
 
 type Token =
   | { type: 'NUM'; value: number }
@@ -40,7 +38,6 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // Number (integer or decimal)
     const numMatch = src.slice(i).match(/^[0-9]+(?:\.[0-9]+)?/);
     if (numMatch) {
       tokens.push({ type: 'NUM', value: parseFloat(numMatch[0]) });
@@ -48,7 +45,7 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // Bracketed identifier for path references: [section/group/field]
+    // `[section/group/field]` 形式のパス参照は識別子として 1 トークン化する。
     if (ch === '[') {
       let value = '';
       let j = i + 1;
@@ -73,7 +70,7 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // Identifier (ASCII word + Japanese Kanji/Kana/Fullwidth)
+    // ASCII word + 漢字 / かな / 全角を識別子として許容する。
     const idMatch = src.slice(i).match(/^[\w\u3000-\u9FFF\uFF00-\uFFEF\u30A0-\u30FF\u3040-\u309F]+/);
     if (idMatch) {
       tokens.push({ type: 'ID', value: idMatch[0] });
@@ -97,7 +94,6 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // Two-char operators first
     if (src.slice(i, i + 2) === '**') {
       tokens.push({ type: 'OP', value: '**' });
       i += 2;
@@ -109,13 +105,11 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // Unknown → break to avoid infinite loop
+    // 未知文字は読み飛ばして無限ループ回避。
     i++;
   }
   return tokens;
 }
-
-// ─── Recursive-descent parser (precedence climbing) ─────────────────────────
 
 const FUNCTIONS = new Set(['floor', 'ceil', 'round', 'abs', 'min', 'max']);
 
@@ -208,16 +202,15 @@ class Parser {
       this.consume();
       const name = tok.value.toLowerCase();
 
-      // Built-in function call
       if (FUNCTIONS.has(name) && this.peek()?.type === 'LPAREN') {
-        this.consume(); // (
+        this.consume();
         const args: number[] = [];
         while (this.peek()?.type !== 'RPAREN') {
           args.push(this.parseExpr());
           if (this.peek()?.type === 'COMMA') this.consume();
         }
         if (this.peek()?.type !== 'RPAREN') throw new Error('missing )');
-        this.consume(); // )
+        this.consume();
         switch (name) {
           case 'floor':
             return Math.floor(args[0] ?? 0);
@@ -236,7 +229,6 @@ class Parser {
         }
       }
 
-      // Variable lookup (case-insensitive)
       const envKey = Object.keys(this.env).find((k) => k.toLowerCase() === name);
       return envKey !== undefined ? this.env[envKey] : NaN;
     }

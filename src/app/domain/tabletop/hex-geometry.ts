@@ -1,63 +1,43 @@
 /**
  * ヘクスグリッドの共通ジオメトリプリミティブ。
- * 全モジュール共通の定数・座標計算を一元管理する。
  *
  * 用語:
  *   circumradius (s) — ヘクス中心から頂点までの距離 = gridSize / √3
- *   gridSize         — ヘクスの辺間距離（inradius × 2）= √3 × s
+ *   gridSize         — ヘクスの辺間距離 (inradius × 2) = √3 × s
  *   flat-top         — GridType.HEX_VERTICAL: 列が縦に直線
  *   pointy-top       — GridType.HEX_HORIZONTAL: 行が横に直線
  */
 
 import { GridType } from '@axe/domain/tabletop/game-table';
 
-// ---------------------------------------------------------------------------
-// 基本定数
-// ---------------------------------------------------------------------------
-
-/** ヘクスの circumradius (中心→頂点距離) を返す。 */
 export function hexCircumradius(gridSize: number): number {
   return gridSize / Math.sqrt(3);
 }
 
-/** GridType が HEX_VERTICAL なら flat-top。 */
 export function isFlatTopGrid(gridType: GridType): boolean {
   return gridType === GridType.HEX_VERTICAL;
 }
 
-/** GridType がヘクス系 (HEX_VERTICAL | HEX_HORIZONTAL) か判定する。 */
 export function isHexGrid(gridType: GridType): boolean {
   return gridType === GridType.HEX_VERTICAL || gridType === GridType.HEX_HORIZONTAL;
 }
-
-// ---------------------------------------------------------------------------
-// タイリング定数
-// ---------------------------------------------------------------------------
 
 export interface HexSpacing {
   colSpacing: number;
   rowSpacing: number;
 }
 
-/** ヘクスタイリングの列幅・行幅を返す。 */
 export function hexSpacing(gridSize: number, isFlatTop: boolean): HexSpacing {
   const s = hexCircumradius(gridSize);
   return isFlatTop ? { colSpacing: 1.5 * s, rowSpacing: gridSize } : { colSpacing: gridSize, rowSpacing: 1.5 * s };
 }
 
-/** flat-top なら 0、pointy-top なら -π/2。 */
+/** flat-top → 0、pointy-top → -π/2。 */
 export function hexStartAngle(isFlatTop: boolean): number {
   return isFlatTop ? 0 : -Math.PI / 2;
 }
 
-// ---------------------------------------------------------------------------
-// セル中心座標
-// ---------------------------------------------------------------------------
-
-/**
- * (col, row) のヘクスセル中心座標を返す。
- * col/row はタイリングインデックス（キューブ座標ではない）。
- */
+/** col/row はタイリングインデックス (キューブ座標ではない)。 */
 export function hexCellCenter(
   col: number,
   row: number,
@@ -77,14 +57,7 @@ export function hexCellCenter(
   };
 }
 
-// ---------------------------------------------------------------------------
-// 頂点パス
-// ---------------------------------------------------------------------------
-
-/**
- * cx, cy を中心とする circumradius = s のヘクスの 6 頂点を返す。
- * CW (時計回り)。
- */
+/** 頂点は CW (時計回り) で返す。 */
 export function hexVertices(cx: number, cy: number, s: number, startAngle: number): { x: number; y: number }[] {
   const verts: { x: number; y: number }[] = [];
   for (let i = 0; i < 6; i++) {
@@ -94,10 +67,7 @@ export function hexVertices(cx: number, cy: number, s: number, startAngle: numbe
   return verts;
 }
 
-/**
- * ピクセル座標から最近接ヘクスセルの (col, row) を返す。
- * 近傍セル中心の全探索で正確に判定する。
- */
+/** 近傍セル中心の全探索で最近接 (col, row) を返す。 */
 export function pixelToHexCell(
   px: number,
   py: number,
@@ -126,9 +96,6 @@ export function pixelToHexCell(
   return { col: bestCol, row: bestRow };
 }
 
-/**
- * Canvas 上にヘクスの枠線を描画する (stroke)。
- */
 export function strokeHexPath(
   context: CanvasRenderingContext2D,
   cx: number,
@@ -148,9 +115,6 @@ export function strokeHexPath(
   context.stroke();
 }
 
-/**
- * Canvas 上にヘクスを塗りつぶす (fill)。
- */
 export function fillHexPath(
   context: CanvasRenderingContext2D,
   cx: number,

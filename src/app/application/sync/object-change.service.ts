@@ -77,11 +77,9 @@ export class ObjectChangeService {
   /** Emitted synchronously when an object is removed from ObjectStore. */
   readonly objectRemoved$: ReadableChannel<ObjectStoreEvent> = objectRemoved$;
 
-  // --- Per-identifier version signals ---
   private readonly _versions = new Map<string, WritableSignal<number>>();
 
-  /** 特定オブジェクトの変更 signal（読み取り専用）。
-   *  自身のプロパティ変更 + 子孫ノードの変更 の両方で increment される。 */
+  /** 自身のプロパティ変更 + 子孫ノードの変更 の両方で increment される。 */
   versionOf(identifier: string): Signal<number> {
     let sig = this._versions.get(identifier);
     if (!sig) {
@@ -96,13 +94,13 @@ export class ObjectChangeService {
     this._versions.get(identifier)?.update((v) => v + 1);
   }
 
-  // --- Per-aliasName collection signals ---
   private readonly _collections = new Map<string, WritableSignal<number>>();
 
-  /** 特定型のオブジェクトが追加/削除されたことを通知する signal（読み取り専用）。
-   *  objectAdded$/objectRemoved$ で自動 increment される。
-   *  フィルタ済みコレクションの見かけ上の変化（location/parent 変更等）には
-   *  notifyCollectionChanged() で手動 increment が必要。 */
+  /**
+   * objectAdded$/objectRemoved$ で自動 increment される。
+   * フィルタ済みコレクションの見かけ上の変化 (location/parent 変更等) には
+   * notifyCollectionChanged() で手動 increment が必要。
+   */
   collectionOf(aliasName: string): Signal<number> {
     let sig = this._collections.get(aliasName);
     if (!sig) {
@@ -112,16 +110,13 @@ export class ObjectChangeService {
     return sig.asReadonly();
   }
 
-  /** フィルタ済みコレクションの見かけ上の変化（location/parent 変更等）を通知する。 */
   notifyCollectionChanged(aliasName: string): void {
     this._collections.get(aliasName)?.update((v) => v + 1);
   }
 
   /**
-   * `objectChanged$` を identifier list でフィルタする helper。
    * `getIdentifiers` は subscribe 中の毎イベント時に評価され、最新の id セットに対する変更だけ
-   * listener に届ける（component 自身の追従先 id 等、動的なケースに対応するためコールバック形式）。
-   * 静的な単一 id だけ気にしたいなら `[id]` を返すだけで足りる。
+   * listener に届ける (component 自身の追従先 id 等、動的なケースに対応するためコールバック形式)。
    * @returns 購読解除関数。`destroyRef` 指定で自動的にクリーンアップされる。
    */
   onObjectChangedFor(
@@ -135,10 +130,6 @@ export class ObjectChangeService {
     }, destroyRef);
   }
 
-  /**
-   * `objectChanged$` を aliasName でフィルタする helper。
-   * 部屋内の全 SyncObject 変更で発火するイベントを、特定の型のみに絞り込みたいユースケース用。
-   */
   onObjectChangedForAlias(
     aliasNames: readonly string[],
     listener: (event: ObjectChangeEvent) => void,
@@ -149,7 +140,6 @@ export class ObjectChangeService {
     }, destroyRef);
   }
 
-  // --- Events bridged from networkMessage$ (network/P2P events only) ---
   private readonly _objectDeleted$ = new EventChannel<ObjectDeleteEvent>();
   private readonly _fileSyncList$ = new EventChannel<FileSyncEvent>();
   private readonly _fileResourceUpdated$ = new EventChannel<FileSyncEvent>();
@@ -184,7 +174,6 @@ export class ObjectChangeService {
   readonly audioSyncList$: ReadableChannel<FileSyncEvent> = this._audioSyncList$;
   readonly networkError$: ReadableChannel<NetworkErrorEvent> = this._networkError$;
 
-  // --- Events re-exported from domain-events (local trigger-only, no network) ---
   readonly messageAdded$ = messageAdded$;
   readonly cardStackDecreased$ = cardStackDecreased$;
   readonly startCutIn$ = startCutIn$;
@@ -208,28 +197,24 @@ export class ObjectChangeService {
   readonly networkVersion = signal<number>(0);
 
   constructor() {
-    // --- Per-identifier version signal: increment on objectChanged$ ---
     objectChanged$.subscribe((e) => {
       this._versions.get(e.identifier)?.update((v) => v + 1);
     }, this.destroyRef);
 
-    // --- Per-identifier version signal: increment on childrenChanged$ ---
     childrenChanged$.subscribe((e) => {
       this._versions.get(e.identifier)?.update((v) => v + 1);
     }, this.destroyRef);
 
-    // --- Per-aliasName collection signal: increment on objectAdded$ ---
     objectAdded$.subscribe((e) => {
       this._collections.get(e.aliasName)?.update((v) => v + 1);
     }, this.destroyRef);
 
-    // --- Per-aliasName collection signal: increment + version cleanup on objectRemoved$ ---
+    // objectRemoved は collection bump に加えて versions Map のエントリ自体を破棄する。
     objectRemoved$.subscribe((e) => {
       this._collections.get(e.aliasName)?.update((v) => v + 1);
       this._versions.delete(e.identifier);
     }, this.destroyRef);
 
-    // --- Wire network messages to private EventChannels ---
     const offNetworkBindings = subscribeNetworkBindings(networkMessage$, {
       objectDeleted$: this._objectDeleted$,
       fileSyncList$: this._fileSyncList$,
@@ -249,7 +234,7 @@ export class ObjectChangeService {
     });
     this.destroyRef.onDestroy(offNetworkBindings);
 
-    // --- Throttled fileVersion signal (leading + trailing, 100ms) ---
+    // throttle (leading + trailing, 100ms): file-related events をまとめて fileVersion を bump する。
     let fileTimer: ReturnType<typeof setTimeout> | null = null;
     let filePending = false;
     const flushFileVersion = () => {
@@ -277,7 +262,7 @@ export class ObjectChangeService {
       if (fileTimer !== null) clearTimeout(fileTimer);
     });
 
-    // --- Debounced networkVersion signal ---
+    // debounce (100ms): network peer events をまとめて networkVersion を bump する。
     let netTimer: ReturnType<typeof setTimeout> | null = null;
     const bumpNetworkVersion = () => {
       if (netTimer !== null) clearTimeout(netTimer);

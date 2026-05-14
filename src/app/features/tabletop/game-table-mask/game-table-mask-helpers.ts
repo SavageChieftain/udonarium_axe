@@ -8,24 +8,14 @@ import {
   isHexGrid,
 } from '@axe/domain/tabletop/hex-geometry';
 
-// ---------------------------------------------------------------------------
-// Hex mask geometry
-// ---------------------------------------------------------------------------
-
 /**
- * ヘクスグリッドマスクのピクセルバウンディングボックスとオフセット。
- *
- * width/height をヘクスのセル数として扱い、各セルが完全にSVG内に
- * 収まるようオフセットする。
+ * width/height をヘクスのセル数として扱い、最外周セルが完全に SVG 内に
+ * 収まるよう (offsetX, offsetY) からタイリングを始める。
  */
 export interface HexMaskGeometry {
-  /** オフセット済みピクセル幅 */
   pixelW: number;
-  /** オフセット済みピクセル高さ */
   pixelH: number;
-  /** 最初のセル中心の X オフセット */
   offsetX: number;
-  /** 最初のセル中心の Y オフセット */
   offsetY: number;
 }
 
@@ -56,10 +46,6 @@ export function computeHexMaskGeometry(
     return { pixelW, pixelH, offsetX, offsetY };
   }
 }
-
-// ---------------------------------------------------------------------------
-// Interfaces
-// ---------------------------------------------------------------------------
 
 export interface BuildMaskCssParams {
   currentScratchingSet: Set<string> | null;
@@ -94,10 +80,6 @@ export interface ScratchGridInfo {
   x: number;
   y: number;
 }
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
 
 function splitGridSet(value: string): Set<string> {
   return new Set(value.split(/,/g));
@@ -136,10 +118,6 @@ function buildHexSvgMask(polygons: string[], pixelW: number, pixelH: number): st
 
 const EMPTY_MASK = 'radial-gradient(#000, #000) 0px 0px / 0px 0px no-repeat';
 
-// ---------------------------------------------------------------------------
-// Hex mask SVG (scratching-aware)
-// ---------------------------------------------------------------------------
-
 function buildHexMaskSvg(params: BuildMaskCssParams): string {
   const geo = computeHexMaskGeometry(params.width, params.height, params.gridSize, params.gridType);
   if (!geo) return EMPTY_MASK;
@@ -170,10 +148,6 @@ function buildHexMaskSvg(params: BuildMaskCssParams): string {
   return buildHexSvgMask(polygons, geo.pixelW, geo.pixelH);
 }
 
-// ---------------------------------------------------------------------------
-// Hex outline mask (full outline for clipping)
-// ---------------------------------------------------------------------------
-
 export function buildHexOutlineMask(gridSize: number, gridType: GridType, width: number, height: number): string {
   const geo = computeHexMaskGeometry(width, height, gridSize, gridType);
   if (!geo) return '';
@@ -199,18 +173,9 @@ export function buildHexOutlineMask(gridSize: number, gridType: GridType, width:
   return buildHexSvgMask(polygons, geo.pixelW, geo.pixelH);
 }
 
-// ---------------------------------------------------------------------------
-// Hex outer border SVG
-// ---------------------------------------------------------------------------
-
-/**
- * 隣接セルの (col, row) オフセットを辺インデックスで返す。
- *
- * 辺インデックスは hexVertOffsets の頂点 i→i+1 に対応する。
- */
+/** edgeIdx は hexVertOffsets の頂点 i→i+1 に対応する隣接セル座標を返す。 */
 function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop: boolean): readonly [number, number] {
   if (isFlatTop) {
-    /* flat-top: 偶数列はオフセットなし、奇数列は +rowSpacing/2 */
     const even = col % 2 === 0;
     //                  edge: 0       1       2        3        4       5
     return even
@@ -235,7 +200,6 @@ function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop:
           ] as const
         )[edgeIdx];
   }
-  /* pointy-top: 偶数行はオフセットなし、奇数行は +colSpacing/2 */
   const even = row % 2 === 0;
   //                  edge: 0        1       2       3        4        5
   return even
@@ -261,12 +225,7 @@ function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop:
       )[edgeIdx];
 }
 
-/**
- * ヘクスグリッドの外周境界線のみを SVG で返す。
- *
- * 全セルを走査し、隣接セルが存在しない辺だけを `<line>` として出力する。
- * CSS background-image 用の data URI 文字列を返す。
- */
+/** 全セルを走査し、隣接セルが存在しない辺だけを `<line>` として外周境界を組み立てる。 */
 export function buildHexOuterBorderSvg(gridSize: number, gridType: GridType, width: number, height: number): string {
   const geo = computeHexMaskGeometry(width, height, gridSize, gridType);
   if (!geo) return '';
@@ -301,10 +260,6 @@ export function buildHexOuterBorderSvg(gridSize: number, gridType: GridType, wid
     `<g stroke="#ccc" stroke-width="2" stroke-linecap="round">${lines.join('')}</g></svg>`;
   return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}") 0px 0px / ${geo.pixelW}px ${geo.pixelH}px no-repeat`;
 }
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
 
 export function buildMaskCss(params: BuildMaskCssParams): string {
   if (isHexGrid(params.gridType)) return buildHexMaskSvg(params);
