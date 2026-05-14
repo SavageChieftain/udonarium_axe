@@ -162,6 +162,15 @@ export class ChatWindowComponent {
       }
       if (this.isAutoScroll) this.chatTab()?.markForRead();
     }, this.destroyRef);
+    this.objectChange.writingMessage$.subscribe((event) => {
+      if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier) return;
+      if (!this.isNearBottom()) return;
+      setTimeout(() => {
+        const panel = this.panelService.scrollablePanel;
+        if (!panel) return;
+        panel.scrollTop = panel.scrollHeight;
+      }, 0);
+    }, this.destroyRef);
     this.objectChange.onObjectChangedForAlias(
       [ChatTab.aliasName, ChatTabList.aliasName],
       (event) => {
