@@ -14,38 +14,25 @@ import {
   DataElementRole,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
-import { findJudgementCandidates, type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
 import {
   buildTableColumnHeaderGroups,
   canRenderAsTable as canRenderAsTableShared,
-  findGapCellInColumn,
-  getCellLabel,
-  getCellUnit,
   getRawTableRows,
   getSelectOptions,
-  getTableCell as getTableCellShared,
   getTableColumns as getTableColumnsShared,
-  isCheckCellChecked,
-  isGapColumn,
-  isSelectValueListed,
   isTableControlRow as isTableControlRowShared,
-  nextCheckCellValue,
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
-import { evalCalcFormula } from '@axe/features/data-element/game-data-element/game-data-element-calc';
-import { buildCalcEnv } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
+import { evaluateCalcElement } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 import {
   canAcceptChildRole,
   canDropStructureElement,
   type DataElementDropPosition,
   resolveDropPosition as resolveDropPositionShared,
 } from '@axe/features/data-element/game-data-element/game-data-element-structure-drop';
+import { GameDataElementTableViewComponent } from '@axe/features/data-element/game-data-element/game-data-element-table-view.component';
 import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-element/game-data-element-utils';
-import {
-  type JudgeCandidatesState,
-  JudgementCandidatesModalComponent,
-} from '@axe/features/data-element/game-data-element/judgement-candidates-modal.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -61,7 +48,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
     SafePipe,
     NgSelectComponent,
     NgOptionComponent,
-    JudgementCandidatesModalComponent,
+    GameDataElementTableViewComponent,
   ],
   host: {
     class:
@@ -96,8 +83,6 @@ export class GameDataElementComponent {
 
   readonly structureDropPosition = signal<DataElementDropPosition | null>(null);
   readonly fieldOptionsOpen = signal(false);
-  readonly judgeCandidatesState = signal<JudgeCandidatesState | null>(null);
-  private readonly _judgeActive = signal<boolean>(false);
 
   /** element と全 row, cell の version を読んで OnPush 依存を張る。pure 計算結果はこの後の computed で得る。 */
   private trackTableDependencies(): void {
@@ -279,16 +264,8 @@ export class GameDataElementComponent {
   readonly calcResult = computed(() => {
     const el = this.gameDataElement();
     this.objectChange.versionOf(el.identifier)();
-    return this.evaluateCalcElement(el);
+    return evaluateCalcElement(el);
   });
-
-  private evaluateCalcElement(element: DataElement): string {
-    const formula = element.getAttribute(DataElementAttribute.FORMULA);
-    if (!formula) return '';
-    const env = buildCalcEnv(element);
-    const result = evalCalcFormula(formula, env);
-    return Number.isNaN(result) ? '?' : String(result % 1 === 0 ? result : parseFloat(result.toFixed(4)));
-  }
 
   readonly iconPickerOpen = signal(false);
 
@@ -615,31 +592,6 @@ export class GameDataElementComponent {
     return getSelectOptions(this.gameDataElement());
   }
 
-  getTableSelectOptions(cell: DataElement): string[] {
-    this.objectChange.versionOf(cell.identifier)();
-    return getSelectOptions(cell);
-  }
-
-  isTableSelectValueListed(cell: DataElement): boolean {
-    this.objectChange.versionOf(cell.identifier)();
-    return isSelectValueListed(cell);
-  }
-
-  setTableSelectCellValue(cell: DataElement, value: string): void {
-    cell.value = value;
-    this.objectChange.notifyChanged(cell.identifier);
-  }
-
-  setTableSelectCellValueFromEvent(cell: DataElement, event: Event): void {
-    if (this.isValueLocked()) {
-      // 読み取り専用時は元の選択に戻す
-      if (event.target instanceof HTMLSelectElement) event.target.value = String(cell.value ?? '');
-      return;
-    }
-    const value = event.target instanceof HTMLSelectElement ? event.target.value : '';
-    this.setTableSelectCellValue(cell, value);
-  }
-
   shouldShowFieldOptions(): boolean {
     if (!this.isEdit() || this.isImage()) return false;
     const fieldType = this.gameDataElement().fieldType;
@@ -723,25 +675,13 @@ export class GameDataElementComponent {
     return element.getAttribute(DataElementAttribute.JUDGE_MODE) === 'true';
   }
 
-  /** 編集モード: GAP判定テーブル設定フラグをトグル */
+  /** 編集モード: GAP判定テーブル設定フラグをトグル。
+   *  オフにすると child の isJudgeMode() も自動的に false に戻る (input 経由)。 */
   toggleJudgeModeEnabled(): void {
     const element = this.gameDataElement();
     if (this.isJudgeModeEnabled()) element.removeAttribute(DataElementAttribute.JUDGE_MODE);
     else element.setAttribute(DataElementAttribute.JUDGE_MODE, 'true');
     this.objectChange.notifyChanged(element.identifier);
-    // 設定をオフにした場合はアクティブ状態もリセット
-    if (!this.isJudgeModeEnabled()) this._judgeActive.set(false);
-  }
-
-  /** 現在、判定算出モードで動作中か（ビューモードのトグル状態） */
-  isJudgeMode(): boolean {
-    return this.isJudgeModeEnabled() && this._judgeActive();
-  }
-
-  /** ビューモード: 判定算出 / 技能習得をトグル */
-  toggleJudgeActive(): void {
-    this._judgeActive.update((v) => !v);
-    this.judgeCandidatesState.set(null);
   }
 
   get gapDistanceText(): string {
@@ -782,72 +722,6 @@ export class GameDataElementComponent {
     this.objectChange.notifyChanged(element.identifier);
   }
 
-  onJudgeCheckCellClick(row: DataElement, colName: string, event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const element = this.gameDataElement();
-    const gapDistance = parseInt(element.getAttribute(DataElementAttribute.GAP_DISTANCE)) || 1;
-
-    const rows = this.tableBodyRows();
-    const allColumns = this.tableColumns();
-    const techColumns = allColumns.filter((col) => !this.isGapTableColumn(col));
-    const gapCostsBetweenCols = this.buildGapCostsBetweenCols(allColumns, gapDistance);
-
-    const targetRowIndex = rows.indexOf(row);
-    const targetColIndex = techColumns.findIndex((col) => col.name === colName);
-    if (targetRowIndex < 0 || targetColIndex < 0) return;
-
-    const candidates = findJudgementCandidates(
-      rows,
-      techColumns.map((col) => ({ name: col.name, label: col.label })),
-      targetRowIndex,
-      targetColIndex,
-      (cell) => this.isTableCheckCellChecked(cell),
-      5,
-      {
-        gapCostsBetweenCols,
-        loopHorizontal: this.loopHorizontal,
-        loopVertical: this.loopVertical,
-      }
-    );
-
-    const clickedCell = this.getTableCell(row, colName);
-    const fallbackLabel = techColumns.find((c) => c.name === colName)?.label ?? colName;
-    const clickedCellLabel = clickedCell ? this.getTableCellLabel(clickedCell) || fallbackLabel : fallbackLabel;
-
-    this.judgeCandidatesState.set({ clickedCellLabel, candidates });
-  }
-
-  private buildGapCostsBetweenCols(allColumns: DataElementTableColumn[], gapDistance: number): number[] {
-    const techCols = allColumns.filter((c) => !this.isGapTableColumn(c));
-    const costs: number[] = [];
-    for (let ti = 0; ti < techCols.length - 1; ti++) {
-      const idx1 = allColumns.findIndex((c) => c.name === techCols[ti].name);
-      const idx2 = allColumns.findIndex((c) => c.name === techCols[ti + 1].name);
-      let totalCost = 0;
-      for (let k = idx1 + 1; k < idx2; k++) {
-        if (this.isGapTableColumn(allColumns[k]) && this.isGapTableColumnActive(allColumns[k])) {
-          totalCost += gapDistance;
-        }
-      }
-      costs.push(totalCost);
-    }
-    return costs;
-  }
-
-  closeJudgeCandidates(): void {
-    this.judgeCandidatesState.set(null);
-  }
-
-  sendCandidateToChat(candidate: SkillJudgementCandidate): void {
-    const element = this.gameDataElement();
-    const baseDifficulty = parseInt(element.getAttribute(DataElementAttribute.BASE_DIFFICULTY)) || 5;
-    const totalDifficulty = baseDifficulty + candidate.distance;
-    this.uiSignalService.requestChatInputText(`2d6>=${totalDifficulty}`);
-    this.judgeCandidatesState.set(null);
-  }
-
   shouldRenderTableView(): boolean {
     return (
       !this.isEdit() &&
@@ -856,120 +730,6 @@ export class GameDataElementComponent {
       this.tableBodyRows().length > 0 &&
       this.tableColumns().length > 0
     );
-  }
-
-  getTableCell(row: DataElement, columnName: string): DataElement | null {
-    return getTableCellShared(row, columnName);
-  }
-
-  isGapTableColumn(column: DataElementTableColumn): boolean {
-    return isGapColumn(column);
-  }
-
-  isGapTableColumnActive(column: DataElementTableColumn): boolean {
-    const gapCell = this.getGapTableColumnCell(column);
-    return gapCell ? this.isTableCheckCellChecked(gapCell) : false;
-  }
-
-  getGapTableColumnTitle(column: DataElementTableColumn): string {
-    const gapCell = this.getGapTableColumnCell(column);
-    return gapCell ? this.getTableCellLabel(gapCell) || column.label : column.label;
-  }
-
-  toggleGapTableColumn(column: DataElementTableColumn, event?: Event): void {
-    if (!this.isGapTableColumn(column)) return;
-    event?.stopPropagation();
-    if (this.isValueLocked()) return;
-    const gapCell = this.getGapTableColumnCell(column);
-    if (!gapCell) return;
-    this.toggleTableCheckCell(gapCell);
-  }
-
-  setGapTableColumnActive(column: DataElementTableColumn, event: Event): void {
-    event.stopPropagation();
-    const gapCell = this.getGapTableColumnCell(column);
-    if (!gapCell) return;
-    if (this.isValueLocked()) {
-      if (event.target instanceof HTMLInputElement) event.target.checked = this.isTableCheckCellChecked(gapCell);
-      return;
-    }
-    const checked =
-      event.target instanceof HTMLInputElement ? event.target.checked : !this.isTableCheckCellChecked(gapCell);
-    gapCell.value = checked ? 1 : 0;
-    this.objectChange.notifyChanged(gapCell.identifier);
-  }
-
-  private getGapTableColumnCell(column: DataElementTableColumn): DataElement | null {
-    // tableRows() の依存を維持するため呼ぶ。実検索は shared helper に委譲。
-    this.tableRows();
-    return findGapCellInColumn(this.gameDataElement(), column);
-  }
-
-  getTableCellText(row: DataElement, columnName: string): string {
-    const cell = this.getTableCell(row, columnName);
-    if (!cell) return '';
-    return this.getTableCellDisplayText(cell);
-  }
-
-  getTableCellDisplayText(cell: DataElement): string {
-    this.objectChange.versionOf(cell.identifier)();
-
-    switch (cell.fieldType) {
-      case DataElementFieldType.RESOURCE:
-        return `${cell.currentValue}/${cell.value}${getCellUnit(cell)}`;
-      case DataElementFieldType.CHECK:
-        return getCellLabel(cell);
-      case DataElementFieldType.CALC:
-        return this.evaluateCalcElement(cell);
-      case DataElementFieldType.IMAGE:
-        return cell.value ? '画像未読込' : '';
-      default:
-        return String(cell.value ?? '')
-          .replace(/\s+/g, ' ')
-          .trim();
-    }
-  }
-
-  getTableCellImageUrl(cell: DataElement): string {
-    this.objectChange.versionOf(cell.identifier)();
-    this.objectChange.fileVersion();
-    const image = this.imageStorage.get(String(cell.value ?? ''));
-    return image?.url ?? '';
-  }
-
-  getTableCellLabel(cell: DataElement): string {
-    this.objectChange.versionOf(cell.identifier)();
-    return getCellLabel(cell);
-  }
-
-  isTableCheckCellChecked(cell: DataElement): boolean {
-    this.objectChange.versionOf(cell.identifier)();
-    return isCheckCellChecked(cell);
-  }
-
-  toggleTableCheckCell(cell: DataElement, event?: Event): void {
-    if (this.isValueLocked()) {
-      // 読み取り専用時は state を巻き戻して送信防止
-      if (event?.target instanceof HTMLInputElement) event.target.checked = this.isTableCheckCellChecked(cell);
-      return;
-    }
-    cell.value = nextCheckCellValue(cell, event);
-    this.objectChange.notifyChanged(cell.identifier);
-  }
-
-  onTableWheel(event: WheelEvent): void {
-    const scrollElement = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
-    if (!scrollElement || scrollElement.scrollWidth <= scrollElement.clientWidth) return;
-
-    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-    if (delta === 0) return;
-
-    const maxScrollLeft = scrollElement.scrollWidth - scrollElement.clientWidth;
-    const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollElement.scrollLeft + delta));
-    if (nextScrollLeft === scrollElement.scrollLeft) return;
-
-    event.preventDefault();
-    scrollElement.scrollLeft = nextScrollLeft;
   }
 
   private setFieldAttribute(attribute: string, value: string): void {

@@ -641,24 +641,6 @@ describe('GameDataElementComponent', () => {
       expect(fixture.nativeElement.textContent).toContain('名称');
       expect(fixture.nativeElement.textContent).toContain('オーバークリエイト');
     });
-
-    it('テーブル表示のホイール操作で横スクロールできること', () => {
-      const scrollElement = document.createElement('div');
-      Object.defineProperty(scrollElement, 'clientWidth', { configurable: true, value: 200 });
-      Object.defineProperty(scrollElement, 'scrollWidth', { configurable: true, value: 600 });
-      scrollElement.scrollLeft = 0;
-      const event = {
-        currentTarget: scrollElement,
-        deltaX: 0,
-        deltaY: 120,
-        preventDefault: vi.fn(),
-      } as unknown as WheelEvent;
-
-      component.onTableWheel(event);
-
-      expect(scrollElement.scrollLeft).toBe(120);
-      expect(event.preventDefault).toHaveBeenCalled();
-    });
   });
 
   describe('カスタムフィールド型', () => {
