@@ -77,10 +77,8 @@ export class GameCharacterSheetComponent {
   }
   readonly isEdit = signal(false);
 
-  /** キャラクターシートのアクティブタブ */
   readonly activeTab = signal<'sheet' | 'settings'>('sheet');
 
-  // ── キャラクターシート: カード単位編集状態 ──
   readonly editingIds = signal(new Set<string>());
 
   isElementEditing(id: string): boolean {
@@ -96,7 +94,6 @@ export class GameCharacterSheetComponent {
     });
   }
 
-  // ── 詳細カード drag-and-drop ──
   readonly dragOverId = signal<string | null>(null);
   private _draggedId: string | null = null;
 
@@ -135,7 +132,6 @@ export class GameCharacterSheetComponent {
     reorderDetailElement(this.character, this.objectStore, this.objectChange, draggedId, targetId);
   }
 
-  // ── カード占有幅（colspan）──
   private static readonly COLSPAN_CYCLE = ['1', '2', 'full'] as const;
 
   getCardColspan(el: DataElement): string {
@@ -163,7 +159,6 @@ export class GameCharacterSheetComponent {
     el.setAttribute('cs-colspan', next);
   }
 
-  // Typed accessors for template type narrowing via instanceof
   get diceSymbol(): DiceSymbol | null {
     return this.tabletopObject instanceof DiceSymbol ? this.tabletopObject : null;
   }
@@ -234,9 +229,6 @@ export class GameCharacterSheetComponent {
     });
   });
 
-  /**
-   * テーブル上のコマとして現在選択されている立ち絵インデックス (ICON.currentValue)
-   */
   readonly komaImageIndex = computed(() => {
     const char = this.character;
     if (!char) return 0;
@@ -245,9 +237,6 @@ export class GameCharacterSheetComponent {
     return iconEl ? (iconEl.currentValue as number) : 0;
   });
 
-  /**
-   * チャット立ち絵スロット (POS.currentValue, 0-11)
-   */
   readonly portraitPosIndex = computed(() => {
     const char = this.character;
     if (!char) return 0;
@@ -268,10 +257,6 @@ export class GameCharacterSheetComponent {
     return this.imageStorage.get(target.value as string) ?? ImageFile.Empty;
   });
 
-  /**
-   * detailDataElement の子要素から 立ち絵位置・コマ画像 を除いたもの
-   * (これらは専用UIで扱うため生スライダー表示から除外)
-   */
   readonly detailElements = computed(() => {
     const char = this.character;
     if (!char?.detailDataElement) return [];
@@ -341,19 +326,12 @@ export class GameCharacterSheetComponent {
     if (this.tabletopObject) cloneTabletopObject(this.tabletopObject);
   }
 
-  clickHide() {
-    //処理なし
-  }
+  clickHide() {}
 
-  clickNoTalk() {
-    //処理なし
-  }
+  clickNoTalk() {}
 
-  clickGrid() {
-    //処理なし
-  }
+  clickGrid() {}
 
-  /** コマとして使う立ち絵インデックスを切り替える */
   setKomaIndex(index: number) {
     const char = this.character;
     if (!char?.imageDataElement) return;
@@ -366,7 +344,6 @@ export class GameCharacterSheetComponent {
     char.update();
   }
 
-  /** コマ画像の実ファイルを変更（現在のICONインデックスが指す立ち絵を差し替え）*/
   openKomaImageModal() {
     const char = this.character;
     if (!char?.imageDataElement) return;
@@ -385,7 +362,6 @@ export class GameCharacterSheetComponent {
     });
   }
 
-  /** チャット立ち絵スロット (0-11) を設定 */
   setPortraitPos(pos: number) {
     const char = this.character;
     if (!char) return;
@@ -406,7 +382,6 @@ export class GameCharacterSheetComponent {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((value) => {
       if (!value) return;
       char.imageDataElement!.appendChild(DataElement.create('imageIdentifier', value, { type: 'image' }, ''));
-      // ICON.value (max) を同期
       const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
       if (iconEl) iconEl.value = char.imageDataElement!.children.length - 1;
       char.update();
@@ -441,7 +416,6 @@ export class GameCharacterSheetComponent {
       } else if (komaIdx > index) {
         iconEl.currentValue = (komaIdx as number) - 1;
       }
-      // 削除後の最大値に合わせる
       iconEl.value = images.length - 2;
     }
     char.imageDataElement.removeChild(el);
@@ -463,24 +437,15 @@ export class GameCharacterSheetComponent {
     component.tabletopObject = obj as GameCharacter;
   }
 
-  clickRangeOffSetX() {
-    // 処理なし
-  }
+  clickRangeOffSetX() {}
 
-  clickRangeOffSetY() {
-    // 処理なし
-  }
+  clickRangeOffSetY() {}
 
-  fillOutLine() {
-    // 処理なし
-  }
+  fillOutLine() {}
 
-  subDivisionSnapPolygonal() {
-    // 処理なし
-  }
+  subDivisionSnapPolygonal() {}
 
   clickLimitHeight() {
-    //高さが更新されない場合があるので雑だがこの方法で処理する
     const obj = this.tabletopObject;
     if (!obj) return;
     setTimeout(() => {

@@ -1,4 +1,3 @@
-// Angular JIT compiler — TestBed を使う spec でテンプレートをコンパイルするために必要
 import '@angular/compiler';
 
 import { NO_ERRORS_SCHEMA } from '@angular/core';
@@ -9,10 +8,8 @@ import { Logger, LogLevel } from '@axe/core/logging/logger';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 
-// テスト実行時はロガー出力を無効化する
 Logger.setLevel(LogLevel.NONE);
 
-// 非 providedIn:'root' なサービス — 全テストで自動提供する
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -21,7 +18,6 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { AppConfigService } from '@axe/composition/app-config.service';
 import { LoggerService } from '@axe/core/logging/logger.service';
 
-// src/app 以下の全 HTML/CSS ファイルをファイル名でインデックス化
 const srcAppDir = resolve(process.cwd(), 'src/app');
 const fileMap = new Map<string, string>();
 
@@ -44,10 +40,7 @@ const resourceResolver = (url: string): Promise<{ text(): Promise<string> }> => 
   return Promise.resolve({ text: () => Promise.resolve(content) });
 };
 
-// ─── WebRTC / Media stub ──────────────────────────────────────────────────
-// happy-dom には WebRTC API が存在しないため、@skyway-sdk/core のインポート時に
-// RTCPeerConnection や navigator.mediaDevices を参照するコードがエラーになる。
-// 最小限のスタブを提供する。
+// happy-dom has no WebRTC API; @skyway-sdk/core touches RTC* at import time.
 if (typeof globalThis.RTCPeerConnection === 'undefined') {
   const emptyTrack = {
     stop() {},
@@ -94,9 +87,7 @@ if (!navigator.mediaDevices) {
   });
 }
 
-// ─── FileReader polyfill ───────────────────────────────────────────────────
-// happy-dom の FileReader は zone.js にパッチされると readAs* メソッドが欠落する
-// モダンな Blob API (arrayBuffer / text) を使って再実装する
+// happy-dom's FileReader loses readAs* once zone.js patches it; rebuild on Blob API.
 class FileReaderPolyfill {
   result: string | ArrayBuffer | null = null;
   onload: ((event: Partial<ProgressEvent>) => void) | null = null;
@@ -141,7 +132,6 @@ class FileReaderPolyfill {
 }
 (globalThis as unknown as Record<string, unknown>)['FileReader'] = FileReaderPolyfill;
 
-// 全テストで自動提供するサービス群
 const GLOBAL_TEST_PROVIDERS = [
   AppConfigService,
   ChatMessageService,
@@ -152,12 +142,7 @@ const GLOBAL_TEST_PROVIDERS = [
   TabletopService,
 ] as const;
 
-// TestBed.configureTestingModule を wrap して以下を自動付与:
-//  - GLOBAL_TEST_PROVIDERS (非 root サービスを全テストで利用可能にする)
-//  - NO_ERRORS_SCHEMA (<font> 等レガシー要素や未解決子コンポーネントを許容)
-//
-// Angular テストランナーがラッパーをリセットする可能性があるため beforeEach 内で
-// 毎回適用する。sentinel プロパティを使って二重ラップを防ぐ。
+// Re-apply per beforeEach; the Angular test runner may reset the wrapper. Sentinel guards re-wrap.
 const WRAPPER_SENTINEL = '__globalProviderWrapped__';
 
 function applyConfigureTestingModuleWrapper(): void {
@@ -173,17 +158,13 @@ function applyConfigureTestingModuleWrapper(): void {
   TestBed.configureTestingModule = wrapped as typeof TestBed.configureTestingModule;
 }
 
-// TestBed テスト環境を初期化
-// Vitest は各テストファイルごとにセットアップを実行するため、
-// 未初期化の場合のみ initTestEnvironment を呼ぶ
+// Vitest runs setup once per test file; swallow the "already initialized" throw on re-entry.
 try {
   TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
 } catch {
-  // すでに初期化済みの場合は無視
+  /* already initialized */
 }
 
-// 各テストファイルのモジュール import 後、TestBed.configureTestingModule の前に
-// コンポーネントリソース (templateUrl / styleUrls) を解決し、ラッパーを適用する
 beforeEach(async () => {
   await resolveComponentResources(resourceResolver as Parameters<typeof resolveComponentResources>[0]);
   applyConfigureTestingModuleWrapper();
