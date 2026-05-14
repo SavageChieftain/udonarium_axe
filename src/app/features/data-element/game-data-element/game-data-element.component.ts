@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
-import { PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -55,7 +54,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 @Component({
   selector: 'game-data-element, [game-data-element]',
   templateUrl: './game-data-element.component.html',
-  styleUrls: ['./game-data-element.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
@@ -78,7 +76,6 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   },
 })
 export class GameDataElementComponent {
-  private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectStore = inject(ObjectStore);
   private readonly imageStorage = inject(ImageStorage);
