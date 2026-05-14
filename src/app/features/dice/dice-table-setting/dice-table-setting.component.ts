@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -21,51 +22,46 @@ export class DiceTableSettingComponent {
   private readonly saveDataService = inject(SaveDataService);
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
 
-  get gameType(): string {
-    const table = this.selectedTable;
-    return this.isEditable && table ? (table.diceTablePalette?.dicebot ?? '') : '';
-  }
-  set gameType(gameType: string) {
-    const table = this.selectedTable;
-    if (this.isEditable && table) {
-      table.diceTablePalette!.dicebot = gameType;
-    }
-  }
+  readonly tableName = computed<string>(() => this.readSyncVar((t) => t.name));
+  readonly tableDice = computed<string>(() => this.readSyncVar((t) => t.dice));
+  readonly tableCommand = computed<string>(() => this.readSyncVar((t) => t.command));
+  readonly gameType = computed<string>(() =>
+    this.readSyncVar((t) => {
+      const palette = this.findDiceTablePalette(t);
+      if (palette) this.objectChange.versionOf(palette.identifier)();
+      return palette?.dicebot ?? '';
+    })
+  );
 
-  loadDiceBot(gameType: string) {
-    DiceBot.getHelpMessage(gameType).then((_help) => {});
-  }
-
-  get diceBotInfos() {
-    return DiceBot.diceBotInfos;
-  }
-
-  get tableName(): string {
+  private readSyncVar<T>(read: (table: DiceTable) => T): T | '' {
     const table = this.selectedTable;
-    return this.isEditable && table ? table.name : '';
-  }
-  set tableName(tableName: string) {
-    const table = this.selectedTable;
-    if (this.isEditable && table) table.name = tableName;
+    if (!this.isEditable || !table) return '';
+    this.objectChange.versionOf(table.identifier)();
+    return read(table);
   }
 
-  get tableDice(): string {
+  setTableName(value: string): void {
     const table = this.selectedTable;
-    return this.isEditable && table ? table.dice : '';
-  }
-  set tableDice(tableDice: string) {
-    const table = this.selectedTable;
-    if (this.isEditable && table) table.dice = tableDice;
+    if (this.isEditable && table) table.name = value;
   }
 
-  get tableCommand(): string {
+  setTableDice(value: string): void {
     const table = this.selectedTable;
-    return this.isEditable && table ? table.command : '';
+    if (this.isEditable && table) table.dice = value;
   }
-  set tableCommand(tableCommand: string) {
+
+  setTableCommand(value: string): void {
     const table = this.selectedTable;
-    if (this.isEditable && table) table.command = tableCommand;
+    if (this.isEditable && table) table.command = value;
+  }
+
+  setGameType(value: string): void {
+    const table = this.selectedTable;
+    if (!this.isEditable || !table) return;
+    const palette = this.findDiceTablePalette(table);
+    if (palette) palette.dicebot = value;
   }
 
   get tableText(): string {
@@ -77,16 +73,30 @@ export class DiceTableSettingComponent {
     if (this.isEditable && table) table.text = tableText + '';
   }
 
-  get diceTablePalette(): DiceTablePalette {
+  readonly palettes = computed<readonly string[]>(() => {
     const table = this.selectedTable;
-    if (!this.isEditable || !table) {
-      return Object.create(DiceTablePalette.prototype) as DiceTablePalette;
-    }
+    if (!this.isEditable || !table) return [];
+    this.objectChange.versionOf(table.identifier)();
+    const palette = this.findDiceTablePalette(table);
+    if (!palette) return [];
+    this.objectChange.versionOf(palette.identifier)();
+    return palette.getPalette();
+  });
 
+  private findDiceTablePalette(table: DiceTable | null): DiceTablePalette | null {
+    if (!table) return null;
     for (const child of table.children) {
       if (child instanceof DiceTablePalette) return child;
     }
-    return Object.create(DiceTablePalette.prototype) as DiceTablePalette;
+    return null;
+  }
+
+  loadDiceBot(gameType: string) {
+    DiceBot.getHelpMessage(gameType).then((_help) => {});
+  }
+
+  get diceBotInfos() {
+    return DiceBot.diceBotInfos;
   }
 
   isEdit = signal(false);
@@ -164,10 +174,13 @@ export class DiceTableSettingComponent {
     const table = this.selectedTable;
     if (!table) return;
 
+    const palette = this.findDiceTablePalette(table);
+    if (!palette) return;
+
     if (this.isEdit()) {
-      this.editPalette.set(table.diceTablePalette!.value + '');
+      this.editPalette.set(palette.value + '');
     } else {
-      table.diceTablePalette!.setPalette(this.editPalette());
+      palette.setPalette(this.editPalette());
     }
   }
 
