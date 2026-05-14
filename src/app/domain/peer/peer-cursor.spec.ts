@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
+import { resetPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
@@ -8,6 +9,8 @@ describe('PeerCursor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
+    // 他の spec が setPeerContextProvider でスタブを残していた場合に備えて毎回既定に戻す。
+    resetPeerContextProvider();
     store = ObjectStore.instance;
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
