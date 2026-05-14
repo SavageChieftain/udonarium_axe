@@ -85,9 +85,6 @@ describe('PasswordCheckComponent', () => {
 
   describe('受け取った PeerContext での verifyPassword', () => {
     it('createRoom で組み立てた完全な PeerContext を渡せば正しいパスワードが通り、誤りは弾かれる', async () => {
-      // 呼び出し側 (lobby) は roomName 入りの完全な PeerContext を渡してくる前提。
-      // 修正前は peerId 文字列だけを渡しており、parse 結果は roomName が空で digest がずれて
-      // 常に false になる回帰を起こしていた。
       const room = await PeerContext.createRoom('user', 'a1', 'マイルーム', 'secret');
       setModalOption(modalService, {
         peerContext: room,

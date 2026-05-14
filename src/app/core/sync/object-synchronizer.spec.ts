@@ -27,17 +27,15 @@ describe('ObjectSynchronizer', () => {
   });
 
   describe('UPDATE_GAME_OBJECT で未知の object を受信したとき', () => {
+    // TableSelecter の selectGameTable$ subscription は onStoreAdded で張られるため
+    // ObjectStore から外すとテスト中に通知が届かなくなる。他オブジェクトのみクリーンアップする。
     beforeEach(() => {
       TestBed.configureTestingModule({});
-      // TableSelecter.instance の subscribe は onStoreAdded で張られるため、
-      // store から取り除くと再 add するまで selectGameTable$ を受け取れなくなる。
-      // 他の object だけ消す。
       for (const o of ObjectStore.instance.getObjects()) {
         if (o.identifier === TableSelecter.instance.identifier) continue;
         ObjectStore.instance.delete(o, false);
       }
       ObjectStore.instance.clearDeleteHistory();
-      // TableSelecter.instance が store に存在することを保証 (subscription が活きる)
       if (!ObjectStore.instance.get(TableSelecter.instance.identifier)) {
         ObjectStore.instance.add(TableSelecter.instance, false);
       }
@@ -53,14 +51,6 @@ describe('ObjectSynchronizer', () => {
       ObjectSynchronizer.instance.destroy();
     });
 
-    /**
-     * セーブデータから入室直後の joiner で、selected=true の GameTable が同期されたときに
-     * TableSelecter が正しく更新されることを保証する。
-     *
-     * バグ再現: createObject は ObjectStore.add → apply の順で行っていたため、
-     * GameTable.onStoreAdded は selected=true が反映される前に発火し、
-     * selectGameTable$ を emit できず joiner だけが別 table を見ていた。
-     */
     it('selected=true の GameTable を同期すると selectGameTable$ が発火し TableSelecter.viewTableIdentifier が更新される', () => {
       const tableSelecter = TableSelecter.instance;
       tableSelecter.viewTableIdentifier = '';
@@ -68,11 +58,10 @@ describe('ObjectSynchronizer', () => {
       const emitted: string[] = [];
       const off = selectGameTable$.subscribe((e) => emitted.push(e.identifier));
 
-      // host 側で selected=true として作った GameTable を localDispatch でシミュレート
       const sample = new GameTable('synced-table-id');
       sample.name = '決戦の宇宙';
       sample.selected = true;
-      sample.gridType = 2; // HEX_HORIZONTAL
+      sample.gridType = 2;
       sample.width = 48;
       sample.height = 36;
       const ctx = sample.toContext();

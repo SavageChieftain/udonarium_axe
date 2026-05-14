@@ -11,14 +11,6 @@ function makeCharacter(locationName: string, nonTalkFlag = false): MutableCharac
   return { location: { name: locationName }, nonTalkFlag };
 }
 
-/**
- * 本番コードが参照するのと同じ Network instance に対して getter を spy する。
- * 以前は `Object.defineProperty(NetworkClass.instance, ...)` で別 import path を経由して
- * 上書きしていたが、vitest の module duplication 次第で `Network`
- * (@axe/core/index) と `NetworkClass.instance` (@axe/core/network/network) が
- * 別 instance として観測される flake が起き、mock が production からは見えない
- * ことがあった。production と同じ参照 (Network) に直接 spy することで解消する。
- */
 function setPeerContexts(contexts: Array<{ peerId: string; isOpen: boolean }>): void {
   vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue(contexts as never);
 }
