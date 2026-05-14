@@ -12,9 +12,6 @@ export interface RemoteControllerInventoryContext {
   graveyardInventory: ObjectInventory;
 }
 
-/**
- * タブ種別に対応する日本語表示名を返す
- */
 export function getTabTitle(inventoryType: string): string {
   switch (inventoryType) {
     case 'table':
@@ -28,9 +25,6 @@ export function getTabTitle(inventoryType: string): string {
   }
 }
 
-/**
- * 指定されたタイプに応じたインベントリを取得
- */
 export function getInventory(
   inventoryType: string,
   inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
@@ -47,9 +41,6 @@ export function getInventory(
   }
 }
 
-/**
- * ゲームキャラクターのインベントリタグを取得
- */
 export function getInventoryTags(
   gameCharacter: GameCharacter,
   inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
@@ -58,9 +49,6 @@ export function getInventoryTags(
   return inventory.dataElementMap.get(gameCharacter.identifier) ?? [];
 }
 
-/**
- * テーブルタイプのゲームオブジェクトリストを取得（hideInventoryフィルター適用）
- */
 export function getGameObjects(
   inventoryType: string,
   inventoryService: RemoteControllerInventoryContext | GameObjectInventoryService
@@ -69,18 +57,11 @@ export function getGameObjects(
   return inventory.tabletopObjects.filter((obj) => !(obj as GameCharacter).hideInventory);
 }
 
-/**
- * 対象キャラクターを取得（checkedOnly=trueならtargeted=trueのみ）
- * hideInventoryのキャラクターは除外
- */
 export function getTargetCharacters(objectList: TabletopObject[], checkedOnly: boolean): GameCharacter[] {
   const gameCharacters: GameCharacter[] = [];
   for (const object of objectList) {
-    // objectListは既にGameCharacterでフィルター済みと仮定（getGameObjects() の呼び出し元）
     const gameChar = object as GameCharacter;
-    if (gameChar.hideInventory) {
-      continue; // 非表示対象の除外
-    }
+    if (gameChar.hideInventory) continue;
     if (gameChar.targeted || !checkedOnly) {
       gameCharacters.push(gameChar);
     }

@@ -5,22 +5,15 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
 
-/**
- * ジェスチャー入力（マウス・タッチ）とビュー変換（X/Y/Z 移動・回転）を管理するコンポーネントスコープサービス。
- * `GameTableComponent` の `providers` に追加して使用する。
- */
 @Injectable()
 export class GameTableGestureService {
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly uiSignalService = inject(UiSignalService);
 
-  /** テーブル変換モード（ドラッグ中か否か）。各ジェスチャーコールバックが参照する。 */
   isTableTransformMode = false;
-  /** テーブルが変換されたか（DocumentContextMenu で片道preventDefault に使用）。 */
   isTableTransformed = false;
 
-  // ビュー変換状態（シグナル不使用: setTransform が直接 DOM に書き込む）
   viewPositionX = 100;
   viewPositionY = 0;
   viewPositionZ = 0;
@@ -31,15 +24,11 @@ export class GameTableGestureService {
   private mouseGesture: TableMouseGesture | null = null;
   private touchGesture: TableTouchGesture | null = null;
 
-  // initialize() で受け取る DOM 参照とコールバック
   private gameTableEl!: HTMLElement;
   private gameObjectsEl!: HTMLElement;
   private gridCanvasEl!: HTMLCanvasElement;
   private getGridShow!: () => boolean;
 
-  /**
-   * afterNextRender() から呼び出す。ジェスチャーハンドラーを設定し、破棄時の後処理も登録する。
-   */
   initialize(
     rootEl: HTMLElement,
     gameTableEl: HTMLElement,
@@ -66,7 +55,6 @@ export class GameTableGestureService {
       this.onTableMouseTransform(tX, tY, tZ, rX, rY, rZ, ev, src);
   }
 
-  /** ジェスチャーをキャンセルしてデフォルト状態に戻す。初期化前は何もしない。 */
   cancelInput(): void {
     if (!this.gridCanvasEl) return;
     this.mouseGesture?.cancel();
@@ -76,10 +64,6 @@ export class GameTableGestureService {
     this.gridCanvasEl.style.opacity = opacity + '';
   }
 
-  /**
-   * 指定された差分を蓄積し、テーブル要素の CSS transform を直接更新する。
-   * シグナルを経由しないことでアニメーション中の CD オーバーヘッドを排除している。
-   */
   setTransform(tX: number, tY: number, tZ: number, rX: number, rY: number, rZ: number): void {
     this.viewRotateX += rX;
     this.viewRotateY += rY;
@@ -101,7 +85,6 @@ export class GameTableGestureService {
     this.gameTableEl.style.transform = `translateZ(${tz}px) translateY(${ty}px) translateX(${tx}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
   }
 
-  /** TouchGesture 開始: マウスジェスチャーをキャンセル。 */
   private onTableTouchStart(): void {
     this.mouseGesture?.cancel();
   }
@@ -197,7 +180,7 @@ export class GameTableGestureService {
     const scale = (3000 + Math.abs(this.viewPositionZ)) / 3000;
     transformX *= scale;
     transformY *= scale;
-    transformZ *= 3; // マウスホイールの感度維持
+    transformZ *= 3;
 
     this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
     this.isTableTransformed = true;

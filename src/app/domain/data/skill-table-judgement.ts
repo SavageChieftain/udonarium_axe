@@ -5,29 +5,17 @@ export interface SkillJudgementCandidate {
   rowName: string;
   colName: string;
   colLabel: string;
-  /** セルの CELL_TEXT 属性値（技能名）。未設定なら空文字 */
   cellLabel: string;
   distance: number;
 }
 
 export interface JudgementOptions {
-  /**
-   * 技能列 i と i+1 の間のGAPコスト配列（長さ = techColumns.length - 1）。
-   * アクティブGAPを通るときに加算される追加距離。
-   */
+  /** Gap cost added when crossing column i↔i+1; length = techColumns.length - 1. */
   gapCostsBetweenCols?: number[];
-  /** 横方向（列）ループ */
   loopHorizontal?: boolean;
-  /** 縦方向（行）ループ */
   loopVertical?: boolean;
 }
 
-/**
- * 技能表の判定候補算出。
- * クリックされたセル位置から Manhattan距離の近い順に
- * 習得済み（checked）技能を最大 maxCandidates 件返す。
- * GAP列コストとループ設定に対応。
- */
 export function findJudgementCandidates(
   rows: DataElement[],
   columns: { name: string; label: string }[],
@@ -77,7 +65,6 @@ function calcColDistance(
   const minIdx = Math.min(fromIdx, toIdx);
   const maxIdx = Math.max(fromIdx, toIdx);
 
-  // 順方向距離（minIdx → maxIdx）
   let forwardDist = maxIdx - minIdx;
   for (let i = minIdx; i < maxIdx; i++) {
     forwardDist += gapCostsBetweenCols[i] ?? 0;
@@ -85,13 +72,10 @@ function calcColDistance(
 
   if (!loop || colCount <= 1) return forwardDist;
 
-  // 逆方向距離（maxIdx → wrap → minIdx）
   let backwardDist = colCount - (maxIdx - minIdx);
-  // minIdx 側のGAP（0 .. minIdx-1 の間）
   for (let i = 0; i < minIdx; i++) {
     backwardDist += gapCostsBetweenCols[i] ?? 0;
   }
-  // maxIdx 側のGAP（maxIdx .. colCount-2 の間）
   for (let i = maxIdx; i < colCount - 1; i++) {
     backwardDist += gapCostsBetweenCols[i] ?? 0;
   }
