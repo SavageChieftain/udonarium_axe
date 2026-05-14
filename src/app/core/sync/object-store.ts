@@ -28,7 +28,7 @@ export class ObjectStore {
 
   private constructor() {}
 
-  add(object: GameObject, shouldBroadcast: boolean = true): GameObject | null {
+  add(object: GameObject, shouldBroadcast: boolean = true, beforeLifecycle?: () => void): GameObject | null {
     if (this.get(object.identifier) != null || this.isDeleted(object.identifier)) return null;
     this.identifierMap.set(object.identifier, object);
     let objectsMap = this.aliasNameMap.get(object.aliasName);
@@ -37,6 +37,10 @@ export class ObjectStore {
       this.aliasNameMap.set(object.aliasName, objectsMap);
     }
     objectsMap.set(object.identifier, object);
+    // beforeLifecycle runs after identifier maps are populated so callbacks fired
+    // during apply (e.g. ObjectNode parent linkage → emitMessageAdded) can resolve
+    // the new object via ObjectStore.get. onStoreAdded then sees populated SyncVars.
+    beforeLifecycle?.();
     object.onStoreAdded();
     if (shouldBroadcast) this.update(object.toContext());
     objectAdded$.emit({ identifier: object.identifier, aliasName: object.aliasName });

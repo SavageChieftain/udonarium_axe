@@ -106,10 +106,12 @@ export class ObjectSynchronizer {
       Logger.warn(`[ObjectSync] 未知のオブジェクト: ${context.aliasName}`, context);
       return null;
     }
-    // onStoreAdded から SyncVar を読む subclass がある (e.g. GameTable.selected)。
-    // XML ロード経路 (parseXml) も apply → initialize の順で揃えてある。
-    newObject.apply(context);
-    ObjectStore.instance.add(newObject, false);
+    // 順序: マップ登録 → apply → onStoreAdded。
+    // apply 中の parent.updateChildren → onChildAdded → emitMessageAdded 等で
+    // 購読側が ObjectStore.get(identifier) を解決できるよう、登録を先行させる。
+    // onStoreAdded は apply 完了後に走り、populated な SyncVar を読める
+    // (e.g. GameTable.selected)。
+    ObjectStore.instance.add(newObject, false, () => newObject.apply(context));
     return newObject;
   }
 

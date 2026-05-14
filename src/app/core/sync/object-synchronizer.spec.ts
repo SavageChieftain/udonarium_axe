@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { selectGameTable$ } from '@axe/core/event/domain-events';
+import { messageAdded$, selectGameTable$ } from '@axe/core/event/domain-events';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
@@ -72,6 +74,33 @@ describe('ObjectSynchronizer', () => {
 
       expect(emitted).toContain('synced-table-id');
       expect(tableSelecter.viewTableIdentifier).toBe('synced-table-id');
+    });
+
+    it('ChatMessage を同期した時点で messageAdded$ 購読側が ObjectStore.get で解決できる', () => {
+      const tab = new ChatTab('synced-chat-tab');
+      tab.name = 'メイン';
+      ObjectStore.instance.add(tab, false);
+
+      const resolved: (ChatMessage | null)[] = [];
+      const off = messageAdded$.subscribe((event) => {
+        resolved.push(ObjectStore.instance.get<ChatMessage>(event.messageIdentifier));
+      });
+
+      const sample = new ChatMessage('synced-chat-message');
+      sample.from = 'remote-user-id';
+      sample.name = 'Remote';
+      sample.value = 'hello';
+      sample.setAttribute('timestamp', 1_000);
+      // ChatTab.onChildAdded が emitMessageAdded を発火する条件 (parentIdentifier セット) を満たす。
+      const ctx = sample.toContext();
+      (ctx.syncData as Record<string, unknown>).parentIdentifier = tab.identifier;
+
+      localDispatch('UPDATE_GAME_OBJECT', ctx, 'remote-peer');
+
+      off();
+
+      expect(resolved.length).toBeGreaterThan(0);
+      expect(resolved[0]?.identifier).toBe('synced-chat-message');
     });
   });
 });
