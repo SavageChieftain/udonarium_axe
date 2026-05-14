@@ -106,8 +106,14 @@ export class ObjectSynchronizer {
       Logger.warn(`[ObjectSync] 未知のオブジェクト: ${context.aliasName}`, context);
       return null;
     }
-    ObjectStore.instance.add(newObject, false);
+    // syncData を反映してから ObjectStore.add する。XML ロード経路は parseXml で
+    // apply() → initialize() の順に呼ぶため onStoreAdded は SyncVar が埋まった状態で
+    // 走るが、ネットワーク同期もそれに合わせる。逆順 (add → apply) だと
+    // 例えば GameTable.onStoreAdded が `this.selected` を見て emitSelectGameTable
+    // しても、selected はまだ default false のままで TableSelecter が更新されず、
+    // joiner だけ別の table を表示してしまう。
     newObject.apply(context);
+    ObjectStore.instance.add(newObject, false);
     return newObject;
   }
 
