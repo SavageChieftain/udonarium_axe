@@ -78,22 +78,18 @@ export class GameCharacterComponent {
       if (char.identifier !== highlight.identifier) return;
       if (char.location.name != 'table') return;
 
-      // アニメーション開始のタイマーが既にあってアニメーション開始前（ごくわずかな間）ならば何もしない
       if (this.highlightTimer != null) return;
 
-      // アニメーション中であればアニメーションを初期化
       if (root.nativeElement.classList.contains('animate-focused')) {
         clearTimeout(this.unhighlightTimer);
         root.nativeElement.classList.remove('animate-focused');
       }
 
-      // アニメーション開始処理タイマー
       this.highlightTimer = setTimeout(() => {
         this.highlightTimer = undefined;
         root.nativeElement.classList.add('animate-focused');
       }, 0);
 
-      // アニメーション終了処理タイマー
       this.unhighlightTimer = setTimeout(() => {
         this.unhighlightTimer = undefined;
         root.nativeElement.classList.remove('animate-focused');
@@ -231,7 +227,6 @@ export class GameCharacterComponent {
 
   readonly rotableOption = signal<RotableOption>({});
 
-  /** ヘクスマップ時のジオメトリパラメータ。スクエアマップ時は null。 */
   readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
@@ -289,7 +284,6 @@ export class GameCharacterComponent {
     const params = this.pedestalHexParams();
     if (params) {
       const { bbox, L } = params;
-      // 花形を包む円の半径 = bboxの中心からの最大距離 + マージン
       const halfW = (bbox.maxX - bbox.minX) / 2;
       const halfH = (bbox.maxY - bbox.minY) / 2;
       const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 12;
@@ -329,18 +323,7 @@ export class GameCharacterComponent {
   }
 
   get chatBubbleAltitude(): number {
-    /*
-    let cos =  Math.cos(this.roll * Math.PI / 180);
-    let sin = Math.abs(Math.sin(this.roll * Math.PI / 180));
-    if (cos < 0.5) cos = 0.5;
-    if (sin < 0.5) sin = 0.5;
-    const altitude1 = (this.characterImageHeight + (this.name != '' ? 24 : 0)) * cos + 4;
-    const altitude2 = (this.characterImageWidth / 2) * sin + 4 + this.characterImageWidth / 2;
-    let ret = altitude1 > altitude2 ? altitude1 : altitude2;
-    this.gameCharacter()!.chatBubbleAltitude = ret;
-*/
-    const ret = 0;
-    return ret;
+    return 0;
   }
 
   onDragstart(e: DragEvent) {
@@ -383,13 +366,11 @@ export class GameCharacterComponent {
   }
 
   checkKey(event: KeyboardEvent | MouseEvent) {
-    //イベント処理
     const key_event = (event || window.event) as KeyboardEvent | MouseEvent;
     const key_shift = key_event.shiftKey;
     const _key_ctrl = key_event.ctrlKey;
     const key_alt = key_event.altKey;
     const _key_meta = key_event.metaKey;
-    //キーに対応した処理
 
     if (key_shift && key_alt) {
       key_event.preventDefault();
@@ -411,8 +392,6 @@ export class GameCharacterComponent {
         this.uiSignalService.notifyTargetChange(char.identifier, char.aliasName);
       }
     }
-
-    //出力
   }
 
   private adjustMinBounds(value: number, min: number = 0): number {
@@ -486,8 +465,6 @@ export class GameCharacterComponent {
     this.foldingBuff.set(flag);
   }
 
-  /** buffDataElement の直下子要素を新しい配列で返す Signal。
-   *  appendChild/destroy 時に必ず新参照を返すことでビュー再レンダリングを保証する。 */
   protected readonly buffChildren = computed<DataElement[]>(() => {
     const char = this.gameCharacter();
     const buffEl = char?.buffDataElement;
@@ -496,9 +473,6 @@ export class GameCharacterComponent {
     return buffEl.children.slice() as DataElement[];
   });
 
-  /** バフ数を返す Signal。コンテナへの子要素追加/削除をリアクティブに追跡する。
-   *  子ありの要素はコンテナとみなしその子数を加算。
-   *  子なし＋numberResource のみ実バフとして加算。空コンテナはカウントしない。 */
   protected readonly buffNum = computed<number>(() => {
     const children = this.buffChildren();
     let count = 0;
