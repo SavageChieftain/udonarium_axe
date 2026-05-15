@@ -3,10 +3,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 
-/**
- * detail カードのドラッグ並び替え可否判定。
- * `draggedId` を `targetId` の直前へ移動できる条件を満たすかを返す。
- */
 export function canReorderDetailElement(
   char: GameCharacter | null,
   objectStore: ObjectStore,
@@ -20,10 +16,6 @@ export function canReorderDetailElement(
   return !draggedEl.contains(char.detailDataElement);
 }
 
-/**
- * detail カードのドラッグ並び替え実行。
- * `draggedId` を `targetId` の直前へ移動し、関連オブジェクトへ変更通知する。
- */
 export function reorderDetailElement(
   char: GameCharacter | null,
   objectStore: ObjectStore,

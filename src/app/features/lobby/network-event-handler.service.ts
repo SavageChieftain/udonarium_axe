@@ -4,14 +4,6 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { Network } from '@axe/core/network/network';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
-/**
- * ネットワーク系イベント（loadConfig$ / networkOpen$ / networkError$ / peerConnect$）を購読し、
- * - 設定読込時: Network.configure + openStandby
- * - 接続確立時: 自身の PeerCursor に peerId/userId を反映
- * - エラー時: 種別に応じたメッセージをチャットに流し、必要なら再接続
- * - peerConnect 時: 時刻補正
- * を行うサービス。Network 接続全般のグルー部分を集約。
- */
 @Injectable({ providedIn: 'root' })
 export class NetworkEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);

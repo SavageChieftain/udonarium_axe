@@ -26,7 +26,6 @@ const PORTRAIT_OPACITY_BACKGROUND = 0.66;
 const PORTRAIT_ZINDEX_FRONT = 11;
 const PORTRAIT_ZINDEX_OFFSET = 10;
 
-/** 1ポジション分の立ち絵描画情報 */
 export interface PortraitSlot {
   readonly pos: number;
   readonly imageFileUrl: string;
@@ -55,7 +54,6 @@ export class ChatPortraitImageComponent {
 
   private readonly portraitAreaEl = viewChild.required<ElementRef>('portraitArea');
 
-  // ------- DOM幅: signal + afterRender で自動追従 -------
   readonly portraitAreaWidth = signal(0);
 
   constructor() {
@@ -67,8 +65,6 @@ export class ChatPortraitImageComponent {
       if (w !== this.portraitAreaWidth()) this.portraitAreaWidth.set(w);
     });
   }
-
-  // ------- ドメインオブジェクト -------
 
   private readonly version = computed(() => this.objectChange.versionOf(this.chatTabidentifier())());
 
@@ -85,18 +81,11 @@ export class ChatPortraitImageComponent {
     return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
-  // ------- 表示フラグ -------
-
   readonly portraitYPos = computed<number>(() => {
     this.chatTabListVersion();
     const h = this.chatTabList?.portraitHeight ?? 0;
-    if (!this.chatTabList?.isPortraitInWindow) {
-      // タブレットトップ（isTilteTop=true）のウィンドウ外表示: 既存の補正値を維持
-      return -h - 26;
-    } else {
-      // ウィンドウ内表示: 高さゼロのコンテナから上方にはみ出す
-      return -h;
-    }
+    if (!this.chatTabList?.isPortraitInWindow) return -h - 26;
+    return -h;
   });
 
   readonly isPortraitDispMode = computed<boolean>(() => {
@@ -108,8 +97,6 @@ export class ChatPortraitImageComponent {
     if (chatTabList.isKeepPortraitOutWindow) return dispFlag;
     return dispFlag && this.dispByMouse();
   });
-
-  // ------- 全ポジション分の描画情報を computed 配列で一括計算 -------
 
   readonly portraitSlots = computed<PortraitSlot[]>(() => {
     this.version();
@@ -137,8 +124,6 @@ export class ChatPortraitImageComponent {
     }
     return slots;
   });
-
-  // ------- イベントハンドラ -------
 
   portraitClick(pos: number): void {
     this.chatTab.hidePortraitPos(pos);
