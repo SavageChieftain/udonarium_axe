@@ -7,7 +7,7 @@
   <!-- @container は container-type: inline-size を付与。子の @max-[500px]:/@max-[340px]: で
        コンテナサイズに応じてレイアウトを変える (元 chat-window.component.css の @container ルール)。 -->
   <div
-    class="border-ui-border-panel bg-ui-titlebar @container sticky bottom-0 z-10 mb-0 box-border w-full min-w-0 border-t border-solid"
+    class="border-ui-border-panel bg-ui-titlebar shadow-ui-sm rounded-ui @container sticky bottom-0 z-10 box-border w-full min-w-0 border border-solid"
   >
     @if (!isNearBottom()) {
       <button
@@ -22,7 +22,7 @@
     <form name="chat-window" class="m-0 min-w-0">
       <chat-portrait [chatTabidentifier]="chatTabidentifier"></chat-portrait>
       <div
-        class="border-ui-border-panel relative z-10 box-border flex min-w-0 flex-wrap items-center gap-1 overflow-visible border-b border-solid px-1.5 pt-2 pb-1 select-none @max-[340px]:px-1"
+        class="border-ui-border-panel relative z-10 box-border flex min-w-0 flex-wrap items-center gap-1 overflow-visible border-b border-solid p-1.5 select-none @max-[340px]:px-1"
       >
         <!-- 左スクロール矢印 -->
         @if (canScrollLeft()) {
@@ -39,7 +39,7 @@
 
         <!-- タブピル -->
         <div
-          class="-mx-1 -my-0.75 flex min-h-7.5 min-w-0 flex-[999_1_160px] items-center gap-0.75 overflow-x-auto overflow-y-hidden px-1.5 pt-1.5 pb-0.75 [scrollbar-width:none] @max-[340px]:order-3 @max-[340px]:basis-full"
+          class="-mx-1 flex min-h-7.5 min-w-0 flex-[999_1_160px] items-center gap-0.75 overflow-x-auto overflow-y-hidden px-1.5 py-0.5 [scrollbar-width:none] @max-[340px]:order-3 @max-[340px]:basis-full"
           #tabPillsContainer
           (scroll)="onTabPillsScroll()"
         >
