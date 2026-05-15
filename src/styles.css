@@ -1252,13 +1252,10 @@ input[type='range']::-moz-range-thumb {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   game-data-element
-   ── データ要素 1 行分のグリッドレイアウト・トークン群と、要素内入力 UI の共通スタイル。
-       Tailwind utility だけでは表しにくい :host グリッドと色トークン定義を扱う。
-       テンプレートはこれらの --gde-* トークンを `bg-(--gde-action-bg)` 等の Tailwind
-       任意プロパティ構文で参照する。 */
-game-data-element {
+/* The component selector is `game-data-element, [game-data-element]`, so every
+   rule below must match both the element form and the attribute form. */
+game-data-element,
+[game-data-element] {
   --gde-depth: 0;
   --gde-radius-control: 2px;
   --gde-radius-line: 0;
@@ -1286,15 +1283,20 @@ game-data-element {
   color: var(--ui-text);
 }
 
-game-data-element.elm-editing {
+game-data-element.elm-editing,
+[game-data-element].elm-editing {
   grid-template-columns: var(--gde-structure-width) minmax(6.5rem, 30%) minmax(0, 1fr);
 }
 
-game-data-element + game-data-element {
+game-data-element + game-data-element,
+[game-data-element] + [game-data-element],
+game-data-element + [game-data-element],
+[game-data-element] + game-data-element {
   margin-top: 2px;
 }
 
-game-data-element .elm-name-cell--hidden + .elm-value-cell {
+game-data-element .elm-name-cell--hidden + .elm-value-cell,
+[game-data-element] .elm-name-cell--hidden + .elm-value-cell {
   grid-column: 1 / -1;
   border-left: 2px solid var(--gde-accent-border);
   border-radius: var(--gde-radius-line);
@@ -1303,7 +1305,11 @@ game-data-element .elm-name-cell--hidden + .elm-value-cell {
 game-data-element input,
 game-data-element button,
 game-data-element textarea,
-game-data-element select {
+game-data-element select,
+[game-data-element] input,
+[game-data-element] button,
+[game-data-element] textarea,
+[game-data-element] select {
   box-sizing: border-box;
   border: none;
   border-radius: 2px;
@@ -1316,11 +1322,15 @@ game-data-element select {
 
 game-data-element input,
 game-data-element textarea,
-game-data-element select {
+game-data-element select,
+[game-data-element] input,
+[game-data-element] textarea,
+[game-data-element] select {
   padding: 2px 4px;
 }
 
-game-data-element button {
+game-data-element button,
+[game-data-element] button {
   display: inline-flex;
   align-items: center;
   margin: 0;
@@ -1332,33 +1342,43 @@ game-data-element button {
     color var(--ui-transition);
 }
 
-game-data-element button:hover {
+game-data-element button:hover,
+[game-data-element] button:hover {
   background: var(--ui-hover);
   color: var(--ui-text);
 }
 
-game-data-element button .material-icons {
+game-data-element button .material-icons,
+[game-data-element] button .material-icons {
   font-size: 16px;
 }
 
-game-data-element button i {
+game-data-element button i,
+[game-data-element] button i {
   font-size: 1rem;
 }
 
 game-data-element input:hover,
 game-data-element textarea:hover,
-game-data-element select:hover {
+game-data-element select:hover,
+[game-data-element] input:hover,
+[game-data-element] textarea:hover,
+[game-data-element] select:hover {
   background: var(--ui-hover);
 }
 
 game-data-element input:focus,
 game-data-element textarea:focus,
-game-data-element select:focus {
+game-data-element select:focus,
+[game-data-element] input:focus,
+[game-data-element] textarea:focus,
+[game-data-element] select:focus {
   background: var(--ui-input-bg);
   box-shadow: 0 0 0 1px var(--ui-accent);
 }
 
-game-data-element .portrait-button {
+game-data-element .portrait-button,
+[game-data-element] .portrait-button {
   width: auto;
   margin: 5px 0;
   padding: 4px 8px;
@@ -1371,12 +1391,14 @@ game-data-element .portrait-button {
   cursor: pointer;
 }
 
-game-data-element .portrait-button:hover {
+game-data-element .portrait-button:hover,
+[game-data-element] .portrait-button:hover {
   background-color: var(--ui-hover);
   color: var(--ui-text);
 }
 
-game-data-element .sub-image {
+game-data-element .sub-image,
+[game-data-element] .sub-image {
   display: inline-block;
   height: 120px;
   max-height: 120px;
@@ -1384,25 +1406,30 @@ game-data-element .sub-image {
   vertical-align: top;
 }
 
-game-data-element .sub-image-box {
+game-data-element .sub-image-box,
+[game-data-element] .sub-image-box {
   width: 120px;
   height: 120px;
 }
 
-game-data-element .sub-table {
+game-data-element .sub-table,
+[game-data-element] .sub-table {
   width: calc(100% - 120px);
 }
 
-game-data-element .table-cell-2 {
+game-data-element .table-cell-2,
+[game-data-element] .table-cell-2 {
   display: table-cell;
 }
 
-game-data-element .table-2 {
+game-data-element .table-2,
+[game-data-element] .table-2 {
   display: table;
   width: 100%;
 }
 
-game-data-element .hidden-spacer {
+game-data-element .hidden-spacer,
+[game-data-element] .hidden-spacer {
   visibility: hidden;
   height: 0;
   max-width: 20em;
@@ -1411,9 +1438,18 @@ game-data-element .hidden-spacer {
   box-sizing: border-box;
 }
 
-game-data-element .textarea-url {
+game-data-element .textarea-url,
+game-data-element .textarea-markdown,
+[game-data-element] .textarea-url,
+[game-data-element] .textarea-markdown {
   padding: 2px;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+game-data-element .elm-markdown-view,
+[game-data-element] .elm-markdown-view {
+  max-width: min(560px, calc(60vw));
+  overflow-x: auto;
 }
