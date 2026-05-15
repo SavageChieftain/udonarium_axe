@@ -1,7 +1,7 @@
 <div>
   <button (click)="reConnect()" class="danger">再接続実行</button>
   <label>
-    <input type="checkbox" [checked]="forceCleanup()" (change)="forceCleanup.update(v => !v)" />
+    <input type="checkbox" [checked]="forceCleanup()" (change)="forceCleanup.update((v) => !v)" />
     不整合データを削除する（同期破損時のみ）
   </label>
   <hr />
