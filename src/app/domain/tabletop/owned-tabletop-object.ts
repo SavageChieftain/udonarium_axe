@@ -2,12 +2,6 @@ import { getPeerContext, getPeerContexts } from '@axe/core/network/peer-context-
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
-/**
- * Abstract base for TabletopObject subclasses that carry an `owner` (userId).
- * Consolidates the repeated ownerName / hasOwner / isMine / isOwnedBy /
- * ownerIsOnline / isOwnerOnline methods that were copy-pasted across
- * Card, CardStack, DiceSymbol and GameTableScratchMask.
- */
 export abstract class OwnedTabletopObject extends TabletopObject {
   abstract owner: string;
 

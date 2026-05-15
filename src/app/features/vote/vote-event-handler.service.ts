@@ -6,12 +6,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { Vote } from '@axe/domain/vote/vote';
 import { VoteWindowComponent } from '@axe/features/vote/vote-window/vote-window.component';
 
-/**
- * 投票（startVote$ / finishVote$）のドメインイベントを購読し、
- * - 開始時: 自分が対象なら投票パネルを開く
- * - 終了時: 結果テキストをチャット出力
- * を行うサービス。`providedIn: 'root'` で自己購読し、AppComponent からの inject() で起動する。
- */
 @Injectable({ providedIn: 'root' })
 export class VoteEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);

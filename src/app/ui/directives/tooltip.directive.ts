@@ -13,9 +13,6 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
-/** TooltipDirective がホバー時に開くパネルコンポーネントの構造的契約。
- *  実装は features/inventory/overview-panel の `OverviewPanelComponent`。
- *  composition root が `TooltipDirective.TooltipPanelComponentClass = OverviewPanelComponent` で登録する。 */
 export interface TooltipPanelInstance {
   tabletopObject: TabletopObject | null;
   left: number;
@@ -29,8 +26,6 @@ export class TooltipDirective {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** composition root で登録するパネル実装クラス（features/inventory の OverviewPanelComponent）。
-   *  ui レイヤーは features を直接 import できないため、外部注入する。 */
   static TooltipPanelComponentClass: Type<TooltipPanelInstance> | null = null;
 
   private static activeTooltips: ComponentRef<TooltipPanelInstance>[] = [];

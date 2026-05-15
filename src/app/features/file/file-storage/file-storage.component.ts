@@ -32,16 +32,13 @@ export class FileStorageComponent {
       let tag: string = '';
       if (ImageTag.get(identifier)) tag = ImageTag.get(identifier).tag;
 
-      if (tag != 'システム予約')
-        //システム予約名を非表示
-        imageFileList.push(imageFile);
+      if (tag != 'システム予約') imageFileList.push(imageFile);
     }
     return imageFileList;
   }
 
   readonly images = computed(() => {
     this.objectChange.fileVersion();
-    // ImageTag コレクションの増減と各タグ値の変更を tracking する
     this.objectChange.collectionOf('image-tag')();
     const imageFileList: ImageFile[] = [];
     if (this.selectTag() == '全て') return this.getAllImage();
@@ -55,11 +52,8 @@ export class FileStorageComponent {
         if (tag == this.selectTag()) {
           imageFileList.push(imageFile);
         }
-      } else {
-        //タグ未設定の場合 画像投下直後は ImageTag.get(identifier) は空文字ではなく該当なしとなるため
-        if (this.selectTag() == '') {
-          imageFileList.push(imageFile);
-        }
+      } else if (this.selectTag() == '') {
+        imageFileList.push(imageFile);
       }
     }
     return imageFileList;
@@ -84,11 +78,7 @@ export class FileStorageComponent {
       const imageTag = ImageTag.get(identifier);
       if (imageTag) {
         this.objectChange.versionOf(imageTag.identifier)();
-        if (imageTag.tag) {
-          if (imageTag.tag != 'システム予約')
-            //システム予約名を非表示
-            tags.push(imageTag.tag);
-        }
+        if (imageTag.tag && imageTag.tag != 'システム予約') tags.push(imageTag.tag);
       }
     }
 
@@ -126,9 +116,7 @@ export class FileStorageComponent {
   readonly selectTag = signal('');
   readonly newTagName = signal<string>('');
 
-  resetBtn() {
-    //  処理なし
-  }
+  resetBtn() {}
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));

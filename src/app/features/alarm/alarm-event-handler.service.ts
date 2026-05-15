@@ -4,12 +4,6 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { AlarmWindowComponent } from '@axe/features/alarm/alarm-window/alarm-window.component';
 
-/**
- * アラームのドメインイベント (alarmTimeUp$ / alarmPop$) を購読し、
- * アラーム発火時にアラームパネルを開き、時刻読み上げをチャットに流すサービス。
- * `providedIn: 'root'` で AppComponent が inject() するだけで自動的に起動する。
- * 個別 feature が自身のイベント処理を所有することで composition root の肥大化を防ぐ。
- */
 @Injectable({ providedIn: 'root' })
 export class AlarmEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);

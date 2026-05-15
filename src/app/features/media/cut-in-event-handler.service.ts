@@ -6,12 +6,6 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 
-/**
- * カットイン（startCutIn$ / soundOnlyCutIn$）のドメインイベントを購読し、
- * - 通常カットイン: パネルを開いて再生
- * - 音のみカットイン: 動画 ID があれば不可視パネルで音再生、なければ生 AudioPlayer
- * を制御するサービス。`providedIn: 'root'` で自己購読する。
- */
 @Injectable({ providedIn: 'root' })
 export class CutInEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);

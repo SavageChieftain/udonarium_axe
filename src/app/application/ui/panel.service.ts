@@ -17,10 +17,8 @@ export interface PanelOption {
   minWidth?: number;
   minHeight?: number;
 
-  // Container-level behavior for the ui-panel shell.
   isCutIn?: boolean;
   cutInIdentifier?: string;
-  /** パネルを DOM に保持しつつ視覚的に非表示にする（YouTube 音声のみ再生等） */
   invisible?: boolean;
 }
 
@@ -28,10 +26,6 @@ interface UIPanelInstance {
   content: () => ViewContainerRef;
 }
 
-/** ui-panel header decoration inputs. ui-panel は features を直接 import しないため、
- *  実装側 (chat-portrait-img / card-stack-list-img) はここに定義された input 名を
- *  正しい型 (InputSignal<...>) で公開する責任を持つ。NgComponentOutlet の inputs
- *  ディクショナリ経由で値が渡るため Type<unknown> として登録する。 */
 export interface ChatPortraitDecoration {
   chatTabidentifier: string;
   isTilteTop: boolean;

@@ -4,9 +4,7 @@ import { localDispatch } from '@axe/core/network/network-messaging';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 
-// ローカルでの appendChild/removeChild 時に childrenChanged$ を発火させる
 ObjectNode.onChildrenChanged = (node) => markForChildrenChanged(node);
-// ローカルでの update() 呼び出し時に objectChanged$ を発火させる（@SyncVar 変更を含む）
 GameObject.onUpdate = (obj) => markForChanged(obj);
 
 export interface ObjectChangeEvent {
@@ -19,9 +17,7 @@ export interface ChildrenChangeEvent {
   identifier: string;
 }
 
-/** EventChannel for batched object change events. Shared with ObjectChangeService. */
 export const objectChanged$ = new EventChannel<ObjectChangeEvent>();
-/** EventChannel for batched children-change events. Shared with ObjectChangeService. */
 export const childrenChanged$ = new EventChannel<ChildrenChangeEvent>();
 
 export interface ObjectStoreEvent {
@@ -29,9 +25,7 @@ export interface ObjectStoreEvent {
   aliasName: string;
 }
 
-/** Emitted synchronously when ObjectStore.add() succeeds. */
 export const objectAdded$ = new EventChannel<ObjectStoreEvent>();
-/** Emitted synchronously when ObjectStore.remove() succeeds. */
 export const objectRemoved$ = new EventChannel<ObjectStoreEvent>();
 
 const objectBatches = new Map<string, { object: GameObject; originFrom: string }>();
