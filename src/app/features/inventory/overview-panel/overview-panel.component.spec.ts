@@ -412,10 +412,53 @@ describe('OverviewPanelComponent', () => {
         const imageElement = fixture.nativeElement.querySelector('img[alt="参考画像"]') as HTMLImageElement | null;
         expect(imageElement).toBeTruthy();
         expect(imageElement?.getAttribute('src')).toBe('popup-image.png');
+        expect(imageElement?.className).toContain('max-w-30');
+        expect(imageElement?.className).toContain('max-h-20');
       } finally {
         getInventoryTagsSpy.mockRestore();
         character.destroy();
         ImageStorage.instance.delete(image.identifier);
+      }
+    });
+
+    it('原寸表示属性が有効な画像要素はサムネイル制限を外して描画すること', () => {
+      const image = ImageStorage.instance.add('popup-image-large.png');
+      const character = GameCharacter.create('popup-image-original-test', 1, '');
+      const imageField = DataElement.create('参考画像', image.identifier, {
+        [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.IMAGE,
+        [DataElementAttribute.POPUP]: 'true',
+        [DataElementAttribute.IMAGE_POPUP_ORIGINAL]: 'true',
+        type: DataElementType.IMAGE,
+      });
+      character.detailDataElement!.appendChild(imageField);
+      component.tabletopObject = character;
+      const getInventoryTagsSpy = vi.spyOn(component as unknown as { getInventoryTags: () => [] }, 'getInventoryTags');
+      getInventoryTagsSpy.mockReturnValue([]);
+
+      try {
+        fixture.detectChanges();
+        const imageElement = fixture.nativeElement.querySelector('img[alt="参考画像"]') as HTMLImageElement | null;
+        expect(imageElement).toBeTruthy();
+        expect(imageElement?.getAttribute('src')).toBe('popup-image-large.png');
+        expect(imageElement?.className).not.toContain('max-w-30');
+        expect(imageElement?.className).not.toContain('max-h-20');
+        expect(imageElement?.className).toContain('max-w-full');
+      } finally {
+        getInventoryTagsSpy.mockRestore();
+        character.destroy();
+        ImageStorage.instance.delete(image.identifier);
+      }
+    });
+
+    it('isImagePopupOriginalは属性に応じて真偽を返すこと', () => {
+      const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
+      try {
+        expect(component.isImagePopupOriginal(element)).toBe(false);
+        element.setAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL, 'true');
+        expect(component.isImagePopupOriginal(element)).toBe(true);
+      } finally {
+        element.destroy();
       }
     });
   });

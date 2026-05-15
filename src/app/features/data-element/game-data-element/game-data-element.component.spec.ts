@@ -814,6 +814,54 @@ describe('GameDataElementComponent', () => {
 
       expect(component.calcResult()).toBe('?');
     });
+
+    it('imageフィールドでも詳細設定パネルを表示すること', () => {
+      const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      expect(component.shouldShowFieldOptions()).toBe(true);
+    });
+
+    it('toggleImagePopupOriginalで属性を切り替えられること', () => {
+      const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      expect(component.isImagePopupOriginal()).toBe(false);
+
+      component.toggleImagePopupOriginal();
+
+      expect(component.isImagePopupOriginal()).toBe(true);
+      expect(element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL)).toBe('true');
+
+      component.toggleImagePopupOriginal();
+
+      expect(component.isImagePopupOriginal()).toBe(false);
+      expect(element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL)).toBe('');
+    });
+
+    it('imageフィールドの詳細設定パネルに原寸表示チェックボックスを描画すること', () => {
+      const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+      component.fieldOptionsOpen.set(true);
+      fixture.detectChanges();
+
+      const checkbox = fixture.nativeElement.querySelector(
+        'input[name="data-image-popup-original"]'
+      ) as HTMLInputElement | null;
+      expect(checkbox).toBeTruthy();
+      expect(checkbox?.checked).toBe(false);
+
+      checkbox?.click();
+      fixture.detectChanges();
+
+      expect(element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL)).toBe('true');
+    });
   });
 
   describe('editCheckedIds による URL 編集チェック状態管理', () => {

@@ -596,7 +596,8 @@ export class GameDataElementComponent {
       fieldType === DataElementFieldType.SELECT ||
       fieldType === DataElementFieldType.NUMBER ||
       fieldType === DataElementFieldType.RESOURCE ||
-      fieldType === DataElementFieldType.CALC
+      fieldType === DataElementFieldType.CALC ||
+      fieldType === DataElementFieldType.IMAGE
     );
   }
 
@@ -644,6 +645,20 @@ export class GameDataElementComponent {
     const element = this.gameDataElement();
     if (this.isPopupDataElement()) element.removeAttribute(DataElementAttribute.POPUP);
     else element.setAttribute(DataElementAttribute.POPUP, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  isImagePopupOriginal(): boolean {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL) === 'true';
+  }
+
+  toggleImagePopupOriginal(event?: Event): void {
+    event?.stopPropagation();
+    const element = this.gameDataElement();
+    if (this.isImagePopupOriginal()) element.removeAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
+    else element.setAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL, 'true');
     this.objectChange.notifyChanged(element.identifier);
   }
 

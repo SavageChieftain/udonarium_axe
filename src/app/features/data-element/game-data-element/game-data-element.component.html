@@ -407,6 +407,17 @@
               ></textarea>
             </label>
           }
+          @if (gameDataElement().fieldType === 'image') {
+            <label class="grid-cols-[auto_auto] justify-start">
+              <span>ポップアップで原寸表示</span>
+              <input
+                type="checkbox"
+                name="data-image-popup-original"
+                [checked]="isImagePopupOriginal()"
+                (change)="toggleImagePopupOriginal($event)"
+              />
+            </label>
+          }
           @if (isTableCellField()) {
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>列表示</span>

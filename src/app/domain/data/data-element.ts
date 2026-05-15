@@ -65,6 +65,7 @@ export const DataElementAttribute = {
   ROW_HEADER_LABEL: 'rowHeaderLabel',
   CELL_KIND: 'cellKind',
   POPUP: 'cs-popup',
+  IMAGE_POPUP_ORIGINAL: 'cs-image-popup-original',
   JUDGE_MODE: 'cs-judge-mode',
   GAP_DISTANCE: 'cs-gap-distance',
   LOOP_HORIZONTAL: 'cs-loop-horizontal',

@@ -290,6 +290,10 @@ export class OverviewPanelComponent {
     return this.imageStorage.get(value)?.url ?? value;
   }
 
+  isImagePopupOriginal(element: DataElement): boolean {
+    return element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL) === 'true';
+  }
+
   getTableCellLabel(cell: DataElement): string {
     return getCellLabel(cell);
   }
