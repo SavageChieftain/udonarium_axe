@@ -400,9 +400,20 @@ export class ChatInputComponent {
 
   calcFitHeight() {
     const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
+    if (this.userResized) return;
     textArea.style.height = '';
     if (textArea.scrollHeight >= textArea.offsetHeight) {
       textArea.style.height = textArea.scrollHeight + 'px';
+    }
+  }
+
+  private userResized = false;
+  onTextAreaPointerDown(event: PointerEvent) {
+    const textArea = event.currentTarget as HTMLTextAreaElement;
+    const rect = textArea.getBoundingClientRect();
+    // resize handle is the bottom-right ~16px corner
+    if (event.offsetX > rect.width - 16 && event.offsetY > rect.height - 16) {
+      this.userResized = true;
     }
   }
 
