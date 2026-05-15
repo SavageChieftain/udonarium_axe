@@ -23,7 +23,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() imageIdentifierZpos: number[] = Array.from({ length: PORTRAIT_SLOT_COUNT }, (_, i) => i);
 
   @SyncVar() count = 0;
-  @SyncVar() imageIdentifierDummy = 'test'; // 通信開始ために使わなくても書かなきゃだめっぽい後日見直し
+  @SyncVar() imageIdentifierDummy = 'test';
 
   get cutInLauncher(): CutInLauncher | null {
     return ObjectStore.instance.get<CutInLauncher>('CutInLauncher');
@@ -122,12 +122,10 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return lastIndex < 0 ? 0 : this.chatMessages[lastIndex].timestamp;
   }
 
-  // ObjectNode Lifecycle
   override onChildAdded(child: ObjectNode) {
     super.onChildAdded(child);
     if (child.parent === this && child instanceof ChatMessage && child.isDisplayable) {
       if (this.children.length === 1) {
-        // ログデリート時
         this._unreadLength = 1;
         this._displayableMessageNum = 1;
       } else {
@@ -135,10 +133,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
         this._displayableMessageNum++;
       }
 
-      if (child.to != null && child.to !== '') {
-        // 秘話時に立ち絵の更新をかけない(処理なし)
-      } else {
-        // マウスクリック非表示を復帰する
+      if (child.to == null || child.to === '') {
         this.imageDispFlag[child.imagePos] = true;
       }
 
@@ -162,23 +157,17 @@ export class ChatTab extends ObjectNode implements InnerXml {
         continue;
 
       if (key === 'imagePos') {
-        if (message.to != null && message.to !== '') {
-          continue;
-        } // 秘話時に立絵の更新をかけない
+        if (message.to != null && message.to !== '') continue;
         this.pos_num = (message as Record<string, unknown>)[key] as number;
         if (this.pos_num >= 0 && this.pos_num < this.imageIdentifier.length) {
           const oldpos = this.getImageCharactorPos(message.name ?? '');
           if (oldpos >= 0) {
-            // 同名キャラの古い位置を消去
             this.imageIdentifier[oldpos] = '';
             this.imageCharacterName[oldpos] = '';
             this.imageDispFlag[oldpos] = false;
           }
-          // 非表示コマンド\s
 
-          if (message.imageIdentifier == '') {
-            // 事前に古い立ち絵は消す処理をしているため処理なし
-          } else {
+          if (message.imageIdentifier !== '') {
             this.imageIdentifier[this.pos_num] = message.imageIdentifier ?? '';
             this.imageCharacterName[this.pos_num] = message.name ?? '';
             this.replacePortraitZIndex(this.pos_num);
@@ -186,7 +175,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
             chat.imagePos = (message as Record<string, unknown>)[key] as number;
           }
-          this.imageIdentifierDummy = message.imageIdentifier ?? ''; // 同期方法が無理やり感がある、後日
+          this.imageIdentifierDummy = message.imageIdentifier ?? '';
         }
         continue;
       }
@@ -198,10 +187,6 @@ export class ChatTab extends ObjectNode implements InnerXml {
       }
     }
     chat.initialize();
-
-    // カットイン末尾発動: appendChild → emitMessageAdded$ → application/media/CutInService が
-    // 購読側として処理する（domain は副作用の orchestration を持たない）。
-
     this.appendChild(chat);
     return chat;
   }
@@ -219,7 +204,6 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return xml;
   }
 
-  // ChatMessageに入れるか考えたがログ以外に使わないのでここにおく
   messageHtml(isTime: boolean, tabName: string, message: ChatMessage): string {
     return ChatLogExporter.formatMessageStandard(isTime, tabName, message);
   }

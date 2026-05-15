@@ -8,10 +8,6 @@ import {
   isHexGrid,
 } from '@axe/domain/tabletop/hex-geometry';
 
-/**
- * width/height をヘクスのセル数として扱い、最外周セルが完全に SVG 内に
- * 収まるよう (offsetX, offsetY) からタイリングを始める。
- */
 export interface HexMaskGeometry {
   pixelW: number;
   pixelH: number;
@@ -173,11 +169,9 @@ export function buildHexOutlineMask(gridSize: number, gridType: GridType, width:
   return buildHexSvgMask(polygons, geo.pixelW, geo.pixelH);
 }
 
-/** edgeIdx は hexVertOffsets の頂点 i→i+1 に対応する隣接セル座標を返す。 */
 function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop: boolean): readonly [number, number] {
   if (isFlatTop) {
     const even = col % 2 === 0;
-    //                  edge: 0       1       2        3        4       5
     return even
       ? (
           [
@@ -201,7 +195,6 @@ function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop:
         )[edgeIdx];
   }
   const even = row % 2 === 0;
-  //                  edge: 0        1       2       3        4        5
   return even
     ? (
         [
@@ -225,7 +218,6 @@ function hexNeighborOffset(col: number, row: number, edgeIdx: number, isFlatTop:
       )[edgeIdx];
 }
 
-/** 全セルを走査し、隣接セルが存在しない辺だけを `<line>` として外周境界を組み立てる。 */
 export function buildHexOuterBorderSvg(gridSize: number, gridType: GridType, width: number, height: number): string {
   const geo = computeHexMaskGeometry(width, height, gridSize, gridType);
   if (!geo) return '';

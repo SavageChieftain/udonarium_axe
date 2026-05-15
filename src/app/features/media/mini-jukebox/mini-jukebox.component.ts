@@ -38,7 +38,6 @@ export class MiniJukeboxComponent {
   readonly isPlaylistOpen = signal(false);
   readonly isMinimized = signal(false);
   readonly isTitleScrolling = signal(false);
-  /** シークバーのロック状態。Jukebox の SyncVar を見ているので peer 間で共有される。 */
   readonly isSeekLocked = computed<boolean>(() => {
     this.objectChange.versionOf('Jukebox')();
     return this.jukebox?.isSeekLocked ?? true;
@@ -46,26 +45,21 @@ export class MiniJukeboxComponent {
   readonly playerEl = viewChild.required<ElementRef<HTMLElement>>('playerEl');
   readonly titleTextEl = viewChild<ElementRef<HTMLElement>>('titleTextEl');
 
-  /** 250ms ごとに increment してプログレスバーを駆動する */
   private readonly _tick = signal(0);
 
-  /** 最後に再生したオーディオの識別子（停止後の再生に使用） */
   readonly lastAudioIdentifier = signal<string>('');
 
   private initialLeft = '';
   private initialTop = '';
 
   constructor() {
-    // ディレクティブの afterNextRender より先に初期位置を設定する
     afterNextRender(() => {
       const el = this.playerEl().nativeElement;
-      // Sync インジケーター (right:3px, 30px幅) の左に 4px の隙間をあけて配置
       el.style.left = `${window.innerWidth - el.offsetWidth - 37}px`;
       el.style.top = '3px';
       this.initialLeft = el.style.left;
       this.initialTop = el.style.top;
     });
-    // タイトルがコンテナからはみ出す場合にスクロール量を CSS 変数として設定する
     afterEveryRender(() => {
       const textEl = this.titleTextEl()?.nativeElement;
       if (!textEl) {
@@ -85,7 +79,6 @@ export class MiniJukeboxComponent {
     });
     const timer = setInterval(() => this._tick.update((v) => v + 1), 250);
     this.destroyRef.onDestroy(() => clearInterval(timer));
-    // audioIdentifier が非空のとき lastAudioIdentifier を記憶する
     effect(() => {
       this.objectChange.versionOf('Jukebox')();
       const id = this.jukebox?.audioIdentifier;
@@ -167,7 +160,6 @@ export class MiniJukeboxComponent {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('audio-tag')();
     this.objectChange.versionOf('Playlist')();
-    // 再生リストにエントリがあればその順序を使用、なければライブラリ全体
     const playlist = this.objectStore.get<Playlist>('Playlist') ?? null;
     const entries = playlist?.entries ?? [];
     if (entries.length > 0) {

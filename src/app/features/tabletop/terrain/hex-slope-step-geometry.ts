@@ -1,10 +1,6 @@
 import { hexCircumradius, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
 import { SlopeDirection } from '@axe/domain/tabletop/terrain';
 
-// ---------------------------------------------------------------------------
-// Hex stepped slope helpers
-// ---------------------------------------------------------------------------
-
 export interface HexSlopeStepFloor {
   heightPx: number;
   mask: string;
@@ -25,10 +21,6 @@ export interface HexSlopeStepData {
   walls: HexSlopeStepWall[];
 }
 
-/**
- * ヘクス花形の各セルを傾斜方向に沿って離散的な高さステップに分割し、
- * ステップ毎のフロアマスクと壁パネル（外周＋段差ライザー）を返す。
- */
 export function computeHexSlopeSteps(
   size: number,
   gridSize: number,
@@ -117,7 +109,6 @@ export function computeHexSlopeSteps(
 
   if (rawCells.length <= 1) return { floors: [], walls: [] };
 
-  // セルの投影値を降順ソートして高さレベルを割り当て（高い方が level 0）
   const uniqueProjs = [...new Set(projValues)].sort((a, b) => b - a);
   const numSteps = uniqueProjs.length;
   const projToLevel = new Map<number, number>();
@@ -128,7 +119,6 @@ export function computeHexSlopeSteps(
 
   const cellHeight = (level: number) => (totalHeightPx * (numSteps - level)) / numSteps;
 
-  // --- フロア：高さレベル毎にSVGマスクを生成 ---
   const floors: HexSlopeStepFloor[] = [];
   const maskS = s + 0.5;
   for (let level = 0; level < numSteps; level++) {
@@ -152,7 +142,6 @@ export function computeHexSlopeSteps(
     floors.push({ heightPx, mask });
   }
 
-  // --- 壁：外周辺＋段差ライザー ---
   const walls: HexSlopeStepWall[] = [];
   const hexVertex = (cx: number, cy: number, i: number) => {
     const angle = startAngle + (i * Math.PI) / 3;
