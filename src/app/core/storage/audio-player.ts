@@ -220,9 +220,8 @@ export class AudioPlayer {
 
   seekTo(time: number) {
     if (!this._audioElm) return;
-    // メタデータ未読込のうちに currentTime を設定すると一部ブラウザで無視されるため、
-    // readyState を見て必要なら loadedmetadata まで遅延する。
-    if (this._audioElm.readyState >= 1 /* HAVE_METADATA */) {
+    // Some browsers ignore currentTime before HAVE_METADATA; defer to the loadedmetadata event.
+    if (this._audioElm.readyState >= 1) {
       this._audioElm.currentTime = time;
     } else {
       const elm = this._audioElm;
@@ -234,10 +233,6 @@ export class AudioPlayer {
     }
   }
 
-  /**
-   * `_audioElm.volume` を target まで durationMs かけて線形ランプする。
-   * 同じ audioElm 上で fade をキャンセル/重ね掛けされても安全。
-   */
   fadeVolumeTo(target: number, durationMs: number): Promise<void> {
     if (!this._audioElm) return Promise.resolve();
     const audioElm = this._audioElm;
@@ -252,7 +247,6 @@ export class AudioPlayer {
     return new Promise((resolve) => {
       const startTime = performance.now();
       const tick = () => {
-        // 別の fade に上書きされた / 別の audioElm に置き換わった場合は中止
         if (this._audioElm !== audioElm || this._fadeToken !== myToken) return resolve();
         const elapsed = performance.now() - startTime;
         const t = Math.min(elapsed / durationMs, 1);

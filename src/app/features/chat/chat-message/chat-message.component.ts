@@ -37,11 +37,7 @@ export class ChatMessageComponent {
     return this.chatMessageInput();
   }
 
-  /** システムちゃんアイコンを表示すべきメッセージか判定する */
   get isSystemMessage(): boolean {
-    // チュートリアル等: from === 'System'
-    // sendSystemMessage: tag に 'system-message' を含む
-    // BCDice (System-BCDice) は除外
     return this.chatMessage.from === 'System' || (this.chatMessage.tag ?? '').includes('system-message');
   }
 
@@ -88,11 +84,9 @@ export class ChatMessageComponent {
     component.text = this.chatMessage.text;
   }
 
+  // Ruby syntax (Hamelin-style): `|<base>《<reading>》`. Base cannot contain whitespace.
   escapeHtmlAndRuby(text: string) {
     this.objectChange.versionOf(this.chatMessage?.identifier)();
-    // ルビ機能 ハーメルン記法を参考 半角全角|始まり。振られる側にスペースは不可。
-    // 記入例：|永遠力暴風雪《エターナルフォースブリザード》
-    // 振られる側に《スキル名》は有効：|《約束された勝利の剣》《エクスカリバー》
     const escapeText = this.escapeHtml(text);
     return escapeText
       .replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby class="chat-ruby"><rb>$1</rb><rt>$2</rt></ruby>')

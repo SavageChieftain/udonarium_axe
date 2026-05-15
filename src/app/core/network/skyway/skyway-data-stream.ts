@@ -257,7 +257,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   private refresh() {
-    // 現在のオブジェクトを取得
     const member = this.member;
 
     const p2pconnection = (
@@ -269,10 +268,8 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       ? p2pconnection?.sender.datachannels[this.skyWay.publication?.id ?? '']
       : (p2pconnection?.receiver.streams[publication?.id ?? ''] as RemoteDataStream)?._datachannel;
 
-    // 接続状況確認
     const isOpen = dataChannel?.readyState === 'open';
 
-    // cancelまたはrejectされているときは接続解除
     if (dataChannel && ((this.isCanceled && isOpen) || this.isRejected)) {
       dataChannel.close();
       this.dispose();
@@ -281,7 +278,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       return;
     }
 
-    // RTCDataChannelを更新
     if (dataChannel && this.dataChannel && dataChannel !== this.dataChannel) {
       Logger.warn(`[SkyWay] dataChannel変更: ${this.dataChannel?.id} -> ${dataChannel.id}`);
       this.peer.isOpen = false;
@@ -296,7 +292,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
 
     this.dataChannel = dataChannel ?? null;
 
-    // P2PConnectionを更新
     this.onStreamAdded?.removeListener();
     if (p2pconnection && !dataChannel) {
       this.onStreamAdded = p2pconnection.receiver.onStreamAdded.add((_event) => {
@@ -304,7 +299,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       });
     }
 
-    // open or close
     if (isOpen !== this.peer.isOpen) {
       this.peer.isOpen = isOpen;
       if (isOpen) {
@@ -318,7 +312,6 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       }
     }
 
-    // モニタリング制御
     const peerConnection = this.getPeerConnection();
     this.stats = peerConnection ? new WebRTCStats(peerConnection) : null;
 

@@ -174,7 +174,6 @@ export class DiceBot extends GameObject {
     return chars.join('');
   }
 
-  // リソース操作コマンドでs付きがあるか判定
   checkSecretEditCommand(chatText: string): boolean {
     const text: string = ` ${toHalfWidth(chatText).toLowerCase()}`;
     const replaceText = text.replace('：', ':');
@@ -183,7 +182,6 @@ export class DiceBot extends GameObject {
     return false;
   }
 
-  // 繰り返しコマンドを除去し、sより後ろがCOMMAND_PATTERNにマッチするか確認
   checkSecretDiceCommand(gameSystem: GameSystemClass, chatText: string): boolean {
     const text: string = toHalfWidth(chatText).toLowerCase();
     const nonRepeatText = text
@@ -197,7 +195,6 @@ export class DiceBot extends GameObject {
     return false;
   }
 
-  // GameObject Lifecycle
   override onStoreAdded() {
     super.onStoreAdded();
     this.cleanups.push(sendMessage$.subscribe((data) => this.handleSendMessage(data)));
@@ -326,8 +323,6 @@ export class DiceBot extends GameObject {
 
     this.resourceProcessor.checkResourceEditCommand(
       chatMessage,
-      // ResourceEditMessageEvent.messageTargetContext は core/event 層で unknown[] 化
-      // されているので、domain で消費する側で具象型に narrowing する。
       (data.messageTargetContext as ChatMessageTargetContext[] | null) ?? []
     );
   }
@@ -341,7 +336,6 @@ export class DiceBot extends GameObject {
     }
     result = result.replace(/[＞]/g, (_s) => '→').trim();
 
-    // 3段階以上の多段ロール（クリティカル等）は → ごとに改行して読みやすくする
     if ((result.match(/ → /g) ?? []).length >= 3) {
       result = result.replace(/ → /g, '\n→ ');
     }
@@ -372,7 +366,6 @@ export class DiceBot extends GameObject {
     }
   }
 
-  // GameObject Lifecycle
   override onStoreRemoved() {
     super.onStoreRemoved();
     this.cleanups.forEach((c) => c());

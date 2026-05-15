@@ -7,7 +7,6 @@ import { ImageTag } from '@axe/domain/media/image-tag';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
-// バフ追加identifierを固定にするため初期キャラのバフはGameCharacterでやらずにここでやる
 function addBuffRound(character: GameCharacter, name: string, subcom: string, round: number): void {
   if (character.buffDataElement?.children) {
     for (const dataElm of character.buffDataElement.children) {
@@ -47,8 +46,6 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   let testFile: ImageFile;
   let fileContext: ImageContext;
 
-  //-------------------------
-
   testCharacter = new GameCharacter('testCharacter_1');
   fileContext = ImageFile.createEmpty('testCharacter_1_image').toContext();
   fileContext.url = './assets/images/mon_052.gif';
@@ -61,15 +58,11 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターA', 1, testFile.identifier);
   addBuffRound(testCharacter, 'テストバフ1', '防+1', 3);
 
-  //-------------------------
-
   testCharacter = new GameCharacter('testCharacter_2');
   testCharacter.location.x = 8 * 50;
   testCharacter.location.y = 8 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターB', 1, testFile.identifier);
-
-  //-------------------------
 
   testCharacter = new GameCharacter('testCharacter_3');
   fileContext = ImageFile.createEmpty('testCharacter_3_image').toContext();
@@ -81,8 +74,6 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testFile = imageStorage.add(fileContext);
   ImageTag.create(testFile.identifier).tag = 'モンスター';
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターC', 3, testFile.identifier);
-
-  //-------------------------
 
   testCharacter = new GameCharacter('testCharacter_4');
   fileContext = ImageFile.createEmpty('testCharacter_4_image').toContext();
@@ -97,8 +88,6 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターA', 1, testFile.identifier);
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
 
-  //-------------------------
-
   testCharacter = new GameCharacter('testCharacter_5');
   fileContext = ImageFile.createEmpty('testCharacter_5_image').toContext();
   fileContext.url = './assets/images/mon_211.gif';
@@ -108,8 +97,6 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターB', 1, testFile.identifier);
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
-
-  //-------------------------
 
   testCharacter = new GameCharacter('testCharacter_6');
   fileContext = ImageFile.createEmpty('testCharacter_6_image').toContext();

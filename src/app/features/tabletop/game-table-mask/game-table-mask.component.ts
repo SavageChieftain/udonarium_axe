@@ -113,7 +113,6 @@ export class GameTableMaskComponent {
     return mask.name;
   });
 
-  /** @SyncVar 変更（scratchedGrids, scratchingGrids, owner 等）をテンプレートが確実に検知するためのバージョン Signal */
   protected readonly maskVersion = computed<number>(() => {
     const mask = this.gameTableMask();
     if (!mask) return 0;
@@ -271,7 +270,6 @@ export class GameTableMaskComponent {
     if (mask) mask.isAltitudeIndicate = isAltitudeIndicate;
   }
 
-  //  get isGMMode(): boolean { return this.gameTableMask()!.isGMMode; }
   get isInverse(): boolean {
     return Math.abs(this.viewRotateZ()) % 360 > 90 && Math.abs(this.viewRotateZ()) % 360 < 270;
   }
@@ -372,9 +370,7 @@ export class GameTableMaskComponent {
     const mask = this.gameTableMask();
     if (!mask) return;
 
-    if (!this.isScratching || !mask.isMine) {
-      //this.input.cancel();
-    } else if (e.button < 2 && e.buttons < 2) {
+    if (this.isScratching && mask.isMine && e.button < 2 && e.buttons < 2) {
       this.scratching(true, { offsetX: e.offsetX, offsetY: e.offsetY });
     }
   }
@@ -402,7 +398,6 @@ export class GameTableMaskComponent {
   scratching(isStart: boolean, position: { offsetX: number; offsetY: number } | null = null) {
     const mask = this.gameTableMask();
     if (!mask || !mask.isMine) return;
-    // とりあえず、本当は周辺を表示したい。
     const tableSelecter = this.tableSelecter;
 
     if (!tableSelecter.viewTable?.gridShow) {
@@ -415,7 +410,6 @@ export class GameTableMaskComponent {
           left: 0,
         };
     }
-    //viewTable.gridHeight = mask.posZ + mask.altitude * this.gridSize + 0.5;
     let offsetX;
     let offsetY;
     if (position) {
@@ -559,7 +553,6 @@ export class GameTableMaskComponent {
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.cardPut);
-    //    this.chatMessageService.sendOperationLog(`${ mask.name == '' ? '(無名のマップマスク)' : mask.name } のスクラッチを終了した`);
     return false;
   }
 
@@ -576,7 +569,6 @@ export class GameTableMaskComponent {
     this._scratchingGridX = -1;
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.unlock);
-    //    this.chatMessageService.sendOperationLog(`${ mask?.name == '' ? '(無名のマップマスク)' : mask?.name } のスクラッチを終了した`);
     return false;
   }
 

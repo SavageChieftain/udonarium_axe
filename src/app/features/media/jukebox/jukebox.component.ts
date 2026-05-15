@@ -86,10 +86,8 @@ export class JukeboxComponent {
 
   readonly selectTag = signal('全て');
 
-  /** 「ライブラリ」または「再生リスト」 */
   readonly viewMode = signal<'library' | 'playlist'>('library');
 
-  /** 再生リスト表示用（Playlist entries の順序を AudioFile に解決） */
   readonly playlistAudios = computed(() => {
     this.objectChange.fileVersion();
     this.objectChange.versionOf('Playlist')();
@@ -98,7 +96,6 @@ export class JukeboxComponent {
     return entries.map((id) => this.audioStorage.get(id)).filter((a): a is AudioFile => a !== null && !a.isHidden);
   });
 
-  /** ドラッグ中のインデックス */
   private dragFromIndex: number | null = null;
 
   readonly tagList = computed((): string[] => {
@@ -122,7 +119,7 @@ export class JukeboxComponent {
   }
 
   setTagOf(audio: AudioFile, tag: string) {
-    if (this.isInPlaylist(audio)) return; // 再生リスト登録済みは変更不可
+    if (this.isInPlaylist(audio)) return;
     let audioTag = AudioTag.get(audio.identifier);
     if (!audioTag) audioTag = AudioTag.create(audio.identifier);
     audioTag.tag = tag;
@@ -169,7 +166,6 @@ export class JukeboxComponent {
 
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
 
-  /** 500ms ごとにインクリメント — ジャケ絵の非同期抽出完了を拾うため */
   private readonly _tick = signal(0);
 
   readonly nowPlayingArtwork = computed(() => {
@@ -195,10 +191,6 @@ export class JukeboxComponent {
   }
 
   playBGM(audio: AudioFile) {
-    //memoこっちが全体
-
-    //タグなしのBGM付きカットインはジュークボックスと同時に鳴らさないようにする
-    //BGM駆動のためのインスタンスを別にしているため現状この処理で止める
     this.cutInLauncher.stopBlankTagCutIn();
 
     const isSE = this.getTagOf(audio) === 'SE';
