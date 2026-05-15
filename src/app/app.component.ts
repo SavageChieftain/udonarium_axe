@@ -57,7 +57,7 @@ export class AppComponent {
 
   readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
 
-  fabOpen = signal(false);
+  fabOpen = signal(true);
   isSaving = signal(false);
   progressPercent = signal(0);
   readonly themeLabel = computed(() => {
@@ -83,15 +83,16 @@ export class AppComponent {
         ModalService.defaultParentViewContainerRef =
         ContextMenuService.defaultParentViewContainerRef =
           this.modalLayerViewContainerRef();
-      this.panelService.open(PeerMenuComponent, { title: '接続情報', width: 460, height: 360, left: 80, top: 10 });
+      this.panelService.open(PeerMenuComponent, { title: '接続情報', width: 420, height: 300, left: 80, top: 10 });
+      const chatHeight = 460;
       this.panelService.open(ChatWindowComponent, {
         title: 'チャットウィンドウ',
         width: 660,
-        height: 460,
+        height: chatHeight,
         minWidth: 300,
         minHeight: 460,
         left: 80,
-        top: 390,
+        top: Math.max(10, window.innerHeight - chatHeight - 20),
       });
     });
   }
@@ -113,7 +114,7 @@ export class AppComponent {
     switch (componentName) {
       case 'PeerMenuComponent':
         component = PeerMenuComponent;
-        option.title = '接続情報';
+        option = { width: 420, height: 300, left: 100, title: '接続情報' };
         break;
       case 'ChatWindowComponent':
         component = ChatWindowComponent;
