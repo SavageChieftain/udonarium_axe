@@ -1,12 +1,6 @@
 import { EventChannel } from '@axe/core/event/event-channel';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 
-// --- Event interfaces ---
-//
-// 注: 個別 domain 型を直接参照しない。レイヤー的に core/event は domain より下位なので、
-// domain 固有型は `unknown` でラップして上位レイヤーが必要に応じてキャストする
-// （`SendMessageEvent.messageTarget` / `CutInEvent.cutIn` 等と同じ方針）。
-
 export interface SendMessageEvent {
   messageIdentifier: string;
   messageTarget: { text: string; object: { name: string } | null } | null;
@@ -18,8 +12,6 @@ export interface DiceTableMessageEvent {
 
 export interface ResourceEditMessageEvent {
   messageIdentifier: string;
-  /** 実体は ChatMessageTargetContext[]。core/event は domain を知らないため
-   *  unknown[] で受け、emit/handle 側で具象型にキャストする */
   messageTargetContext: unknown[] | null;
 }
 
@@ -67,16 +59,12 @@ export interface LoadConfigEvent {
   config: unknown;
 }
 
-// --- EventChannels (importable without Angular DI) ---
-
-/** Events fed by networkMessage$ bridge below. */
 export const sendMessage$ = new EventChannel<SendMessageEvent>();
 export const diceTableMessage$ = new EventChannel<DiceTableMessageEvent>();
 export const resourceEditMessage$ = new EventChannel<ResourceEditMessageEvent>();
 export const domainPeerDisconnect$ = new EventChannel<DomainPeerDisconnectEvent>();
 export const soundEffect$ = new EventChannel<string>();
 
-/** Events produced by domain/feature/core code. */
 export const selectGameTable$ = new EventChannel<SelectGameTableEvent>();
 export const updateAudioResource$ = new EventChannel<void>();
 export const messageAdded$ = new EventChannel<MessageAddedEvent>();
@@ -94,8 +82,6 @@ export const fileLoaded$ = new EventChannel<void>();
 export const xmlLoaded$ = new EventChannel<XmlLoadedEvent>();
 export const loadConfig$ = new EventChannel<LoadConfigEvent>();
 export const fileResourceUpdated$ = new EventChannel<void>();
-
-// --- Publish functions ---
 
 export function emitSendMessage(event: SendMessageEvent) {
   sendMessage$.emit(event);
@@ -158,8 +144,6 @@ export function emitFileResourceUpdated() {
   fileResourceUpdated$.emit();
 }
 
-// --- SELECT_FILE (local-only, self-targeted call replacement) ---
-
 export interface FileSelectedEvent {
   fileIdentifier: string;
 }
@@ -169,13 +153,9 @@ export function emitSelectFile(event: FileSelectedEvent) {
   selectFile$.emit(event);
 }
 
-// --- Trigger wrappers (local dispatch for core sync protocol) ---
-
 export function triggerUpdateGameObject(context: unknown) {
   localDispatch('UPDATE_GAME_OBJECT', context);
 }
-
-// --- Call wrappers (P2P broadcast via Network) ---
 
 export function callRollDiceSymbol(identifier: string) {
   networkSend('ROLL_DICE_SYMBOL', { identifier });
@@ -203,8 +183,6 @@ export function callHeartBeat(data: [number, string, number | null, number]) {
 export function callCursorMove(data: [number, number, number]) {
   networkSend('CURSOR_MOVE', data);
 }
-
-// --- Bridge: route networkMessage$ events into domain EventChannels ---
 
 networkMessage$.subscribe((msg) => {
   switch (msg.eventName) {

@@ -30,7 +30,7 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
-import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
+import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
   computeHexSlopeSteps,
   HexSlopeStepData,
@@ -131,7 +131,7 @@ export class TerrainComponent {
       });
     });
     this.objectChange.onObjectChangedFor(
-      // input.required を _initialized 前に呼ぶと NG0950 のためガードを入れる。
+      // input.required guarded by _initialized to avoid NG0950 during construction.
       () => {
         if (!this._initialized) return [];
         return [this.currentTable.identifier, this.tableSelecter.identifier, this.terrain().identifier];
@@ -282,7 +282,6 @@ export class TerrainComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  /** ヘクスマップ時のジオメトリパラメータ。スクエアマップ時は null。 */
   readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
@@ -296,10 +295,8 @@ export class TerrainComponent {
 
   readonly isHex = computed(() => this.pedestalHexParams() !== null);
 
-  /** ヘクスマップかつ傾斜が有効で、ステップ描画が適用可能な場合 true */
   readonly isHexSlope = computed(() => this.isHex() && this.isSlope() && this.slopeDirection() !== SlopeDirection.NONE);
 
-  /** ヘクス傾斜の段差フロア・壁データ */
   readonly hexSlopeSteps = computed<HexSlopeStepData>(() => {
     const params = this.pedestalHexParams();
     if (!params || !this.isHexSlope()) return { floors: [], walls: [] };
@@ -356,14 +353,12 @@ export class TerrainComponent {
     return {};
   }
 
-  /** ヘクスマップ時のフロアテクスチャ用クリップパス */
   readonly hexFloorClipPath = computed<string | null>(() => {
     const params = this.pedestalHexParams();
     if (!params) return null;
     const { outline, bbox } = params;
     const W = bbox.maxX - bbox.minX;
     const H = bbox.maxY - bbox.minY;
-    // bbox 座標系に変換して百分率ポリゴンを生成
     const points = outline
       .map((v) => {
         const px = v.x - bbox.minX;
@@ -374,7 +369,6 @@ export class TerrainComponent {
     return `polygon(${points})`;
   });
 
-  /** ヘクスマップ時のフロア要素のスタイル（bbox に合わせたサイズ・位置） */
   readonly hexFloorDimStyle = computed<Record<string, string>>(() => {
     const bounds = this.getFloorBounds();
     if (!this.pedestalHexParams()) return {} as Record<string, string>;
@@ -429,10 +423,6 @@ export class TerrainComponent {
     };
   });
 
-  /**
-   * ヘクスマップ時の壁面ジオメトリ。
-   * outline の各辺に対して壁パネルの位置・回転・明度を計算する。
-   */
   readonly hexWalls = computed<{ edgeLength: number; px: number; py: number; angle: number; brightness: number }[]>(
     () => {
       const params = this.pedestalHexParams();
@@ -449,14 +439,12 @@ export class TerrainComponent {
         const edgeLength = Math.sqrt(dx * dx + dy * dy);
         const edgeAngle = Math.atan2(dy, dx);
 
-        // 明度: 辺の外向き法線方向に基づく
-        //   背面(ny=-1)=0.3, 正面(ny=1)=1.0, 左(nx=-1)=0.5, 右(nx=1)=0.8
         const brightness = useSurfaceShading
           ? Math.max(0.3, Math.min(1.0, 0.65 - 0.35 * Math.cos(edgeAngle) + 0.15 * Math.sin(edgeAngle)))
           : 1.0;
 
         return {
-          edgeLength: edgeLength + 1, // +1px で隣接パネル間の隙間を防ぐ
+          edgeLength: edgeLength + 1,
           px: containerW / 2 + v2.x,
           py: containerH / 2 + v2.y,
           angle: edgeAngle + Math.PI,
@@ -510,7 +498,7 @@ export class TerrainComponent {
   }
 
   readonly floorModCss = computed(() => {
-    if (this.isHex()) return ''; // ヘクスは段差フロアで傾斜を表現するため回転しない
+    if (this.isHex()) return '';
     let ret = '';
     let tmp: number;
     switch (this.slopeDirection()) {
@@ -646,7 +634,6 @@ export class TerrainComponent {
     }
     let opacity: number = 0.0;
     setTimeout(() => {
-      // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
       if (this.terrain().isGrid) {
         if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;

@@ -28,18 +28,6 @@ import {
 } from '@axe/features/data-element/game-data-element/judgement-candidates-modal.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
-/**
- * game-data-element の「テーブルビュー」専用サブコンポーネント。
- *
- * 親 GameDataElementComponent からは shouldRenderTableView() が true のとき呼び出される。
- * テーブルの列ヘッダ / 行レンダリング / セル種別ごとの表示制御 (check / resource / calc /
- * select / image) / GAP 列のアクティブ切替 / 判定算出モード (判定候補モーダル含む) を担当。
- *
- * 親には残しているもの:
- * - isJudgeModeEnabled / loopHorizontal / loopVertical の attribute 読み書きトグル
- *   （設定 UI 自体は table view ブロックの外側にあるため）
- * - shouldRenderTableView の条件評価（テーブル描画ガード）
- */
 @Component({
   selector: 'game-data-element-table-view',
   templateUrl: './game-data-element-table-view.component.html',
@@ -95,7 +83,6 @@ export class GameDataElementTableViewComponent {
     return element.getAttribute(DataElementAttribute.ROW_HEADER_LABEL).trim();
   });
 
-  /** ビューモード: 判定算出 / 技能習得 アクティブか */
   isJudgeMode(): boolean {
     return this.isJudgeModeEnabled() && this._judgeActive();
   }
@@ -147,7 +134,6 @@ export class GameDataElementTableViewComponent {
   }
 
   private getGapTableColumnCell(column: DataElementTableColumn): DataElement | null {
-    // tableRows() の依存を維持するため呼ぶ。実検索は shared helper に委譲。
     this.tableRows();
     return findGapCellInColumn(this.element(), column);
   }
@@ -209,7 +195,6 @@ export class GameDataElementTableViewComponent {
 
   setTableSelectCellValueFromEvent(cell: DataElement, event: Event): void {
     if (this.isValueLocked()) {
-      // 読み取り専用時は元の選択に戻す
       if (event.target instanceof HTMLSelectElement) event.target.value = String(cell.value ?? '');
       return;
     }
