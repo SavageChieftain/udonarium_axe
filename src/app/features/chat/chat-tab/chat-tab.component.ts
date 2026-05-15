@@ -77,7 +77,6 @@ export class ChatTabComponent {
       if (!this.topElm || !this.bottomElm) return;
       queueMicrotask(() => this.adjustScrollPosition());
     });
-    // initialize sampleMessages
     const messages: ChatMessage[] = [];
     for (const context of this.rawSampleMessages) {
       const message = new ChatMessage();
@@ -99,9 +98,6 @@ export class ChatTabComponent {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (!message || !this.chatTab?.contains(message)) return;
       this.removeWritingSpeakerForMessage(message);
-      // bottomIndex がリスト末尾にある場合は新着メッセージを含むよう即座に拡張する。
-      // タイムスタンプのズレ（時計差・NTP未同期）に関わらず常に適用する。
-      // scrollToBottom() の isAutoScroll タイミング競合に依存せず確実に表示する。
       const newLastIndex = this.chatTab.chatMessages.length - 1;
       if (this.bottomIndex >= newLastIndex - 1) {
         this.bottomIndex = newLastIndex;
@@ -114,8 +110,6 @@ export class ChatTabComponent {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTab?.identifier) return;
       this.addWritingSpeaker(event.sendFrom, event.speakerIdentifier);
     }, this.destroyRef);
-    // aliasName で早期フィルタしないと、部屋のオブジェクト数 × 変更頻度に比例した
-    // 無駄な ObjectStore.get / instanceof が走る。
     this.objectChange.onObjectChangedForAlias(
       [ChatMessage.aliasName],
       (event) => {
@@ -203,7 +197,6 @@ export class ChatTabComponent {
   }
 
   get minScrollHeight(): number {
-    //    let length = this.chatTab ? this.chatTab.chatMessages.length : this.sampleMessages.length;
     const length = this.chatTab ? this.chatTab.displayableMessagesLength() : this.sampleMessages.length;
     return (length < 10000 ? length : 10000) * this.minMessageHeight;
   }
@@ -248,7 +241,6 @@ export class ChatTabComponent {
   resetMessages() {
     if (!this.chatTab || !this.panelService?.scrollablePanel) return;
     const lastIndex = this.chatTab.chatMessages.length - 1;
-    //    this.topIndex = lastIndex - Math.floor(this.panelService.scrollablePanel.clientHeight / this.minMessageHeight);
     this.topIndex = findDisplayableTopIndex(
       this.chatTab.chatMessages,
       Math.floor(this.panelService.scrollablePanel.clientHeight / this.minMessageHeight) + 1
@@ -498,7 +490,6 @@ export class ChatTabComponent {
   }
 
   redraw() {
-    // 強制的に再描画させる
     this.renderVersion.update((v) => v + 1);
   }
 }

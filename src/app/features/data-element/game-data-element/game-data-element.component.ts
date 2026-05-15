@@ -78,13 +78,11 @@ export class GameDataElementComponent {
   readonly isImage = input(false);
   readonly indexNum = input(0);
   readonly depth = input(0);
-  /** trueのとき最上位セクションのタイトルバーを非表示（ツールバー側に表示するため）*/
   readonly hideSectionTitle = input(false);
 
   readonly structureDropPosition = signal<DataElementDropPosition | null>(null);
   readonly fieldOptionsOpen = signal(false);
 
-  /** element と全 row, cell の version を読んで OnPush 依存を張る。pure 計算結果はこの後の computed で得る。 */
   private trackTableDependencies(): void {
     const element = this.gameDataElement();
     this.objectChange.versionOf(element.identifier)();
@@ -161,7 +159,6 @@ export class GameDataElementComponent {
     this.setUpdateTimer();
   }
 
-  /** セクションタイトル用 Material Icons 名 (cs-icon 属性) */
   get icon(): string {
     if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
     return (this.gameDataElement()?.getAttribute('cs-icon') as string) || '';
@@ -260,7 +257,6 @@ export class GameDataElementComponent {
     this.objectChange.notifyChanged(element.identifier);
   }
 
-  /** Compute the calc field result from sibling/parent field values. */
   readonly calcResult = computed(() => {
     const el = this.gameDataElement();
     this.objectChange.versionOf(el.identifier)();
@@ -668,15 +664,12 @@ export class GameDataElementComponent {
     this.objectChange.notifyChanged(element.identifier);
   }
 
-  /** GAP判定テーブルとして設定されているか（属性フラグ） */
   isJudgeModeEnabled(): boolean {
     const element = this.gameDataElement();
     this.objectChange.versionOf(element.identifier)();
     return element.getAttribute(DataElementAttribute.JUDGE_MODE) === 'true';
   }
 
-  /** 編集モード: GAP判定テーブル設定フラグをトグル。
-   *  オフにすると child の isJudgeMode() も自動的に false に戻る (input 経由)。 */
   toggleJudgeModeEnabled(): void {
     const element = this.gameDataElement();
     if (this.isJudgeModeEnabled()) element.removeAttribute(DataElementAttribute.JUDGE_MODE);

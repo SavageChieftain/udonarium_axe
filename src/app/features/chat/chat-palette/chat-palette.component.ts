@@ -113,7 +113,6 @@ export class ChatPaletteComponent {
   readonly text = signal<string>('');
   sendTo: string = '';
 
-  /** 発言予測候補リスト。computed なので複数参照されても再計算は 1 回だけ。 */
   readonly autoCompleteListSignal = computed<string[]>(() => {
     const t = this.text();
     if (t.length <= 1) return [];
@@ -125,10 +124,8 @@ export class ChatPaletteComponent {
 
   readonly isEdit = signal(false);
   readonly editPalette = signal('');
-  /** 表示モード: 'palette' = チャットパレット、'character' = キャラクターのゲームデータ情報 (読み取り専用) */
   readonly viewMode = signal<'palette' | 'character'>('palette');
 
-  /** 全タブの unreadLength 変化に反応させるための computed signal。 */
   readonly chatTabsVersion = computed(() => {
     this.objectChange.collectionOf('chat-tab')();
     this.objectChange.versionOf(ChatTabList.instance.identifier)();
@@ -254,8 +251,6 @@ export class ChatPaletteComponent {
   }
 
   completeIndex(): number {
-    // 発言予測 select の selectedIndex を真実の源にする。select が破棄/再生成されると
-    // 自動的に -1 に戻り、リスト消失後も古い選択が残って送信不能になる事象を防ぐ。
     const selectObj = this.completeSelectRef()?.nativeElement;
     return selectObj ? selectObj.selectedIndex : -1;
   }
@@ -324,7 +319,6 @@ export class ChatPaletteComponent {
           if (first) {
             str2 = str;
           } else {
-            //自分リソース操作指定の省略
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 
@@ -365,7 +359,6 @@ export class ChatPaletteComponent {
         messageTargetContext,
         attachmentImageIdentifiers
       );
-      // this.chatMessageService.sendMessage(this.chatTab, text, value.gameType, value.sendFrom, value.sendTo);
     }
   }
 
@@ -378,14 +371,11 @@ export class ChatPaletteComponent {
     this.selectedLine.set(-1);
   }
 
-  /** チャットパレット表示とキャラクターデータ表示を切り替える */
   toggleCharacterDataView() {
-    // 編集中だった場合は確定して抜けてから切替（編集状態を引きずらない）
     if (this.isEdit()) this.toggleEditMode();
     this.viewMode.update((m) => (m === 'palette' ? 'character' : 'palette'));
   }
 
-  /** キャラクターデータ表示の対象となる detailDataElement.children */
   readonly characterDetailChildren = computed<DataElement[]>(() => {
     const char = this.character();
     if (!char?.detailDataElement) return [];

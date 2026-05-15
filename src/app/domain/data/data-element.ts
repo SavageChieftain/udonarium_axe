@@ -8,21 +8,13 @@ const SAN_WARNING_THRESHOLD = 0.8;
 const SAN_WARNING_COLOR = '#D22';
 const DEFAULT_VALUE_COLOR = '#444';
 
-/** DataElement.type に設定される型識別子 */
 export const DataElementType = {
-  /** 数値リソース (現在値/最大値を持つ) */
   NUMBER_RESOURCE: 'numberResource',
-  /** 通常テキスト (デフォルト) */
   TEXT: '',
-  /** ノート (長文テキスト) */
   NOTE: 'note',
-  /** チェック/表（新実装） */
   CHECK_TABLE: 'checktable',
-  /** マークダウン（旧実装・移行用） */
   MARKDOWN: 'markdown',
-  /** 単一チェック */
   CHECK: 'check',
-  /** 画像 */
   IMAGE: 'image',
 } as const;
 
@@ -134,7 +126,6 @@ export class DataElement extends ObjectNode {
   @SyncVar() type: string;
   @SyncVar() currentValue: number | string;
 
-  // DataElement の子は常に DataElement なので、aは型を正確に宣言する
   override get children(): readonly DataElement[] {
     return super.children as readonly DataElement[];
   }
@@ -146,8 +137,6 @@ export class DataElement extends ObjectNode {
     return this.type != null && this.type === DataElementType.NOTE;
   }
 
-  /** check 系フィールドのチェック状態。XML 直列化で number 0 → string "0" に変わるため、
-   *  どちらでも「未チェック」とみなす（旧 `value !== 0` 比較の互換動作）。 */
   get isChecked(): boolean {
     return this.value !== 0 && this.value !== '0';
   }
