@@ -2,15 +2,12 @@ import { DataElement, DataElementRole, type DataElementRoleValue } from '@axe/do
 
 export type DataElementDropPosition = 'before' | 'after' | 'inside';
 
-/** detail 配下で許される最大階層深度（detail を 0 と数える）。 */
 export const MAX_STANDARD_DEPTH = 3;
 
-/** ターゲット要素自身を新しい親として受け入れられるか（FIELD は子を持てない）。 */
 export function canDropInside(targetElement: DataElement): boolean {
   return targetElement.fieldRole !== DataElementRole.FIELD;
 }
 
-/** 親要素が指定 role の子を受け入れられるかを判定する。 */
 export function canAcceptChildRole(parentElement: DataElement, childRole: DataElementRoleValue): boolean {
   if (parentElement.name === 'detail') return childRole === DataElementRole.SECTION;
   if (parentElement.fieldRole === DataElementRole.SECTION) return childRole === DataElementRole.GROUP;
@@ -23,7 +20,6 @@ export function canAcceptChildRole(parentElement: DataElement, childRole: DataEl
   return false;
 }
 
-/** detail を基準とした要素の階層深度（detail 自身は 0）。 */
 export function getElementDepth(element: DataElement): number {
   let depth = 0;
   let parent = element.parent;
@@ -34,7 +30,6 @@ export function getElementDepth(element: DataElement): number {
   return depth;
 }
 
-/** 部分木の高さ（葉までの最大ステップ数）。 */
 export function getSubtreeDepth(element: DataElement): number {
   let depth = 0;
   for (const child of element.children) {
@@ -43,11 +38,6 @@ export function getSubtreeDepth(element: DataElement): number {
   return depth;
 }
 
-/**
- * ドラッグ中の要素を `targetElement` の指定位置にドロップ可能かを判定する。
- *
- * @param targetDepth ターゲット要素の現在の depth（コンポーネント側で保持しているので渡してもらう）
- */
 export function canDropStructureElement(
   draggedElement: DataElement,
   targetElement: DataElement,
@@ -75,7 +65,6 @@ export function canDropStructureElement(
   );
 }
 
-/** ホスト要素のジオメトリと cursor 位置からドロップ位置 (before / inside / after) を決定する。 */
 export function resolveDropPosition(
   hostRect: { top: number; height: number } | null,
   clientY: number,

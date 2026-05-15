@@ -60,7 +60,6 @@ export class CutInWindowComponent {
       }
     }, this.destroyRef);
     this.objectChange.soundOnlyCutIn$.subscribe((event) => {
-      // invisible パネル（@指定の YouTube）: startCutIn$ の代わりにこちらで同タグ停止を担う
       const cutIn = event.cutIn as CutIn;
       if (this.cutIn && cutIn?.videoId) {
         if (this.cutIn.identifier == cutIn.identifier || this.cutIn.tagName == cutIn.tagName) {
@@ -116,11 +115,6 @@ export class CutInWindowComponent {
   private readonly _videoIdSig = signal('');
   private _timeoutIdVideo: ReturnType<typeof setTimeout> | null = null;
 
-  /** videoId が確定したら youtube-player を表示する（signal ベースで確実にリアクティブ）。
-   *  @指定の invisible パネルはパネルコンテナ側が visibility:hidden なので個別制御不要。 */
-  /** videoId が確定したら youtube-player を表示する（signal ベースでリアクティブ）。
-   *  invisible パネル（@指定）では panelService.invisible が true のため、
-   *  子要素で 'visible' を上書きしないよう '' を返す。 */
   readonly isVisible = computed(() => {
     if (this.panelService.invisible) return '';
     return this._videoIdSig() !== '' ? 'visible' : 'hidden';
@@ -145,7 +139,6 @@ export class CutInWindowComponent {
   readonly cutInImageUrl = computed(() => {
     this.objectChange.fileVersion();
     if (!this.cutIn) return ImageFile.Empty.url;
-    // imageIdentifier は @SyncVar → objectChanged$ で versionOf が bump される
     this.objectChange.versionOf(this.cutIn.identifier)();
     if (this.cutIn.videoId) return '';
     const file = this.imageStorage.get(this.cutIn.imageIdentifier);
@@ -274,7 +267,6 @@ export class CutInWindowComponent {
       }, 200);
     }
     if (state == 0) {
-      // 動画終了時：ループ設定なら先頭から再生し直す（@指定時はループ無効）
       if (!this.forceNoLoop && this.cutIn?.isLoop && $event.target?.seekTo && $event.target?.playVideo) {
         const startSec = this.cutIn.videoStart ? +this.cutIn.videoStart : 0;
         $event.target.seekTo(startSec, true);
@@ -288,7 +280,5 @@ export class CutInWindowComponent {
 
   onErrorFallback() {
     if (!this.videoId) return;
-    // 後で修正
-    // this.cutInImageElement.nativeElement.src = 'https://img.youtube.com/vi/' + this.videoId + '/default.jpg'
   }
 }

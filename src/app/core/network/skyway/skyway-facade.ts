@@ -73,11 +73,6 @@ export class SkyWayFacade {
     }
   }
 
-  /**
-   * ページアンロード時に使用する即時退室メソッド。
-   * awaitせずにleave()を発火し、サーバに退室を通知する。
-   * コンテキストは破棄しない（beforeunloadキャンセル時の再参加に備える）。
-   */
   leaveImmediately() {
     try {
       if (this.roomPerson?.state !== 'left') {
@@ -87,17 +82,13 @@ export class SkyWayFacade {
         this.lobbyPerson?.leave().catch(() => {});
       }
     } catch {
-      // ページアンロード中のエラーは無視
+      /* unload-time errors swallowed */
     }
   }
 
-  /**
-   * beforeunloadダイアログがキャンセルされた後にルーム・ロビーへ再参加する。
-   */
   async rejoinAfterLeave() {
     if (this.isDestroyed || !this.context || this.context.disposed) return;
     try {
-      // left 状態の person をクリアして新規参加できるようにする
       if (this.roomPerson?.state === 'left') this.roomPerson = null;
       if (this.lobbyPerson?.state === 'left') this.lobbyPerson = null;
       if (this.publication) {
@@ -423,7 +414,7 @@ export class SkyWayFacade {
             const meta = member.metadata ? (JSON.parse(member.metadata) as { roomName?: string }) : null;
             if (meta?.roomName) roomName = meta.roomName;
           } catch {
-            // メタデータのパースエラーは無視
+            /* malformed metadata ignored */
           }
           return { peerId, roomName };
         })
