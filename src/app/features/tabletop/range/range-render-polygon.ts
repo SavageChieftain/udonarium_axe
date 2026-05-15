@@ -51,7 +51,6 @@ export function renderLine(
   const p4x_ = setting.range * gridSize;
   const p4y_ = 0.5 * setting.width * gridSize;
 
-  // クリッピング座標（コーンの根本から時計回りにクリップ範囲を定義）
   const clip01x_ = p1x_ - gridSize * 1.0;
   const clip01y_ = p1y_ + gridSize * 1.0;
   const clip02x_ = p2x_ - gridSize * 1.0;
@@ -72,7 +71,7 @@ export function renderLine(
   const p4y = p4x_ * Math.sin(rad) + p4y_ * Math.cos(rad);
 
   const clip: ClipAreaLine = {
-    clip01x: clip01x_ * Math.cos(rad) - clip01y_ * Math.sin(rad), // 根本始点
+    clip01x: clip01x_ * Math.cos(rad) - clip01y_ * Math.sin(rad),
     clip01y: clip01x_ * Math.sin(rad) + clip01y_ * Math.cos(rad),
     clip02x: clip02x_ * Math.cos(rad) - clip02y_ * Math.sin(rad),
     clip02y: clip02x_ * Math.sin(rad) + clip02y_ * Math.cos(rad),
@@ -140,10 +139,10 @@ export function renderSquare(
 
   const p = rotatePoints(
     [
-      { x: -setting.range * gridSize, y: setting.range * gridSize }, // 左下
-      { x: -setting.range * gridSize, y: -setting.range * gridSize }, // 左上
-      { x: setting.range * gridSize, y: -setting.range * gridSize }, // 右上
-      { x: setting.range * gridSize, y: setting.range * gridSize }, // 右下
+      { x: -setting.range * gridSize, y: setting.range * gridSize },
+      { x: -setting.range * gridSize, y: -setting.range * gridSize },
+      { x: setting.range * gridSize, y: -setting.range * gridSize },
+      { x: setting.range * gridSize, y: setting.range * gridSize },
     ],
     setting.degree
   );
@@ -159,9 +158,8 @@ export function renderSquare(
     setting.degree
   );
 
-  // クリッピング座標（根本から時計回りにクリップ範囲を定義）
   const clip: ClipAreaSquare = {
-    clip01x: clipPoints[0].x, // 根本始点
+    clip01x: clipPoints[0].x,
     clip01y: clipPoints[0].y,
     clip02x: clipPoints[1].x,
     clip02y: clipPoints[1].y,
@@ -211,7 +209,6 @@ export function renderSquare(
   return clip;
 }
 
-// ---- ヘルパー: 正多角形の頂点を生成 (中心0,0・上方向が最初の頂点) ----
 function regularPolygonVertices(n: number, radius: number, degree: number): Point[] {
   const verts: Point[] = [];
   for (let i = 0; i < n; i++) {
@@ -221,7 +218,6 @@ function regularPolygonVertices(n: number, radius: number, degree: number): Poin
   return verts;
 }
 
-// ---- 凸多角形の内側判定 ----
 function insideConvexPolygon(verts: Point[], gcx: number, gcy: number): boolean {
   for (let i = 0; i < verts.length; i++) {
     const a = verts[i];
@@ -231,7 +227,6 @@ function insideConvexPolygon(verts: Point[], gcx: number, gcy: number): boolean 
   return true;
 }
 
-// ---- TRIANGLE: キャラ中心に置いた正三角形 ----
 export function renderTriangle(
   canvasElement: HTMLCanvasElement,
   canvasElementRange: HTMLCanvasElement,
@@ -284,7 +279,6 @@ export function renderTriangle(
   return clip;
 }
 
-// ---- PENTAGON: キャスター中心の正五角形 ----
 export function renderPentagon(
   canvasElement: HTMLCanvasElement,
   canvasElementRange: HTMLCanvasElement,
@@ -341,7 +335,6 @@ export function renderPentagon(
   return clip;
 }
 
-// ---- HEXAGON: キャスター中心の正六角形 ----
 export function renderHexagon(
   canvasElement: HTMLCanvasElement,
   canvasElementRange: HTMLCanvasElement,

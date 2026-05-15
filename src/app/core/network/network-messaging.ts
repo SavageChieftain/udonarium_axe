@@ -4,14 +4,12 @@ import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 
-// --- Wire protocol (kept compatible with existing peers) ---
 export interface EventContext<T = unknown> {
   sendFrom: string;
   eventName: string;
   data: T;
 }
 
-// --- Message delivered to handlers ---
 export interface NetworkMessage<T = unknown> {
   eventName: string;
   data: T;
@@ -19,10 +17,8 @@ export interface NetworkMessage<T = unknown> {
   isSendFromSelf: boolean;
 }
 
-/** EventChannel for ALL dispatched messages (network-received + locally dispatched). */
 export const networkMessage$ = new EventChannel<NetworkMessage>();
 
-// --- Send to peers via Network ---
 export function networkSend(eventName: string, data: unknown, sendTo?: string): void {
   const context: EventContext = {
     eventName,
@@ -32,7 +28,6 @@ export function networkSend(eventName: string, data: unknown, sendTo?: string): 
   Network.instance.send(context, sendTo);
 }
 
-// --- Local dispatch (fires handlers synchronously, no network send) ---
 export function localDispatch(eventName: string, data: unknown, sendFrom?: string): void {
   const from = sendFrom ?? Network.peerId;
   networkMessage$.emit({
@@ -44,7 +39,6 @@ export function localDispatch(eventName: string, data: unknown, sendFrom?: strin
   scheduleAngularTick();
 }
 
-// --- Angular change detection bridge for zoneless mode ---
 let _tickScheduled = false;
 
 function scheduleAngularTick(): void {
@@ -54,14 +48,13 @@ function scheduleAngularTick(): void {
     _tickScheduled = false;
     try {
       const scheduler = ServiceLocator.get(ChangeDetectionScheduler);
-      scheduler.notify(0 /* NotificationSource.MarkAncestorsForTraversal */);
+      scheduler.notify(0);
     } catch {
-      /* ignore */
+      /* DI not ready (e.g. unit tests without TestBed) */
     }
   });
 }
 
-// --- Initialize: wire Network callbacks to message stream ---
 let _initialized = false;
 
 export function initializeNetworkMessaging(): void {

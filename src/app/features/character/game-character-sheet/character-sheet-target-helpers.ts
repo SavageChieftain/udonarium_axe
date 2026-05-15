@@ -7,13 +7,6 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 
-/**
- * GameCharacterSheetComponent の `clone()` 操作。
- * 種別ごとの状態リセット（owner / lock 解除）とサウンドエフェクトを集約する。
- *
- * @param source 複製元の tabletop object
- * @param offsetPx クローンを元の位置から x/y にずらす量（既定 50px）
- */
 export function cloneTabletopObject(source: CharacterSheetTarget, offsetPx = 50): void {
   const cloneObject = source.clone();
   cloneObject.location.x += offsetPx;

@@ -16,7 +16,6 @@ export class Network {
     return Network._instance;
   }
 
-  // --- Static convenience accessors (delegate to singleton instance) ---
   static get isOpen(): boolean {
     return Network.instance.isOpen;
   }
@@ -51,7 +50,6 @@ export class Network {
     Network.instance.open(userId, roomId, roomName, password);
   }
 
-  // --- Instance members ---
   get isOpen(): boolean {
     return this.connection ? this.connection.peer.isOpen : false;
   }
@@ -97,15 +95,10 @@ export class Network {
     if (this.connection?.leaveImmediately) {
       this.connection.leaveImmediately();
     }
-    // bfcacheに退避しない場合（タブ閉じ・ページ遷移）のみ接続を破棄する
-    if (!e.persisted) {
-      this.close();
-    }
+    if (!e.persisted) this.close();
   };
 
   private callbackBeforeUnload: (e: BeforeUnloadEvent) => void = (e: BeforeUnloadEvent) => {
-    // beforeunloadではleaveせず、確認ダイアログだけ表示する
-    // 実際のleaveはpagehideで行う（leaveImmediately + close）
     e.preventDefault();
   };
 
@@ -135,10 +128,7 @@ export class Network {
     const promise = this.dynamicImport();
     this.connectionClassPromise = promise;
     this.connectionClass = await promise;
-    if (this.connectionClassPromise != promise) {
-      // Promiseがresolveするまでに違うPromiseオブジェクトに置き換わっているならclose()済み
-      return;
-    }
+    if (this.connectionClassPromise != promise) return;
 
     Logger.debug('[Network] open');
     this.connection = this.initializeConnection();
@@ -196,13 +186,11 @@ export class Network {
       }
     }
 
-    // できるだけ一纏めにして送る
     if (this.connection) {
       if (broadcast.length) this.connection.send(broadcast);
       for (const [sendTo, data] of Object.entries(unicast)) this.connection.send(data, sendTo);
     }
 
-    // 自分自身への送信
     if (this.callback.onData) {
       this.callback.onData(null, broadcast);
       this.callback.onData(this.peer, echocast);
