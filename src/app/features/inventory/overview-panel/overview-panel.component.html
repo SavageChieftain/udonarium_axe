@@ -463,6 +463,22 @@
           <span class="text-ui-text font-bold">{{ dataElm.value }}</span>
         </div>
       }
+      @case ('image') {
+        <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
+        <div class="box-border flex justify-end leading-6">
+          @if (getTableCellImageUrl(dataElm)) {
+            <img
+              class="border-ui-border-panel max-h-20 max-w-30 rounded-sm border object-contain"
+              [src]="getTableCellImageUrl(dataElm) | safe: 'resourceUrl'"
+              [alt]="dataElm.name"
+            />
+          } @else {
+            <div class="text-ui-dim border-ui-border-panel rounded-sm border border-dashed px-2 py-1 text-[0.8em]">
+              画像未設定
+            </div>
+          }
+        </div>
+      }
       @default {
         <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
         <div class="box-border truncate text-right text-[1.2em]/6">

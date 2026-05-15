@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   DataElement,
@@ -389,6 +390,32 @@ describe('OverviewPanelComponent', () => {
         expect(component.getPopupCurrentValueColor(san)).toBe('#d22');
       } finally {
         san.destroy();
+      }
+    });
+
+    it('ポップアップの画像要素を img として描画すること', () => {
+      const image = ImageStorage.instance.add('popup-image.png');
+      const character = GameCharacter.create('popup-image-test', 1, '');
+      const imageField = DataElement.create('参考画像', image.identifier, {
+        [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.IMAGE,
+        [DataElementAttribute.POPUP]: 'true',
+        type: DataElementType.IMAGE,
+      });
+      character.detailDataElement!.appendChild(imageField);
+      component.tabletopObject = character;
+      const getInventoryTagsSpy = vi.spyOn(component as unknown as { getInventoryTags: () => [] }, 'getInventoryTags');
+      getInventoryTagsSpy.mockReturnValue([]);
+
+      try {
+        fixture.detectChanges();
+        const imageElement = fixture.nativeElement.querySelector('img[alt="参考画像"]') as HTMLImageElement | null;
+        expect(imageElement).toBeTruthy();
+        expect(imageElement?.getAttribute('src')).toBe('popup-image.png');
+      } finally {
+        getInventoryTagsSpy.mockRestore();
+        character.destroy();
+        ImageStorage.instance.delete(image.identifier);
       }
     });
   });
