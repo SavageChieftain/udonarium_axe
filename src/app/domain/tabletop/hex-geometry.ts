@@ -32,12 +32,10 @@ export function hexSpacing(gridSize: number, isFlatTop: boolean): HexSpacing {
   return isFlatTop ? { colSpacing: 1.5 * s, rowSpacing: gridSize } : { colSpacing: gridSize, rowSpacing: 1.5 * s };
 }
 
-/** flat-top → 0、pointy-top → -π/2。 */
 export function hexStartAngle(isFlatTop: boolean): number {
   return isFlatTop ? 0 : -Math.PI / 2;
 }
 
-/** col/row はタイリングインデックス (キューブ座標ではない)。 */
 export function hexCellCenter(
   col: number,
   row: number,
@@ -67,7 +65,6 @@ export function hexVertices(cx: number, cy: number, s: number, startAngle: numbe
   return verts;
 }
 
-/** 近傍セル中心の全探索で最近接 (col, row) を返す。 */
 export function pixelToHexCell(
   px: number,
   py: number,

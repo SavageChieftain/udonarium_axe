@@ -11,15 +11,6 @@ import {
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 
-/**
- * キャラクターシートの「設定タブ」専用のサブコンポーネント。
- * インベントリ / コマ / ポップアップ / データ移行の各設定パネルを担当する。
- *
- * GameCharacterSheetComponent から切り出した理由:
- * - 1063 行の親 HTML から ~220 行を分離して責務を明確化
- * - 設定タブ固有のミューテータ（chkKomaSize / onChkAltitude / characterPieceSignals 等）
- *   を子に集約することで、親はシート表示と種別ごとの編集 UI に専念できる
- */
 @Component({
   selector: 'game-character-settings-tab',
   templateUrl: './game-character-settings-tab.component.html',
@@ -33,11 +24,8 @@ export class GameCharacterSettingsTabComponent {
 
   readonly character = input.required<GameCharacter>();
 
-  /** location 名（例: 'table'）の変更要求を親へ通知。
-   *  set 自体は親が tabletopObject.setLocation 経由で行う（他の object 型でも共通の経路）。 */
   readonly locationChange = output<string>();
 
-  /** 自分の peerId（インベントリの「個人」option 値）。 */
   readonly myPeerId = getMyPeerId();
 
   readonly characterPieceSignals = computed(() => {

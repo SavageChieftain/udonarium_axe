@@ -38,7 +38,7 @@ import {
   ClipAreaTriangle,
   RangeRender,
   RangeRenderSetting,
-} from '@axe/features/tabletop/range/range-render'; // 注意別のコンポーネントフォルダにアクセスしてグリッドの描画を行っている
+} from '@axe/features/tabletop/range/range-render';
 import { clipAreaToPolygonCss, clipCircleCss } from '@axe/features/tabletop/range/range-render-util';
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
 import { InputHandler } from '@axe/ui/directives/input-handler';
@@ -78,9 +78,6 @@ export class RangeComponent {
   readonly gridCanvas = viewChild<ElementRef<HTMLCanvasElement>>('gridCanvas');
   readonly rangeCanvas = viewChild<ElementRef<HTMLCanvasElement>>('rangeCanvas');
 
-  /** clip-path 文字列を `_clipVersion` 連動の 1 つの computed に集約。setRange() が
-   *  ClipArea を書き換えた後 `_clipVersion.update()` で本 computed が再評価される。
-   *  形状ごとの分岐は data dispatch、polygon 文字列構築は `clipAreaToPolygonCss` へ委譲。 */
   readonly clipPath = computed<string>(() => {
     this._clipVersion();
     const range = this.range();
@@ -190,8 +187,6 @@ export class RangeComponent {
     return this.tabletopService.currentTable;
   }
 
-  /** range の identifier に対する versionOf 購読をまとめる内部 helper。
-   *  下位 @SyncVar 単位の computed が全てこの version を読むことで OnPush 配線を統一する。 */
   private readonly rangeVersion = computed(() => this.objectChange.versionOf(this.range().identifier)());
 
   readonly name = computed(() => {
@@ -256,7 +251,6 @@ export class RangeComponent {
     const obj = this.objectStore.get(this.range().followingCharctorIdentifier);
     return obj instanceof GameCharacter ? obj : null;
   });
-  /** altitude エイリアス（テンプレートの "現在高度" 表記用に意味分かれている）。 */
   readonly elevation = this.altitude;
   readonly textShadowCss = '0px 0px 2px #fff, 0px 0px 2px #fff, 0px 0px 2px #fff';
 
@@ -280,10 +274,7 @@ export class RangeComponent {
   private _initialized = false;
 
   constructor() {
-    // Range 自身・追従キャラ・テーブル設定の変更時だけ再描画。
-    // 部屋内の無関係なオブジェクト変更で毎回 canvas 再描画するとオブジェクトの多い部屋で重くなる。
-    // input.required<RangeArea> は `_initialized` (afterNextRender 後) より前に読むと NG0950 で落ちるため、
-    // getIdentifiers / listener どちらも初期化前は no-op で返す。
+    // input.required<RangeArea> guarded by _initialized to avoid NG0950 during construction.
     this.objectChange.onObjectChangedFor(
       () => {
         if (!this._initialized) return [];
@@ -300,9 +291,6 @@ export class RangeComponent {
     );
     effect(() => {
       const range = this.range();
-      // range の posX は起点（キャスター中心）を表す。
-      // ヘクスグリッドでは canvas 中心 X = posX のため snapOrigin は (0, 0) でキャスターが
-      // ヘクス中心に直接スナップする。スクエアグリッドでは gridSize/2 オフセットでセル中心へスナップ。
       const half = this.gridSize / 2;
       const snapXY = isHexGrid(this.currentTable.gridType) ? 0 : half;
       this.movableOption.set({

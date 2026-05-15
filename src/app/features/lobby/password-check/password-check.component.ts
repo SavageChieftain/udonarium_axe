@@ -12,18 +12,8 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { PeerContext } from '@axe/core/network/peer-context';
 
-/**
- * パスワード保護されたルームへの入室前にパスワード入力を受け付ける modal。
- *
- * 入力された PeerContext そのものを使って verifyPassword するため、
- * 呼び出し側 (lobby) は roomName を含む完全な PeerContext を渡す必要がある。
- * peerId 文字列だけを渡された場合は PeerContext.parse() が roomName を空にしてしまい、
- * digest 計算がずれて検証が常に失敗する。
- */
 export interface PasswordCheckOptions {
-  /** 対象ルームの PeerContext（roomName まで埋まっていること）。 */
   peerContext: PeerContext;
-  /** タイトルバー表示用ラベル（任意）。 */
   title?: string;
 }
 
@@ -48,9 +38,6 @@ export class PasswordCheckComponent {
 
   constructor() {
     const option = this.modalService.option as Partial<PasswordCheckOptions> | undefined;
-    // verifyPassword は this.roomName / this.digestUserId / this.roomId など複数フィールドを
-    // 参照するため、呼び出し側で完全に組み立てた PeerContext をそのまま受け取る設計。
-    // peerId だけを渡されると roomName が空になり digest がずれて常に false になる。
     this.targetPeerContext = option?.peerContext ?? PeerContext.parse('???');
     this.title = option?.title ?? '';
 
