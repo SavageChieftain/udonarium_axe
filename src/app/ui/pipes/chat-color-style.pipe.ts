@@ -51,8 +51,8 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 
 const MIN_RATIO = 4.5;
 
-function contrastBackground(h: number, s: number, textLum: number): string {
-  const bgS = s * 0.2;
+function contrastBackground(h: number, s: number, textLum: number): { bg: string; border: string } {
+  const bgS = s * 0.06;
   const lighten = textLum < 0.5;
   const targetLum = lighten ? MIN_RATIO * (textLum + 0.05) - 0.05 : (textLum + 0.05) / MIN_RATIO - 0.05;
 
@@ -69,9 +69,14 @@ function contrastBackground(h: number, s: number, textLum: number): string {
       else lo = mid;
     }
   }
-  const [r, g, b] = hslToRgb(h, bgS, (lo + hi) / 2);
+  const bgL = (lo + hi) / 2;
+  const borderL = lighten ? Math.max(0, bgL - 0.2) : Math.min(1, bgL + 0.22);
   const toInt = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
-  return `rgba(${toInt(r)},${toInt(g)},${toInt(b)},0.85)`;
+  const toRgb = (l: number) => {
+    const [r, g, b] = hslToRgb(h, bgS, l);
+    return `rgb(${toInt(r)},${toInt(g)},${toInt(b)})`;
+  };
+  return { bg: toRgb(bgL), border: toRgb(borderL) };
 }
 
 @Pipe({ name: 'chatColorStyle', pure: true })
@@ -85,12 +90,13 @@ export class ChatColorStylePipe implements PipeTransform {
     const [r, g, b] = rgb;
     const [h, s] = rgbToHsl(r, g, b);
     const textLum = luminance(r, g, b);
-    const bg = contrastBackground(h, s, textLum);
+    const { bg, border } = contrastBackground(h, s, textLum);
 
     return {
       color,
       'background-color': bg,
       '--bubble-bg': bg,
+      '--ui-bubble-caret-border': border,
     };
   }
 }
