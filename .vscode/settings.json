@@ -26,6 +26,9 @@
   // === Angular ===
   "angular.forceStrictTemplates": true,
   // === ファイル設定 ===
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
