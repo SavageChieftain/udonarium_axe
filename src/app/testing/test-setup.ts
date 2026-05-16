@@ -17,6 +17,7 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { AppConfigService } from '@axe/composition/app-config.service';
 import { LoggerService } from '@axe/core/logging/logger.service';
+import { provideTranslocoTesting } from '@axe/testing/transloco-testing';
 
 const srcAppDir = resolve(process.cwd(), 'src/app');
 const fileMap = new Map<string, string>();
@@ -140,7 +141,8 @@ const GLOBAL_TEST_PROVIDERS = [
   ModalService,
   PanelService,
   TabletopService,
-] as const;
+  ...provideTranslocoTesting(),
+];
 
 // Re-apply per beforeEach; the Angular test runner may reset the wrapper. Sentinel guards re-wrap.
 const WRAPPER_SENTINEL = '__globalProviderWrapped__';
