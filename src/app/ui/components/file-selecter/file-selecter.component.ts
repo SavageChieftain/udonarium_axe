@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -8,21 +9,30 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'file-selector',
   templateUrl: './file-selecter.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class FileSelecterComponent {
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly t = inject(TRANSLATE_FN);
 
   isAllowedEmpty: boolean = false;
+
+  private get systemReservedTag(): string {
+    return this.t('ui.fileSelecter.systemReserved');
+  }
+  private get allTag(): string {
+    return this.t('ui.fileSelecter.tagAll');
+  }
 
   getAllImage(): ImageFile[] {
     const imageFileList: ImageFile[] = [];
@@ -32,9 +42,7 @@ export class FileSelecterComponent {
       let tag: string = '';
       if (ImageTag.get(identifier)) tag = ImageTag.get(identifier).tag;
 
-      if (tag != 'システム予約')
-        //システム予約名を非表示
-        imageFileList.push(imageFile);
+      if (tag != this.systemReservedTag) imageFileList.push(imageFile);
     }
     return imageFileList;
   }
@@ -42,7 +50,7 @@ export class FileSelecterComponent {
   readonly images = computed(() => {
     this.objectChange.fileVersion();
     const imageFileList: ImageFile[] = [];
-    if (this.selectTag() == '全て') return this.getAllImage();
+    if (this.selectTag() == this.allTag) return this.getAllImage();
 
     for (const imageFile of this.fileStorageService.images) {
       const identifier = imageFile.context.identifier;
@@ -53,7 +61,6 @@ export class FileSelecterComponent {
           imageFileList.push(imageFile);
         }
       } else {
-        //タグ未設定の場合 画像投下直後は ImageTag.get(identifier) は空文字ではなく該当なしとなるため
         if (this.selectTag() == '') {
           imageFileList.push(imageFile);
         }
@@ -80,15 +87,13 @@ export class FileSelecterComponent {
       const imageTag = ImageTag.get(identifier);
       if (imageTag) {
         if (imageTag.tag) {
-          if (imageTag.tag != 'システム予約')
-            //システム予約名を非表示
-            tags.push(imageTag.tag);
+          if (imageTag.tag != this.systemReservedTag) tags.push(imageTag.tag);
         }
       }
     }
 
     const tags2: string[] = Array.from(new Set(tags));
-    tags2.unshift('全て');
+    tags2.unshift(this.allTag);
     tags2.unshift('');
     return tags2;
   }
@@ -124,7 +129,7 @@ export class FileSelecterComponent {
   constructor() {
     const option = this.modalService.option as Record<string, unknown>;
     this.isAllowedEmpty = !!option?.isAllowedEmpty;
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ファイル一覧'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = this.t('ui.fileSelecter.panelTitle')));
   }
 
   onSelectedFile(file: ImageFile) {

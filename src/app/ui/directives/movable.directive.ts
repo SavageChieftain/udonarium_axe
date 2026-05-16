@@ -204,7 +204,7 @@ export class MovableDirective {
 
   onInputStart(e: MouseEvent | TouchEvent) {
     this.callSelectedEvent();
-    if (this.collidableElements.length < 1) this.findCollidableElements(); // 稀にcollidableElementsの取得に失敗している
+    if (this.collidableElements.length < 1) this.findCollidableElements();
 
     handleInputStart(this as unknown as MovableInteractionContext, e);
   }

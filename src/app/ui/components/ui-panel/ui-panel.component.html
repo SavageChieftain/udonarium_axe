@@ -1,6 +1,3 @@
-<!-- draggable-panel class is a marker used by DraggableDirective stack option,
-     ui-panel.component.spec.ts と testing/panel-drag-recovery.ts の querySelector の対象。
-     見た目用ではなく API マーカーなので Tailwind 化後も保持する。 -->
 <div
   class="draggable-panel animate-fly-in rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text absolute top-50 box-border h-50 max-h-full w-75 max-w-full overflow-visible border border-solid p-0 shadow-[var(--ui-shadow-md),inset_0_1px_0_rgba(255,255,255,0.06)] [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
   [ngClass]="{ 'pointer-events-none': isPointerDragging }"
@@ -25,7 +22,7 @@
     #titleBar
     [style.display]="showTitle() ? '' : 'none'"
   >
-    @if (title !== 'メニュー') {
+    @if (title !== menuTitle) {
       <div class="absolute top-0 right-0 flex h-7 items-center gap-0.5 px-1.5">
         <button
           class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"

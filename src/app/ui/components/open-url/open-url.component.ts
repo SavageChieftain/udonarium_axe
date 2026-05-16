@@ -1,15 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'open-url',
   templateUrl: './open-url.component.html',
+  imports: [TranslocoModule],
 })
 export class OpenUrlComponent {
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
+  private readonly t = inject(TRANSLATE_FN);
 
   url: string = '';
   title: string = '';
@@ -25,11 +29,15 @@ export class OpenUrlComponent {
     this.subTitle = option.subTitle ? (option.subTitle as string) : '';
     this.urlObj = this.isValid ? new URL(this.url) : null;
     queueMicrotask(() => {
-      let titleBar = '外部URLを開く';
-      if (this.title) {
-        titleBar += '〈' + this.title + (this.subTitle ? `：${this.subTitle}` : '') + '〉';
+      let titleBar: string;
+      if (this.title && this.subTitle) {
+        titleBar = this.t('ui.openUrl.panelTitleWithTitleAndSubtitle', { title: this.title, subTitle: this.subTitle });
+      } else if (this.title) {
+        titleBar = this.t('ui.openUrl.panelTitleWithTitle', { title: this.title });
       } else if (this.subTitle) {
-        titleBar += `〈${this.subTitle}〉`;
+        titleBar = this.t('ui.openUrl.panelTitleWithSubtitleOnly', { subTitle: this.subTitle });
+      } else {
+        titleBar = this.t('ui.openUrl.panelTitle');
       }
       this.modalService.title = this.panelService.title = titleBar;
     });

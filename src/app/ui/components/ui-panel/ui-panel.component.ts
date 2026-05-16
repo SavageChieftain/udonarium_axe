@@ -12,6 +12,7 @@ import {
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -33,6 +34,11 @@ export class UIPanelComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
+
+  get menuTitle(): string {
+    return this.t('ui.panel.menuTitle');
+  }
 
   readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
   readonly scrollablePanel = viewChild.required<ElementRef<HTMLDivElement>>('scrollablePanel');
@@ -145,8 +151,6 @@ export class UIPanelComponent {
     this.portraitDispByMouse.set(flag);
   }
 
-  // youtube動画が既定値未満にしないための処理
-  // マニュアルで200*200以上となっていたのでCutIn側でそれに従う
   chkeWindowMinSize() {
     const id = this.panelService.cutInIdentifier;
     if (!id) return;
@@ -164,7 +168,6 @@ export class UIPanelComponent {
     if (nowH < cutIn.minSizeHeight(true)) {
       panel.style.height = cutIn.minSizeHeight(true) + 'px';
     }
-    // はみ出し防止処理
     const winW = window.innerWidth;
     const winH = window.innerHeight;
 

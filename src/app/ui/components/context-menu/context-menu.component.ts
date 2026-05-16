@@ -11,15 +11,17 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { TranslocoModule } from '@jsverse/transloco';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'context-menu',
   templateUrl: './context-menu.component.html',
-  imports: [NgClass, FormsModule, NgTemplateOutlet],
+  imports: [NgClass, FormsModule, NgTemplateOutlet, TranslocoModule],
   host: { class: 'block', '(contextmenu)': 'onContextMenu($event)' },
 })
 export class ContextMenuComponent {
@@ -28,6 +30,11 @@ export class ContextMenuComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
+
+  get indexTitle(): string {
+    return this.t('ui.contextMenu.index');
+  }
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
@@ -92,7 +99,7 @@ export class ContextMenuComponent {
   }
 
   indexMenuPosion() {
-    if (this.title != 'インデックス') return;
+    if (this.title != this.indexTitle) return;
 
     const panel: HTMLElement = this.rootElementRef().nativeElement;
     const panelBox = panel.getBoundingClientRect();

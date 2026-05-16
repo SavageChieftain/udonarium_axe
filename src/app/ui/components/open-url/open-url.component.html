@@ -11,12 +11,12 @@
   <hr />
   <div class="text-sm">
     @if (urlObj) {
-      <div>このURLを開きますか？（別ウィンドウで開きます、ポップアップを許可してください）</div>
+      <div>{{ 'ui.openUrl.confirm' | transloco }}</div>
     }
     @if (!urlObj) {
-      <div>⚠️URLが不正です。</div>
+      <div>{{ 'ui.openUrl.invalid' | transloco }}</div>
     }
   </div>
 </div>
-<button type="submit" (click)="openUrl()" [disabled]="!isValid">開く</button>
-<button type="button" (click)="cancel()">キャンセル</button>
+<button type="submit" (click)="openUrl()" [disabled]="!isValid">{{ 'ui.openUrl.open' | transloco }}</button>
+<button type="button" (click)="cancel()">{{ 'ui.openUrl.cancel' | transloco }}</button>

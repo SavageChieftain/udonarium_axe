@@ -15,7 +15,7 @@
         />
         <span
           class="border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:bg-ui-hover hover:text-ui-text inline-flex items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 text-xs font-medium whitespace-nowrap transition-colors select-none"
-          >{{ tag.length === 0 ? '未設定' : tag }}</span
+          >{{ tag.length === 0 ? ('ui.fileSelecter.tagUnset' | transloco) : tag }}</span
         >
       </label>
     }
@@ -27,7 +27,9 @@
         (click)="onSelectedFile(empty)"
       >
         <i class="material-icons text-[30px]! opacity-[0.45]">hide_image</i>
-        <span class="block max-w-full truncate text-center text-[11px] leading-[1.3]">画像なし</span>
+        <span class="block max-w-full truncate text-center text-[11px] leading-[1.3]">{{
+          'ui.fileSelecter.imageEmpty' | transloco
+        }}</span>
       </button>
     }
     @for (file of images(); track file.identifier) {
@@ -52,7 +54,7 @@
     @if (images().length === 0 && !isAllowedEmpty) {
       <div class="text-ui-dim col-span-full flex flex-col items-center justify-center gap-2 px-5 py-10">
         <i class="material-icons text-[40px]! opacity-40">collections</i>
-        <p class="m-0 text-[13px] opacity-70">この分類に画像はありません</p>
+        <p class="m-0 text-[13px] opacity-70">{{ 'ui.fileSelecter.noImagesInTag' | transloco }}</p>
       </div>
     }
   </div>

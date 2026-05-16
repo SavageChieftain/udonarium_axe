@@ -101,7 +101,7 @@ export class TooltipDirective {
       } else {
         this.closeAll();
       }
-    }, 400); // ポップアップのクローズタイミング
+    }, 400);
   }
 
   private clearTimer() {

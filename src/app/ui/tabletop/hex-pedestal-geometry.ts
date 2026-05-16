@@ -19,10 +19,6 @@ interface BoundingBox {
   maxY: number;
 }
 
-/**
- * ヘクス距離 ≤ (size-1) の全セルの集合体 (花形) の外周アウトラインを返す。
- * 座標はヘクス中心 (0,0) 基準のピクセル座標。パスは CW (時計回り)。
- */
 export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop: boolean): Point[] {
   const s = hexCircumradius(gridSize);
   const g = gridSize;
@@ -103,7 +99,6 @@ export function buildHexFlowerOutline(size: number, gridSize: number, isFlatTop:
   return path;
 }
 
-/** CW ポリゴンを内側に bw ピクセルだけインセットする (隣接辺の法線バイセクタ方向)。 */
 export function insetPolygon(vertices: Point[], bw: number): Point[] {
   const n = vertices.length;
   const result: Point[] = [];
@@ -117,7 +112,6 @@ export function insetPolygon(vertices: Point[], bw: number): Point[] {
     const d2x = next.x - curr.x;
     const d2y = next.y - curr.y;
     const l2 = Math.sqrt(d2x * d2x + d2y * d2y);
-    // CW パスの内側法線: (-dy, dx) / |d|
     const n1x = -d1y / l1;
     const n1y = d1x / l1;
     const n2x = -d2y / l2;
@@ -135,7 +129,6 @@ export function insetPolygon(vertices: Point[], bw: number): Point[] {
   return result;
 }
 
-/** evenodd SVG パスで外側花形から内側花形を抜いたリング clip-path を返す。 */
 export function buildHexRingClipPath(outline: Point[], bbox: BoundingBox, borderWidth: number): string {
   const outer = outline.map((v) => ({ x: v.x - bbox.minX, y: v.y - bbox.minY }));
   const inner = insetPolygon(outer, borderWidth);
@@ -175,17 +168,6 @@ export function calcHexFlowerParams(size: number, gridSize: number, isFlatTop: b
   return { outline, bbox: { minX, minY, maxX, maxY }, L, g: gridSize };
 }
 
-/**
- * 頂点 (ヘクス交差点) 中心のクラスターアウトラインを計算する。座標は頂点 (0,0) 基準。
- * size に応じた距離ティアのセル群の外周パスを返す。
- *
- * flat-top のティア構成:
- *   Tier 1 (d²= s²):   3セル  → size 1.5
- *   Tier 2 (d²=4s²):  +3セル  → size 2.5 (計 6)
- *   Tier 3 (d²=7s²):  +6セル  → size 3.5 (計 12)
- *   Tier 4 (d²=13s²): +6セル  → size 4.5 (計 18)
- *   Tier 5 (d²=16s²): +3セル  → size 5.5 (計 21)
- */
 export function buildVertexClusterOutline(size: number, gridSize: number, isFlatTop: boolean): Point[] {
   const s = hexCircumradius(gridSize);
   const g = gridSize;
