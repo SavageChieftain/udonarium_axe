@@ -3,7 +3,7 @@
     @if (isEdit() && !isImage()) {
       <div
         class="text-ui-text box-border flex min-h-8 min-w-0 items-center justify-center border-b border-l-2 border-b-(--gde-row-border) border-l-(--gde-accent-border) bg-[color-mix(in_srgb,var(--gde-structure-bg)_42%,transparent)] px-0.5 py-0.75 text-[0.78em]"
-        aria-label="ドラッグ操作"
+        [attr.aria-label]="'feature.dataElement.action.dragGroup' | transloco"
       >
         <button
           class="elm-structure-btn elm-structure-btn--drag text-ui-dim hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-grab items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 active:cursor-grabbing disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
@@ -11,7 +11,7 @@
           draggable="true"
           (dragstart)="onStructureDragStart($event)"
           (dragend)="onStructureDragEnd($event)"
-          title="ドラッグして移動"
+          [title]="'feature.dataElement.action.drag' | transloco"
         >
           <i class="material-icons">drag_indicator</i>
         </button>
@@ -39,11 +39,11 @@
             [class.bg-ui-danger-bg!]="isDuplicateName()"
             [class.shadow-[0_0_0_2px_color-mix(in_srgb,var(--ui-danger)_24%,transparent)]!]="isDuplicateName()"
             [attr.aria-invalid]="isDuplicateName()"
-            [title]="isDuplicateName() ? '同じキャラクターシート内に同名タグがあります' : null"
+            [title]="isDuplicateName() ? ('feature.dataElement.duplicateName' | transloco) : null"
             size="1"
             name="data-elm-name"
             [(ngModel)]="name"
-            placeholder="名前"
+            [placeholder]="'feature.dataElement.placeholderName' | transloco"
           />
         }
       }
@@ -117,7 +117,8 @@
           }
           @case ('longText') {
             <span [hidden]="!isUrlText(value)" class="text-[0.8em]">
-              &nbsp;&nbsp;URL編集:<input
+              &nbsp;&nbsp;{{ 'feature.dataElement.urlEditLabel' | transloco
+              }}<input
                 type="checkbox"
                 [checked]="editCheckedIds.has(gameDataElement().myIdentifer + '_elm')"
                 (change)="changeChk(gameDataElement().myIdentifer + '_elm')"
@@ -188,7 +189,7 @@
                 name="data-value"
                 [(ngModel)]="value"
                 [readonly]="isValueLocked()"
-                placeholder="選択肢未設定"
+                [placeholder]="'feature.dataElement.placeholderChoiceUnset' | transloco"
               />
             }
           }
@@ -211,7 +212,7 @@
                 />
               } @else {
                 <div class="text-ui-dim border-ui-border-panel rounded-sm border border-dashed px-2 py-1 text-[0.8em]">
-                  画像未設定
+                  {{ 'feature.dataElement.imageUnset' | transloco }}
                 </div>
               }
               @if (isEdit()) {
@@ -227,7 +228,7 @@
                   type="button"
                   (click)="openModal('imageIdentifier', true)"
                 >
-                  画像変更
+                  {{ 'feature.dataElement.imageChange' | transloco }}
                 </button>
               }
             </div>
@@ -239,7 +240,7 @@
                 size="1"
                 name="data-formula"
                 [(ngModel)]="formulaText"
-                placeholder="式 (HP + レベル * 2)"
+                [placeholder]="'feature.dataElement.formulaPlaceholder' | transloco"
               />
             }
             <div class="inline-flex items-center gap-1" [class.hidden!]="isEdit() && !isImage()">
@@ -275,7 +276,7 @@
                   }
                 </div>
                 <div class="table-cell-2 sub-table">
-                  <span>立ち絵番号{{ indexNum() }}: </span
+                  <span>{{ 'feature.dataElement.portraitNumber' | transloco: { index: indexNum() } }}</span
                   ><input
                     class="w-full min-w-2.5"
                     size="1"
@@ -283,14 +284,14 @@
                     name="data-current-value"
                     [(ngModel)]="currentValue"
                     [readonly]="isValueLocked()"
-                    placeholder="立ち絵名"
+                    [placeholder]="'feature.dataElement.portraitName' | transloco"
                   />
                   <button
                     class="portrait-button text-[1em]"
                     [disabled]="isValueLocked()"
                     (click)="!isValueLocked() && openModal('imageIdentifier', true)"
                   >
-                    画像変更
+                    {{ 'feature.dataElement.imageChange' | transloco }}
                   </button>
                 </div>
               </div>
@@ -318,7 +319,7 @@
             class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
             type="button"
             (click)="copyReferencePath($event)"
-            title="参照名をコピー"
+            [title]="'feature.dataElement.action.copyReference' | transloco"
           >
             <i class="material-icons">content_copy</i>
           </button>
@@ -328,7 +329,7 @@
             [class.text-ui-accent!]="isPopupDataElement()"
             type="button"
             (click)="togglePopupDataElement($event)"
-            title="ポップアップ表示"
+            [title]="'feature.dataElement.action.popupShow' | transloco"
           >
             <i class="material-icons">open_in_new</i>
           </button>
@@ -339,7 +340,7 @@
               [class.text-ui-accent!]="fieldOptionsOpen()"
               type="button"
               (click)="toggleFieldOptions()"
-              title="詳細設定"
+              [title]="'feature.dataElement.action.fieldOptions' | transloco"
             >
               <i class="material-icons">tune</i>
             </button>
@@ -358,7 +359,7 @@
               class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
               type="button"
               (click)="addSiblingElement()"
-              title="下に行を追加"
+              [title]="'feature.dataElement.action.addRow' | transloco"
             >
               <i class="material-icons">add</i>
             </button>
@@ -367,7 +368,7 @@
             class="text-ui-muted hover:bg-ui-danger-bg hover:text-ui-danger disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
             type="button"
             (click)="deleteElement()"
-            title="この行を削除"
+            [title]="'feature.dataElement.action.deleteRow' | transloco"
           >
             <i class="material-icons">delete_outline</i>
           </button>
@@ -379,37 +380,55 @@
         >
           @if (gameDataElement().fieldType === 'select') {
             <label class="flex-[1_1_14rem] grid-cols-[auto_minmax(8rem,1fr)]">
-              <span>選択肢</span>
-              <textarea name="data-choices" [(ngModel)]="choicesText" placeholder="1行またはカンマ区切り"></textarea>
+              <span>{{ 'feature.dataElement.field.choices' | transloco }}</span>
+              <textarea
+                name="data-choices"
+                [(ngModel)]="choicesText"
+                [placeholder]="'feature.dataElement.field.choicesPlaceholder' | transloco"
+              ></textarea>
             </label>
           }
           @if (gameDataElement().fieldType === 'number' || gameDataElement().fieldType === 'resource') {
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-              <span>単位</span>
-              <input name="data-unit" [(ngModel)]="unitText" placeholder="例: 点" />
+              <span>{{ 'feature.dataElement.field.unit' | transloco }}</span>
+              <input
+                name="data-unit"
+                [(ngModel)]="unitText"
+                [placeholder]="'feature.dataElement.field.unitPlaceholder' | transloco"
+              />
             </label>
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-              <span>最小</span>
-              <input type="number" name="data-min" [(ngModel)]="minText" placeholder="任意" />
+              <span>{{ 'feature.dataElement.field.min' | transloco }}</span>
+              <input
+                type="number"
+                name="data-min"
+                [(ngModel)]="minText"
+                [placeholder]="'feature.dataElement.field.anyValuePlaceholder' | transloco"
+              />
             </label>
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-              <span>最大</span>
-              <input type="number" name="data-max" [(ngModel)]="maxText" placeholder="任意" />
+              <span>{{ 'feature.dataElement.field.max' | transloco }}</span>
+              <input
+                type="number"
+                name="data-max"
+                [(ngModel)]="maxText"
+                [placeholder]="'feature.dataElement.field.anyValuePlaceholder' | transloco"
+              />
             </label>
           }
           @if (gameDataElement().fieldType === 'calc') {
             <label class="flex-[1_1_14rem] grid-cols-[auto_minmax(8rem,1fr)]">
-              <span>計算式</span>
+              <span>{{ 'feature.dataElement.field.formula' | transloco }}</span>
               <textarea
                 name="data-formula"
                 [(ngModel)]="formulaText"
-                placeholder="例: HP + レベル * 2&#10;利用可: +, -, *, /, **, (, )&#10;関数: floor, ceil, round, abs, min, max"
+                [placeholder]="'feature.dataElement.formulaHelp' | transloco"
               ></textarea>
             </label>
           }
           @if (gameDataElement().fieldType === 'image') {
             <label class="grid-cols-[auto_auto] justify-start">
-              <span>ポップアップで原寸表示</span>
+              <span>{{ 'feature.dataElement.field.imagePopupOriginal' | transloco }}</span>
               <input
                 type="checkbox"
                 name="data-image-popup-original"
@@ -420,21 +439,33 @@
           }
           @if (isTableCellField()) {
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-              <span>列表示</span>
-              <input name="data-column-label" [(ngModel)]="columnLabelText" placeholder="空なら名前" />
+              <span>{{ 'feature.dataElement.field.columnLabel' | transloco }}</span>
+              <input
+                name="data-column-label"
+                [(ngModel)]="columnLabelText"
+                [placeholder]="'feature.dataElement.field.columnLabelPlaceholder' | transloco"
+              />
             </label>
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-              <span>列グループ</span>
-              <input name="data-column-group" [(ngModel)]="columnGroupText" placeholder="上段見出し" />
+              <span>{{ 'feature.dataElement.field.columnGroup' | transloco }}</span>
+              <input
+                name="data-column-group"
+                [(ngModel)]="columnGroupText"
+                [placeholder]="'feature.dataElement.field.columnGroupPlaceholder' | transloco"
+              />
             </label>
             @if (gameDataElement().fieldType === 'check') {
               <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-                <span>セル表示</span>
-                <input name="data-cell-text" [(ngModel)]="tableCellText" placeholder="チェック横の表示" />
+                <span>{{ 'feature.dataElement.field.cellText' | transloco }}</span>
+                <input
+                  name="data-cell-text"
+                  [(ngModel)]="tableCellText"
+                  [placeholder]="'feature.dataElement.field.cellTextPlaceholder' | transloco"
+                />
               </label>
             }
             <label class="grid-cols-[auto_auto] justify-start">
-              <span>ギャップ列</span>
+              <span>{{ 'feature.dataElement.field.gapCell' | transloco }}</span>
               <input type="checkbox" name="data-cell-kind-gap" [(ngModel)]="isGapCell" />
             </label>
           }
@@ -459,7 +490,7 @@
               @if (!isImage()) {
                 <div
                   class="flex flex-[0_0_auto] items-center rounded-none border-none bg-transparent p-0"
-                  aria-label="ドラッグ操作"
+                  [attr.aria-label]="'feature.dataElement.action.dragGroup' | transloco"
                 >
                   <button
                     class="text-ui-dim hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-grab items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 active:cursor-grabbing disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
@@ -467,7 +498,7 @@
                     draggable="true"
                     (dragstart)="onStructureDragStart($event)"
                     (dragend)="onStructureDragEnd($event)"
-                    title="ドラッグして移動"
+                    [title]="'feature.dataElement.action.drag' | transloco"
                   >
                     <i class="material-icons">drag_indicator</i>
                   </button>
@@ -478,7 +509,7 @@
                   type="button"
                   class="text-ui-accent bg-ui-input border-ui-border-panel hover:bg-ui-hover flex size-6.5 cursor-pointer items-center justify-center rounded-xs border p-0 [&_.material-icons]:text-[15px]"
                   (click)="iconPickerOpen.update((v) => !v)"
-                  title="アイコンを選択"
+                  [title]="'feature.dataElement.iconPick' | transloco"
                 >
                   @if (icon) {
                     <i class="material-icons">{{ icon }}</i>
@@ -494,14 +525,14 @@
                     <div
                       class="text-ui-muted border-ui-border-panel mb-1.5 flex items-center justify-between border-b pb-1 text-[0.72em]"
                     >
-                      <span>アイコン選択</span>
+                      <span>{{ 'feature.dataElement.iconSelectTitle' | transloco }}</span>
                       @if (icon) {
                         <button
                           type="button"
                           class="text-ui-muted border-ui-border-panel hover:bg-ui-hover hover:text-ui-text cursor-pointer rounded-xs border bg-transparent px-1.5 py-px text-[0.72em]"
                           (click)="clearIcon()"
                         >
-                          クリア
+                          {{ 'feature.dataElement.iconClear' | transloco }}
                         </button>
                       }
                     </div>
@@ -534,11 +565,11 @@
                 [class.bg-ui-danger-bg!]="isDuplicateName()"
                 [class.shadow-[0_0_0_2px_color-mix(in_srgb,var(--ui-danger)_24%,transparent)]!]="isDuplicateName()"
                 [attr.aria-invalid]="isDuplicateName()"
-                [title]="isDuplicateName() ? '同じキャラクターシート内に同名タグがあります' : null"
+                [title]="isDuplicateName() ? ('feature.dataElement.duplicateName' | transloco) : null"
                 size="1"
                 name="data-elm-name"
                 [(ngModel)]="name"
-                placeholder="見出し名"
+                [placeholder]="'feature.dataElement.headingPlaceholder' | transloco"
               />
               @if (canToggleTableViewMode()) {
                 <button
@@ -547,7 +578,12 @@
                   [class.text-ui-accent!]="isTableViewMode()"
                   type="button"
                   (click)="toggleTableViewMode()"
-                  [title]="isTableViewMode() ? '通常表示' : 'テーブル表示'"
+                  [title]="
+                    (isTableViewMode()
+                      ? 'feature.dataElement.action.normalView'
+                      : 'feature.dataElement.action.tableView'
+                    ) | transloco
+                  "
                 >
                   <i class="material-icons">table_chart</i>
                 </button>
@@ -559,7 +595,7 @@
                   [class.text-ui-accent!]="fieldOptionsOpen()"
                   type="button"
                   (click)="toggleFieldOptions()"
-                  title="表設定"
+                  [title]="'feature.dataElement.action.tableSettings' | transloco"
                 >
                   <i class="material-icons">tune</i>
                 </button>
@@ -570,7 +606,7 @@
                 [class.text-ui-accent!]="isPopupDataElement()"
                 type="button"
                 (click)="togglePopupDataElement($event)"
-                title="ポップアップ表示"
+                [title]="'feature.dataElement.action.popupShow' | transloco"
               >
                 <i class="material-icons">open_in_new</i>
               </button>
@@ -579,7 +615,7 @@
                   class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                   type="button"
                   (click)="addImageElement()"
-                  title="画像を追加"
+                  [title]="'feature.dataElement.action.addImage' | transloco"
                 >
                   <i class="material-icons">add</i>
                 </button>
@@ -589,7 +625,7 @@
                     class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                     type="button"
                     (click)="addGroupElement()"
-                    title="下位グループを追加"
+                    [title]="'feature.dataElement.action.addGroup' | transloco"
                   >
                     <i class="material-icons">create_new_folder</i>
                   </button>
@@ -599,7 +635,7 @@
                     class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                     type="button"
                     (click)="addElement()"
-                    title="行を追加"
+                    [title]="'feature.dataElement.action.addRowChild' | transloco"
                   >
                     <i class="material-icons">add</i>
                   </button>
@@ -609,7 +645,7 @@
                 class="text-ui-muted hover:bg-ui-danger-bg hover:text-ui-danger disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
                 type="button"
                 (click)="deleteElement()"
-                title="このセクションを削除"
+                [title]="'feature.dataElement.action.deleteSection' | transloco"
               >
                 <i class="material-icons">delete_outline</i>
               </button>
@@ -619,11 +655,15 @@
                 class="elm-field-options [&_label]:text-ui-muted [&_span]:text-ui-dim [&_input]:bg-ui-input [&_textarea]:bg-ui-input col-span-full mt-1.5 flex flex-wrap gap-x-1.5 gap-y-1 border border-[color-mix(in_srgb,var(--gde-row-border)_75%,transparent)] p-1.5 [background:color-mix(in_srgb,var(--ui-input-bg)_72%,transparent)] [&_input]:w-full [&_input]:min-w-0 [&_input]:rounded-(--gde-radius-control) [&_input]:border [&_input]:border-(--gde-row-border) [&_input[type='checkbox']]:m-0 [&_input[type='checkbox']]:size-3.5! [&_label]:grid [&_label]:min-w-28 [&_label]:items-center [&_label]:gap-1 [&_label]:text-[0.86em] [&_span]:whitespace-nowrap [&_textarea]:min-h-[3.2em] [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:rounded-(--gde-radius-control) [&_textarea]:border [&_textarea]:border-(--gde-row-border)"
               >
                 <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-                  <span>行見出し</span>
-                  <input name="data-row-header-label" [(ngModel)]="rowHeaderLabelText" placeholder="例: 技能" />
+                  <span>{{ 'feature.dataElement.field.rowHeader' | transloco }}</span>
+                  <input
+                    name="data-row-header-label"
+                    [(ngModel)]="rowHeaderLabelText"
+                    [placeholder]="'feature.dataElement.field.rowHeaderPlaceholder' | transloco"
+                  />
                 </label>
                 <label class="grid-cols-[auto_auto] justify-start">
-                  <span>GAP判定テーブル</span>
+                  <span>{{ 'feature.dataElement.field.judgeMode' | transloco }}</span>
                   <input
                     type="checkbox"
                     name="data-judge-mode"
@@ -633,27 +673,27 @@
                 </label>
                 @if (isJudgeModeEnabled()) {
                   <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-                    <span>基礎難易度</span>
+                    <span>{{ 'feature.dataElement.field.baseDifficulty' | transloco }}</span>
                     <input
                       type="number"
                       name="data-base-difficulty"
                       [(ngModel)]="baseDifficultyText"
                       min="1"
-                      placeholder="5"
+                      [placeholder]="'feature.dataElement.field.baseDifficultyPlaceholder' | transloco"
                     />
                   </label>
                   <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
-                    <span>GAP距離</span>
+                    <span>{{ 'feature.dataElement.field.gapDistance' | transloco }}</span>
                     <input
                       type="number"
                       name="data-gap-distance"
                       [(ngModel)]="gapDistanceText"
                       min="0"
-                      placeholder="1"
+                      [placeholder]="'feature.dataElement.field.gapDistancePlaceholder' | transloco"
                     />
                   </label>
                   <label class="grid-cols-[auto_auto] justify-start">
-                    <span>左右ループ</span>
+                    <span>{{ 'feature.dataElement.field.loopHorizontal' | transloco }}</span>
                     <input
                       type="checkbox"
                       name="data-loop-horizontal"
@@ -662,7 +702,7 @@
                     />
                   </label>
                   <label class="grid-cols-[auto_auto] justify-start">
-                    <span>上下ループ</span>
+                    <span>{{ 'feature.dataElement.field.loopVertical' | transloco }}</span>
                     <input
                       type="checkbox"
                       name="data-loop-vertical"

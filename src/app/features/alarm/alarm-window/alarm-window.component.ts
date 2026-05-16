@@ -4,12 +4,13 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/alarm/alarm';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-alarm-window',
   templateUrl: './alarm-window.component.html',
-  imports: [],
+  imports: [TranslocoModule],
 })
 export class AlarmWindowComponent {
   private readonly modalService = inject(ModalService);

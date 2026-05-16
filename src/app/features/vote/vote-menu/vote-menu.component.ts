@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
@@ -9,12 +10,13 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-menu',
   templateUrl: './vote-menu.component.html',
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class VoteMenuComponent {
   private readonly modalService = inject(ModalService);
@@ -22,11 +24,12 @@ export class VoteMenuComponent {
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly t = inject(TRANSLATE_FN);
 
   protected checkedPeers = new Set<string>();
   networkService = Network;
   voteContentsText = '';
-  voteTitle = '投票';
+  voteTitle = this.t('feature.vote.voteTitlePlaceholder');
   isRollCall = true;
   includSelf = false;
 
@@ -41,7 +44,7 @@ export class VoteMenuComponent {
   }
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = '点呼/投票設定'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = this.t('feature.vote.panelTitle')));
     this.setDefaultCheck();
   }
 
@@ -78,12 +81,12 @@ export class VoteMenuComponent {
     let startMessage: string;
 
     if (this.isRollCall) {
-      choicesInput = '準備完了';
-      startMessage = '点呼開始！';
-      voteTitle = '点呼';
+      choicesInput = this.t('feature.vote.rollCallReady');
+      startMessage = this.t('feature.vote.rollCallStart');
+      voteTitle = this.t('feature.vote.rollCall');
     } else {
-      choicesInput = choicesInput.length == 0 ? '賛成 反対' : choicesInput;
-      startMessage = '投票開始！(' + this.voteTitle + ')';
+      choicesInput = choicesInput.length == 0 ? this.t('feature.vote.rollCallDefault') : choicesInput;
+      startMessage = this.t('feature.vote.voteStart', { title: this.voteTitle });
       voteTitle = this.voteTitle;
     }
     const choices = choicesInput.split(/\s+/i);
@@ -93,10 +96,6 @@ export class VoteMenuComponent {
     vote.startVote();
     this.chatMessageService.sendSystemMessageLastSendCharactor(startMessage);
     this.panelService.close();
-  }
-
-  changeIncludSelf() {
-    // 処理なし
   }
 
   onChangeType(value: string) {

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -9,12 +10,13 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-window',
   templateUrl: './vote-window.component.html',
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class VoteWindowComponent {
   private readonly modalService = inject(ModalService);
@@ -23,6 +25,7 @@ export class VoteWindowComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
   private timestamp = 0;
   readonly vote = computed(
     () => {
@@ -55,8 +58,14 @@ export class VoteWindowComponent {
 
   voteSend(choice: string) {
     this.vote().voting(choice, PeerCursor.myCursor.peerId);
-    let text = this.vote().isRollCall ? '点呼：' : '投票：';
-    text += choice + '(' + this.vote().votedTotalNum() + '/' + this.answerList.length + ')';
+    const prefix = this.vote().isRollCall ? this.t('feature.vote.rollCallPrefix') : this.t('feature.vote.votePrefix');
+    const text =
+      prefix +
+      this.t('feature.vote.voteResult', {
+        choice,
+        voted: this.vote().votedTotalNum(),
+        total: this.answerList.length,
+      });
     this.chatMessageService.sendSystemMessageLastSendCharactor(text);
   }
 
@@ -69,7 +78,6 @@ export class VoteWindowComponent {
     }, this.destroyRef);
 
     this.objectChange.onObjectChangedFor(
-      // vote は input.required のため未バインド時の参照を避ける。
       () => {
         try {
           return [this.vote().identifier];
@@ -93,8 +101,15 @@ export class VoteWindowComponent {
         this.timestamp == currentVote.initTimeStamp
       ) {
         currentVote.voting(null, PeerCursor.myCursor?.peerId ?? null);
-        let text = currentVote.isRollCall ? '点呼：' : '投票：';
-        text += '棄権しました' + '(' + currentVote.votedTotalNum() + '/' + currentVote.voteAnswer.length + ')';
+        const prefix = currentVote.isRollCall
+          ? this.t('feature.vote.rollCallPrefix')
+          : this.t('feature.vote.votePrefix');
+        const text =
+          prefix +
+          this.t('feature.vote.abstainResult', {
+            voted: currentVote.votedTotalNum(),
+            total: currentVote.voteAnswer.length,
+          });
         this.chatMessageService.sendSystemMessageLastSendCharactor(text);
       }
     });

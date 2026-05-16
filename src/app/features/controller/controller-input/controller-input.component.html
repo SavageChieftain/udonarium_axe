@@ -1,5 +1,4 @@
 <div class="bg-ui-panel flex items-start gap-2 p-2" [ngClass]="{ 'bg-ui-elevated text-ui-text': isDirect }">
-  <!-- アバター（立ち絵ナビゲーションオーバーレイ） -->
   <div
     class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex size-13 shrink-0 items-center justify-center overflow-hidden border border-solid"
   >
@@ -17,7 +16,7 @@
           class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex() <= 0"
           (click)="stepPortrait(-1)"
-          aria-label="前の立ち絵"
+          [attr.aria-label]="'feature.controller.input.prevPortrait' | transloco"
         >
           <i class="material-icons">chevron_left</i>
         </button>
@@ -29,7 +28,7 @@
           class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex() >= portraitCount() - 1"
           (click)="stepPortrait(1)"
-          aria-label="次の立ち絵"
+          [attr.aria-label]="'feature.controller.input.nextPortrait' | transloco"
         >
           <i class="material-icons">chevron_right</i>
         </button>
@@ -37,7 +36,6 @@
     }
   </div>
 
-  <!-- 発言者コントロール: sendFrom + 色 + 選択数 -->
   <div class="flex min-w-0 flex-1 flex-col gap-1">
     <div class="flex min-w-0 items-center gap-1">
       <ng-select
@@ -49,7 +47,9 @@
         [clearable]="false"
       >
         @if (!onlyCharacters()) {
-          <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
+          <ng-option [value]="myPeer.identifier"
+            >{{ myPeer.name }}{{ 'feature.controller.input.you' | transloco }}</ng-option
+          >
         }
         @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
           <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }}</ng-option>
@@ -75,19 +75,21 @@
       <button
         class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text flex cursor-pointer items-center border border-solid bg-transparent px-0.75 py-px [&_i]:text-[14px]"
         (click)="shoeColorSetting()"
-        title="色設定"
+        [title]="'feature.controller.input.colorSetting' | transloco"
       >
         <i class="material-icons">settings</i>
       </button>
-      <span class="text-ui-muted ml-auto text-[11px] whitespace-nowrap">選択 {{ selectNum() }}</span>
+      <span class="text-ui-muted ml-auto text-[11px] whitespace-nowrap">{{
+        'feature.controller.input.selectedCount' | transloco: { count: selectNum() }
+      }}</span>
       <button
         class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text cursor-pointer border border-solid bg-transparent px-1.5 py-0.5 text-[11px] whitespace-nowrap"
         (click)="allBoxCheck()"
       >
         @if (0 !== selectNum()) {
-          全解除
+          {{ 'feature.controller.input.deselectAll' | transloco }}
         } @else {
-          全選択
+          {{ 'feature.controller.input.selectAll' | transloco }}
         }
       </button>
     </div>

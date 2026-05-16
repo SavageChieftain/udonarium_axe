@@ -10,10 +10,10 @@
     >
       @if (isJudgeMode()) {
         <i class="material-icons">rule</i>
-        <span>判定算出モード</span>
+        <span>{{ 'feature.dataElement.tableView.judgeCalc' | transloco }}</span>
       } @else {
         <i class="material-icons">check_box</i>
-        <span>技能習得モード</span>
+        <span>{{ 'feature.dataElement.tableView.skillLearned' | transloco }}</span>
       }
     </button>
   </div>

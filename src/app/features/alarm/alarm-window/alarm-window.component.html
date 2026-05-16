@@ -1,6 +1,7 @@
 <div class="flex w-full flex-col items-center justify-center gap-0.5 px-3 py-2">
   <div class="text-ui-muted text-[12px] whitespace-nowrap">{{ title }}</div>
   <div class="text-ui-accent text-[20px] font-bold whitespace-nowrap">
-    {{ time }}<span class="text-ui-muted ml-0.5 text-[13px] font-normal">秒経過</span>
+    {{ time
+    }}<span class="text-ui-muted ml-0.5 text-[13px] font-normal">{{ 'feature.alarm.timeUnitSuffix' | transloco }}</span>
   </div>
 </div>

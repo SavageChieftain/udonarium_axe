@@ -12,6 +12,19 @@ export interface RemoteControllerInventoryContext {
   graveyardInventory: ObjectInventory;
 }
 
+export function getTabTitleKey(inventoryType: string): string {
+  switch (inventoryType) {
+    case 'table':
+      return 'feature.controller.remote.tabTable';
+    case Network.peerId:
+      return 'feature.controller.remote.tabPersonal';
+    case 'graveyard':
+      return 'feature.controller.remote.tabGraveyard';
+    default:
+      return 'feature.controller.remote.tabCommon';
+  }
+}
+
 export function getTabTitle(inventoryType: string): string {
   switch (inventoryType) {
     case 'table':

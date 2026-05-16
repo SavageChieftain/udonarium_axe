@@ -1,20 +1,19 @@
 <div class="w-full">
-  <!-- sticky header -->
   <div
     class="bg-ui-panel border-ui-border-panel sticky top-0 z-1 flex flex-col gap-1.5 border-b border-solid px-2.5 py-2"
   >
     <div class="flex flex-wrap gap-2">
       <label class="flex items-center gap-1">
-        <span class="text-ui-muted text-[11px] whitespace-nowrap">タイトル</span>
+        <span class="text-ui-muted text-[11px] whitespace-nowrap">{{ 'feature.alarm.title' | transloco }}</span>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-48 border border-solid px-1.5 py-0.75 text-[13px]"
           [(ngModel)]="alarmTitle"
-          placeholder="タイマ"
+          [placeholder]="'feature.alarm.defaultTitle' | transloco"
           name="alarmTitle"
         />
       </label>
       <label class="flex items-center gap-1">
-        <span class="text-ui-muted text-[11px] whitespace-nowrap">時間</span>
+        <span class="text-ui-muted text-[11px] whitespace-nowrap">{{ 'feature.alarm.time' | transloco }}</span>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-20 border border-solid px-1.5 py-0.75 text-right text-[13px]"
           type="number"
@@ -22,7 +21,7 @@
           (change)="changeAlarmTime()"
           name="alarmTime"
         />
-        <span class="text-ui-muted text-[12px]">秒</span>
+        <span class="text-ui-muted text-[12px]">{{ 'feature.alarm.timeUnit' | transloco }}</span>
       </label>
     </div>
     <div class="flex flex-wrap items-center gap-2.5">
@@ -30,39 +29,40 @@
         class="text-ui-muted inline-flex cursor-pointer items-center gap-0.75 text-[12px] select-none [&_.material-icons]:text-[14px]! [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
         <input type="checkbox" [(ngModel)]="includSelf" name="includSelf" />
-        <span>自分を含める</span>
+        <span>{{ 'feature.alarm.includeSelf' | transloco }}</span>
       </label>
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-0.75 text-[12px] select-none [&_.material-icons]:text-[14px]! [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
         <input type="checkbox" [(ngModel)]="isSound" name="isSound" />
         <i class="material-icons">volume_up</i>
-        <span>音</span>
+        <span>{{ 'feature.alarm.sound' | transloco }}</span>
       </label>
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-0.75 text-[12px] select-none [&_.material-icons]:text-[14px]! [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
         <input type="checkbox" [(ngModel)]="isPopUp" name="isPopUp" />
         <i class="material-icons">notifications</i>
-        <span>ポップアップ</span>
+        <span>{{ 'feature.alarm.popup' | transloco }}</span>
       </label>
     </div>
     <div class="flex items-center gap-2">
-      <span class="text-ui-muted text-[12px]">対象 {{ selectedNum() }}人</span>
+      <span class="text-ui-muted text-[12px]">{{
+        'feature.alarm.targetCount' | transloco: { count: selectedNum() }
+      }}</span>
       <button
         class="bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border-none px-3.5 py-1 text-[13px] text-white transition-(--ui-transition) hover:not-disabled:opacity-85 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
         type="button"
         (click)="send()"
         [disabled]="selectedNum() === 0"
       >
-        <i class="material-icons">alarm_add</i>セット
+        <i class="material-icons">alarm_add</i>{{ 'feature.alarm.set' | transloco }}
       </button>
     </div>
   </div>
 
-  <!-- peer list -->
   @if (!peerList.length) {
-    <div class="text-ui-muted p-4 text-center text-[13px]">自分しか部屋にいません</div>
+    <div class="text-ui-muted p-4 text-center text-[13px]">{{ 'feature.alarm.emptyPeers' | transloco }}</div>
   }
   <div class="flex flex-col gap-1 px-2 py-1.5">
     @for (peer of peerList; track peer) {
@@ -95,10 +95,12 @@
         </div>
         <div class="min-w-0 flex-1">
           <div class="text-ui-text truncate text-[13px] font-semibold">{{ findPeerName(peer.peerId) }}</div>
-          <div class="text-ui-muted mt-0.5 truncate text-[11px]">{{ controlName || '操作キャラなし' }}</div>
+          <div class="text-ui-muted mt-0.5 truncate text-[11px]">
+            {{ controlName || ('feature.alarm.noControlCharacter' | transloco) }}
+          </div>
           @if (isPeerIsDisConnect(peer.peerId)) {
             <div class="text-ui-danger mt-0.5 flex items-center gap-0.5 text-[10px] [&_.material-icons]:text-[12px]!">
-              <i class="material-icons">wifi_off</i>接続切断中
+              <i class="material-icons">wifi_off</i>{{ 'feature.alarm.disconnected' | transloco }}
             </div>
           }
         </div>

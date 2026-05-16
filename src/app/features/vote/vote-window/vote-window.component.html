@@ -1,15 +1,19 @@
 <div class="w-full">
-  <!-- sticky header -->
   <div
     class="border-ui-border-panel bg-ui-panel sticky top-0 z-1 flex flex-col gap-1.5 border-b border-solid px-2.5 py-2"
   >
     <div class="text-ui-text text-[15px] font-bold">{{ vote().voteTitle }}</div>
     <div class="text-ui-muted flex items-center gap-2 text-[13px]">
       @if (vote().isRollCall) {
-        確認 {{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }}
+        {{
+          'feature.vote.voteConfirmCount'
+            | transloco: { voted: vote().votedTotalNum(), total: vote().voteAnswer.length }
+        }}
       } @else {
-        投票 {{ vote().votedTotalNum() }}/{{ vote().voteAnswer.length }}
-        <span class="text-ui-muted text-[11px]">棄権:{{ vote().votedNumByIndex(-2) }}</span>
+        {{ 'feature.vote.voteCount' | transloco: { voted: vote().votedTotalNum(), total: vote().voteAnswer.length } }}
+        <span class="text-ui-muted text-[11px]">{{
+          'feature.vote.abstainCount' | transloco: { count: vote().votedNumByIndex(-2) }
+        }}</span>
       }
     </div>
     <div class="flex flex-wrap gap-1.5">
@@ -22,21 +26,22 @@
           [disabled]="isMyVoteEnd()"
         >
           <span class="font-semibold">{{ choice }}</span>
-          <span class="text-[11px] opacity-80">{{ vote().votedNumByChoice(choice) }}人</span>
+          <span class="text-[11px] opacity-80"
+            >{{ vote().votedNumByChoice(choice) }}{{ 'feature.vote.peopleSuffix' | transloco }}</span
+          >
         </button>
       }
     </div>
     <div class="text-ui-muted flex items-center gap-0.75 text-[11px] [&_.material-icons]:text-[13px]!">
       <i class="material-icons">info</i>
       @if (vote().isRollCall) {
-        点呼前に閉じると欠席扱い
+        {{ 'feature.vote.rollCallClosingHint' | transloco }}
       } @else {
-        投票前に閉じると棄権
+        {{ 'feature.vote.voteClosingHint' | transloco }}
       }
     </div>
   </div>
 
-  <!-- target list -->
   <div class="flex flex-col gap-1 px-2 py-1.5">
     @for (target of vote().targetPeerId; track target) {
       @let peerImage = findPeerImage(target);
@@ -65,7 +70,9 @@
           <div class="text-ui-text truncate text-[13px] font-semibold">
             {{ findPeerName(target) }}
           </div>
-          <div class="text-ui-muted mt-0.5 text-[11px]">{{ controlName || '操作キャラなし' }}</div>
+          <div class="text-ui-muted mt-0.5 text-[11px]">
+            {{ controlName || ('feature.vote.noControlCharacter' | transloco) }}
+          </div>
         </div>
         @if (controlImage) {
           <div class="rounded-ui-sm bg-ui-border-panel size-10 shrink-0 overflow-hidden opacity-85">
@@ -86,15 +93,15 @@
         >
           @if (answerIdx === -1) {
             @if (vote().isRollCall) {
-              未確認
+              {{ 'feature.vote.notConfirmed' | transloco }}
             } @else {
-              未投票
+              {{ 'feature.vote.notVoted' | transloco }}
             }
           } @else if (answerIdx === -2) {
             @if (vote().isRollCall) {
-              欠席
+              {{ 'feature.vote.absent' | transloco }}
             } @else {
-              棄権
+              {{ 'feature.vote.abstain' | transloco }}
             }
           } @else {
             {{ vote().indexToChoice(answerIdx) }}

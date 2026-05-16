@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -13,6 +14,7 @@ export class VoteEventHandlerService {
   private readonly objectStore = inject(ObjectStore);
   private readonly panelService = inject(PanelService);
   private readonly chatMessageService = inject(ChatMessageService);
+  private readonly t = inject(TRANSLATE_FN);
 
   constructor() {
     this.objectChange.startVote$.subscribe(() => {
@@ -30,7 +32,7 @@ export class VoteEventHandlerService {
     const width = 450;
     const height = 400;
     const option: PanelOption = {
-      title: '点呼/投票',
+      title: this.t('feature.vote.windowTitle'),
       width,
       height,
       left: Math.max(0, (window.innerWidth - width) / 2),

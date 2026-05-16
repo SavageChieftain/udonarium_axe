@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -42,10 +43,11 @@ import {
   getGameObjects,
   getInventory,
   getInventoryTags,
-  getTabTitle,
+  getTabTitleKey,
   getTargetCharacters,
 } from '@axe/features/controller/remote-controller/remote-controller-helpers';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';
@@ -61,7 +63,7 @@ interface PaletteRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'remote-controller',
   templateUrl: './remote-controller.component.html',
-  imports: [FormsModule, ControllerInputComponent, NgTemplateOutlet, SafePipe],
+  imports: [FormsModule, ControllerInputComponent, NgTemplateOutlet, SafePipe, TranslocoModule],
 })
 export class RemoteControllerComponent {
   readonly chatMessageService = inject(ChatMessageService);
@@ -73,6 +75,15 @@ export class RemoteControllerComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
+
+  currentValueSuffix(): string {
+    return this.t('feature.controller.remote.currentValueSuffix');
+  }
+
+  maxValueSuffix(): string {
+    return this.t('feature.controller.remote.maxValueSuffix');
+  }
 
   get palette(): ChatPalette | null {
     return this.character()?.remoteController ?? null;
@@ -176,7 +187,9 @@ export class RemoteControllerComponent {
   }
 
   get sortOrderName(): string {
-    return this.sortOrder === SortOrder.ASC ? '昇順' : '降順';
+    return this.sortOrder === SortOrder.ASC
+      ? this.t('feature.inventory.list.sortAsc')
+      : this.t('feature.inventory.list.sortDesc');
   }
 
   get newLineString(): string {
@@ -247,7 +260,7 @@ export class RemoteControllerComponent {
     if (!parsed) return;
     const gameCharacters = this.getTargetCharacters(true);
     if (gameCharacters.length <= 0) {
-      this.errorMessageBuff = '対象が未選択です';
+      this.errorMessageBuff = this.t('feature.controller.remote.noTarget');
       return;
     }
     const ci = this.controllerInputComponent();
@@ -255,7 +268,7 @@ export class RemoteControllerComponent {
     addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
     this.chatMessageService.sendMessage(
       this.chatTab(),
-      'バフを付与 ' + parsed.bufftext + ' > ' + parts,
+      this.t('feature.controller.remote.addBuffMessage', { buff: parsed.bufftext, targets: parts }),
       this._gameSystem,
       this.sendFrom,
       '',
@@ -274,7 +287,9 @@ export class RemoteControllerComponent {
 
   updatePanelTitle() {
     const char = this.character();
-    this.panelService.title = char ? char.name + ' のリモコン' : 'リモコン';
+    this.panelService.title = char
+      ? this.t('feature.controller.remote.panelTitleWithName', { name: char.name })
+      : this.t('feature.controller.remote.panelTitle');
   }
 
   onSelectedCharacter(identifier: string) {
@@ -325,7 +340,7 @@ export class RemoteControllerComponent {
   }
 
   getTabTitle(inventoryType: string) {
-    return getTabTitle(inventoryType);
+    return this.t(getTabTitleKey(inventoryType));
   }
 
   getInventory(inventoryType: string) {
@@ -357,7 +372,8 @@ export class RemoteControllerComponent {
       this._gameSystem,
       this.sendFrom,
       this.controllerInputComponent().portraitIndex(),
-      this.getTargetCharacters(checkedOnly)
+      this.getTargetCharacters(checkedOnly),
+      (targets) => this.t('feature.controller.remote.decBuffRoundMessage', { targets })
     );
   }
 
@@ -376,7 +392,8 @@ export class RemoteControllerComponent {
       this._gameSystem,
       this.sendFrom,
       this.controllerInputComponent().portraitIndex(),
-      this.getTargetCharacters(checkedOnly)
+      this.getTargetCharacters(checkedOnly),
+      (targets) => this.t('feature.controller.remote.deleteZeroBuffMessage', { targets })
     );
   }
 
@@ -391,7 +408,7 @@ export class RemoteControllerComponent {
   remoteChangeValue() {
     const gameCharacters = this.getTargetCharacters(true);
     if (this.remoteControllerSelect.name == '') {
-      this.errorMessageController = '変更項目が未選択です';
+      this.errorMessageController = this.t('feature.controller.remote.noChangeTarget');
       return;
     }
     const parts: string[] = [];
@@ -405,11 +422,13 @@ export class RemoteControllerComponent {
     }
     const text = parts.join('');
     if (text != '') {
-      let hugou = '+';
-      if (this.remoteNumber < 0) {
-        hugou = '';
-      }
-      const mess = '[' + this.remoteControllerSelect.dispName + ']変更[' + hugou + this.remoteNumber + ']＞' + text;
+      const sign = this.remoteNumber < 0 ? '' : '+';
+      const mess = this.t('feature.controller.remote.changeValueMessage', {
+        name: this.remoteControllerSelect.dispName,
+        sign,
+        value: this.remoteNumber,
+        detail: text,
+      });
       this.chatMessageService.sendMessage(
         this.chatTab(),
         mess,
@@ -421,7 +440,7 @@ export class RemoteControllerComponent {
       );
       this.errorMessageController = '';
     } else {
-      this.errorMessageController = '対象キャラクターが未選択です';
+      this.errorMessageController = this.t('feature.controller.remote.noTargetCharacter');
     }
   }
 
@@ -433,7 +452,7 @@ export class RemoteControllerComponent {
       width: 420,
       height: 300,
     };
-    option.title = gameCharacter.name + 'のバフ編集';
+    option.title = this.t('feature.controller.remote.buffEditWithName', { name: gameCharacter.name });
     this.panelService.openLazy(
       () =>
         import('@axe/features/character/game-character-buff-view/game-character-buff-view.component').then(

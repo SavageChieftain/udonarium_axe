@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -27,17 +28,19 @@ import {
   JudgementCandidatesModalComponent,
 } from '@axe/features/data-element/game-data-element/judgement-candidates-modal.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-data-element-table-view',
   templateUrl: './game-data-element-table-view.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [JudgementCandidatesModalComponent, SafePipe],
+  imports: [JudgementCandidatesModalComponent, SafePipe, TranslocoModule],
 })
 export class GameDataElementTableViewComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly element = input.required<DataElement>();
   readonly isValueLocked = input(false);
@@ -149,7 +152,7 @@ export class GameDataElementTableViewComponent {
       case DataElementFieldType.CALC:
         return evaluateCalcElement(cell);
       case DataElementFieldType.IMAGE:
-        return cell.value ? '画像未読込' : '';
+        return cell.value ? this.t('feature.dataElement.imageUnloaded') : '';
       default:
         return String(cell.value ?? '')
           .replace(/\s+/g, ' ')

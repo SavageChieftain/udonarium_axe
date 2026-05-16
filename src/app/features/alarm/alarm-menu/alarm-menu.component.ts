@@ -2,6 +2,7 @@ import { afterNextRender, ChangeDetectionStrategy, Component, inject } from '@an
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
@@ -10,12 +11,13 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/alarm/alarm';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-alarm-menu',
   templateUrl: './alarm-menu.component.html',
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class AlarmMenuComponent {
   private readonly modalService = inject(ModalService);
@@ -23,11 +25,12 @@ export class AlarmMenuComponent {
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly t = inject(TRANSLATE_FN);
 
   protected checkedPeers = new Set<string>();
   networkService = Network;
   voteContentsText = '';
-  alarmTitle = 'タイマ';
+  alarmTitle = this.t('feature.alarm.defaultTitle');
   alarmTime = 60;
   isRollCall = true;
   includSelf = true;
@@ -45,7 +48,7 @@ export class AlarmMenuComponent {
   }
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'アラームタイマ'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = this.t('feature.alarm.panelTitle')));
     afterNextRender(() => {
       this.setDefaultCheck();
     });
@@ -86,10 +89,10 @@ export class AlarmMenuComponent {
     let target: string;
     const peerIdList = this.selectedList();
 
-    startMessage = 'アラームセット ' + this.alarmTime + '秒';
+    startMessage = this.t('feature.alarm.setMessage', { seconds: this.alarmTime });
 
     if (this.peerList.length + 1 == this.selectedNum()) {
-      target = ' >全員 ';
+      target = this.t('feature.alarm.targetAll');
     } else {
       target = ' >';
       for (const peerId of peerIdList) {
@@ -107,18 +110,6 @@ export class AlarmMenuComponent {
   changeAlarmTime() {
     if (this.alarmTime <= 0) this.alarmTime = 0;
     if (this.alarmTime >= 3600) this.alarmTime = 3600;
-  }
-
-  changeIncludSelf() {
-    // 処理なし
-  }
-
-  changeIsSound() {
-    // 処理なし
-  }
-
-  changeIsPopUp() {
-    // 処理なし
   }
 
   onChangeType(value: string) {

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -36,6 +37,7 @@ import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-elem
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
@@ -49,6 +51,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
     NgSelectComponent,
     NgOptionComponent,
     GameDataElementTableViewComponent,
+    TranslocoModule,
   ],
   host: {
     class:
@@ -69,6 +72,7 @@ export class GameDataElementComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly dataElementDrag = inject(DataElementDragService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);
@@ -249,7 +253,7 @@ export class GameDataElementComponent {
     if (value) {
       element.setAttribute(DataElementAttribute.CELL_KIND, 'gap');
       if (!element.getAttribute(DataElementAttribute.COLUMN_LABEL).trim()) {
-        element.setAttribute(DataElementAttribute.COLUMN_LABEL, 'G');
+        element.setAttribute(DataElementAttribute.COLUMN_LABEL, this.t('feature.dataElement.defaults.gapCellLabel'));
       }
     } else {
       element.removeAttribute(DataElementAttribute.CELL_KIND);
@@ -265,13 +269,13 @@ export class GameDataElementComponent {
 
   readonly iconPickerOpen = signal(false);
 
-  static readonly ICON_GROUPS: { label: string; icons: string[] }[] = [
+  static readonly ICON_GROUPS: { labelKey: string; icons: string[] }[] = [
     {
-      label: 'キャラクター',
+      labelKey: 'feature.dataElement.iconGroup.character',
       icons: ['person', 'face', 'account_circle', 'groups', 'man', 'woman', 'child_care', 'elderly'],
     },
     {
-      label: '戦闘',
+      labelKey: 'feature.dataElement.iconGroup.combat',
       icons: [
         'shield',
         'security',
@@ -284,34 +288,37 @@ export class GameDataElementComponent {
       ],
     },
     {
-      label: 'ステータス',
+      labelKey: 'feature.dataElement.iconGroup.status',
       icons: ['favorite', 'health_and_safety', 'star', 'grade', 'bar_chart', 'trending_up', 'speed', 'military_tech'],
     },
     {
-      label: 'アイテム',
+      labelKey: 'feature.dataElement.iconGroup.item',
       icons: ['inventory_2', 'backpack', 'category', 'sell', 'local_pharmacy', 'build', 'key', 'lock'],
     },
     {
-      label: '魔法・能力',
+      labelKey: 'feature.dataElement.iconGroup.magic',
       icons: ['auto_awesome', 'flare', 'nights_stay', 'wb_sunny', 'blur_on', 'casino', 'psychology', 'emoji_events'],
     },
     {
-      label: 'メモ・情報',
+      labelKey: 'feature.dataElement.iconGroup.memo',
       icons: ['info', 'note', 'description', 'edit_note', 'comment', 'chat', 'sticky_note_2', 'assignment'],
     },
   ];
 
-  readonly iconGroups = GameDataElementComponent.ICON_GROUPS;
+  readonly iconGroups = GameDataElementComponent.ICON_GROUPS.map((group) => ({
+    label: this.t(group.labelKey),
+    icons: group.icons,
+  }));
 
   readonly fieldTypeItems: { type: DataElementFieldTypeValue; label: string }[] = [
-    { type: DataElementFieldType.TEXT, label: 'テキスト' },
-    { type: DataElementFieldType.NUMBER, label: '数値' },
-    { type: DataElementFieldType.RESOURCE, label: 'リソース' },
-    { type: DataElementFieldType.LONG_TEXT, label: '長文' },
-    { type: DataElementFieldType.CHECK, label: 'チェック' },
-    { type: DataElementFieldType.SELECT, label: '選択' },
-    { type: DataElementFieldType.CALC, label: '計算' },
-    { type: DataElementFieldType.IMAGE, label: '画像' },
+    { type: DataElementFieldType.TEXT, label: this.t('feature.dataElement.fieldType.text') },
+    { type: DataElementFieldType.NUMBER, label: this.t('feature.dataElement.fieldType.number') },
+    { type: DataElementFieldType.RESOURCE, label: this.t('feature.dataElement.fieldType.resource') },
+    { type: DataElementFieldType.LONG_TEXT, label: this.t('feature.dataElement.fieldType.longText') },
+    { type: DataElementFieldType.CHECK, label: this.t('feature.dataElement.fieldType.check') },
+    { type: DataElementFieldType.SELECT, label: this.t('feature.dataElement.fieldType.select') },
+    { type: DataElementFieldType.CALC, label: this.t('feature.dataElement.fieldType.calc') },
+    { type: DataElementFieldType.IMAGE, label: this.t('feature.dataElement.fieldType.image') },
   ];
 
   selectIcon(name: string): void {
@@ -370,7 +377,7 @@ export class GameDataElementComponent {
     const parentElement = this.gameDataElement();
     if (!this.canAddChildFieldElement()) return;
 
-    const fieldElement = this.createFieldElement('タグ', parentElement);
+    const fieldElement = this.createFieldElement(this.t('feature.dataElement.defaults.newTag'), parentElement);
     parentElement.appendChild(fieldElement);
     this.notifyStructureChanged(parentElement, fieldElement);
   }
@@ -379,7 +386,7 @@ export class GameDataElementComponent {
     const parentElement = this.getDataElementParent();
     if (!parentElement || !canAcceptChildRole(parentElement, DataElementRole.FIELD)) return;
 
-    const fieldElement = this.createFieldElement('タグ', parentElement);
+    const fieldElement = this.createFieldElement(this.t('feature.dataElement.defaults.newTag'), parentElement);
     this.insertElementAfter(fieldElement, this.gameDataElement(), parentElement);
     this.notifyStructureChanged(parentElement, fieldElement);
   }
@@ -388,7 +395,11 @@ export class GameDataElementComponent {
     const parentElement = this.gameDataElement();
     if (!this.canAddChildGroupElement()) return;
 
-    const groupElement = this.createContainerElement(DataElementRole.GROUP, 'グループ', parentElement);
+    const groupElement = this.createContainerElement(
+      DataElementRole.GROUP,
+      this.t('feature.dataElement.defaults.newGroup'),
+      parentElement
+    );
     parentElement.appendChild(groupElement);
     this.notifyStructureChanged(parentElement, groupElement);
   }
@@ -419,13 +430,22 @@ export class GameDataElementComponent {
       [DataElementAttribute.ROLE]: role,
     });
     if (role === DataElementRole.SECTION)
-      containerElement.appendChild(this.createContainerElement(DataElementRole.GROUP, 'グループ', containerElement));
-    else containerElement.appendChild(this.createFieldElement('タグ', containerElement));
+      containerElement.appendChild(
+        this.createContainerElement(
+          DataElementRole.GROUP,
+          this.t('feature.dataElement.defaults.newGroup'),
+          containerElement
+        )
+      );
+    else
+      containerElement.appendChild(
+        this.createFieldElement(this.t('feature.dataElement.defaults.newTag'), containerElement)
+      );
     return containerElement;
   }
 
   private createFieldElement(
-    name: string = 'タグ',
+    name: string = this.t('feature.dataElement.defaults.newTag'),
     parentElement: DataElement = this.gameDataElement(),
     reservedNames: Set<string> = new Set()
   ): DataElement {

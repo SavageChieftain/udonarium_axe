@@ -11,6 +11,7 @@ import {
   output,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
@@ -22,13 +23,14 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'controller-input',
   templateUrl: './controller-input.component.html',
-  imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
+  imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe, TranslocoModule],
 })
 export class ControllerInputComponent {
   private readonly destroyRef = inject(DestroyRef);
@@ -37,6 +39,7 @@ export class ControllerInputComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly sendFrom = model(PeerCursor.myCursor ? PeerCursor.myCursor.identifier : '');
   readonly sendTo = model('');
@@ -163,10 +166,9 @@ export class ControllerInputComponent {
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];
-      let title = '色設定';
-      if (object.name.length) {
-        title += ' - ' + object.name;
-      }
+      const title = object.name.length
+        ? this.t('feature.controller.input.colorSettingWithName', { name: object.name })
+        : this.t('feature.controller.input.colorSetting');
       const option: PanelOption = {
         title,
         left: coordinate.x + 50,

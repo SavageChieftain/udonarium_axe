@@ -1,13 +1,5 @@
-/**
- * Calc-type フィールド用の簡易算術式エバリュエータ。
- * 構文: number, +, -, *, /, **, (, ), unary minus,
- *       floor(), ceil(), round(), abs(), min(), max().
- * 変数名は env マップに大文字小文字無視で照合する。
- */
-
 export type CalcEnv = Record<string, number>;
 
-/** 式文字列を評価して数値を返す。失敗時は NaN。 */
 export function evalCalcFormula(formula: string, env: CalcEnv): number {
   try {
     const tokens = tokenize(formula);
@@ -45,7 +37,6 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // `[section/group/field]` 形式のパス参照は識別子として 1 トークン化する。
     if (ch === '[') {
       let value = '';
       let j = i + 1;
@@ -70,7 +61,6 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // ASCII word + 漢字 / かな / 全角を識別子として許容する。
     const idMatch = src.slice(i).match(/^[\w\u3000-\u9FFF\uFF00-\uFFEF\u30A0-\u30FF\u3040-\u309F]+/);
     if (idMatch) {
       tokens.push({ type: 'ID', value: idMatch[0] });
@@ -105,7 +95,6 @@ function tokenize(src: string): Token[] {
       continue;
     }
 
-    // 未知文字は読み飛ばして無限ループ回避。
     i++;
   }
   return tokens;

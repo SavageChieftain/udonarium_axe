@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { AlarmWindowComponent } from '@axe/features/alarm/alarm-window/alarm-window.component';
@@ -10,6 +11,7 @@ export class AlarmEventHandlerService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
   private readonly chatMessageService = inject(ChatMessageService);
+  private readonly t = inject(TRANSLATE_FN);
 
   constructor() {
     this.objectChange.alarmTimeUp$.subscribe((event) => {
@@ -27,7 +29,7 @@ export class AlarmEventHandlerService {
     const marginH = Math.max(0, window.innerHeight - winH - 25);
 
     const option: PanelOption = {
-      title: 'アラーム ' + title,
+      title: this.t('feature.alarm.alarmTitlePrefix', { title }),
       width: winW,
       height: winH + 25,
       left: marginW * 0.5,

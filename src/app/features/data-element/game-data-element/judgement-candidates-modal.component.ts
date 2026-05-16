@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
+import { TranslocoModule } from '@jsverse/transloco';
 
 export interface JudgeCandidatesState {
   clickedCellLabel: string;
@@ -10,6 +11,7 @@ export interface JudgeCandidatesState {
   selector: 'judgement-candidates-modal',
   templateUrl: './judgement-candidates-modal.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslocoModule],
 })
 export class JudgementCandidatesModalComponent {
   readonly state = input<JudgeCandidatesState | null>(null);

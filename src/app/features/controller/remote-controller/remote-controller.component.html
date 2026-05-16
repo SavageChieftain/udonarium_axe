@@ -1,9 +1,7 @@
 <div class="text-ui-text bg-ui-panel flex h-full text-[13px]">
-  <!-- ── 左パネル ── -->
   <div
     class="border-ui-border-panel bg-ui-panel flex h-full w-[22em] max-w-[22em] min-w-[18em] flex-col overflow-x-hidden overflow-y-auto border-r border-solid"
   >
-    <!-- 発言設定エリア: controller-input + chat tabs -->
     <div class="border-ui-border-panel flex shrink-0 flex-col border-b border-solid">
       <controller-input
         [onlyCharacters]="true"
@@ -14,7 +12,9 @@
         #controllerInput
       />
       <div class="bg-ui-elevated flex flex-wrap items-center gap-0.5 px-2 py-1">
-        <span class="text-ui-muted shrink-0 pr-1.25 text-[10px] whitespace-nowrap">発言先</span>
+        <span class="text-ui-muted shrink-0 pr-1.25 text-[10px] whitespace-nowrap">{{
+          'feature.controller.remote.sendTarget' | transloco
+        }}</span>
         <form name="remote-controller-chat-tab" class="flex flex-wrap gap-0.5">
           @for (chatTab of chatTabsVersion(); track chatTab) {
             <label
@@ -38,7 +38,6 @@
       </div>
     </div>
 
-    <!-- ◆ バフ付与セクション（collapsible） -->
     <div class="border-ui-border-panel border-l-ui-accent shrink-0 border-b border-l-[3px] border-solid">
       <button
         class="bg-ui-accent-bg flex w-full cursor-pointer items-center gap-1.5 border-none py-1.75 pr-2.5 pl-2 text-left transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-accent)_15%,transparent)]"
@@ -48,7 +47,9 @@
         <i class="material-icons shrink-0 text-base! opacity-60">{{
           buffSectionOpen() ? 'expand_more' : 'chevron_right'
         }}</i>
-        <span class="text-ui-accent flex-1 text-[11px] font-bold tracking-[0.08em] uppercase">バフ付与</span>
+        <span class="text-ui-accent flex-1 text-[11px] font-bold tracking-[0.08em] uppercase">{{
+          'feature.controller.remote.buffSectionTitle' | transloco
+        }}</span>
       </button>
       @if (buffSectionOpen()) {
         <div class="flex flex-col py-1.5">
@@ -69,15 +70,18 @@
               (click)="toggleEditMode()"
             >
               @if (!isEdit()) {
-                <i class="material-icons align-middle text-[14px]!">edit</i>パレット編集
+                <i class="material-icons align-middle text-[14px]!">edit</i
+                >{{ 'feature.controller.remote.paletteEdit' | transloco }}
               } @else {
-                <i class="material-icons align-middle text-[14px]!">check</i>確定
+                <i class="material-icons align-middle text-[14px]!">check</i
+                >{{ 'feature.controller.remote.confirm' | transloco }}
               }
             </button>
             @if (isEdit()) {
               <span
                 class="text-ui-accent border-ui-accent-glow bg-ui-accent-bg inline-flex items-center gap-0.5 rounded-[10px] border border-solid px-2 py-0.5 text-[11px] select-none"
-                ><i class="material-icons align-middle text-[14px]!">edit</i>編集中</span
+                ><i class="material-icons align-middle text-[14px]!">edit</i
+                >{{ 'feature.controller.remote.editing' | transloco }}</span
               >
             }
           </div>
@@ -87,7 +91,7 @@
               class="bg-ui-input border-ui-border-panel text-ui-text focus:border-ui-accent box-border min-h-30 w-full resize-none border-b border-none px-2.5 py-1.5 font-sans text-[12px] outline-none"
               [(ngModel)]="editPalette"
               [ngModelOptions]="{ standalone: true }"
-              placeholder="バフパレット"
+              [placeholder]="'feature.controller.remote.buffPalettePlaceholder' | transloco"
             ></textarea>
           } @else {
             <div class="box-border w-full font-sans" #paletteList>
@@ -124,63 +128,65 @@
             <div
               class="bg-ui-elevated border-ui-border-panel text-ui-dim border-t px-2 py-0.75 text-center text-[11px] select-none"
             >
-              クリック: 入力 ／ 2回クリック: 付与
+              {{ 'feature.controller.remote.paletteHint' | transloco }}
             </div>
           }
 
-          <!-- バフテキスト入力 -->
           <div class="flex items-start gap-1.25 px-2 py-1">
             <textarea
               class="bg-ui-input border-ui-border-input text-ui-text focus:border-ui-accent rounded-ui-sm max-h-20 min-h-10 flex-1 resize-y border border-solid px-1.5 py-1 font-[inherit] text-[12px] outline-none"
               [ngModel]="text()"
               (ngModelChange)="text.set($event)"
               [ngModelOptions]="{ standalone: true }"
-              placeholder="バフ名 [情報] [ラウンド数]"
+              [placeholder]="'feature.controller.remote.buffInputPlaceholder' | transloco"
               (keydown.enter)="sendBuffChat($any($event))"
             ></textarea>
             <button
               class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap transition-[background,border-color] select-none hover:text-white [&_.material-icons]:text-[14px]!"
               (click)="sendBuffChat(null)"
             >
-              付与
+              {{ 'feature.controller.remote.grant' | transloco }}
             </button>
           </div>
 
-          <!-- ラウンド操作 -->
           <div
             class="border-ui-border-panel mt-0.5 flex items-center gap-1.5 border-y bg-[color-mix(in_srgb,var(--ui-panel-border)_20%,var(--ui-panel-bg))] px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-[color-mix(in_srgb,var(--ui-accent)_75%,var(--ui-text-dim))] uppercase select-none"
           >
-            ラウンド管理
+            {{ 'feature.controller.remote.roundManagement' | transloco }}
           </div>
           <div class="flex flex-col gap-1 px-2 py-1">
             <div class="flex items-center gap-1.25">
-              <span class="text-ui-muted min-w-[5em] text-[12px] select-none">R 減少</span>
+              <span class="text-ui-muted min-w-[5em] text-[12px] select-none">{{
+                'feature.controller.remote.roundDecrease' | transloco
+              }}</span>
               <button
                 class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="decBuffRoundSelect()"
               >
-                選択
+                {{ 'feature.controller.remote.selected' | transloco }}
               </button>
               <button
                 class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="decBuffRoundAll()"
               >
-                全員
+                {{ 'feature.controller.remote.all' | transloco }}
               </button>
             </div>
             <div class="flex items-center gap-1.25">
-              <span class="text-ui-muted min-w-[5em] text-[12px] select-none">0R 消去</span>
+              <span class="text-ui-muted min-w-[5em] text-[12px] select-none">{{
+                'feature.controller.remote.roundZeroClear' | transloco
+              }}</span>
               <button
                 class="text-ui-muted border-ui-border-panel hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="deleteZeroRoundBuffSelect()"
               >
-                選択
+                {{ 'feature.controller.remote.selected' | transloco }}
               </button>
               <button
                 class="text-ui-muted border-ui-border-panel hover:bg-ui-danger-bg hover:border-ui-danger hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
                 (click)="deleteZeroRoundBuffAll()"
               >
-                全員
+                {{ 'feature.controller.remote.all' | transloco }}
               </button>
             </div>
           </div>
@@ -188,7 +194,6 @@
       }
     </div>
 
-    <!-- ◆ リソース操作セクション（collapsible） -->
     <div class="border-ui-border-panel border-l-ui-success shrink-0 border-b border-l-[3px] border-solid">
       <button
         class="flex w-full cursor-pointer items-center gap-1.5 border-none bg-[color-mix(in_srgb,var(--ui-success)_8%,transparent)] py-1.75 pr-2.5 pl-2 text-left transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-success)_16%,transparent)]"
@@ -198,7 +203,9 @@
         <i class="material-icons shrink-0 text-base! opacity-60">{{
           counterSectionOpen() ? 'expand_more' : 'chevron_right'
         }}</i>
-        <span class="text-ui-success flex-1 text-[11px] font-bold tracking-[0.08em] uppercase">リソース操作</span>
+        <span class="text-ui-success flex-1 text-[11px] font-bold tracking-[0.08em] uppercase">{{
+          'feature.controller.remote.counterSectionTitle' | transloco
+        }}</span>
       </button>
       @if (counterSectionOpen()) {
         <div class="flex flex-col py-1.5">
@@ -208,7 +215,6 @@
             </div>
           }
 
-          <!-- ① 操作対象タグ選択（先に何を変えるか選ぶ） -->
           @if (character()?.rootDataElement) {
             <div class="flex flex-wrap gap-1 px-2 pt-1 pb-0.5">
               @for (data of character()?.detailDataElement?.children ?? []; track data.identifier) {
@@ -221,12 +227,12 @@
                             class="peer hidden"
                             name="controller"
                             type="radio"
-                            value="{{ dataElm.name + '現在値' }}"
-                            (click)="remoteSelect(dataElm.name, 'now', dataElm.name + '現在値')"
+                            value="{{ dataElm.name + currentValueSuffix() }}"
+                            (click)="remoteSelect(dataElm.name, 'now', dataElm.name + currentValueSuffix())"
                           />
                           <span
                             class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
-                            >{{ dataElm.name + '現在値' }}</span
+                            >{{ dataElm.name + currentValueSuffix() }}</span
                           >
                         </label>
                         <label class="inline-flex cursor-pointer select-none">
@@ -234,12 +240,12 @@
                             class="peer hidden"
                             name="controller"
                             type="radio"
-                            value="{{ dataElm.name + '最大値' }}"
-                            (click)="remoteSelect(dataElm.name, 'max', dataElm.name + '最大値')"
+                            value="{{ dataElm.name + maxValueSuffix() }}"
+                            (click)="remoteSelect(dataElm.name, 'max', dataElm.name + maxValueSuffix())"
                           />
                           <span
                             class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
-                            >{{ dataElm.name + '最大値' }}</span
+                            >{{ dataElm.name + maxValueSuffix() }}</span
                           >
                         </label>
                       }
@@ -265,14 +271,15 @@
             </div>
           }
 
-          <!-- ② 変更量 + 操作 -->
           <div
             class="border-ui-border-panel mt-0.5 flex items-center gap-1.5 border-y bg-[color-mix(in_srgb,var(--ui-panel-border)_20%,var(--ui-panel-bg))] px-2.5 py-1 text-[10px] font-bold tracking-[0.07em] text-[color-mix(in_srgb,var(--ui-success)_75%,var(--ui-text-dim))] uppercase select-none"
           >
-            変更量・実行
+            {{ 'feature.controller.remote.changeAmountSection' | transloco }}
           </div>
           <div class="flex items-center gap-1.5 px-2">
-            <span class="text-ui-muted text-[12px] whitespace-nowrap">変更量</span>
+            <span class="text-ui-muted text-[12px] whitespace-nowrap">{{
+              'feature.controller.remote.changeAmount' | transloco
+            }}</span>
             <input
               class="bg-ui-input border-ui-border-input text-ui-text hover:border-ui-accent focus:border-ui-accent rounded-ui-sm w-[4em] [appearance:textfield] border border-solid px-1.25 py-0.75 text-right text-[13px] outline-none hover:appearance-auto focus:appearance-auto"
               size="1"
@@ -284,7 +291,7 @@
             <button
               class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
               (click)="reverseValue()"
-              title="符号を反転"
+              [title]="'feature.controller.remote.reverseSign' | transloco"
             >
               ±
             </button>
@@ -292,32 +299,32 @@
               class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap transition-[background,border-color] select-none hover:text-white [&_.material-icons]:text-[14px]!"
               (click)="remoteChangeValue()"
             >
-              操作
+              {{ 'feature.controller.remote.execute' | transloco }}
             </button>
           </div>
 
-          <!-- ③ 制限チェック -->
           <div class="flex gap-3 px-2 py-1">
             <label
               class="text-ui-muted inline-flex cursor-pointer items-center gap-1 text-[12px] [accent-color:var(--ui-accent)]"
             >
-              <input name="max_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlag" />最大値制限
+              <input name="max_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlag" />{{
+                'feature.controller.remote.maxLimit' | transloco
+              }}
             </label>
             <label
               class="text-ui-muted inline-flex cursor-pointer items-center gap-1 text-[12px] [accent-color:var(--ui-accent)]"
             >
-              <input name="min_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlagMin" />0下限制限
+              <input name="min_limit_chk" type="checkbox" [(ngModel)]="recoveryLimitFlagMin" />{{
+                'feature.controller.remote.minLimit' | transloco
+              }}
             </label>
           </div>
         </div>
       }
     </div>
   </div>
-  <!-- /rc-left -->
 
-  <!-- ── 右パネル：インベントリタブ + キャラクター一覧 ── -->
   <div class="bg-ui-panel flex h-full flex-1 flex-col gap-1 overflow-y-auto p-1.5">
-    <!-- インベントリタブ -->
     <div class="border-ui-border-panel flex shrink-0 flex-wrap gap-0.75 border-b px-1 pt-1">
       @for (tab of inventoryTypes(); track tab) {
         <button
@@ -339,7 +346,9 @@
         class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">group</i>
-        <p class="m-0 text-[12px]">{{ getTabTitle(selectTab()) }}インベントリは空です</p>
+        <p class="m-0 text-[12px]">
+          {{ 'feature.controller.remote.emptyInventory' | transloco: { tab: getTabTitle(selectTab()) } }}
+        </p>
       </div>
     }
 
@@ -353,7 +362,6 @@
       </div>
     }
 
-    <!-- キャラクターカード テンプレート -->
     <ng-template #gameObjectCard let-gameObject="gameObject">
       <div
         class="bg-ui-input border-ui-border-panel rounded-ui-sm [&_.material-icons]:text-ui-dim relative flex size-10.5 shrink-0 cursor-pointer items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[24px]!"
@@ -385,7 +393,7 @@
             class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-muted rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-1.75 py-0.75 text-[11px] whitespace-nowrap transition-[background,border-color] select-none [&_.material-icons]:text-[14px]!"
             (click)="buffEdit(gameObject)"
           >
-            <i class="material-icons">auto_fix_high</i>バフ編集
+            <i class="material-icons">auto_fix_high</i>{{ 'feature.controller.remote.buffEdit' | transloco }}
           </button>
         </div>
         @if (gameObject.rootDataElement) {
@@ -398,7 +406,6 @@
       </div>
     </ng-template>
 
-    <!-- データ要素テンプレート -->
     <ng-template #dataElmTag let-dataElm="dataElm">
       @if (dataElm?.name === newLineString) {
         <div class="col-span-2 h-0"></div>
@@ -452,6 +459,4 @@
       }
     </ng-template>
   </div>
-  <!-- /rc-right -->
 </div>
-<!-- /rc-layout -->
