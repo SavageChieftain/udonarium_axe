@@ -1,19 +1,19 @@
 <div>
-  <button (click)="reConnect()" class="danger">再接続実行</button>
+  <button (click)="reConnect()" class="danger">{{ 'feature.lobby.reConnect.execute' | transloco }}</button>
   <label>
     <input type="checkbox" [checked]="forceCleanup()" (change)="forceCleanup.update((v) => !v)" />
-    不整合データを削除する（同期破損時のみ）
+    {{ 'feature.lobby.reConnect.forceCleanup' | transloco }}
   </label>
   <hr />
 </div>
 <span class="text-[16px]">
-  再接続に失敗する場合があります。復帰しないときはページリロードしてください。<br />
+  {{ 'feature.lobby.reConnect.notice' | transloco }}<br />
   <span class="text-[red]">
-    注意：他に部屋データの保持者が居ない場合、データが破棄された上に失敗します。<br />
-    必要に応じて部屋データの保存を行ってから実行してください。
+    {{ 'feature.lobby.reConnect.warning' | transloco }}<br />
+    {{ 'feature.lobby.reConnect.warning2' | transloco }}
   </span>
   <br />
   <br />
-  「不整合データを削除する」を有効にすると、再接続前に同期不整合の原因になりうるオブジェクトを削除します。<br />
-  最終手段としてのみ使用してください。
+  {{ 'feature.lobby.reConnect.cleanupDesc1' | transloco }}<br />
+  {{ 'feature.lobby.reConnect.cleanupDesc2' | transloco }}
 </span>

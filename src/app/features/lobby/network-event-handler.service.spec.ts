@@ -77,7 +77,7 @@ describe('NetworkEventHandlerService', () => {
     stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'oops' });
 
     expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(1);
-    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('SkyWay');
+    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.errors.skywayServer');
     expect(openStandbySpy).not.toHaveBeenCalled();
   });
 

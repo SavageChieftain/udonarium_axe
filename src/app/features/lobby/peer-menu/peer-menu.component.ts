@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -12,14 +13,16 @@ import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'peer-menu',
   templateUrl: './peer-menu.component.html',
-  imports: [FormsModule, DatePipe, SafePipe],
+  imports: [FormsModule, DatePipe, SafePipe, TranslocoModule],
 })
 export class PeerMenuComponent {
+  private readonly t = inject(TRANSLATE_FN);
   private readonly tabletopActionService = inject(TabletopActionService);
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
@@ -37,7 +40,7 @@ export class PeerMenuComponent {
   }
 
   constructor() {
-    queueMicrotask(() => (this.panelService.title = '接続情報'));
+    queueMicrotask(() => (this.panelService.title = this.t('common.panel.peerMenu')));
     const timer = setInterval(() => this.dispInfo(), 1000);
     this.destroyRef.onDestroy(() => clearInterval(timer));
   }
@@ -51,7 +54,7 @@ export class PeerMenuComponent {
 
   showLobby() {
     this.modalService.open(LobbyComponent, {
-      title: 'ロビー',
+      title: this.t('feature.lobby.lobby.title'),
       width: 700,
       height: 400,
       left: 0,

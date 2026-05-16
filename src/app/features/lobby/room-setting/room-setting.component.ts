@@ -1,23 +1,26 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'room-setting',
   templateUrl: './room-setting.component.html',
   host: { class: 'block' },
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
 })
 export class RoomSettingComponent {
+  private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
 
-  readonly roomName = signal<string>('ふつうの部屋');
+  readonly roomName = signal<string>(this.t('feature.lobby.roomSetting.defaultRoomName'));
   readonly password = signal<string>('');
   readonly roomNameTooLong = computed(() => this.roomName().length > 255);
 
@@ -31,7 +34,9 @@ export class RoomSettingComponent {
   }
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = ' ルーム作成'));
+    queueMicrotask(
+      () => (this.modalService.title = this.panelService.title = this.t('feature.lobby.roomSetting.title'))
+    );
     effect(() => {
       this.myPeer.reConnectPass = this.password();
     });

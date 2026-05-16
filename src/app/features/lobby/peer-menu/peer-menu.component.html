@@ -1,31 +1,33 @@
-<!-- プロフィール行 -->
 <div class="flex gap-3 p-3">
-  <!-- アバター -->
   <div class="shrink-0">
     @if (myPeer.image?.url) {
       <img
         class="block size-24 cursor-pointer rounded-(--ui-radius) object-cover object-top"
         [src]="myPeer.image!.url | safe: 'resourceUrl'"
         (click)="changeIcon()"
-        title="アイコンを変更する"
+        [title]="'feature.lobby.peerMenu.changeIcon' | transloco"
       />
     } @else {
       <button
         class="flex size-24 items-center justify-center rounded-(--ui-radius) border border-dashed border-(--ui-panel-border) bg-(--ui-elevated) text-xs text-(--ui-text-muted) hover:border-(--ui-accent) hover:text-(--ui-accent)"
-        aria-label="アイコンを変更する"
+        [attr.aria-label]="'feature.lobby.peerMenu.changeIcon' | transloco"
         (click)="changeIcon()"
       >
         <i class="material-icons">add_photo_alternate</i>
       </button>
     }
   </div>
-  <!-- 情報 -->
   <div class="flex min-w-0 flex-col justify-center gap-1.5">
-    <label class="text-xs text-(--ui-text-muted)">ニックネーム</label>
-    <input class="w-full" name="peer-name" [(ngModel)]="myPeer.name" placeholder="ニックネーム" />
+    <label class="text-xs text-(--ui-text-muted)">{{ 'feature.lobby.peerMenu.nickname' | transloco }}</label>
+    <input
+      class="w-full"
+      name="peer-name"
+      [(ngModel)]="myPeer.name"
+      [placeholder]="'feature.lobby.peerMenu.nickname' | transloco"
+    />
     <div class="space-y-0.5 text-xs text-(--ui-text-muted)">
       <div>
-        <span>ID：</span>
+        <span>{{ 'feature.lobby.peerMenu.id' | transloco }}</span>
         @if (networkService.isOpen) {
           <span class="font-bold text-(--ui-accent)">{{ networkService.peerContext.userId }}</span>
         } @else {
@@ -41,7 +43,7 @@
   <hr class="mx-3 border-(--ui-panel-border)" />
   <div class="space-y-1 px-3 py-2 text-sm text-(--ui-text-muted)">
     <div>
-      ルーム名：
+      {{ 'feature.lobby.peerMenu.roomName' | transloco }}
       @if (networkService.isOpen) {
         <span class="font-bold text-(--ui-text)"
           >{{ networkService.peerContext.roomName }}/{{ networkService.peerContext.roomId }}</span
@@ -50,7 +52,7 @@
     </div>
     @if (networkService.peerContext.hasPassword) {
       <div class="flex items-center gap-2">
-        <span>パスワード：</span>
+        <span>{{ 'feature.lobby.peerMenu.password' | transloco }}</span>
         @if (networkService.isOpen) {
           <span class="font-bold text-(--ui-text)">{{
             isPasswordVisible() ? networkService.peerContext.password : '●●●●●●●●'
@@ -64,7 +66,7 @@
       </div>
     }
     @if (shouldShowReconnectButton) {
-      <button (click)="showReConnect()" class="danger">再接続</button>
+      <button (click)="showReConnect()" class="danger">{{ 'feature.lobby.peerMenu.reconnect' | transloco }}</button>
     }
   </div>
 }
@@ -74,7 +76,7 @@
 <div class="space-y-2 px-3 py-2 text-xs text-(--ui-text-muted)">
   <label class="flex items-center gap-2">
     <input class="w-16" name="peer-timeout" [(ngModel)]="myPeer.timeout" type="number" min="1" max="600" />
-    <span>秒以上通信できない参加者情報をチャットに表示</span>
+    <span>{{ 'feature.lobby.peerMenu.timeoutLabel' | transloco }}</span>
   </label>
   <label class="flex cursor-pointer items-center gap-2">
     <input
@@ -84,14 +86,14 @@
       [ngModel]="dispDetailFlag()"
       (ngModelChange)="dispDetailFlag.set($event)"
     />
-    <span>詳細を表示</span>
+    <span>{{ 'feature.lobby.peerMenu.showDetail' | transloco }}</span>
   </label>
 </div>
 
 @for (context of networkService.peerContexts; track context) {
   <div class="border-t border-(--ui-panel-border) px-3 py-1 text-xs text-(--ui-text-muted)">
     @if (!context.isOpen) {
-      <span class="text-(--ui-accent)">[接続中] </span>
+      <span class="text-(--ui-accent)">{{ 'feature.lobby.peerMenu.connecting' | transloco }}</span>
     }
     <span>{{ findUserId(context.peerId) }} [{{ findPeerName(context.peerId) }}]</span>
     @if (findPeerTimeReceive(context.peerId) <= 0) {
@@ -100,14 +102,19 @@
       <span class="ml-2 text-(--ui-text-dim)">{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}</span>
     }
     @if (dispDetailFlag() && findPeerTimeReceive(context.peerId) > 0) {
-      <span class="ml-2">往復：{{ findPeerTimeLatency(context.peerId) }}秒</span>
+      <span class="ml-2"
+        >{{ 'feature.lobby.peerMenu.latency' | transloco }}{{ findPeerTimeLatency(context.peerId)
+        }}{{ 'feature.lobby.peerMenu.latencyUnit' | transloco }}</span
+      >
     }
   </div>
 }
 
 <div class="px-3 py-2">
   @if (networkService.peerIds.length <= 1) {
-    <button class="w-full" (click)="showLobby()" [disabled]="!networkService.isOpen">ロビー（ルーム一覧）を表示</button>
+    <button class="w-full" (click)="showLobby()" [disabled]="!networkService.isOpen">
+      {{ 'feature.lobby.peerMenu.showLobby' | transloco }}
+    </button>
   }
 </div>
 <div class="px-3 pb-2">

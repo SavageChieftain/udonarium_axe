@@ -1,14 +1,15 @@
 @if (!isConnected()) {
   <div class="mb-4 flex gap-2">
     <button (click)="reload()" [disabled]="isReloading()">
-      <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 3px">refresh</i>一覧を更新
+      <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 3px">refresh</i
+      >{{ 'feature.lobby.lobby.reload' | transloco }}
     </button>
     <button
       class="rounded-ui-sm border-ui-accent bg-ui-accent hover:border-ui-accent-hover hover:bg-ui-accent-hover cursor-pointer border border-solid px-[1em] py-[0.4em] text-[0.875rem] whitespace-nowrap text-white hover:shadow-[0_0_0_3px_var(--ui-accent-glow)]"
       (click)="showRoomSetting()"
     >
       <i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 3px">add</i
-      >新しいルームを作成する
+      >{{ 'feature.lobby.lobby.createRoom' | transloco }}
     </button>
   </div>
   @if (rooms().length) {
@@ -18,22 +19,22 @@
           <th
             class="border-ui-border-panel text-ui-muted border-b border-solid px-2.5 py-1.5 text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
           >
-            ルームID
+            {{ 'feature.lobby.lobby.roomId' | transloco }}
           </th>
           <th
             class="border-ui-border-panel text-ui-muted border-b border-solid px-2.5 py-1.5 text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
           >
-            ルーム名
+            {{ 'feature.lobby.lobby.roomName' | transloco }}
           </th>
           <th
             class="border-ui-border-panel text-ui-muted border-b border-solid px-2.5 py-1.5 text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
           >
-            PW
+            {{ 'feature.lobby.lobby.pw' | transloco }}
           </th>
           <th
             class="border-ui-border-panel text-ui-muted border-b border-solid px-2.5 py-1.5 text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
           >
-            参加者
+            {{ 'feature.lobby.lobby.participants' | transloco }}
           </th>
           <th
             class="border-ui-border-panel text-ui-muted border-b border-solid px-2.5 py-1.5 text-center text-[0.72rem] font-semibold tracking-[0.04em] whitespace-nowrap uppercase"
@@ -66,7 +67,7 @@
               </td>
             }
             <td class="border-ui-border-panel border-b border-solid px-2.5 py-1.75 text-center whitespace-nowrap">
-              {{ room.peerContexts.length }}人
+              {{ room.peerContexts.length }}{{ 'feature.lobby.lobby.peopleSuffix' | transloco }}
             </td>
             <td class="border-ui-border-panel border-b border-solid px-2.5 py-1.75 text-center whitespace-nowrap">
               @if (0 < room.alias.length) {
@@ -76,7 +77,7 @@
                   type="button"
                   (click)="connect(room.peerContexts)"
                 >
-                  接続
+                  {{ 'feature.lobby.lobby.connect' | transloco }}
                 </button>
               }
             </td>
@@ -89,6 +90,8 @@
   }
 } @else {
   <p class="text-ui-muted text-[0.8rem] leading-[1.7]">
-    別のルームに接続したい場合は、他の参加者との接続を切ってください。<br />（※ページリロードで切断できます。）
+    {{ 'feature.lobby.lobby.alreadyConnected' | transloco }}<br />{{
+      'feature.lobby.lobby.alreadyConnectedHint' | transloco
+    }}
   </p>
 }

@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/network/network';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -30,7 +31,7 @@ export class NetworkEventHandlerService {
       const noReconnectErrorTypes = ['server-error'];
       if (noReconnectErrorTypes.includes(errorType)) return;
 
-      this.chatMessageService.sendSystemMessage('再接続を試みます...');
+      this.chatMessageService.sendSystemMessage(encodeI18nMessage('feature.lobby.errors.reconnecting'));
       Network.openStandby();
     }, this.destroyRef);
     this.objectChange.peerConnect$.subscribe(() => {
@@ -41,11 +42,11 @@ export class NetworkEventHandlerService {
   private resolveNetworkErrorMessage(errorType: string, _errorMessage: string): string {
     switch (errorType) {
       case 'server-error':
-        return 'SkyWayのバックエンドサーバに接続できません。ネットワーク設定を確認してください。';
+        return encodeI18nMessage('feature.lobby.errors.skywayServer');
       case 'token-expired':
-        return 'SkyWayの認証トークンが期限切れになりました。再接続します。';
+        return encodeI18nMessage('feature.lobby.errors.tokenExpired');
       default:
-        return `ネットワークエラーが発生しました。(${errorType})`;
+        return encodeI18nMessage('feature.lobby.errors.generic', { errorType });
     }
   }
 }

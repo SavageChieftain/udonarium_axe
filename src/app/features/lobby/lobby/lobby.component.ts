@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -13,15 +14,17 @@ import {
 } from '@axe/features/lobby/password-check/password-check.component';
 import { RoomSettingComponent } from '@axe/features/lobby/room-setting/room-setting.component';
 import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'lobby',
   templateUrl: './lobby.component.html',
   host: { class: 'block' },
-  imports: [TextTooltipDirective],
+  imports: [TextTooltipDirective, TranslocoModule],
 })
 export class LobbyComponent {
+  private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectStore = inject(ObjectStore);
@@ -32,7 +35,7 @@ export class LobbyComponent {
 
   isReloading = signal(false);
 
-  help = signal('「一覧を更新」ボタンを押すと接続可能なルーム一覧を表示します。');
+  help = signal(this.t('feature.lobby.lobby.hintInitial'));
 
   get currentRoom(): string {
     return Network.peerContext.roomId;
@@ -68,7 +71,7 @@ export class LobbyComponent {
   }
 
   private changeTitle() {
-    this.modalService.title = this.panelService.title = 'ロビー';
+    this.modalService.title = this.panelService.title = this.t('feature.lobby.lobby.title');
     this.modalService.titleTooltip = this.panelService.titleTooltip = '';
     if (Network.peerContext.roomName.length) {
       const name = Network.peerContext.roomName;
@@ -81,7 +84,7 @@ export class LobbyComponent {
 
   async reload() {
     this.isReloading.set(true);
-    this.help.set('検索中...');
+    this.help.set(this.t('feature.lobby.lobby.hintSearching'));
     this.rooms.set([]);
     try {
       const roomInfos = await Promise.race([
@@ -99,10 +102,10 @@ export class LobbyComponent {
         return 0;
       });
       this.rooms.set(roomsList);
-      this.help.set('接続可能なルームが見つかりませんでした。「新しいルームを作成する」で新規ルームを作成できます。');
+      this.help.set(this.t('feature.lobby.lobby.hintNoRooms'));
     } catch (e) {
-      Logger.error('[Lobby] ルーム一覧の取得に失敗しました', e);
-      this.help.set('ルーム一覧の取得に失敗しました。「一覧を更新」で再検索できます。');
+      Logger.error('[Lobby] failed to fetch room list', e);
+      this.help.set(this.t('feature.lobby.lobby.hintListFailed'));
     } finally {
       this.isReloading.set(false);
     }

@@ -8,9 +8,11 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { PeerContext } from '@axe/core/network/peer-context';
+import { TranslocoModule } from '@jsverse/transloco';
 
 export interface PasswordCheckOptions {
   peerContext: PeerContext;
@@ -21,10 +23,11 @@ export interface PasswordCheckOptions {
   selector: 'password-check',
   templateUrl: './password-check.component.html',
   host: { class: 'block' },
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PasswordCheckComponent {
+  private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
 
@@ -41,7 +44,11 @@ export class PasswordCheckComponent {
     this.targetPeerContext = option?.peerContext ?? PeerContext.parse('???');
     this.title = option?.title ?? '';
 
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = `パスワード ＜${this.title}＞`));
+    queueMicrotask(
+      () =>
+        (this.modalService.title = this.panelService.title =
+          `${this.t('feature.lobby.passwordCheck.title')} ＜${this.title}＞`)
+    );
     afterNextRender(() => {
       this.passwordInputElementRef().nativeElement.focus();
     });
@@ -57,6 +64,6 @@ export class PasswordCheckComponent {
       this.modalService.resolve(this.password());
       return;
     }
-    this.help.set('パスワードが違います');
+    this.help.set(this.t('feature.lobby.passwordCheck.passwordWrong'));
   }
 }

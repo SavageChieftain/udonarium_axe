@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -14,6 +15,7 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { TranslocoModule } from '@jsverse/transloco';
 
 export function resolveReconnectUserId(previousUserId: string, currentUserId: string): string {
   if (previousUserId?.length) return previousUserId;
@@ -42,8 +44,10 @@ export function isReconnectCompleted(expectedPeerIds: Set<string>, observedPeerI
   selector: 're-connect',
   templateUrl: './re-connect.component.html',
   host: { class: 'block' },
+  imports: [TranslocoModule],
 })
 export class ReConnectComponent {
+  private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectStore = inject(ObjectStore);
@@ -74,7 +78,7 @@ export class ReConnectComponent {
   }
 
   private changeTitle() {
-    this.modalService.title = this.panelService.title = '再接続';
+    this.modalService.title = this.panelService.title = this.t('feature.lobby.reConnect.title');
     this.modalService.titleTooltip = this.panelService.titleTooltip = '';
     const truncated = this.roomName.length > 16 ? this.roomName.slice(0, 16) + '…' : this.roomName;
     this.modalService.title = this.panelService.title = '＜' + truncated + '/' + this.roomId + '＞';
@@ -85,18 +89,18 @@ export class ReConnectComponent {
     this.reconnectUserId = resolveReconnectUserId(this.reconnectUserId, this.networkService.peerContext.userId);
     this.disConnect();
     if (this.forceCleanup()) {
-      Logger.warn('[Network] 強制クリーンアップを有効にして再接続を実行します');
+      Logger.warn('[Network] reconnecting with force-cleanup enabled');
       this.deleteObject();
     }
 
     for (const room of this.rooms) {
       if (room.alias == this.roomId + this.roomName) {
-        Logger.info(`[Network] 再接続処理を開始 (room: ${this.roomName})`);
+        Logger.info(`[Network] reconnect started (room: ${this.roomName})`);
         this.connect(room.peerContexts);
         return;
       }
     }
-    Logger.warn(`[Network] 再接続先が見つかりません (room: ${this.roomName}/${this.roomId})`);
+    Logger.warn(`[Network] reconnect target not found (room: ${this.roomName}/${this.roomId})`);
   }
 
   async reload() {
@@ -116,7 +120,7 @@ export class ReConnectComponent {
         return 0;
       });
     } catch (e) {
-      Logger.error('[ReConnect] ルーム一覧の取得に失敗しました', e);
+      Logger.error('[ReConnect] failed to fetch room list', e);
     }
   }
 
@@ -140,13 +144,13 @@ export class ReConnectComponent {
     const observedPeerIds: Set<string> = new Set();
     const offOpen = this.objectChange.networkOpen$.subscribe(() => {
       offOpen();
-      Logger.info('[Network] ピア接続開始');
+      Logger.info('[Network] peer connection started');
       this.objectStore.clearDeleteHistory();
       for (const context of peerContexts) {
         Network.connect(context);
       }
       const timeoutTimer = setTimeout(() => {
-        Logger.warn('[Network] 再接続の完了待機がタイムアウトしました');
+        Logger.warn('[Network] reconnect wait timed out');
         this.resetNetwork();
         this.closeIfConnected();
       }, 5000);
@@ -165,7 +169,7 @@ export class ReConnectComponent {
         if (expectedPeerIds.has(event.peerId)) {
           observedPeerIds.add(event.peerId);
         }
-        Logger.info(`[Network] 接続結果 (${observedPeerIds.size}/${expectedPeerIds.size})`, event.peerId);
+        Logger.info(`[Network] connect result (${observedPeerIds.size}/${expectedPeerIds.size})`, event.peerId);
         tryComplete();
       };
       subs.offConnect = this.objectChange.peerConnect$.subscribe(handler, this.destroyRef);
@@ -188,16 +192,15 @@ export class ReConnectComponent {
   }
 
   disConnect() {
-    Logger.info(`[Network] 切断実行 (接続数: ${this.networkService.peerIds.length})`);
+    Logger.info(`[Network] disconnecting (peers: ${this.networkService.peerIds.length})`);
     for (const peerContext of [...this.networkService.peerContexts]) {
       this.networkService.disconnect(peerContext);
     }
   }
 
   deleteObject() {
-    Logger.info('[Network] 切断元と不一致の可能性があるオブジェクトを削除');
+    Logger.info('[Network] dropping objects that may diverge from the new peers');
 
-    //要素変更後updateをかけ、clearDeleteHistoryでログを飛ばせば再接続先の後方を取得、表示される
     const gameCharacters = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const obj of gameCharacters) {
       obj.setLocation('graveyard');

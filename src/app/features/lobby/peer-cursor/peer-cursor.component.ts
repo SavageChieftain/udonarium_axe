@@ -11,6 +11,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { callCursorMove, callHeartBeat } from '@axe/core/event/domain-events';
@@ -40,6 +42,7 @@ export class PeerCursorComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly cursorElementRef = viewChild<ElementRef>('cursor');
   readonly opacityElementRef = viewChild<ElementRef>('opacity');
@@ -168,13 +171,11 @@ export class PeerCursorComponent {
       if (!this.cursor().isDisConnect) {
         this.cursor().isDisConnect = true;
         if (sysTab) {
-          const text =
-            this.cursor().userId +
-            '[' +
-            this.cursor().name +
-            '] さんからあなたへの接続確認信号が' +
-            PeerCursor.myCursor.timeout +
-            '秒以上受信できません。通信障害の可能性があります。';
+          const text = encodeI18nMessage('feature.lobby.peerCursor.noSignal', {
+            userId: this.cursor().userId,
+            name: this.cursor().name,
+            seconds: PeerCursor.myCursor.timeout,
+          });
           this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
         }
       }
@@ -182,7 +183,10 @@ export class PeerCursorComponent {
       if (this.cursor().isDisConnect) {
         setTimeout(() => {
           this.timestampInterval = null;
-          const text = 'あなたと' + this.cursor().userId + '[' + this.cursor().name + '] さんの接続を確認しました。';
+          const text = encodeI18nMessage('feature.lobby.peerCursor.reconnected', {
+            userId: this.cursor().userId,
+            name: this.cursor().name,
+          });
           if (sysTab) {
             this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
           }
@@ -202,7 +206,10 @@ export class PeerCursorComponent {
     if (!chatTabList) return;
     const sysTab = chatTabList.systemMessageTab;
     if (sysTab) {
-      const text = this.cursor().userId + '[' + this.cursor().name + '] さんがログアウトしました。';
+      const text = encodeI18nMessage('feature.lobby.peerCursor.loggedOut', {
+        userId: this.cursor().userId,
+        name: this.cursor().name,
+      });
       this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
     }
   }
