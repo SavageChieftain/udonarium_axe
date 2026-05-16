@@ -1,12 +1,13 @@
 <div class="text-ui-text grid h-full grid-cols-[180px_1fr] overflow-hidden text-[13px]">
-  <!-- ── 左カラム: 一覧 ── -->
   <aside class="border-ui-border-panel bg-ui-panel flex flex-col overflow-hidden border-r border-solid">
     <div class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid px-2.5 py-2">
-      <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">カットイン</span>
+      <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">{{
+        'feature.media.cutIn.sidebarTitle' | transloco
+      }}</span>
       <button
         class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-6.5 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-base!"
         type="button"
-        title="新しいカットインを作る"
+        [title]="'feature.media.cutIn.createNew' | transloco"
         (click)="createCutIn()"
       >
         <i class="material-icons">add</i>
@@ -30,7 +31,6 @@
     </ul>
   </aside>
 
-  <!-- ── 右カラム: 詳細 ── -->
   <main
     class="bg-ui-elevated flex flex-col overflow-hidden [&_cut-in-editor]:flex [&_cut-in-editor]:min-h-0 [&_cut-in-editor]:flex-1 [&_cut-in-editor]:flex-col [&_cut-in-editor]:overflow-hidden"
   >
@@ -39,13 +39,13 @@
         class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2.5 p-6 text-center [&_.material-icons]:text-[40px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">slideshow</i>
-        <p class="m-0 text-[13px]">カットインがありません</p>
+        <p class="m-0 text-[13px]">{{ 'feature.media.cutIn.empty' | transloco }}</p>
         <button
           class="bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border-none px-3 py-1.25 text-[13px] font-semibold text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="createCutIn()"
         >
-          カットインを作成
+          {{ 'feature.media.cutIn.createButton' | transloco }}
         </button>
       </div>
     }
@@ -55,7 +55,7 @@
         class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2.5 p-6 text-center [&_.material-icons]:text-[40px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">touch_app</i>
-        <p class="m-0 text-[13px]">左のリストから選択してください</p>
+        <p class="m-0 text-[13px]">{{ 'feature.media.cutIn.selectFromList' | transloco }}</p>
       </div>
     }
 
@@ -68,14 +68,15 @@
           (click)="save()"
           [disabled]="isSaving()"
         >
-          <i class="material-icons">save</i>{{ isSaving() ? progressPercent() + '%' : '保存' }}
+          <i class="material-icons">save</i
+          >{{ isSaving() ? progressPercent() + '%' : ('feature.media.cutIn.save' | transloco) }}
         </button>
         <button
           class="text-ui-danger border-ui-danger hover:bg-ui-danger-bg rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-3 py-1.25 text-[13px] font-semibold transition-[background,color] [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="delete()"
         >
-          <i class="material-icons">delete</i>削除
+          <i class="material-icons">delete</i>{{ 'feature.media.cutIn.delete' | transloco }}
         </button>
       </div>
     }

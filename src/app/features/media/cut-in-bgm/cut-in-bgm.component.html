@@ -9,7 +9,7 @@
         type="button"
         (click)="selectTag.set(tab)"
       >
-        {{ tab }}
+        {{ displayTab(tab) }}
       </button>
     }
   </div>
@@ -43,7 +43,7 @@
                 type="button"
                 (click)="stop()"
               >
-                <i class="material-icons">stop</i>停止
+                <i class="material-icons">stop</i>{{ 'feature.media.cutIn.bgmStop' | transloco }}
               </button>
             } @else {
               <button
@@ -52,7 +52,7 @@
                 (click)="play(audio)"
                 [disabled]="!audio.isReady"
               >
-                <i class="material-icons">play_arrow</i>試聴
+                <i class="material-icons">play_arrow</i>{{ 'feature.media.cutIn.bgmPreview' | transloco }}
               </button>
             }
             <button
@@ -60,7 +60,7 @@
               type="button"
               (click)="selectBgm(audio)"
             >
-              <i class="material-icons">check</i>選択
+              <i class="material-icons">check</i>{{ 'feature.media.cutIn.bgmSelect' | transloco }}
             </button>
           </div>
         </li>
@@ -71,7 +71,7 @@
       class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
     >
       <i class="material-icons">music_off</i>
-      <p class="m-0 text-[13px]">音楽がアップロードされていません。</p>
+      <p class="m-0 text-[13px]">{{ 'feature.media.cutIn.bgmEmpty' | transloco }}</p>
     </div>
   }
 </div>

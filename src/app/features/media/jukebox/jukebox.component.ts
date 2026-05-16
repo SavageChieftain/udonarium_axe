@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -15,13 +16,14 @@ import { Jukebox } from '@axe/domain/media/jukebox';
 import { Playlist } from '@axe/domain/media/playlist';
 import { Config } from '@axe/domain/peer/config';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-jukebox',
   templateUrl: './jukebox.component.html',
   host: { class: 'block' },
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
 })
 export class JukeboxComponent {
   private readonly modalService = inject(ModalService);
@@ -32,6 +34,7 @@ export class JukeboxComponent {
   private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
 
   roomVolumeChange = false;
 
@@ -70,13 +73,15 @@ export class JukeboxComponent {
     AudioPlayer.seVolume = seVolume * this.roomVolume;
   }
 
+  readonly allTag = computed(() => this.t('feature.media.jukebox.tagAll'));
+
   readonly audios = computed(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('audio-tag')();
     this.objectChange.versionOf('Jukebox')();
     const all = this.audioStorage.audios.filter((audio) => !audio.isHidden);
     const tag = this.selectTag();
-    if (tag === '全て') return all;
+    if (tag === this.allTag()) return all;
     return all.filter((audio) => {
       const audioTag = AudioTag.get(audio.identifier);
       const t = audioTag?.tag || 'BGM';
@@ -84,7 +89,7 @@ export class JukeboxComponent {
     });
   });
 
-  readonly selectTag = signal('全て');
+  readonly selectTag = signal(this.t('feature.media.jukebox.tagAll'));
 
   readonly viewMode = signal<'library' | 'playlist'>('library');
 
@@ -109,7 +114,7 @@ export class JukeboxComponent {
       tags.add(t);
     }
     const sorted = [...tags].sort();
-    return ['全て', ...sorted];
+    return [this.allTag(), ...sorted];
   });
 
   static readonly PRESET_TAGS = ['BGM', 'SE'];
@@ -175,7 +180,7 @@ export class JukeboxComponent {
   });
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ジュークボックス'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = this.t('feature.media.jukebox.title')));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
     this.destroyRef.onDestroy(() => this.stop());
     const timer = setInterval(() => this._tick.update((v) => v + 1), 500);

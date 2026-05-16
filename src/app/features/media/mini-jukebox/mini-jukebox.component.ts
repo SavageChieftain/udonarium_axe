@@ -22,12 +22,13 @@ import { Jukebox } from '@axe/domain/media/jukebox';
 import { Playlist } from '@axe/domain/media/playlist';
 import { Config } from '@axe/domain/peer/config';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-mini-jukebox',
   templateUrl: './mini-jukebox.component.html',
-  imports: [FormsModule, DraggableDirective],
+  imports: [FormsModule, DraggableDirective, TranslocoModule],
 })
 export class MiniJukeboxComponent {
   private readonly objectStore = inject(ObjectStore);

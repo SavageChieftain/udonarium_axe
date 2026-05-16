@@ -1,13 +1,16 @@
 <div class="text-ui-text flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3.5 py-3 text-[13px]">
-  <!-- ── プレビュー & 名称 ── -->
   <div class="mb-1 flex items-start gap-3">
     <div
       class="bg-ui-input border-ui-border-panel rounded-ui-sm group relative size-24 shrink-0 cursor-pointer overflow-hidden border border-solid"
       (click)="openCutInImageModal()"
-      title="画像を選択"
+      [title]="'feature.media.cutIn.selectImageTitle' | transloco"
       role="button"
     >
-      <img class="block size-full object-contain" [src]="cutInImageUrl() | safe: 'resourceUrl'" alt="プレビュー" />
+      <img
+        class="block size-full object-contain"
+        [src]="cutInImageUrl() | safe: 'resourceUrl'"
+        [alt]="'feature.media.cutIn.previewAlt' | transloco"
+      />
       @if (isYouTubeCutIn()) {
         <i
           class="material-icons text-ui-danger absolute right-1 bottom-1 text-[18px]! [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]"
@@ -23,44 +26,45 @@
 
     <div class="flex min-w-0 flex-1 flex-col gap-2">
       <div class="mb-1 flex flex-col gap-1">
-        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">名称</label>
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+          'feature.media.cutIn.nameLabel' | transloco
+        }}</label>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
           name="cut-in-name"
           [(ngModel)]="cutInName"
-          placeholder="カットイン名"
+          [placeholder]="'feature.media.cutIn.namePlaceholder' | transloco"
           [attr.disabled]="!isEditable() ? '' : null"
         />
       </div>
 
-      <!-- 再生コントロール -->
       <div class="flex flex-wrap gap-1.5">
         <button
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,border-color,color] [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="playCutIn()"
-          title="全員に再生"
+          [title]="'feature.media.cutIn.playAll' | transloco"
         >
           <i class="material-icons">play_arrow</i>
-          <span>全員再生</span>
+          <span>{{ 'feature.media.cutIn.playAllLabel' | transloco }}</span>
         </button>
         <button
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,border-color,color] [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="previewCutIn()"
-          title="自分だけ再生"
+          [title]="'feature.media.cutIn.playSelf' | transloco"
         >
           <i class="material-icons">person_play</i>
-          <span>自分だけ</span>
+          <span>{{ 'feature.media.cutIn.playSelfLabel' | transloco }}</span>
         </button>
         <button
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm hover:bg-ui-hover hover:border-ui-danger hover:text-ui-danger inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,border-color,color] [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="stopCutIn()"
-          title="停止"
+          [title]="'feature.media.cutIn.stop' | transloco"
         >
           <i class="material-icons">stop</i>
-          <span>停止</span>
+          <span>{{ 'feature.media.cutIn.stop' | transloco }}</span>
         </button>
       </div>
     </div>
@@ -68,8 +72,9 @@
 
   <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
-  <!-- ── 表示設定 ── -->
-  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">表示設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">
+    {{ 'feature.media.cutIn.displaySection' | transloco }}
+  </div>
 
   <div class="mb-1 flex flex-col gap-1">
     <label
@@ -81,7 +86,11 @@
         name="cutInOriginalSize"
         [attr.disabled]="!isEditable() ? '' : null"
       />
-      <span>{{ cutIn()?.videoId ? '標準サイズで表示' : '元サイズで表示' }}</span>
+      <span>{{
+        cutIn()?.videoId
+          ? ('feature.media.cutIn.standardSize' | transloco)
+          : ('feature.media.cutIn.originalSize' | transloco)
+      }}</span>
     </label>
   </div>
 
@@ -123,12 +132,14 @@
         [attr.disabled]="!isEditable() || cutInOriginalSize ? '' : null"
         (click)="chkImageAspect()"
       />
-      <span>縦横比を維持</span>
+      <span>{{ 'feature.media.cutIn.keepAspect' | transloco }}</span>
     </label>
   </div>
 
   <div class="mb-1 flex flex-col gap-1">
-    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">X 位置</label>
+    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+      'feature.media.cutIn.xPosition' | transloco
+    }}</label>
     <div class="flex items-center gap-2">
       <input
         class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
@@ -152,7 +163,9 @@
   </div>
 
   <div class="mb-1 flex flex-col gap-1">
-    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">Y 位置</label>
+    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+      'feature.media.cutIn.yPosition' | transloco
+    }}</label>
     <div class="flex items-center gap-2">
       <input
         class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
@@ -177,8 +190,9 @@
 
   <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
-  <!-- ── 再生設定 ── -->
-  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">再生設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">
+    {{ 'feature.media.cutIn.playbackSection' | transloco }}
+  </div>
 
   <div class="mb-1 flex items-end gap-2.5">
     <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1">
@@ -191,11 +205,13 @@
           name="cutInIsLoop"
           [attr.disabled]="!isEditable() ? '' : null"
         />
-        <span>ループ再生</span>
+        <span>{{ 'feature.media.cutIn.loop' | transloco }}</span>
       </label>
     </div>
     <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1">
-      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">再生時間 (秒)</label>
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+        'feature.media.cutIn.playSeconds' | transloco
+      }}</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-out-time"
@@ -209,17 +225,20 @@
 
   <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
-  <!-- ── タグ & トリガー ── -->
-  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">タグ & トリガー</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">
+    {{ 'feature.media.cutIn.tagTriggerSection' | transloco }}
+  </div>
 
   <div class="mb-1 flex items-end gap-2.5">
     <div class="mb-1 flex min-w-0 flex-2 flex-col gap-1">
-      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">タグ名称</label>
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+        'feature.media.cutIn.tagName' | transloco
+      }}</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-tag-name"
         [(ngModel)]="cutInTagName"
-        placeholder="（空欄可）"
+        [placeholder]="'feature.media.cutIn.tagNamePlaceholder' | transloco"
         [attr.disabled]="!isEditable() ? '' : null"
       />
     </div>
@@ -233,7 +252,7 @@
           name="chatActivate"
           [attr.disabled]="!isEditable() ? '' : null"
         />
-        <span>チャット末尾発動</span>
+        <span>{{ 'feature.media.cutIn.chatActivate' | transloco }}</span>
       </label>
     </div>
   </div>
@@ -242,15 +261,14 @@
     class="bg-ui-elevated border-l-ui-accent text-ui-muted rounded-r-ui-sm [&_.material-icons]:text-ui-accent flex items-start gap-1.25 border-l-[3px] border-solid px-2.5 py-1.75 text-[11px] leading-[1.6] [&_.material-icons]:mt-px [&_.material-icons]:shrink-0 [&_.material-icons]:text-[14px]!"
   >
     <i class="material-icons">info_outline</i>
-    <span
-      >同名タグのカットインは先行するものを停止します（空欄含む）。タグ空欄かつ音楽設定ありの場合はジュークボックスのBGMを停止します。SEを同時再生したい場合はタグを設定してください。</span
-    >
+    <span>{{ 'feature.media.cutIn.tagInfo' | transloco }}</span>
   </div>
 
   <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
-  <!-- ── 音楽設定 ── -->
-  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">音楽設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">
+    {{ 'feature.media.cutIn.musicSection' | transloco }}
+  </div>
 
   <div class="mb-1 flex flex-row items-center gap-2.5">
     <button
@@ -258,7 +276,7 @@
       type="button"
       (click)="openCutInBgmModal()"
     >
-      <i class="material-icons">music_note</i>BGM 設定
+      <i class="material-icons">music_note</i>{{ 'feature.media.cutIn.bgmSettingButton' | transloco }}
     </button>
     <span
       class="text-ui-muted inline-flex min-w-0 items-center gap-1 truncate text-[12px] [&_.material-icons]:shrink-0 [&_.material-icons]:text-[14px]!"
@@ -270,15 +288,20 @@
       }
       @if (!isCutInBgmUploaded()) {
         <i class="material-icons">cancel</i>
-        {{ cutInAudioName ? '音楽ファイルがアップされていません' : '音楽ファイルが設定されていません' }}
+        {{
+          cutInAudioName
+            ? ('feature.media.cutIn.audioNotUploaded' | transloco)
+            : ('feature.media.cutIn.audioNotSet' | transloco)
+        }}
       }
     </span>
   </div>
 
   <hr class="border-ui-border-panel my-1.5 border-t border-solid" />
 
-  <!-- ── YouTube 設定 ── -->
-  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">YouTube 設定</div>
+  <div class="text-ui-muted mt-1 mb-0.5 text-[11px] font-semibold tracking-wider uppercase">
+    {{ 'feature.media.cutIn.youtubeSection' | transloco }}
+  </div>
 
   <div class="mb-1 flex flex-col gap-1">
     <label
@@ -291,13 +314,15 @@
         [attr.disabled]="!isEditable() ? '' : null"
         (change)="changeYouTubeInfo()"
       />
-      <span>YouTube 再生を使用</span>
+      <span>{{ 'feature.media.cutIn.youtubeEnabled' | transloco }}</span>
     </label>
   </div>
 
   @if (cutInIsVideo) {
     <div class="mb-1 flex flex-col gap-1">
-      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">YouTube URL</label>
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+        'feature.media.cutIn.youtubeUrl' | transloco
+      }}</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-[border-color] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         name="cut-in-video-url"
@@ -308,7 +333,9 @@
       />
     </div>
     <div class="mb-1 flex flex-col gap-1">
-      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">個別音量</label>
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+        'feature.media.cutIn.youtubeVolume' | transloco
+      }}</label>
       <div class="flex items-center gap-2">
         <input
           class="flex-1 [accent-color:var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-50"
@@ -333,8 +360,10 @@
       </div>
     </div>
     <p class="text-ui-muted [&_a]:text-ui-accent my-0.5 text-[11px] [&_a]:underline">
-      <a href="https://www.youtube.com/terms" target="_blank" (click)="openYouTubeTerms()">YouTube 利用規約</a
-      >をご確認の上ご利用ください。
+      <a href="https://www.youtube.com/terms" target="_blank" (click)="openYouTubeTerms()">{{
+        'feature.media.cutIn.youtubeTerms' | transloco
+      }}</a
+      >{{ 'feature.media.cutIn.youtubeTermsNotice' | transloco }}
     </p>
   }
 </div>

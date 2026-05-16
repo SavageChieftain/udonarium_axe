@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -9,11 +10,13 @@ import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-bgm',
   templateUrl: './cut-in-bgm.component.html',
+  imports: [TranslocoModule],
 })
 export class CutInBgmComponent {
   private readonly modalService = inject(ModalService);
@@ -23,6 +26,14 @@ export class CutInBgmComponent {
   private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
+
+  displayTab(tab: string): string {
+    if (tab === '全て') return this.t('feature.media.cutIn.bgmTabAll');
+    if (tab === 'BGM') return this.t('feature.media.cutIn.bgmTabBgm');
+    if (tab === 'SE') return this.t('feature.media.cutIn.bgmTabSe');
+    return tab;
+  }
 
   static readonly TAGS = ['全て', 'BGM', 'SE'] as const;
 
@@ -51,7 +62,7 @@ export class CutInBgmComponent {
   readonly auditionPlayer: AudioPlayer = new AudioPlayer();
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインBGM選択'));
+    queueMicrotask(() => (this.modalService.title = this.panelService.title = this.t('feature.media.cutIn.bgmTitle')));
     this.auditionPlayer.volumeType = VolumeType.AUDITION;
     this.destroyRef.onDestroy(() => this.stop());
   }

@@ -1,4 +1,5 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
@@ -12,6 +13,7 @@ export class CutInEventHandlerService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly audioStorage = inject(AudioStorage);
   private readonly panelService = inject(PanelService);
+  private readonly t = inject(TRANSLATE_FN);
 
   private readonly soundOnlyPlayer = new AudioPlayer();
 
@@ -40,7 +42,7 @@ export class CutInEventHandlerService {
     const marginH = Math.max(0, window.innerHeight - cutIn.height - 25);
 
     const option: PanelOption = {
-      title: 'カットイン : ' + cutIn.name,
+      title: this.t('feature.media.cutIn.panelTitleWith', { name: cutIn.name }),
       width: cutIn.width,
       height: cutIn.height + 25,
       left: (marginW * cutIn.x_pos) / 100,

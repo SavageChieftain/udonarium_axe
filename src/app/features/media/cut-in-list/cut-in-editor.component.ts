@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -13,12 +14,13 @@ import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.com
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { OpenUrlComponent } from '@axe/ui/components/open-url/open-url.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'cut-in-editor',
   templateUrl: './cut-in-editor.component.html',
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class CutInEditorComponent {
   private readonly modalService = inject(ModalService);
@@ -26,6 +28,7 @@ export class CutInEditorComponent {
   private readonly imageStorage = inject(ImageStorage);
   private readonly audioStorage = inject(AudioStorage);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly cutIn = input<CutIn | null>(null);
   readonly isEditable = input(false);
@@ -49,7 +52,6 @@ export class CutInEditorComponent {
     this.objectChange.fileVersion();
     const c = this.cutIn();
     if (!c) return ImageFile.Empty;
-    // imageIdentifier は @SyncVar なので versionOf で変更を検知する
     this.objectChange.versionOf(c.identifier)();
     const file = this.imageStorage.get(c.imageIdentifier);
     return file ? file : ImageFile.Empty;
@@ -89,7 +91,6 @@ export class CutInEditorComponent {
         const width = this.c.defVideoSizeWidth;
         if (this.c.width !== width) this.c.width = width;
       } else {
-        // cutInImage() を読むことで imageIdentifier 変更時に再評価させる
         const width = this.cutInImage().url ? this.originalImgWidth() : 0;
         if (width > 0 && this.c.width !== width) this.c.width = width;
       }
@@ -116,7 +117,6 @@ export class CutInEditorComponent {
         const height = this.c.defVideoSizeHeight;
         if (this.c.height !== height) this.c.height = height;
       } else {
-        // cutInImage() を読むことで imageIdentifier 変更時に再評価させる
         const height = this.cutInImage().url ? this.originalImgHeight() : 0;
         if (height > 0 && this.c.height !== height) this.c.height = height;
       }
@@ -374,7 +374,7 @@ export class CutInEditorComponent {
   openYouTubeTerms() {
     this.modalService.open(OpenUrlComponent, {
       url: 'https://www.youtube.com/terms',
-      title: 'YouTube 利用規約',
+      title: this.t('feature.media.cutIn.youtubeTerms'),
     });
     return false;
   }

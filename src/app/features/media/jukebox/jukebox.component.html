@@ -1,5 +1,4 @@
 <div class="text-ui-text flex flex-col gap-0 text-[13px]">
-  <!-- ── Now Playing ── -->
   <div
     class="bg-ui-elevated border-ui-border-panel flex min-h-14 items-center gap-2.5 border-b border-solid px-3 py-2.5"
     [class.block!]="nowPlayingArtwork()"
@@ -9,7 +8,9 @@
       <div class="relative w-full overflow-hidden">
         <img class="block h-40 w-full object-cover" [src]="nowPlayingArtwork()" alt="" />
         <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-3 py-2.5">
-          <div class="mb-0.5 text-[9px] font-bold tracking-widest text-white/70 uppercase">NOW PLAYING</div>
+          <div class="mb-0.5 text-[9px] font-bold tracking-widest text-white/70 uppercase">
+            {{ 'feature.media.jukebox.nowPlayingLabel' | transloco }}
+          </div>
           @if (jukebox.audio) {
             <div class="truncate text-[13px] font-semibold text-white">{{ jukebox.audio.name }}</div>
             <div class="mt-px text-[11px] text-white/60">{{ getTagOf(jukebox.audio) }}</div>
@@ -19,7 +20,7 @@
           <button
             class="border-ui-border-panel absolute top-2 right-2 inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid bg-black/45 p-0 text-white/80 transition-[background,color] hover:border-(--ui-danger) hover:bg-(--ui-danger-bg) hover:text-(--ui-danger) [&_.material-icons]:text-[18px]!"
             (click)="stopBGM(jukebox.audio)"
-            title="BGM/SE 停止"
+            [title]="'feature.media.jukebox.stopBgmSe' | transloco"
           >
             <i class="material-icons">stop</i>
           </button>
@@ -34,19 +35,23 @@
         }
       </div>
       <div class="min-w-0 flex-1">
-        <div class="text-ui-accent mb-0.5 text-[9px] font-bold tracking-widest uppercase">NOW PLAYING</div>
+        <div class="text-ui-accent mb-0.5 text-[9px] font-bold tracking-widest uppercase">
+          {{ 'feature.media.jukebox.nowPlayingLabel' | transloco }}
+        </div>
         @if (jukebox.audio) {
           <div class="text-ui-text truncate text-[13px] font-semibold">{{ jukebox.audio.name }}</div>
           <div class="text-ui-muted mt-px text-[11px]">{{ getTagOf(jukebox.audio) }}</div>
         } @else {
-          <div class="text-ui-dim truncate text-[13px] font-normal italic">— 停止中 —</div>
+          <div class="text-ui-dim truncate text-[13px] font-normal italic">
+            {{ 'feature.media.jukebox.stopped' | transloco }}
+          </div>
         }
       </div>
       @if (jukebox.audio) {
         <button
           class="bg-ui-hover border-ui-border-panel text-ui-muted inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid p-0 transition-[background,color] hover:border-(--ui-danger) hover:bg-(--ui-danger-bg) hover:text-(--ui-danger) [&_.material-icons]:text-[18px]!"
           (click)="stopBGM(jukebox.audio)"
-          title="BGM/SE 停止"
+          [title]="'feature.media.jukebox.stopBgmSe' | transloco"
         >
           <i class="material-icons">stop</i>
         </button>
@@ -54,11 +59,16 @@
     }
   </div>
 
-  <!-- ── Volume Controls ── -->
   <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-0 border-b border-solid px-3 py-2">
     <div class="flex items-center gap-1.5 py-0.75">
-      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="試聴">headphones</i>
-      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">試聴</span>
+      <i
+        class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!"
+        [title]="'feature.media.jukebox.auditionLabel' | transloco"
+        >headphones</i
+      >
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">{{
+        'feature.media.jukebox.auditionLabel' | transloco
+      }}</span>
       <input
         class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
         name="audition-volume"
@@ -70,8 +80,14 @@
       />
     </div>
     <div class="flex items-center gap-1.5 py-0.75">
-      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="BGM">library_music</i>
-      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">BGM</span>
+      <i
+        class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!"
+        [title]="'feature.media.jukebox.bgmLabel' | transloco"
+        >library_music</i
+      >
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">{{
+        'feature.media.jukebox.bgmLabel' | transloco
+      }}</span>
       <input
         class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
         name="bgm-volume"
@@ -83,8 +99,14 @@
       />
     </div>
     <div class="flex items-center gap-1.5 py-0.75">
-      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="SE">star</i>
-      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">SE</span>
+      <i
+        class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!"
+        [title]="'feature.media.jukebox.seLabel' | transloco"
+        >star</i
+      >
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">{{
+        'feature.media.jukebox.seLabel' | transloco
+      }}</span>
       <input
         class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
         name="se-volume"
@@ -96,8 +118,14 @@
       />
     </div>
     <div class="border-ui-border-panel mt-1 flex items-center gap-1.5 border-t border-solid pt-1.5">
-      <i class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!" title="全体（GM制御）">group</i>
-      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">全体</span>
+      <i
+        class="material-icons text-ui-dim w-4 shrink-0 text-center text-[14px]!"
+        [title]="'feature.media.jukebox.roomTooltip' | transloco"
+        >group</i
+      >
+      <span class="text-ui-muted w-6.5 shrink-0 text-right text-[11px]">{{
+        'feature.media.jukebox.roomLabel' | transloco
+      }}</span>
       <input
         class="h-1 flex-1 [accent-color:var(--ui-accent)] disabled:opacity-35"
         name="room-volume"
@@ -110,7 +138,7 @@
       />
       <label
         class="text-ui-dim inline-flex shrink-0 cursor-pointer items-center gap-0.75 text-[10px] font-semibold select-none [&_input[type=checkbox]]:size-3 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
-        title="全プレイヤー共通 GM制御"
+        [title]="'feature.media.jukebox.roomGmTooltip' | transloco"
       >
         <input type="checkbox" name="room-volume-change" [(ngModel)]="roomVolumeChange" />
         <span>GM</span>
@@ -118,7 +146,6 @@
     </div>
   </div>
 
-  <!-- ── View Mode tabs ── -->
   <div class="bg-ui-panel border-ui-border-panel shrink-0 border-b border-solid px-2.5 py-2">
     <div class="flex gap-0.5 rounded-[7px] bg-black/22 p-0.75">
       <button
@@ -129,7 +156,7 @@
         [class.shadow-[0_1px_4px_rgba(0,0,0,0.45)]]="viewMode() === 'library'"
         (click)="viewMode.set('library')"
       >
-        <i class="material-icons">library_music</i>ライブラリ
+        <i class="material-icons">library_music</i>{{ 'feature.media.jukebox.tabLibrary' | transloco }}
       </button>
       <button
         class="text-ui-muted inline-flex flex-1 cursor-pointer items-center justify-center gap-1.25 rounded-[5px] border-none bg-transparent px-2.5 py-1.75 text-[12px] font-medium transition-[background,color,box-shadow] select-none hover:bg-white/7 hover:text-(--ui-text) [&_.material-icons]:text-[15px]!"
@@ -139,13 +166,12 @@
         [class.shadow-[0_1px_4px_rgba(0,0,0,0.45)]]="viewMode() === 'playlist'"
         (click)="viewMode.set('playlist')"
       >
-        <i class="material-icons">queue_music</i>再生リスト
+        <i class="material-icons">queue_music</i>{{ 'feature.media.jukebox.tabPlaylist' | transloco }}
       </button>
     </div>
   </div>
 
   @if (viewMode() === 'library') {
-    <!-- ── Tag Filter ── -->
     <div
       class="bg-ui-panel border-ui-border-panel sticky -top-2 z-2 -mx-2 flex shrink-0 flex-wrap gap-1 border-b border-solid px-2.5 py-1.5"
     >
@@ -162,7 +188,6 @@
       }
     </div>
 
-    <!-- ── Library Playlist ── -->
     <div class="flex flex-1 flex-col overflow-y-auto">
       @for (audio of audios(); track audio.identifier) {
         <div
@@ -193,10 +218,10 @@
               [ngModel]="getTagOf(audio)"
               (ngModelChange)="setTagOf(audio, $event)"
               [disabled]="isInPlaylist(audio)"
-              [title]="isInPlaylist(audio) ? '再生リスト登録中はタグ変更できません' : ''"
+              [title]="isInPlaylist(audio) ? ('feature.media.jukebox.tagDisabled' | transloco) : ''"
             >
               @for (tag of tagList(); track tag) {
-                @if (tag !== '全て') {
+                @if (tag !== allTag()) {
                   <option [value]="tag">{{ tag }}</option>
                 }
               }
@@ -208,7 +233,7 @@
                 class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
                 (click)="play(audio)"
                 [disabled]="!audio.isReady"
-                title="試聴"
+                [title]="'feature.media.jukebox.preview' | transloco"
               >
                 <i class="material-icons">headphones</i>
               </button>
@@ -216,7 +241,7 @@
               <button
                 class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
                 (click)="stop()"
-                title="試聴停止"
+                [title]="'feature.media.jukebox.previewStop' | transloco"
               >
                 <i class="material-icons">stop</i>
               </button>
@@ -226,7 +251,11 @@
                 class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
                 (click)="playBGM(audio)"
                 [disabled]="!audio.isReady"
-                title="{{ getTagOf(audio) === 'SE' ? 'SE再生' : 'BGM再生' }}"
+                [title]="
+                  getTagOf(audio) === 'SE'
+                    ? ('feature.media.jukebox.playSE' | transloco)
+                    : ('feature.media.jukebox.playBGM' | transloco)
+                "
               >
                 <i class="material-icons">{{ getTagOf(audio) === 'SE' ? 'star' : 'play_arrow' }}</i>
               </button>
@@ -234,7 +263,7 @@
               <button
                 class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
                 (click)="stopBGM(audio)"
-                title="停止"
+                [title]="'feature.media.jukebox.stop' | transloco"
               >
                 <i class="material-icons">stop</i>
               </button>
@@ -244,7 +273,7 @@
                 <button
                   class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
                   (click)="addToPlaylist(audio)"
-                  title="再生リストに追加"
+                  [title]="'feature.media.jukebox.addToPlaylist' | transloco"
                 >
                   <i class="material-icons">playlist_add</i>
                 </button>
@@ -252,7 +281,7 @@
                 <button
                   class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
                   (click)="removeFromPlaylist(audio)"
-                  title="再生リストから削除"
+                  [title]="'feature.media.jukebox.removeFromPlaylist' | transloco"
                 >
                   <i class="material-icons">playlist_add_check</i>
                 </button>
@@ -266,12 +295,11 @@
           class="text-ui-dim flex flex-col items-center gap-2 px-4 py-8 text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
         >
           <i class="material-icons">queue_music</i>
-          <span>この分類に音楽ファイルはありません</span>
+          <span>{{ 'feature.media.jukebox.noAudioInCategory' | transloco }}</span>
         </div>
       }
     </div>
   } @else {
-    <!-- ── My Playlist ── -->
     <div class="flex flex-1 flex-col overflow-y-auto">
       @for (audio of playlistAudios(); track audio.identifier; let i = $index) {
         <div
@@ -311,7 +339,7 @@
                 class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
                 (click)="playBGM(audio)"
                 [disabled]="!audio.isReady"
-                title="BGM再生"
+                [title]="'feature.media.jukebox.playBGM' | transloco"
               >
                 <i class="material-icons">play_arrow</i>
               </button>
@@ -319,7 +347,7 @@
               <button
                 class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
                 (click)="stopBGM(audio)"
-                title="停止"
+                [title]="'feature.media.jukebox.stop' | transloco"
               >
                 <i class="material-icons">stop</i>
               </button>
@@ -327,7 +355,7 @@
             <button
               class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
               (click)="removeFromPlaylist(audio)"
-              title="再生リストから削除"
+              [title]="'feature.media.jukebox.removeFromPlaylist' | transloco"
             >
               <i class="material-icons">remove_circle_outline</i>
             </button>
@@ -339,11 +367,11 @@
           class="text-ui-dim flex flex-col items-center gap-2 px-4 py-8 text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
         >
           <i class="material-icons">playlist_play</i>
-          <span>再生リストにBGMを追加してください</span>
+          <span>{{ 'feature.media.jukebox.playlistEmpty' | transloco }}</span>
           <span class="text-ui-dim text-center text-[11px] opacity-70">
-            ライブラリタブで
+            {{ 'feature.media.jukebox.playlistEmptyHintPrefix' | transloco }}
             <i class="material-icons align-middle text-[14px]!">playlist_add</i>
-            ボタンで追加できます
+            {{ 'feature.media.jukebox.playlistEmptyHintSuffix' | transloco }}
           </span>
         </div>
       }
@@ -351,25 +379,25 @@
   }
 
   @if (viewMode() === 'library') {
-    <!-- ── Drop Zone ── -->
     <label
       class="border-ui-border-panel text-ui-dim hover:bg-ui-accent-bg hover:border-ui-accent hover:text-ui-text rounded-ui-sm mt-2.5 flex cursor-pointer flex-col items-center gap-1 border-2 border-dashed p-3 text-center transition-[background,border-color,color]"
     >
       <i class="material-icons text-[36px]! opacity-50">playlist_add</i>
-      <span class="text-[13px] font-medium">ここに音楽をドロップ</span>
-      <span class="text-[11px] opacity-70">またはここをクリックして選択</span>
+      <span class="text-[13px] font-medium">{{ 'feature.media.jukebox.dropMusic' | transloco }}</span>
+      <span class="text-[11px] opacity-70">{{ 'feature.media.jukebox.clickToSelect' | transloco }}</span>
       <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
-      <span class="text-[11px] opacity-45">１ファイルにつき10MBまで</span>
+      <span class="text-[11px] opacity-45">{{ 'feature.media.jukebox.maxFileSize' | transloco }}</span>
     </label>
 
-    <!-- ── Notes ── -->
     <div class="flex flex-col gap-0.5 px-3 pt-2 pb-1">
       <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">
-        ※「試聴」は自分のスピーカーだけで1回再生します。
+        {{ 'feature.media.jukebox.note1' | transloco }}
       </p>
-      <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">※「BGM/SE」はルーム内全員で再生します。</p>
       <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">
-        ※セーブデータ（zip）に音楽ファイルは含まれません。
+        {{ 'feature.media.jukebox.note2' | transloco }}
+      </p>
+      <p class="text-ui-dim m-0 text-[11px] leading-[1.4] opacity-75">
+        {{ 'feature.media.jukebox.note3' | transloco }}
       </p>
     </div>
   }

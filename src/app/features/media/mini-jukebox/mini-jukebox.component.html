@@ -1,6 +1,3 @@
-<!-- .player クラスは draggable.stack の識別子兼マーカー (CSS では未使用)。
-     .player-top も draggable.handle のセレクタターゲット。Tailwind 化後も
-     マーカーとして保持する。 -->
 <div
   class="player group rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute top-0 left-0 z-100 w-75 overflow-hidden border border-solid text-[13px] [backdrop-filter:blur(24px)_saturate(1.5)] transition-[width,border-radius] duration-150 ease-[ease] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
   [class.w-14!]="isMinimized()"
@@ -10,7 +7,6 @@
   [draggable.handle]="'.player-top'"
   [draggable.stack]="'.player'"
 >
-  <!-- ドラッグエリア + トラック情報 -->
   <div
     class="player-top relative flex cursor-grab items-center gap-2.5 pt-2.5 pr-2 pb-1.5 pl-3 active:cursor-grabbing"
     [class.cursor-grab!]="isMinimized()"
@@ -47,8 +43,6 @@
       <div class="min-w-0 flex-1">
         @if (trackName()) {
           <div class="w-full overflow-hidden">
-            <!-- track-name クラスはなくなり、animate-title-scroll を ngClass で切り替える。
-                 MiniJukeboxComponent が titleTextEl.style.setProperty('--scroll-dist', ...) で注入。 -->
             <span
               class="text-ui-text inline-block text-[13px] font-semibold whitespace-nowrap"
               [class.animate-title-scroll]="isTitleScrolling()"
@@ -65,14 +59,16 @@
           </div>
           <div class="text-ui-muted mt-0.5 text-[10px] tracking-wider opacity-[0.45]">{{ lastTrackTag() }}</div>
         } @else {
-          <div class="text-ui-dim text-[12px] font-normal italic">— 停止中 —</div>
+          <div class="text-ui-dim text-[12px] font-normal italic">
+            {{ 'feature.media.miniJukebox.stopped' | transloco }}
+          </div>
         }
       </div>
       <button
         class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-5.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 opacity-0 transition-[opacity,background,color] group-hover:opacity-100 hover:border-transparent hover:shadow-none"
         (mousedown)="$event.stopPropagation()"
         (click)="toggleMinimize()"
-        title="最小化"
+        [title]="'feature.media.miniJukebox.minimize' | transloco"
       >
         <i class="material-icons">remove</i>
       </button>
@@ -80,23 +76,26 @@
   </div>
 
   @if (!isMinimized()) {
-    <!-- プログレスバー + 時刻 -->
     <div class="flex h-5 items-center gap-2 px-3 pt-0.5">
-      <!-- ロックボタン: クリックで isSeekLocked をトグル。ロック中はシークバーは
-           再生位置に合わせて動くが、ユーザーのドラッグ操作は受け付けない。 -->
       <button
         type="button"
         class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-4.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none [&_.material-icons]:text-[12px]!"
         [class.text-ui-accent!]="isSeekLocked()"
         (mousedown)="$event.stopPropagation()"
         (click)="toggleSeekLock()"
-        [title]="isSeekLocked() ? 'シークバーのロック解除' : 'シークバーをロック'"
-        [attr.aria-label]="isSeekLocked() ? 'シークバーのロック解除' : 'シークバーをロック'"
+        [title]="
+          isSeekLocked()
+            ? ('feature.media.miniJukebox.seekUnlock' | transloco)
+            : ('feature.media.miniJukebox.seekLock' | transloco)
+        "
+        [attr.aria-label]="
+          isSeekLocked()
+            ? ('feature.media.miniJukebox.seekUnlock' | transloco)
+            : ('feature.media.miniJukebox.seekLock' | transloco)
+        "
       >
         <i class="material-icons">{{ isSeekLocked() ? 'lock' : 'lock_open' }}</i>
       </button>
-      <!-- seek-bar クラスは scoped CSS のベンダー擬似要素ターゲット。
-           [&.locked]: でロック中の見た目を切り替え、pointer-events で操作を遮断する。 -->
       <input
         type="range"
         class="seek-bar m-0 h-5 flex-1 cursor-pointer appearance-none bg-transparent p-0 [-webkit-appearance:none] disabled:pointer-events-none disabled:cursor-default disabled:opacity-40"
@@ -116,13 +115,12 @@
       </span>
     </div>
 
-    <!-- トランスポートコントロール -->
     <div class="flex items-center gap-0.5 px-2 pt-1 pb-2.5">
       <button
         class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]!"
         (click)="playPrev()"
         [disabled]="!bgmList().length"
-        title="前の曲"
+        [title]="'feature.media.miniJukebox.prev' | transloco"
       >
         <i class="material-icons">skip_previous</i>
       </button>
@@ -130,7 +128,9 @@
         class="text-ui-muted hover:bg-ui-danger-bg! hover:text-ui-danger! m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]!"
         (click)="togglePlayStop()"
         [disabled]="!isPlaying() && !lastAudioIdentifier()"
-        [title]="isPlaying() ? '停止' : '再生'"
+        [title]="
+          isPlaying() ? ('feature.media.miniJukebox.stop' | transloco) : ('feature.media.miniJukebox.play' | transloco)
+        "
       >
         <i class="material-icons">{{ isPlaying() ? 'stop' : 'play_arrow' }}</i>
       </button>
@@ -138,7 +138,7 @@
         class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]!"
         (click)="playNext()"
         [disabled]="!bgmList().length"
-        title="次の曲"
+        [title]="'feature.media.miniJukebox.next' | transloco"
       >
         <i class="material-icons">skip_next</i>
       </button>
@@ -146,7 +146,13 @@
         class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]!"
         [class.text-ui-accent!]="repeatMode() !== 'none'"
         (click)="cycleRepeatMode()"
-        [title]="repeatMode() === 'one' ? 'リピート1曲' : repeatMode() === 'all' ? 'リピート全曲' : 'リピートなし'"
+        [title]="
+          repeatMode() === 'one'
+            ? ('feature.media.miniJukebox.repeatOne' | transloco)
+            : repeatMode() === 'all'
+              ? ('feature.media.miniJukebox.repeatAll' | transloco)
+              : ('feature.media.miniJukebox.repeatOff' | transloco)
+        "
       >
         <i class="material-icons">{{ repeatMode() === 'one' ? 'repeat_one' : 'repeat' }}</i>
       </button>
@@ -165,15 +171,13 @@
         class="text-ui-muted hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 transition-colors hover:border-transparent hover:shadow-none disabled:cursor-not-allowed disabled:opacity-30 [&_.material-icons]:text-[20px]!"
         [class.text-ui-accent!]="isPlaylistOpen()"
         (click)="togglePlaylist()"
-        title="再生リスト"
+        [title]="'feature.media.miniJukebox.playlist' | transloco"
       >
         <i class="material-icons">queue_music</i>
       </button>
     </div>
 
-    <!-- 再生リストドロップダウン -->
     @if (isPlaylistOpen()) {
-      <!-- playlist-dropdown クラスは scoped CSS の ::-webkit-scrollbar ターゲット -->
       <div
         class="playlist-dropdown rounded-b-ui-lg border-ui-border-panel bg-ui-elevated max-h-50 overflow-hidden overflow-y-auto border-t border-solid"
       >
@@ -191,7 +195,9 @@
           </button>
         }
         @if (!bgmList().length) {
-          <div class="text-ui-dim px-3 py-5 text-center text-[12px]">再生リストは空です</div>
+          <div class="text-ui-dim px-3 py-5 text-center text-[12px]">
+            {{ 'feature.media.miniJukebox.playlistEmpty' | transloco }}
+          </div>
         }
       </div>
     }

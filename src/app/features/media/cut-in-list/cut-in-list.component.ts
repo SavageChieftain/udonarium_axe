@@ -1,23 +1,26 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInEditorComponent } from '@axe/features/media/cut-in-list/cut-in-editor.component';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-list',
   templateUrl: './cut-in-list.component.html',
-  imports: [FormsModule, CutInEditorComponent],
+  imports: [FormsModule, CutInEditorComponent, TranslocoModule],
 })
 export class CutInListComponent {
   private readonly modalService = inject(ModalService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly t = inject(TRANSLATE_FN);
 
   selectedCutIn: CutIn | null = null;
 
@@ -25,7 +28,9 @@ export class CutInListComponent {
   readonly progressPercent = signal(0);
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'カットインリスト'));
+    queueMicrotask(
+      () => (this.modalService.title = this.panelService.title = this.t('feature.media.cutIn.panelTitle'))
+    );
   }
 
   get isSelected(): boolean {
@@ -54,7 +59,7 @@ export class CutInListComponent {
 
   createCutIn() {
     const cutIn = new CutIn();
-    cutIn.name = '未設定のカットイン';
+    cutIn.name = this.t('feature.media.cutIn.defaultName');
     cutIn.imageIdentifier = 'testTableBackgroundImage_image';
     cutIn.initialize();
     this.selectCutIn(cutIn.identifier);
