@@ -2,6 +2,9 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ContextMenuType } from '@axe/application/ui/context-menu.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
+import { createSyncTranslate } from '@axe/testing/transloco-testing';
+
+const t = createSyncTranslate('ja');
 
 interface MutableChar {
   altitude: number;
@@ -43,14 +46,14 @@ const callbacks = () => ({
 describe('buildGameCharacterContextMenu()', () => {
   it('先頭は「高度設定」サブメニュー（高度=0, 高度表示, 影の表示）', () => {
     const char = makeChar();
-    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks());
+    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
     expect(menu[0].name).toBe('高度設定');
     expect(menu[0].subActions?.length).toBe(3);
   });
 
   it('「詳細を表示」「チャットパレット」「リモコン」「バフ編集」がコールバックを呼ぶ', () => {
     const cb = callbacks();
-    const menu = buildGameCharacterContextMenu(makeChar() as unknown as GameCharacter, 50, makeService(), cb);
+    const menu = buildGameCharacterContextMenu(makeChar() as unknown as GameCharacter, 50, makeService(), cb, t);
     menu.find((m) => m.name === '詳細を表示')!.action!();
     menu.find((m) => m.name === 'チャットパレットを表示')!.action!();
     menu.find((m) => m.name === 'リモコンを表示')!.action!();
@@ -66,7 +69,8 @@ describe('buildGameCharacterContextMenu()', () => {
       makeChar({ hideInventory: false }) as unknown as GameCharacter,
       50,
       makeService(),
-      callbacks()
+      callbacks(),
+      t
     );
     expect(names(visibleMenu)).toContain('☐ インベントリ非表示');
 
@@ -74,7 +78,8 @@ describe('buildGameCharacterContextMenu()', () => {
       makeChar({ hideInventory: true }) as unknown as GameCharacter,
       50,
       makeService(),
-      callbacks()
+      callbacks(),
+      t
     );
     expect(names(hiddenMenu)).toContain('☑ インベントリ非表示');
   });
@@ -84,7 +89,8 @@ describe('buildGameCharacterContextMenu()', () => {
       makeChar({ nonTalkFlag: false }) as unknown as GameCharacter,
       50,
       makeService(),
-      callbacks()
+      callbacks(),
+      t
     );
     expect(names(talking)).toContain('☐ 発言しない');
 
@@ -92,14 +98,15 @@ describe('buildGameCharacterContextMenu()', () => {
       makeChar({ nonTalkFlag: true }) as unknown as GameCharacter,
       50,
       makeService(),
-      callbacks()
+      callbacks(),
+      t
     );
     expect(names(silent)).toContain('☑ 発言しない');
   });
 
   it('移動先 3 つ（共有 / 個人 / 墓場）が常に出る、それぞれ setLocation を呼ぶ', () => {
     const char = makeChar();
-    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks());
+    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
     menu.find((m) => m.name === '共有イベントリに移動')!.action!();
     expect(char.setLocation).toHaveBeenLastCalledWith('common');
     menu.find((m) => m.name === '墓場に移動')!.action!();
@@ -111,7 +118,8 @@ describe('buildGameCharacterContextMenu()', () => {
       makeChar({ isLock: true }) as unknown as GameCharacter,
       50,
       makeService(),
-      callbacks()
+      callbacks(),
+      t
     );
     expect(names(locked)).toContain('固定解除');
 
@@ -119,13 +127,20 @@ describe('buildGameCharacterContextMenu()', () => {
       makeChar({ isLock: false }) as unknown as GameCharacter,
       50,
       makeService(),
-      callbacks()
+      callbacks(),
+      t
     );
     expect(names(unlocked)).toContain('固定する');
   });
 
   it('separator は 4 つ（高度設定後 / 移動前 / 固定前 / コピー前）', () => {
-    const menu = buildGameCharacterContextMenu(makeChar() as unknown as GameCharacter, 50, makeService(), callbacks());
+    const menu = buildGameCharacterContextMenu(
+      makeChar() as unknown as GameCharacter,
+      50,
+      makeService(),
+      callbacks(),
+      t
+    );
     expect(menu.filter((m) => m.type === ContextMenuType.SEPARATOR)).toHaveLength(4);
   });
 });

@@ -35,7 +35,6 @@
           class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
           [ngStyle]="pedestalOuterStyle"
         ></div>
-        <!--床回転アイコン-->
         @if (!isLock) {
           <div
             class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
@@ -58,7 +57,6 @@
             </div>
           </div>
         }
-        <!--影-->
         @if (isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
           <img
             class="chrome-smooth-image-trick pointer-events-none filter-[brightness(0)_opacity(0.7)_blur(1px)]"
@@ -109,12 +107,9 @@
             (rotable.ondragend)="onMoved()"
           >
             <div class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d">
-              <!-- バフ表示 -->
-              <!-- クロームver102の描画問題に対処するため構成を修正している -->
               @let buffEl = this.gameCharacter()!.buffDataElement;
               @if (buffEl && buffNum() > 0) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
-                  <!-- 表面 -->
                   <div
                     class="border-ui-border-panel bg-ui-panel text-ui-text absolute -top-8.75 m-auto box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
                     [ngStyle]="{
@@ -142,21 +137,24 @@
                             ></div>
                           }
                         } @else {
-                          <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]"
-                            >バフ{{ buffNum() }}個</span
-                          >
+                          <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
+                            'feature.character.buff.count' | transloco: { count: buffNum() }
+                          }}</span>
                         }
                       </div>
                       <button
                         class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
                         (mousedown)="foldingBuffFlag(!foldingBuff())"
-                        [title]="foldingBuff() ? '詳細表示' : '簡易表示'"
+                        [title]="
+                          foldingBuff()
+                            ? ('feature.character.buff.detail' | transloco)
+                            : ('feature.character.buff.simple' | transloco)
+                        "
                       >
                         {{ foldingBuff() ? '▲' : '▼' }}
                       </button>
                     </div>
                   </div>
-                  <!-- 裏面 -->
                   <div
                     class="border-ui-border-panel bg-ui-panel text-ui-text absolute -top-8.75 m-auto box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
                     [ngStyle]="{
@@ -188,15 +186,19 @@
                             ></div>
                           }
                         } @else {
-                          <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]"
-                            >バフ{{ buffNum() }}個</span
-                          >
+                          <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
+                            'feature.character.buff.count' | transloco: { count: buffNum() }
+                          }}</span>
                         }
                       </div>
                       <button
                         class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
                         (mousedown)="foldingBuffFlag(!foldingBuff())"
-                        [title]="foldingBuff() ? '詳細表示' : '簡易表示'"
+                        [title]="
+                          foldingBuff()
+                            ? ('feature.character.buff.detail' | transloco)
+                            : ('feature.character.buff.simple' | transloco)
+                        "
                       >
                         {{ foldingBuff() ? '▲' : '▼' }}
                       </button>
@@ -204,8 +206,6 @@
                   </div>
                 </div>
               }
-              <!-- 名前表示 -->
-              <!-- クロームver102の描画問題に対処するため構成を修正している -->
               <div [hidden]="!(buffNum() === 0)">
                 <div
                   class="animate-arrowmove absolute left-1.5 box-border w-7.5 text-[20px]"
@@ -283,7 +283,6 @@
                   </div>
                 }
               }
-              <!--回転部キャラ上-->
               @if (!isLock) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
                   <div
@@ -298,7 +297,6 @@
                   </div>
                 </div>
               }
-              <!--画像-->
               @if (0 < imageFile().url.length && specifyKomaImageFlag()) {
                 <img
                   class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
@@ -321,7 +319,6 @@
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
-              <!--回転部キャラ下-->
               @if (!isLock) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
                   @if (!isLock) {

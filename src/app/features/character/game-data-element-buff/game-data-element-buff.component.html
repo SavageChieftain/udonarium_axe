@@ -17,7 +17,7 @@
                   class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-0 rounded-xs border-none bg-transparent px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem] outline-none"
                   name="data-elm-name"
                   [(ngModel)]="name"
-                  placeholder="バフ名"
+                  [placeholder]="'feature.character.buff.namePlaceholder' | transloco"
                 />
               } @else {
                 <span class="text-ui-text block px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem]">{{ name }}</span>
@@ -27,13 +27,13 @@
               <input
                 class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-20 rounded-xs border-none bg-transparent px-0.75 py-0.5 text-right font-[Cambria,Georgia] text-[0.9rem] outline-none"
                 [(ngModel)]="currentValue"
-                placeholder="現在値"
+                [placeholder]="'feature.character.buff.currentPlaceholder' | transloco"
               />
               <span class="text-ui-dim text-[0.8em] select-none">/</span>
               <input
                 class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-12 rounded-xs border-none bg-transparent px-0.75 py-0.5 text-right font-[Cambria,Georgia] text-[0.9rem] outline-none"
                 [(ngModel)]="value"
-                placeholder="最大"
+                [placeholder]="'feature.character.buff.maxPlaceholder' | transloco"
               />
               <span class="text-ui-dim text-[0.8em] select-none">R</span>
             </div>
@@ -41,7 +41,7 @@
               <button
                 class="text-ui-dim hover:bg-ui-danger-bg hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0.75 opacity-45 transition-[opacity,color,background] hover:opacity-100 [&_i]:text-base!"
                 (click)="deletBuff(gameDataElement())"
-                title="バフを削除"
+                [title]="'feature.character.buff.delete' | transloco"
               >
                 <i class="material-icons">delete_outline</i>
               </button>

@@ -6,7 +6,9 @@
           <div game-data-element-buff [gameDataElement]="childElement" [isEdit]="isEdit()" [isPieceMode]="false"></div>
         }
         @if (buffChildren().length === 0) {
-          <p class="text-ui-dim m-0 py-3 text-center text-[0.85em]">バフ・デバフは登録されていません</p>
+          <p class="text-ui-dim m-0 py-3 text-center text-[0.85em]">
+            {{ 'feature.character.buff.empty' | transloco }}
+          </p>
         }
       </div>
     }
@@ -16,7 +18,7 @@
         (click)="addBuff()"
       >
         <i class="material-icons">add</i>
-        バフを追加
+        {{ 'feature.character.buff.add' | transloco }}
       </button>
     </div>
   </div>

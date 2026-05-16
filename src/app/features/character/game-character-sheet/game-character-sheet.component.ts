@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -46,13 +47,14 @@ import { ImportCharacterImgComponent } from '@axe/features/character/import-char
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   host: { class: 'block' },
-  imports: [FormsModule, GameCharacterSettingsTabComponent, GameDataElementComponent, SafePipe],
+  imports: [FormsModule, GameCharacterSettingsTabComponent, GameDataElementComponent, SafePipe, TranslocoModule],
 })
 export class GameCharacterSheetComponent {
   private readonly saveDataService = inject(SaveDataService);
@@ -65,6 +67,7 @@ export class GameCharacterSheetComponent {
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectStore = inject(ObjectStore);
   private readonly dataElementDrag = inject(DataElementDragService);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   private readonly _tabletopObject = signal<CharacterSheetTarget | null>(null);
   get tabletopObject(): CharacterSheetTarget | null {
@@ -184,14 +187,14 @@ export class GameCharacterSheetComponent {
     return this.tabletopObject instanceof RangeArea ? this.tabletopObject : null;
   }
 
-  readonly rangeTypeItems: { type: string; label: string; icon: string }[] = [
-    { type: 'LINE', label: '直線', icon: 'remove' },
-    { type: 'CORN', label: 'コーン', icon: 'change_history' },
-    { type: 'TRIANGLE', label: '三角形', icon: 'details' },
-    { type: 'SQUARE', label: '四角形', icon: 'crop_square' },
-    { type: 'PENTAGON', label: '五角形', icon: 'pentagon' },
-    { type: 'HEXAGON', label: '六角形', icon: 'hexagon' },
-    { type: 'CIRCLE', label: '円形', icon: 'radio_button_unchecked' },
+  readonly rangeTypeItems: { type: string; labelKey: string; icon: string }[] = [
+    { type: 'LINE', labelKey: 'feature.inventory.sheet.rangeShapeLine', icon: 'remove' },
+    { type: 'CORN', labelKey: 'feature.inventory.sheet.rangeShapeCorn', icon: 'change_history' },
+    { type: 'TRIANGLE', labelKey: 'feature.inventory.sheet.rangeShapeTriangle', icon: 'details' },
+    { type: 'SQUARE', labelKey: 'feature.inventory.sheet.rangeShapeSquare', icon: 'crop_square' },
+    { type: 'PENTAGON', labelKey: 'feature.inventory.sheet.rangeShapePentagon', icon: 'pentagon' },
+    { type: 'HEXAGON', labelKey: 'feature.inventory.sheet.rangeShapeHexagon', icon: 'hexagon' },
+    { type: 'CIRCLE', labelKey: 'feature.inventory.sheet.rangeShapeCircle', icon: 'radio_button_unchecked' },
   ];
 
   readonly imageFile = computed(() => {
@@ -288,16 +291,25 @@ export class GameCharacterSheetComponent {
   addDataElement() {
     const obj = this.tabletopObject;
     if (obj?.detailDataElement) {
-      const titleName = DataElement.createUniqueSiblingName(obj.detailDataElement, '見出し');
+      const titleName = DataElement.createUniqueSiblingName(
+        obj.detailDataElement,
+        this.translateFn('feature.inventory.sheet.defaultSectionName')
+      );
 
       const title = DataElement.create(titleName, '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
       });
-      const groupName = DataElement.createUniqueSiblingName(title, 'グループ');
+      const groupName = DataElement.createUniqueSiblingName(
+        title,
+        this.translateFn('feature.inventory.sheet.defaultGroupName')
+      );
       const group = DataElement.create(groupName, '', {
         [DataElementAttribute.ROLE]: DataElementRole.GROUP,
       });
-      const tagName = DataElement.createUniqueSiblingName(group, 'タグ');
+      const tagName = DataElement.createUniqueSiblingName(
+        group,
+        this.translateFn('feature.inventory.sheet.defaultTagName')
+      );
       const tag = DataElement.create(tagName, '', {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
         [DataElementAttribute.ROLE]: DataElementRole.FIELD,
@@ -432,7 +444,9 @@ export class GameCharacterSheetComponent {
       width: 350,
       height: 250,
     };
-    option.title = (obj as GameCharacter).name + 'への画像複製';
+    option.title = this.translateFn('feature.inventory.sheet.imageCopyTitle', {
+      name: (obj as GameCharacter).name,
+    });
     const component = this.panelService.open<ImportCharacterImgComponent>(ImportCharacterImgComponent, option);
     component.tabletopObject = obj as GameCharacter;
   }

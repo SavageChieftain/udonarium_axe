@@ -1,6 +1,6 @@
 <div class="box-border table w-full p-1.25">
   <div class="table-cell w-[7em]">
-    <div class="text-center">複製元＞</div>
+    <div class="text-center">{{ 'feature.character.importImg.sourceLabel' | transloco }}</div>
   </div>
   <div class="table-cell">
     <ng-select name="send-from" class="ud-select w-[12em]" [(ngModel)]="sendFrom" [clearable]="false">
@@ -16,10 +16,12 @@
       <img class="size-12.5 object-cover" [src]="imageFile.url | safe: 'resourceUrl'" />
     }
   </div>
-  <div class="table-cell">登録枚数:{{ portraitCount }}</div>
+  <div class="table-cell">
+    {{ 'feature.character.importImg.registeredCount' | transloco: { count: portraitCount } }}
+  </div>
 </div>
 <br />
 <div class="box-border table w-full p-1.25">
-  <button (click)="importImages()" class="w-[9em]">インポート実行</button>
-  <button (click)="cancel()" class="ml-[3em] w-[9em]">キャンセル</button>
+  <button (click)="importImages()" class="w-[9em]">{{ 'feature.character.importImg.import' | transloco }}</button>
+  <button (click)="cancel()" class="ml-[3em] w-[9em]">{{ 'feature.character.importImg.cancel' | transloco }}</button>
 </div>

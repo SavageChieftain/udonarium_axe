@@ -1,43 +1,45 @@
 <div class="grid grid-cols-2 gap-2 px-2.5 pt-2.5 pb-3.5">
-  <!-- インベントリ設定 -->
   <div class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5">
     <div
       class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
     >
-      <i class="material-icons">inventory_2</i>インベントリ設定
+      <i class="material-icons">inventory_2</i>{{ 'feature.inventory.settingsTab.inventorySetting' | transloco }}
     </div>
     <select
       class="bg-ui-input text-ui-text border-ui-border-input rounded-ui-sm cursor-pointer border border-solid px-1.5 py-0.75 text-[0.82em]"
       (change)="onSetLocation($event)"
       name="location"
       [ngModel]="character().location.name"
-      title="配置場所"
+      [title]="'feature.inventory.settingsTab.locationTitle' | transloco"
     >
-      <option value="table">テーブル</option>
-      <option value="common">共有インベントリ</option>
-      <option value="{{ myPeerId }}">個人インベントリ</option>
-      <option value="graveyard">墓地</option>
+      <option value="table">{{ 'feature.inventory.settingsTab.locationTable' | transloco }}</option>
+      <option value="common">{{ 'feature.inventory.settingsTab.locationCommon' | transloco }}</option>
+      <option value="{{ myPeerId }}">{{ 'feature.inventory.settingsTab.locationPersonal' | transloco }}</option>
+      <option value="graveyard">{{ 'feature.inventory.settingsTab.locationGraveyard' | transloco }}</option>
     </select>
     <div class="flex flex-wrap items-center gap-2">
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
-        <input type="checkbox" [(ngModel)]="character().hideInventory" />非表示
+        <input type="checkbox" [(ngModel)]="character().hideInventory" />{{
+          'feature.inventory.settingsTab.hide' | transloco
+        }}
       </label>
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
-        <input type="checkbox" [(ngModel)]="character().nonTalkFlag" />発言しない
+        <input type="checkbox" [(ngModel)]="character().nonTalkFlag" />{{
+          'feature.inventory.settingsTab.nonTalk' | transloco
+        }}
       </label>
     </div>
   </div>
 
-  <!-- コマ設定 -->
   <div class="bg-ui-elevated border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5">
     <div
       class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
     >
-      <i class="material-icons">person_pin</i>コマ設定
+      <i class="material-icons">person_pin</i>{{ 'feature.inventory.settingsTab.pieceSetting' | transloco }}
     </div>
     <label
       class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
@@ -46,7 +48,7 @@
         type="checkbox"
         [ngModel]="character().specifyKomaImageFlag"
         (ngModelChange)="setSpecifyKomaImageFlag($event)"
-      />コマ高さを指定
+      />{{ 'feature.inventory.settingsTab.specifyKomaHeight' | transloco }}
     </label>
     <div
       class="flex items-center gap-1.5 text-[0.82em] [&_input[type=range]]:min-w-0 [&_input[type=range]]:flex-[1_1_0]"
@@ -74,29 +76,39 @@
       <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">px</span>
     </div>
     <div class="flex items-center gap-1.5 text-[0.82em]">
-      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">高度</span>
+      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+        'feature.inventory.settingsTab.altitude' | transloco
+      }}</span>
       <input
         class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
         type="number"
         [(ngModel)]="character().altitude"
         (change)="onChkAltitude($event)"
       />
-      <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">マス</span>
+      <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">{{
+        'feature.inventory.settingsTab.altitudeUnit' | transloco
+      }}</span>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
-        <input type="checkbox" [(ngModel)]="character().isAltitudeIndicate" />高度表示
+        <input type="checkbox" [(ngModel)]="character().isAltitudeIndicate" />{{
+          'feature.inventory.settingsTab.showAltitude' | transloco
+        }}
       </label>
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
       >
-        <input type="checkbox" [(ngModel)]="character().isDropShadow" />影の表示
+        <input type="checkbox" [(ngModel)]="character().isDropShadow" />{{
+          'feature.inventory.settingsTab.showShadow' | transloco
+        }}
       </label>
     </div>
     <div class="flex items-center gap-1.5 text-[0.82em]">
-      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">位置 X</span>
+      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+        'feature.inventory.settingsTab.positionX' | transloco
+      }}</span>
       <span
         class="text-ui-muted inline-block w-[5em] border border-solid border-transparent bg-transparent text-right text-[0.82em] italic"
         >{{ characterPieceSignals().locationX }}</span
@@ -104,7 +116,9 @@
       <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">px</span>
     </div>
     <div class="flex items-center gap-1.5 text-[0.82em]">
-      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">位置 Y</span>
+      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+        'feature.inventory.settingsTab.positionY' | transloco
+      }}</span>
       <span
         class="text-ui-muted inline-block w-[5em] border border-solid border-transparent bg-transparent text-right text-[0.82em] italic"
         >{{ characterPieceSignals().locationY }}</span
@@ -112,7 +126,9 @@
       <span class="text-ui-muted shrink-0 text-[0.78em] whitespace-nowrap">px</span>
     </div>
     <div class="flex items-center gap-1.5 text-[0.82em]">
-      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">回転</span>
+      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+        'feature.inventory.settingsTab.rotate' | transloco
+      }}</span>
       <input
         class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
         type="number"
@@ -125,11 +141,13 @@
         type="button"
         (click)="resetRotate()"
       >
-        リセット
+        {{ 'feature.inventory.settingsTab.reset' | transloco }}
       </button>
     </div>
     <div class="flex items-center gap-1.5 text-[0.82em]">
-      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">縦回転</span>
+      <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+        'feature.inventory.settingsTab.roll' | transloco
+      }}</span>
       <input
         class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
         type="number"
@@ -142,12 +160,11 @@
         type="button"
         (click)="resetRoll()"
       >
-        リセット
+        {{ 'feature.inventory.settingsTab.reset' | transloco }}
       </button>
     </div>
   </div>
 
-  <!-- データ移行 -->
   @if (legacyCheckTableCount() > 0) {
     <div
       class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
@@ -155,37 +172,39 @@
       <div
         class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
       >
-        <i class="material-icons">upgrade</i>データ移行
+        <i class="material-icons">upgrade</i>{{ 'feature.inventory.settingsTab.dataMigration' | transloco }}
       </div>
       <div class="flex items-center gap-2.5 py-1">
-        <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap"
-          >構造化できる旧チェック表が {{ legacyCheckTableCount() }} 件あります</span
-        >
+        <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+          'feature.inventory.settingsTab.legacyCheckTables' | transloco: { count: legacyCheckTableCount() }
+        }}</span>
         <button
           class="border-ui-accent text-ui-accent hover:bg-ui-accent-bg inline-flex cursor-pointer items-center gap-1 rounded-xs border border-solid bg-transparent px-2.5 py-0.75 text-[0.78em] leading-[1.6] whitespace-nowrap [&_.material-icons]:text-[14px]!"
           type="button"
           (click)="convertLegacyCheckTables()"
         >
-          <i class="material-icons">auto_fix_high</i>構造化テーブルに一括変換
+          <i class="material-icons">auto_fix_high</i
+          >{{ 'feature.inventory.settingsTab.convertLegacyTables' | transloco }}
         </button>
       </div>
     </div>
   }
 
-  <!-- ポップアップ設定 -->
   <div
     class="bg-ui-elevated border-ui-border-panel col-span-2 flex flex-col gap-1.5 rounded-sm border border-solid px-3 py-2.5"
   >
     <div
       class="border-ui-border-panel text-ui-accent mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"
     >
-      <i class="material-icons">open_in_new</i>ポップアップ設定
+      <i class="material-icons">open_in_new</i>{{ 'feature.inventory.settingsTab.popupSetting' | transloco }}
     </div>
     <div class="flex flex-col gap-1.5">
       <div
         class="flex items-center gap-1.5 text-[0.82em] [&_input[type=range]]:min-w-0 [&_input[type=range]]:flex-[1_1_0]"
       >
-        <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">横幅</span>
+        <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+          'feature.inventory.settingsTab.popupWidth' | transloco
+        }}</span>
         <input type="range" min="270" max="1000" [(ngModel)]="character().overViewWidth" />
         <input
           class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[4.5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"
@@ -199,7 +218,9 @@
       <div
         class="flex items-center gap-1.5 text-[0.82em] [&_input[type=range]]:min-w-0 [&_input[type=range]]:flex-[1_1_0]"
       >
-        <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">高さ最大</span>
+        <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{
+          'feature.inventory.settingsTab.popupMaxHeight' | transloco
+        }}</span>
         <input type="range" min="250" max="1000" [(ngModel)]="character().overViewMaxHeight" />
         <input
           class="bg-ui-input border-ui-border-input text-ui-text rounded-ui-sm w-[4.5em] border border-solid px-1.25 py-0.5 text-right text-[0.82em]"

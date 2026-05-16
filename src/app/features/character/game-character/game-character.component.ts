@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -39,12 +40,13 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-character',
   templateUrl: './game-character.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgStyle, GameDataElementBuffComponent, SafePipe],
+  imports: [MovableDirective, RotableDirective, NgStyle, GameDataElementBuffComponent, SafePipe, TranslocoModule],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -63,6 +65,7 @@ export class GameCharacterComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly isTargeted = computed(() => {
     this.uiSignalService.targetChange();
@@ -347,12 +350,18 @@ export class GameCharacterComponent {
     const position = this.pointerDeviceService.pointers[0];
     this.contextMenuService.open(
       position,
-      buildGameCharacterContextMenu(char, this.gridSize, this.inventoryService, {
-        onShowDetail: () => this.showDetail(char),
-        onShowChatPalette: () => this.showChatPalette(char),
-        onShowRemoteController: () => this.showRemoteController(char),
-        onShowBuffEdit: () => this.showBuffEdit(char),
-      }),
+      buildGameCharacterContextMenu(
+        char,
+        this.gridSize,
+        this.inventoryService,
+        {
+          onShowDetail: () => this.showDetail(char),
+          onShowChatPalette: () => this.showChatPalette(char),
+          onShowRemoteController: () => this.showRemoteController(char),
+          onShowBuffEdit: () => this.showBuffEdit(char),
+        },
+        this.translateFn
+      ),
       this.name()
     );
   }
@@ -400,7 +409,7 @@ export class GameCharacterComponent {
 
   private showDetail(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = 'キャラクターシート';
+    let title = this.translateFn('feature.character.panel.sheet');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,
@@ -416,7 +425,7 @@ export class GameCharacterComponent {
   private showChatPalette(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: gameObject.name + ' のチャットパレット',
+      title: this.translateFn('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
       left: coordinate.x - 320,
       top: coordinate.y - 250,
       width: 760,
@@ -432,7 +441,7 @@ export class GameCharacterComponent {
   private showRemoteController(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: gameObject.name + ' のリモコン',
+      title: this.translateFn('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
       left: coordinate.x - 250,
       top: coordinate.y - 175,
       width: 700,
@@ -456,7 +465,7 @@ export class GameCharacterComponent {
       width: 420,
       height: 300,
     };
-    option.title = gameObject.name + 'のバフ編集';
+    option.title = this.translateFn('feature.character.panel.buffEditWithName', { name: gameObject.name });
     const component = this.panelService.open<GameCharacterBuffViewComponent>(GameCharacterBuffViewComponent, option);
     component.character.set(gameObject);
   }

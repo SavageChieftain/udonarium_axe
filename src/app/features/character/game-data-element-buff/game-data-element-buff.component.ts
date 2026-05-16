@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { FormsModule } from '@angular/forms';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',
   templateUrl: './game-data-element-buff.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
 })
 export class GameDataElementBuffComponent {
   private readonly objectChange = inject(ObjectChangeService);

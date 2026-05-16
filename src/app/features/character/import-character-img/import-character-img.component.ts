@@ -9,13 +9,14 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
   selector: 'import-character-img',
   templateUrl: './import-character-img.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe],
+  imports: [NgSelectComponent, FormsModule, NgOptionComponent, SafePipe, TranslocoModule],
 })
 export class ImportCharacterImgComponent {
   private readonly panelService = inject(PanelService);

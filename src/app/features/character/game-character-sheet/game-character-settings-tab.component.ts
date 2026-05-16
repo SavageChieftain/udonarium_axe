@@ -10,12 +10,13 @@ import {
 } from '@axe/domain/data/check-table-converter';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-character-settings-tab',
   templateUrl: './game-character-settings-tab.component.html',
   host: { class: 'block' },
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameCharacterSettingsTabComponent {

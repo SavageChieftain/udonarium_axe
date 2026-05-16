@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -11,12 +12,13 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-character-generator',
   templateUrl: './game-character-generator.component.html',
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class GameCharacterGeneratorComponent {
   private readonly viewContainerRef = inject(ViewContainerRef);
@@ -27,8 +29,9 @@ export class GameCharacterGeneratorComponent {
   private readonly tableSelecter = inject(TableSelecter);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
 
-  name: string = 'ゲームキャラクター';
+  name: string = this.t('feature.character.generator.defaultName');
   size: number = 1;
   xml: string = '';
 
@@ -38,7 +41,7 @@ export class GameCharacterGeneratorComponent {
   readonly tableBackgroundImage = signal<ImageFile>(ImageFile.createEmpty('null'));
 
   constructor() {
-    queueMicrotask(() => (this.panelService.title = 'キャラクタージェネレーター'));
+    queueMicrotask(() => (this.panelService.title = this.t('feature.character.panel.generator')));
     this.objectChange.selectFile$.subscribe((event) => {
       const file = this.imageStorage.get(event.fileIdentifier);
       if (file) this.tableBackgroundImage.set(file);
@@ -51,7 +54,7 @@ export class GameCharacterGeneratorComponent {
   createGameTableMask() {
     const viewTable = this.tableSelecter.viewTable;
     if (!viewTable) return;
-    const tableMask = GameTableMask.create('マップマスク', 5, 5, 100);
+    const tableMask = GameTableMask.create(this.t('feature.character.generator.defaultMaskName'), 5, 5, 100);
     viewTable.appendChild(tableMask);
   }
 

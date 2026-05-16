@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
@@ -13,15 +14,16 @@ export function buildGameCharacterContextMenu(
     onShowChatPalette: () => void;
     onShowRemoteController: () => void;
     onShowBuffEdit: () => void;
-  }
+  },
+  t: TranslateFn
 ): ContextMenuAction[] {
   return [
     {
-      name: '高度設定',
+      name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,
       subActions: [
         {
-          name: '高度を0にする',
+          name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
             if (char.altitude != 0) {
               char.altitude = 0;
@@ -32,7 +34,7 @@ export function buildGameCharacterContextMenu(
         },
         char.isAltitudeIndicate
           ? {
-              name: '☑ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOn'),
               action: () => {
                 char.isAltitudeIndicate = false;
                 SoundEffect.play(PresetSound.sweep);
@@ -40,7 +42,7 @@ export function buildGameCharacterContextMenu(
               },
             }
           : {
-              name: '☐ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOff'),
               action: () => {
                 char.isAltitudeIndicate = true;
                 SoundEffect.play(PresetSound.sweep);
@@ -49,7 +51,7 @@ export function buildGameCharacterContextMenu(
             },
         char.isDropShadow
           ? {
-              name: '☑ 影の表示',
+              name: t('feature.tabletop.contextMenu.shadowShowOn'),
               action: () => {
                 char.isDropShadow = false;
                 SoundEffect.play(PresetSound.sweep);
@@ -57,7 +59,7 @@ export function buildGameCharacterContextMenu(
               },
             }
           : {
-              name: '☐ 影の表示',
+              name: t('feature.tabletop.contextMenu.shadowShowOff'),
               action: () => {
                 char.isDropShadow = true;
                 SoundEffect.play(PresetSound.sweep);
@@ -68,24 +70,24 @@ export function buildGameCharacterContextMenu(
     },
     ContextMenuSeparator,
     {
-      name: '詳細を表示',
+      name: t('feature.character.contextMenu.showDetail'),
       action: () => callbacks.onShowDetail(),
     },
     {
-      name: 'チャットパレットを表示',
+      name: t('feature.character.contextMenu.showChatPalette'),
       action: () => callbacks.onShowChatPalette(),
     },
     {
-      name: 'リモコンを表示',
+      name: t('feature.character.contextMenu.showRemoteController'),
       action: () => callbacks.onShowRemoteController(),
     },
     {
-      name: 'バフ編集',
+      name: t('feature.character.contextMenu.editBuff'),
       action: () => callbacks.onShowBuffEdit(),
     },
     char.hideInventory
       ? {
-          name: '☑ インベントリ非表示',
+          name: t('feature.character.contextMenu.hideInventoryOn'),
           action: () => {
             char.hideInventory = false;
             inventoryService.notifyInventoryUpdate();
@@ -93,7 +95,7 @@ export function buildGameCharacterContextMenu(
           },
         }
       : {
-          name: '☐ インベントリ非表示',
+          name: t('feature.character.contextMenu.hideInventoryOff'),
           action: () => {
             char.hideInventory = true;
             inventoryService.notifyInventoryUpdate();
@@ -102,7 +104,7 @@ export function buildGameCharacterContextMenu(
         },
     char.nonTalkFlag
       ? {
-          name: '☑ 発言しない',
+          name: t('feature.character.contextMenu.nonTalkOn'),
           action: () => {
             char.nonTalkFlag = false;
             inventoryService.notifyInventoryUpdate();
@@ -110,7 +112,7 @@ export function buildGameCharacterContextMenu(
           },
         }
       : {
-          name: '☐ 発言しない',
+          name: t('feature.character.contextMenu.nonTalkOff'),
           action: () => {
             char.nonTalkFlag = true;
             inventoryService.notifyInventoryUpdate();
@@ -119,21 +121,21 @@ export function buildGameCharacterContextMenu(
         },
     ContextMenuSeparator,
     {
-      name: '共有イベントリに移動',
+      name: t('feature.character.contextMenu.moveCommon'),
       action: () => {
         char.setLocation('common');
         SoundEffect.play(PresetSound.piecePut);
       },
     },
     {
-      name: '個人イベントリに移動',
+      name: t('feature.character.contextMenu.movePersonal'),
       action: () => {
         char.setLocation(Network.peerId);
         SoundEffect.play(PresetSound.piecePut);
       },
     },
     {
-      name: '墓場に移動',
+      name: t('feature.character.contextMenu.moveGraveyard'),
       action: () => {
         char.setLocation('graveyard');
         SoundEffect.play(PresetSound.sweep);
@@ -142,14 +144,14 @@ export function buildGameCharacterContextMenu(
     ContextMenuSeparator,
     char.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             char.isLock = false;
             SoundEffect.play(PresetSound.unlock);
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             char.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -157,7 +159,7 @@ export function buildGameCharacterContextMenu(
         },
     ContextMenuSeparator,
     {
-      name: 'コピーを作る',
+      name: t('feature.tabletop.contextMenu.copy'),
       action: () => {
         const cloneObject = char.clone();
         cloneObject.location.x += gridSize;

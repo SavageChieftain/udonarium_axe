@@ -1,4 +1,4 @@
-<button (click)="openModal()">画像を選ぶ</button>
+<button (click)="openModal()">{{ 'feature.character.generator.pickImage' | transloco }}</button>
 <div>
   <img class="size-30 object-contain" [src]="tableBackgroundImage().url | safe: 'resourceUrl'" />
 </div>
@@ -8,6 +8,6 @@
     <input [(ngModel)]="size" type="range" min="{{ minSize }}" max="{{ maxSize }}" step="0.5" name="size" /> Size :
     <input name="size-number" [(ngModel)]="size" type="number" min="{{ minSize }}" max="{{ maxSize }}" step="0.5" />
   </div>
-  <button (click)="createGameCharacter()">キャラクターを作る</button>
-  <button (click)="createGameTableMask()">マップマスクを作る</button>
+  <button (click)="createGameCharacter()">{{ 'feature.character.generator.createCharacter' | transloco }}</button>
+  <button (click)="createGameTableMask()">{{ 'feature.character.generator.createMask' | transloco }}</button>
 </div>
