@@ -3,6 +3,9 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
+import { createSyncTranslate } from '@axe/testing/transloco-testing';
+
+const t = createSyncTranslate('ja');
 
 describe('buildRangeContextMenu', () => {
   it('形状変更メニューにひし形を表示しないこと', () => {
@@ -17,7 +20,8 @@ describe('buildRangeContextMenu', () => {
         { notifyInventoryUpdate: vi.fn() } as unknown as GameObjectInventoryService,
         { makeDefaultContextMenuActions: vi.fn(() => []) } as unknown as TabletopActionService,
         vi.fn(),
-        vi.fn()
+        vi.fn(),
+        t
       );
       const shapeMenu = actions.find((action) => action.name === '形状変更');
 

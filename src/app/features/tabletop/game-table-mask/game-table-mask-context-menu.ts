@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
@@ -15,6 +16,7 @@ export interface MaskMenuParams {
   onFinishScratch(): void;
   onCancelScratch(): void;
   onEdit(mask: GameTableMask): void;
+  t: TranslateFn;
 }
 
 export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMenuAction[] {
@@ -28,16 +30,17 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
     onFinishScratch,
     onCancelScratch,
     onEdit,
+    t,
   } = params;
 
   const menuArray: ContextMenuAction[] = [];
   menuArray.push(
     {
-      name: '高度設定',
+      name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,
       subActions: [
         {
-          name: '高度を0にする',
+          name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
             if (mask.altitude != 0) {
               mask.altitude = 0;
@@ -48,7 +51,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
         },
         mask.isAltitudeIndicate
           ? {
-              name: '☑ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOn'),
               action: () => {
                 mask.isAltitudeIndicate = false;
                 SoundEffect.play(PresetSound.sweep);
@@ -56,7 +59,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
               },
             }
           : {
-              name: '☐ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOff'),
               action: () => {
                 mask.isAltitudeIndicate = true;
                 SoundEffect.play(PresetSound.sweep);
@@ -68,7 +71,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
     ContextMenuSeparator,
     mask.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             mask.isLock = false;
             mask.dispLockMark = true;
@@ -76,7 +79,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             mask.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -87,14 +90,14 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
     menuArray.push(
       mask.dispLockMark
         ? {
-            name: '固定マーク消去',
+            name: t('feature.tabletop.contextMenu.lockMarkHide'),
             action: () => {
               mask.dispLockMark = false;
               SoundEffect.play(PresetSound.lock);
             },
           }
         : {
-            name: '固定マーク表示',
+            name: t('feature.tabletop.contextMenu.lockMarkShow'),
             action: () => {
               mask.dispLockMark = true;
               SoundEffect.play(PresetSound.lock);
@@ -104,7 +107,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
   }
   if (!mask.isMine) {
     menuArray.push({
-      name: 'スクラッチ開始',
+      name: t('feature.tabletop.contextMenu.scratchStart'),
       action: () => {
         SoundEffect.play(PresetSound.cardDraw);
         onStartScratch();
@@ -113,7 +116,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
     });
   } else {
     menuArray.push({
-      name: 'スクラッチ確定',
+      name: t('feature.tabletop.contextMenu.scratchFinish'),
       action: () => {
         onFinishScratch();
       },
@@ -121,7 +124,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
   }
   if (mask.isMine) {
     menuArray.push({
-      name: 'スクラッチキャンセル',
+      name: t('feature.tabletop.contextMenu.scratchCancel'),
       action: () => {
         SoundEffect.play(PresetSound.cardDraw);
         onCancelScratch();
@@ -131,13 +134,13 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
 
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
-    name: 'マスクを編集',
+    name: t('feature.tabletop.contextMenu.maskEdit'),
     action: () => {
       onEdit(mask);
     },
   });
   menuArray.push({
-    name: 'コピーを作る',
+    name: t('feature.tabletop.contextMenu.copy'),
     action: () => {
       const cloneObject = mask.clone();
       cloneObject.location.x += gridSize;
@@ -148,7 +151,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
     },
   });
   menuArray.push({
-    name: '削除する',
+    name: t('feature.tabletop.contextMenu.delete'),
     action: () => {
       mask.destroy();
       SoundEffect.play(PresetSound.sweep);
@@ -156,7 +159,7 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
   });
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
-    name: 'オブジェクト作成',
+    name: t('feature.tabletop.contextMenu.createObject'),
     action: undefined,
     subActions: tabletopActionService.makeDefaultContextMenuActions(objectPosition),
   });

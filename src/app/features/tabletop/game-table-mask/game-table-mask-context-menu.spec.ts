@@ -2,6 +2,9 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
+import { createSyncTranslate } from '@axe/testing/transloco-testing';
+
+const t = createSyncTranslate('ja');
 
 interface MutableMask {
   isLock: boolean;
@@ -47,6 +50,7 @@ function defaultParams(mask: MutableMask) {
     onFinishScratch: vi.fn(),
     onCancelScratch: vi.fn(),
     onEdit: vi.fn(),
+    t,
   };
 }
 

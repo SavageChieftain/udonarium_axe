@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
@@ -7,15 +8,15 @@ interface ScratchMaskContextMenuCallbacks {
   unlock: () => void;
 }
 
-/** スクラッチマスクのコンテキストメニュー: 固定の切替と削除。 */
 export function buildScratchMaskContextMenu(
   mask: GameTableScratchMask,
   isLocked: boolean,
-  callbacks: ScratchMaskContextMenuCallbacks
+  callbacks: ScratchMaskContextMenuCallbacks,
+  t: TranslateFn
 ): ContextMenuAction[] {
   return [
     {
-      name: isLocked ? '固定解除' : '固定する',
+      name: isLocked ? t('feature.tabletop.contextMenu.unlock') : t('feature.tabletop.contextMenu.lock'),
       action: () => {
         if (isLocked) callbacks.unlock();
         else callbacks.lock();
@@ -23,7 +24,7 @@ export function buildScratchMaskContextMenu(
     },
     ContextMenuSeparator,
     {
-      name: '削除する',
+      name: t('feature.tabletop.contextMenu.delete'),
       action: () => {
         mask.destroy();
         SoundEffect.play(PresetSound.sweep);

@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
@@ -11,7 +12,8 @@ export function buildTerrainContextMenu(
   objectPosition: PointerCoordinate,
   inventoryService: GameObjectInventoryService,
   tabletopActionService: TabletopActionService,
-  onEdit: (t: Terrain) => void
+  onEdit: (t: Terrain) => void,
+  t: TranslateFn
 ): ContextMenuAction[] {
   const adjustedWidth = Math.max(0, terrain.width);
   const adjustedDepth = Math.max(0, terrain.depth);
@@ -23,11 +25,11 @@ export function buildTerrainContextMenu(
 
   return [
     {
-      name: '高度設定',
+      name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,
       subActions: [
         {
-          name: '高度を0にする',
+          name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
             if (terrain.altitude != 0) {
               terrain.altitude = 0;
@@ -38,7 +40,7 @@ export function buildTerrainContextMenu(
         },
         terrain.isAltitudeIndicate
           ? {
-              name: '☑ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOn'),
               action: () => {
                 terrain.isAltitudeIndicate = false;
                 SoundEffect.play(PresetSound.sweep);
@@ -46,7 +48,7 @@ export function buildTerrainContextMenu(
               },
             }
           : {
-              name: '☐ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOff'),
               action: () => {
                 terrain.isAltitudeIndicate = true;
                 SoundEffect.play(PresetSound.sweep);
@@ -55,7 +57,7 @@ export function buildTerrainContextMenu(
             },
         terrain.isDropShadow
           ? {
-              name: '☑ 影の表示',
+              name: t('feature.tabletop.contextMenu.shadowShowOn'),
               action: () => {
                 terrain.isDropShadow = false;
                 SoundEffect.play(PresetSound.sweep);
@@ -63,7 +65,7 @@ export function buildTerrainContextMenu(
               },
             }
           : {
-              name: '☐ 影の表示',
+              name: t('feature.tabletop.contextMenu.shadowShowOff'),
               action: () => {
                 terrain.isDropShadow = true;
                 SoundEffect.play(PresetSound.sweep);
@@ -75,14 +77,14 @@ export function buildTerrainContextMenu(
     ContextMenuSeparator,
     terrain.isLocked
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             terrain.isLocked = false;
             SoundEffect.play(PresetSound.unlock);
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             terrain.isLocked = true;
             SoundEffect.play(PresetSound.lock);
@@ -90,11 +92,11 @@ export function buildTerrainContextMenu(
         },
     ContextMenuSeparator,
     {
-      name: '傾斜',
+      name: t('feature.tabletop.contextMenu.slope'),
       action: undefined,
       subActions: [
         {
-          name: `${slopeDirection == SlopeDirection.NONE ? '◉' : '○'}  なし`,
+          name: `${slopeDirection == SlopeDirection.NONE ? '◉' : '○'}  ${t('feature.tabletop.contextMenu.slopeNone')}`,
           action: () => {
             terrain.isSlope = false;
             terrain.slopeDirection = SlopeDirection.NONE;
@@ -102,28 +104,28 @@ export function buildTerrainContextMenu(
         },
         ContextMenuSeparator,
         {
-          name: `${slopeDirection == SlopeDirection.TOP ? '◉' : '○'} 上（北）`,
+          name: `${slopeDirection == SlopeDirection.TOP ? '◉' : '○'} ${t('feature.tabletop.contextMenu.slopeTop')}`,
           action: () => {
             terrain.isSlope = true;
             terrain.slopeDirection = SlopeDirection.TOP;
           },
         },
         {
-          name: `${slopeDirection == SlopeDirection.BOTTOM ? '◉' : '○'} 下（南）`,
+          name: `${slopeDirection == SlopeDirection.BOTTOM ? '◉' : '○'} ${t('feature.tabletop.contextMenu.slopeBottom')}`,
           action: () => {
             terrain.isSlope = true;
             terrain.slopeDirection = SlopeDirection.BOTTOM;
           },
         },
         {
-          name: `${slopeDirection == SlopeDirection.LEFT ? '◉' : '○'}  左（西）`,
+          name: `${slopeDirection == SlopeDirection.LEFT ? '◉' : '○'}  ${t('feature.tabletop.contextMenu.slopeLeft')}`,
           action: () => {
             terrain.isSlope = true;
             terrain.slopeDirection = SlopeDirection.LEFT;
           },
         },
         {
-          name: `${slopeDirection == SlopeDirection.RIGHT ? '◉' : '○'} 右（東）`,
+          name: `${slopeDirection == SlopeDirection.RIGHT ? '◉' : '○'} ${t('feature.tabletop.contextMenu.slopeRight')}`,
           action: () => {
             terrain.isSlope = true;
             terrain.slopeDirection = SlopeDirection.RIGHT;
@@ -133,7 +135,7 @@ export function buildTerrainContextMenu(
     },
     terrain.hasWall
       ? {
-          name: '壁を非表示',
+          name: t('feature.tabletop.contextMenu.wallHide'),
           action: () => {
             terrain.mode = TerrainViewState.FLOOR;
             if (adjustedDepth * adjustedWidth === 0) {
@@ -143,21 +145,21 @@ export function buildTerrainContextMenu(
           },
         }
       : {
-          name: '壁を表示',
+          name: t('feature.tabletop.contextMenu.wallShow'),
           action: () => {
             terrain.mode = TerrainViewState.ALL;
           },
         },
     terrain.isSurfaceShading
       ? {
-          name: '壁に陰影を付けない',
+          name: t('feature.tabletop.contextMenu.surfaceShadingOff'),
           action: () => {
             terrain.isSurfaceShading = false;
             SoundEffect.play(PresetSound.sweep);
           },
         }
       : {
-          name: '壁に陰影を付ける',
+          name: t('feature.tabletop.contextMenu.surfaceShadingOn'),
           action: () => {
             terrain.isSurfaceShading = true;
             SoundEffect.play(PresetSound.sweep);
@@ -165,14 +167,14 @@ export function buildTerrainContextMenu(
         },
     terrain.isDropShadow
       ? {
-          name: '影を非表示',
+          name: t('feature.tabletop.contextMenu.shadowHide'),
           action: () => {
             terrain.isDropShadow = false;
             SoundEffect.play(PresetSound.sweep);
           },
         }
       : {
-          name: '影を表示',
+          name: t('feature.tabletop.contextMenu.shadowShow'),
           action: () => {
             terrain.isDropShadow = true;
             SoundEffect.play(PresetSound.sweep);
@@ -180,13 +182,13 @@ export function buildTerrainContextMenu(
         },
     ContextMenuSeparator,
     {
-      name: '地形設定を編集',
+      name: t('feature.tabletop.contextMenu.terrainEdit'),
       action: () => {
         onEdit(terrain);
       },
     },
     {
-      name: 'コピーを作る',
+      name: t('feature.tabletop.contextMenu.copy'),
       action: () => {
         const cloneObject = terrain.clone();
         cloneObject.location.x += gridSize;
@@ -197,7 +199,7 @@ export function buildTerrainContextMenu(
       },
     },
     {
-      name: '削除する',
+      name: t('feature.tabletop.contextMenu.delete'),
       action: () => {
         terrain.destroy();
         SoundEffect.play(PresetSound.sweep);
@@ -205,7 +207,7 @@ export function buildTerrainContextMenu(
     },
     ContextMenuSeparator,
     {
-      name: 'オブジェクト作成',
+      name: t('feature.tabletop.contextMenu.createObject'),
       action: undefined,
       subActions: tabletopActionService.makeDefaultContextMenuActions(objectPosition),
     },

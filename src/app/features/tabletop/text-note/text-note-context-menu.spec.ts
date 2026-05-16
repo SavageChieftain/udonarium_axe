@@ -2,6 +2,9 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ContextMenuType } from '@axe/application/ui/context-menu.service';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
+import { createSyncTranslate } from '@axe/testing/transloco-testing';
+
+const t = createSyncTranslate('ja');
 
 function makeService(): GameObjectInventoryService {
   return { notifyInventoryUpdate: vi.fn() } as unknown as GameObjectInventoryService;
@@ -37,10 +40,13 @@ const names = (a: { name: string }[]) => a.map((x) => x.name);
 describe('buildTextNoteContextMenu()', () => {
   it('先頭は「高度設定」サブメニュー、続いて固定切替・直立切替・編集・コピー・削除', () => {
     const note = makeTextNote();
-    const menu = buildTextNoteContextMenu(note as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail: vi.fn(),
-    });
+    const menu = buildTextNoteContextMenu(
+      note as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     expect(menu[0].name).toBe('高度設定');
     expect(menu[0].subActions?.length).toBe(2);
     expect(names(menu)).toContain('固定する');
@@ -52,10 +58,13 @@ describe('buildTextNoteContextMenu()', () => {
 
   it('isLock=true なら「固定解除」表示、action で false にする', () => {
     const note = makeTextNote({ isLock: true });
-    const menu = buildTextNoteContextMenu(note as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail: vi.fn(),
-    });
+    const menu = buildTextNoteContextMenu(
+      note as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     const unlockEntry = menu.find((m) => m.name === '固定解除');
     expect(unlockEntry).toBeDefined();
     unlockEntry!.action!();
@@ -64,47 +73,62 @@ describe('buildTextNoteContextMenu()', () => {
 
   it('isUpright=true なら「寝かせる」表示、isUpright=false なら「直立させる」', () => {
     const standing = makeTextNote({ isUpright: true });
-    const standingMenu = buildTextNoteContextMenu(standing as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail: vi.fn(),
-    });
+    const standingMenu = buildTextNoteContextMenu(
+      standing as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     expect(names(standingMenu)).toContain('寝かせる');
 
     const laying = makeTextNote({ isUpright: false });
-    const layingMenu = buildTextNoteContextMenu(laying as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail: vi.fn(),
-    });
+    const layingMenu = buildTextNoteContextMenu(
+      laying as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     expect(names(layingMenu)).toContain('直立させる');
   });
 
   it('「メモを編集」が onShowDetail コールバックを呼ぶ', () => {
     const note = makeTextNote();
     const onShowDetail = vi.fn();
-    const menu = buildTextNoteContextMenu(note as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail,
-    });
+    const menu = buildTextNoteContextMenu(
+      note as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail },
+      t
+    );
     menu.find((m) => m.name === 'メモを編集')!.action!();
     expect(onShowDetail).toHaveBeenCalled();
   });
 
   it('「削除する」が note.destroy() を呼ぶ', () => {
     const note = makeTextNote();
-    const menu = buildTextNoteContextMenu(note as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail: vi.fn(),
-    });
+    const menu = buildTextNoteContextMenu(
+      note as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     menu.find((m) => m.name === '削除する')!.action!();
     expect(note.destroy).toHaveBeenCalled();
   });
 
   it('separator はちょうど 3 つ', () => {
     const note = makeTextNote();
-    const menu = buildTextNoteContextMenu(note as unknown as TextNote, 50, makeService(), {
-      onSetUpright: vi.fn(),
-      onShowDetail: vi.fn(),
-    });
+    const menu = buildTextNoteContextMenu(
+      note as unknown as TextNote,
+      50,
+      makeService(),
+      { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     expect(menu.filter((m) => m.type === ContextMenuType.SEPARATOR)).toHaveLength(3);
   });
 });

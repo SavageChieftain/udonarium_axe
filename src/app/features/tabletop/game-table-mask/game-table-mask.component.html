@@ -329,13 +329,18 @@
             [ngStyle]="{ 'background-color': ownerColor + 'E6' }"
           >
             <span class="inline-block" [class.transform-[rotateZ(180deg)]]="isInverse"
-              ><b>{{ ownerName }}</b> が操作中
+              ><b>{{ ownerName }}</b
+              >{{ 'feature.tabletop.mask.operating' | transloco }}
               @if (gameTableMask()!.isMine) {
                 <button
                   class="pointer-events-auto m-0 mr-px px-1 py-0 align-[10%]"
                   (pointerdown)="onScratchDonePointerDown($event)"
                   (click)="scratchDone($event)"
-                  [title]="gameTableMask()!.scratchingGrids ? '確定' : '終了'"
+                  [title]="
+                    gameTableMask()!.scratchingGrids
+                      ? ('feature.tabletop.mask.confirm' | transloco)
+                      : ('feature.tabletop.mask.finish' | transloco)
+                  "
                 >
                   <i class="material-icons align-bottom text-[14px]!">done</i>
                 </button>
@@ -345,7 +350,7 @@
                   class="pointer-events-auto m-0 mr-px px-1 py-0 align-[10%]"
                   (pointerdown)="onScratchCancelPointerDown($event)"
                   (click)="scratchCancel($event)"
-                  title="キャンセル"
+                  [title]="'feature.tabletop.mask.cancel' | transloco"
                 >
                   <i class="material-icons align-bottom text-[14px]!">clear</i>
                 </button>

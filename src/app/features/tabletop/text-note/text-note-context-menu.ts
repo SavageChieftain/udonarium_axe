@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -10,15 +11,16 @@ export function buildTextNoteContextMenu(
   callbacks: {
     onSetUpright: (isUpright: boolean) => void;
     onShowDetail: () => void;
-  }
+  },
+  t: TranslateFn
 ): ContextMenuAction[] {
   return [
     {
-      name: '高度設定',
+      name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,
       subActions: [
         {
-          name: '高度を0にする',
+          name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
             if (textNote.altitude != 0) {
               textNote.altitude = 0;
@@ -29,7 +31,7 @@ export function buildTextNoteContextMenu(
         },
         textNote.isAltitudeIndicate
           ? {
-              name: '☑ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOn'),
               action: () => {
                 textNote.isAltitudeIndicate = false;
                 SoundEffect.play(PresetSound.sweep);
@@ -37,7 +39,7 @@ export function buildTextNoteContextMenu(
               },
             }
           : {
-              name: '☐ 高度の表示',
+              name: t('feature.tabletop.contextMenu.altitudeShowOff'),
               action: () => {
                 textNote.isAltitudeIndicate = true;
                 SoundEffect.play(PresetSound.sweep);
@@ -49,14 +51,14 @@ export function buildTextNoteContextMenu(
     ContextMenuSeparator,
     textNote.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             textNote.isLock = false;
             SoundEffect.play(PresetSound.unlock);
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             textNote.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -65,14 +67,14 @@ export function buildTextNoteContextMenu(
     ContextMenuSeparator,
     textNote.isUpright
       ? {
-          name: '寝かせる',
+          name: t('feature.tabletop.contextMenu.textNoteLay'),
           action: () => {
             callbacks.onSetUpright(false);
             SoundEffect.play(PresetSound.sweep);
           },
         }
       : {
-          name: '直立させる',
+          name: t('feature.tabletop.contextMenu.textNoteUpright'),
           action: () => {
             callbacks.onSetUpright(true);
             SoundEffect.play(PresetSound.sweep);
@@ -80,11 +82,11 @@ export function buildTextNoteContextMenu(
         },
     ContextMenuSeparator,
     {
-      name: 'メモを編集',
+      name: t('feature.tabletop.contextMenu.textNoteEdit'),
       action: () => callbacks.onShowDetail(),
     },
     {
-      name: 'コピーを作る',
+      name: t('feature.tabletop.contextMenu.copy'),
       action: () => {
         const cloneObject = textNote.clone();
         cloneObject.location.x += gridSize;
@@ -94,7 +96,7 @@ export function buildTextNoteContextMenu(
       },
     },
     {
-      name: '削除する',
+      name: t('feature.tabletop.contextMenu.delete'),
       action: () => {
         textNote.destroy();
         SoundEffect.play(PresetSound.sweep);

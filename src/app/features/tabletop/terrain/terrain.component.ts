@@ -12,6 +12,7 @@ import {
   signal,
   viewChildren,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -88,6 +89,7 @@ export class TerrainComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   constructor() {
     effect(() => {
@@ -484,7 +486,8 @@ export class TerrainComponent {
       objectPosition,
       this.inventoryService,
       this.tabletopActionService,
-      (t) => this.showDetail(t)
+      (terrain) => this.showDetail(terrain),
+      this.translateFn
     );
     this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
@@ -590,7 +593,7 @@ export class TerrainComponent {
   private showDetail(gameObject: Terrain) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = '地形設定';
+    let title = this.translateFn('feature.tabletop.panel.terrain');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,

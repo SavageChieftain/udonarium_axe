@@ -10,6 +10,7 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -87,6 +88,7 @@ export class GameTableComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
   private _initialized = false;
   readonly gestureService = inject(GameTableGestureService);
 
@@ -286,7 +288,7 @@ export class GameTableComponent {
     Array.prototype.push.apply(menuActions, this.tabletopActionService.makeDefaultContextMenuActions(objectPosition));
     menuActions.push(ContextMenuSeparator);
     menuActions.push({
-      name: 'テーブル設定',
+      name: this.t('feature.tabletop.tableSetting.title'),
       action: () => {
         this.modalService.open(GameTableSettingComponent);
       },

@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -72,6 +73,7 @@ export class RangeComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly range = input.required<RangeArea>();
 
@@ -338,7 +340,8 @@ export class RangeComponent {
       this.inventoryService,
       this.tabletopActionService,
       () => this.dockingWindowOpen(),
-      (r) => this.showDetail(r)
+      (r) => this.showDetail(r),
+      this.translateFn
     );
     this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
@@ -351,7 +354,7 @@ export class RangeComponent {
       width: 350,
       height: 200,
     };
-    option.title = 'キャラクターに追従';
+    option.title = this.translateFn('feature.tabletop.panel.rangeFollow');
     const component = this.panelService.open<RangeDockingCharacterComponent>(RangeDockingCharacterComponent, option);
     component.tabletopObject = this.range();
   }
@@ -374,7 +377,7 @@ export class RangeComponent {
 
   private showDetail(gameObject: RangeArea) {
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = '射程範囲設定';
+    let title = this.translateFn('feature.tabletop.panel.range');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,

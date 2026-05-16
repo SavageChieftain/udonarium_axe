@@ -13,6 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -56,6 +57,7 @@ export class TextNoteComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   constructor() {
     effect(() => {
@@ -306,13 +308,19 @@ export class TextNoteComponent {
     const position = this.pointerDeviceService.pointers[0];
     this.contextMenuService.open(
       position,
-      buildTextNoteContextMenu(this.textNote(), this.gridSize, this.inventoryService, {
-        onSetUpright: (isUpright) => {
-          this.transition = true;
-          this.textNote().isUpright = isUpright;
+      buildTextNoteContextMenu(
+        this.textNote(),
+        this.gridSize,
+        this.inventoryService,
+        {
+          onSetUpright: (isUpright) => {
+            this.transition = true;
+            this.textNote().isUpright = isUpright;
+          },
+          onShowDetail: () => this.showDetail(this.textNote()),
         },
-        onShowDetail: () => this.showDetail(this.textNote()),
-      }),
+        this.translateFn
+      ),
       this.title()
     );
   }
@@ -373,7 +381,7 @@ export class TextNoteComponent {
   private showDetail(gameObject: TextNote) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = '共有メモ設定';
+    let title = this.translateFn('feature.tabletop.panel.textNote');
     if (gameObject.title.length) title += ' - ' + gameObject.title;
     const option: PanelOption = {
       title: title,

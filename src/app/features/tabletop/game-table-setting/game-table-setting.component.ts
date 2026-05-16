@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -15,6 +16,7 @@ import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabl
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
@@ -22,9 +24,10 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
   host: { class: 'block' },
-  imports: [FormsModule, NgSelectComponent, NgOptionComponent, SafePipe],
+  imports: [FormsModule, NgSelectComponent, NgOptionComponent, SafePipe, TranslocoModule],
 })
 export class GameTableSettingComponent {
+  private readonly t = inject(TRANSLATE_FN);
   private readonly modalService = inject(ModalService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly imageService = inject(ImageService);
@@ -191,7 +194,9 @@ export class GameTableSettingComponent {
   readonly progressPercent = signal(0);
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'テーブル設定'));
+    queueMicrotask(
+      () => (this.modalService.title = this.panelService.title = this.t('feature.tabletop.tableSetting.title'))
+    );
     this.selectedTable = this.tableSelecter.viewTable;
     this.objectChange.objectDeleted$.subscribe((e) => {
       if (!this.selectedTable || e.identifier !== this.selectedTable.identifier) return;
@@ -214,7 +219,7 @@ export class GameTableSettingComponent {
 
   createGameTable() {
     const gameTable = new GameTable();
-    gameTable.name = '白紙のテーブル';
+    gameTable.name = this.t('feature.tabletop.tableSetting.defaultName');
     gameTable.imageIdentifier = ImageFile.Empty.identifier;
     gameTable.gridShow = true;
     gameTable.initialize();

@@ -2,6 +2,9 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
+import { createSyncTranslate } from '@axe/testing/transloco-testing';
+
+const t = createSyncTranslate('ja');
 
 interface MutableTerrain {
   width: number;
@@ -58,7 +61,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(menu[0].name).toBe('高度設定');
     expect(menu[0].subActions?.length).toBe(3);
@@ -71,7 +75,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(names(lockedMenu)).toContain('固定解除');
 
@@ -81,7 +86,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(names(unlockedMenu)).toContain('固定する');
   });
@@ -93,11 +99,11 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     const slope = menu.find((m) => m.name === '傾斜');
     expect(slope).toBeDefined();
-    // 「なし」+ separator + 上/下/左/右 = 6 sub items
     expect(slope?.subActions?.length).toBe(6);
   });
 
@@ -109,7 +115,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     const slope = menu.find((m) => m.name === '傾斜');
     const top = slope?.subActions?.find((s) => s.name.includes('上（北）'));
@@ -125,7 +132,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(names(withWall)).toContain('壁を非表示');
 
@@ -135,7 +143,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(names(noWall)).toContain('壁を表示');
   });
@@ -147,7 +156,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(names(noShadow)).toContain('影を表示');
 
@@ -157,7 +167,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     expect(names(withShadow)).toContain('影を非表示');
   });
@@ -171,7 +182,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      onEdit
+      onEdit,
+      t
     );
     menu.find((m) => m.name === '地形設定を編集')!.action!();
     expect(onEdit).toHaveBeenCalledWith(terrain);
@@ -185,7 +197,8 @@ describe('buildTerrainContextMenu()', () => {
       { x: 0, y: 0, z: 0 },
       makeService(),
       makeActionService(),
-      vi.fn()
+      vi.fn(),
+      t
     );
     menu.find((m) => m.name === '削除する')!.action!();
     expect(terrain.destroy).toHaveBeenCalled();

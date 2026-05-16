@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -25,6 +26,7 @@ export class GameTableScratchMaskComponent {
   private readonly coordinateService = inject(CoordinateService);
   private readonly tabletopActionService = inject(TabletopActionService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly gameTableScratchMask = input<GameTableScratchMask | null>(null);
 
@@ -86,10 +88,15 @@ export class GameTableScratchMaskComponent {
     const mask = this.gameTableScratchMask();
     if (!mask) return;
     const coordinate = this.pointerDeviceService.pointers[0];
-    const actions = buildScratchMaskContextMenu(mask, this.isLock, {
-      lock: () => this.lock(),
-      unlock: () => this.unlock(),
-    });
+    const actions = buildScratchMaskContextMenu(
+      mask,
+      this.isLock,
+      {
+        lock: () => this.lock(),
+        unlock: () => this.unlock(),
+      },
+      this.translateFn
+    );
     this.contextMenuService.open(coordinate, actions, this.name());
   }
 
@@ -108,7 +115,7 @@ export class GameTableScratchMaskComponent {
   openSheet(e: Event) {
     e.stopPropagation();
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = 'スクラッチマスク設定';
+    let title = this.translateFn('feature.tabletop.panel.scratchMask');
     if (this.name.length) title += ' - ' + this.name;
     const option: PanelOption = {
       title: title,

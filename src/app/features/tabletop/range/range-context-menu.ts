@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
@@ -14,16 +15,17 @@ export function buildRangeContextMenu(
   inventoryService: GameObjectInventoryService,
   tabletopActionService: TabletopActionService,
   onDockingWindowOpen: () => void,
-  onEdit: (r: RangeArea) => void
+  onEdit: (r: RangeArea) => void,
+  t: TranslateFn
 ): ContextMenuAction[] {
   const menuArray: ContextMenuAction[] = [];
 
   menuArray.push({
-    name: '高度設定',
+    name: t('feature.tabletop.contextMenu.altitudeSetting'),
     action: undefined,
     subActions: [
       {
-        name: '高度を0にする',
+        name: t('feature.tabletop.contextMenu.altitudeZero'),
         action: () => {
           if (range.altitude != 0) {
             range.altitude = 0;
@@ -34,7 +36,7 @@ export function buildRangeContextMenu(
       },
       range.isAltitudeIndicate
         ? {
-            name: '☑ 高度の表示',
+            name: t('feature.tabletop.contextMenu.altitudeShowOn'),
             action: () => {
               range.isAltitudeIndicate = false;
               SoundEffect.play(PresetSound.sweep);
@@ -42,7 +44,7 @@ export function buildRangeContextMenu(
             },
           }
         : {
-            name: '☐ 高度の表示',
+            name: t('feature.tabletop.contextMenu.altitudeShowOff'),
             action: () => {
               range.isAltitudeIndicate = true;
               SoundEffect.play(PresetSound.sweep);
@@ -55,14 +57,14 @@ export function buildRangeContextMenu(
   menuArray.push(
     range.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             range.isLock = false;
             SoundEffect.play(PresetSound.unlock);
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             range.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -79,14 +81,14 @@ export function buildRangeContextMenu(
     menuArray.push(
       objectStore.get(range.followingCharctorIdentifier) != null
         ? {
-            name: '追従を解除',
+            name: t('feature.tabletop.contextMenu.unfollow'),
             action: () => {
               SoundEffect.play(PresetSound.unlock);
               range.followingCharctorIdentifier = '';
             },
           }
         : {
-            name: 'キャラクターに追従',
+            name: t('feature.tabletop.contextMenu.followCharacter'),
             action: () => {
               onDockingWindowOpen();
             },
@@ -95,53 +97,53 @@ export function buildRangeContextMenu(
   }
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
-    name: '形状変更',
+    name: t('feature.tabletop.contextMenu.shape'),
     action: undefined,
     subActions: [
       {
-        name: (range.type === 'LINE' ? '✔ ' : '') + '直線',
+        name: (range.type === 'LINE' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeLine'),
         action: () => {
           range.type = 'LINE';
           SoundEffect.play(PresetSound.sweep);
         },
       },
       {
-        name: (range.type === 'CORN' ? '✔ ' : '') + 'コーン',
+        name: (range.type === 'CORN' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeCorn'),
         action: () => {
           range.type = 'CORN';
           SoundEffect.play(PresetSound.sweep);
         },
       },
       {
-        name: (range.type === 'TRIANGLE' ? '✔ ' : '') + '三角形（キャラ中心）',
+        name: (range.type === 'TRIANGLE' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeTriangle'),
         action: () => {
           range.type = 'TRIANGLE';
           SoundEffect.play(PresetSound.sweep);
         },
       },
       {
-        name: (range.type === 'SQUARE' ? '✔ ' : '') + '四角形',
+        name: (range.type === 'SQUARE' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeSquare'),
         action: () => {
           range.type = 'SQUARE';
           SoundEffect.play(PresetSound.sweep);
         },
       },
       {
-        name: (range.type === 'PENTAGON' ? '✔ ' : '') + '五角形',
+        name: (range.type === 'PENTAGON' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapePentagon'),
         action: () => {
           range.type = 'PENTAGON';
           SoundEffect.play(PresetSound.sweep);
         },
       },
       {
-        name: (range.type === 'HEXAGON' ? '✔ ' : '') + '六角形',
+        name: (range.type === 'HEXAGON' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeHexagon'),
         action: () => {
           range.type = 'HEXAGON';
           SoundEffect.play(PresetSound.sweep);
         },
       },
       {
-        name: (range.type === 'CIRCLE' ? '✔ ' : '') + '円形',
+        name: (range.type === 'CIRCLE' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeCircle'),
         action: () => {
           range.type = 'CIRCLE';
           SoundEffect.play(PresetSound.sweep);
@@ -151,13 +153,13 @@ export function buildRangeContextMenu(
   });
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
-    name: '射程範囲を編集',
+    name: t('feature.tabletop.contextMenu.rangeEdit'),
     action: () => {
       onEdit(range);
     },
   });
   menuArray.push({
-    name: 'コピーを作る',
+    name: t('feature.tabletop.contextMenu.copy'),
     action: () => {
       const cloneObject = range.clone();
       cloneObject.location.x += gridSize;
@@ -168,7 +170,7 @@ export function buildRangeContextMenu(
     },
   });
   menuArray.push({
-    name: '削除する',
+    name: t('feature.tabletop.contextMenu.delete'),
     action: () => {
       range.destroy();
       SoundEffect.play(PresetSound.sweep);
@@ -176,7 +178,7 @@ export function buildRangeContextMenu(
   });
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
-    name: 'オブジェクト作成',
+    name: t('feature.tabletop.contextMenu.createObject'),
     action: undefined,
     subActions: tabletopActionService.makeDefaultContextMenuActions(objectPosition),
   });

@@ -11,6 +11,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
@@ -42,12 +43,13 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_MASK_PX } from '@axe/ui/tabletop/z-offset';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-table-mask',
   templateUrl: './game-table-mask.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgStyle, SafePipe],
+  imports: [MovableDirective, NgStyle, SafePipe, TranslocoModule],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -71,6 +73,7 @@ export class GameTableMaskComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   constructor() {
     effect(() => {
@@ -517,6 +520,7 @@ export class GameTableMaskComponent {
         mask.owner = '';
       },
       onEdit: (m) => this.showDetail(m),
+      t: this.translateFn,
     });
     this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
@@ -578,7 +582,7 @@ export class GameTableMaskComponent {
 
   private showDetail(gameObject: GameTableMask) {
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = 'マップマスク設定';
+    let title = this.translateFn('feature.tabletop.panel.mask');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,
