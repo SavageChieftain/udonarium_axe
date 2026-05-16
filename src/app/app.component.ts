@@ -9,6 +9,8 @@ import {
   ViewContainerRef,
 } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { LanguageService } from '@axe/application/i18n/language.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { CutInService } from '@axe/application/media/cut-in.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -27,6 +29,7 @@ import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
+import { LanguageSelectorComponent } from '@axe/features/language-selector/language-selector.component';
 import { NetworkEventHandlerService } from '@axe/features/lobby/network-event-handler.service';
 import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator/network-indicator.component';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
@@ -41,15 +44,24 @@ import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-me
 import { ModalComponent } from '@axe/ui/components/modal/modal.component';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [GameTableComponent, NetworkIndicatorComponent, MiniJukeboxComponent],
+  imports: [
+    GameTableComponent,
+    NetworkIndicatorComponent,
+    MiniJukeboxComponent,
+    LanguageSelectorComponent,
+    TranslocoModule,
+  ],
 })
 export class AppComponent {
   readonly theme = inject(ThemeService);
+  readonly language = inject(LanguageService);
+  private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);
@@ -61,10 +73,11 @@ export class AppComponent {
   isSaving = signal(false);
   progressPercent = signal(0);
   readonly themeLabel = computed(() => {
+    this.language.currentLang();
     const t = this.theme.theme();
-    if (t === 'dark') return 'ダーク';
-    if (t === 'light') return 'ライト';
-    return '自動';
+    if (t === 'dark') return this.t('common.theme.dark');
+    if (t === 'light') return this.t('common.theme.light');
+    return this.t('common.theme.auto');
   });
   private openPanelCount = 0;
 
@@ -83,10 +96,16 @@ export class AppComponent {
         ModalService.defaultParentViewContainerRef =
         ContextMenuService.defaultParentViewContainerRef =
           this.modalLayerViewContainerRef();
-      this.panelService.open(PeerMenuComponent, { title: '接続情報', width: 420, height: 300, left: 80, top: 10 });
+      this.panelService.open(PeerMenuComponent, {
+        title: this.t('common.panel.peerMenu'),
+        width: 420,
+        height: 300,
+        left: 80,
+        top: 10,
+      });
       const chatHeight = 460;
       this.panelService.open(ChatWindowComponent, {
-        title: 'チャットウィンドウ',
+        title: this.t('common.panel.chatWindow'),
         width: 660,
         height: chatHeight,
         minWidth: 300,
@@ -114,7 +133,7 @@ export class AppComponent {
     switch (componentName) {
       case 'PeerMenuComponent':
         component = PeerMenuComponent;
-        option = { width: 420, height: 300, left: 100, title: '接続情報' };
+        option = { width: 420, height: 300, left: 100, title: this.t('common.panel.peerMenu') };
         break;
       case 'ChatWindowComponent':
         component = ChatWindowComponent;
@@ -122,34 +141,34 @@ export class AppComponent {
         option.height = 500;
         option.minWidth = 300;
         option.minHeight = 460;
-        option.title = 'チャットウィンドウ';
+        option.title = this.t('common.panel.chatWindow');
         break;
       case 'GameTableSettingComponent':
         component = GameTableSettingComponent;
-        option = { width: 630, height: 500, left: 100, title: 'テーブル設定' };
+        option = { width: 630, height: 500, left: 100, title: this.t('common.panel.gameTableSetting') };
         break;
       case 'FileStorageComponent':
         component = FileStorageComponent;
-        option.title = 'ファイル一覧';
+        option.title = this.t('common.panel.fileStorage');
         break;
       case 'GameCharacterSheetComponent':
         component = GameCharacterSheetComponent;
         break;
       case 'JukeboxComponent':
         component = JukeboxComponent;
-        option.title = 'ジュークボックス';
+        option.title = this.t('common.panel.jukebox');
         break;
       case 'CutInListComponent':
         component = CutInListComponent;
-        option = { width: 650, height: 740, left: 100, title: 'カットインリスト' };
+        option = { width: 650, height: 740, left: 100, title: this.t('common.panel.cutInList') };
         break;
       case 'GameCharacterGeneratorComponent':
         component = GameCharacterGeneratorComponent;
-        option = { width: 500, height: 300, left: 100, title: 'キャラクタージェネレーター' };
+        option = { width: 500, height: 300, left: 100, title: this.t('common.panel.characterGenerator') };
         break;
       case 'GameObjectInventoryComponent':
         component = GameObjectInventoryComponent;
-        option.title = 'インベントリ';
+        option.title = this.t('common.panel.inventory');
         break;
     }
     if (component) {
@@ -166,7 +185,9 @@ export class AppComponent {
     this.progressPercent.set(0);
 
     const roomName =
-      Network.peerContext && Network.peerContext.roomName.length > 0 ? Network.peerContext.roomName : 'ルームデータ';
+      Network.peerContext && Network.peerContext.roomName.length > 0
+        ? Network.peerContext.roomName
+        : this.t('app.roomDataDefault');
     await this.saveDataService.saveRoomAsync(roomName, (percent) => {
       this.progressPercent.set(percent);
     });
