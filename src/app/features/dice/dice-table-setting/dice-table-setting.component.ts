@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -8,6 +9,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceTablePalette } from '@axe/domain/chat/chat-palette';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { DiceTable } from '@axe/domain/dice/dice-table';
+import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 @Component({
@@ -15,7 +17,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   selector: 'dice-table-setting',
   templateUrl: './dice-table-setting.component.html',
   host: { class: 'block h-full' },
-  imports: [FormsModule, NgSelectComponent, NgOptionComponent],
+  imports: [FormsModule, NgSelectComponent, NgOptionComponent, TranslocoModule],
 })
 export class DiceTableSettingComponent {
   private readonly modalService = inject(ModalService);
@@ -23,6 +25,7 @@ export class DiceTableSettingComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly tableName = computed<string>(() => this.readSyncVar((t) => t.name));
   readonly tableDice = computed<string>(() => this.readSyncVar((t) => t.dice));
@@ -130,7 +133,9 @@ export class DiceTableSettingComponent {
   readonly progressPercent = signal(0);
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'ダイス表設定'));
+    queueMicrotask(
+      () => (this.modalService.title = this.panelService.title = this.t('feature.dice.tableSetting.title'))
+    );
   }
 
   selectDiceTable(identifier: string) {

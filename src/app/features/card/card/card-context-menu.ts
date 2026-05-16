@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
 import { Card, CardState } from '@axe/domain/card/card';
@@ -9,14 +10,15 @@ export function buildCardContextMenu(
   callbacks: {
     onCreateStack: () => void;
     onShowDetail: () => void;
-  }
+  },
+  t: TranslateFn
 ): ContextMenuAction[] {
   const menuArray: ContextMenuAction[] = [];
 
   menuArray.push(
     card.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             card.isLock = false;
             card.dispLockMark = true;
@@ -24,7 +26,7 @@ export function buildCardContextMenu(
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             card.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -36,14 +38,14 @@ export function buildCardContextMenu(
     menuArray.push(
       card.dispLockMark
         ? {
-            name: '固定マーク消去',
+            name: t('feature.tabletop.contextMenu.lockMarkHide'),
             action: () => {
               card.dispLockMark = false;
               SoundEffect.play(PresetSound.lock);
             },
           }
         : {
-            name: '固定マーク表示',
+            name: t('feature.tabletop.contextMenu.lockMarkShow'),
             action: () => {
               card.dispLockMark = true;
               SoundEffect.play(PresetSound.lock);
@@ -57,14 +59,14 @@ export function buildCardContextMenu(
   menuArray.push(
     !card.isVisible || card.isHand
       ? {
-          name: '表にする',
+          name: t('feature.card.contextMenu.faceUp'),
           action: () => {
             card.faceUp();
             SoundEffect.play(PresetSound.cardDraw);
           },
         }
       : {
-          name: '裏にする',
+          name: t('feature.card.contextMenu.faceDown'),
           action: () => {
             card.faceDown();
             SoundEffect.play(PresetSound.cardDraw);
@@ -75,14 +77,14 @@ export function buildCardContextMenu(
   menuArray.push(
     card.isHand
       ? {
-          name: '裏にする',
+          name: t('feature.card.contextMenu.faceDown'),
           action: () => {
             card.faceDown();
             SoundEffect.play(PresetSound.cardDraw);
           },
         }
       : {
-          name: '自分だけ見る',
+          name: t('feature.card.contextMenu.showSelfOnly'),
           action: () => {
             SoundEffect.play(PresetSound.cardDraw);
             card.state = CardState.BACK;
@@ -94,20 +96,20 @@ export function buildCardContextMenu(
   menuArray.push(ContextMenuSeparator);
 
   menuArray.push({
-    name: '重なったカードで山札を作る',
+    name: t('feature.card.contextMenu.createStack'),
     action: () => {
       callbacks.onCreateStack();
       SoundEffect.play(PresetSound.cardPut);
     },
   });
   menuArray.push({
-    name: 'カードを編集',
+    name: t('feature.card.contextMenu.editCard'),
     action: () => {
       callbacks.onShowDetail();
     },
   });
   menuArray.push({
-    name: 'コピーを作る',
+    name: t('feature.tabletop.contextMenu.copy'),
     action: () => {
       const cloneObject = card.clone();
       cloneObject.location.x += gridSize;
@@ -117,7 +119,7 @@ export function buildCardContextMenu(
     },
   });
   menuArray.push({
-    name: '削除する',
+    name: t('feature.tabletop.contextMenu.delete'),
     action: () => {
       card.destroy();
       SoundEffect.play(PresetSound.sweep);

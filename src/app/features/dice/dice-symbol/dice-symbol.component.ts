@@ -11,6 +11,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -52,6 +53,7 @@ export class DiceSymbolComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly diceSymbol = input.required<DiceSymbol>();
 
@@ -228,10 +230,15 @@ export class DiceSymbolComponent {
     const position = this.pointerDeviceService.pointers[0];
     this.contextMenuService.open(
       position,
-      buildDiceSymbolContextMenu(this.diceSymbol(), this.gridSize, {
-        onDiceRoll: () => this.diceRoll(),
-        onShowDetail: () => this.showDetail(this.diceSymbol()),
-      }),
+      buildDiceSymbolContextMenu(
+        this.diceSymbol(),
+        this.gridSize,
+        {
+          onDiceRoll: () => this.diceRoll(),
+          onShowDetail: () => this.showDetail(this.diceSymbol()),
+        },
+        this.translateFn
+      ),
       this.name()
     );
   }
@@ -253,7 +260,7 @@ export class DiceSymbolComponent {
   showDetail(gameObject: DiceSymbol) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = 'ダイスシンボル設定';
+    let title = this.translateFn('feature.dice.symbolSheet.title');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,

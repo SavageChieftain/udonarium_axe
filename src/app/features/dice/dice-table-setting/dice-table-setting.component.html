@@ -1,12 +1,13 @@
 <div class="text-ui-text grid h-full grid-cols-[170px_1fr] overflow-hidden text-[13px]">
-  <!-- ── 左カラム: 表リスト ── -->
   <aside class="border-ui-border-panel bg-ui-panel flex flex-col overflow-hidden border-r border-solid">
     <div class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid px-2.5 py-2">
-      <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">ダイス表</span>
+      <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">{{
+        'feature.dice.tableSetting.sidebarTitle' | transloco
+      }}</span>
       <button
         type="button"
         class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
-        title="新しい表を作る"
+        [title]="'feature.dice.tableSetting.addTable' | transloco"
         (click)="createDiceTable()"
         [disabled]="isEdit()"
       >
@@ -33,20 +34,19 @@
     </ul>
   </aside>
 
-  <!-- ── 右カラム: 詳細 ── -->
   <main class="bg-ui-elevated flex flex-col gap-0 overflow-y-auto px-3.5 py-3">
     @if (getDiceTables().length === 0) {
       <div
         class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]!"
       >
         <i class="material-icons">casino</i>
-        <p>ダイス表がありません</p>
+        <p>{{ 'feature.dice.tableSetting.empty' | transloco }}</p>
         <button
           type="button"
           class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-opacity hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           (click)="createDiceTable()"
         >
-          表を作成
+          {{ 'feature.dice.tableSetting.createButton' | transloco }}
         </button>
       </div>
     }
@@ -56,51 +56,58 @@
         class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40 [&_p]:m-0 [&_p]:text-[13px]!"
       >
         <i class="material-icons">touch_app</i>
-        <p>左のリストから表を選択してください</p>
+        <p>{{ 'feature.dice.tableSetting.selectFromList' | transloco }}</p>
       </div>
     }
 
     @if (selectedTable && !isDeleted) {
-      <!-- フィールド -->
       <div class="mb-1 flex flex-col gap-1.25">
-        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">表タイトル</label>
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+          'feature.dice.tableSetting.tableTitleLabel' | transloco
+        }}</label>
         <input
           class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
           name="dice-table-name"
           [ngModel]="tableName()"
           (ngModelChange)="setTableName($event)"
-          placeholder="タイトルを入力"
+          [placeholder]="'feature.dice.tableSetting.tableTitlePlaceholder' | transloco"
           [attr.disabled]="!isEditable ? '' : null"
         />
       </div>
 
       <div class="mb-1 flex gap-2.5">
         <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1.25">
-          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">ダイス</label>
+          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+            'feature.dice.tableSetting.diceLabel' | transloco
+          }}</label>
           <input
             class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             name="dice-table-dice"
             [ngModel]="tableDice()"
             (ngModelChange)="setTableDice($event)"
-            placeholder="例: 1d6"
+            [placeholder]="'feature.dice.tableSetting.dicePlaceholder' | transloco"
             [attr.disabled]="!isEditable ? '' : null"
           />
         </div>
         <div class="mb-1 flex min-w-0 flex-1 flex-col gap-1.25">
-          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">コマンド</label>
+          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+            'feature.dice.tableSetting.commandLabel' | transloco
+          }}</label>
           <input
             class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             name="dice-table-command"
             [ngModel]="tableCommand()"
             (ngModelChange)="setTableCommand($event)"
-            placeholder="コマンド"
+            [placeholder]="'feature.dice.tableSetting.commandPlaceholder' | transloco"
             [attr.disabled]="!isEditable ? '' : null"
           />
         </div>
       </div>
 
       <div class="mb-1 flex flex-col gap-1.25">
-        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">ゲームシステム</label>
+        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+          'feature.dice.tableSetting.gameSystemLabel' | transloco
+        }}</label>
         <ng-select
           class="ud-select sys-select"
           (change)="loadDiceBot($event)"
@@ -118,15 +125,16 @@
 
       <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
-      <!-- パレット -->
       <div class="mb-1 flex flex-1 flex-col gap-1.5">
         <div class="flex shrink-0 items-center gap-2">
-          <span class="text-ui-muted flex-1 text-[11px] font-semibold tracking-[0.04em] uppercase">ダイス表</span>
+          <span class="text-ui-muted flex-1 text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+            'feature.dice.tableSetting.diceTableSection' | transloco
+          }}</span>
           @if (isEdit()) {
             <span
               class="rounded-ui-sm bg-ui-accent-bg text-ui-accent inline-flex items-center gap-0.75 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
             >
-              <i class="material-icons">edit</i>編集中
+              <i class="material-icons">edit</i>{{ 'feature.dice.tableSetting.editing' | transloco }}
             </span>
           }
           @if (!isEdit()) {
@@ -136,7 +144,7 @@
               (click)="toggleEditMode()"
               [disabled]="!isEditable"
             >
-              <i class="material-icons">edit</i>編集
+              <i class="material-icons">edit</i>{{ 'feature.dice.tableSetting.edit' | transloco }}
             </button>
           } @else {
             <button
@@ -145,7 +153,7 @@
               (click)="toggleEditMode()"
               [disabled]="!isEditable"
             >
-              <i class="material-icons">check</i>確定
+              <i class="material-icons">check</i>{{ 'feature.dice.tableSetting.confirm' | transloco }}
             </button>
           }
         </div>
@@ -157,7 +165,7 @@
             @for (entry of palettes(); track entry) {
               <div class="text-ui-text py-px whitespace-pre">{{ entry }}</div>
             } @empty {
-              <div class="text-ui-dim text-[11px] italic">（エントリなし）</div>
+              <div class="text-ui-dim text-[11px] italic">{{ 'feature.dice.tableSetting.emptyEntry' | transloco }}</div>
             }
           </div>
         }
@@ -168,14 +176,13 @@
             name="dice-table-palette"
             [ngModel]="editPalette()"
             (ngModelChange)="editPalette.set($event)"
-            placeholder="ダイス表を1行ずつ入力..."
+            [placeholder]="'feature.dice.tableSetting.palettePlaceholder' | transloco"
           ></textarea>
         }
       </div>
 
       <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
 
-      <!-- アクション -->
       <div class="mb-1 flex flex-col gap-1.25">
         <div class="flex flex-wrap items-center gap-1.5">
           <button
@@ -187,7 +194,7 @@
             @if (isSaving()) {
               <i class="material-icons animate-spin">sync</i>{{ progressPercent() }}%
             } @else {
-              <i class="material-icons">save</i>保存
+              <i class="material-icons">save</i>{{ 'feature.dice.tableSetting.save' | transloco }}
             }
           </button>
           <button
@@ -196,7 +203,7 @@
             [disabled]="isEdit()"
             (click)="delete()"
           >
-            <i class="material-icons">delete</i>削除
+            <i class="material-icons">delete</i>{{ 'feature.dice.tableSetting.delete' | transloco }}
           </button>
         </div>
       </div>

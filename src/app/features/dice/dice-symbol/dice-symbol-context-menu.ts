@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -9,13 +10,14 @@ export function buildDiceSymbolContextMenu(
   callbacks: {
     onDiceRoll: () => void;
     onShowDetail: () => void;
-  }
+  },
+  t: TranslateFn
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
   if (diceSymbol.isVisible) {
     actions.push({
-      name: 'ダイスを振る',
+      name: t('feature.dice.contextMenu.rollDice'),
       action: () => callbacks.onDiceRoll(),
     });
   }
@@ -24,7 +26,7 @@ export function buildDiceSymbolContextMenu(
 
   if (diceSymbol.isMine || diceSymbol.hasOwner) {
     actions.push({
-      name: 'ダイスを公開',
+      name: t('feature.dice.contextMenu.showDice'),
       action: () => {
         diceSymbol.owner = '';
         SoundEffect.play(PresetSound.unlock);
@@ -34,7 +36,7 @@ export function buildDiceSymbolContextMenu(
 
   if (!diceSymbol.isMine) {
     actions.push({
-      name: '自分だけ見る',
+      name: t('feature.dice.contextMenu.showSelfOnly'),
       action: () => {
         diceSymbol.owner = Network.peerContext.userId;
         SoundEffect.play(PresetSound.lock);
@@ -50,7 +52,7 @@ export function buildDiceSymbolContextMenu(
         SoundEffect.play(PresetSound.dicePut);
       },
     }));
-    actions.push({ name: 'ダイス目を設定', action: undefined, subActions });
+    actions.push({ name: t('feature.dice.contextMenu.setFace'), action: undefined, subActions });
   }
 
   actions.push(ContextMenuSeparator);
@@ -58,14 +60,14 @@ export function buildDiceSymbolContextMenu(
   actions.push(
     diceSymbol.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             diceSymbol.isLock = false;
             SoundEffect.play(PresetSound.unlock);
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             diceSymbol.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -76,11 +78,11 @@ export function buildDiceSymbolContextMenu(
   actions.push(ContextMenuSeparator);
 
   actions.push({
-    name: '詳細を表示',
+    name: t('feature.character.contextMenu.showDetail'),
     action: () => callbacks.onShowDetail(),
   });
   actions.push({
-    name: 'コピーを作る',
+    name: t('feature.tabletop.contextMenu.copy'),
     action: () => {
       const cloneObject = diceSymbol.clone();
       cloneObject.location.x += gridSize;
@@ -90,7 +92,7 @@ export function buildDiceSymbolContextMenu(
     },
   });
   actions.push({
-    name: '削除する',
+    name: t('feature.tabletop.contextMenu.delete'),
     action: () => {
       diceSymbol.destroy();
       SoundEffect.play(PresetSound.sweep);

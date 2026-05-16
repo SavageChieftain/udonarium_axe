@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 export interface CardDrawCountDialogOption {
   maxCount: number;
@@ -12,7 +13,7 @@ export interface CardDrawCountDialogOption {
   templateUrl: './card-draw-count-dialog.component.html',
   host: { class: 'block text-ui-text' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
 })
 export class CardDrawCountDialogComponent {
   private readonly modalService = inject(ModalService);

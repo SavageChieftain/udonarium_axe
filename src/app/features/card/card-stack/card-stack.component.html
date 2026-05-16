@@ -55,7 +55,7 @@
         class="bg-ui-panel text-ui-text absolute top-1/2 box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
         [ngStyle]="{ transform: 'translateY(-50%) translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
       >
-        <span>{{ cards.length }}枚</span>
+        <span>{{ 'feature.cardStack.stack.countLabel' | transloco: { count: cards.length } }}</span>
       </div>
     }
     @if (hasOwner) {
@@ -63,7 +63,7 @@
         class="bg-ui-panel text-ui-text absolute top-1/2 box-border max-w-[18em] truncate rounded-3xl px-2.25 py-0.75 text-[15px] will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
         [ngStyle]="{ transform: 'translateY(50%) translateX(-50%) translateX(' + (size * gridSize) / 2 + 'px)' }"
       >
-        <span>{{ ownerName }} が確認中</span>
+        <span>{{ 'feature.cardStack.stack.checkingBy' | transloco: { name: ownerName } }}</span>
       </div>
     }
   </div>

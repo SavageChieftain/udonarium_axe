@@ -11,6 +11,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -56,6 +57,7 @@ export class CardComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly card = input.required<Card>();
 
@@ -252,11 +254,16 @@ export class CardComponent {
     const position = this.pointerDeviceService.pointers[0];
     this.contextMenuService.open(
       position,
-      buildCardContextMenu(this.card(), this.gridSize, {
-        onCreateStack: () => this.createStack(),
-        onShowDetail: () => this.showDetail(this.card()),
-      }),
-      this.isVisible ? this.name() : 'カード'
+      buildCardContextMenu(
+        this.card(),
+        this.gridSize,
+        {
+          onCreateStack: () => this.createStack(),
+          onShowDetail: () => this.showDetail(this.card()),
+        },
+        this.translateFn
+      ),
+      this.isVisible ? this.name() : this.translateFn('feature.card.title')
     );
   }
 
@@ -271,7 +278,7 @@ export class CardComponent {
   }
 
   private createStack() {
-    const cardStack = CardStack.create('山札');
+    const cardStack = CardStack.create(this.translateFn('feature.cardStack.defaultName'));
     cardStack.location.x = this.card().location.x;
     cardStack.location.y = this.card().location.y;
     cardStack.posZ = this.card().posZ;
@@ -324,7 +331,7 @@ export class CardComponent {
   private showDetail(gameObject: Card) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = 'カード設定';
+    let title = this.translateFn('feature.card.settingTitle');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,

@@ -47,12 +47,22 @@ import { TextNote } from '@axe/domain/tabletop/text-note'; //
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'overview-panel',
   templateUrl: './overview-panel.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DraggableDirective, NgTemplateOutlet, NgClass, NgStyle, FormsModule, LinkifyPipe, SafePipe],
+  imports: [
+    DraggableDirective,
+    NgTemplateOutlet,
+    NgClass,
+    NgStyle,
+    FormsModule,
+    LinkifyPipe,
+    SafePipe,
+    TranslocoModule,
+  ],
   host: {
     class: 'block',
     '(click)': 'onClick($event)',
@@ -80,7 +90,6 @@ export class OverviewPanelComponent {
   });
   readonly hasImage = computed(() => this.imageUrl().length > 0);
 
-  /** tabletopObject とその配下 DataElement の version を追跡し、OnPush を突破する */
   readonly objectVersion = computed(() => {
     if (!this.tabletopObject) return 0;
     this.objectChange.versionOf(this.tabletopObject.identifier)();
@@ -399,14 +408,6 @@ export class OverviewPanelComponent {
 
     if (alias == 'character') {
       width = this.overViewCharacterWidth;
-    }
-
-    if (alias == 'dice-symbol') {
-      // 現状変更なし
-    }
-
-    if (alias == 'range') {
-      // 現状変更なし
     }
 
     const panelBox = panel.getBoundingClientRect();

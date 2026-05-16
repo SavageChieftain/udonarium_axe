@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectFile } from '@axe/core/event/domain-events';
@@ -8,19 +9,29 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
+
+const ALL_TAG = '__all__';
 
 @Component({
   selector: 'file-storage',
   templateUrl: './file-storage.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class FileStorageComponent {
   private readonly panelService = inject(PanelService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly t = inject(TRANSLATE_FN);
+
+  displayTagName(tag: string): string {
+    if (tag === ALL_TAG) return this.t('feature.file.fileStorage.all');
+    if (!tag) return this.t('feature.file.fileStorage.unset');
+    return tag;
+  }
 
   protected checkedFiles = new Set<string>();
 
@@ -41,7 +52,7 @@ export class FileStorageComponent {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('image-tag')();
     const imageFileList: ImageFile[] = [];
-    if (this.selectTag() == '全て') return this.getAllImage();
+    if (this.selectTag() == ALL_TAG) return this.getAllImage();
     for (const imageFile of this.fileStorageService.images) {
       const identifier = imageFile.context.identifier;
       const imageTag = ImageTag.get(identifier);
@@ -83,7 +94,7 @@ export class FileStorageComponent {
     }
 
     const tags2: string[] = Array.from(new Set(tags));
-    tags2.unshift('全て');
+    tags2.unshift(ALL_TAG);
     tags2.unshift('');
     return tags2;
   });
@@ -95,8 +106,10 @@ export class FileStorageComponent {
   }
 
   changeTag() {
-    if (this.newTagName() == '全て') return; //表示上混乱するタグの禁止
-    if (this.newTagName() == 'システム予約') return; //システム予約名称
+    const candidate = this.newTagName();
+    if (candidate === ALL_TAG) return;
+    if (candidate === 'システム予約') return;
+    if (candidate === this.t('feature.file.fileStorage.all')) return;
 
     const changeableImages = this.images();
 
@@ -104,10 +117,10 @@ export class FileStorageComponent {
       if (this.checkedFiles.has(img.context.identifier)) {
         let imageTag = ImageTag.get(img.context.identifier);
         imageTag = imageTag ? imageTag : ImageTag.create(img.context.identifier);
-        if (this.newTagName() == '未設定') {
+        if (candidate === this.t('feature.file.fileStorage.unset')) {
           imageTag.tag = '';
         } else {
-          imageTag.tag = this.newTagName();
+          imageTag.tag = candidate;
         }
       }
     }
@@ -119,7 +132,7 @@ export class FileStorageComponent {
   resetBtn() {}
 
   constructor() {
-    queueMicrotask(() => (this.panelService.title = 'ファイル一覧'));
+    queueMicrotask(() => (this.panelService.title = this.t('common.panel.fileStorage')));
   }
 
   handleFileSelect(event: Event) {

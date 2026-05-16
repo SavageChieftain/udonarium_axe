@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { callShuffleCardStack } from '@axe/core/event/domain-events';
@@ -8,18 +9,20 @@ import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'card-stack-list',
   templateUrl: './card-stack-list.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TooltipDirective, SafePipe],
+  imports: [TooltipDirective, SafePipe, TranslocoModule],
 })
 export class CardStackListComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
 
   cardStack: CardStack | null = null;
 
@@ -32,7 +35,12 @@ export class CardStackListComponent {
   }
 
   constructor() {
-    queueMicrotask(() => (this.panelService.title = (this.cardStack?.name ?? '') + ' のカード一覧'));
+    queueMicrotask(
+      () =>
+        (this.panelService.title = this.t('feature.cardStack.cardListTitleWith', {
+          name: this.cardStack?.name ?? '',
+        }))
+    );
     this.objectChange.onObjectChangedFor(
       () => [this.cardStack?.identifier ?? ''],
       () => {
@@ -100,7 +108,7 @@ export class CardStackListComponent {
       x: this.panelService.left,
       y: this.panelService.top,
     };
-    let title = 'カード設定';
+    let title = this.t('feature.card.settingTitle');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,

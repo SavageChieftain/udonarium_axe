@@ -1,15 +1,14 @@
 @if (diceSymbol) {
   <div class="flex flex-col gap-4">
-    <!-- 基本設定 -->
     <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
       <h3
         class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
       >
         <i class="material-icons">casino</i>
-        基本設定
+        {{ 'feature.dice.symbolSheet.basicSection' | transloco }}
       </h3>
       <div class="mb-2 flex items-center gap-2 last:mb-0">
-        <label class="text-ui-muted min-w-22.5 text-[12px]">名前</label>
+        <label class="text-ui-muted min-w-22.5 text-[12px]">{{ 'feature.dice.symbolSheet.name' | transloco }}</label>
         <input
           class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border min-w-0 flex-1 border px-2 py-1 text-[13px]"
           type="text"
@@ -17,7 +16,7 @@
         />
       </div>
       <div class="mb-2 flex items-center gap-2 last:mb-0">
-        <label class="text-ui-muted min-w-22.5 text-[12px]">サイズ</label>
+        <label class="text-ui-muted min-w-22.5 text-[12px]">{{ 'feature.dice.symbolSheet.size' | transloco }}</label>
         <input
           class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border w-17.5 flex-none border px-2 py-1 text-[13px]"
           type="number"
@@ -28,21 +27,24 @@
       </div>
     </section>
 
-    <!-- コマ画像設定 -->
     <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
       <h3
         class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
       >
         <i class="material-icons">straighten</i>
-        コマ画像設定
+        {{ 'feature.dice.symbolSheet.komaImageSection' | transloco }}
       </h3>
       <div class="mb-2 flex items-center gap-2 last:mb-0">
-        <label class="text-ui-muted min-w-22.5 text-[12px]">高さを指定</label>
+        <label class="text-ui-muted min-w-22.5 text-[12px]">{{
+          'feature.dice.symbolSheet.specifyHeight' | transloco
+        }}</label>
         <input type="checkbox" [(ngModel)]="specifyKomaImageFlag" />
       </div>
       @if (specifyKomaImageFlag) {
         <div class="mb-2 flex items-center gap-2 pl-3 last:mb-0">
-          <label class="text-ui-muted min-w-22.5 text-[12px]">コマ高さ (px)</label>
+          <label class="text-ui-muted min-w-22.5 text-[12px]">{{
+            'feature.dice.symbolSheet.komaImageHeight' | transloco
+          }}</label>
           <input
             class="accent-ui-accent min-w-0 flex-1"
             type="range"
@@ -61,15 +63,14 @@
       }
     </section>
 
-    <!-- 面ごとの画像設定 -->
     <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
       <h3
         class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
       >
         <i class="material-icons">image</i>
-        面ごとの画像設定
+        {{ 'feature.dice.symbolSheet.faceImageSection' | transloco }}
         <span class="text-ui-muted ml-auto text-[12px] font-normal"
-          >現在の面: <strong>{{ diceSymbol.face }}</strong></span
+          >{{ 'feature.dice.symbolSheet.currentFace' | transloco }}: <strong>{{ diceSymbol.face }}</strong></span
         >
       </h3>
       <div class="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-2">
@@ -90,7 +91,7 @@
                 <img
                   class="size-full object-contain"
                   [src]="face.imageUrl | safe: 'resourceUrl'"
-                  alt="face {{ face.faceName }}"
+                  [alt]="'feature.dice.symbolSheet.faceImageAlt' | transloco: { name: face.faceName }"
                 />
               } @else {
                 <div class="text-ui-muted flex size-full items-center justify-center">
@@ -103,17 +104,17 @@
                 class="bg-ui-accent border-ui-accent rounded-ui-sm inline-flex min-w-0 flex-1 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap text-white transition-[background] hover:brightness-110 [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
                 type="button"
                 (click)="openFaceImageModal(face.faceName); $event.stopPropagation()"
-                title="画像を設定"
+                [title]="'feature.dice.symbolSheet.setImage' | transloco"
               >
                 <i class="material-icons">edit</i>
-                設定
+                {{ 'feature.dice.symbolSheet.setLabel' | transloco }}
               </button>
               @if (face.imageUrl || hasDiceDefault()) {
                 <button
                   class="text-ui-muted border-ui-border-panel rounded-ui-sm hover:bg-ui-hover hover:text-ui-text inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-1.25 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap transition-[background] [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
                   type="button"
                   (click)="clearFaceImage(face.faceName); $event.stopPropagation()"
-                  title="デフォルトに戻す"
+                  [title]="'feature.dice.symbolSheet.resetDefault' | transloco"
                 >
                   <i class="material-icons">restart_alt</i>
                 </button>
@@ -124,7 +125,6 @@
       </div>
     </section>
 
-    <!-- 操作 -->
     <section class="flex justify-end gap-2">
       <button
         class="text-ui-muted border-ui-border-panel rounded-ui-sm hover:bg-ui-hover hover:text-ui-text inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-1.5 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap transition-[background] [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
@@ -132,7 +132,7 @@
         (click)="clone()"
       >
         <i class="material-icons">content_copy</i>
-        コピーを作る
+        {{ 'feature.dice.symbolSheet.copyDice' | transloco }}
       </button>
       <button
         class="bg-ui-accent border-ui-accent rounded-ui-sm inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-0.5 border border-solid px-1.5 py-0.75 text-[11px] leading-[1.2] whitespace-nowrap text-white transition-[background] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 [&_.material-icons]:shrink-0 [&_.material-icons]:text-[13px]!"
@@ -142,10 +142,10 @@
       >
         @if (isSaving()) {
           <i class="material-icons">hourglass_empty</i>
-          保存中 {{ progressPercent() }}%
+          {{ 'feature.dice.symbolSheet.saving' | transloco: { percent: progressPercent() } }}
         } @else {
           <i class="material-icons">save</i>
-          保存
+          {{ 'feature.dice.symbolSheet.save' | transloco }}
         }
       </button>
     </section>

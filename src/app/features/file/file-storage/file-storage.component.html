@@ -1,5 +1,4 @@
 <div class="flex flex-col gap-0">
-  <!-- タグフィルター -->
   <div
     class="bg-ui-panel border-ui-border-panel sticky -top-2 z-2 -mx-2 -mt-2 flex shrink-0 flex-wrap gap-1 border-b border-solid px-2.5 py-2"
   >
@@ -16,24 +15,22 @@
         />
         <span
           class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent peer-checked:border-ui-accent inline-flex items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 text-[12px] font-medium whitespace-nowrap transition-[background,color,border-color] select-none"
-          >{{ !tag ? '未設定' : tag }}</span
+          >{{ displayTagName(tag) }}</span
         >
       </label>
     }
   </div>
 
-  <!-- ドロップゾーン -->
   <label
     class="border-ui-border-panel text-ui-dim hover:bg-ui-accent-bg hover:border-ui-accent hover:text-ui-text rounded-ui-sm mt-3 flex cursor-pointer flex-col items-center gap-1 border-2 border-dashed p-4 text-center transition-[background,border-color,color]"
   >
     <i class="material-icons text-[40px]! opacity-55">add_photo_alternate</i>
-    <span class="text-[14px] font-medium">ここに画像をドロップ</span>
-    <span class="text-[12px] opacity-70">またはここをクリックして選択</span>
+    <span class="text-[14px] font-medium">{{ 'feature.file.fileStorage.dropHere' | transloco }}</span>
+    <span class="text-[12px] opacity-70">{{ 'feature.file.fileStorage.clickToSelect' | transloco }}</span>
     <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="image/*" />
-    <span class="mt-0.5 text-[11px] opacity-50">１ファイルにつき2MBまで</span>
+    <span class="mt-0.5 text-[11px] opacity-50">{{ 'feature.file.fileStorage.maxSize' | transloco }}</span>
   </label>
 
-  <!-- タグ変更バー -->
   <div
     class="bg-ui-panel border-ui-border-panel sticky top-8.25 z-1 mx-[-8] mt-2.5 flex items-center gap-1.5 border-y border-solid px-2.5 py-2"
   >
@@ -42,18 +39,17 @@
       maxlength="12"
       [value]="newTagName()"
       (input)="onInputNewTag($event)"
-      placeholder="新タグ名"
+      [placeholder]="'feature.file.fileStorage.newTagPlaceholder' | transloco"
     />
     <button
       class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex cursor-pointer items-center gap-1 border border-solid px-2.5 py-1 text-[12px] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
       (click)="changeTag()"
     >
       <i class="material-icons">label</i>
-      タグを変更
+      {{ 'feature.file.fileStorage.changeTag' | transloco }}
     </button>
   </div>
 
-  <!-- 画像グリッド -->
   <div class="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] content-start gap-2 pt-3">
     @for (file of images(); track file) {
       <div
@@ -90,7 +86,7 @@
         class="text-ui-dim col-span-full flex flex-col items-center justify-center gap-2 px-5 py-10 [&_.material-icons]:text-[40px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">collections</i>
-        <p class="m-0 text-[13px] opacity-70">この分類に画像はありません</p>
+        <p class="m-0 text-[13px] opacity-70">{{ 'feature.file.fileStorage.noImages' | transloco }}</p>
       </div>
     }
   </div>

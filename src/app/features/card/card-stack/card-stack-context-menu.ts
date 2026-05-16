@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { callShuffleCardStack } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
@@ -12,19 +13,20 @@ export function buildCardStackContextMenu(
   onShowStackList: (cs: CardStack) => void,
   onSplitStack: (n: number) => void,
   onBreakStack: () => void,
-  onShowDetail: (cs: CardStack) => void
+  onShowDetail: (cs: CardStack) => void,
+  t: TranslateFn
 ): ContextMenuAction[] {
   return [
     cardStack.isLock
       ? {
-          name: '固定解除',
+          name: t('feature.tabletop.contextMenu.unlock'),
           action: () => {
             cardStack.isLock = false;
             SoundEffect.play(PresetSound.unlock);
           },
         }
       : {
-          name: '固定する',
+          name: t('feature.tabletop.contextMenu.lock'),
           action: () => {
             cardStack.isLock = true;
             SoundEffect.play(PresetSound.lock);
@@ -32,7 +34,7 @@ export function buildCardStackContextMenu(
         },
     ContextMenuSeparator,
     {
-      name: '１枚引く',
+      name: t('feature.cardStack.contextMenu.drawOne'),
       action: () => {
         if (onDrawCard() != null) {
           SoundEffect.play(PresetSound.cardDraw);
@@ -40,21 +42,21 @@ export function buildCardStackContextMenu(
       },
     },
     {
-      name: 'X枚を引く',
+      name: t('feature.cardStack.contextMenu.drawMany'),
       action: () => {
         onDrawCards();
       },
     },
     ContextMenuSeparator,
     {
-      name: '一番上を表にする',
+      name: t('feature.cardStack.contextMenu.topFaceUp'),
       action: () => {
         cardStack.faceUp();
         SoundEffect.play(PresetSound.cardDraw);
       },
     },
     {
-      name: '一番上を裏にする',
+      name: t('feature.cardStack.contextMenu.topFaceDown'),
       action: () => {
         cardStack.faceDown();
         SoundEffect.play(PresetSound.cardDraw);
@@ -62,21 +64,21 @@ export function buildCardStackContextMenu(
     },
     ContextMenuSeparator,
     {
-      name: 'すべて表にする',
+      name: t('feature.cardStack.contextMenu.allFaceUp'),
       action: () => {
         cardStack.faceUpAll();
         SoundEffect.play(PresetSound.cardDraw);
       },
     },
     {
-      name: 'すべて裏にする',
+      name: t('feature.cardStack.contextMenu.allFaceDown'),
       action: () => {
         cardStack.faceDownAll();
         SoundEffect.play(PresetSound.cardDraw);
       },
     },
     {
-      name: 'すべて正位置にする',
+      name: t('feature.cardStack.contextMenu.allUpright'),
       action: () => {
         cardStack.uprightAll();
         SoundEffect.play(PresetSound.cardDraw);
@@ -84,7 +86,7 @@ export function buildCardStackContextMenu(
     },
     ContextMenuSeparator,
     {
-      name: 'シャッフル',
+      name: t('feature.cardStack.contextMenu.shuffle'),
       action: () => {
         cardStack.shuffle();
         SoundEffect.play(PresetSound.cardShuffle);
@@ -92,7 +94,7 @@ export function buildCardStackContextMenu(
       },
     },
     {
-      name: 'カード一覧',
+      name: t('feature.cardStack.contextMenu.cardList'),
       action: () => {
         onShowStackList(cardStack);
       },
@@ -100,33 +102,33 @@ export function buildCardStackContextMenu(
     ContextMenuSeparator,
     cardStack.isShowTotal
       ? {
-          name: '枚数を非表示にする',
+          name: t('feature.cardStack.contextMenu.hideCount'),
           action: () => {
             cardStack.isShowTotal = false;
           },
         }
       : {
-          name: '枚数を表示する',
+          name: t('feature.cardStack.contextMenu.showCount'),
           action: () => {
             cardStack.isShowTotal = true;
           },
         },
     {
-      name: 'カードサイズを揃える',
+      name: t('feature.cardStack.contextMenu.unifySize'),
       action: () => {
         if (cardStack.topCard) cardStack.unifyCardsSize(cardStack.topCard.size);
       },
     },
     ContextMenuSeparator,
     {
-      name: '山札を人数分に分割する',
+      name: t('feature.cardStack.contextMenu.splitByPeers'),
       action: () => {
         onSplitStack(Network.peerIds.length);
         SoundEffect.play(PresetSound.cardDraw);
       },
     },
     {
-      name: '山札を崩す',
+      name: t('feature.cardStack.contextMenu.breakStack'),
       action: () => {
         onBreakStack();
         SoundEffect.play(PresetSound.cardShuffle);
@@ -134,13 +136,13 @@ export function buildCardStackContextMenu(
     },
     ContextMenuSeparator,
     {
-      name: '詳細を表示',
+      name: t('feature.character.contextMenu.showDetail'),
       action: () => {
         onShowDetail(cardStack);
       },
     },
     {
-      name: 'コピーを作る',
+      name: t('feature.tabletop.contextMenu.copy'),
       action: () => {
         const cloneObject = cardStack.clone();
         cloneObject.location.x += gridSize;
@@ -151,7 +153,7 @@ export function buildCardStackContextMenu(
       },
     },
     {
-      name: '山札を削除する',
+      name: t('feature.cardStack.contextMenu.deleteStack'),
       action: () => {
         cardStack.setLocation('graveyard');
         cardStack.destroy();

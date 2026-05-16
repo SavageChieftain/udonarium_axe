@@ -1,5 +1,5 @@
 <div>
-  <button (click)="close(true)">シャッフルしてウィンドウを閉じる</button>
+  <button (click)="close(true)">{{ 'feature.cardStack.list.shuffleClose' | transloco }}</button>
   <hr />
   @for (card of cards; track trackByCard($index, card)) {
     <div class="border-b border-dotted border-[#888]">
@@ -14,13 +14,16 @@
         ></div>
       </div>
       <div class="inline-block">
-        <button type="submit" (click)="drawCard(card)">山札から出す</button>
+        <button type="submit" (click)="drawCard(card)">
+          {{ 'feature.cardStack.list.drawFromStack' | transloco }}
+        </button>
         <button (click)="showDetail(card)">
-          <i class="material-icons align-text-bottom text-[1.1em]!">settings</i>編集
+          <i class="material-icons align-text-bottom text-[1.1em]!">settings</i
+          >{{ 'feature.cardStack.list.edit' | transloco }}
         </button>
         <br />
-        <button (click)="up(card)">↑</button>
-        <button (click)="down(card)">↓</button>
+        <button (click)="up(card)">{{ 'feature.cardStack.list.moveUp' | transloco }}</button>
+        <button (click)="down(card)">{{ 'feature.cardStack.list.moveDown' | transloco }}</button>
         <br />
       </div>
     </div>

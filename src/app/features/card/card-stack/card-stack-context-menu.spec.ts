@@ -1,5 +1,8 @@
 import { CardStack } from '@axe/domain/card/card-stack';
 import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
+import { createSyncTranslate } from '@axe/testing/transloco-testing';
+
+const t = createSyncTranslate('ja');
 
 describe('buildCardStackContextMenu', () => {
   it('１枚引くの直下にX枚を引くを追加し、選択時に複数枚ドロー処理を呼ぶこと', () => {
@@ -16,7 +19,8 @@ describe('buildCardStackContextMenu', () => {
         vi.fn(),
         vi.fn(),
         vi.fn(),
-        vi.fn()
+        vi.fn(),
+        t
       );
       const drawIndex = actions.findIndex((action) => action.name === '１枚引く');
 

@@ -11,6 +11,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -35,12 +36,13 @@ import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'card-stack',
   templateUrl: './card-stack.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgClass, RotableDirective, NgStyle, SafePipe],
+  imports: [MovableDirective, NgClass, RotableDirective, NgStyle, SafePipe, TranslocoModule],
   host: {
     class: 'block',
     '(carddrop)': 'onCardDrop($event)',
@@ -59,6 +61,7 @@ export class CardStackComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly cardStack = input.required<CardStack>();
 
@@ -258,7 +261,8 @@ export class CardStackComponent {
       (cs) => this.showStackList(cs),
       (n) => this.splitStack(n),
       () => this.breakStack(),
-      (cs) => this.showDetail(cs)
+      (cs) => this.showDetail(cs),
+      this.translateFn
     );
     this.contextMenuService.open(position, menuArray, this.name());
   }
@@ -305,7 +309,7 @@ export class CardStackComponent {
 
     const count = await this.modalService
       .open<number | null>(CardDrawCountDialogComponent, {
-        title: 'カードを引く',
+        title: this.translateFn('feature.card.drawDialog.title'),
         maxCount,
         defaultCount: Math.min(2, maxCount),
       })
@@ -391,7 +395,7 @@ export class CardStackComponent {
   private showDetail(gameObject: CardStack) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = '山札設定';
+    let title = this.translateFn('feature.cardStack.settingTitle');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
     const option: PanelOption = {
       title: title,
@@ -415,7 +419,7 @@ export class CardStackComponent {
 
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: gameObject.name + ' のカード一覧',
+      title: this.translateFn('feature.cardStack.cardListTitleWith', { name: gameObject.name }),
       left: coordinate.x - 200,
       top: coordinate.y - 300,
       width: 400,

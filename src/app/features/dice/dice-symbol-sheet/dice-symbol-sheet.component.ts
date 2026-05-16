@@ -11,11 +11,10 @@ import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
-/** face 配列からデフォルト画像パスの prefix を導出する */
 function getDiceImagePrefix(faces: string[]): string | null {
   if (faces.length === 0) return null;
-  // D10_10TIMES: 面の値がすべて10の倍数
   if (faces.every((f) => Number(f) % 10 === 0)) return '100_dice';
   switch (faces.length) {
     case 4:
@@ -40,7 +39,7 @@ function getDiceImagePrefix(faces: string[]): string | null {
   templateUrl: './dice-symbol-sheet.component.html',
   host: { class: 'block box-border h-full overflow-y-auto p-3 text-ui-text bg-ui-panel' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, SafePipe],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class DiceSymbolSheetComponent {
   private readonly modalService = inject(ModalService);
@@ -141,8 +140,6 @@ export class DiceSymbolSheetComponent {
     const dice = this._diceSymbol();
     if (!dice) return;
     this.modalService.open<string>(FileSelecterComponent).then((value) => {
-      // null/undefined = モーダルを X で閉じた・キャンセル → 何もしない
-      // string 値 = 画像選択 → セット
       if (value == null) return;
       const el = dice.imageDataElement?.getFirstElementByName(faceName) as DataElement | null;
       if (!el) return;

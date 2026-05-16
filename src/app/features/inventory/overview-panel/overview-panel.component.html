@@ -67,7 +67,7 @@
         [ngStyle]="{ width: overViewCardWidthNoMargin + 'px' }"
       >
         @if (card.isVisible !== null && !card.isVisible) {
-          カード
+          {{ 'feature.inventory.overview.cardHidden' | transloco }}
         } @else {
           {{ card.name }}
         }
@@ -180,7 +180,7 @@
       @if (dice.isVisible) {
         {{ dice.face }}
       } @else {
-        ???
+        {{ 'feature.inventory.overview.diceHidden' | transloco }}
       }
     </div>
     @if (dice.hasOwner && dice.ownerName) {
@@ -387,7 +387,8 @@
           <div>
             {{ dataElm.name }}
             <span [hidden]="!isUrlText(dataElm.value)">
-              &nbsp;&nbsp;URL編集:<input
+              &nbsp;&nbsp;{{ 'feature.inventory.overview.urlEdit' | transloco
+              }}<input
                 type="checkbox"
                 [checked]="editCheckedIds.has(dataElm.myIdentifer)"
                 (change)="changeChk(dataElm.myIdentifer)"
@@ -476,7 +477,7 @@
                 />
               } @else {
                 <div class="text-ui-dim border-ui-border-panel rounded-sm border border-dashed px-2 py-1 text-[0.8em]">
-                  画像未設定
+                  {{ 'feature.inventory.overview.imageUnset' | transloco }}
                 </div>
               }
             </div>
@@ -492,7 +493,7 @@
               />
             } @else {
               <div class="text-ui-dim border-ui-border-panel rounded-sm border border-dashed px-2 py-1 text-[0.8em]">
-                画像未設定
+                {{ 'feature.inventory.overview.imageUnset' | transloco }}
               </div>
             }
           </div>

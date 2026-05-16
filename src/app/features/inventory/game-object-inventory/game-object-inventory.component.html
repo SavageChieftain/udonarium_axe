@@ -1,7 +1,6 @@
 <div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[13px]">
   @let objects = getGameObjects(selectTab());
 
-  <!-- ── タブバー ── -->
   <div class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5">
     <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
       @for (inventoryType of inventoryTypes(); track inventoryType) {
@@ -38,7 +37,7 @@
         <button
           class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
           type="button"
-          title="一括移動"
+          [title]="'feature.inventory.panel.multiMove' | transloco"
           (click)="toggleMultiMove()"
         >
           <i class="material-icons">open_with</i>
@@ -50,7 +49,7 @@
         [class.text-ui-accent!]="isEdit()"
         [class.border-ui-accent!]="isEdit()"
         type="button"
-        title="表示設定"
+        [title]="'feature.inventory.panel.displaySettings' | transloco"
         (click)="toggleEdit()"
       >
         <i class="material-icons">tune</i>
@@ -58,56 +57,61 @@
     </div>
   </div>
 
-  <!-- ── 設定パネル（展開時） ── -->
   @if (isEdit()) {
     <div class="bg-ui-elevated border-ui-border-panel flex shrink-0 flex-col gap-1.5 border-b border-solid px-2.5 py-2">
       <div class="flex gap-2.5">
         <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">並び順 第1</label>
+          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+            'feature.inventory.panel.sortOrder1' | transloco
+          }}</label>
           <div class="flex gap-1">
             <input
               class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
               name="sort-tag"
               [(ngModel)]="sortTag"
-              placeholder="タグ名"
+              [placeholder]="'feature.inventory.panel.tagPlaceholder' | transloco"
             />
             <select
               class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 text-[12px] outline-none"
               name="sort-order"
               [(ngModel)]="sortOrder"
             >
-              <option value="ASC">昇順</option>
-              <option value="DESC">降順</option>
+              <option value="ASC">{{ 'feature.inventory.panel.asc' | transloco }}</option>
+              <option value="DESC">{{ 'feature.inventory.panel.desc' | transloco }}</option>
             </select>
           </div>
         </div>
         <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">並び順 第2</label>
+          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+            'feature.inventory.panel.sortOrder2' | transloco
+          }}</label>
           <div class="flex gap-1">
             <input
               class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
               name="sort-tag-2nd"
               [(ngModel)]="sortTag2nd"
-              placeholder="タグ名"
+              [placeholder]="'feature.inventory.panel.tagPlaceholder' | transloco"
             />
             <select
               class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 text-[12px] outline-none"
               name="sort-order-2nd"
               [(ngModel)]="sortOrder2nd"
             >
-              <option value="ASC">昇順</option>
-              <option value="DESC">降順</option>
+              <option value="ASC">{{ 'feature.inventory.panel.asc' | transloco }}</option>
+              <option value="DESC">{{ 'feature.inventory.panel.desc' | transloco }}</option>
             </select>
           </div>
         </div>
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-        <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">表示項目</label>
+        <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+          'feature.inventory.panel.displayItems' | transloco
+        }}</label>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
           name="data-tag"
           [(ngModel)]="dataTag"
-          placeholder="スペース区切りでタグ名、スラッシュで改行 例: HP MP / メモ"
+          [placeholder]="'feature.inventory.panel.dataTagPlaceholder' | transloco"
         />
       </div>
       <div class="flex flex-wrap gap-1.5">
@@ -127,7 +131,6 @@
     </div>
   }
 
-  <!-- ── ソートインジケーター（設定パネル非表示かつソート設定あり） ── -->
   @if (!isEdit() && sortTag) {
     <div class="bg-ui-panel border-ui-border-panel flex shrink-0 flex-wrap gap-1.5 border-b border-solid px-2.5 py-1">
       <span
@@ -143,7 +146,6 @@
     </div>
   }
 
-  <!-- ── 一括移動バー ── -->
   @if (isMultiMove()) {
     <div
       class="bg-ui-accent-bg border-ui-border-panel flex shrink-0 flex-wrap items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
@@ -151,23 +153,29 @@
       <span
         class="text-ui-accent flex flex-1 items-center gap-1 text-[12px] font-semibold [&_.material-icons]:text-[15px]!"
       >
-        <i class="material-icons">open_with</i>一括移動
+        <i class="material-icons">open_with</i>{{ 'feature.inventory.panel.multiMove' | transloco }}
       </span>
       <button
         class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background] [&_.material-icons]:text-[14px]!"
         type="button"
         (click)="allTabBoxCheck()"
       >
-        {{ existsMultiMoveSelectedInTab() ? '全解除' : '全選択' }}
+        {{
+          existsMultiMoveSelectedInTab()
+            ? ('feature.inventory.panel.deselectAll' | transloco)
+            : ('feature.inventory.panel.selectAll' | transloco)
+        }}
       </button>
-      <span class="text-ui-muted text-[11px] whitespace-nowrap">移動先:</span>
+      <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+        'feature.inventory.panel.moveTargetLabel' | transloco
+      }}</span>
       @for (loc of multiMoveLocations; track loc.name) {
         <button
           class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color] hover:text-white [&_.material-icons]:text-[14px]!"
           type="button"
           (click)="moveToAndClose(loc.name)"
         >
-          <i class="material-icons">arrow_forward</i>{{ loc.label }}
+          <i class="material-icons">arrow_forward</i>{{ loc.labelKey | transloco }}
         </button>
       }
       @if (selectTab() === 'graveyard') {
@@ -176,7 +184,7 @@
           type="button"
           (click)="deleteAndClose()"
         >
-          <i class="material-icons">delete</i>削除
+          <i class="material-icons">delete</i>{{ 'feature.inventory.panel.delete' | transloco }}
         </button>
       }
       @if (selectTab() === 'table') {
@@ -185,14 +193,14 @@
           type="button"
           (click)="multiSetHideInventory(true)"
         >
-          <i class="material-icons">visibility_off</i>インベントリで非表示
+          <i class="material-icons">visibility_off</i>{{ 'feature.inventory.panel.hideInInventory' | transloco }}
         </button>
         <button
           class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
           type="button"
           (click)="multiSetHideInventory(false)"
         >
-          <i class="material-icons">visibility</i>インベントリで表示
+          <i class="material-icons">visibility</i>{{ 'feature.inventory.panel.showInInventory' | transloco }}
         </button>
       }
       <button
@@ -200,19 +208,20 @@
         type="button"
         (click)="toggleMultiMove()"
       >
-        <i class="material-icons">close</i>キャンセル
+        <i class="material-icons">close</i>{{ 'feature.inventory.panel.cancel' | transloco }}
       </button>
     </div>
   }
 
-  <!-- ── オブジェクトリスト ── -->
   <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
     @if (objects.length < 1) {
       <div
         class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
       >
         <i class="material-icons">inbox</i>
-        <p class="m-0 text-[12px]">{{ getTabTitle(selectTab()) }}インベントリは空です</p>
+        <p class="m-0 text-[12px]">
+          {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
+        </p>
       </div>
     }
 
@@ -275,7 +284,7 @@
           class="text-ui-muted hover:bg-ui-hover hover:text-ui-text hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background] group-hover:inline-flex [&_.material-icons]:text-base!"
           [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
           type="button"
-          title="メニュー"
+          [title]="'feature.inventory.panel.menu' | transloco"
           (click)="onContextMenu($event, gameObject)"
         >
           <i class="material-icons">more_vert</i>
@@ -284,7 +293,6 @@
     }
   </div>
 
-  <!-- ── 墓場フッター ── -->
   @if (selectTab() === 'graveyard') {
     <div class="bg-ui-panel border-ui-border-panel shrink-0 border-t border-solid px-2.5 py-2">
       <button
@@ -293,7 +301,7 @@
         (click)="cleanInventory()"
         [disabled]="objects.length < 1"
       >
-        <i class="material-icons">delete_sweep</i>墓場を空にする
+        <i class="material-icons">delete_sweep</i>{{ 'feature.inventory.panel.cleanGraveyard' | transloco }}
       </button>
     </div>
   }

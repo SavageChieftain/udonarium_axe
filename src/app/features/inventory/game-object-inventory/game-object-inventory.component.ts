@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -20,6 +21,7 @@ import {
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
 
@@ -28,7 +30,7 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   templateUrl: './game-object-inventory.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, SafePipe],
+  imports: [NgTemplateOutlet, FormsModule, SafePipe, TranslocoModule],
 })
 export class GameObjectInventoryComponent {
   private readonly panelService = inject(PanelService);
@@ -39,6 +41,7 @@ export class GameObjectInventoryComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
 
   constructor() {
     effect(() => {
@@ -47,7 +50,7 @@ export class GameObjectInventoryComponent {
         this.selectedIdentifier.set(selection.identifier);
       }
     });
-    queueMicrotask(() => (this.panelService.title = 'インベントリ'));
+    queueMicrotask(() => (this.panelService.title = this.t('common.panel.inventory')));
     this.objectChange.networkOpen$.subscribe(() => {
       this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
       if (!this.inventoryTypes().includes(this.selectTab())) {
@@ -103,18 +106,22 @@ export class GameObjectInventoryComponent {
   }
 
   get sortOrderName(): string {
-    return this.sortOrder === SortOrder.ASC ? '昇順' : '降順';
+    return this.sortOrder === SortOrder.ASC
+      ? this.t('feature.inventory.panel.asc')
+      : this.t('feature.inventory.panel.desc');
   }
   get sortOrderName2nd(): string {
-    return this.sortOrder2nd === SortOrder.ASC ? '昇順' : '降順';
+    return this.sortOrder2nd === SortOrder.ASC
+      ? this.t('feature.inventory.panel.asc')
+      : this.t('feature.inventory.panel.desc');
   }
 
-  get multiMoveLocations(): { name: string; label: string }[] {
+  get multiMoveLocations(): { name: string; labelKey: string }[] {
     const all = [
-      { name: 'table', label: 'テーブル' },
-      { name: 'common', label: '共有' },
-      { name: Network.peerId, label: '個人' },
-      { name: 'graveyard', label: '墓場' },
+      { name: 'table', labelKey: 'feature.inventory.tabs.table' },
+      { name: 'common', labelKey: 'feature.inventory.tabs.common' },
+      { name: Network.peerId, labelKey: 'feature.inventory.tabs.personal' },
+      { name: 'graveyard', labelKey: 'feature.inventory.tabs.graveyard' },
     ];
     return all.filter((loc) => loc.name !== this.selectTab());
   }
@@ -126,13 +133,13 @@ export class GameObjectInventoryComponent {
   getTabTitle(inventoryType: string) {
     switch (inventoryType) {
       case 'table':
-        return 'テーブル';
+        return this.t('feature.inventory.tabs.table');
       case Network.peerId:
-        return '個人';
+        return this.t('feature.inventory.tabs.personal');
       case 'graveyard':
-        return '墓場';
+        return this.t('feature.inventory.tabs.graveyard');
       default:
-        return '共有';
+        return this.t('feature.inventory.tabs.common');
     }
   }
 
@@ -155,8 +162,6 @@ export class GameObjectInventoryComponent {
     this.objectChange.collectionOf('character')();
     switch (inventoryType) {
       case 'table': {
-        // 一括移動モード or 表示設定パネル展開時は hideInventory なキャラも含めて
-        // 表示し、UI 側で薄く描画して管理操作を可能にする。
         const showHidden = this.isMultiMove() || this.isEdit();
         if (showHidden) return [...this.inventoryService.tableInventory.tabletopObjects];
         const tableCharacterList_dest = [];
@@ -173,7 +178,6 @@ export class GameObjectInventoryComponent {
     }
   }
 
-  /** 行の見た目を「非表示扱い」に切り替えるべきか判定する */
   isInventoryHiddenObject(gameObject: TabletopObject): boolean {
     return gameObject instanceof GameCharacter && gameObject.hideInventory;
   }
@@ -193,13 +197,18 @@ export class GameObjectInventoryComponent {
     this.selectGameObject(gameObject);
 
     const position = this.pointerDeviceService.pointers[0];
-    const actions = buildInventoryObjectContextMenu(gameObject, this.inventoryService, {
-      showDetail: (c) => this.showDetail(c),
-      showChatPalette: (c) => this.showChatPalette(c),
-      showRemoteController: (c) => this.showRemoteController(c),
-      cloneGameObject: (o) => this.cloneGameObject(o),
-      deleteGameObject: (o) => this.deleteGameObject(o),
-    });
+    const actions = buildInventoryObjectContextMenu(
+      gameObject,
+      this.inventoryService,
+      {
+        showDetail: (c) => this.showDetail(c),
+        showChatPalette: (c) => this.showChatPalette(c),
+        showRemoteController: (c) => this.showRemoteController(c),
+        cloneGameObject: (o) => this.cloneGameObject(o),
+        deleteGameObject: (o) => this.deleteGameObject(o),
+      },
+      this.t
+    );
 
     this.contextMenuService.open(position, actions, gameObject.name);
   }
@@ -218,7 +227,8 @@ export class GameObjectInventoryComponent {
   cleanInventory() {
     const tabTitle = this.getTabTitle(this.selectTab());
     const gameObjects = this.getGameObjects(this.selectTab());
-    if (!confirm(`${tabTitle}に存在する${gameObjects.length}個の要素を完全に削除しますか？`)) return;
+    if (!confirm(this.t('feature.inventory.panel.confirmCleanTab', { tab: tabTitle, count: gameObjects.length })))
+      return;
     for (const gameObject of gameObjects) {
       this.deleteGameObject(gameObject);
     }
@@ -264,13 +274,17 @@ export class GameObjectInventoryComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
-    const actions = buildInventoryMultiMoveContextMenu(this.selectTab(), {
-      multiMove: (loc) => this.multiMove(loc),
-      toggleMultiMove: () => this.toggleMultiMove(),
-      multiDelete: () => this.multiDelete(),
-    });
+    const actions = buildInventoryMultiMoveContextMenu(
+      this.selectTab(),
+      {
+        multiMove: (loc) => this.multiMove(loc),
+        toggleMultiMove: () => this.toggleMultiMove(),
+        multiDelete: () => this.multiDelete(),
+      },
+      this.t
+    );
 
-    this.contextMenuService.open(position, actions, '一括移動');
+    this.contextMenuService.open(position, actions, this.t('feature.inventory.contextMenu.multiMoveTitle'));
   }
 
   multiMove(location: string) {
@@ -317,7 +331,7 @@ export class GameObjectInventoryComponent {
     }
     if (inGraveyard.size < 1) return false;
 
-    if (!confirm(`選択したもののうち墓場に存在する${inGraveyard.size}個の要素を完全に削除しますか？`)) return false;
+    if (!confirm(this.t('feature.inventory.panel.confirmMultiDelete', { count: inGraveyard.size }))) return false;
     for (const gameObject of inGraveyard) {
       this.deleteGameObject(gameObject);
     }
@@ -331,8 +345,9 @@ export class GameObjectInventoryComponent {
   private showDetail(gameObject: GameCharacter) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = 'キャラクターシート';
-    if (gameObject.name.length) title += ' - ' + gameObject.name;
+    const title = gameObject.name.length
+      ? this.t('feature.character.panel.sheetWithName', { name: gameObject.name })
+      : this.t('feature.character.panel.sheet');
     const option: PanelOption = {
       title: title,
       left: coordinate.x - 800,
@@ -353,7 +368,7 @@ export class GameObjectInventoryComponent {
   private showChatPalette(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: gameObject.name + ' のチャットパレット',
+      title: this.t('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
       left: coordinate.x - 320,
       top: coordinate.y - 250,
       width: 760,
@@ -369,7 +384,7 @@ export class GameObjectInventoryComponent {
   private showRemoteController(gameObject: GameCharacter) {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: gameObject.name + ' のリモコン',
+      title: this.t('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
       left: coordinate.x - 250,
       top: coordinate.y - 175,
       width: 700,

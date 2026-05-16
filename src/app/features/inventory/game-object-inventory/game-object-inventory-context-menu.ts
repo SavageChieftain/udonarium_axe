@@ -1,3 +1,4 @@
+import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
@@ -13,33 +14,33 @@ interface InventoryContextMenuCallbacks {
   deleteGameObject: (gameObject: TabletopObject) => void;
 }
 
-/** 1 オブジェクト分のコンテキストメニュー（詳細表示・移動先・コピー・削除等）を組み立てる。 */
 export function buildInventoryObjectContextMenu(
   gameObject: TabletopObject,
   inventoryService: GameObjectInventoryService,
-  callbacks: InventoryContextMenuCallbacks
+  callbacks: InventoryContextMenuCallbacks,
+  t: TranslateFn
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
   actions.push({
-    name: '詳細を表示',
+    name: t('feature.character.contextMenu.showDetail'),
     action: () => callbacks.showDetail(gameObject as GameCharacter),
   });
 
   if (gameObject.location.name !== 'graveyard') {
     actions.push({
-      name: 'チャットパレットを表示',
+      name: t('feature.character.contextMenu.showChatPalette'),
       action: () => callbacks.showChatPalette(gameObject as GameCharacter),
     });
     actions.push({
-      name: 'リモコンを表示',
+      name: t('feature.character.contextMenu.showRemoteController'),
       action: () => callbacks.showRemoteController(gameObject as GameCharacter),
     });
     const character = gameObject as GameCharacter;
     actions.push(
       character.hideInventory
         ? {
-            name: '☑ インベントリ非表示',
+            name: t('feature.character.contextMenu.hideInventoryOn'),
             action: () => {
               character.hideInventory = false;
               inventoryService.notifyInventoryUpdate();
@@ -47,7 +48,7 @@ export function buildInventoryObjectContextMenu(
             },
           }
         : {
-            name: '☐ インベントリ非表示',
+            name: t('feature.character.contextMenu.hideInventoryOff'),
             action: () => {
               character.hideInventory = true;
               inventoryService.notifyInventoryUpdate();
@@ -58,7 +59,7 @@ export function buildInventoryObjectContextMenu(
   }
 
   actions.push(ContextMenuSeparator);
-  for (const location of inventoryLocations()) {
+  for (const location of inventoryLocations(t)) {
     if (gameObject.location.name === location.name) continue;
     actions.push({
       name: location.alias,
@@ -71,7 +72,7 @@ export function buildInventoryObjectContextMenu(
 
   if (gameObject.location.name === 'graveyard') {
     actions.push({
-      name: '削除する',
+      name: t('feature.tabletop.contextMenu.delete'),
       action: () => {
         callbacks.deleteGameObject(gameObject);
         SoundEffect.play(PresetSound.sweep);
@@ -81,7 +82,7 @@ export function buildInventoryObjectContextMenu(
 
   actions.push(ContextMenuSeparator);
   actions.push({
-    name: 'コピーを作る',
+    name: t('feature.tabletop.contextMenu.copy'),
     action: () => {
       callbacks.cloneGameObject(gameObject);
       SoundEffect.play(PresetSound.piecePut);
@@ -97,14 +98,14 @@ interface MultiMoveContextMenuCallbacks {
   multiDelete: () => void;
 }
 
-/** 一括移動モードのコンテキストメニュー。墓場タブのときだけ「墓場から削除」が出る。 */
 export function buildInventoryMultiMoveContextMenu(
   selectedTab: string,
-  callbacks: MultiMoveContextMenuCallbacks
+  callbacks: MultiMoveContextMenuCallbacks,
+  t: TranslateFn
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
-  for (const location of inventoryLocations()) {
+  for (const location of inventoryLocations(t)) {
     if (selectedTab === location.name) continue;
     actions.push({
       name: location.alias,
@@ -118,7 +119,7 @@ export function buildInventoryMultiMoveContextMenu(
 
   if (selectedTab === 'graveyard') {
     actions.push({
-      name: '墓場から削除',
+      name: t('feature.inventory.contextMenu.multiDelete'),
       action: () => {
         callbacks.multiDelete();
         callbacks.toggleMultiMove();
@@ -130,12 +131,11 @@ export function buildInventoryMultiMoveContextMenu(
   return actions;
 }
 
-/** 4 つの inventory location 定義。peer 接続前はピア ID が空のままだが invokation 時に最新値を取得する。 */
-function inventoryLocations(): Array<{ name: string; alias: string }> {
+function inventoryLocations(t: TranslateFn): Array<{ name: string; alias: string }> {
   return [
-    { name: 'table', alias: 'テーブルに移動' },
-    { name: 'common', alias: '共有イベントリに移動' },
-    { name: Network.peerId, alias: '個人イベントリに移動' },
-    { name: 'graveyard', alias: '墓場に移動' },
+    { name: 'table', alias: t('feature.inventory.contextMenu.moveTable') },
+    { name: 'common', alias: t('feature.inventory.contextMenu.moveCommon') },
+    { name: Network.peerId, alias: t('feature.inventory.contextMenu.movePersonal') },
+    { name: 'graveyard', alias: t('feature.inventory.contextMenu.moveGraveyard') },
   ];
 }
