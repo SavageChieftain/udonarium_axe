@@ -21,7 +21,7 @@ export class ModalService {
   private modalContext: ModalContext | null = null;
   private count = 0;
 
-  private readonly _title = signal('無名のモーダル');
+  private readonly _title = signal('');
   get title(): string {
     return this._title();
   }

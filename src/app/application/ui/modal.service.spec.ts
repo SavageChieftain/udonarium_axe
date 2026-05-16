@@ -14,8 +14,8 @@ describe('ModalService', () => {
   }));
 
   describe('title signal', () => {
-    it('初期値が「無名のモーダル」であること', inject([ModalService], (service: ModalService) => {
-      expect(service.title).toBe('無名のモーダル');
+    it('初期値が空文字列であること', inject([ModalService], (service: ModalService) => {
+      expect(service.title).toBe('');
     }));
 
     it('setterで値を更新できること', inject([ModalService], (service: ModalService) => {

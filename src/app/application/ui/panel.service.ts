@@ -54,7 +54,7 @@ export class PanelService {
   static chatPortraitComponentClass: Type<unknown> | null = null;
   static cardStackListComponentClass: Type<unknown> | null = null;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
-  title: string = '無名のパネル';
+  title: string = '';
   titleTooltip: string = '';
   left: number = 0;
   top: number = 0;

@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import {
   getDiceMenuItems,
   getRangeMenuItems,
@@ -36,11 +37,12 @@ export class TabletopActionService {
   private readonly imageStorage = inject(ImageStorage);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly t = inject(TRANSLATE_FN);
 
   constructor() {}
 
   createGameCharacter(position: PointerCoordinate): GameCharacter {
-    const character = GameCharacter.create('新しいキャラクター', 1, '');
+    const character = GameCharacter.create(this.t('feature.tabletop.action.defaultCharacterName'), 1, '');
     character.location.x = position.x - 25;
     character.location.y = position.y - 25;
     character.posZ = position.z;
@@ -51,7 +53,7 @@ export class TabletopActionService {
     const viewTable = this.getViewTable();
     if (!viewTable) return undefined;
 
-    const tableMask = GameTableMask.create('マップマスク', 5, 5, 100);
+    const tableMask = GameTableMask.create(this.t('feature.tabletop.action.defaultMaskName'), 5, 5, 100);
     tableMask.location.x = position.x - 25;
     tableMask.location.y = position.y - 25;
     tableMask.posZ = position.z;
@@ -64,7 +66,12 @@ export class TabletopActionService {
     const viewTable = this.getViewTable();
     if (!viewTable) return undefined;
 
-    const tableMask = GameTableScratchMask.create('スクラッチマスク', 10, 10, 100);
+    const tableMask = GameTableScratchMask.create(
+      this.t('feature.tabletop.action.defaultScratchMaskName'),
+      10,
+      10,
+      100
+    );
     tableMask.location.x = position.x - 25;
     tableMask.location.y = position.y - 25;
     tableMask.posZ = position.z;
@@ -83,7 +90,14 @@ export class TabletopActionService {
     const viewTable = this.getViewTable();
     if (!viewTable) return undefined;
 
-    const terrain = Terrain.create('地形', 2, 2, 2, image.identifier, image.identifier);
+    const terrain = Terrain.create(
+      this.t('feature.tabletop.action.defaultTerrainName'),
+      2,
+      2,
+      2,
+      image.identifier,
+      image.identifier
+    );
     terrain.location.x = position.x - 50;
     terrain.location.y = position.y - 50;
     terrain.posZ = position.z;
@@ -93,7 +107,13 @@ export class TabletopActionService {
   }
 
   createTextNote(position: PointerCoordinate): TextNote {
-    const textNote = TextNote.create('共有メモ', 'テキストを入力してください', 5, 4, 3);
+    const textNote = TextNote.create(
+      this.t('feature.tabletop.action.defaultNoteName'),
+      this.t('feature.tabletop.action.defaultNoteText'),
+      5,
+      4,
+      3
+    );
     textNote.location.x = position.x;
     textNote.location.y = position.y;
     textNote.posZ = position.z;
@@ -122,26 +142,26 @@ export class TabletopActionService {
     let range;
     switch (typeName) {
       case 'LINE':
-        range = RangeArea.create('射程範囲', 1, 4, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 1, 4, 100);
         break;
       case 'CIRCLE':
-        range = RangeArea.create('射程範囲', 3, 3, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
       case 'SQUARE':
-        range = RangeArea.create('射程範囲', 3, 3, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
       case 'TRIANGLE':
-        range = RangeArea.create('射程範囲', 3, 3, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
       case 'PENTAGON':
-        range = RangeArea.create('射程範囲', 3, 3, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
       case 'HEXAGON':
-        range = RangeArea.create('射程範囲', 3, 3, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
       case 'CORN':
       default:
-        range = RangeArea.create('射程範囲', 3, 3, 100);
+        range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
     }
 
@@ -155,7 +175,7 @@ export class TabletopActionService {
   }
 
   createTrump(position: PointerCoordinate): CardStack {
-    const cardStack = CardStack.create('トランプ山札');
+    const cardStack = CardStack.create(this.t('feature.tabletop.action.defaultTrumpStackName'));
     cardStack.location.x = position.x - 25;
     cardStack.location.y = position.y - 25;
     cardStack.posZ = position.z;
@@ -171,7 +191,7 @@ export class TabletopActionService {
         const image = this.imageStorage.add(url);
         ImageTag.create(image.identifier).tag = 'トランプ';
       }
-      const card = Card.create('カード', url, back);
+      const card = Card.create(this.t('feature.tabletop.action.defaultCardName'), url, back);
       cardStack.putOnBottom(card);
     }
     return cardStack;
@@ -203,7 +223,7 @@ export class TabletopActionService {
 
   private getCreateCharacterMenu(position: PointerCoordinate): ContextMenuAction {
     return {
-      name: 'キャラクターを作成',
+      name: this.t('feature.tabletop.action.createCharacter'),
       action: () => {
         const character = this.createGameCharacter(position);
         this.selectionSignalService.selectObject(character.identifier, character.aliasName);
@@ -214,7 +234,7 @@ export class TabletopActionService {
 
   private getCreateTableMaskMenu(position: PointerCoordinate): ContextMenuAction {
     return {
-      name: 'マップマスクを作成',
+      name: this.t('feature.tabletop.action.createMask'),
       action: () => {
         this.createGameTableMask(position);
         SoundEffect.play(PresetSound.cardPut);
@@ -224,7 +244,7 @@ export class TabletopActionService {
 
   private getCreateTerrainMenu(position: PointerCoordinate): ContextMenuAction {
     return {
-      name: '地形を作成',
+      name: this.t('feature.tabletop.action.createTerrain'),
       action: () => {
         this.createTerrain(position);
         SoundEffect.play(PresetSound.blockPut);
@@ -234,7 +254,7 @@ export class TabletopActionService {
 
   private getCreateTextNoteMenu(position: PointerCoordinate): ContextMenuAction {
     return {
-      name: '共有メモを作成',
+      name: this.t('feature.tabletop.action.createNote'),
       action: () => {
         this.createTextNote(position);
         SoundEffect.play(PresetSound.cardPut);
@@ -244,7 +264,7 @@ export class TabletopActionService {
 
   private getCreateTrumpMenu(position: PointerCoordinate): ContextMenuAction {
     return {
-      name: 'トランプの山札を作成',
+      name: this.t('feature.tabletop.action.createTrump'),
       action: () => {
         this.createTrump(position);
         SoundEffect.play(PresetSound.cardPut);
@@ -264,7 +284,7 @@ export class TabletopActionService {
         },
       });
     });
-    return { name: 'ダイスを作成', action: undefined, subActions: subMenus };
+    return { name: this.t('feature.tabletop.action.createDice'), action: undefined, subActions: subMenus };
   }
 
   private getCreateRangeMenu(position: PointerCoordinate): ContextMenuAction {
@@ -272,14 +292,14 @@ export class TabletopActionService {
 
     getRangeMenuItems().forEach((item) => {
       subMenus.push({
-        name: item.menuName,
+        name: this.t(item.menuName),
         action: () => {
           this.createRangeArea(position, item.typeName);
           SoundEffect.play(PresetSound.dicePut);
         },
       });
     });
-    return { name: '射程範囲を作成', action: undefined, subActions: subMenus };
+    return { name: this.t('feature.tabletop.action.createRange'), action: undefined, subActions: subMenus };
   }
 
   private getViewTable(): GameTable | null {

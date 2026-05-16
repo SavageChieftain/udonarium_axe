@@ -34,13 +34,13 @@ describe('tabletop-action-helpers', () => {
 
   it('getRangeMenuItems: 射程範囲メニュー定義を返す', () => {
     expect(getRangeMenuItems()).toEqual([
-      { menuName: '直線', typeName: 'LINE' },
-      { menuName: 'コーン', typeName: 'CORN' },
-      { menuName: '三角形', typeName: 'TRIANGLE' },
-      { menuName: '四角形', typeName: 'SQUARE' },
-      { menuName: '五角形', typeName: 'PENTAGON' },
-      { menuName: '六角形', typeName: 'HEXAGON' },
-      { menuName: '円形', typeName: 'CIRCLE' },
+      { menuName: 'feature.tabletop.action.rangeShapeLine', typeName: 'LINE' },
+      { menuName: 'feature.tabletop.action.rangeShapeCorn', typeName: 'CORN' },
+      { menuName: 'feature.tabletop.action.rangeShapeTriangle', typeName: 'TRIANGLE' },
+      { menuName: 'feature.tabletop.action.rangeShapeSquare', typeName: 'SQUARE' },
+      { menuName: 'feature.tabletop.action.rangeShapePentagon', typeName: 'PENTAGON' },
+      { menuName: 'feature.tabletop.action.rangeShapeHexagon', typeName: 'HEXAGON' },
+      { menuName: 'feature.tabletop.action.rangeShapeCircle', typeName: 'CIRCLE' },
     ]);
   });
 

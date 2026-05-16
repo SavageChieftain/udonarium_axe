@@ -34,11 +34,11 @@ export class SaveDataService {
 
   private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
 
-  saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
+  saveRoomAsync(fileName: string = '', updateCallback?: UpdateCallback): Promise<void> {
     return SaveDataService.queue.add(() => this._saveRoomAsync(fileName, updateCallback));
   }
 
-  private _saveRoomAsync(fileName: string = 'ルームデータ', updateCallback?: UpdateCallback): Promise<void> {
+  private _saveRoomAsync(fileName: string = '', updateCallback?: UpdateCallback): Promise<void> {
     const files: File[] = [];
     const roomXml = this.convertToXml(new Room());
     const chatXml = this.convertToXml(this.chatTabList);
