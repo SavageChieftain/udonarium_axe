@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -28,13 +29,14 @@ import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-por
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
+import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-window',
   templateUrl: './chat-window.component.html',
-  imports: [ChatTabComponent, FormsModule, ChatPortraitComponent, BadgeComponent, ChatInputComponent],
+  imports: [ChatTabComponent, FormsModule, ChatPortraitComponent, BadgeComponent, ChatInputComponent, TranslocoModule],
 })
 export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
@@ -43,6 +45,7 @@ export class ChatWindowComponent {
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly t = inject(TRANSLATE_FN);
 
   sendFrom: string = 'Guest';
 
@@ -126,9 +129,6 @@ export class ChatWindowComponent {
     return this.objectStore.get<ChatTab>(this.chatTabidentifier) ?? null;
   });
 
-  /** 全タブの unreadLength 変化に反応させるための computed signal。
-   *  collectionOf('chat-tab') でタブ追加/削除、versionOf でメッセージ追加・子の変更を検知する。
-   *  _children は同一参照が返るため、スプレッドで新配列を返して Angular の Object.is() 比較を突破する。 */
   readonly chatTabsVersion = computed(() => {
     this.objectChange.collectionOf('chat-tab')();
     this.objectChange.versionOf(ChatTabList.instance.identifier)();
@@ -265,10 +265,10 @@ export class ChatWindowComponent {
   updatePanelTitle() {
     const tab = this.chatTab();
     if (tab) {
-      this.panelService.title = 'チャットウィンドウ - ' + tab.name;
+      this.panelService.title = this.t('feature.chat.window.titleWithTab', { tab: tab.name });
       this.panelService.chatTab = tab;
     } else {
-      this.panelService.title = 'チャットウィンドウ';
+      this.panelService.title = this.t('common.panel.chatWindow');
       this.panelService.chatTab = null;
     }
   }
@@ -280,7 +280,7 @@ export class ChatWindowComponent {
   showTabSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: 'チャットタブ設定',
+      title: this.t('feature.chat.window.tabSettingTitle'),
       left: coordinate.x - 250,
       top: coordinate.y - 175,
       width: 500,
@@ -293,7 +293,7 @@ export class ChatWindowComponent {
   showDiceTableSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: 'ダイス表設定',
+      title: this.t('feature.chat.window.diceTableSetting'),
       left: coordinate.x + 50,
       top: coordinate.y - 450,
       width: 650,
@@ -311,7 +311,7 @@ export class ChatWindowComponent {
   showChatSetting() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: 'チャット設定',
+      title: this.t('feature.chat.window.chatSetting'),
       left: coordinate.x + 50,
       top: coordinate.y - 300,
       width: 340,
@@ -324,7 +324,7 @@ export class ChatWindowComponent {
   showVoteMenu() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: '点呼/投票設定',
+      title: this.t('feature.chat.window.voteMenuTitle'),
       left: coordinate.x + 50,
       top: coordinate.y - 450,
       width: 650,
@@ -339,7 +339,7 @@ export class ChatWindowComponent {
   showAlarmMenu() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
-      title: 'アラームタイマ',
+      title: this.t('feature.chat.window.alarmMenuTitle'),
       left: coordinate.x + 50,
       top: coordinate.y - 450,
       width: 650,
@@ -398,7 +398,7 @@ export class ChatWindowComponent {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {
-          outtext += '対象が未選択です';
+          outtext += this.t('feature.chat.window.noTarget');
         }
         for (const object of objects) {
           outtext += first ? '' : '\n';
@@ -407,7 +407,6 @@ export class ChatWindowComponent {
           if (first) {
             str2 = str;
           } else {
-            //自分リソース操作指定の省略
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 

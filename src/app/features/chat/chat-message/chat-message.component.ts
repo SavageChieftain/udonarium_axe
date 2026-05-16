@@ -1,6 +1,9 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
+import { LanguageService } from '@axe/application/i18n/language.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -13,13 +16,14 @@ import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/cha
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'chat-message',
   templateUrl: './chat-message.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, ChatColorStylePipe, SafePipe],
+  imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, ChatColorStylePipe, SafePipe, TranslocoModule],
 })
 export class ChatMessageComponent {
   protected readonly SYSTEM_ICON_URL = 'assets/images/system_chang.png';
@@ -31,6 +35,8 @@ export class ChatMessageComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly t = inject(TRANSLATE_FN);
+  private readonly language = inject(LanguageService);
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
   get chatMessage(): ChatMessage {
@@ -38,7 +44,8 @@ export class ChatMessageComponent {
   }
 
   get isSystemMessage(): boolean {
-    return this.chatMessage.from === 'System' || (this.chatMessage.tag ?? '').includes('system-message');
+    const msg = this.chatMessage;
+    return !!msg && (msg.from === 'System' || (msg.tag ?? '').includes('system-message'));
   }
 
   readonly simpleDispFlagTime = input(false);
@@ -78,16 +85,23 @@ export class ChatMessageComponent {
   clickFix() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { width: 700, height: 120, left: coordinate.x, top: coordinate.y };
-    option.title = 'チャット編集';
+    option.title = this.t('feature.chat.message.editTitle');
     const component = this.panelService.open(ChatMessageFixComponent, option);
     component.chatMessage = this.chatMessage;
     component.text = this.chatMessage.text;
   }
 
-  // Ruby syntax (Hamelin-style): `|<base>《<reading>》`. Base cannot contain whitespace.
+  displayName(name: string): string {
+    this.language.currentLang();
+    if (!this.isSystemMessage) return name;
+    return decodeI18nMessage(name, this.t);
+  }
+
   escapeHtmlAndRuby(text: string) {
+    this.language.currentLang();
     this.objectChange.versionOf(this.chatMessage?.identifier)();
-    const escapeText = this.escapeHtml(text);
+    const decoded = this.isSystemMessage ? decodeI18nMessage(text, this.t) : text;
+    const escapeText = this.escapeHtml(decoded);
     return escapeText
       .replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby class="chat-ruby"><rb>$1</rb><rt>$2</rt></ruby>')
       .replace(/\\s/g, ' ');

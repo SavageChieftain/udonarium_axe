@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -29,6 +30,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
+import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';
@@ -45,7 +47,7 @@ export interface PaletteRow {
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
   host: { class: 'block h-full' },
-  imports: [FormsModule, BadgeComponent, ChatInputComponent, GameDataElementComponent],
+  imports: [FormsModule, BadgeComponent, ChatInputComponent, GameDataElementComponent, TranslocoModule],
 })
 export class ChatPaletteComponent {
   private readonly contextMenuService = inject(ContextMenuService);
@@ -56,6 +58,7 @@ export class ChatPaletteComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
   readonly chatInputComponent = viewChild.required<ChatInputComponent>('chatInput');
@@ -172,7 +175,9 @@ export class ChatPaletteComponent {
   }
 
   updatePanelTitle() {
-    this.panelService.title = this.character() ? this.character()!.name + ' のチャットパレット' : 'チャットパレット';
+    this.panelService.title = this.character()
+      ? this.t('feature.chat.palette.panelTitleWith', { name: this.character()!.name })
+      : this.t('feature.chat.palette.panelTitle');
   }
 
   onSelectedCharacter(identifier: string) {
@@ -309,7 +314,7 @@ export class ChatPaletteComponent {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {
-          outtext += '対象が未選択です';
+          outtext += this.t('feature.chat.palette.noTarget');
         }
 
         for (const object of objects) {
@@ -436,9 +441,9 @@ export class ChatPaletteComponent {
 
     const index = [];
     for (const list of this._paletteIndex) {
-      index.push({ name: list.name, line: list.line, id: this._timeId, action: () => {} }); // ここでのactionはダミー、実行されない
+      index.push({ name: list.name, line: list.line, id: this._timeId, action: () => {} });
     }
 
-    this.contextMenuService.open(position, index, 'インデックス');
+    this.contextMenuService.open(position, index, this.t('feature.chat.palette.indexTitle'));
   }
 }

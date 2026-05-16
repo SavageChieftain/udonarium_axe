@@ -16,6 +16,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -36,6 +37,7 @@ import { ChatInputDiceBotHelper } from '@axe/features/chat/chat-input/chat-input
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatInputHistory } from '@axe/features/chat/chat-input/chat-input-history';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -44,12 +46,13 @@ import GameSystemClass from 'bcdice/lib/game_system';
   selector: 'chat-input',
   templateUrl: './chat-input.component.html',
   host: { class: 'block min-w-0 [container-type:inline-size]' },
-  imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe],
+  imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe, TranslocoModule],
 })
 export class ChatInputComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly batchService = inject(BatchService);
+  private readonly t = inject(TRANSLATE_FN);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -291,9 +294,7 @@ export class ChatInputComponent {
   readonly gameCharacters = computed(() => {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
-    // nonTalkFlag や location 変更で allowsChat の結果が変わるため各キャラの versionOf を tracking
     for (const c of all) this.objectChange.versionOf(c.identifier)();
-    // onlyCharacters=true はチャットパレット等のキャラ専用入力欄。発言しないフラグでは除外しない
     const ignoreNonTalk = this.onlyCharacters();
     return all.filter((character) => allowsChat(character, this.myPeer.peerId, ignoreNonTalk));
   });
@@ -437,8 +438,9 @@ export class ChatInputComponent {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];
-      let title = '色設定';
-      if (object.name.length) title += ' - ' + object.name;
+      const title = object.name.length
+        ? this.t('feature.chat.input.colorSettingWithChar', { name: object.name })
+        : this.t('feature.chat.input.colorSetting');
       const option: PanelOption = {
         title: title,
         left: coordinate.x + 50,
@@ -450,7 +452,7 @@ export class ChatInputComponent {
       component.tabletopObject = object;
     } else {
       const coordinate = this.pointerDeviceService.pointers[0];
-      const title = '色設定';
+      const title = this.t('feature.chat.input.colorSetting');
       const option: PanelOption = {
         title: title,
         left: coordinate.x + 50,

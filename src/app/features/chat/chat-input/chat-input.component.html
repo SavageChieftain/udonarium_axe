@@ -1,11 +1,7 @@
-<!-- chat-input-controls は @container として子セレクタの flex-basis を切替える
-     (styles.css の .ng-select.ud-select.chat-select 関連の @container ルールを参照)。
-     .chat-input クラスは textarea の e2e セレクタなので残置。 -->
 <div
   class="bg-ui-elevated border-ui-border-panel rounded-b-ui @container box-border grid w-full min-w-0 grid-cols-[minmax(72px,108px)_minmax(0,1fr)] items-stretch gap-2 border-t border-solid p-2 @max-[420px]:grid-cols-[64px_minmax(0,1fr)] @max-[420px]:gap-1.5 @max-[420px]:p-1.5 @max-[320px]:grid-cols-[56px_minmax(0,1fr)]"
   [ngClass]="{ 'border-ui-accent bg-ui-accent-bg text-ui-text border-t border-solid': isDirect }"
 >
-  <!-- アバター（2行スパン、立ち絵ナビゲーションオーバーレイ） -->
   <div
     class="rounded-ui-sm border-ui-border-panel bg-ui-input relative flex aspect-square min-h-0 w-full min-w-0 items-center justify-center self-start overflow-hidden border border-solid"
   >
@@ -23,7 +19,7 @@
           class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex <= 0"
           (click)="stepPortrait(-1)"
-          aria-label="前の立ち絵"
+          [attr.aria-label]="'feature.chat.input.prevPortrait' | transloco"
         >
           <i class="material-icons">chevron_left</i>
         </button>
@@ -35,7 +31,7 @@
           class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
           [disabled]="portraitIndex >= portraitCount - 1"
           (click)="stepPortrait(1)"
-          aria-label="次の立ち絵"
+          [attr.aria-label]="'feature.chat.input.nextPortrait' | transloco"
         >
           <i class="material-icons">chevron_right</i>
         </button>
@@ -44,7 +40,6 @@
   </div>
 
   <div class="flex min-w-0 flex-col gap-1.5">
-    <!-- 送信元/宛先/DiceBot/カラー 行 -->
     <div class="flex min-w-0 flex-wrap items-center justify-start gap-x-1.5 gap-y-1">
       <ng-select
         name="send-from"
@@ -53,7 +48,7 @@
         [clearable]="false"
       >
         @if (!onlyCharacters()) {
-          <ng-option [value]="myPeer.identifier">{{ myPeer.name }}（あなた）</ng-option>
+          <ng-option [value]="myPeer.identifier">{{ myPeer.name }}{{ 'feature.chat.input.you' | transloco }}</ng-option>
         }
         @for (gameCharacter of gameCharacters(); track gameCharacter.identifier) {
           <ng-option [value]="gameCharacter.identifier">{{ gameCharacter.name }}</ng-option>
@@ -61,12 +56,12 @@
       </ng-select>
       <span class="text-ui-muted flex-none text-[11px] leading-none @max-[320px]:hidden">▶</span>
       <ng-select name="send-to" class="ud-select chat-select chat-select--to" [(ngModel)]="sendTo" [clearable]="false">
-        <ng-option [value]="''">全員</ng-option>
+        <ng-option [value]="''">{{ 'feature.chat.input.everyone' | transloco }}</ng-option>
         @for (peer of otherPeers; track peer) {
           <ng-option [value]="peer.identifier"
             >{{ peer.name }}
             @if (peer === myPeer) {
-              （あなた）
+              {{ 'feature.chat.input.you' | transloco }}
             }
           </ng-option>
         }
@@ -86,10 +81,11 @@
         ?
       </button>
       @if (!isGameTypeInList()) {
-        <span class="text-ui-danger min-w-0 flex-[0_1_auto] text-[11px]">※ダイスボットが見つかりません</span>
+        <span class="text-ui-danger min-w-0 flex-[0_1_auto] text-[11px]">{{
+          'feature.chat.input.diceBotNotFound' | transloco
+        }}</span>
       }
 
-      <!-- カラー設定（チャット設定） -->
       <div class="ml-auto flex min-w-0 items-center gap-1 @max-[420px]:ml-0">
         <div class="flex shrink-0 items-center gap-1 px-0.5">
           @for (i of [0, 1, 2]; track i) {
@@ -108,17 +104,16 @@
           (click)="showColorSetting()"
         >
           <i class="material-icons align-middle text-[13px]! @max-[320px]:m-0 @max-[320px]:text-[14px]!">settings</i
-          >色設定
+          >{{ 'feature.chat.input.colorSetting' | transloco }}
         </button>
       </div>
     </div>
 
-    <!-- テキストエリア + SEND -->
     <form name="chat-input" class="m-0 flex min-w-0 items-center gap-2">
       <textarea
         name="chat-input-text"
         class="chat-input border-ui-input-border rounded-ui-sm bg-ui-input text-ui-text focus:border-ui-accent box-border max-h-60 min-h-10 w-full min-w-0 flex-1 resize-y border border-solid px-2 py-1.5 align-bottom font-[inherit] text-[13px] leading-[1.4] transition-colors focus:shadow-[0_0_0_2px_var(--ui-accent-glow)] focus:outline-none"
-        placeholder="Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替"
+        [placeholder]="'feature.chat.input.textareaPlaceholder' | transloco"
         [(ngModel)]="text"
         [ngModelOptions]="{ standalone: true }"
         (input)="onInput()"
@@ -136,7 +131,7 @@
         type="submit"
         class="border-ui-accent bg-ui-accent hover:border-ui-accent hover:bg-ui-accent m-0 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-solid p-0 text-[12px] font-semibold text-white transition-[background,border-color,filter] hover:text-white hover:shadow-none hover:brightness-110 [&_i]:text-[18px] [&_i]:leading-none"
         (click)="sendChat(null)"
-        aria-label="送信"
+        [attr.aria-label]="'feature.chat.input.send' | transloco"
       >
         <i class="material-icons">send</i>
       </button>

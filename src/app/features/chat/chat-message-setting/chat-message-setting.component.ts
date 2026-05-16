@@ -4,12 +4,13 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'chat-message-setting',
   templateUrl: './chat-message-setting.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
 })
 export class ChatMessageSettingComponent {
   private readonly objectStore = inject(ObjectStore);

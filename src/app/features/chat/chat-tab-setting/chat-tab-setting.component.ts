@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -11,6 +13,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
@@ -18,7 +21,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
   selector: 'app-chat-tab-setting',
   templateUrl: './chat-tab-setting.component.html',
   host: { class: 'block h-full' },
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
 })
 export class ChatTabSettingComponent {
   private readonly modalService = inject(ModalService);
@@ -30,6 +33,7 @@ export class ChatTabSettingComponent {
   private readonly chatTabList = inject(ChatTabList);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly selectedTab = signal<ChatTab | null>(null);
   selectedTabXml = '';
@@ -76,7 +80,9 @@ export class ChatTabSettingComponent {
   modeCocLog = false;
 
   constructor() {
-    queueMicrotask(() => (this.modalService.title = this.panelService.title = 'チャットタブ設定'));
+    queueMicrotask(
+      () => (this.modalService.title = this.panelService.title = this.t('feature.chat.tabSetting.panelTitle'))
+    );
     this.objectChange.objectDeleted$.subscribe((e) => {
       if (!this.selectedTab() || e.identifier !== this.selectedTab()!.identifier) return;
       const object = this.objectStore.get(e.identifier);
@@ -118,7 +124,7 @@ export class ChatTabSettingComponent {
   }
 
   create() {
-    this.chatTabList.addChatTab('タブ');
+    this.chatTabList.addChatTab(this.t('feature.chat.tabSetting.defaultTabName'));
   }
 
   async save() {
@@ -140,7 +146,9 @@ export class ChatTabSettingComponent {
 
   get roomName(): string {
     const roomName =
-      Network.peerContext && 0 < Network.peerContext.roomName.length ? Network.peerContext.roomName : 'ルームデータ';
+      Network.peerContext && 0 < Network.peerContext.roomName.length
+        ? Network.peerContext.roomName
+        : this.t('app.roomDataDefault');
     return roomName;
   }
 
@@ -168,7 +176,7 @@ export class ChatTabSettingComponent {
   }
 
   saveAllLog() {
-    const fileName: string = this.roomName + '_log_' + '全タブ';
+    const fileName: string = this.roomName + '_log_' + this.t('feature.chat.tabSetting.allTabsLogName');
     const fileName_: string = this.appendTimestamp(fileName);
 
     if (this.modeCocLog) {
@@ -204,7 +212,7 @@ export class ChatTabSettingComponent {
         this.selectedTab()!.children[0].destroy();
       }
       this.selectedTab()!.portraitReset();
-      const mess = 'ログをクリアしました';
+      const mess = encodeI18nMessage('common.chat.logCleared');
       const gameSystem: GameSystemClass | null = null;
       const sendTo = '';
       this.chatMessageService.sendMessage(
@@ -222,7 +230,7 @@ export class ChatTabSettingComponent {
   deleteLogALL() {
     if (!this.allowDeleteLog) return;
 
-    const mess = 'ログをクリアしました';
+    const mess = encodeI18nMessage('common.chat.logCleared');
     const gameSystem: GameSystemClass | null = null;
     const sendTo = '';
 

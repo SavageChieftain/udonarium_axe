@@ -1,64 +1,66 @@
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { ChatMessageContext } from '@axe/domain/chat/chat-message';
 
-const NOW = Date.now();
-
-export const SAMPLE_CHAT_MESSAGES: ChatMessageContext[] = [
-  {
-    from: 'System',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル',
-    text: 'サーバーを使用しないTRPGオンセツールです。参加者同士で接続し、コマや画像ファイルなどを同期します。',
-  },
-  {
-    from: 'System',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル',
-    text: '全てのデータが各参加者のブラウザ内にあるため、ルームの状態を次回に持ち越したい場合は、必ず「保存」を実行してセーブデータ（zip）を生成してください。保存したzipの読み込みはブラウザ画面へのファイルドロップで行えます。',
-  },
-  {
-    from: 'System',
-    to: '???',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル > プレイヤー',
-    text: 'ダイレクトメッセージ（秘密会話）はセーブデータに記録されません。',
-  },
-  {
-    from: 'System',
-    to: '???',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル > プレイヤー',
-    text: 'また、過去のダイレクトメッセージはあなたのIDが更新されると同じルーム内であっても見えなくなります。注意してください。',
-  },
-  {
-    from: 'System',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル',
-    text: '動作推奨環境はデスクトップChromeです。今のところ、スマホからだと上手く操作できません。',
-  },
-  {
-    from: 'System',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル',
-    text: 'リリィ追加機能：チャット簡易表示機能は最初のチャット入力を入力すると使用可能になります。',
-  },
-  {
-    from: 'System',
-    timestamp: NOW,
-    imageIdentifier: '',
-    tag: '',
-    name: 'チュートリアル',
-    text: 'チュートリアルは以上です。このチュートリアルは最初のチャットを入力すると非表示になります。',
-  },
-];
+export function buildSampleChatMessages(): ChatMessageContext[] {
+  const NOW = Date.now();
+  return [
+    {
+      from: 'System',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialName'),
+      text: encodeI18nMessage('feature.chat.sample.intro1'),
+    },
+    {
+      from: 'System',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialName'),
+      text: encodeI18nMessage('feature.chat.sample.intro2'),
+    },
+    {
+      from: 'System',
+      to: '???',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialToPlayer'),
+      text: encodeI18nMessage('feature.chat.sample.dm1'),
+    },
+    {
+      from: 'System',
+      to: '???',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialToPlayer'),
+      text: encodeI18nMessage('feature.chat.sample.dm2'),
+    },
+    {
+      from: 'System',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialName'),
+      text: encodeI18nMessage('feature.chat.sample.env'),
+    },
+    {
+      from: 'System',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialName'),
+      text: encodeI18nMessage('feature.chat.sample.simple'),
+    },
+    {
+      from: 'System',
+      timestamp: NOW,
+      imageIdentifier: '',
+      tag: '',
+      name: encodeI18nMessage('feature.chat.sample.tutorialName'),
+      text: encodeI18nMessage('feature.chat.sample.end'),
+    },
+  ];
+}

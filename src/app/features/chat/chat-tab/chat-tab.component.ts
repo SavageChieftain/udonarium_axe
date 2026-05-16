@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -25,7 +26,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
-import { SAMPLE_CHAT_MESSAGES } from '@axe/features/chat/chat-tab/chat-tab-sample-messages';
+import { buildSampleChatMessages } from '@axe/features/chat/chat-tab/chat-tab-sample-messages';
 import {
   calcIndexRange,
   calcMaxElementHeight,
@@ -59,6 +60,7 @@ export class ChatTabComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly t = inject(TRANSLATE_FN);
 
   constructor() {
     effect(() => {
@@ -147,7 +149,7 @@ export class ChatTabComponent {
     });
   }
 
-  private readonly rawSampleMessages = SAMPLE_CHAT_MESSAGES;
+  private readonly rawSampleMessages = buildSampleChatMessages();
   sampleMessages: ChatMessage[] = [];
 
   private topTimestamp = 0;
@@ -310,7 +312,7 @@ export class ChatTabComponent {
       return {
         peerId,
         speakerIdentifier,
-        name: object.name || '無名のキャラクター',
+        name: object.name || this.t('feature.chat.tab.unnamedCharacter'),
         imageFile: object.imageFile ?? ImageFile.Empty,
       };
     }
@@ -318,7 +320,7 @@ export class ChatTabComponent {
       return {
         peerId,
         speakerIdentifier,
-        name: object.name || 'プレイヤー',
+        name: object.name || this.t('feature.chat.tab.player'),
         imageFile: object.image ?? ImageFile.Empty,
       };
     }

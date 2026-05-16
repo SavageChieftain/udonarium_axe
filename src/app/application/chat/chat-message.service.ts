@@ -10,6 +10,7 @@ import {
   resolvePortraitIndex,
   stripPortraitCommand,
 } from '@axe/application/chat/chat-message-helpers';
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { emitDiceTableMessage, emitResourceEditMessage, emitSendMessage } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
@@ -87,13 +88,12 @@ export class ChatMessageService {
     return Math.floor(this.timeOffset + (performance.now() - this.performanceOffset));
   }
 
-  // システムメッセージ専用
   sendSystemMessage(text: string, color?: string): ChatMessage {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = chatTabList!.systemMessageTab!;
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
-      name: 'システムメッセージ',
+      name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(sysTab),
       tag: 'system-message',
@@ -109,7 +109,7 @@ export class ChatMessageService {
     const chatMessage: ChatMessageContext = {
       from: this.findId(sendTo),
       to: this.findId(sendTo),
-      name: 'システムメッセージ',
+      name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(chatTab),
       tag: 'DiceBot to-pl-system-message',

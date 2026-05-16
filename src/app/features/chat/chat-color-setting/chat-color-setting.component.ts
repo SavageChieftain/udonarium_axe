@@ -4,12 +4,14 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'chat-color-setting',
   templateUrl: './chat-color-setting.component.html',
   host: { class: 'block px-3 py-[10px]' },
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslocoModule],
 })
 export class ChatColorSettingComponent {
   private readonly panelService = inject(PanelService);

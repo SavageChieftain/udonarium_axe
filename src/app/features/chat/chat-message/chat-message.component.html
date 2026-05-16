@@ -29,7 +29,7 @@
           [ngStyle]="chatMessage.messColor | chatColorStyle"
         >
           <div class="pl-2.5 align-top text-[13px] font-medium text-inherit">
-            <span class="msg-name">{{ chatMessage.name }}</span>
+            <span class="msg-name">{{ displayName(chatMessage.name) }}</span>
             <span class="tip"> | </span>
             <span class="tip msg-from">{{ chatMessage.from }}</span>
             <span class="tip"> | </span>
@@ -50,23 +50,22 @@
               @if (attachmentImageFiles().length > 0) {
                 <div class="mt-1.5 flex flex-wrap gap-1.5 whitespace-normal">
                   @for (image of attachmentImageFiles(); track image.identifier) {
-                    <!-- message-attachment-image マーカークラスは chat-message.component.spec の querySelector ターゲット -->
                     <img
                       class="message-attachment-image border-ui-border-panel bg-ui-elevated block size-auto max-h-30 max-w-[min(180px,100%)] rounded-sm border border-solid object-contain"
                       [src]="image.url | safe: 'resourceUrl'"
-                      alt="添付画像"
+                      [alt]="'feature.chat.message.attachment' | transloco"
                     />
                   }
                 </div>
               }
               @if (chatMessage.isSecret) {
-                <button (click)="discloseMessage()">内容を公開</button>
+                <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
               }
             } @else {
-              <span>（シークレットダイス）</span>
+              <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
             }
             @if (chatMessage.fixd) {
-              &nbsp;(編集済)
+              &nbsp;{{ 'feature.chat.message.edited' | transloco }}
             }
           </div>
         </div>
@@ -87,7 +86,7 @@
           [ngStyle]="chatMessage.messColor | chatColorStyle"
         >
           <span class="pl-2.5 align-top text-[13px] font-medium text-inherit">
-            <font class="msg-name">{{ chatMessage.name }}</font
+            <font class="msg-name">{{ displayName(chatMessage.name) }}</font
             >：
             @if (simpleDispFlagUserId()) {
               <font class="tip msg-from">{{ chatMessage.from }}</font>
@@ -112,19 +111,19 @@
                       <img
                         class="message-attachment-image border-ui-border-panel bg-ui-elevated block size-auto max-h-12 max-w-18 rounded-sm border border-solid object-contain"
                         [src]="image.url | safe: 'resourceUrl'"
-                        alt="添付画像"
+                        [alt]="'feature.chat.message.attachment' | transloco"
                       />
                     }
                   </span>
                 }
                 @if (chatMessage.isSecret) {
-                  <button (click)="discloseMessage()">内容を公開</button>
+                  <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
                 }
               } @else {
-                <span>（シークレットダイス）</span>
+                <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
               }
               @if (chatMessage.fixd) {
-                （編集済）
+                {{ 'feature.chat.message.editedSimple' | transloco }}
               }
               @if (chatMessage.changeable) {
                 <i

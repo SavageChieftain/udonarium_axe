@@ -66,24 +66,24 @@
       <button
         class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
         (click)="indexBtn()"
-        title="見出し一覧へジャンプ"
+        [title]="'feature.chat.palette.indexTooltip' | transloco"
       >
-        <i class="material-icons">bookmarks</i>見出し
+        <i class="material-icons">bookmarks</i>{{ 'feature.chat.palette.indexLabel' | transloco }}
       </button>
       <button
         class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
         (click)="toggleCharacterDataView()"
-        title="キャラクターのゲームデータを表示"
+        [title]="'feature.chat.palette.characterDataTooltip' | transloco"
       >
-        <i class="material-icons">badge</i>キャラ情報
+        <i class="material-icons">badge</i>{{ 'feature.chat.palette.characterDataLabel' | transloco }}
       </button>
     } @else {
       <button
         class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text inline-flex cursor-pointer items-center gap-0.75 rounded-sm border border-solid bg-transparent px-1.75 py-0.5 text-[0.78em] leading-normal select-none [&_.material-icons]:text-base!"
         (click)="toggleCharacterDataView()"
-        title="チャットパレットに戻る"
+        [title]="'feature.chat.palette.backToPaletteTooltip' | transloco"
       >
-        <i class="material-icons">arrow_back</i>パレットに戻る
+        <i class="material-icons">arrow_back</i>{{ 'feature.chat.palette.backToPaletteLabel' | transloco }}
       </button>
     }
     <span class="flex-1"></span>
@@ -92,7 +92,7 @@
         <span
           class="text-ui-accent border-ui-accent bg-ui-accent-bg inline-flex items-center gap-0.5 rounded-[10px] border border-solid px-1.75 py-px text-[0.72em] select-none [&_.material-icons]:text-base!"
         >
-          <i class="material-icons">edit</i>編集中
+          <i class="material-icons">edit</i>{{ 'feature.chat.palette.editing' | transloco }}
         </span>
       }
       <button
@@ -103,16 +103,16 @@
         (click)="toggleEditMode()"
       >
         @if (!isEdit()) {
-          <i class="material-icons">edit</i>編集
+          <i class="material-icons">edit</i>{{ 'feature.chat.palette.edit' | transloco }}
         } @else {
-          <i class="material-icons">check</i>確定
+          <i class="material-icons">check</i>{{ 'feature.chat.palette.confirm' | transloco }}
         }
       </button>
     } @else {
       <span
         class="text-ui-muted inline-flex items-center gap-0.5 rounded-[10px] px-1.75 py-px text-[0.72em] select-none [&_.material-icons]:text-base!"
       >
-        <i class="material-icons">visibility</i>読み取り専用
+        <i class="material-icons">visibility</i>{{ 'feature.chat.palette.readOnly' | transloco }}
       </span>
     }
   </div>
@@ -128,7 +128,8 @@
           class="text-ui-accent bg-ui-elevated border-ui-border-panel box-border cursor-default border-t border-solid px-2 pt-1.25 pb-0.5 text-[0.8em] leading-[1.65] font-bold whitespace-pre select-none first:border-t-0"
           [attr.data-line]="row.lineIndex"
         >
-          <span class="mr-0.75 opacity-60">◆</span>{{ row.headingName }}
+          <span class="mr-0.75 opacity-60">{{ 'feature.chat.palette.headingBullet' | transloco }}</span
+          >{{ row.headingName }}
         </div>
       } @else if (row.kind === 'variable') {
         <div
@@ -176,10 +177,14 @@
             </div>
           }
         } @else {
-          <div class="text-ui-dim p-4 text-center text-[0.8em] select-none">表示できる情報がありません</div>
+          <div class="text-ui-dim p-4 text-center text-[0.8em] select-none">
+            {{ 'feature.chat.palette.noDisplayInfo' | transloco }}
+          </div>
         }
       } @else {
-        <div class="text-ui-dim p-4 text-center text-[0.8em] select-none">キャラクターが選択されていません</div>
+        <div class="text-ui-dim p-4 text-center text-[0.8em] select-none">
+          {{ 'feature.chat.palette.noCharacterSelected' | transloco }}
+        </div>
       }
     </div>
   }
@@ -191,7 +196,7 @@
       #editText
       [ngModel]="editPalette()"
       (ngModelChange)="editPalette.set($event)"
-      placeholder="チャットパレット"
+      [placeholder]="'feature.chat.palette.editPlaceholder' | transloco"
     ></textarea>
   </div>
 
@@ -199,7 +204,7 @@
     <div
       class="text-ui-dim border-ui-border-panel grow-0 border-t border-solid px-1.5 py-0.5 text-center text-[0.68em] select-none"
     >
-      クリック: 入力 ／ 2回クリック: 送信
+      {{ 'feature.chat.palette.footerHint' | transloco }}
     </div>
   }
 </div>
