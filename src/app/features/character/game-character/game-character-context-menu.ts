@@ -27,8 +27,9 @@ export function buildGameCharacterContextMenu(
         {
           name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
-            if (char.altitude != 0) {
+            if (char.altitude !== 0 || char.posZ !== 0) {
               char.altitude = 0;
+              char.posZ = 0;
               SoundEffect.play(PresetSound.sweep);
             }
           },

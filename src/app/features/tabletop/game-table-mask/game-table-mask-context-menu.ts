@@ -42,8 +42,9 @@ export function buildGameTableMaskContextMenu(params: MaskMenuParams): ContextMe
         {
           name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
-            if (mask.altitude != 0) {
+            if (mask.altitude !== 0 || mask.posZ !== 0) {
               mask.altitude = 0;
+              mask.posZ = 0;
               SoundEffect.play(PresetSound.sweep);
             }
           },

@@ -22,8 +22,9 @@ export function buildTextNoteContextMenu(
         {
           name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
-            if (textNote.altitude != 0) {
+            if (textNote.altitude !== 0 || textNote.posZ !== 0) {
               textNote.altitude = 0;
+              textNote.posZ = 0;
               SoundEffect.play(PresetSound.sweep);
             }
           },

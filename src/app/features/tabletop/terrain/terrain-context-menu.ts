@@ -33,8 +33,9 @@ export function buildTerrainContextMenu(
         {
           name: t('feature.tabletop.contextMenu.altitudeZero'),
           action: () => {
-            if (terrain.altitude != 0) {
+            if (terrain.altitude !== 0 || terrain.posZ !== 0) {
               terrain.altitude = 0;
+              terrain.posZ = 0;
               SoundEffect.play(PresetSound.sweep);
             }
           },
