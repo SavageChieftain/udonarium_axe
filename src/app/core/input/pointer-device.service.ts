@@ -30,6 +30,14 @@ export class PointerDeviceService {
     return this._isAllowedToOpenContextMenu;
   }
 
+  primeForContextMenu(pageX: number, pageY: number) {
+    this._isAllowedToOpenContextMenu = true;
+    const primed: PointerData = { x: pageX, y: pageY, z: 0, identifier: MOUSE_IDENTIFIER };
+    this.startPosition = primed;
+    this.pointers = [primed];
+    this.primaryPointer = primed;
+  }
+
   targetElement: HTMLElement = document.body;
 
   pointers: PointerData[] = [{ x: 0, y: 0, z: 0, identifier: -1 }];

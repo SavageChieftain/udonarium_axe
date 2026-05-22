@@ -13,7 +13,8 @@ export function buildTerrainContextMenu(
   inventoryService: GameObjectInventoryService,
   tabletopActionService: TabletopActionService,
   onEdit: (t: Terrain) => void,
-  t: TranslateFn
+  t: TranslateFn,
+  overlapEntries: ContextMenuAction[] = []
 ): ContextMenuAction[] {
   const adjustedWidth = Math.max(0, terrain.width);
   const adjustedDepth = Math.max(0, terrain.depth);
@@ -24,6 +25,7 @@ export function buildTerrainContextMenu(
       : terrain.slopeDirection;
 
   return [
+    ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
     {
       name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,

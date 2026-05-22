@@ -2,6 +2,7 @@ import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, inp
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
@@ -49,7 +50,10 @@ export class MovableDirective {
   private readonly tableSelecter = inject(TableSelecter);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly tabletopOverlap = inject(TabletopOverlapService);
   private readonly destroyRef = inject(DestroyRef);
+
+  private registeredOverlapId: string | null = null;
 
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 
@@ -128,18 +132,41 @@ export class MovableDirective {
       if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
       this.snapOrigin = opt.snapOrigin;
       this.snapStyle = opt.snapStyle;
+      this.refreshOverlapRegistration();
     });
     afterNextRender(() => {
       this.batchService.add(() => this.initialize(), this.elementRef);
       this.setPosition(this.tabletopObject);
+      this.refreshOverlapRegistration();
     });
     this.destroyRef.onDestroy(() => {
       this.cancel();
       if (this.input) this.input.destroy();
       this.unregister();
+      this.unregisterOverlap();
       this.batchService.remove(this);
       this.batchService.remove(this.elementRef);
     });
+  }
+
+  private refreshOverlapRegistration() {
+    const obj = this.tabletopObject;
+    if (!obj) {
+      this.unregisterOverlap();
+      return;
+    }
+    if (this.registeredOverlapId && this.registeredOverlapId !== obj.identifier) {
+      this.tabletopOverlap.unregister(this.registeredOverlapId);
+    }
+    this.tabletopOverlap.register(obj, this.nativeElement);
+    this.registeredOverlapId = obj.identifier;
+  }
+
+  private unregisterOverlap() {
+    if (this.registeredOverlapId) {
+      this.tabletopOverlap.unregister(this.registeredOverlapId);
+      this.registeredOverlapId = null;
+    }
   }
 
   initialize() {

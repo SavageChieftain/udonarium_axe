@@ -573,7 +573,17 @@
         "maskEdit": "Edit mask",
         "textNoteLay": "Lay down",
         "textNoteUpright": "Stand up",
-        "textNoteEdit": "Edit note"
+        "textNoteEdit": "Edit note",
+        "overlapBelow": "Objects below ({{count}})",
+        "aliasTerrain": "Terrain",
+        "aliasCharacter": "Character",
+        "aliasMask": "Mask",
+        "aliasScratchMask": "Scratch mask",
+        "aliasTextNote": "Note",
+        "aliasRange": "Range",
+        "aliasDiceSymbol": "Dice",
+        "aliasCard": "Card",
+        "aliasCardStack": "Deck"
       },
       "tableSetting": {
         "title": "Table settings",

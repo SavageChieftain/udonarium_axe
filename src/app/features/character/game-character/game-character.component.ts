@@ -17,8 +17,10 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
@@ -64,6 +66,7 @@ export class GameCharacterComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
+  private readonly tabletopOverlap = inject(TabletopOverlapService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -348,6 +351,13 @@ export class GameCharacterComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
+    const overlapEntries = buildOverlapContextMenu(
+      this.tabletopOverlap,
+      char,
+      position.x,
+      position.y,
+      this.translateFn
+    );
     this.contextMenuService.open(
       position,
       buildGameCharacterContextMenu(
@@ -360,7 +370,8 @@ export class GameCharacterComponent {
           onShowRemoteController: () => this.showRemoteController(char),
           onShowBuffEdit: () => this.showBuffEdit(char),
         },
-        this.translateFn
+        this.translateFn,
+        overlapEntries
       ),
       this.name()
     );

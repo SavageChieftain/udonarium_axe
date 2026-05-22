@@ -15,9 +15,11 @@ export function buildGameCharacterContextMenu(
     onShowRemoteController: () => void;
     onShowBuffEdit: () => void;
   },
-  t: TranslateFn
+  t: TranslateFn,
+  overlapEntries: ContextMenuAction[] = []
 ): ContextMenuAction[] {
   return [
+    ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
     {
       name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,

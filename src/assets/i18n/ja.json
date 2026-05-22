@@ -573,7 +573,17 @@
         "maskEdit": "マスクを編集",
         "textNoteLay": "寝かせる",
         "textNoteUpright": "直立させる",
-        "textNoteEdit": "メモを編集"
+        "textNoteEdit": "メモを編集",
+        "overlapBelow": "重なっているオブジェクト ({{count}})",
+        "aliasTerrain": "地形",
+        "aliasCharacter": "キャラクター",
+        "aliasMask": "マスク",
+        "aliasScratchMask": "スクラッチマスク",
+        "aliasTextNote": "メモ",
+        "aliasRange": "射程",
+        "aliasDiceSymbol": "ダイス",
+        "aliasCard": "カード",
+        "aliasCardStack": "山札"
       },
       "tableSetting": {
         "title": "テーブル設定",

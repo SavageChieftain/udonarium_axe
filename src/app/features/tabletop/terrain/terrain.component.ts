@@ -19,8 +19,10 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -88,6 +90,7 @@ export class TerrainComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly tabletopOverlap = inject(TabletopOverlapService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -480,6 +483,13 @@ export class TerrainComponent {
 
     const menuPosition = this.pointerDeviceService.pointers[0];
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
+    const overlapEntries = buildOverlapContextMenu(
+      this.tabletopOverlap,
+      this.terrain(),
+      menuPosition.x,
+      menuPosition.y,
+      this.translateFn
+    );
     const menuArray = buildTerrainContextMenu(
       this.terrain()!,
       this.gridSize,
@@ -487,7 +497,8 @@ export class TerrainComponent {
       this.inventoryService,
       this.tabletopActionService,
       (terrain) => this.showDetail(terrain),
-      this.translateFn
+      this.translateFn,
+      overlapEntries
     );
     this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
