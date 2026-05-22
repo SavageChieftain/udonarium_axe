@@ -23,12 +23,12 @@
 
 変更対象の領域名。よく使うもの:
 
-| カテゴリ | scope                                              |
-| -------- | -------------------------------------------------- |
+| カテゴリ | scope                                                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------- |
 | 機能     | `chat`, `tabletop`, `character`, `card`, `dice`, `lobby`, `media`, `controller`, `vote`, `inventory`, `alarm` |
-| インフラ | `network`, `storage`, `sync`                       |
-| レイヤー | `application`, `ui`, `domain`                      |
-| その他   | `css`, `release`                                   |
+| インフラ | `network`, `storage`, `sync`                                                                                  |
+| レイヤー | `application`, `ui`, `domain`                                                                                 |
+| その他   | `css`, `release`                                                                                              |
 
 ### subject
 
@@ -68,11 +68,11 @@ chore(release): bump version to 1.2.2
 `--no-verify` / `LEFTHOOK=0` / `core.hooksPath` の変更 / lefthook 設定の一時無効化、
 **いずれも禁止**。フックが落ちたら原因を直してから再コミットする。
 
-| フック       | 内容                                |
-| ------------ | ----------------------------------- |
+| フック       | 内容                               |
+| ------------ | ---------------------------------- |
 | `commit-msg` | `commitlint`（メッセージ形式検査） |
-| `pre-commit` | `ng lint` + `ng test`（並列）       |
-| `pre-push`   | `ng build`                          |
+| `pre-commit` | `ng lint` + `ng test`（並列）      |
+| `pre-push`   | `ng build`                         |
 
 設定: [../lefthook.yml](../lefthook.yml)
 

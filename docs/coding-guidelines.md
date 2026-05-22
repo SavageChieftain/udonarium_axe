@@ -82,6 +82,6 @@
 - **相対パス import 禁止**: `no-restricted-imports` で `^\.` を拒否。
   必ずパスエイリアス (`@axe/*` / `@env/*`) を使う
 - **層境界の自動検査**: `no-restricted-imports` で各レイヤーの逆流 import を error 化
-  - 詳細: [architecture.md#@axe/core/*](architecture.md#axecore) 以降の各層 / [../eslint.config.ts](../eslint.config.ts)
+  - 詳細: [architecture.md#@axe/core/\*](architecture.md#axecore) 以降の各層 / [../eslint.config.ts](../eslint.config.ts)
 
 設定: [../eslint.config.ts](../eslint.config.ts)

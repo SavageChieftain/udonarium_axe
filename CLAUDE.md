@@ -18,15 +18,15 @@ composition → features → ui → application → infrastructure → domain �
                           ↘────────────────↗  application は domain も直接読む
 ```
 
-| レイヤー                       | 一行サマリ                                          |
-| ------------------------------ | --------------------------------------------------- |
-| `@axe/core/*`                  | 純粋インフラ。Angular 非依存、Web API ラッパ        |
-| `@axe/domain/*`                | 純粋ドメインモデル。Angular / DOM 非依存            |
-| `@axe/infrastructure/*` (予約) | domain ↔ DOM/Web のアダプタ層。現状空               |
-| `@axe/application/*`           | Angular DI ラップ層（`@Injectable` サービス群）     |
-| `@axe/ui/*`                    | feature 非依存の汎用 UI 部品                        |
-| `@axe/features/*`              | ユーザ向け 1 機能 = 1 サブフォルダ                  |
-| `@axe/composition/*` + `src/app/*.ts` | composition root。すべての層に依存可能       |
+| レイヤー                              | 一行サマリ                                      |
+| ------------------------------------- | ----------------------------------------------- |
+| `@axe/core/*`                         | 純粋インフラ。Angular 非依存、Web API ラッパ    |
+| `@axe/domain/*`                       | 純粋ドメインモデル。Angular / DOM 非依存        |
+| `@axe/infrastructure/*` (予約)        | domain ↔ DOM/Web のアダプタ層。現状空           |
+| `@axe/application/*`                  | Angular DI ラップ層（`@Injectable` サービス群） |
+| `@axe/ui/*`                           | feature 非依存の汎用 UI 部品                    |
+| `@axe/features/*`                     | ユーザ向け 1 機能 = 1 サブフォルダ              |
+| `@axe/composition/*` + `src/app/*.ts` | composition root。すべての層に依存可能          |
 
 各層の詳細・「入れる / 入れない」基準・composition root の使い方は
 [docs/architecture.md](docs/architecture.md) を参照。
