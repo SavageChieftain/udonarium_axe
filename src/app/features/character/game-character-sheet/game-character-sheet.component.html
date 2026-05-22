@@ -637,14 +637,15 @@
               <i class="material-icons">info</i>{{ 'feature.inventory.sheet.terrainBasicSetting' | transloco }}
             </h3>
             <div class="bg-ui-panel rounded-ui-sm box-border table w-full overflow-hidden">
-              <div
-                class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
-                game-data-element
-                [gameDataElement]="tabletopObject.commonDataElement"
-                [isTagLocked]="true"
-                [isEdit]="false"
-                [hideSectionTitle]="true"
-              ></div>
+              @for (child of tabletopObject.commonDataElement.children; track child.identifier) {
+                <div
+                  class="[&>div]:border-ui-border-panel box-border table-row [&>div]:box-border [&>div]:table-cell [&>div]:border [&>div]:border-solid [&>div]:align-top"
+                  game-data-element
+                  [gameDataElement]="child"
+                  [isTagLocked]="true"
+                  [isEdit]="false"
+                ></div>
+              }
             </div>
           </section>
         }
