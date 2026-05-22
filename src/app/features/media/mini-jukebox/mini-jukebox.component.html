@@ -1,7 +1,8 @@
 <div
   class="player group rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute top-0 left-0 z-100 w-75 overflow-hidden border border-solid text-[13px] [backdrop-filter:blur(24px)_saturate(1.5)] transition-[width,border-radius] duration-150 ease-[ease] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
-  [class.w-14!]="isMinimized()"
   [class.rounded-[28px]!]="isMinimized()"
+  [style.width.px]="isMinimized() ? 56 : null"
+  [style.height.px]="isMinimized() ? 56 : null"
   #playerEl
   appDraggable
   [draggable.handle]="'.player-top'"
@@ -12,7 +13,8 @@
     [class.cursor-grab!]="isMinimized()"
     [class.justify-center!]="isMinimized()"
     [class.gap-0!]="isMinimized()"
-    [class.p-1.75!]="isMinimized()"
+    [class.p-0!]="isMinimized()"
+    [class.h-full!]="isMinimized()"
   >
     <div
       class="group/disc border-ui-border-panel bg-ui-elevated text-ui-dim relative flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-solid transition-colors [&_.material-icons]:text-[22px]!"
