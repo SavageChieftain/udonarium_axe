@@ -144,4 +144,77 @@ describe('PanelService', () => {
     expect(() => childPanelService.close()).not.toThrow();
     expect(destroy).toHaveBeenCalledTimes(1);
   });
+
+  describe('clampPanelOptionToViewport', () => {
+    let originalInnerWidth: number;
+    let originalInnerHeight: number;
+
+    beforeEach(() => {
+      originalInnerWidth = window.innerWidth;
+      originalInnerHeight = window.innerHeight;
+      Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 720, configurable: true });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'innerWidth', { value: originalInnerWidth, configurable: true });
+      Object.defineProperty(window, 'innerHeight', { value: originalInnerHeight, configurable: true });
+    });
+
+    it('ビューポート内の位置はそのまま', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: 100, top: 50, width: 400, height: 300 },
+        fallback
+      );
+      expect(adjusted.left).toBe(100);
+      expect(adjusted.top).toBe(50);
+    });
+
+    it('上方向にはみ出る (top<0) なら 0 にクランプ', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: 200, top: -100, width: 400, height: 300 },
+        fallback
+      );
+      expect(adjusted.top).toBe(0);
+    });
+
+    it('下方向にはみ出る (top + height > viewport) なら viewport - height にクランプ', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: 200, top: 600, width: 400, height: 300 },
+        fallback
+      );
+      // viewportH=720, height=300, maxTop = 420
+      expect(adjusted.top).toBe(420);
+    });
+
+    it('右方向にはみ出る (left + width > viewport) なら viewport - width にクランプ', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: 1100, top: 100, width: 400, height: 300 },
+        fallback
+      );
+      // viewportW=1280, width=400, maxLeft = 880
+      expect(adjusted.left).toBe(880);
+    });
+
+    it('パネルがビューポートより大きい場合は左/上端 (0) に寄せる', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport(
+        { left: 100, top: 100, width: 2000, height: 1500 },
+        fallback
+      );
+      expect(adjusted.left).toBe(0);
+      expect(adjusted.top).toBe(0);
+    });
+
+    it('left/top 未指定なら何もしない', () => {
+      const fallback = new PanelService();
+      const adjusted = PanelService.clampPanelOptionToViewport({ width: 400, height: 300 }, fallback);
+      expect(adjusted.left).toBeUndefined();
+      expect(adjusted.top).toBeUndefined();
+    });
+  });
 });

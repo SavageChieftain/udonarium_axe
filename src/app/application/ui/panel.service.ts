@@ -113,9 +113,10 @@ export class PanelService {
     childPanelService: PanelService,
     option: PanelOption
   ) {
+    const adjusted = PanelService.clampPanelOptionToViewport(option, childPanelService);
     const withInput = ['title', 'top', 'left', 'width', 'height', 'minWidth', 'minHeight'] as const;
     for (const key of withInput) {
-      const value = option[key];
+      const value = adjusted[key];
       if (value === undefined) continue;
       this.setPanelServiceValue(childPanelService, key, value);
       panelComponentRef.setInput(key, value);
@@ -123,10 +124,28 @@ export class PanelService {
 
     const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible'] as const;
     for (const key of serviceOnly) {
-      const value = option[key];
+      const value = adjusted[key];
       if (value === undefined) continue;
       this.setPanelServiceValue(childPanelService, key, value);
     }
+  }
+
+  static clampPanelOptionToViewport(option: PanelOption, fallback: PanelService): PanelOption {
+    if (typeof window === 'undefined') return option;
+    const width = option.width ?? fallback.width;
+    const height = option.height ?? fallback.height;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const adjusted: PanelOption = { ...option };
+    if (option.left !== undefined) {
+      const maxLeft = Math.max(0, viewportW - width);
+      adjusted.left = Math.max(0, Math.min(option.left, maxLeft));
+    }
+    if (option.top !== undefined) {
+      const maxTop = Math.max(0, viewportH - height);
+      adjusted.top = Math.max(0, Math.min(option.top, maxTop));
+    }
+    return adjusted;
   }
 
   private setPanelServiceValue<K extends PanelServiceAssignableKey>(
