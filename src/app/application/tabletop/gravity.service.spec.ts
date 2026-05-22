@@ -99,6 +99,23 @@ describe('GravityService.findSupportZ', () => {
     const z = GravityService.findSupportZ(target, [target]);
     expect(z).toBe(0);
   });
+
+  it('自分より上にある候補は無視する (相互参照で打ち上がらない)', () => {
+    // A が B の上に乗っている: A は posZ=50 で B (height=1) の天面に着地済み
+    const lower = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'lower', posZ: 0 });
+    const upper = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'upper', posZ: 50 });
+    // upper の支台は lower の天面 50
+    expect(GravityService.findSupportZ(upper, [lower, upper])).toBe(50);
+    // lower の支台は地面 0 (upper は lower より上なので候補外)
+    expect(GravityService.findSupportZ(lower, [lower, upper])).toBe(0);
+  });
+
+  it('地面に同居する 2 つは互いに支台候補にしない', () => {
+    const a = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'a', posZ: 0 });
+    const b = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'b', posZ: 0 });
+    expect(GravityService.findSupportZ(a, [a, b])).toBe(0);
+    expect(GravityService.findSupportZ(b, [a, b])).toBe(0);
+  });
 });
 
 describe('GravityService.isAffectedByGravity', () => {
