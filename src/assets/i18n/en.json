@@ -712,7 +712,8 @@
         "voteMenuTitle": "Vote / Roll call",
         "alarmMenuTitle": "Alarm timer",
         "tabSettingTitle": "Chat tab settings",
-        "noTarget": "No target selected"
+        "noTarget": "No target selected",
+        "writingOthers": "{{count}} more typing"
       },
       "input": {
         "prevPortrait": "Previous portrait",

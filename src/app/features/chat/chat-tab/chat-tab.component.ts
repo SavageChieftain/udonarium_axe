@@ -34,7 +34,6 @@ import {
   getBoundedScrollPosition,
   ScrollPosition,
 } from '@axe/features/chat/chat-tab/chat-tab-scroll-helpers';
-import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 const ua = window.navigator.userAgent.toLowerCase();
 const isiOS = ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);
@@ -51,7 +50,7 @@ interface WritingSpeaker {
   templateUrl: './chat-tab.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ChatMessageComponent, SafePipe],
+  imports: [ChatMessageComponent],
 })
 export class ChatTabComponent {
   private renderVersion = signal(0);

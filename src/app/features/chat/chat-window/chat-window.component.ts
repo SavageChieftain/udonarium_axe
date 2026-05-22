@@ -29,6 +29,7 @@ import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-por
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -36,7 +37,15 @@ import GameSystemClass from 'bcdice/lib/game_system';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-window',
   templateUrl: './chat-window.component.html',
-  imports: [ChatTabComponent, FormsModule, ChatPortraitComponent, BadgeComponent, ChatInputComponent, TranslocoModule],
+  imports: [
+    ChatTabComponent,
+    FormsModule,
+    ChatPortraitComponent,
+    BadgeComponent,
+    ChatInputComponent,
+    SafePipe,
+    TranslocoModule,
+  ],
 })
 export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
@@ -71,6 +80,7 @@ export class ChatWindowComponent {
   }
 
   private readonly tabPillsContainer = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
+  readonly chatTabRef = viewChild(ChatTabComponent);
   readonly canScrollLeft = signal(false);
   readonly canScrollRight = signal(false);
 

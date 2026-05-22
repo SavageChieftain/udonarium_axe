@@ -712,7 +712,8 @@
         "voteMenuTitle": "点呼/投票設定",
         "alarmMenuTitle": "アラームタイマ",
         "tabSettingTitle": "チャットタブ設定",
-        "noTarget": "対象が未選択です"
+        "noTarget": "対象が未選択です",
+        "writingOthers": "他 {{count}} 人 入力中"
       },
       "input": {
         "prevPortrait": "前の立ち絵",

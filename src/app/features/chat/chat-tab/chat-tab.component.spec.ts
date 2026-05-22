@@ -205,7 +205,7 @@ describe('ChatTabComponent', () => {
       fixture.detectChanges();
     });
 
-    it('WRITING_A_MESSAGE_DETAIL の話者をチャットログ末尾に表示すること', () => {
+    it('WRITING_A_MESSAGE_DETAIL の話者を writingSpeakers シグナルに積むこと', () => {
       const speaker = GameCharacter.create('入力中の冒険者', 1, '');
       const objectChange = TestBed.inject(ObjectChangeService) as unknown as {
         _writingMessage$: { emit(event: WritingMessageEvent): void };
@@ -219,12 +219,12 @@ describe('ChatTabComponent', () => {
       });
       fixture.detectChanges();
 
-      const indicator = fixture.nativeElement.querySelector('.writing-speaker-name') as HTMLElement;
-      expect(indicator).toBeTruthy();
-      expect(indicator.textContent).toContain('入力中の冒険者');
+      const speakers = fixture.componentInstance.writingSpeakers();
+      expect(speakers.length).toBe(1);
+      expect(speakers[0].name).toBe('入力中の冒険者');
     });
 
-    it('メッセージ到着時に同じ話者の入力中バブルを消すこと', () => {
+    it('メッセージ到着時に同じ話者を writingSpeakers から外すこと', () => {
       const speaker = GameCharacter.create('発言者', 1, '');
       const objectChange = TestBed.inject(ObjectChangeService) as unknown as {
         _writingMessage$: { emit(event: WritingMessageEvent): void };
@@ -244,7 +244,7 @@ describe('ChatTabComponent', () => {
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: message.identifier });
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector('.writing-speaker-name')).toBeNull();
+      expect(fixture.componentInstance.writingSpeakers().length).toBe(0);
     });
   });
 });
