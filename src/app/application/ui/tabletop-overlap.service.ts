@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
-interface RegistryEntry {
+export interface TabletopOverlapRegistryEntry {
   object: TabletopObject;
   element: HTMLElement;
 }
@@ -12,7 +12,7 @@ interface RegistryEntry {
 })
 export class TabletopOverlapService {
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly registry = new Map<string, RegistryEntry>();
+  private readonly registry = new Map<string, TabletopOverlapRegistryEntry>();
 
   register(object: TabletopObject, element: HTMLElement) {
     if (!object) return;
@@ -21,6 +21,14 @@ export class TabletopOverlapService {
 
   unregister(identifier: string) {
     this.registry.delete(identifier);
+  }
+
+  entries(): TabletopOverlapRegistryEntry[] {
+    return Array.from(this.registry.values());
+  }
+
+  get(identifier: string): TabletopOverlapRegistryEntry | undefined {
+    return this.registry.get(identifier);
   }
 
   findAt(x: number, y: number): TabletopObject[] {
