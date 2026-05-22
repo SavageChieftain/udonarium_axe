@@ -183,5 +183,89 @@ describe('StatusAccessor', () => {
     it('存在しない名前では空文字を返す', () => {
       expect(accessor.changeValue('不明', 'now', 10)).toBe('');
     });
+
+    it('data-min 属性が設定されていれば limitMin フラグなしでも下限が効く', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('min', '-50');
+      const result = accessor.changeValue('HP', 'now', -300);
+      expect(accessor.getValue('HP', 'now')).toBe(-50);
+      expect(result).toContain('(最小)');
+    });
+
+    it('setValue (チャット経由) でも data-min を尊重する', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('min', '-50');
+      accessor.setValue('HP', 'now', -300);
+      expect(accessor.getValue('HP', 'now')).toBe(-50);
+    });
+
+    it('現在最大値 (value) は data-max を超えない', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('max', '400');
+      accessor.setValue('HP', 'max', 9999);
+      expect(accessor.getValue('HP', 'max')).toBe(400);
+    });
+
+    it('現在値 (currentValue) は現在最大値 (value) を超えない', () => {
+      // value=200, currentValue=150 のデフォルト
+      accessor.setValue('HP', 'now', 9999);
+      expect(accessor.getValue('HP', 'now')).toBe(200);
+    });
+
+    it('maxBase + maxCorrection で有効最大値が決まり、value がそこまで頭打ちになる', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('max-base', '300');
+      hp.setAttribute('max-correction', '-50');
+      // effectiveMax = 250
+      accessor.setValue('HP', 'max', 9999);
+      expect(accessor.getValue('HP', 'max')).toBe(250);
+    });
+
+    it('maxCorrection を設定すると有効最大値が変動し value が再クランプされる', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('max-base', '300');
+      // 現在最大値を 300 まで上げてから補正値で下げる
+      accessor.setValue('HP', 'max', 300);
+      expect(accessor.getValue('HP', 'max')).toBe(300);
+      accessor.setValue('HP', 'maxCorrection', -100);
+      // effectiveMax = 200 になり、value もそこまで下がる
+      expect(accessor.getValue('HP', 'max')).toBe(200);
+      expect(accessor.getValue('HP', 'maxCorrection')).toBe(-100);
+    });
+
+    it('minCorrection を設定すると有効最小値が動く', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('min-base', '0');
+      hp.setAttribute('min-correction', '10');
+      accessor.setValue('HP', 'now', -50);
+      expect(accessor.getValue('HP', 'now')).toBe(10);
+    });
+
+    it('maxCorrection を 0 にすると属性が削除される', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('max-correction', '50');
+      accessor.setValue('HP', 'maxCorrection', 0);
+      expect(hp.getAttribute('max-correction')).toBe('');
+    });
+
+    it('maxBase を上げると現在最大値 (value) が新しい有効最大値に追従する', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('max-base', '200');
+      accessor.setValue('HP', 'max', 200);
+      expect(accessor.getValue('HP', 'max')).toBe(200);
+
+      accessor.setValue('HP', 'maxBase', 400);
+      expect(hp.getAttribute('max-base')).toBe('400');
+      expect(accessor.getValue('HP', 'max')).toBe(400);
+    });
+
+    it('maxCorrection を上げると現在最大値 (value) も上がる', () => {
+      const hp = detailDataElement.getFirstElementByName('HP')!;
+      hp.setAttribute('max-base', '200');
+      accessor.setValue('HP', 'max', 200);
+
+      accessor.setValue('HP', 'maxCorrection', 50);
+      expect(accessor.getValue('HP', 'max')).toBe(250);
+    });
   });
 });

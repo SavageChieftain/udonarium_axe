@@ -670,6 +670,175 @@ describe('GameDataElementComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.resource-number')).toHaveLength(2);
     });
 
+    it('リソース: 現在値の上限が表示中の最大値と一致すること', () => {
+      const element = DataElement.create('HP', 100, {
+        currentValue: 0,
+        fieldType: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        min: '0',
+        max: '999',
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      expect(component.currentValueMinAttr()).toBe('0');
+      expect(component.currentValueMaxAttr()).toBe('100');
+    });
+
+    it('リソース: value が空なら現在値の上限は設定されない (data-max は無視)', () => {
+      const element = DataElement.create('HP', '', {
+        currentValue: 0,
+        fieldType: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        min: '0',
+        max: '50',
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      expect(component.currentValueMaxAttr()).toBe('');
+    });
+
+    it('リソース: 現在値が表示中の最大値を超えていたら blur 時にクランプされる', () => {
+      const element = DataElement.create('HP', 100, {
+        currentValue: 50,
+        fieldType: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      component.currentValue = 200;
+      component.commitCurrentValueBounds();
+
+      expect(component.currentValue).toBe(100);
+    });
+
+    it('リソース: maxText は元の最大値 (data-max 属性) であり value SyncVar (現在最大値) とは別物', () => {
+      const element = DataElement.create('HP', 200, {
+        currentValue: 50,
+        fieldType: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        max: '300',
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      // value SyncVar = 現在最大値 (/200 の "200")
+      expect(component.value).toBe(200);
+      // maxText = 元の最大値 (data-max), value とは独立
+      expect(component.maxText).toBe('300');
+    });
+
+    it('リソース: 現在最大値 (value) は [減少限界, 元の最大値] でクランプされる', () => {
+      const element = DataElement.create('HP', 100, {
+        currentValue: 50,
+        fieldType: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+        min: '0',
+        max: '300',
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      // 現在最大値が元の最大値 (300) を超えたらクランプ
+      component.value = 500;
+      component.commitValueBounds();
+      expect(component.value).toBe(300);
+
+      // 減少限界 (0) より下になったらクランプ
+      component.value = -10;
+      component.commitValueBounds();
+      expect(component.value).toBe(0);
+    });
+
+    it('数値型: maxText setter は data-max 属性に書き込む', () => {
+      const element = DataElement.create('Str', 10, {
+        fieldType: DataElementFieldType.NUMBER,
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      (component as unknown as { maxText: number }).maxText = 100;
+      expect(element.getAttribute(DataElementAttribute.MAX)).toBe('100');
+    });
+
+    it('数値型: min/max を数値 (NumberValueAccessor 経由) で受けても属性として保存されること', () => {
+      const element = DataElement.create('Str', 10, {
+        fieldType: DataElementFieldType.NUMBER,
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      // NumberValueAccessor は parseFloat した数値を setter に渡す
+      (component as unknown as { maxText: number }).maxText = 300;
+      (component as unknown as { minText: number }).minText = 0;
+
+      expect(element.getAttribute(DataElementAttribute.MAX)).toBe('300');
+      expect(element.getAttribute(DataElementAttribute.MIN)).toBe('0');
+    });
+
+    it('数値型: min/max に null (input クリア) が渡されたら属性が削除されること', () => {
+      const element = DataElement.create('Str', 10, {
+        fieldType: DataElementFieldType.NUMBER,
+        max: '300',
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      (component as unknown as { maxText: null }).maxText = null;
+
+      expect(element.getAttribute(DataElementAttribute.MAX)).toBe('');
+    });
+
+    it('値の編集中に他属性が更新されてもローカルの未保存値が巻き戻されないこと', async () => {
+      const element = DataElement.create('HP', 0, {
+        currentValue: 0,
+        fieldType: DataElementFieldType.RESOURCE,
+        type: DataElementType.NUMBER_RESOURCE,
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      component.value = 50;
+      expect(component.value).toBe(50);
+
+      component.minText = '0';
+      fixture.detectChanges();
+      await Promise.resolve();
+      await new Promise((resolve) => queueMicrotask(() => resolve(null)));
+
+      expect(component.value).toBe(50);
+    });
+
+    it('数値: data-min / data-max を超えた値は blur 時にクランプされる', () => {
+      const element = DataElement.create('Strength', 5, {
+        fieldType: DataElementFieldType.NUMBER,
+        min: '0',
+        max: '20',
+      });
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+
+      component.value = 99;
+      component.commitValueBounds();
+      expect(component.value).toBe(20);
+
+      component.value = -5;
+      component.commitValueBounds();
+      expect(component.value).toBe(0);
+    });
+
     it('selectの選択肢を改行とカンマから取得できること', () => {
       const element = DataElement.create('種族', '', { choices: '人間, エルフ\nドワーフ' });
       fixture.componentRef.setInput('gameDataElement', element);

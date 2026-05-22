@@ -76,7 +76,10 @@
                   size="1"
                   type="number"
                   name="data-current-value"
+                  [attr.min]="currentValueMinAttr() || null"
+                  [attr.max]="currentValueMaxAttr() || null"
                   [(ngModel)]="currentValue"
+                  (blur)="commitCurrentValueBounds()"
                   [readonly]="isValueLocked()"
                   placeholder="Value"
                 />
@@ -86,10 +89,16 @@
                   size="1"
                   type="number"
                   name="data-value"
+                  [attr.min]="valueMinAttr() || null"
+                  [attr.max]="valueMaxAttr() || null"
                   [(ngModel)]="value"
+                  (blur)="commitValueBounds()"
                   [readonly]="isValueLocked()"
                   placeholder="Value"
                 />
+                @if (unitText) {
+                  <span class="text-ui-muted col-span-3 text-right text-[0.85em]">{{ unitText }}</span>
+                }
               } @else {
                 <div
                   class="text-ui-muted grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 whitespace-nowrap"
@@ -99,7 +108,10 @@
                     size="1"
                     type="number"
                     name="data-current-value"
+                    [attr.min]="currentValueMinAttr() || null"
+                    [attr.max]="currentValueMaxAttr() || null"
                     [(ngModel)]="currentValue"
+                    (blur)="commitCurrentValueBounds()"
                     placeholder="Value"
                   />
                   <span class="text-ui-dim">/</span>
@@ -108,9 +120,15 @@
                     size="1"
                     type="number"
                     name="data-value"
+                    [attr.min]="valueMinAttr() || null"
+                    [attr.max]="valueMaxAttr() || null"
                     [(ngModel)]="value"
+                    (blur)="commitValueBounds()"
                     placeholder="Value"
                   />
+                  @if (unitText) {
+                    <span class="text-ui-muted col-span-3 text-right text-[0.85em]">{{ unitText }}</span>
+                  }
                 </div>
               }
             </div>
@@ -165,15 +183,23 @@
             <div class="hidden-spacer font-[Cambria,Georgia] text-[1em]">
               {{ value }}
             </div>
-            <input
-              class="w-full min-w-2.5"
-              size="1"
-              type="number"
-              name="data-value"
-              [(ngModel)]="value"
-              [readonly]="isValueLocked()"
-              placeholder="Value"
-            />
+            <div class="flex w-full min-w-0 items-baseline gap-1">
+              <input
+                class="w-full min-w-2.5"
+                size="1"
+                type="number"
+                name="data-value"
+                [attr.min]="minText || null"
+                [attr.max]="maxText || null"
+                [(ngModel)]="value"
+                (blur)="commitValueBounds()"
+                [readonly]="isValueLocked()"
+                placeholder="Value"
+              />
+              @if (unitText) {
+                <span class="text-ui-muted shrink-0 text-[0.85em]">{{ unitText }}</span>
+              }
+            </div>
           }
           @case ('select') {
             @if (getSelectOptions().length > 0) {
@@ -397,6 +423,8 @@
                 [placeholder]="'feature.dataElement.field.unitPlaceholder' | transloco"
               />
             </label>
+          }
+          @if (gameDataElement().fieldType === 'number') {
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
               <span>{{ 'feature.dataElement.field.min' | transloco }}</span>
               <input
@@ -414,6 +442,34 @@
                 [(ngModel)]="maxText"
                 [placeholder]="'feature.dataElement.field.anyValuePlaceholder' | transloco"
               />
+            </label>
+          }
+          @if (gameDataElement().fieldType === 'resource') {
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
+              <span>{{ 'feature.dataElement.field.minBase' | transloco }}</span>
+              <input
+                type="number"
+                name="data-min-base"
+                [(ngModel)]="minBaseText"
+                [placeholder]="'feature.dataElement.field.anyValuePlaceholder' | transloco"
+              />
+            </label>
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
+              <span>{{ 'feature.dataElement.field.minCorrection' | transloco }}</span>
+              <input type="number" name="data-min-correction" [(ngModel)]="minCorrectionText" placeholder="0" />
+            </label>
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
+              <span>{{ 'feature.dataElement.field.maxBase' | transloco }}</span>
+              <input
+                type="number"
+                name="data-max-base"
+                [(ngModel)]="maxBaseText"
+                [placeholder]="'feature.dataElement.field.anyValuePlaceholder' | transloco"
+              />
+            </label>
+            <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">
+              <span>{{ 'feature.dataElement.field.maxCorrection' | transloco }}</span>
+              <input type="number" name="data-max-correction" [(ngModel)]="maxCorrectionText" placeholder="0" />
             </label>
           }
           @if (gameDataElement().fieldType === 'calc') {

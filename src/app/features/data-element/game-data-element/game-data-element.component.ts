@@ -163,6 +163,59 @@ export class GameDataElementComponent {
     this.setUpdateTimer();
   }
 
+  currentValueMinAttr(): string {
+    return this.effectiveMinDisplay();
+  }
+
+  currentValueMaxAttr(): string {
+    const value = this._value();
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) return value;
+    return '';
+  }
+
+  valueMinAttr(): string {
+    return this.effectiveMinDisplay();
+  }
+
+  valueMaxAttr(): string {
+    return this.effectiveMaxDisplay();
+  }
+
+  commitValueBounds(): void {
+    if (this.isValueLocked()) return;
+    const clamped = this.clampNumeric(this._value(), this.valueMinAttr(), this.valueMaxAttr());
+    if (clamped !== this._value()) {
+      this._value.set(clamped);
+      this.setUpdateTimer();
+    }
+  }
+
+  commitCurrentValueBounds(): void {
+    if (this.isValueLocked()) return;
+    const clamped = this.clampNumeric(this._currentValue(), this.currentValueMinAttr(), this.currentValueMaxAttr());
+    if (clamped !== this._currentValue()) {
+      this._currentValue.set(clamped);
+      this.setUpdateTimer();
+    }
+  }
+
+  private clampNumeric(input: number | string, minStr: string, maxStr: string): number | string {
+    if (input === '' || input == null) return input;
+    const num = Number(input);
+    if (Number.isNaN(num)) return input;
+    let result = num;
+    if (minStr && minStr.trim() !== '') {
+      const min = Number(minStr);
+      if (!Number.isNaN(min)) result = Math.max(min, result);
+    }
+    if (maxStr && maxStr.trim() !== '') {
+      const max = Number(maxStr);
+      if (!Number.isNaN(max)) result = Math.min(max, result);
+    }
+    return result;
+  }
+
   get icon(): string {
     if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
     return (this.gameDataElement()?.getAttribute('cs-icon') as string) || '';
@@ -192,7 +245,7 @@ export class GameDataElementComponent {
     if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
     return this.gameDataElement().getAttribute(DataElementAttribute.MIN);
   }
-  set minText(value: string) {
+  set minText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MIN, value);
   }
 
@@ -200,8 +253,70 @@ export class GameDataElementComponent {
     if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
     return this.gameDataElement().getAttribute(DataElementAttribute.MAX);
   }
-  set maxText(value: string) {
+  set maxText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MAX, value);
+  }
+
+  get minBaseText(): string {
+    const el = this.gameDataElement();
+    if (el) this.objectChange.versionOf(el.identifier)();
+    return el?.getAttribute(DataElementAttribute.MIN_BASE) || el?.getAttribute(DataElementAttribute.MIN) || '';
+  }
+  set minBaseText(value: string | number | null | undefined) {
+    this.setFieldAttribute(DataElementAttribute.MIN_BASE, value);
+  }
+
+  get minCorrectionText(): string {
+    const el = this.gameDataElement();
+    if (el) this.objectChange.versionOf(el.identifier)();
+    return el?.getAttribute(DataElementAttribute.MIN_CORRECTION) || '';
+  }
+  set minCorrectionText(value: string | number | null | undefined) {
+    this.setFieldAttribute(DataElementAttribute.MIN_CORRECTION, value);
+  }
+
+  get maxBaseText(): string {
+    const el = this.gameDataElement();
+    if (el) this.objectChange.versionOf(el.identifier)();
+    return el?.getAttribute(DataElementAttribute.MAX_BASE) || el?.getAttribute(DataElementAttribute.MAX) || '';
+  }
+  set maxBaseText(value: string | number | null | undefined) {
+    this.setFieldAttribute(DataElementAttribute.MAX_BASE, value);
+    this.syncCurrentMaxToEffective();
+  }
+
+  get maxCorrectionText(): string {
+    const el = this.gameDataElement();
+    if (el) this.objectChange.versionOf(el.identifier)();
+    return el?.getAttribute(DataElementAttribute.MAX_CORRECTION) || '';
+  }
+  set maxCorrectionText(value: string | number | null | undefined) {
+    this.setFieldAttribute(DataElementAttribute.MAX_CORRECTION, value);
+    this.syncCurrentMaxToEffective();
+  }
+
+  /**
+   * After a max-base or max-correction edit, push the current max (value SyncVar)
+   * to the new effective max so the displayed "/X" follows the configured maximum.
+   */
+  private syncCurrentMaxToEffective(): void {
+    const el = this.gameDataElement();
+    if (!el) return;
+    const newEffectiveMax = el.effectiveMax;
+    if (newEffectiveMax == null) return;
+    if (this._value() !== newEffectiveMax) {
+      this._value.set(newEffectiveMax);
+      this.setUpdateTimer();
+    }
+  }
+
+  effectiveMinDisplay(): string {
+    const v = this.gameDataElement()?.effectiveMin;
+    return v == null ? '' : String(v);
+  }
+  effectiveMaxDisplay(): string {
+    const v = this.gameDataElement()?.effectiveMax;
+    return v == null ? '' : String(v);
   }
 
   get formulaText(): string {
@@ -760,15 +875,16 @@ export class GameDataElementComponent {
     );
   }
 
-  private setFieldAttribute(attribute: string, value: string): void {
+  private setFieldAttribute(attribute: string, value: string | number | null | undefined): void {
     const element = this.gameDataElement();
-    const normalizedValue = value.trim();
+    const normalizedValue = value == null ? '' : String(value).trim();
     if (normalizedValue.length > 0) element.setAttribute(attribute, normalizedValue);
     else element.removeAttribute(attribute);
     this.objectChange.notifyChanged(element.identifier);
   }
 
   private setValues(object: DataElement) {
+    if (this.updateTimer !== null) return;
     this._name.set(object.name);
     this._currentValue.set(object.currentValue);
     this._value.set(object.value);

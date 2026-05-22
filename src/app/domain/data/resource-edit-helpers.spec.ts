@@ -71,6 +71,45 @@ describe('resource-edit-helpers', () => {
       expect(edit.targeted).toBe(true);
     });
 
+    it('_MAX サフィックスで maxBase をターゲットにする', () => {
+      const edit = createDefaultResourceEdit();
+      const ok = convertCommandToResourceEdit(edit, ':HP_MAX+5', character, false);
+      expect(ok).toBe(true);
+      expect(edit.nowOrMax).toBe('maxBase');
+      expect(edit.target).toBe('HP');
+    });
+
+    it('_MAX_BUFF サフィックスで maxCorrection をターゲットにする', () => {
+      const edit = createDefaultResourceEdit();
+      const ok = convertCommandToResourceEdit(edit, ':HP_MAX_BUFF+5', character, false);
+      expect(ok).toBe(true);
+      expect(edit.nowOrMax).toBe('maxCorrection');
+      expect(edit.target).toBe('HP');
+    });
+
+    it('_MIN サフィックスで minBase をターゲットにする', () => {
+      const edit = createDefaultResourceEdit();
+      const ok = convertCommandToResourceEdit(edit, ':HP_MIN-3', character, false);
+      expect(ok).toBe(true);
+      expect(edit.nowOrMax).toBe('minBase');
+      expect(edit.target).toBe('HP');
+    });
+
+    it('_MIN_BUFF サフィックスで minCorrection をターゲットにする', () => {
+      const edit = createDefaultResourceEdit();
+      const ok = convertCommandToResourceEdit(edit, ':HP_MIN_BUFF-3', character, false);
+      expect(ok).toBe(true);
+      expect(edit.nowOrMax).toBe('minCorrection');
+      expect(edit.target).toBe('HP');
+    });
+
+    it('サフィックスは大文字小文字を区別しない', () => {
+      const edit = createDefaultResourceEdit();
+      const ok = convertCommandToResourceEdit(edit, ':HP_max_buff+5', character, false);
+      expect(ok).toBe(true);
+      expect(edit.nowOrMax).toBe('maxCorrection');
+    });
+
     it('存在しないステータス名ではfalseを返す', () => {
       const edit = createDefaultResourceEdit();
       expect(convertCommandToResourceEdit(edit, ':存在しない+10', character, false)).toBe(false);

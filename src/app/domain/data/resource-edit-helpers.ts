@@ -1,11 +1,14 @@
 import { toHalfWidth } from '@axe/core/util/string-util';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement } from '@axe/domain/data/data-element';
 
 export interface ResourceEditOption {
   limitMinMax: boolean;
   zeroLimit: boolean;
   isErr: boolean;
 }
+
+export type ResourceEditTarget = 'now' | 'max' | 'maxBase' | 'maxCorrection' | 'minBase' | 'minCorrection';
 
 export interface ResourceEdit {
   target: string;
@@ -15,7 +18,7 @@ export interface ResourceEdit {
   replace: string;
   isDiceRoll: boolean;
   calcAns: number;
-  nowOrMax: string;
+  nowOrMax: ResourceEditTarget;
   option: ResourceEditOption | null;
   object: GameCharacter | null;
   targeted: boolean;
@@ -54,6 +57,39 @@ export function parseResourceEditOption(text: string): ResourceEditOption {
   return ans;
 }
 
+interface ResourceSuffixMatch {
+  target: string;
+  kind: ResourceEditTarget;
+}
+
+/**
+ * Parses the optional target suffix from a name-portion of a resource edit command.
+ * Suffixes are matched case-insensitively against the half-width form so that
+ * `:HP_MAX+5` and `:hp_max+5` and `:ＨＰ＿ＭＡＸ＋５` all resolve identically.
+ * Longer suffixes are checked first so `_MAX_BUFF` does not eagerly match `_MAX`.
+ */
+function stripResourceSuffix(raw: string): ResourceSuffixMatch | null {
+  const trimmed = raw.replace(/[\s]+$/g, '');
+  const halfWidth = toHalfWidth(trimmed).toUpperCase();
+  const suffixes: Array<{ token: string; kind: ResourceEditTarget }> = [
+    { token: '_MAX_BUFF', kind: 'maxCorrection' },
+    { token: '_MIN_BUFF', kind: 'minCorrection' },
+    { token: '_MAX', kind: 'maxBase' },
+    { token: '_MIN', kind: 'minBase' },
+  ];
+  for (const { token, kind } of suffixes) {
+    if (halfWidth.endsWith(token)) {
+      const target = trimmed.slice(0, trimmed.length - token.length);
+      if (target.length === 0) return null;
+      return { target, kind };
+    }
+  }
+  if (/[\^＾]$/.test(trimmed)) {
+    return { target: trimmed.slice(0, trimmed.length - 1), kind: 'max' };
+  }
+  return null;
+}
+
 export function createDefaultResourceEdit(): ResourceEdit {
   return {
     target: '',
@@ -89,11 +125,18 @@ export function convertCommandToResourceEdit(
   let reg1: string;
   let reg1HalfWidth: string;
 
-  const namematch = chkNowOrMaxString.match(/(.+)([\^＾]$)/);
-  if (namematch) {
-    reg1 = namematch[1];
+  // Target suffix (case-insensitive, longest first):
+  //   (none)      → currentValue
+  //   ^ / ＾      → currentMax (the displayed "/X")
+  //   _MAX_BUFF   → max correction (buff modifier on the original max)
+  //   _MIN_BUFF   → min correction
+  //   _MAX        → max base (original max)
+  //   _MIN        → min base
+  const suffixDef = stripResourceSuffix(chkNowOrMaxString);
+  if (suffixDef) {
+    reg1 = suffixDef.target;
     reg1HalfWidth = toHalfWidth(reg1);
-    oneResourceEdit.nowOrMax = 'max';
+    oneResourceEdit.nowOrMax = suffixDef.kind;
   } else {
     reg1 = resourceEditResult[1];
     reg1HalfWidth = toHalfWidth(reg1);
@@ -144,9 +187,15 @@ export function applyResourceEdit(edit: ResourceEdit, character: GameCharacter):
     nowOrMax = 'now';
   }
 
-  const oldNum =
-    nowOrMax === 'now' ? character.status.getValue(edit.target, 'now') : character.status.getValue(edit.target, 'max');
+  const oldNum = character.status.getValue(edit.target, nowOrMax);
   if (oldNum == null) return '';
+
+  // Snapshot effective bounds BEFORE applying so we can report shifts when corrections move them.
+  const targetElement = character.detailDataElement
+    ? DataElement.findElementByReference(character.detailDataElement, edit.target)
+    : null;
+  const oldEffectiveMax = targetElement?.effectiveMax ?? null;
+  const oldEffectiveMin = targetElement?.effectiveMin ?? null;
 
   let newNum: number;
   if (edit.operator === '=') {
@@ -164,7 +213,7 @@ export function applyResourceEdit(edit: ResourceEdit, character: GameCharacter):
     }
   }
 
-  if (edit.option!.limitMinMax && maxNum != null) {
+  if (edit.option!.limitMinMax && maxNum != null && (nowOrMax === 'now' || nowOrMax === 'max')) {
     if (newNum > maxNum && nowOrMax === 'now') {
       newNum = maxNum;
       optionText = '(最大)';
@@ -175,15 +224,42 @@ export function applyResourceEdit(edit: ResourceEdit, character: GameCharacter):
     }
   }
 
-  if (nowOrMax === 'now') {
-    character.status.setValue(edit.target, 'now', newNum);
-  } else {
-    character.status.setValue(edit.target, 'max', newNum);
+  character.status.setValue(edit.target, nowOrMax, newNum);
+
+  // setValue clamps via data-min / data-max attributes; reflect the stored value in the chat log.
+  const storedNum = character.status.getValue(edit.target, nowOrMax);
+  if (storedNum != null && storedNum !== newNum) {
+    optionText = storedNum < newNum ? '(最大)' : '(最小)';
+    newNum = storedNum;
+  }
+
+  // Base / correction edits: report secondary changes to the effective bounds and to value.
+  let sideEffectText = '';
+  const isMaxSideEdit = nowOrMax === 'maxBase' || nowOrMax === 'maxCorrection';
+  const isMinSideEdit = nowOrMax === 'minBase' || nowOrMax === 'minCorrection';
+  if (isMaxSideEdit || isMinSideEdit) {
+    const newEffectiveMax = targetElement?.effectiveMax ?? null;
+    const newEffectiveMin = targetElement?.effectiveMin ?? null;
+    if (isMaxSideEdit && oldEffectiveMax !== newEffectiveMax) {
+      sideEffectText += ` [有効最大:${oldEffectiveMax ?? '-'}→${newEffectiveMax ?? '-'}]`;
+    }
+    if (isMinSideEdit && oldEffectiveMin !== newEffectiveMin) {
+      sideEffectText += ` [有効最小:${oldEffectiveMin ?? '-'}→${newEffectiveMin ?? '-'}]`;
+    }
+    const storedCurrentMax = character.status.getValue(edit.target, 'max');
+    if (storedCurrentMax != null && Number(targetElement?.value) !== storedCurrentMax) {
+      sideEffectText += ` [現在最大値→${storedCurrentMax}]`;
+    }
   }
 
   const operatorText = edit.operator === '-' ? '' : edit.operator;
-  const changeMax = nowOrMax === 'max' ? '(最大値)' : '';
-  return `${edit.target}${changeMax}:${oldNum}${operatorText}${edit.diceResult}＞${newNum}${optionText}    `;
+  let suffix = '';
+  if (nowOrMax === 'max') suffix = '(最大値)';
+  else if (nowOrMax === 'maxBase') suffix = '(最大ベース)';
+  else if (nowOrMax === 'maxCorrection') suffix = '(最大補正)';
+  else if (nowOrMax === 'minBase') suffix = '(最小ベース)';
+  else if (nowOrMax === 'minCorrection') suffix = '(最小補正)';
+  return `${edit.target}${suffix}:${oldNum}${operatorText}${edit.diceResult}＞${newNum}${optionText}${sideEffectText}    `;
 }
 
 export function applyBuffEdit(buff: BuffEdit, character: GameCharacter): string {

@@ -58,6 +58,10 @@ export const DataElementAttribute = {
   UNIT: 'unit',
   MIN: 'min',
   MAX: 'max',
+  MIN_BASE: 'min-base',
+  MIN_CORRECTION: 'min-correction',
+  MAX_BASE: 'max-base',
+  MAX_CORRECTION: 'max-correction',
   FORMULA: 'formula',
   CELL_TEXT: 'cellText',
   COLUMN_LABEL: 'columnLabel',
@@ -171,6 +175,49 @@ export class DataElement extends ObjectNode {
   setViewMode(viewMode: DataElementViewModeValue): void {
     if (viewMode === DataElementViewMode.NORMAL) this.removeAttribute(DataElementAttribute.VIEW_MODE);
     else this.setAttribute(DataElementAttribute.VIEW_MODE, viewMode);
+  }
+
+  /**
+   * Resource bound model:
+   *   minBase + minCorrection = effective lower bound
+   *   maxBase + maxCorrection = effective upper bound
+   * Falls back to legacy `min` / `max` attributes when the new ones are absent.
+   * Empty/non-numeric attributes contribute 0 to a present sum, or `null` (= unbounded)
+   * when neither base nor legacy attribute is set.
+   */
+  private static parseAttrNumber(raw: string): number | null {
+    if (raw == null || raw === '') return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  get minBase(): number | null {
+    const base = DataElement.parseAttrNumber(this.getAttribute(DataElementAttribute.MIN_BASE));
+    return base ?? DataElement.parseAttrNumber(this.getAttribute(DataElementAttribute.MIN));
+  }
+  get minCorrection(): number {
+    return DataElement.parseAttrNumber(this.getAttribute(DataElementAttribute.MIN_CORRECTION)) ?? 0;
+  }
+  get maxBase(): number | null {
+    const base = DataElement.parseAttrNumber(this.getAttribute(DataElementAttribute.MAX_BASE));
+    return base ?? DataElement.parseAttrNumber(this.getAttribute(DataElementAttribute.MAX));
+  }
+  get maxCorrection(): number {
+    return DataElement.parseAttrNumber(this.getAttribute(DataElementAttribute.MAX_CORRECTION)) ?? 0;
+  }
+
+  /** Effective lower bound: minBase + minCorrection. `null` when no minimum is configured. */
+  get effectiveMin(): number | null {
+    const base = this.minBase;
+    if (base == null) return null;
+    return base + this.minCorrection;
+  }
+
+  /** Effective upper bound: maxBase + maxCorrection. `null` when no maximum is configured. */
+  get effectiveMax(): number | null {
+    const base = this.maxBase;
+    if (base == null) return null;
+    return base + this.maxCorrection;
   }
 
   static fieldTypeFromDataType(type: string): DataElementFieldTypeValue {
