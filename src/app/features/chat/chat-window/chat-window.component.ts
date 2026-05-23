@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -54,6 +55,7 @@ export class ChatWindowComponent {
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly chatPrefs = inject(ChatPreferencesService);
   private readonly t = inject(TRANSLATE_FN);
 
   sendFrom: string = 'Guest';
@@ -150,6 +152,7 @@ export class ChatWindowComponent {
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
+  readonly newMessageCount = signal(0);
   private scrollToBottomTimer: NodeJS.Timeout | null = null;
   private scrollListener: (() => void) | null = null;
 
@@ -164,17 +167,20 @@ export class ChatWindowComponent {
       if (message && message.isSendFromSelf) {
         this.isAutoScroll = true;
         this.hasNewMessage.set(false);
+        this.newMessageCount.set(0);
       } else {
         this.checkAutoScroll();
         if (!this.isAutoScroll) {
           this.hasNewMessage.set(true);
         }
+        this.newMessageCount.update((c) => c + 1);
       }
       if (this.isAutoScroll) this.chatTab()?.markForRead();
     }, this.destroyRef);
     this.objectChange.writingMessage$.subscribe((event) => {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier) return;
       if (!this.isNearBottom()) return;
+      if (!this.chatPrefs.autoFollowScroll()) return;
       setTimeout(() => {
         const panel = this.panelService.scrollablePanel;
         if (!panel) return;
@@ -238,11 +244,13 @@ export class ChatWindowComponent {
     this.isNearBottom.set(nearBottom);
     if (nearBottom) {
       this.hasNewMessage.set(false);
+      this.newMessageCount.set(0);
     }
   }
 
   onClickScrollToBottom() {
     this.hasNewMessage.set(false);
+    this.newMessageCount.set(0);
     this.scrollToBottom(true);
   }
 
@@ -252,14 +260,16 @@ export class ChatWindowComponent {
     if (!this.panelService.scrollablePanel) return;
     this.panelService.scrollToBottom$.emit();
     if (this.scrollToBottomTimer != null) return;
+    const shouldMoveScroll = isForce || this.chatPrefs.autoFollowScroll();
     this.scrollToBottomTimer = setTimeout(() => {
       this.chatTab()?.markForRead();
       this.objectChange.notifyChanged(this.chatTabidentifier);
       this.scrollToBottomTimer = null;
       this.isAutoScroll = false;
-      if (this.panelService.scrollablePanel) {
+      if (shouldMoveScroll && this.panelService.scrollablePanel) {
         this.panelService.scrollablePanel.scrollTop = this.panelService.scrollablePanel.scrollHeight;
       }
+      if (shouldMoveScroll) this.newMessageCount.set(0);
     }, 0);
   }
 

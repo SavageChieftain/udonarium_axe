@@ -94,4 +94,26 @@
       />
     </label>
   </section>
+
+  <section class="mb-0">
+    <h3
+      class="border-ui-border-panel text-ui-dim m-0 mb-1.5 border-b border-solid pb-1 text-[10px] font-semibold tracking-[0.06em] uppercase"
+    >
+      {{ 'feature.chat.messageSetting.sectionScroll' | transloco }}
+    </h3>
+    <label
+      class="flex cursor-pointer items-center justify-between gap-2 py-1"
+      [title]="'feature.chat.messageSetting.autoFollowScrollTooltip' | transloco"
+    >
+      <span class="text-ui-muted flex-1 text-[12px]">{{
+        'feature.chat.messageSetting.autoFollowScroll' | transloco
+      }}</span>
+      <input
+        type="checkbox"
+        name="auto-follow-scroll"
+        [ngModel]="autoFollowScroll()"
+        (ngModelChange)="setAutoFollowScroll($event)"
+      />
+    </label>
+  </section>
 </form>

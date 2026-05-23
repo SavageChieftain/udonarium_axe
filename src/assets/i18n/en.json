@@ -732,7 +732,7 @@
     },
     "chat": {
       "window": {
-        "scrollNew": "New messages",
+        "scrollNewCount": "{{count}} new messages",
         "scrollLatest": "Scroll to latest",
         "tabScrollLeft": "Scroll left",
         "tabScrollRight": "Scroll right",
@@ -818,7 +818,10 @@
         "sectionSimple": "Simple view",
         "enableSimpleThisTab": "Enable simple view (this tab)",
         "showTime": "Show time",
-        "showUserId": "Show ID"
+        "showUserId": "Show ID",
+        "sectionScroll": "Scroll",
+        "autoFollowScroll": "Auto-follow latest message",
+        "autoFollowScrollTooltip": "When off, new messages on the same tab will not auto-scroll"
       },
       "tabSetting": {
         "panelTitle": "Chat tab settings",

@@ -732,7 +732,7 @@
     },
     "chat": {
       "window": {
-        "scrollNew": "新しいメッセージがあります",
+        "scrollNewCount": "{{count}}件の新着メッセージ",
         "scrollLatest": "最新メッセージへ移動",
         "tabScrollLeft": "左にスクロール",
         "tabScrollRight": "右にスクロール",
@@ -818,7 +818,10 @@
         "sectionSimple": "簡易表示",
         "enableSimpleThisTab": "簡易表示を有効にする（このタブ）",
         "showTime": "時間を表示",
-        "showUserId": "IDを表示"
+        "showUserId": "IDを表示",
+        "sectionScroll": "スクロール",
+        "autoFollowScroll": "スクロール位置を最新に追従",
+        "autoFollowScrollTooltip": "オフ時は同一タブ内の新着メッセージで自動スクロールしません"
       },
       "tabSetting": {
         "panelTitle": "チャットタブ設定",

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -15,6 +16,13 @@ import { TranslocoModule } from '@jsverse/transloco';
 export class ChatMessageSettingComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly chatPrefs = inject(ChatPreferencesService);
+
+  readonly autoFollowScroll = this.chatPrefs.autoFollowScroll;
+
+  setAutoFollowScroll(v: boolean): void {
+    this.chatPrefs.setAutoFollowScroll(v);
+  }
 
   chatTabidentifier: string = '';
 
