@@ -199,7 +199,9 @@
 /* chat-message のルビ表示。chat-message は innerHTML で <ruby> 要素を生成するため
    Angular の Emulated view encapsulation 範囲外。グローバル定義にすることで
    .msg-text マーカークラス内のルビ要素にスタイルが当たる。 */
-.msg-text ruby.chat-ruby {
+/* ルビ装飾。`decorateChatStyleText` が <ruby class="chat-ruby"> を吐く。
+   チャットと共有メモ (TextNote 非編集モード) で共用するため、`.msg-text` スコープを外している。 */
+ruby.chat-ruby {
   display: inline-flex;
   flex-direction: column-reverse;
   align-items: center;
@@ -211,13 +213,13 @@
   white-space: nowrap;
 }
 
-.msg-text ruby.chat-ruby rb {
+ruby.chat-ruby rb {
   display: block;
   font-weight: 600;
   line-height: 1.25;
 }
 
-.msg-text ruby.chat-ruby rt {
+ruby.chat-ruby rt {
   display: block;
   box-sizing: border-box;
   min-width: 100%;

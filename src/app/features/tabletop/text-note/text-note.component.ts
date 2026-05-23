@@ -31,14 +31,16 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
+import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-text';
 
 @Component({
   selector: 'text-note',
   templateUrl: './text-note.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgStyle, FormsModule, SafePipe],
+  imports: [MovableDirective, RotableDirective, NgStyle, FormsModule, LinkifyPipe, SafePipe],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -102,10 +104,34 @@ export class TextNoteComponent {
     });
   }
 
-  readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
+  readonly textAreaElementRef = viewChild<ElementRef<HTMLTextAreaElement>>('textArea');
 
   readonly textNote = input.required<TextNote>();
   readonly is3D = input(false);
+
+  readonly isEditing = signal(false);
+  readonly decoratedHtml = computed(() => {
+    const note = this.textNote();
+    this.objectChange.versionOf(note.identifier)();
+    return decorateChatStyleText(this._text());
+  });
+
+  enterEdit() {
+    if (this.textNote().isLock) return;
+    if (this.isEditing()) return;
+    this.isEditing.set(true);
+    setTimeout(() => {
+      const el = this.textAreaElementRef()?.nativeElement;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+      this.calcFitHeight();
+    });
+  }
+
+  onTextAreaBlur() {
+    this.isEditing.set(false);
+  }
 
   readonly title = computed(() => {
     const note = this.textNote();
@@ -212,7 +238,7 @@ export class TextNoteComponent {
   }
 
   get isSelected(): boolean {
-    return document.activeElement === this.textAreaElementRef().nativeElement;
+    return this.isEditing();
   }
 
   private callbackOnMouseUp = (e: MouseEvent) => this.onMouseUp(e);
@@ -281,9 +307,7 @@ export class TextNoteComponent {
       const selection = window.getSelection();
       if (!selection!.isCollapsed) selection!.removeAllRanges();
 
-      //        if( e.target.id != 'scroll'){
-      this.textAreaElementRef().nativeElement.focus();
-      //        }
+      this.enterEdit();
     }
     this.removeMouseEventListeners();
     e.preventDefault();
@@ -345,7 +369,8 @@ export class TextNoteComponent {
   oldOffsetHeight = 0;
 
   calcFitHeight() {
-    const textArea: HTMLTextAreaElement = this.textAreaElementRef().nativeElement;
+    const textArea: HTMLTextAreaElement | undefined = this.textAreaElementRef()?.nativeElement;
+    if (!textArea) return;
 
     if (!this.textNote().limitHeight) {
       // flex:1 で親の高さを埋め尽くすため、インライン height をリセットして CSS に委ねる
