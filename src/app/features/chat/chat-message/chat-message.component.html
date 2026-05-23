@@ -68,14 +68,14 @@
           @if (replyPreview(); as preview) {
             <button
               type="button"
-              class="border-l-ui-accent bg-ui-accent-bg text-ui-text rounded-r-ui-sm hover:bg-ui-accent-glow mt-1 ml-2.5 flex w-fit max-w-full cursor-pointer items-start gap-1.5 border-0 border-l-2 px-2 py-1 text-left text-xs/tight transition-colors"
+              class="rounded-r-ui-sm mt-1 ml-2.5 flex w-fit max-w-full cursor-pointer items-start gap-1.5 border-0 border-l-2 border-l-(--ui-quote-border) bg-(--ui-quote-bg) px-2 py-1 text-left text-xs/tight text-(--ui-quote-text) transition-colors hover:bg-(--ui-quote-hover-bg)"
               [title]="'feature.chat.message.jumpToOriginal' | transloco"
               (click)="jumpToReplyTarget()"
             >
-              <i class="material-icons text-ui-accent text-[13px]!">reply</i>
+              <i class="material-icons text-[13px]! text-(--ui-quote-name)">reply</i>
               <span class="flex min-w-0 flex-col">
-                <span class="text-ui-accent font-semibold">{{ preview.name }}</span>
-                <span class="text-ui-text truncate">{{ preview.text }}</span>
+                <span class="font-semibold text-(--ui-quote-name)">{{ preview.name }}</span>
+                <span class="truncate text-(--ui-quote-text)">{{ preview.text }}</span>
               </span>
             </button>
           }
@@ -170,12 +170,12 @@
             @if (replyPreview(); as preview) {
               <button
                 type="button"
-                class="border-l-ui-accent bg-ui-accent-bg text-ui-text hover:bg-ui-accent-glow rounded-r-ui-sm ml-2 inline-flex max-w-[18em] cursor-pointer items-center gap-1 overflow-hidden border-0 border-l-2 px-1.5 py-0.5 align-middle text-[11px] transition-colors"
+                class="rounded-r-ui-sm ml-2 inline-flex max-w-[18em] cursor-pointer items-center gap-1 overflow-hidden border-0 border-l-2 border-l-(--ui-quote-border) bg-(--ui-quote-bg) px-1.5 py-0.5 align-middle text-[11px] text-(--ui-quote-text) transition-colors hover:bg-(--ui-quote-hover-bg)"
                 [title]="preview.text"
                 (click)="jumpToReplyTarget()"
               >
-                <i class="material-icons text-ui-accent text-[11px]!">reply</i>
-                <span class="text-ui-accent font-semibold">{{ preview.name }}</span>
+                <i class="material-icons text-[11px]! text-(--ui-quote-name)">reply</i>
+                <span class="font-semibold text-(--ui-quote-name)">{{ preview.name }}</span>
                 <span class="truncate">{{ preview.text }}</span>
               </button>
             }

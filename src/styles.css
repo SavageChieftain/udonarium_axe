@@ -239,10 +239,10 @@ ruby.chat-ruby rt {
   display: block;
   margin: 4px 0;
   padding: 5px 10px;
-  border-left: 3px solid var(--ui-accent);
+  border-left: 3px solid var(--ui-quote-border);
   border-radius: 0 4px 4px 0;
-  background: color-mix(in srgb, var(--ui-accent) 14%, transparent);
-  color: var(--ui-text);
+  background: var(--ui-quote-bg);
+  color: var(--ui-quote-text);
   font-weight: 500;
   white-space: pre-wrap;
   transition: background 0.15s;
@@ -255,7 +255,7 @@ ruby.chat-ruby rt {
   cursor: pointer;
 }
 .msg-text[data-quote-of] .chat-quote:hover {
-  background: color-mix(in srgb, var(--ui-accent) 24%, transparent);
+  background: var(--ui-quote-hover-bg);
 }
 
 /* ChatMessageComponent.jumpEffect が要素を [class.chat-message-highlight] でトグルしたとき、
@@ -429,6 +429,12 @@ chat-message > div > div {
   --ui-accent-glow: rgba(88, 166, 255, 0.3);
   --ui-accent-bg: rgba(88, 166, 255, 0.1);
 
+  --ui-quote-bg: #1c222d;
+  --ui-quote-hover-bg: #242c39;
+  --ui-quote-border: #58a6ff;
+  --ui-quote-text: #d8dee9;
+  --ui-quote-name: #9cc7ff;
+
   /* 危険/エラー */
   --ui-danger: #f85149;
   --ui-danger-hover: #ff7b72;
@@ -489,6 +495,12 @@ chat-message > div > div {
   --ui-accent-hover: #0a4dd9;
   --ui-accent-glow: rgba(30, 102, 245, 0.3);
   --ui-accent-bg: rgba(30, 102, 245, 0.14);
+
+  --ui-quote-bg: #eaedf4;
+  --ui-quote-hover-bg: #dfe3ee;
+  --ui-quote-border: #1e66f5;
+  --ui-quote-text: #2a2740;
+  --ui-quote-name: #1e3a8a;
 
   --ui-danger: #d20f39;
   --ui-danger-hover: #b00b30;
