@@ -104,6 +104,20 @@ export class ChatMessageService {
     return sysTab.addMessage(chatMessage);
   }
 
+  sendSystemMessageToTab(chatTab: ChatTab, text: string, color?: string): ChatMessage {
+    const messageColor = resolveMessageColor(color, '#006633');
+    const chatMessage: ChatMessageContext = {
+      name: encodeI18nMessage('common.chat.systemName'),
+      imageIdentifier: '',
+      timestamp: this.calcTimeStamp(chatTab),
+      tag: 'system-message',
+      text,
+      imagePos: -1,
+      messColor: messageColor,
+    };
+    return chatTab.addMessage(chatMessage);
+  }
+
   sendSystemMessageOnePlayer(chatTab: ChatTab, text: string, sendTo: string, color?: string): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {

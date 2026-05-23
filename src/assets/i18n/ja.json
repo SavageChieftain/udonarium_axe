@@ -19,7 +19,7 @@
     },
     "chat": {
       "systemName": "システムメッセージ",
-      "logCleared": "ログをクリアしました"
+      "logClearedBy": "{{user}}さんからの依頼でログをクリアしました。"
     },
     "theme": {
       "auto": "自動",
@@ -847,8 +847,7 @@
         "deleteLogAllTabs": "全タブ",
         "defaultTabName": "タブ",
         "noneMark": "—",
-        "allTabsLogName": "全タブ",
-        "logClearedMessage": "ログをクリアしました"
+        "allTabsLogName": "全タブ"
       },
       "colorSetting": {
         "color1": "第1色",

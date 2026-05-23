@@ -19,7 +19,7 @@
     },
     "chat": {
       "systemName": "System",
-      "logCleared": "Log cleared"
+      "logClearedBy": "Log cleared at the request of {{user}}."
     },
     "theme": {
       "auto": "Auto",
@@ -847,8 +847,7 @@
         "deleteLogAllTabs": "All tabs",
         "defaultTabName": "Tab",
         "noneMark": "—",
-        "allTabsLogName": "All tabs",
-        "logClearedMessage": "Log cleared"
+        "allTabsLogName": "All tabs"
       },
       "colorSetting": {
         "color1": "Color 1",

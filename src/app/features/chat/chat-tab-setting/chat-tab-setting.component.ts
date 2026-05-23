@@ -14,7 +14,6 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TranslocoModule } from '@jsverse/transloco';
-import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -212,35 +211,29 @@ export class ChatTabSettingComponent {
         this.selectedTab()!.children[0].destroy();
       }
       this.selectedTab()!.portraitReset();
-      const mess = encodeI18nMessage('common.chat.logCleared');
-      const gameSystem: GameSystemClass | null = null;
-      const sendTo = '';
-      this.chatMessageService.sendMessage(
-        this.selectedTab()!,
-        mess,
-        gameSystem,
-        this.myPeer.identifier,
-        sendTo,
-        0,
-        '#000000'
-      );
+      const mess = encodeI18nMessage('common.chat.logClearedBy', { user: this.resolveRequesterName() });
+      this.chatMessageService.sendSystemMessageToTab(this.selectedTab()!, mess);
     }
   }
 
   deleteLogALL() {
     if (!this.allowDeleteLog) return;
 
-    const mess = encodeI18nMessage('common.chat.logCleared');
-    const gameSystem: GameSystemClass | null = null;
-    const sendTo = '';
+    const mess = encodeI18nMessage('common.chat.logClearedBy', { user: this.resolveRequesterName() });
 
     for (const child of this.chatTabList.chatTabs) {
       while (child.children.length > 0) {
         child.children[0].destroy();
       }
       child.portraitReset();
-      this.chatMessageService.sendMessage(child, mess, gameSystem, this.myPeer.identifier, sendTo, 0, '#000000');
+      this.chatMessageService.sendSystemMessageToTab(child, mess);
     }
+  }
+
+  private resolveRequesterName(): string {
+    const cursor = this.myPeer;
+    const name = cursor?.name?.trim();
+    return name || cursor?.identifier || '';
   }
 
   restore() {
