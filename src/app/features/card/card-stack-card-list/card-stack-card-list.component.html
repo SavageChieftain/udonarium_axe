@@ -1,0 +1,131 @@
+<section class="bg-ui-panel border-ui-border-panel rounded-ui-sm flex flex-col gap-2 border border-solid p-3">
+  <header
+    class="border-ui-border-panel text-ui-accent flex items-center justify-between gap-1.5 border-b border-solid pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-base!"
+  >
+    <span class="flex items-center gap-1.5">
+      <i class="material-icons">style</i>
+      {{ 'feature.cardStack.list.sectionTitle' | transloco: { count: cards().length } }}
+    </span>
+    <button
+      type="button"
+      class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
+      [disabled]="cards().length < 2"
+      (click)="shuffle()"
+    >
+      <i class="material-icons">shuffle</i>
+      {{ 'feature.cardStack.contextMenu.shuffle' | transloco }}
+    </button>
+  </header>
+
+  @if (cards().length === 0) {
+    <div class="text-ui-muted py-4 text-center text-[0.85em]">
+      {{ 'feature.cardStack.list.empty' | transloco }}
+    </div>
+  } @else {
+    <ol class="m-0 flex list-none flex-col gap-1.5 p-0">
+      @for (card of cards(); track trackByCard($index, card); let index = $index) {
+        @let label = trumpLabel(card);
+        @let fallbackHint = label ? '' : cardImageHint(card);
+        <li
+          class="bg-ui-elevated border-ui-border-panel rounded-ui-sm relative flex items-center gap-3 border border-solid px-3 py-2 transition-[opacity,border-color,box-shadow] hover:border-[color-mix(in_srgb,var(--ui-accent)_55%,var(--ui-border-panel))] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--ui-accent)_18%,transparent)]"
+          [class.opacity-40]="isDragging(card)"
+          [attr.data-card-id]="card.identifier"
+        >
+          @if (isDropBefore(card)) {
+            <div
+              class="bg-ui-accent pointer-events-none absolute inset-x-0 -top-1 z-10 h-0.5 rounded-full shadow-[0_0_4px_var(--ui-accent)]"
+              aria-hidden="true"
+            ></div>
+          }
+          @if (isDropAfter(card)) {
+            <div
+              class="bg-ui-accent pointer-events-none absolute inset-x-0 -bottom-1 z-10 h-0.5 rounded-full shadow-[0_0_4px_var(--ui-accent)]"
+              aria-hidden="true"
+            ></div>
+          }
+
+          <span
+            class="text-ui-muted hover:text-ui-text flex shrink-0 cursor-grab touch-none flex-col items-center gap-0 leading-none transition-colors select-none active:cursor-grabbing [&_.material-icons]:text-[20px]!"
+            [attr.title]="'feature.inventory.sheet.dragSortTitle' | transloco"
+            (pointerdown)="onPointerDown($event, card)"
+            (pointermove)="onPointerMove($event)"
+            (pointerup)="onPointerUp($event)"
+            (pointercancel)="onPointerCancel($event)"
+          >
+            <i class="material-icons">drag_indicator</i>
+            <span class="mt-0.5 font-mono text-[0.65em] tabular-nums">{{ index + 1 }}</span>
+          </span>
+
+          <div class="flex shrink-0 gap-0.5" [appTooltip]="card">
+            <button
+              type="button"
+              class="group/thumb bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative size-14 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.06] hover:shadow-md"
+              [style.background-image]="'url(' + card.frontImage?.url + ')' | safe: 'style'"
+              [attr.title]="'feature.inventory.sheet.changeFrontImage' | transloco"
+              (click)="setImage(card, 'front')"
+            >
+              <span
+                class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover/thumb:opacity-100 [&_.material-icons]:text-[18px]!"
+              >
+                <i class="material-icons">edit</i>
+              </span>
+            </button>
+            <button
+              type="button"
+              class="group/thumb bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative size-14 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.06] hover:shadow-md"
+              [style.background-image]="'url(' + card.backImage?.url + ')' | safe: 'style'"
+              [attr.title]="'feature.inventory.sheet.changeBackImage' | transloco"
+              (click)="setImage(card, 'back')"
+            >
+              <span
+                class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover/thumb:opacity-100 [&_.material-icons]:text-[18px]!"
+              >
+                <i class="material-icons">edit</i>
+              </span>
+            </button>
+          </div>
+
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+            @if (label) {
+              <span class="text-ui-text text-[1.05em] leading-tight font-semibold tracking-wide">
+                <span
+                  [class.text-red-500]="label.suitColor === 'red'"
+                  [class.text-ui-suit-black]="label.suitColor === 'black'"
+                  >{{ label.suit }}</span
+                ><span class="ml-0.5">{{ label.rank }}</span>
+              </span>
+            } @else if (fallbackHint) {
+              <span class="text-ui-muted font-mono text-[0.85em] leading-tight">{{ fallbackHint }}</span>
+            }
+            <input
+              type="text"
+              class="border-ui-border-panel/60 bg-ui-input/60 text-ui-text focus:border-ui-accent focus:bg-ui-input rounded-ui-sm w-full max-w-xs border border-solid px-2 py-0.75 text-[0.78em] transition-colors outline-none placeholder:italic"
+              [value]="cardName(card)"
+              [placeholder]="'feature.cardStack.list.namePlaceholder' | transloco"
+              (change)="setCardName(card, $event)"
+            />
+          </div>
+
+          <div class="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] leading-[1.4] font-medium whitespace-nowrap transition-[background,color] [&_.material-icons]:text-[13px]!"
+              (click)="drawCard(card)"
+            >
+              <i class="material-icons">arrow_outward</i>
+              {{ 'feature.cardStack.list.drawFromStack' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-7 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[16px]!"
+              [attr.title]="'feature.cardStack.list.edit' | transloco"
+              (click)="showDetail(card)"
+            >
+              <i class="material-icons">settings</i>
+            </button>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+</section>

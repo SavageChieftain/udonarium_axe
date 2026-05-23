@@ -36,6 +36,7 @@ import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { CardStackCardListComponent } from '@axe/features/card/card-stack-card-list/card-stack-card-list.component';
 import { cloneTabletopObject } from '@axe/features/character/game-character-sheet/character-sheet-target-helpers';
 import {
   canReorderDetailElement,
@@ -54,7 +55,14 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'game-character-sheet',
   templateUrl: './game-character-sheet.component.html',
   host: { class: 'block' },
-  imports: [FormsModule, GameCharacterSettingsTabComponent, GameDataElementComponent, SafePipe, TranslocoModule],
+  imports: [
+    CardStackCardListComponent,
+    FormsModule,
+    GameCharacterSettingsTabComponent,
+    GameDataElementComponent,
+    SafePipe,
+    TranslocoModule,
+  ],
 })
 export class GameCharacterSheetComponent {
   private readonly saveDataService = inject(SaveDataService);
@@ -170,6 +178,83 @@ export class GameCharacterSheetComponent {
   }
   get cardStack(): CardStack | null {
     return this.tabletopObject instanceof CardStack ? this.tabletopObject : null;
+  }
+  cardStackName(stack: CardStack): string {
+    this.objectChange.versionOf(stack.identifier)();
+    return stack.name;
+  }
+  setCardStackName(stack: CardStack, event: Event): void {
+    stack.name = (event.target as HTMLInputElement).value;
+  }
+  cardOwnName(c: Card): string {
+    this.objectChange.versionOf(c.identifier)();
+    return c.name;
+  }
+  setCardOwnName(c: Card, event: Event): void {
+    c.name = (event.target as HTMLInputElement).value;
+  }
+  cardOwnSize(c: Card): number {
+    this.objectChange.versionOf(c.identifier)();
+    return c.size;
+  }
+  setCardOwnSize(c: Card, event: Event): void {
+    const value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) return;
+    c.size = Math.max(1, Math.min(20, Math.round(value)));
+  }
+
+  textNoteTitle(note: TextNote): string {
+    this.objectChange.versionOf(note.identifier)();
+    return note.title;
+  }
+  setTextNoteTitle(note: TextNote, event: Event): void {
+    this.setNoteCommonValue(note, 'title', (event.target as HTMLInputElement).value);
+  }
+  textNoteText(note: TextNote): string {
+    this.objectChange.versionOf(note.identifier)();
+    return note.text;
+  }
+  setTextNoteText(note: TextNote, event: Event): void {
+    note.text = (event.target as HTMLTextAreaElement).value;
+  }
+  textNoteWidth(note: TextNote): number {
+    this.objectChange.versionOf(note.identifier)();
+    return note.width;
+  }
+  setTextNoteWidth(note: TextNote, event: Event): void {
+    this.setNoteCommonNumber(note, 'width', event, 1, 24);
+  }
+  textNoteHeight(note: TextNote): number {
+    this.objectChange.versionOf(note.identifier)();
+    return note.height;
+  }
+  setTextNoteHeight(note: TextNote, event: Event): void {
+    this.setNoteCommonNumber(note, 'height', event, 1, 24);
+  }
+  textNoteFontSize(note: TextNote): number {
+    this.objectChange.versionOf(note.identifier)();
+    return note.fontSize;
+  }
+  setTextNoteFontSize(note: TextNote, event: Event): void {
+    this.setNoteCommonNumber(note, 'fontsize', event, 6, 64);
+  }
+  textNoteAltitude(note: TextNote): number {
+    this.objectChange.versionOf(note.identifier)();
+    return note.altitude;
+  }
+  setTextNoteAltitude(note: TextNote, event: Event): void {
+    const value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) return;
+    note.altitude = Math.max(-20, Math.min(20, value));
+  }
+  private setNoteCommonValue(note: TextNote, name: string, value: string | number): void {
+    const el = note.commonDataElement?.getFirstElementByName(name);
+    if (el) el.value = value;
+  }
+  private setNoteCommonNumber(note: TextNote, name: string, event: Event, min: number, max: number): void {
+    const value = (event.target as HTMLInputElement).valueAsNumber;
+    if (!Number.isFinite(value)) return;
+    this.setNoteCommonValue(note, name, Math.max(min, Math.min(max, Math.round(value))));
   }
   get terrain(): Terrain | null {
     return this.tabletopObject instanceof Terrain ? this.tabletopObject : null;

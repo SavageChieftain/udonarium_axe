@@ -10,7 +10,6 @@ export function buildCardStackContextMenu(
   gridSize: number,
   onDrawCard: () => unknown,
   onDrawCards: () => unknown,
-  onShowStackList: (cs: CardStack) => void,
   onSplitStack: (n: number) => void,
   onBreakStack: () => void,
   onShowDetail: (cs: CardStack) => void,
@@ -91,12 +90,6 @@ export function buildCardStackContextMenu(
         cardStack.shuffle();
         SoundEffect.play(PresetSound.cardShuffle);
         callShuffleCardStack(cardStack.identifier);
-      },
-    },
-    {
-      name: t('feature.cardStack.contextMenu.cardList'),
-      action: () => {
-        onShowStackList(cardStack);
       },
     },
     ContextMenuSeparator,

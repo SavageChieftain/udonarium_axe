@@ -18,7 +18,6 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -28,7 +27,6 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CardDrawCountDialogComponent } from '@axe/features/card/card-draw-count-dialog/card-draw-count-dialog.component';
 import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
-import { CardStackListComponent } from '@axe/features/card/card-stack-list/card-stack-list.component';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
@@ -258,7 +256,6 @@ export class CardStackComponent {
       this.gridSize,
       () => this.drawCard(),
       () => this.openDrawCardsDialog(),
-      (cs) => this.showStackList(cs),
       (n) => this.splitStack(n),
       () => this.breakStack(),
       (cs) => this.showDetail(cs),
@@ -401,8 +398,8 @@ export class CardStackComponent {
       title: title,
       left: coordinate.x - 300,
       top: coordinate.y - 300,
-      width: 600,
-      height: 600,
+      width: 640,
+      height: 720,
     };
     this.panelService.openLazy(
       () =>
@@ -412,23 +409,6 @@ export class CardStackComponent {
       option,
       (component) => (component.tabletopObject = gameObject)
     );
-  }
-
-  private showStackList(gameObject: CardStack) {
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.translateFn('feature.cardStack.cardListTitleWith', { name: gameObject.name }),
-      left: coordinate.x - 200,
-      top: coordinate.y - 300,
-      width: 400,
-      height: 600,
-    };
-
-    this.cardStack().owner = Network.peerContext.userId;
-    const component = this.panelService.open<CardStackListComponent>(CardStackListComponent, option);
-    component.cardStack = gameObject;
   }
 
   private startIconHiddenTimer() {

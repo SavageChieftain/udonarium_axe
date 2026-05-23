@@ -11,17 +11,7 @@ describe('buildCardStackContextMenu', () => {
     const onDrawCards = vi.fn();
 
     try {
-      const actions = buildCardStackContextMenu(
-        cardStack,
-        50,
-        onDrawCard,
-        onDrawCards,
-        vi.fn(),
-        vi.fn(),
-        vi.fn(),
-        vi.fn(),
-        t
-      );
+      const actions = buildCardStackContextMenu(cardStack, 50, onDrawCard, onDrawCards, vi.fn(), vi.fn(), vi.fn(), t);
       const drawIndex = actions.findIndex((action) => action.name === '１枚引く');
 
       expect(drawIndex).toBeGreaterThanOrEqual(0);
@@ -30,6 +20,16 @@ describe('buildCardStackContextMenu', () => {
       actions[drawIndex + 1].action?.();
 
       expect(onDrawCards).toHaveBeenCalledOnce();
+    } finally {
+      cardStack.destroy();
+    }
+  });
+
+  it('カード一覧 entry is no longer present (folded into 詳細を表示)', () => {
+    const cardStack = CardStack.create('test stack');
+    try {
+      const actions = buildCardStackContextMenu(cardStack, 50, vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn(), t);
+      expect(actions.some((action) => action.name === 'カード一覧')).toBe(false);
     } finally {
       cardStack.destroy();
     }

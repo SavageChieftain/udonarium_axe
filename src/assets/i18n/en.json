@@ -153,6 +153,14 @@
     "card": {
       "title": "Card",
       "settingTitle": "Card settings",
+      "faceLabel": {
+        "front": "Front",
+        "back": "Back"
+      },
+      "field": {
+        "name": "Card name",
+        "size": "Size"
+      },
       "drawDialog": {
         "title": "Draw cards",
         "count": "Count",
@@ -167,20 +175,37 @@
         "editCard": "Edit card"
       }
     },
+    "textNote": {
+      "section": {
+        "layout": "Layout"
+      },
+      "field": {
+        "title": "Title",
+        "body": "Body",
+        "width": "Width",
+        "height": "Height",
+        "fontSize": "Font size",
+        "altitude": "Altitude"
+      }
+    },
     "cardStack": {
       "settingTitle": "Stack settings",
-      "cardListTitleWith": "{{name}} card list",
       "defaultName": "Stack",
+      "tabs": {
+        "cards": "Cards",
+        "settings": "Settings"
+      },
       "stack": {
         "checkingBy": "{{name}} is reviewing",
         "countLabel": "{{count}} cards"
       },
       "list": {
-        "shuffleClose": "Shuffle and close window",
-        "drawFromStack": "Draw from stack",
-        "edit": "Edit",
-        "moveUp": "↑",
-        "moveDown": "↓"
+        "sectionTitle": "Cards ({{count}})",
+        "empty": "This deck has no cards",
+        "drawFromStack": "Send to table",
+        "edit": "Details",
+        "namePlaceholder": "Card name",
+        "stackName": "Deck name"
       },
       "contextMenu": {
         "drawOne": "Draw one",

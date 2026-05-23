@@ -54,6 +54,9 @@
   --color-ui-danger-bg: var(--ui-danger-bg);
   --color-ui-success: var(--ui-success);
 
+  /* トランプの黒スート (♣♠) — ダークモードでは視認性のため青、ライトモードでは伝統通り黒 */
+  --color-ui-suit-black: var(--ui-suit-black);
+
   /* ボーダー → border-ui-* */
   --color-ui-border-panel: var(--ui-panel-border);
   --color-ui-border-menu: var(--ui-menu-border);
@@ -391,6 +394,9 @@
   /* 成功 */
   --ui-success: #3fb950;
 
+  /* トランプ黒スート色 (♣♠) — ダーク背景での視認性確保のため青系に */
+  --ui-suit-black: #58a6ff;
+
   /* 入力欄 */
   --ui-input-bg: rgba(13, 17, 23, 0.8);
   --ui-input-border: rgba(48, 54, 61, 0.8);
@@ -446,6 +452,9 @@
   --ui-danger-bg: rgba(210, 15, 57, 0.1);
 
   --ui-success: #40a02b;
+
+  /* ライトモード: 黒スート (♣♠) は伝統通り黒 */
+  --ui-suit-black: #000000;
 
   --ui-input-bg: #ebe2f1;
   --ui-input-border: rgba(91, 64, 116, 0.28);

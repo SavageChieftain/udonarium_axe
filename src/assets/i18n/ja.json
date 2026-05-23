@@ -153,6 +153,14 @@
     "card": {
       "title": "カード",
       "settingTitle": "カード設定",
+      "faceLabel": {
+        "front": "表面",
+        "back": "裏面"
+      },
+      "field": {
+        "name": "カード名",
+        "size": "サイズ"
+      },
       "drawDialog": {
         "title": "カードを引く",
         "count": "枚数",
@@ -167,20 +175,37 @@
         "editCard": "カードを編集"
       }
     },
+    "textNote": {
+      "section": {
+        "layout": "レイアウト"
+      },
+      "field": {
+        "title": "タイトル",
+        "body": "本文",
+        "width": "幅",
+        "height": "高さ",
+        "fontSize": "文字サイズ",
+        "altitude": "高度"
+      }
+    },
     "cardStack": {
       "settingTitle": "山札設定",
-      "cardListTitleWith": "{{name}} のカード一覧",
       "defaultName": "山札",
+      "tabs": {
+        "cards": "カード一覧",
+        "settings": "山札設定"
+      },
       "stack": {
         "checkingBy": "{{name}} が確認中",
         "countLabel": "{{count}}枚"
       },
       "list": {
-        "shuffleClose": "シャッフルしてウィンドウを閉じる",
-        "drawFromStack": "山札から出す",
-        "edit": "編集",
-        "moveUp": "↑",
-        "moveDown": "↓"
+        "sectionTitle": "カード一覧 ({{count}}枚)",
+        "empty": "山札にカードはありません",
+        "drawFromStack": "場に出す",
+        "edit": "詳細",
+        "namePlaceholder": "カード名",
+        "stackName": "山札名"
       },
       "contextMenu": {
         "drawOne": "１枚引く",
