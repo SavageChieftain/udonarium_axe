@@ -188,6 +188,31 @@ describe('ChatLogExporter', () => {
     it('nullメッセージでは空文字を返す', () => {
       expect(ChatLogExporter.formatMessageStandard(false, '', null!)).toBe('');
     });
+
+    it('立ち絵 (message.image) を <img> として <b>name</b> の前に挿入する', () => {
+      const portrait = {
+        identifier: 'portrait-1',
+        name: 'hero.png',
+        url: 'blob:portrait-url',
+      };
+      const msg = createMockMessage({ name: '勇者', image: portrait } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg, undefined, (image) =>
+        image === portrait ? 'data:image/png;base64,PORTRAIT' : image.url
+      );
+
+      expect(result).toContain('src="data:image/png;base64,PORTRAIT"');
+      expect(result).toContain('alt="勇者"');
+      const imgPos = result.indexOf('<img');
+      const namePos = result.indexOf('<b>勇者</b>');
+      expect(imgPos).toBeGreaterThan(-1);
+      expect(imgPos).toBeLessThan(namePos);
+    });
+
+    it('立ち絵が無いメッセージでは <img> を出力しない', () => {
+      const msg = createMockMessage({ image: null } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+      expect(result).not.toContain('<img');
+    });
   });
 
   describe('formatMessageCoc', () => {
@@ -222,6 +247,24 @@ describe('ChatLogExporter', () => {
 
     it('nullメッセージでは空文字を返す', () => {
       expect(ChatLogExporter.formatMessageCoc('', null!)).toBe('');
+    });
+
+    it('CoC形式でも立ち絵 (message.image) を <img> として name の前に挿入する', () => {
+      const portrait = {
+        identifier: 'portrait-2',
+        name: 'kp.png',
+        url: 'blob:portrait-coc',
+      };
+      const msg = createMockMessage({ name: 'KP', image: portrait } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageCoc('タブ', msg, undefined, (image) =>
+        image === portrait ? 'data:image/png;base64,COC' : image.url
+      );
+
+      expect(result).toContain('src="data:image/png;base64,COC"');
+      const imgPos = result.indexOf('<img');
+      const namePos = result.indexOf('<span>KP</span>');
+      expect(imgPos).toBeGreaterThan(-1);
+      expect(imgPos).toBeLessThan(namePos);
     });
   });
 

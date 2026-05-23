@@ -10,7 +10,7 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { xml2element } from '@axe/core/util/xml-util';
-import { ChatLogAttachmentImageSrcResolver, ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
+import { ChatLogExporter, ChatLogImageSrcResolver } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
@@ -176,48 +176,44 @@ export class SaveDataService {
   }
 
   async saveHtmlChatLog(chatTab: ChatTab, fileName: string): Promise<void> {
-    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver([chatTab]);
-    const text: string = ChatLogExporter.exportTabHtml(chatTab, undefined, attachmentImageSrcResolver);
+    const imageSrcResolver = await this.createChatLogImageSrcResolver([chatTab]);
+    const text: string = ChatLogExporter.exportTabHtml(chatTab, undefined, imageSrcResolver);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
   async saveHtmlChatLogAll(fileName: string): Promise<void> {
-    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver(this.chatTabList.chatTabs);
+    const imageSrcResolver = await this.createChatLogImageSrcResolver(this.chatTabList.chatTabs);
     const text: string = ChatLogExporter.exportAllTabsHtml(
       this.chatTabList.chatTabs,
       this.chatTabList.simpleDispFlagTime,
       undefined,
-      attachmentImageSrcResolver
+      imageSrcResolver
     );
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
   async saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string): Promise<void> {
-    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver([chatTab]);
-    const text: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, attachmentImageSrcResolver);
+    const imageSrcResolver = await this.createChatLogImageSrcResolver([chatTab]);
+    const text: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, imageSrcResolver);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
   async saveHtmlChatLogAllCoc(fileName: string): Promise<void> {
-    const attachmentImageSrcResolver = await this.createChatLogAttachmentImageSrcResolver(this.chatTabList.chatTabs);
-    const text: string = ChatLogExporter.exportAllTabsHtmlCoc(
-      this.chatTabList.chatTabs,
-      undefined,
-      attachmentImageSrcResolver
-    );
+    const imageSrcResolver = await this.createChatLogImageSrcResolver(this.chatTabList.chatTabs);
+    const text: string = ChatLogExporter.exportAllTabsHtmlCoc(this.chatTabList.chatTabs, undefined, imageSrcResolver);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
-  private async createChatLogAttachmentImageSrcResolver(
-    chatTabs: readonly ChatTab[]
-  ): Promise<ChatLogAttachmentImageSrcResolver> {
+  private async createChatLogImageSrcResolver(chatTabs: readonly ChatTab[]): Promise<ChatLogImageSrcResolver> {
     const images = new Map<string, ImageFile>();
     for (const chatTab of chatTabs) {
       for (const message of chatTab.chatMessages) {
+        const portrait = message.image;
+        if (portrait) images.set(portrait.identifier, portrait);
         for (const image of message.attachmentImages) {
           images.set(image.identifier, image);
         }
@@ -227,23 +223,23 @@ export class SaveDataService {
     const imageSources = new Map<string, string>();
     await Promise.all(
       [...images.values()].map(async (image) => {
-        imageSources.set(image.identifier, await this.createChatLogAttachmentImageSrc(image));
+        imageSources.set(image.identifier, await this.createChatLogImageSrc(image));
       })
     );
 
     return (image) => imageSources.get(image.identifier) ?? image.url;
   }
 
-  private async createChatLogAttachmentImageSrc(image: ImageFile): Promise<string> {
+  private async createChatLogImageSrc(image: ImageFile): Promise<string> {
     const blob = image.blob;
     if (blob) return FileReaderUtil.readAsDataURLAsync(blob);
 
     const url = image.url;
     if (!url || url.startsWith('data:')) return url;
-    return (await this.createChatLogAttachmentImageSrcFromUrl(url)) ?? url;
+    return (await this.createChatLogImageSrcFromUrl(url)) ?? url;
   }
 
-  private async createChatLogAttachmentImageSrcFromUrl(url: string): Promise<string | null> {
+  private async createChatLogImageSrcFromUrl(url: string): Promise<string | null> {
     try {
       const response = await fetch(url);
       if (!response.ok) return null;

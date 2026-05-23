@@ -8,7 +8,7 @@ describe('SaveDataService', () => {
   type SaveDataServicePrivateApi = {
     _saveRoomAsync: (fileName?: string) => Promise<void>;
     _saveGameObjectAsync: (gameObject: object, fileName?: string) => Promise<void>;
-    createChatLogAttachmentImageSrc: (image: ImageFile) => Promise<string>;
+    createChatLogImageSrc: (image: ImageFile) => Promise<string>;
     convertToXml: (gameObject: unknown) => string;
     searchImageFiles: (xml: string) => ImageFile[];
     saveAsync: (files: File[], zipName: string, updateCallback?: (percent: number) => void) => Promise<void>;
@@ -72,7 +72,7 @@ describe('SaveDataService', () => {
       url: 'blob:stamp-image',
     } as ImageFile;
 
-    await expect(privateApi.createChatLogAttachmentImageSrc(image)).resolves.toBe('data:text/plain;base64,VGVzdA==');
+    await expect(privateApi.createChatLogImageSrc(image)).resolves.toBe('data:text/plain;base64,VGVzdA==');
   });
 
   it('HTMLログ添付画像src: 取得可能なURL画像をdata URLに変換する', async () => {
@@ -89,9 +89,7 @@ describe('SaveDataService', () => {
     } as ImageFile;
 
     try {
-      await expect(privateApi.createChatLogAttachmentImageSrc(image)).resolves.toBe(
-        'data:text/plain;base64,VXJsSW1hZ2U='
-      );
+      await expect(privateApi.createChatLogImageSrc(image)).resolves.toBe('data:text/plain;base64,VXJsSW1hZ2U=');
       expect(fetchMock).toHaveBeenCalledWith('https://example.test/stamp.txt');
     } finally {
       vi.unstubAllGlobals();
@@ -108,7 +106,7 @@ describe('SaveDataService', () => {
     } as ImageFile;
 
     try {
-      await expect(privateApi.createChatLogAttachmentImageSrc(image)).resolves.toBe('https://example.test/stamp.png');
+      await expect(privateApi.createChatLogImageSrc(image)).resolves.toBe('https://example.test/stamp.png');
     } finally {
       vi.unstubAllGlobals();
     }

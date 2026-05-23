@@ -1,8 +1,11 @@
+import type { ImageFile } from '@axe/core/storage/image-file';
 import type { ChatMessage } from '@axe/domain/chat/chat-message';
 import type { ChatTab } from '@axe/domain/chat/chat-tab';
 
+export type ChatLogImageSrcResolver = (image: ImageFile) => string;
+/** @deprecated Use {@link ChatLogImageSrcResolver}. Kept as alias for backward compatibility. */
+export type ChatLogAttachmentImageSrcResolver = ChatLogImageSrcResolver;
 export type ChatLogAttachmentImage = ChatMessage['attachmentImages'][number];
-export type ChatLogAttachmentImageSrcResolver = (image: ChatLogAttachmentImage) => string;
 
 type MessageFormatter = (tabName: string, message: ChatMessage) => string;
 
@@ -29,7 +32,7 @@ export class ChatLogExporter {
     tabName: string,
     message: ChatMessage,
     userId?: string,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+    imageSrcResolver?: ChatLogImageSrcResolver
   ): string {
     if (!message) return '';
     let str = '';
@@ -39,6 +42,8 @@ export class ChatLogExporter {
       const date = new Date(message.timestamp);
       str += `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}：`;
     }
+
+    str += ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
 
     str += "<font color='";
     if (message.messColor) str += message.messColor.toLowerCase();
@@ -52,7 +57,7 @@ export class ChatLogExporter {
     str += '：';
     if (!message.isSecret || canSee) {
       if (message.text) str += ChatLogExporter.escapeHtml(message.text).replace(/\n/g, '<br>');
-      str += ChatLogExporter.formatAttachmentImages(message, attachmentImageSrcResolver);
+      str += ChatLogExporter.formatAttachmentImages(message, imageSrcResolver);
     } else {
       str += '（シークレットダイス）';
     }
@@ -66,12 +71,14 @@ export class ChatLogExporter {
     tabName: string,
     message: ChatMessage,
     userId?: string,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+    imageSrcResolver?: ChatLogImageSrcResolver
   ): string {
     if (!message) return '';
     let str = '';
     str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
     str += `      <span> [${tabName}]</span>\n`;
+    const portraitImg = ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
+    if (portraitImg) str += `      ${portraitImg}\n`;
     str += `      <span>${ChatLogExporter.escapeHtml(message.name ?? '')
       .replace('<', '')
       .replace('>', '')}</span>\n`;
@@ -81,7 +88,7 @@ export class ChatLogExporter {
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     if (!message.isSecret || canSee) {
       if (message.text) str += ChatLogExporter.escapeHtml(message.text).replace(/\n/g, '<br>').replace(/→/g, '＞');
-      str += ChatLogExporter.formatAttachmentImages(message, attachmentImageSrcResolver);
+      str += ChatLogExporter.formatAttachmentImages(message, imageSrcResolver);
     } else {
       str += '（シークレットダイス）';
     }
@@ -94,11 +101,7 @@ export class ChatLogExporter {
     return str;
   }
 
-  static exportTabHtml(
-    tab: ChatTab,
-    userId?: string,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
-  ): string {
+  static exportTabHtml(tab: ChatTab, userId?: string, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='ja'>
@@ -111,16 +114,12 @@ export class ChatLogExporter {
     const parts: string[] = [];
     for (const mess of tab.chatMessages) {
       if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
-      parts.push(ChatLogExporter.formatMessageStandard(true, '', mess, userId, attachmentImageSrcResolver));
+      parts.push(ChatLogExporter.formatMessageStandard(true, '', mess, userId, imageSrcResolver));
     }
     return head + parts.join('') + '\n  </body>\n</html>';
   }
 
-  static exportTabHtmlCoc(
-    tab: ChatTab,
-    userId?: string,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
-  ): string {
+  static exportTabHtmlCoc(tab: ChatTab, userId?: string, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -136,7 +135,7 @@ export class ChatLogExporter {
     for (const mess of tab.chatMessages) {
       if (!ChatLogExporter.isVisibleMessage(mess, userId)) continue;
       parts.push(
-        ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId, attachmentImageSrcResolver)
+        ChatLogExporter.formatMessageCoc(ChatLogExporter.escapeHtml(tab.name), mess, userId, imageSrcResolver)
       );
     }
     return head + parts.join('') + '  </body>\n</html>';
@@ -146,7 +145,7 @@ export class ChatLogExporter {
     tabs: readonly ChatTab[],
     showTime: number | boolean,
     userId?: string,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+    imageSrcResolver?: ChatLogImageSrcResolver
   ): string {
     const head = `<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
@@ -160,7 +159,7 @@ export class ChatLogExporter {
     const main = ChatLogExporter.mergeTabMessages(
       tabs,
       (tabName, message) =>
-        ChatLogExporter.formatMessageStandard(!!showTime, tabName, message, userId, attachmentImageSrcResolver),
+        ChatLogExporter.formatMessageStandard(!!showTime, tabName, message, userId, imageSrcResolver),
       userId
     );
     return head + main + '\n  </body>\n</html>';
@@ -169,7 +168,7 @@ export class ChatLogExporter {
   static exportAllTabsHtmlCoc(
     tabs: readonly ChatTab[],
     userId?: string,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
+    imageSrcResolver?: ChatLogImageSrcResolver
   ): string {
     const head = `<!DOCTYPE html>
 <html lang="ja">
@@ -184,7 +183,7 @@ export class ChatLogExporter {
 `;
     const main = ChatLogExporter.mergeTabMessages(
       tabs,
-      (tabName, message) => ChatLogExporter.formatMessageCoc(tabName, message, userId, attachmentImageSrcResolver),
+      (tabName, message) => ChatLogExporter.formatMessageCoc(tabName, message, userId, imageSrcResolver),
       userId
     );
     return head + main + '  </body>\n</html>';
@@ -228,16 +227,22 @@ export class ChatLogExporter {
     return parts.join('');
   }
 
-  private static formatAttachmentImages(
-    message: ChatMessage,
-    attachmentImageSrcResolver?: ChatLogAttachmentImageSrcResolver
-  ): string {
+  private static formatPortraitImage(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
+    const portrait = message.image;
+    if (!portrait) return '';
+    const src = imageSrcResolver?.(portrait) ?? portrait.url;
+    if (!src) return '';
+    const alt = message.name || 'portrait';
+    return `<img src="${ChatLogExporter.escapeAttribute(src)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="height:40px;width:auto;max-width:64px;vertical-align:middle;margin-right:6px;border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:contain;" />`;
+  }
+
+  private static formatAttachmentImages(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const images = message.attachmentImages ?? [];
     if (images.length < 1) return '';
 
     const imageTags = images
       .map((image) => {
-        const src = attachmentImageSrcResolver?.(image) ?? image.url;
+        const src = imageSrcResolver?.(image) ?? image.url;
         if (!src) return '';
         const alt = image.name || '添付画像';
         return `<img src="${ChatLogExporter.escapeAttribute(src)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="max-width:180px;max-height:120px;width:auto;height:auto;object-fit:contain;border:1px solid #cccccc;border-radius:4px;background:#ffffff;vertical-align:top;margin:2px 4px 2px 0;" />`;
