@@ -760,7 +760,9 @@
         "colorSettingWithChar": "色設定 - {{name}}",
         "send": "送信",
         "replyingTo": "{{name}} に返信",
-        "cancelReply": "返信をキャンセル"
+        "cancelReply": "返信をキャンセル",
+        "quoting": "{{name}} を引用",
+        "cancelQuote": "引用をキャンセル"
       },
       "tab": {
         "unnamedCharacter": "無名のキャラクター",

@@ -170,6 +170,20 @@ export class ChatMessageComponent {
     };
   });
 
+  readonly quotePreview = computed<{ name: string; text: string } | null>(() => {
+    const msg = this.chatMessageInput();
+    if (!msg || !msg.quoteOf) return null;
+    this.objectChange.versionOf(msg.identifier)();
+    this.objectChange.versionOf(msg.quoteOf)();
+    const target = this.objectStore.get<ChatMessage>(msg.quoteOf);
+    if (!(target instanceof ChatMessage)) return null;
+    const text = (target.text ?? '').trim();
+    return {
+      name: target.name ?? '',
+      text: text.length > 280 ? text.slice(0, 280) + '…' : text,
+    };
+  });
+
   /** 返信・引用・共有メモ化が可能なメッセージか。System (from='System' or tag='system-message') と to-PL システムメッセージは除外。
       ダイスボット (`isDicebot`) は対話可能なメッセージとして扱う (System tag は持つが PC に向けた応答なので)。 */
   get canInteract(): boolean {
@@ -187,16 +201,7 @@ export class ChatMessageComponent {
 
   clickQuote() {
     if (!this.canInteract) return;
-    const msg = this.chatMessage;
-    if (!msg) return;
-    const sourceText = (msg.text ?? '').trim();
-    if (!sourceText) return;
-    const quoted = sourceText
-      .split('\n')
-      .map((line) => `> ${line}`)
-      .join('\n');
-    const header = msg.name ? `> @${msg.name}\n` : '';
-    this.uiSignalService.requestChatInputText(`${header}${quoted}\n`, msg.identifier);
+    this.uiSignalService.requestChatQuote(this.chatMessage.identifier);
   }
 
   jumpToReplyTarget() {
@@ -205,11 +210,9 @@ export class ChatMessageComponent {
     this.uiSignalService.requestChatJump(target);
   }
 
-  onQuoteAreaClick(event: MouseEvent) {
+  jumpToQuoteTarget() {
     const target = this.chatMessage?.quoteOf;
     if (!target) return;
-    const el = event.target as HTMLElement | null;
-    if (!el || !el.closest('.chat-quote')) return;
     this.uiSignalService.requestChatJump(target);
   }
 

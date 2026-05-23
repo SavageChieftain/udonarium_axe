@@ -135,7 +135,6 @@ export class ChatInputComponent {
     quoteOf: string;
   }>();
 
-  private pendingQuoteOf = '';
   readonly replyTarget = signal<ChatMessage | null>(null);
   readonly replyToName = computed(() => this.replyTarget()?.name ?? '');
   readonly replyToText = computed(() => {
@@ -148,6 +147,20 @@ export class ChatInputComponent {
   cancelReply(): void {
     this.replyTarget.set(null);
     this.uiSignalService.clearChatReply();
+  }
+
+  readonly quoteTarget = signal<ChatMessage | null>(null);
+  readonly quoteToName = computed(() => this.quoteTarget()?.name ?? '');
+  readonly quoteToText = computed(() => {
+    const target = this.quoteTarget();
+    if (!target) return '';
+    const text = (target.text ?? '').replace(/\s+/g, ' ').trim();
+    return text.length > 80 ? text.slice(0, 80) + '…' : text;
+  });
+
+  cancelQuote(): void {
+    this.quoteTarget.set(null);
+    this.uiSignalService.clearChatQuote();
   }
 
   readonly tabSwitch = output<number>();
@@ -194,7 +207,6 @@ export class ChatInputComponent {
       if (!req) return;
       untracked(() => {
         this.text = (this.text ? this.text + ' ' : '') + req.text;
-        if (req.quoteOf) this.pendingQuoteOf = req.quoteOf;
       });
     });
     effect(() => {
@@ -206,6 +218,20 @@ export class ChatInputComponent {
       untracked(() => {
         const target = this.objectStore.get<ChatMessage>(req.messageIdentifier);
         this.replyTarget.set(target instanceof ChatMessage ? target : null);
+        if (target instanceof ChatMessage) {
+          this.textAreaElementRef().nativeElement.focus();
+        }
+      });
+    });
+    effect(() => {
+      const req = this.uiSignalService.chatQuoteRequest();
+      if (!req) {
+        this.quoteTarget.set(null);
+        return;
+      }
+      untracked(() => {
+        const target = this.objectStore.get<ChatMessage>(req.messageIdentifier);
+        this.quoteTarget.set(target instanceof ChatMessage ? target : null);
         if (target instanceof ChatMessage) {
           this.textAreaElementRef().nativeElement.focus();
         }
@@ -409,7 +435,7 @@ export class ChatInputComponent {
       messColor: this.selectChatColor,
     };
     const replyTo = this.replyTarget()?.identifier ?? '';
-    const quoteOf = this.pendingQuoteOf;
+    const quoteOf = this.quoteTarget()?.identifier ?? '';
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
       this.chat.emit({
         text: message.text,
@@ -426,7 +452,7 @@ export class ChatInputComponent {
     this.previousWritingLength = this.text.length;
     this.kickCalcFitHeight();
     this.cancelReply();
-    this.pendingQuoteOf = '';
+    this.cancelQuote();
   }
 
   kickCalcFitHeight() {

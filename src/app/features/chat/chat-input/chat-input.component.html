@@ -134,6 +134,31 @@
       </div>
     }
 
+    @if (quoteTarget(); as target) {
+      <div
+        class="rounded-ui-sm mb-1.5 flex items-center gap-2 border border-l-4 border-solid border-(--ui-quote-border) bg-(--ui-quote-bg) px-2 py-1 text-[12px] text-(--ui-quote-text)"
+      >
+        <i class="material-icons text-[14px]! text-(--ui-quote-name)">format_quote</i>
+        <div class="flex min-w-0 flex-1 flex-col">
+          <span class="text-[11px] leading-tight font-semibold text-(--ui-quote-name)">
+            {{ 'feature.chat.input.quoting' | transloco: { name: quoteToName() } }}
+          </span>
+          <span class="truncate text-[11px] leading-tight text-(--ui-quote-text)">
+            {{ quoteToText() }}
+          </span>
+        </div>
+        <button
+          type="button"
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
+          [attr.aria-label]="'feature.chat.input.cancelQuote' | transloco"
+          [title]="'feature.chat.input.cancelQuote' | transloco"
+          (click)="cancelQuote()"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+    }
+
     <form name="chat-input" class="m-0 flex min-w-0 items-center gap-2">
       <textarea
         name="chat-input-text"

@@ -245,17 +245,6 @@ ruby.chat-ruby rt {
   color: var(--ui-quote-text);
   font-weight: 500;
   white-space: pre-wrap;
-  transition: background 0.15s;
-}
-
-/* チャット限定: 引用元 ID を持つメッセージでは chat-quote 自体をクリック可能にしてジャンプを発火する。
-   ChatMessageComponent.onQuoteAreaClick が .chat-quote 内のクリックだけを拾う。
-   TextNote 側はジャンプ機能が無いのでこのカーソル変更は適用しない。 */
-.msg-text[data-quote-of] .chat-quote {
-  cursor: pointer;
-}
-.msg-text[data-quote-of] .chat-quote:hover {
-  background: var(--ui-quote-hover-bg);
 }
 
 /* ChatMessageComponent.jumpEffect が要素を [class.chat-message-highlight] でトグルしたとき、

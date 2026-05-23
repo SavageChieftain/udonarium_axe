@@ -79,10 +79,24 @@
               </span>
             </button>
           }
+          @if (quotePreview(); as preview) {
+            <button
+              type="button"
+              class="rounded-ui-sm mt-1 ml-2.5 flex w-fit max-w-[34em] cursor-pointer flex-col items-start gap-0.5 border border-solid border-(--ui-quote-border) bg-(--ui-quote-bg) px-2 py-1 text-left text-(--ui-quote-text) transition-colors hover:bg-(--ui-quote-hover-bg)"
+              [title]="'feature.chat.message.jumpToOriginal' | transloco"
+              (click)="jumpToQuoteTarget()"
+            >
+              <span class="flex items-center gap-1 text-[11px] font-semibold text-(--ui-quote-name)">
+                <i class="material-icons text-[12px]!">format_quote</i>
+                <span class="truncate">{{ preview.name }}</span>
+              </span>
+              <span class="line-clamp-4 text-xs/snug whitespace-pre-line text-(--ui-quote-text)">
+                {{ preview.text }}
+              </span>
+            </button>
+          }
           <div
             class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
-            [attr.data-quote-of]="chatMessage.quoteOf || null"
-            (click)="onQuoteAreaClick($event)"
           >
             @if (isEditing()) {
               <div class="flex flex-col gap-1.5 py-1">
@@ -179,10 +193,20 @@
                 <span class="truncate">{{ preview.text }}</span>
               </button>
             }
+            @if (quotePreview(); as preview) {
+              <button
+                type="button"
+                class="rounded-r-ui-sm ml-2 inline-flex max-w-[18em] cursor-pointer items-center gap-1 overflow-hidden border-0 border-l-2 border-l-(--ui-quote-border) bg-(--ui-quote-bg) px-1.5 py-0.5 align-middle text-[11px] text-(--ui-quote-text) transition-colors hover:bg-(--ui-quote-hover-bg)"
+                [title]="preview.text"
+                (click)="jumpToQuoteTarget()"
+              >
+                <i class="material-icons text-[11px]! text-(--ui-quote-name)">format_quote</i>
+                <span class="font-semibold text-(--ui-quote-name)">{{ preview.name }}</span>
+                <span class="truncate">{{ preview.text }}</span>
+              </button>
+            }
             <font
               class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
-              [attr.data-quote-of]="chatMessage.quoteOf || null"
-              (click)="onQuoteAreaClick($event)"
             >
               @if (isEditing()) {
                 <span class="ml-1.5 inline-flex w-full max-w-md flex-col gap-1 align-top">

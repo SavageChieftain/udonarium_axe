@@ -25,10 +25,14 @@ export interface TableViewRotation {
 export interface ChatInputTextRequest {
   text: string;
   timestamp: number;
-  quoteOf?: string;
 }
 
 export interface ChatReplyRequest {
+  messageIdentifier: string;
+  timestamp: number;
+}
+
+export interface ChatQuoteRequest {
   messageIdentifier: string;
   timestamp: number;
 }
@@ -51,6 +55,7 @@ export class UiSignalService {
   readonly tableViewRotation = signal<TableViewRotation | null>(null);
   readonly chatInputTextRequest = signal<ChatInputTextRequest | null>(null);
   readonly chatReplyRequest = signal<ChatReplyRequest | null>(null);
+  readonly chatQuoteRequest = signal<ChatQuoteRequest | null>(null);
   readonly chatJumpRequest = signal<ChatJumpRequest | null>(null);
 
   notifyChatRedraw(): void {
@@ -81,8 +86,8 @@ export class UiSignalService {
     this.tableViewRotation.set({ x, y, z });
   }
 
-  requestChatInputText(text: string, quoteOf?: string): void {
-    this.chatInputTextRequest.set({ text, quoteOf, timestamp: Date.now() });
+  requestChatInputText(text: string): void {
+    this.chatInputTextRequest.set({ text, timestamp: Date.now() });
   }
 
   requestChatReply(messageIdentifier: string): void {
@@ -91,6 +96,14 @@ export class UiSignalService {
 
   clearChatReply(): void {
     this.chatReplyRequest.set(null);
+  }
+
+  requestChatQuote(messageIdentifier: string): void {
+    this.chatQuoteRequest.set({ messageIdentifier, timestamp: Date.now() });
+  }
+
+  clearChatQuote(): void {
+    this.chatQuoteRequest.set(null);
   }
 
   requestChatJump(messageIdentifier: string): void {
