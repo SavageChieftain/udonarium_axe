@@ -204,7 +204,7 @@ describe('ChatMessage', () => {
   });
 
   describe('changeable', () => {
-    it('自分が送信したメッセージで名前がシステムメッセージでない場合true', () => {
+    it('自分が送信した通常メッセージの場合true', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'test-user';
@@ -212,11 +212,26 @@ describe('ChatMessage', () => {
       expect(msg.changeable).toBe(true);
     });
 
-    it('システムメッセージの場合false', () => {
+    it('tag に system-message を含む場合は自分発信でも false', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'test-user';
-      msg.name = 'システムメッセージ';
+      msg.tag = 'system-message';
+      expect(msg.changeable).toBe(false);
+    });
+
+    it('tag に to-pl-system-message を含む場合は false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'test-user';
+      msg.tag = 'DiceBot to-pl-system-message';
+      expect(msg.changeable).toBe(false);
+    });
+
+    it('from === "System" の場合 false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'System';
       expect(msg.changeable).toBe(false);
     });
 
@@ -306,7 +321,7 @@ describe('ChatMessage', () => {
   });
 
   describe('isChangeableBy', () => {
-    it('fromが一致しシステムメッセージでない場合true', () => {
+    it('fromが一致しシステム系tagでない場合true', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
@@ -314,11 +329,19 @@ describe('ChatMessage', () => {
       expect(msg.isChangeableBy('user-A')).toBe(true);
     });
 
-    it('システムメッセージの場合false', () => {
+    it('tag に system-message を含む場合 false', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
-      msg.name = 'システムメッセージ';
+      msg.tag = 'system-message';
+      expect(msg.isChangeableBy('user-A')).toBe(false);
+    });
+
+    it('tag に to-pl-system-message を含む場合 false', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.from = 'user-A';
+      msg.tag = 'DiceBot to-pl-system-message';
       expect(msg.isChangeableBy('user-A')).toBe(false);
     });
 

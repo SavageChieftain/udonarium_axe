@@ -60,8 +60,7 @@ export class ChatMessageComponent {
   }
 
   get isSystemMessage(): boolean {
-    const msg = this.chatMessage;
-    return !!msg && (msg.from === 'System' || (msg.tag ?? '').includes('system-message'));
+    return !!this.chatMessage?.isSystemMessage;
   }
 
   readonly simpleDispFlagTime = input(false);

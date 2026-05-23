@@ -157,10 +157,14 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get isSystemToPL(): boolean {
     return this.tags.includes('to-pl-system-message');
   }
+  get isSystemMessage(): boolean {
+    return this.from === 'System' || (this.tag ?? '').includes('system-message');
+  }
   get changeable(): boolean {
     return this.isChangeableBy(getPeerContext().userId);
   }
   isChangeableBy(userId: string): boolean {
-    return userId === this.from && this.name !== 'システムメッセージ';
+    if (this.isSystemMessage) return false;
+    return userId === this.from;
   }
 }
