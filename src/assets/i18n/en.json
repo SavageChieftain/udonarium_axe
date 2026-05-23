@@ -216,7 +216,6 @@
         "allFaceDown": "All face down",
         "allUpright": "Reset rotations",
         "shuffle": "Shuffle",
-        "cardList": "Card list",
         "hideCount": "Hide card count",
         "showCount": "Show card count",
         "unifySize": "Match card sizes",
@@ -759,7 +758,9 @@
         "diceBotNotFound": "* Dice bot not found",
         "colorSetting": "Color settings",
         "colorSettingWithChar": "Color settings - {{name}}",
-        "send": "Send"
+        "send": "Send",
+        "replyingTo": "Replying to {{name}}",
+        "cancelReply": "Cancel reply"
       },
       "tab": {
         "unnamedCharacter": "Unnamed character",
@@ -782,7 +783,10 @@
         "secretDice": "(secret dice)",
         "edited": "(edited)",
         "editedSimple": " (edited)",
-        "editTitle": "Edit message"
+        "reply": "Reply",
+        "quote": "Quote",
+        "jumpToOriginal": "Jump to original message",
+        "shareAsMemo": "Send to shared memo"
       },
       "palette": {
         "panelTitle": "Chat palette",
@@ -853,7 +857,8 @@
       },
       "messageFix": {
         "change": "Apply",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "shortcutHint": "Enter to apply · Shift+Enter for newline · Esc to cancel"
       },
       "diceBot": {
         "title": "Dice bot",

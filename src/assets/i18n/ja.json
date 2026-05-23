@@ -216,7 +216,6 @@
         "allFaceDown": "すべて裏にする",
         "allUpright": "すべて正位置にする",
         "shuffle": "シャッフル",
-        "cardList": "カード一覧",
         "hideCount": "枚数を非表示にする",
         "showCount": "枚数を表示する",
         "unifySize": "カードサイズを揃える",
@@ -759,7 +758,9 @@
         "diceBotNotFound": "※ダイスボットが見つかりません",
         "colorSetting": "色設定",
         "colorSettingWithChar": "色設定 - {{name}}",
-        "send": "送信"
+        "send": "送信",
+        "replyingTo": "{{name}} に返信",
+        "cancelReply": "返信をキャンセル"
       },
       "tab": {
         "unnamedCharacter": "無名のキャラクター",
@@ -782,7 +783,10 @@
         "secretDice": "（シークレットダイス）",
         "edited": "(編集済)",
         "editedSimple": "（編集済）",
-        "editTitle": "チャット編集"
+        "reply": "返信",
+        "quote": "引用",
+        "jumpToOriginal": "元のメッセージへ移動",
+        "shareAsMemo": "共有メモにする"
       },
       "palette": {
         "panelTitle": "チャットパレット",
@@ -853,7 +857,8 @@
       },
       "messageFix": {
         "change": "変更",
-        "cancel": "キャンセル"
+        "cancel": "キャンセル",
+        "shortcutHint": "Enter で確定 / Shift+Enter で改行 / Esc で取消"
       },
       "diceBot": {
         "title": "ダイスボット",

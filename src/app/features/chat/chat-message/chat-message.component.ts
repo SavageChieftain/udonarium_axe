@@ -1,42 +1,58 @@
 import { DatePipe, NgClass, NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { ChatMessageFixComponent } from '@axe/features/chat/chat-message-fix/chat-message-fix.component';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { TextNote } from '@axe/domain/tabletop/text-note';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-text';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'chat-message',
   templateUrl: './chat-message.component.html',
-  host: { class: 'block' },
+  host: {
+    class: 'block',
+    '[attr.data-message-id]': 'chatMessage?.identifier',
+    '[class.chat-message-highlight]': 'isHighlighted()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, NgStyle, DatePipe, LinkifyPipe, ChatColorStylePipe, SafePipe, TranslocoModule],
+  imports: [NgClass, NgStyle, DatePipe, FormsModule, LinkifyPipe, ChatColorStylePipe, SafePipe, TranslocoModule],
 })
 export class ChatMessageComponent {
   protected readonly SYSTEM_ICON_URL = 'assets/images/system_chang.png';
   protected readonly DICEBOT_ICON_URL = 'assets/images/system_chang_roll.png';
 
   private readonly chatMessageService = inject(ChatMessageService);
-  private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly t = inject(TRANSLATE_FN);
   private readonly language = inject(LanguageService);
+  private readonly uiSignalService = inject(UiSignalService);
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
   get chatMessage(): ChatMessage {
@@ -82,14 +98,163 @@ export class ChatMessageComponent {
     this.chatMessage.tag = this.chatMessage.tag.replace('secret', '');
   }
 
-  clickFix() {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { width: 700, height: 120, left: coordinate.x, top: coordinate.y };
-    option.title = this.t('feature.chat.message.editTitle');
-    const component = this.panelService.open(ChatMessageFixComponent, option);
-    component.chatMessage = this.chatMessage;
-    component.text = this.chatMessage.text;
+  readonly editDraft = signal<string | null>(null);
+  readonly isEditing = computed(() => this.editDraft() !== null);
+  readonly editingTextArea = viewChild<ElementRef<HTMLTextAreaElement>>('editingTextArea');
+
+  startEdit() {
+    if (!this.chatMessage.changeable) return;
+    this.editDraft.set(this.chatMessage.text ?? '');
+    setTimeout(() => {
+      const el = this.editingTextArea()?.nativeElement;
+      if (el) {
+        this.autoFitHeight(el);
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    });
   }
+
+  saveEdit() {
+    const draft = this.editDraft();
+    if (draft === null) return;
+    const next = draft.trimEnd();
+    if (next.length === 0) {
+      this.cancelEdit();
+      return;
+    }
+    if (this.chatMessage.text !== next) {
+      this.chatMessage.text = next;
+      this.chatMessage.fixd = true;
+    }
+    this.editDraft.set(null);
+  }
+
+  cancelEdit() {
+    this.editDraft.set(null);
+  }
+
+  onEditInput(value: string) {
+    this.editDraft.set(value);
+    const el = this.editingTextArea()?.nativeElement;
+    if (el) this.autoFitHeight(el);
+  }
+
+  onEditKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelEdit();
+      return;
+    }
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      this.saveEdit();
+    }
+  }
+
+  private autoFitHeight(el: HTMLTextAreaElement): void {
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
+  }
+
+  readonly replyPreview = computed<{ name: string; text: string } | null>(() => {
+    const msg = this.chatMessageInput();
+    if (!msg || !msg.replyTo) return null;
+    this.objectChange.versionOf(msg.identifier)();
+    this.objectChange.versionOf(msg.replyTo)();
+    const target = msg.replyToMessage;
+    if (!target) return null;
+    const text = (target.text ?? '').replace(/\s+/g, ' ').trim();
+    return {
+      name: target.name ?? '',
+      text: text.length > 120 ? text.slice(0, 120) + '…' : text,
+    };
+  });
+
+  /** 返信・引用・共有メモ化が可能なメッセージか。System (from='System' or tag='system-message') と to-PL システムメッセージは除外。
+      ダイスボット (`isDicebot`) は対話可能なメッセージとして扱う (System tag は持つが PC に向けた応答なので)。 */
+  get canInteract(): boolean {
+    const msg = this.chatMessage;
+    if (!msg) return false;
+    if (this.isSystemMessage) return false;
+    if (msg.isSystemToPL) return false;
+    return true;
+  }
+
+  clickReply() {
+    if (!this.canInteract) return;
+    this.uiSignalService.requestChatReply(this.chatMessage.identifier);
+  }
+
+  clickQuote() {
+    if (!this.canInteract) return;
+    const msg = this.chatMessage;
+    if (!msg) return;
+    const sourceText = (msg.text ?? '').trim();
+    if (!sourceText) return;
+    const quoted = sourceText
+      .split('\n')
+      .map((line) => `> ${line}`)
+      .join('\n');
+    const header = msg.name ? `> @${msg.name}\n` : '';
+    this.uiSignalService.requestChatInputText(`${header}${quoted}\n`, msg.identifier);
+  }
+
+  jumpToReplyTarget() {
+    const target = this.chatMessage?.replyTo;
+    if (!target) return;
+    this.uiSignalService.requestChatJump(target);
+  }
+
+  onQuoteAreaClick(event: MouseEvent) {
+    const target = this.chatMessage?.quoteOf;
+    if (!target) return;
+    const el = event.target as HTMLElement | null;
+    if (!el || !el.closest('.chat-quote')) return;
+    this.uiSignalService.requestChatJump(target);
+  }
+
+  clickShareAsMemo() {
+    if (!this.canInteract) return;
+    const msg = this.chatMessage;
+    if (!msg) return;
+    const text = (msg.text ?? '').trim();
+    if (!text) return;
+    const title = msg.name?.trim() || this.t('feature.tabletop.action.defaultNoteName');
+    const lines = text.split('\n');
+    const longest = Math.max(...lines.map((l) => l.length));
+    const width = Math.max(3, Math.min(8, Math.ceil(longest / 12)));
+    const height = Math.max(2, Math.min(8, Math.ceil(lines.length / 3)));
+    const note = TextNote.create(title, text, 14, width, height);
+    note.location.x = Math.floor(Math.random() * 200 - 100);
+    note.location.y = Math.floor(Math.random() * 200 - 100);
+    SoundEffect.play(PresetSound.cardPut);
+  }
+
+  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly isHighlighted = signal(false);
+  private highlightTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private readonly _registerDestroy = this.destroyRef.onDestroy(() => {
+    if (this.highlightTimer) clearTimeout(this.highlightTimer);
+  });
+
+  private readonly jumpEffect = effect(() => {
+    const req = this.uiSignalService.chatJumpRequest();
+    if (!req) return;
+    const me = this.chatMessageInput()?.identifier;
+    if (!me || me !== req.messageIdentifier) return;
+    queueMicrotask(() => {
+      this.hostElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.isHighlighted.set(true);
+      if (this.highlightTimer) clearTimeout(this.highlightTimer);
+      this.highlightTimer = setTimeout(() => {
+        this.isHighlighted.set(false);
+        this.highlightTimer = null;
+      }, 1800);
+    });
+  });
 
   displayName(name: string): string {
     this.language.currentLang();
@@ -101,18 +266,6 @@ export class ChatMessageComponent {
     this.language.currentLang();
     this.objectChange.versionOf(this.chatMessage?.identifier)();
     const decoded = this.isSystemMessage ? decodeI18nMessage(text, this.t) : text;
-    const escapeText = this.escapeHtml(decoded);
-    return escapeText
-      .replace(/[|｜]([^|｜\s]+?)《(.+?)》/g, '<ruby class="chat-ruby"><rb>$1</rb><rt>$2</rt></ruby>')
-      .replace(/\\s/g, ' ');
-  }
-
-  escapeHtml(text: string) {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+    return decorateChatStyleText(decoded);
   }
 }

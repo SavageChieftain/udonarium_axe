@@ -34,18 +34,85 @@
             <span class="tip msg-from">{{ chatMessage.from }}</span>
             <span class="tip"> | </span>
             <span class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'y/M/d H:mm' }}</span>
-            @if (chatMessage.changeable) {
-              <i
-                class="material-icons text-ui-dim ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
-                (click)="clickFix()"
-                >edit</i
-              >
+            @if (!isEditing()) {
+              @if (canInteract) {
+                <i
+                  class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                  [title]="'feature.chat.message.reply' | transloco"
+                  (click)="clickReply()"
+                  >reply</i
+                >
+                <i
+                  class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                  [title]="'feature.chat.message.quote' | transloco"
+                  (click)="clickQuote()"
+                  >format_quote</i
+                >
+                <i
+                  class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                  [title]="'feature.chat.message.shareAsMemo' | transloco"
+                  (click)="clickShareAsMemo()"
+                  >sticky_note_2</i
+                >
+              }
+              @if (chatMessage.changeable) {
+                <i
+                  class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                  [title]="'feature.chat.messageFix.change' | transloco"
+                  (click)="startEdit()"
+                  >edit</i
+                >
+              }
             }
           </div>
+          @if (replyPreview(); as preview) {
+            <button
+              type="button"
+              class="border-l-ui-accent bg-ui-accent-bg text-ui-text rounded-r-ui-sm hover:bg-ui-accent-glow mt-1 ml-2.5 flex w-fit max-w-full cursor-pointer items-start gap-1.5 border-0 border-l-2 px-2 py-1 text-left text-xs/tight transition-colors"
+              [title]="'feature.chat.message.jumpToOriginal' | transloco"
+              (click)="jumpToReplyTarget()"
+            >
+              <i class="material-icons text-ui-accent text-[13px]!">reply</i>
+              <span class="flex min-w-0 flex-col">
+                <span class="text-ui-accent font-semibold">{{ preview.name }}</span>
+                <span class="text-ui-text truncate">{{ preview.text }}</span>
+              </span>
+            </button>
+          }
           <div
             class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
+            [attr.data-quote-of]="chatMessage.quoteOf || null"
+            (click)="onQuoteAreaClick($event)"
           >
-            @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
+            @if (isEditing()) {
+              <div class="flex flex-col gap-1.5 py-1">
+                <textarea
+                  #editingTextArea
+                  class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-60 w-full resize-none border border-solid px-2 py-1 text-[13px] leading-normal outline-none"
+                  [ngModel]="editDraft()"
+                  (ngModelChange)="onEditInput($event)"
+                  (keydown)="onEditKeydown($event)"
+                  rows="1"
+                ></textarea>
+                <div class="text-ui-dim flex items-center justify-end gap-2 text-[11px]">
+                  <span class="mr-auto">{{ 'feature.chat.messageFix.shortcutHint' | transloco }}</span>
+                  <button
+                    type="button"
+                    class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.5 text-[11px] leading-tight transition-[background,color]"
+                    (click)="cancelEdit()"
+                  >
+                    {{ 'feature.chat.messageFix.cancel' | transloco }}
+                  </button>
+                  <button
+                    type="button"
+                    class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.5 text-[11px] leading-tight font-medium transition-[background,color]"
+                    (click)="saveEdit()"
+                  >
+                    {{ 'feature.chat.messageFix.change' | transloco }}
+                  </button>
+                </div>
+              </div>
+            } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
               @if (attachmentImageFiles().length > 0) {
                 <div class="mt-1.5 flex flex-wrap gap-1.5 whitespace-normal">
@@ -64,7 +131,7 @@
             } @else {
               <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
             }
-            @if (chatMessage.fixd) {
+            @if (!isEditing() && chatMessage.fixd) {
               &nbsp;{{ 'feature.chat.message.edited' | transloco }}
             }
           </div>
@@ -100,10 +167,52 @@
             @if (simpleDispFlagUserId() || simpleDispFlagTime()) {
               <span class="tip">　</span>
             }
+            @if (replyPreview(); as preview) {
+              <button
+                type="button"
+                class="border-l-ui-accent bg-ui-accent-bg text-ui-text hover:bg-ui-accent-glow rounded-r-ui-sm ml-2 inline-flex max-w-[18em] cursor-pointer items-center gap-1 overflow-hidden border-0 border-l-2 px-1.5 py-0.5 align-middle text-[11px] transition-colors"
+                [title]="preview.text"
+                (click)="jumpToReplyTarget()"
+              >
+                <i class="material-icons text-ui-accent text-[11px]!">reply</i>
+                <span class="text-ui-accent font-semibold">{{ preview.name }}</span>
+                <span class="truncate">{{ preview.text }}</span>
+              </button>
+            }
             <font
               class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
+              [attr.data-quote-of]="chatMessage.quoteOf || null"
+              (click)="onQuoteAreaClick($event)"
             >
-              @if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
+              @if (isEditing()) {
+                <span class="ml-1.5 inline-flex w-full max-w-md flex-col gap-1 align-top">
+                  <textarea
+                    #editingTextArea
+                    class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-60 w-full resize-none border border-solid px-2 py-1 text-[13px] leading-normal outline-none"
+                    [ngModel]="editDraft()"
+                    (ngModelChange)="onEditInput($event)"
+                    (keydown)="onEditKeydown($event)"
+                    rows="1"
+                  ></textarea>
+                  <span class="text-ui-dim flex items-center justify-end gap-2 text-[11px]">
+                    <span class="mr-auto">{{ 'feature.chat.messageFix.shortcutHint' | transloco }}</span>
+                    <button
+                      type="button"
+                      class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.5 text-[11px] leading-tight transition-[background,color]"
+                      (click)="cancelEdit()"
+                    >
+                      {{ 'feature.chat.messageFix.cancel' | transloco }}
+                    </button>
+                    <button
+                      type="button"
+                      class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.5 text-[11px] leading-tight font-medium transition-[background,color]"
+                      (click)="saveEdit()"
+                    >
+                      {{ 'feature.chat.messageFix.change' | transloco }}
+                    </button>
+                  </span>
+                </span>
+              } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
                 @if (attachmentImageFiles().length > 0) {
                   <span class="ml-1.5 inline-flex align-middle">
@@ -122,15 +231,38 @@
               } @else {
                 <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
               }
-              @if (chatMessage.fixd) {
+              @if (!isEditing() && chatMessage.fixd) {
                 {{ 'feature.chat.message.editedSimple' | transloco }}
               }
-              @if (chatMessage.changeable) {
-                <i
-                  class="material-icons text-ui-dim ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
-                  (click)="clickFix()"
-                  >edit</i
-                >
+              @if (!isEditing()) {
+                @if (canInteract) {
+                  <i
+                    class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                    [title]="'feature.chat.message.reply' | transloco"
+                    (click)="clickReply()"
+                    >reply</i
+                  >
+                  <i
+                    class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                    [title]="'feature.chat.message.quote' | transloco"
+                    (click)="clickQuote()"
+                    >format_quote</i
+                  >
+                  <i
+                    class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                    [title]="'feature.chat.message.shareAsMemo' | transloco"
+                    (click)="clickShareAsMemo()"
+                    >sticky_note_2</i
+                  >
+                }
+                @if (chatMessage.changeable) {
+                  <i
+                    class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                    [title]="'feature.chat.messageFix.change' | transloco"
+                    (click)="startEdit()"
+                    >edit</i
+                  >
+                }
               }
             </font>
           </span>

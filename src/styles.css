@@ -232,6 +232,48 @@ ruby.chat-ruby rt {
   white-space: nowrap;
 }
 
+/* `> ` で始まる引用行を、隣接する複数行をまとめてアクセント縦線付きの blockquote 風に装飾する。
+   decorateQuoteLines が <span class="chat-quote"> を吐き、こちら側で見た目を決める。
+   チャットと TextNote (共有メモ) 非編集モードで共有するため、`.msg-text` 親スコープを外している。 */
+.chat-quote {
+  display: block;
+  margin: 4px 0;
+  padding: 5px 10px;
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 0 4px 4px 0;
+  background: color-mix(in srgb, var(--ui-accent) 14%, transparent);
+  color: var(--ui-text);
+  font-weight: 500;
+  white-space: pre-wrap;
+  transition: background 0.15s;
+}
+
+/* チャット限定: 引用元 ID を持つメッセージでは chat-quote 自体をクリック可能にしてジャンプを発火する。
+   ChatMessageComponent.onQuoteAreaClick が .chat-quote 内のクリックだけを拾う。
+   TextNote 側はジャンプ機能が無いのでこのカーソル変更は適用しない。 */
+.msg-text[data-quote-of] .chat-quote {
+  cursor: pointer;
+}
+.msg-text[data-quote-of] .chat-quote:hover {
+  background: color-mix(in srgb, var(--ui-accent) 24%, transparent);
+}
+
+/* ChatMessageComponent.jumpEffect が要素を [class.chat-message-highlight] でトグルしたとき、
+   accent カラーで一瞬光らせる。`animation:` ショートハンドは Tailwind の animate-chat-* と衝突して
+   解除時にスライドインを再生してしまうので、background-color + box-shadow + transition で表現する。 */
+chat-message > div > div {
+  transition:
+    background-color 1.5s ease-out,
+    box-shadow 1.5s ease-out;
+}
+.chat-message-highlight > div > div {
+  background-color: color-mix(in srgb, var(--ui-accent) 32%, transparent);
+  box-shadow: inset 3px 0 0 var(--ui-accent);
+  transition:
+    background-color 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+
 /* overview-panel の独自テーブル表示。.overview-table を親マーカーに、
    .overview-table-* 系のサブマーカーは overview-panel.component.spec.ts の
    querySelector ターゲットとして spec 側で参照されている (例: .overview-table,

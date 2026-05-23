@@ -29,6 +29,8 @@ export interface ChatMessageContext {
   imagePos?: number;
   messColor?: string;
   sendFrom?: string;
+  replyTo?: string;
+  quoteOf?: string;
 }
 
 @SyncObject('chat')
@@ -44,6 +46,8 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() imagePos: number;
   @SyncVar() messColor: string;
   @SyncVar() sendFrom: string;
+  @SyncVar() replyTo: string = '';
+  @SyncVar() quoteOf: string = '';
   @SyncVar() fixd: boolean = false;
 
   targetInfo: ChatMessageTargetContext[];
@@ -83,6 +87,11 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   }
   get image(): ImageFile | null {
     return ImageStorage.instance.get(this.imageIdentifier);
+  }
+  get replyToMessage(): ChatMessage | null {
+    if (!this.replyTo) return null;
+    const target = ObjectStore.instance.get<ChatMessage>(this.replyTo);
+    return target instanceof ChatMessage ? target : null;
   }
   get attachmentImageIdentifierList(): string[] {
     const rawValue = String(this.attachmentImageIdentifiers ?? '').trim();

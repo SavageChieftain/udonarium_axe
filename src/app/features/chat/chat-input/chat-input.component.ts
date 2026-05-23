@@ -28,6 +28,7 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { Config } from '@axe/domain/peer/config';
@@ -130,7 +131,24 @@ export class ChatInputComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    replyTo: string;
+    quoteOf: string;
   }>();
+
+  private pendingQuoteOf = '';
+  readonly replyTarget = signal<ChatMessage | null>(null);
+  readonly replyToName = computed(() => this.replyTarget()?.name ?? '');
+  readonly replyToText = computed(() => {
+    const target = this.replyTarget();
+    if (!target) return '';
+    const text = (target.text ?? '').replace(/\s+/g, ' ').trim();
+    return text.length > 80 ? text.slice(0, 80) + '…' : text;
+  });
+
+  cancelReply(): void {
+    this.replyTarget.set(null);
+    this.uiSignalService.clearChatReply();
+  }
 
   readonly tabSwitch = output<number>();
 
@@ -176,6 +194,21 @@ export class ChatInputComponent {
       if (!req) return;
       untracked(() => {
         this.text = (this.text ? this.text + ' ' : '') + req.text;
+        if (req.quoteOf) this.pendingQuoteOf = req.quoteOf;
+      });
+    });
+    effect(() => {
+      const req = this.uiSignalService.chatReplyRequest();
+      if (!req) {
+        this.replyTarget.set(null);
+        return;
+      }
+      untracked(() => {
+        const target = this.objectStore.get<ChatMessage>(req.messageIdentifier);
+        this.replyTarget.set(target instanceof ChatMessage ? target : null);
+        if (target instanceof ChatMessage) {
+          this.textAreaElementRef().nativeElement.focus();
+        }
       });
     });
   }
@@ -375,6 +408,8 @@ export class ChatInputComponent {
       portraitIndex: this.portraitIndex,
       messColor: this.selectChatColor,
     };
+    const replyTo = this.replyTarget()?.identifier ?? '';
+    const quoteOf = this.pendingQuoteOf;
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
       this.chat.emit({
         text: message.text,
@@ -383,11 +418,15 @@ export class ChatInputComponent {
         sendTo: message.sendTo,
         portraitIndex: message.portraitIndex,
         messColor: message.messColor,
+        replyTo,
+        quoteOf,
       });
     });
     this.text = '';
     this.previousWritingLength = this.text.length;
     this.kickCalcFitHeight();
+    this.cancelReply();
+    this.pendingQuoteOf = '';
   }
 
   kickCalcFitHeight() {

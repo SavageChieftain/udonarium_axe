@@ -143,7 +143,9 @@ export class ChatMessageService {
     portraitIndex?: number,
     color?: string,
     messageTargetContext?: ChatMessageTargetContext[],
-    attachmentImageIdentifiers?: string[]
+    attachmentImageIdentifiers?: string[],
+    replyTo?: string,
+    quoteOf?: string
   ): ChatMessage {
     const resolvedMessage = this.resolveAttachmentImageReferences(text, sendFrom, attachmentImageIdentifiers ?? []);
     text = resolvedMessage.text;
@@ -168,6 +170,12 @@ export class ChatMessageService {
     };
     if (resolvedMessage.attachmentImageIdentifiers.length > 0) {
       chatMessage.attachmentImageIdentifiers = JSON.stringify(resolvedMessage.attachmentImageIdentifiers);
+    }
+    if (replyTo) {
+      chatMessage.replyTo = replyTo;
+    }
+    if (quoteOf) {
+      chatMessage.quoteOf = quoteOf;
     }
 
     this.setLastControlInfoToPeer(sendFrom, this.findImageIdentifier(sendFrom, imgIndex), imgIndex, sendTo);

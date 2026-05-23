@@ -397,6 +397,8 @@ export class ChatWindowComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    replyTo: string;
+    quoteOf: string;
   }) {
     const tab = this.chatTab();
     if (tab) {
@@ -450,7 +452,10 @@ export class ChatWindowComponent {
         value.sendTo,
         value.portraitIndex,
         value.messColor,
-        messageTargetContext
+        messageTargetContext,
+        undefined,
+        value.replyTo,
+        value.quoteOf
       );
     }
   }

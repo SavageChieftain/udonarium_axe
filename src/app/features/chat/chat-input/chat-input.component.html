@@ -109,6 +109,31 @@
       </div>
     </div>
 
+    @if (replyTarget(); as target) {
+      <div
+        class="border-ui-accent bg-ui-accent-bg text-ui-text rounded-ui-sm mb-1.5 flex items-center gap-2 border border-l-4 border-solid px-2 py-1 text-[12px]"
+      >
+        <i class="material-icons text-ui-accent text-[14px]!">reply</i>
+        <div class="flex min-w-0 flex-1 flex-col">
+          <span class="text-ui-accent text-[11px] leading-tight font-semibold">
+            {{ 'feature.chat.input.replyingTo' | transloco: { name: replyToName() } }}
+          </span>
+          <span class="text-ui-muted truncate text-[11px] leading-tight">
+            {{ replyToText() }}
+          </span>
+        </div>
+        <button
+          type="button"
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
+          [attr.aria-label]="'feature.chat.input.cancelReply' | transloco"
+          [title]="'feature.chat.input.cancelReply' | transloco"
+          (click)="cancelReply()"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+    }
+
     <form name="chat-input" class="m-0 flex min-w-0 items-center gap-2">
       <textarea
         name="chat-input-text"

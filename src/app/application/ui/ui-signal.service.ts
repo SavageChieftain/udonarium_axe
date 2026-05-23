@@ -25,6 +25,17 @@ export interface TableViewRotation {
 export interface ChatInputTextRequest {
   text: string;
   timestamp: number;
+  quoteOf?: string;
+}
+
+export interface ChatReplyRequest {
+  messageIdentifier: string;
+  timestamp: number;
+}
+
+export interface ChatJumpRequest {
+  messageIdentifier: string;
+  timestamp: number;
 }
 
 @Injectable({
@@ -39,6 +50,8 @@ export class UiSignalService {
   readonly jumpIndexRequest = signal<JumpIndexData | null>(null);
   readonly tableViewRotation = signal<TableViewRotation | null>(null);
   readonly chatInputTextRequest = signal<ChatInputTextRequest | null>(null);
+  readonly chatReplyRequest = signal<ChatReplyRequest | null>(null);
+  readonly chatJumpRequest = signal<ChatJumpRequest | null>(null);
 
   notifyChatRedraw(): void {
     this.chatRedrawVersion.update((v) => v + 1);
@@ -68,7 +81,19 @@ export class UiSignalService {
     this.tableViewRotation.set({ x, y, z });
   }
 
-  requestChatInputText(text: string): void {
-    this.chatInputTextRequest.set({ text, timestamp: Date.now() });
+  requestChatInputText(text: string, quoteOf?: string): void {
+    this.chatInputTextRequest.set({ text, quoteOf, timestamp: Date.now() });
+  }
+
+  requestChatReply(messageIdentifier: string): void {
+    this.chatReplyRequest.set({ messageIdentifier, timestamp: Date.now() });
+  }
+
+  clearChatReply(): void {
+    this.chatReplyRequest.set(null);
+  }
+
+  requestChatJump(messageIdentifier: string): void {
+    this.chatJumpRequest.set({ messageIdentifier, timestamp: Date.now() });
   }
 }
