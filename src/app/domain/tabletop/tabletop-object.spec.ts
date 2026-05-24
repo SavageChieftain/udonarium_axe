@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DataElement } from '@axe/domain/data/data-element';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 describe('TabletopObject', () => {
@@ -80,6 +81,60 @@ describe('TabletopObject', () => {
       obj.initialize();
       // aliasNameが設定されていないとrootDataElementは作成されない
       expect(obj.rootDataElement).toBeFalsy();
+    });
+  });
+
+  describe('altitude', () => {
+    function createTabletopObjectWithCommon(): TabletopObject {
+      const obj = new TabletopObject();
+      const root = DataElement.create('TabletopObject', '', {}, `TabletopObject_${obj.identifier}`);
+      const common = DataElement.create('common', '', {}, `common_${obj.identifier}`);
+      obj.initialize();
+      obj.appendChild(root);
+      root.appendChild(common);
+      return obj;
+    }
+
+    it('altitude 要素が無いとき getter は副作用なく 0 を返す', () => {
+      const obj = createTabletopObjectWithCommon();
+      const before = obj.commonDataElement!.children.length;
+      expect(obj.altitude).toBe(0);
+      expect(obj.commonDataElement!.children.length).toBe(before);
+    });
+
+    it('getter を多数回呼んでも altitude 要素が増殖しない', () => {
+      const obj = createTabletopObjectWithCommon();
+      for (let i = 0; i < 10; i++) void obj.altitude;
+      const altitudes = obj.commonDataElement!.getElementsByName('altitude');
+      expect(altitudes.length).toBe(0);
+    });
+
+    it('setter は altitude 要素が無いとき遅延生成する', () => {
+      const obj = createTabletopObjectWithCommon();
+      obj.altitude = 5;
+      const altitudes = obj.commonDataElement!.getElementsByName('altitude');
+      expect(altitudes.length).toBe(1);
+      expect(obj.altitude).toBe(5);
+    });
+
+    it('parseInnerXml 後に重複する altitude 要素は最初の 1 つに統合される', () => {
+      const obj = createTabletopObjectWithCommon();
+      const common = obj.commonDataElement!;
+      // 過去バグの再現: 同一 identifier の altitude が _children に複数積まれた状態
+      const altitudeId = `altitude_${obj.identifier}`;
+      for (let i = 0; i < 3; i++) {
+        const dup = new DataElement(altitudeId);
+        dup.name = 'altitude';
+        dup.value = i;
+        dup.initialize();
+        common.appendChild(dup);
+      }
+      expect(common.getElementsByName('altitude').length).toBe(3);
+
+      const dummy = document.createElement('TabletopObject');
+      obj.parseInnerXml(dummy);
+
+      expect(common.getElementsByName('altitude').length).toBe(1);
     });
   });
 });

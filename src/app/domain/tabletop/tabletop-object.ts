@@ -62,15 +62,21 @@ export class TabletopObject extends ObjectNode {
   @SyncVar() isAltitudeIndicate: boolean = false;
   get altitude(): number {
     const element = this.getElement('altitude', this.commonDataElement);
-    if (!element && this.commonDataElement) {
-      this.commonDataElement.appendChild(DataElement.create('altitude', 0, {}, `altitude_${this.identifier}`));
-    }
-    const num = element ? +element.value : 0;
+    if (!element) return 0;
+    const num = +element.value;
     return Number.isNaN(num) ? 0 : num;
   }
   set altitude(altitude: number) {
     const element = this.getElement('altitude', this.commonDataElement);
-    if (element) element.value = altitude;
+    if (element) {
+      element.value = altitude;
+      return;
+    }
+    const common = this.commonDataElement;
+    if (!common) return;
+    const created = DataElement.create('altitude', altitude, {}, `altitude_${this.identifier}`);
+    common.appendChild(created);
+    this._dataElements['altitude'] = created.identifier;
   }
 
   createDataElements() {
@@ -145,5 +151,22 @@ export class TabletopObject extends ObjectNode {
     this.location.name = location;
     this.update();
     markForChanged(this);
+  }
+
+  override parseInnerXml(element: Element): void {
+    super.parseInnerXml(element);
+    this.deduplicateAltitudeElements();
+  }
+
+  private deduplicateAltitudeElements(): void {
+    const common = this.commonDataElement;
+    if (!common) return;
+    const altitudes = common.getElementsByName('altitude');
+    if (altitudes.length <= 1) return;
+    for (let i = 1; i < altitudes.length; i++) {
+      const dup = altitudes[i];
+      dup.parent?.removeChild(dup);
+    }
+    this._dataElements['altitude'] = altitudes[0].identifier;
   }
 }
