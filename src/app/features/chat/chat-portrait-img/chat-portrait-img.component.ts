@@ -84,7 +84,7 @@ export class ChatPortraitImageComponent {
   readonly portraitYPos = computed<number>(() => {
     this.chatTabListVersion();
     const h = this.chatTabList?.portraitHeight ?? 0;
-    if (!this.chatTabList?.isPortraitInWindow) return -h - 26;
+    if (!this.chatTabList?.isPortraitInWindow) return -h - 28;
     return -h;
   });
 
