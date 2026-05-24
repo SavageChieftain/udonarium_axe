@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
-import { TabletopOverlapRegistryEntry } from '@axe/application/ui/tabletop-overlap.service';
+import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -132,5 +132,89 @@ describe('GravityService.isAffectedByGravity', () => {
   it('それ以外の TabletopObject は対象外', () => {
     const obj = { identifier: 'x', altitude: 0, posZ: 0 } as unknown as TabletopObject;
     expect(GravityService.isAffectedByGravity(obj)).toBe(false);
+  });
+});
+
+describe('GravityService.apply (空間インデックス経由)', () => {
+  function setup(entries: TabletopOverlapRegistryEntry[]): GravityService {
+    const overlap = TestBed.inject(TabletopOverlapService);
+    for (const e of entries) overlap.register(e.object, e.element);
+    return TestBed.inject(GravityService);
+  }
+
+  function applyNow(svc: GravityService): void {
+    (svc as unknown as { apply(): void }).apply();
+  }
+
+  it('空中のキャラクタは下にある地形の天面まで落下する', () => {
+    const base = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 2, identifier: 'base' });
+    const char = makeCharacter({ x: 50, y: 50, posZ: 300 });
+    const svc = setup([base, char]);
+
+    applyNow(svc);
+
+    expect(char.object.posZ).toBe(2 * 50);
+  });
+
+  it('遠く離れた地形は支えにならない (空間インデックスが範囲外を弾く)', () => {
+    const base = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, identifier: 'base' });
+    const char = makeCharacter({ x: 2000, y: 2000, posZ: 300 });
+    const svc = setup([base, char]);
+
+    applyNow(svc);
+
+    expect(char.object.posZ).toBe(0);
+  });
+
+  it('多段スタックでも settling は収束する (再帰的な落下)', () => {
+    // base (h=1, top=50) の上に空中の terrain1 (h=1) を置き、その上に空中の char。
+    const base = makeTerrain({ x: 0, y: 0, w: 2, d: 2, h: 1, identifier: 'base' });
+    const stack = makeTerrain({ x: 0, y: 0, w: 2, d: 2, h: 1, identifier: 'stack', posZ: 300 });
+    const char = makeCharacter({ x: 25, y: 25, posZ: 500 });
+    const svc = setup([base, stack, char]);
+
+    applyNow(svc);
+
+    // stack は base の上 (50)、char は stack の上 (100)
+    expect(stack.object.posZ).toBe(50);
+    expect(char.object.posZ).toBe(50 + 50);
+  });
+
+  it('大量オブジェクト下でも reflow を強制しない (offsetWidth は apply 中に追加で読まれない)', () => {
+    const entries: TabletopOverlapRegistryEntry[] = [];
+    const ROWS = 10;
+    const COLS = 10;
+    for (let i = 0; i < ROWS; i++) {
+      for (let j = 0; j < COLS; j++) {
+        entries.push(makeTerrain({ x: i * 60, y: j * 60, w: 1, d: 1, h: 1, identifier: `t_${i}_${j}` }));
+      }
+    }
+    // 1 つだけ空中に置く: 中心 (30,30) が terrain(0,0)-(50,50) の真上
+    const flying = makeCharacter({ x: 5, y: 5, posZ: 400 });
+    entries.push(flying);
+
+    const svc = setup(entries);
+
+    // apply 中に offsetWidth が何度読まれるかを計測 (キャッシュ後は追加読み出しが起きないことを期待)
+    let postCacheReads = 0;
+    const counted = new WeakSet<HTMLElement>();
+    for (const e of entries) {
+      const el = e.element;
+      const fixed = el.offsetWidth;
+      Object.defineProperty(el, 'offsetWidth', {
+        configurable: true,
+        get() {
+          if (counted.has(el)) postCacheReads++;
+          counted.add(el);
+          return fixed;
+        },
+      });
+    }
+
+    applyNow(svc);
+
+    // 各要素の offsetWidth 読み出しは apply 1 回につき 1 度だけ (キャッシュ構築時のみ)
+    expect(postCacheReads).toBe(0);
+    expect(flying.object.posZ).toBe(50);
   });
 });
