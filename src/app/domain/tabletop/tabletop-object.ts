@@ -77,6 +77,7 @@ export class TabletopObject extends ObjectNode {
     const created = DataElement.create('altitude', altitude, {}, `altitude_${this.identifier}`);
     common.appendChild(created);
     this._dataElements['altitude'] = created.identifier;
+    this.sortCommonElements();
   }
 
   createDataElements() {
@@ -156,17 +157,56 @@ export class TabletopObject extends ObjectNode {
   override parseInnerXml(element: Element): void {
     super.parseInnerXml(element);
     this.deduplicateAltitudeElements();
+    this.sortCommonElements();
   }
+
+  private static readonly COMMON_ELEMENT_ORDER: readonly string[] = [
+    'name',
+    'size',
+    'width',
+    'height',
+    'depth',
+    'altitude',
+  ];
 
   private deduplicateAltitudeElements(): void {
     const common = this.commonDataElement;
     if (!common) return;
     const altitudes = common.getElementsByName('altitude');
     if (altitudes.length <= 1) return;
-    for (let i = 1; i < altitudes.length; i++) {
-      const dup = altitudes[i];
-      dup.parent?.removeChild(dup);
+    const canonical = altitudes.find((e) => TabletopObject.hasMeaningfulValue(e)) ?? altitudes[0];
+    for (const altitude of altitudes) {
+      if (altitude === canonical) continue;
+      altitude.parent?.removeChild(altitude);
     }
-    this._dataElements['altitude'] = altitudes[0].identifier;
+    this._dataElements['altitude'] = canonical.identifier;
+  }
+
+  private static hasMeaningfulValue(element: DataElement): boolean {
+    const value = element.value;
+    if (typeof value === 'string') {
+      if (value === '') return false;
+      const num = +value;
+      return Number.isNaN(num) || num !== 0;
+    }
+    return value !== 0;
+  }
+
+  private sortCommonElements(): void {
+    const common = this.commonDataElement;
+    if (!common) return;
+
+    const order = TabletopObject.COMMON_ELEMENT_ORDER;
+    const targets = common.children.filter((c) => order.includes(c.getAttribute('name')));
+    if (targets.length < 2) return;
+
+    const slotIndices = targets.map((c) => c.index);
+    const sorted = [...targets].sort(
+      (a, b) => order.indexOf(a.getAttribute('name')) - order.indexOf(b.getAttribute('name'))
+    );
+
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].index !== slotIndices[i]) sorted[i].index = slotIndices[i];
+    }
   }
 }
