@@ -67,6 +67,7 @@ export class ChatInputComponent {
   readonly textAreaElementRef = viewChild.required<ElementRef>('textArea');
 
   readonly onlyCharacters = input(false);
+  readonly disableQuote = input(false);
   readonly chatTabidentifier = input('');
   readonly autoCompleteIndex = input(-1);
 
@@ -224,6 +225,10 @@ export class ChatInputComponent {
       });
     });
     effect(() => {
+      if (this.disableQuote()) {
+        this.quoteTarget.set(null);
+        return;
+      }
       const req = this.uiSignalService.chatQuoteRequest();
       if (!req) {
         this.quoteTarget.set(null);
