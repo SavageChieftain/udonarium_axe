@@ -8,6 +8,7 @@ export default defineConfig({
     alias: {
       '@axe': resolve(__dirname, 'src/app'),
       '@env': resolve(__dirname, 'src/environments'),
+      '@pkg': resolve(__dirname, 'package.json'),
     },
   },
   test: {

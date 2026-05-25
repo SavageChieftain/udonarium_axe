@@ -8,6 +8,7 @@ import {
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -46,6 +47,7 @@ import { ModalComponent } from '@axe/ui/components/modal/modal.component';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { TranslocoModule } from '@jsverse/transloco';
+import { version as APP_VERSION } from '@pkg';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,6 +85,8 @@ export class AppComponent {
   private openPanelCount = 0;
 
   constructor() {
+    inject(Title).setTitle(`Udonarium Axe ${APP_VERSION}`);
+
     // 各 feature のイベントハンドラ / application 層 orchestration サービス群を eager 起動する。
     // 各サービスは @Injectable({ providedIn: 'root' }) で自身の constructor 内で購読を開始するため、
     // ここでは inject() の戻り値を保持する必要はない（副作用のみ目的）。
