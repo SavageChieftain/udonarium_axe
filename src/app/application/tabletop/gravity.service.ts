@@ -40,11 +40,9 @@ export class GravityService {
   private applying = false;
 
   constructor() {
-    this.objectChange.onObjectChangedForAlias(
-      GRAVITY_ALIASES as unknown as readonly string[],
-      () => this.schedule(),
-      this.destroyRef
-    );
+    for (const alias of GRAVITY_ALIASES) {
+      this.objectChange.onObjectChangedForSingleAlias(alias, () => this.schedule(), this.destroyRef);
+    }
     this.destroyRef.onDestroy(() => {
       if (this.timer != null) clearTimeout(this.timer);
       this.timer = null;
@@ -93,7 +91,12 @@ export class GravityService {
         if (!changed) break;
       }
     } finally {
-      this.applying = false;
+      // posZ 変更で起きる markForChanged の microtask が schedule() を呼び戻す前に
+      // applying フラグを落とすと、自分が起こした settling で次の apply が即連鎖する。
+      // microtask に乗せることで gravity 由来の再 schedule を吸収する。
+      queueMicrotask(() => {
+        this.applying = false;
+      });
     }
   }
 
