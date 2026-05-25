@@ -10,25 +10,32 @@ export class CoordinateService {
 
   tabletopOriginElement: HTMLElement = document.body;
 
+  // pointermove 毎に Transform を new し続けると Matrix3D ×3 + getComputedStyle 連鎖で GC 圧が掛かる。
+  // service スコープで使い回す 2 つのインスタンスを reinit して使う。
+  private readonly _transformA: Transform = new Transform(document.body);
+  private readonly _transformB: Transform = new Transform(document.body);
+
   convertToLocal(pointer: PointerCoordinate, element: HTMLElement = document.body): PointerCoordinate {
-    const transformer: Transform = new Transform(element);
+    const transformer = this._transformA.reinit(element);
     const ray = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
     transformer.clear();
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
   convertToGlobal(pointer: PointerCoordinate, element: HTMLElement = document.body): PointerCoordinate {
-    const transformer: Transform = new Transform(element);
+    const transformer = this._transformA.reinit(element);
     const ray = transformer.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
     transformer.clear();
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
   convertLocalToLocal(pointer: PointerCoordinate, from: HTMLElement, to: HTMLElement): PointerCoordinate {
-    const transformer: Transform = new Transform(from);
-    const local = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
-    const ray = transformer.localToLocal(local.x, local.y, 0, to);
-    transformer.clear();
+    const fromTransform = this._transformA.reinit(from);
+    const local = fromTransform.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
+    const toTransform = this._transformB.reinit(to);
+    const ray = fromTransform.localToLocalUsing(local.x, local.y, 0, toTransform);
+    fromTransform.clear();
+    toTransform.clear();
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 

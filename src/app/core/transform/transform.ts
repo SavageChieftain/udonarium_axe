@@ -33,6 +33,12 @@ export class Transform {
     return this;
   }
 
+  /** 既存インスタンスを別 element に向けて再初期化する。プールから取り出して使い回すための入口。 */
+  reinit(element: HTMLElement): this {
+    this.initialize(element);
+    return this;
+  }
+
   private initialize(element: HTMLElement) {
     if (!element) return;
 
@@ -79,17 +85,22 @@ export class Transform {
   }
 
   localToLocal(x: number, y: number, z: number, to: HTMLElement): IPoint3D {
-    const local: IPoint3D = { x: x, y: y, z: z, w: 1 };
     const transformer: Transform = new Transform(to);
-    const matrix = Matrix3D.multiply(this.sceneTransform, transformer.inverseSceneTransform);
+    const ret = this.localToLocalUsing(x, y, z, transformer);
+    transformer.clear();
+    return ret;
+  }
+
+  /** localToLocal の no-alloc 版。caller が再利用 Transform を渡す。 */
+  localToLocalUsing(x: number, y: number, z: number, toTransform: Transform): IPoint3D {
+    const matrix = Matrix3D.multiply(this.sceneTransform, toTransform.inverseSceneTransform);
     const ret: IPoint3D = { x: 0, y: 0, z: 0, w: 1 };
 
-    ret.x = local.x * matrix.m11 + local.y * matrix.m21 + local.z * matrix.m31 + local.w * matrix.m41;
-    ret.y = local.x * matrix.m12 + local.y * matrix.m22 + local.z * matrix.m32 + local.w * matrix.m42;
-    ret.z = local.x * matrix.m13 + local.y * matrix.m23 + local.z * matrix.m33 + local.w * matrix.m43;
-    ret.w = local.x * matrix.m14 + local.y * matrix.m24 + local.z * matrix.m34 + local.w * matrix.m44;
+    ret.x = x * matrix.m11 + y * matrix.m21 + z * matrix.m31 + matrix.m41;
+    ret.y = x * matrix.m12 + y * matrix.m22 + z * matrix.m32 + matrix.m42;
+    ret.z = x * matrix.m13 + y * matrix.m23 + z * matrix.m33 + matrix.m43;
+    ret.w = x * matrix.m14 + y * matrix.m24 + z * matrix.m34 + matrix.m44;
 
-    transformer.clear();
     this.toBorderBox(ret);
     return ret;
   }
