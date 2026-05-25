@@ -16,4 +16,4 @@ pre-commit:
 pre-push:
   jobs:
     - name: build
-      run: npx ng build
+      run: npm run build

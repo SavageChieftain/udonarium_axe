@@ -27,7 +27,7 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets",
-                "ignore": ["config.json.example"]
+                "ignore": ["config.json", "config.json.example"]
               }
             ],
             "styles": ["src/styles.css"],
