@@ -493,7 +493,7 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('iteration 中に同じ identifier の listener が解除されてもクラッシュしない', () => {
+    it('iteration 中に解除された listener は当該 dispatch で呼ばれない (EventChannel と同じ)', () => {
       const order: string[] = [];
       let offB: (() => void) | null = null;
       const a = vi.fn(() => {
@@ -506,8 +506,8 @@ describe('ObjectChangeService', () => {
       service.onObjectChangedForIdentifier('id-Z', a);
       offB = service.onObjectChangedForIdentifier('id-Z', b);
       objectChanged$.emit({ identifier: 'id-Z', aliasName: 'a', isSendFromSelf: false });
-      // a の中で b が解除されたが、snapshot に基づき b は当該 dispatch では呼ばれる
-      expect(order).toEqual(['a', 'b']);
+      // a の中で b が解除されたので、b は当該 dispatch で呼ばれない
+      expect(order).toEqual(['a']);
     });
   });
 

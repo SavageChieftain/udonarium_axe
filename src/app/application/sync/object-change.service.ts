@@ -196,14 +196,18 @@ export class ObjectChangeService {
   private dispatchIndexed(event: ObjectChangeEvent): void {
     const idListeners = this._listenersByIdentifier.get(event.identifier);
     if (idListeners && idListeners.size > 0) {
-      // iteration 中の add/remove に巻き込まれないよう snapshot
+      // EventChannel と同様、iteration 中に解除された listener は skip する
       const snapshot = Array.from(idListeners);
-      for (const listener of snapshot) listener(event);
+      for (const listener of snapshot) {
+        if (idListeners.has(listener)) listener(event);
+      }
     }
     const aliasListeners = this._listenersByAlias.get(event.aliasName);
     if (aliasListeners && aliasListeners.size > 0) {
       const snapshot = Array.from(aliasListeners);
-      for (const listener of snapshot) listener(event);
+      for (const listener of snapshot) {
+        if (aliasListeners.has(listener)) listener(event);
+      }
     }
   }
 
