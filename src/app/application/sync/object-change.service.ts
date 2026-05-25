@@ -61,6 +61,7 @@ export type {
   MessageAddedEvent,
   XmlLoadedEvent,
 } from '@axe/core/event/domain-events';
+export type { ObjectChangeEvent } from '@axe/core/sync/object-event-extension';
 
 @Injectable({
   providedIn: 'root',
@@ -140,6 +141,72 @@ export class ObjectChangeService {
     }, destroyRef);
   }
 
+  private readonly _listenersByIdentifier = new Map<string, Set<(event: ObjectChangeEvent) => void>>();
+  private readonly _listenersByAlias = new Map<string, Set<(event: ObjectChangeEvent) => void>>();
+
+  /**
+   * 単一 identifier 用の indexed 購読。`onObjectChangedFor` と異なり、event 毎の
+   * filter ループとリスト生成が無く dispatch が O(1)。識別子が固定のときに使う。
+   */
+  onObjectChangedForIdentifier(
+    identifier: string,
+    listener: (event: ObjectChangeEvent) => void,
+    destroyRef?: DestroyRef
+  ): () => void {
+    let set = this._listenersByIdentifier.get(identifier);
+    if (!set) {
+      set = new Set();
+      this._listenersByIdentifier.set(identifier, set);
+    }
+    set.add(listener);
+    const off = () => {
+      const s = this._listenersByIdentifier.get(identifier);
+      if (!s) return;
+      s.delete(listener);
+      if (s.size === 0) this._listenersByIdentifier.delete(identifier);
+    };
+    destroyRef?.onDestroy(off);
+    return off;
+  }
+
+  /**
+   * 単一 aliasName 用の indexed 購読。`onObjectChangedForAlias` の固定 alias 版。
+   */
+  onObjectChangedForSingleAlias(
+    aliasName: string,
+    listener: (event: ObjectChangeEvent) => void,
+    destroyRef?: DestroyRef
+  ): () => void {
+    let set = this._listenersByAlias.get(aliasName);
+    if (!set) {
+      set = new Set();
+      this._listenersByAlias.set(aliasName, set);
+    }
+    set.add(listener);
+    const off = () => {
+      const s = this._listenersByAlias.get(aliasName);
+      if (!s) return;
+      s.delete(listener);
+      if (s.size === 0) this._listenersByAlias.delete(aliasName);
+    };
+    destroyRef?.onDestroy(off);
+    return off;
+  }
+
+  private dispatchIndexed(event: ObjectChangeEvent): void {
+    const idListeners = this._listenersByIdentifier.get(event.identifier);
+    if (idListeners && idListeners.size > 0) {
+      // iteration 中の add/remove に巻き込まれないよう snapshot
+      const snapshot = Array.from(idListeners);
+      for (const listener of snapshot) listener(event);
+    }
+    const aliasListeners = this._listenersByAlias.get(event.aliasName);
+    if (aliasListeners && aliasListeners.size > 0) {
+      const snapshot = Array.from(aliasListeners);
+      for (const listener of snapshot) listener(event);
+    }
+  }
+
   private readonly _objectDeleted$ = new EventChannel<ObjectDeleteEvent>();
   private readonly _fileSyncList$ = new EventChannel<FileSyncEvent>();
   private readonly _fileResourceUpdated$ = new EventChannel<FileSyncEvent>();
@@ -199,6 +266,7 @@ export class ObjectChangeService {
   constructor() {
     objectChanged$.subscribe((e) => {
       this._versions.get(e.identifier)?.update((v) => v + 1);
+      this.dispatchIndexed(e);
     }, this.destroyRef);
 
     childrenChanged$.subscribe((e) => {

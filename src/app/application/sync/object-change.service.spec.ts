@@ -461,4 +461,75 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('onObjectChangedForIdentifier()', () => {
+    it('指定 identifier のイベントだけ listener を呼ぶ (indexed dispatch)', () => {
+      const listener = vi.fn();
+      service.onObjectChangedForIdentifier('id-A', listener);
+
+      objectChanged$.emit({ identifier: 'id-A', aliasName: 'a', isSendFromSelf: false });
+      objectChanged$.emit({ identifier: 'id-B', aliasName: 'a', isSendFromSelf: false });
+      objectChanged$.emit({ identifier: 'id-A', aliasName: 'a', isSendFromSelf: false });
+
+      expect(listener).toHaveBeenCalledTimes(2);
+    });
+
+    it('同一 identifier に複数 listener を登録できる', () => {
+      const a = vi.fn();
+      const b = vi.fn();
+      service.onObjectChangedForIdentifier('id-X', a);
+      service.onObjectChangedForIdentifier('id-X', b);
+      objectChanged$.emit({ identifier: 'id-X', aliasName: 'a', isSendFromSelf: false });
+      expect(a).toHaveBeenCalledTimes(1);
+      expect(b).toHaveBeenCalledTimes(1);
+    });
+
+    it('返り値の unsubscribe で indexed entry が解除される', () => {
+      const listener = vi.fn();
+      const off = service.onObjectChangedForIdentifier('id-Y', listener);
+      objectChanged$.emit({ identifier: 'id-Y', aliasName: 'a', isSendFromSelf: false });
+      off();
+      objectChanged$.emit({ identifier: 'id-Y', aliasName: 'a', isSendFromSelf: false });
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('iteration 中に同じ identifier の listener が解除されてもクラッシュしない', () => {
+      const order: string[] = [];
+      let offB: (() => void) | null = null;
+      const a = vi.fn(() => {
+        order.push('a');
+        offB?.();
+      });
+      const b = vi.fn(() => {
+        order.push('b');
+      });
+      service.onObjectChangedForIdentifier('id-Z', a);
+      offB = service.onObjectChangedForIdentifier('id-Z', b);
+      objectChanged$.emit({ identifier: 'id-Z', aliasName: 'a', isSendFromSelf: false });
+      // a の中で b が解除されたが、snapshot に基づき b は当該 dispatch では呼ばれる
+      expect(order).toEqual(['a', 'b']);
+    });
+  });
+
+  describe('onObjectChangedForSingleAlias()', () => {
+    it('指定 alias のイベントだけ listener を呼ぶ (indexed dispatch)', () => {
+      const listener = vi.fn();
+      service.onObjectChangedForSingleAlias('ChatMessage', listener);
+
+      objectChanged$.emit({ identifier: 'a', aliasName: 'ChatMessage', isSendFromSelf: false });
+      objectChanged$.emit({ identifier: 'b', aliasName: 'Card', isSendFromSelf: false });
+      objectChanged$.emit({ identifier: 'c', aliasName: 'ChatMessage', isSendFromSelf: false });
+
+      expect(listener).toHaveBeenCalledTimes(2);
+    });
+
+    it('返り値の unsubscribe で indexed entry が解除される', () => {
+      const listener = vi.fn();
+      const off = service.onObjectChangedForSingleAlias('Card', listener);
+      objectChanged$.emit({ identifier: 'a', aliasName: 'Card', isSendFromSelf: false });
+      off();
+      objectChanged$.emit({ identifier: 'b', aliasName: 'Card', isSendFromSelf: false });
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
 });
