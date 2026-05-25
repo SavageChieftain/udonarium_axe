@@ -217,4 +217,19 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     expect(postCacheReads).toBe(0);
     expect(flying.object.posZ).toBe(50);
   });
+
+  it('apply 後の microtask 排出が完了すれば再 schedule できる (applying 解除)', async () => {
+    const base = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'base' });
+    const char = makeCharacter({ x: 25, y: 25, posZ: 200 });
+    const svc = setup([base, char]);
+
+    applyNow(svc);
+    expect((svc as unknown as { applying: boolean }).applying).toBe(true);
+
+    // microtask drain を待つ — 実機の peer onmessage / pointerdown が走るタイミング
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect((svc as unknown as { applying: boolean }).applying).toBe(false);
+  });
 });
