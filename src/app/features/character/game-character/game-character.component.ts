@@ -265,59 +265,54 @@ export class GameCharacterComponent {
     return { border: `solid 6px ${borderColor}` };
   }
 
-  get pedestalOuterStyle(): Record<string, string> {
+  // pedestal*Style 系は CD サイクル毎に getter として走り、各回で新規 Record を生成していた。
+  // 値が変わらない限り同じ object 参照を返したいので computed 化。N=300 キャラ環境で 1 CD あたり
+  // 1000+ 件の不要な object alloc と clipPath 文字列構築をカットする。
+  protected readonly pedestalOuterStyle = computed<Record<string, string>>(() => {
     const params = this.pedestalHexParams();
-    if (params) {
-      const { outline, bbox, L } = params;
-      const W = bbox.maxX - bbox.minX;
-      const H = bbox.maxY - bbox.minY;
-      const clipPath = buildHexRingClipPath(outline, bbox, 2);
-      return {
-        background: '#212121',
-        clipPath,
-        border: 'none',
-        borderRadius: '0',
-        width: `${W}px`,
-        height: `${H}px`,
-        left: `${bbox.minX + L / 2}px`,
-        top: `${bbox.minY + L / 2}px`,
-      };
-    }
-    return {};
-  }
+    if (!params) return {} as Record<string, string>;
+    const { outline, bbox, L } = params;
+    const W = bbox.maxX - bbox.minX;
+    const H = bbox.maxY - bbox.minY;
+    return {
+      background: '#212121',
+      clipPath: buildHexRingClipPath(outline, bbox, 2),
+      border: 'none',
+      borderRadius: '0',
+      width: `${W}px`,
+      height: `${H}px`,
+      left: `${bbox.minX + L / 2}px`,
+      top: `${bbox.minY + L / 2}px`,
+    };
+  });
 
-  get pedestalGrabStyle(): Record<string, string> {
+  protected readonly pedestalGrabStyle = computed<Record<string, string>>(() => {
     const params = this.pedestalHexParams();
-    if (params) {
-      const { bbox, L } = params;
-      const halfW = (bbox.maxX - bbox.minX) / 2;
-      const halfH = (bbox.maxY - bbox.minY) / 2;
-      const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 12;
-      const diameter = radius * 2;
-      return {
-        width: `${diameter}px`,
-        height: `${diameter}px`,
-        left: `${L / 2 - radius}px`,
-        top: `${L / 2 - radius}px`,
-        borderRadius: '50%',
-      };
-    }
-    return {};
-  }
+    if (!params) return {} as Record<string, string>;
+    const { bbox, L } = params;
+    const halfW = (bbox.maxX - bbox.minX) / 2;
+    const halfH = (bbox.maxY - bbox.minY) / 2;
+    const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 12;
+    const diameter = radius * 2;
+    return {
+      width: `${diameter}px`,
+      height: `${diameter}px`,
+      left: `${L / 2 - radius}px`,
+      top: `${L / 2 - radius}px`,
+      borderRadius: '50%',
+    };
+  });
 
-  get pedestalGrabBorderStyle(): Record<string, string> {
-    const params = this.pedestalHexParams();
-    if (params) {
-      return {
-        borderTop: 'solid 16px #999',
-        borderLeft: 'solid 16px #999',
-        borderRight: 'solid 16px #ccc',
-        borderBottom: 'solid 16px #ccc',
-        borderRadius: '50%',
-      };
-    }
-    return {};
-  }
+  protected readonly pedestalGrabBorderStyle = computed<Record<string, string>>(() => {
+    if (!this.pedestalHexParams()) return {} as Record<string, string>;
+    return {
+      borderTop: 'solid 16px #999',
+      borderLeft: 'solid 16px #999',
+      borderRight: 'solid 16px #ccc',
+      borderBottom: 'solid 16px #ccc',
+      borderRadius: '50%',
+    };
+  });
 
   private highlightTimer: ReturnType<typeof setTimeout> | undefined;
   private unhighlightTimer: ReturnType<typeof setTimeout> | undefined;

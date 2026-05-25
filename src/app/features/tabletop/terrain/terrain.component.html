@@ -226,7 +226,7 @@
         @if (isHex()) {
           <div
             class="rotate-grab pointer-events-auto absolute -inset-3.5 -z-1 box-border cursor-default rounded-[14px] border-7 border-solid border-(--ui-panel-border) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
-            [ngStyle]="pedestalGrabStyle"
+            [ngStyle]="pedestalGrabStyle()"
           >
             <div
               class="absolute inset-0 box-border rounded-full border-7 border-solid border-(--ui-panel-border) transform-3d"

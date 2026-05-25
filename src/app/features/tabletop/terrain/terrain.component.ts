@@ -318,45 +318,41 @@ export class TerrainComponent {
     );
   });
 
-  pedestalStyle(): Record<string, string> {
+  // CD サイクル毎の Record 生成と clipPath 構築を避けるため computed 化。
+  readonly pedestalStyle = computed<Record<string, string>>(() => {
     const params = this.pedestalHexParams();
-    if (params) {
-      const { outline, bbox, L } = params;
-      const W = bbox.maxX - bbox.minX;
-      const H = bbox.maxY - bbox.minY;
-      const clipPath = buildHexRingClipPath(outline, bbox, 7);
-      return {
-        background: '#ccc',
-        clipPath,
-        border: 'none',
-        borderRadius: '0',
-        width: `${W}px`,
-        height: `${H}px`,
-        left: `${bbox.minX + L / 2}px`,
-        top: `${bbox.minY + L / 2}px`,
-      };
-    }
-    return {};
-  }
+    if (!params) return {} as Record<string, string>;
+    const { outline, bbox, L } = params;
+    const W = bbox.maxX - bbox.minX;
+    const H = bbox.maxY - bbox.minY;
+    return {
+      background: '#ccc',
+      clipPath: buildHexRingClipPath(outline, bbox, 7),
+      border: 'none',
+      borderRadius: '0',
+      width: `${W}px`,
+      height: `${H}px`,
+      left: `${bbox.minX + L / 2}px`,
+      top: `${bbox.minY + L / 2}px`,
+    };
+  });
 
-  get pedestalGrabStyle(): Record<string, string> {
+  readonly pedestalGrabStyle = computed<Record<string, string>>(() => {
     const params = this.pedestalHexParams();
-    if (params) {
-      const { bbox, L } = params;
-      const halfW = (bbox.maxX - bbox.minX) / 2;
-      const halfH = (bbox.maxY - bbox.minY) / 2;
-      const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 14;
-      const diameter = radius * 2;
-      return {
-        width: `${diameter}px`,
-        height: `${diameter}px`,
-        left: `${L / 2 - radius}px`,
-        top: `${L / 2 - radius}px`,
-        borderRadius: '50%',
-      };
-    }
-    return {};
-  }
+    if (!params) return {} as Record<string, string>;
+    const { bbox, L } = params;
+    const halfW = (bbox.maxX - bbox.minX) / 2;
+    const halfH = (bbox.maxY - bbox.minY) / 2;
+    const radius = Math.sqrt(halfW * halfW + halfH * halfH) + 14;
+    const diameter = radius * 2;
+    return {
+      width: `${diameter}px`,
+      height: `${diameter}px`,
+      left: `${L / 2 - radius}px`,
+      top: `${L / 2 - radius}px`,
+      borderRadius: '50%',
+    };
+  });
 
   readonly hexFloorClipPath = computed<string | null>(() => {
     const params = this.pedestalHexParams();

@@ -33,16 +33,16 @@
         }
         <div
           class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
-          [ngStyle]="pedestalOuterStyle"
+          [ngStyle]="pedestalOuterStyle()"
         ></div>
         @if (!isLock) {
           <div
             class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
-            [ngStyle]="pedestalGrabStyle"
+            [ngStyle]="pedestalGrabStyle()"
           >
             <div
               class="pointer-events-none box-border size-full rounded-[37px] border-x-12 border-y-28 border-solid border-t-[#999] border-r-[#ccc] border-b-[#ccc] border-l-[#999]"
-              [ngStyle]="pedestalGrabBorderStyle"
+              [ngStyle]="pedestalGrabBorderStyle()"
             >
               <div
                 class="material-icons text-ui-muted absolute inset-x-0 bottom-0 m-auto hidden w-6 group-hover:inline group-active:inline"
