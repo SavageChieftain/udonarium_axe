@@ -1,5 +1,5 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
-import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -77,6 +77,7 @@ export class RotableDirective {
       if (opt.tabletopObject != null) this.tabletopObject = opt.tabletopObject;
       if (opt.grabbingSelecter != null) this.grabbingSelecter = opt.grabbingSelecter;
       if (opt.transformCssOffset != null) this.transformCssOffset = opt.transformCssOffset;
+      this.refreshObjectChangeListener();
     });
     effect(() => {
       this._rotate = this.value();
@@ -98,6 +99,42 @@ export class RotableDirective {
     });
   }
 
+  private _objectChangeUnsubscribe: (() => void) | null = null;
+  private _objectChangeId: string | null = null;
+
+  private refreshObjectChangeListener(): void {
+    const id = this.tabletopObject?.identifier ?? null;
+    if (id === this._objectChangeId) return;
+    if (this._objectChangeUnsubscribe) {
+      this._objectChangeUnsubscribe();
+      this._objectChangeUnsubscribe = null;
+    }
+    this._objectChangeId = id;
+    if (id == null || id === '') return;
+    this._objectChangeUnsubscribe = this.objectChange.onObjectChangedForIdentifier(
+      id,
+      (event) => this.handleObjectChange(event),
+      this.destroyRef
+    );
+  }
+
+  private handleObjectChange(event: ObjectChangeEvent): void {
+    const tabletopObject = this.tabletopObject;
+    if (!tabletopObject) return;
+    if (!this.input) return;
+    if (event.isSendFromSelf && this.input.isGrabbing) return;
+    if (!this.shouldTransition(tabletopObject)) return;
+    this.batchService.add(() => {
+      if (this.input?.isGrabbing) {
+        this.cancel();
+      } else {
+        this.setAnimatedTransition(true);
+      }
+      this.stopTransition();
+      this.setRotate(tabletopObject);
+    }, this);
+  }
+
   initialize() {
     this.input = new InputHandler(this.nativeElement);
     this.input.onStart = (e) => this.onInputStart(e);
@@ -106,25 +143,6 @@ export class RotableDirective {
     this.input.onContextMenu = (e) => this.onContextMenu(e);
 
     if (this.tabletopObject) {
-      this.objectChange.onObjectChangedFor(
-        () => [this.tabletopObject?.identifier ?? ''],
-        (event) => {
-          const tabletopObject = this.tabletopObject;
-          if (!tabletopObject) return;
-          if (event.isSendFromSelf && this.input?.isGrabbing) return;
-          if (!this.shouldTransition(tabletopObject)) return;
-          this.batchService.add(() => {
-            if (this.input?.isGrabbing) {
-              this.cancel();
-            } else {
-              this.setAnimatedTransition(true);
-            }
-            this.stopTransition();
-            this.setRotate(tabletopObject);
-          }, this);
-        },
-        this.destroyRef
-      );
       this.setRotate(this.tabletopObject);
     } else {
       this.updateTransformCss();

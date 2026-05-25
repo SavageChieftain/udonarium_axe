@@ -1,5 +1,5 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
-import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
@@ -133,6 +133,7 @@ export class MovableDirective {
       this.snapOrigin = opt.snapOrigin;
       this.snapStyle = opt.snapStyle;
       this.refreshOverlapRegistration();
+      this.refreshObjectChangeListener();
     });
     afterNextRender(() => {
       this.batchService.add(() => this.initialize(), this.elementRef);
@@ -147,6 +148,41 @@ export class MovableDirective {
       this.batchService.remove(this);
       this.batchService.remove(this.elementRef);
     });
+  }
+
+  private _objectChangeUnsubscribe: (() => void) | null = null;
+  private _objectChangeId: string | null = null;
+
+  private refreshObjectChangeListener(): void {
+    const id = this.tabletopObject?.identifier ?? null;
+    if (id === this._objectChangeId) return;
+    if (this._objectChangeUnsubscribe) {
+      this._objectChangeUnsubscribe();
+      this._objectChangeUnsubscribe = null;
+    }
+    this._objectChangeId = id;
+    if (id == null || id === '') return;
+    this._objectChangeUnsubscribe = this.objectChange.onObjectChangedForIdentifier(
+      id,
+      (event) => this.handleObjectChange(event),
+      this.destroyRef
+    );
+  }
+
+  private handleObjectChange(event: ObjectChangeEvent): void {
+    if (!this.tabletopObject) return;
+    if (!this.input) return;
+    if (event.isSendFromSelf && this.input.isGrabbing) return;
+    if (!this.shouldTransition(this.tabletopObject)) return;
+    this.batchService.add(() => {
+      if (this.input!.isGrabbing) {
+        this.cancel();
+      } else {
+        this.setAnimatedTransition(true);
+      }
+      this.stopTransition();
+      this.setPosition(this.tabletopObject);
+    }, this);
   }
 
   private refreshOverlapRegistration() {
@@ -175,25 +211,6 @@ export class MovableDirective {
     this.input.onMove = (e) => this.onInputMove(e);
     this.input.onEnd = (e) => this.onInputEnd(e);
     this.input.onContextMenu = (e) => this.onContextMenu(e);
-
-    this.objectChange.onObjectChangedFor(
-      () => [this.tabletopObject?.identifier ?? ''],
-      (event) => {
-        if (!this.tabletopObject) return;
-        if (event.isSendFromSelf && this.input!.isGrabbing) return;
-        if (!this.shouldTransition(this.tabletopObject)) return;
-        this.batchService.add(() => {
-          if (this.input!.isGrabbing) {
-            this.cancel();
-          } else {
-            this.setAnimatedTransition(true);
-          }
-          this.stopTransition();
-          this.setPosition(this.tabletopObject);
-        }, this);
-      },
-      this.destroyRef
-    );
 
     if (this.layerName.length < 1 && this.tabletopObject) this.layerName = this.tabletopObject.aliasName;
     this.register();
