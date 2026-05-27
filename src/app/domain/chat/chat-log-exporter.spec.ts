@@ -219,6 +219,8 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('↩');
       expect(result).toContain('相手');
       expect(result).toContain('元の発言');
+      // ref block は name の後ろ (avatar 列を崩さないため)、本文の前に出る
+      expect(result.indexOf('blockquote')).toBeGreaterThan(result.indexOf('<b>自分</b>'));
       expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('返事'));
     });
 
@@ -274,10 +276,12 @@ describe('ChatLogExporter', () => {
       expect(imgPos).toBeLessThan(namePos);
     });
 
-    it('立ち絵が無いメッセージでは <img> を出力しない', () => {
+    it('立ち絵が無いメッセージでも 40×40 の placeholder で avatar 列を揃える', () => {
       const msg = createMockMessage({ image: null } as Partial<ChatMessage>);
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
       expect(result).not.toContain('<img');
+      expect(result).toContain('width:40px');
+      expect(result).toContain('height:40px');
     });
   });
 

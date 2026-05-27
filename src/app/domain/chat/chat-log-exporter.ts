@@ -43,17 +43,26 @@ export class ChatLogExporter {
     textDecoder?: ChatLogTextDecoder
   ): string {
     if (!message) return '';
-    let str = '';
-    if (tabName) str += `[${ChatLogExporter.escapeHtml(tabName)}]`;
+    // 1 メッセージ = 1 flex 行で [tab?] [time?] [avatar] [content] の列を縦に揃える。
+    // 本文や引用ブロックは content 列の中で折り返すので、引用/返信メッセージでも
+    // 立ち絵 (avatar) の x 位置がぶれない。
+    let str = '<div style="display:flex;align-items:flex-start;margin:2px 0;line-height:1.5;">';
+
+    if (tabName) {
+      str += `<span style="flex:0 0 auto;color:#888888;font-size:0.85em;margin-right:4px;padding-top:11px;">[${ChatLogExporter.escapeHtml(
+        tabName
+      )}]</span>`;
+    }
 
     if (isTime) {
       const date = new Date(message.timestamp);
-      str += `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}：`;
+      const time = `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}`;
+      str += `<span style="flex:0 0 auto;width:48px;color:#888888;font-size:0.85em;padding-top:11px;">${time}</span>`;
     }
 
-    str += ChatLogExporter.formatReferenceBlock(message, textDecoder);
     str += ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
 
+    str += '<div style="flex:1 1 auto;min-width:0;">';
     str += "<font color='";
     if (message.messColor) str += message.messColor.toLowerCase();
     str += "'>";
@@ -65,6 +74,7 @@ export class ChatLogExporter {
 
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     str += '：';
+    str += ChatLogExporter.formatReferenceBlock(message, textDecoder);
     if (!message.isSecret || canSee) {
       const decodedText = ChatLogExporter.decode(message.text, textDecoder);
       if (decodedText) str += ChatLogExporter.escapeHtml(decodedText).replace(/\n/g, '<br>');
@@ -73,8 +83,8 @@ export class ChatLogExporter {
       str += '（シークレットダイス）';
     }
     if (message.fixd) str += ' (編集済)';
-    str += '</font><br>';
-    str += '\n';
+    str += '</font>';
+    str += '</div></div>\n';
     return str;
   }
 
@@ -89,14 +99,15 @@ export class ChatLogExporter {
     let str = '';
     str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
     str += `      <span> [${tabName}]</span>\n`;
-    const refBlock = ChatLogExporter.formatReferenceBlock(message, textDecoder);
-    if (refBlock) str += `      ${refBlock}\n`;
     const portraitImg = ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
     if (portraitImg) str += `      ${portraitImg}\n`;
     const decodedName = ChatLogExporter.decode(message.name, textDecoder);
     str += `      <span>${ChatLogExporter.escapeHtml(decodedName).replace('<', '').replace('>', '')}</span>\n`;
     str += '      <span>\n';
     str += '        ';
+    // ref block は本文と同じ <span> 内で text の直前に置く (avatar 列を崩さないため)
+    const refBlock = ChatLogExporter.formatReferenceBlock(message, textDecoder);
+    if (refBlock) str += refBlock;
 
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     if (!message.isSecret || canSee) {
@@ -269,13 +280,19 @@ export class ChatLogExporter {
   // スクリプトが key→data URL の辞書を引いて src を埋める。
   // これで同じ立ち絵が N 回登場しても base64 文字列は 1 回しか出ない。
   // 立ち絵は 40×40 の正方形枠で揃え、足りない場合は object-fit:cover で中央クロップする。
+  // 立ち絵が無いメッセージにも同じ寸法の placeholder を出してログ全体の avatar 列を揃える。
+  private static readonly AVATAR_BOX_STYLE =
+    'display:inline-block;width:40px;height:40px;vertical-align:middle;margin-right:6px;';
+
   private static formatPortraitImage(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const portrait = message.image;
-    if (!portrait) return '';
-    const key = imageSrcResolver?.(portrait) ?? portrait.url;
-    if (!key) return '';
+    const key = portrait ? (imageSrcResolver?.(portrait) ?? portrait.url) : '';
+    if (!portrait || !key) {
+      // avatar 列を崩さないための透明 placeholder
+      return `<span style="${ChatLogExporter.AVATAR_BOX_STYLE}"></span>`;
+    }
     const alt = message.name || 'portrait';
-    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="width:40px;height:40px;vertical-align:middle;margin-right:6px;border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:cover;" />`;
+    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="${ChatLogExporter.AVATAR_BOX_STYLE}border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:cover;" />`;
   }
 
   // 引用 (quoteOf) / 返信 (replyTo) の被参照メッセージを小さな blockquote として
@@ -325,10 +342,11 @@ export class ChatLogExporter {
     const name = ChatLogExporter.escapeHtml(rawName || label);
     const text = ChatLogExporter.escapeHtml(truncated);
     // 本文と区別しやすいよう左罫線つきの淡いブロックで描画。
+    // name の直後にコンパクトに収まる inline 表示。本文は <br> を挟んで次の行に流す。
     return (
-      `<blockquote style="margin:4px 0 4px 6px;padding:2px 8px;` +
+      `<blockquote style="margin:0 4px 0 0;padding:2px 8px;` +
       `border-left:3px solid #aaaaaa;color:#666666;font-size:0.9em;background:#f7f7f7;` +
-      `display:inline-block;max-width:100%;vertical-align:top;">` +
+      `display:inline-block;max-width:70%;vertical-align:middle;">` +
       `<span style="font-weight:bold;margin-right:4px;">${icon} ${name}</span>` +
       `<span>${text}</span>` +
       `</blockquote><br>`
