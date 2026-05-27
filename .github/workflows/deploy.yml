@@ -1,0 +1,94 @@
+name: Deploy
+
+# 環境ごと (staging / production) に S3 同期 + CloudFront invalidation を行う
+# reusable workflow。release.yml から workflow_call で呼び出される。
+#
+# `environment` input が GitHub Environments の名前と対応していて、
+# Variables / Secrets はその環境からのみ解決される。
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'GitHub Environment name (staging | production)'
+        required: true
+        type: string
+      ref:
+        description: 'デプロイ対象の Git ref (タグ推奨: v1.2.3)'
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Inject backend URL
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+        run: |
+          if [ -z "$BACKEND_URL" ]; then
+            echo "::error::BACKEND_URL secret is not configured for environment '${{ inputs.environment }}'"
+            exit 1
+          fi
+          mkdir -p dist/assets
+          jq --arg url "$BACKEND_URL" '.backend.url = $url' \
+            src/assets/config.json.example > dist/assets/config.json
+          test -s dist/assets/config.json
+
+      - name: Configure AWS credentials (OIDC AssumeRole)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: udonarium-axe-${{ inputs.environment }}-${{ github.run_id }}
+
+      - name: Sync dist/ to S3
+        run: |
+          # axe_*.zip は GitHub Release 用なので S3 には載せない
+          aws s3 sync dist/ "s3://${{ vars.AWS_S3_BUCKET }}/" \
+            --delete \
+            --exclude "axe_*.zip" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          # ハッシュが付かないファイルは即時反映させたいので revalidate
+          aws s3 cp dist/index.html "s3://${{ vars.AWS_S3_BUCKET }}/index.html" \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --content-type "text/html; charset=utf-8"
+          aws s3 cp dist/assets/config.json "s3://${{ vars.AWS_S3_BUCKET }}/assets/config.json" \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --content-type "application/json"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"

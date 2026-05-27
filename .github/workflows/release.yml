@@ -9,7 +9,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  id-token: write # AWS OIDC AssumeRole 用
 
 concurrency:
   group: release-${{ github.ref }}
@@ -17,8 +16,11 @@ concurrency:
 
 jobs:
   release:
-    name: Release & Deploy
+    name: Release
     runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.semantic.outputs.released }}
+      version: ${{ steps.semantic.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,50 +62,22 @@ jobs:
             echo "::notice::No release published; skipping deploy"
           fi
 
-      # ----- ここから先は新リリースが作られた場合のみ -----
+  deploy-staging:
+    name: Staging
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      ref: v${{ needs.release.outputs.version }}
+    secrets: inherit
 
-      - name: Inject production backend URL
-        if: steps.semantic.outputs.released == 'true'
-        env:
-          BACKEND_URL: ${{ secrets.BACKEND_URL }}
-        run: |
-          if [ -z "$BACKEND_URL" ]; then
-            echo "::error::BACKEND_URL secret is not configured"
-            exit 1
-          fi
-          mkdir -p dist/assets
-          jq --arg url "$BACKEND_URL" '.backend.url = $url' \
-            src/assets/config.json.example > dist/assets/config.json
-          test -s dist/assets/config.json
-
-      - name: Configure AWS credentials (OIDC AssumeRole)
-        if: steps.semantic.outputs.released == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-          role-session-name: udonarium-axe-deploy-${{ github.run_id }}
-
-      - name: Sync dist/ to S3
-        if: steps.semantic.outputs.released == 'true'
-        run: |
-          # axe_*.zip は GitHub Release 用なので S3 には載せない
-          aws s3 sync dist/ "s3://${{ vars.AWS_S3_BUCKET }}/" \
-            --delete \
-            --exclude "axe_*.zip" \
-            --cache-control "public, max-age=31536000, immutable"
-
-          # ハッシュが付かないファイルはキャッシュさせない
-          aws s3 cp dist/index.html "s3://${{ vars.AWS_S3_BUCKET }}/index.html" \
-            --cache-control "public, max-age=0, must-revalidate" \
-            --content-type "text/html; charset=utf-8"
-          aws s3 cp dist/assets/config.json "s3://${{ vars.AWS_S3_BUCKET }}/assets/config.json" \
-            --cache-control "public, max-age=0, must-revalidate" \
-            --content-type "application/json"
-
-      - name: Invalidate CloudFront
-        if: steps.semantic.outputs.released == 'true'
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths "/*"
+  deploy-production:
+    name: Production
+    needs: [release, deploy-staging]
+    if: needs.release.outputs.released == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      ref: v${{ needs.release.outputs.version }}
+    secrets: inherit
