@@ -63,6 +63,7 @@ export class ChatLogExporter {
     str += ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
 
     str += '<div style="flex:1 1 auto;min-width:0;">';
+    str += ChatLogExporter.formatReferenceBlock(message, textDecoder);
     str += "<font color='";
     if (message.messColor) str += message.messColor.toLowerCase();
     str += "'>";
@@ -74,7 +75,6 @@ export class ChatLogExporter {
 
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     str += '：';
-    str += ChatLogExporter.formatReferenceBlock(message, textDecoder);
     if (!message.isSecret || canSee) {
       const decodedText = ChatLogExporter.decode(message.text, textDecoder);
       if (decodedText) str += ChatLogExporter.escapeHtml(decodedText).replace(/\n/g, '<br>');
@@ -97,17 +97,15 @@ export class ChatLogExporter {
   ): string {
     if (!message) return '';
     let str = '';
-    str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
-    str += `      <span> [${tabName}]</span>\n`;
-    const portraitImg = ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
-    if (portraitImg) str += `      ${portraitImg}\n`;
-    const decodedName = ChatLogExporter.decode(message.name, textDecoder);
-    str += `      <span>${ChatLogExporter.escapeHtml(decodedName).replace('<', '').replace('>', '')}</span>\n`;
-    str += '      <span>\n';
+    str += `    <p style="color:${message.messColor.toLowerCase()};display:flex;align-items:flex-start;margin:2px 0;line-height:1.5;">\n`;
+    str += `      <span style="flex:0 0 auto;margin-right:4px;padding-top:11px;"> [${tabName}]</span>\n`;
+    str += `      ${ChatLogExporter.formatPortraitImage(message, imageSrcResolver)}\n`;
+    str += '      <span style="flex:1 1 auto;min-width:0;">\n';
     str += '        ';
-    // ref block は本文と同じ <span> 内で text の直前に置く (avatar 列を崩さないため)
     const refBlock = ChatLogExporter.formatReferenceBlock(message, textDecoder);
     if (refBlock) str += refBlock;
+    const decodedName = ChatLogExporter.decode(message.name, textDecoder);
+    str += `<span>${ChatLogExporter.escapeHtml(decodedName).replace('<', '').replace('>', '')}</span> `;
 
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     if (!message.isSecret || canSee) {

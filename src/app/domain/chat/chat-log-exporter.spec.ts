@@ -219,8 +219,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('↩');
       expect(result).toContain('相手');
       expect(result).toContain('元の発言');
-      // ref block は name の後ろ (avatar 列を崩さないため)、本文の前に出る
-      expect(result.indexOf('blockquote')).toBeGreaterThan(result.indexOf('<b>自分</b>'));
+      expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('<b>自分</b>'));
       expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('返事'));
     });
 
