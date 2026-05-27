@@ -3,6 +3,7 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitFinishVote, emitStartVote } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -12,6 +13,7 @@ describe('VoteEventHandlerService', () => {
   let panelStub: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
+    PeerCursor.createMyCursor();
     chatStub = { sendSystemMessageLastSendCharactor: vi.fn() };
     panelStub = { open: vi.fn().mockReturnValue({}) };
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });

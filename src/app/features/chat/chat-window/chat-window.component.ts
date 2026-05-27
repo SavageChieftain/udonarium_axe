@@ -189,13 +189,10 @@ export class ChatWindowComponent {
     }, this.destroyRef);
     this.objectChange.onObjectChangedForAlias(
       [ChatTab.aliasName, ChatTabList.aliasName],
-      (event) => {
-        const object = this.objectStore.get(event.identifier);
-        if (object instanceof ChatTab || object instanceof ChatTabList) {
-          if (!this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
-            const chatTabs = this.chatMessageService.chatTabs;
-            this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
-          }
+      () => {
+        if (!this.objectStore.get<ChatTab>(this._chatTabidentifier())) {
+          const chatTabs = this.chatMessageService.chatTabs;
+          this.chatTabidentifier = chatTabs.length > 0 ? chatTabs[0].identifier : '';
         }
       },
       this.destroyRef
