@@ -97,10 +97,10 @@ export class ChatLogExporter {
   ): string {
     if (!message) return '';
     let str = '';
-    str += `    <p style="color:${message.messColor.toLowerCase()};display:flex;align-items:flex-start;margin:2px 0;line-height:1.5;">\n`;
+    str += `    <div style="color:${message.messColor.toLowerCase()};display:flex;align-items:flex-start;margin:2px 0;line-height:1.5;">\n`;
     str += `      <span style="flex:0 0 auto;margin-right:4px;padding-top:11px;"> [${tabName}]</span>\n`;
     str += `      ${ChatLogExporter.formatPortraitImage(message, imageSrcResolver)}\n`;
-    str += '      <span style="flex:1 1 auto;min-width:0;">\n';
+    str += '      <div style="flex:1 1 auto;min-width:0;">\n';
     str += '        ';
     const refBlock = ChatLogExporter.formatReferenceBlock(message, textDecoder);
     if (refBlock) str += refBlock;
@@ -118,8 +118,8 @@ export class ChatLogExporter {
     if (message.fixd) str += ' (編集済)';
     str += '\n';
 
-    str += '      </span>\n';
-    str += '    </p>\n';
+    str += '      </div>\n';
+    str += '    </div>\n';
     str += '    \n';
     return str;
   }

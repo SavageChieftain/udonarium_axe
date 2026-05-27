@@ -318,6 +318,30 @@ describe('ChatLogExporter', () => {
       expect(ChatLogExporter.formatMessageCoc('', null!)).toBe('');
     });
 
+    it('CoC形式の引用/返信ブロックはキャラ名の前に出る (本文と分離)', () => {
+      const targetMessage = {
+        identifier: 'msg-target-coc',
+        name: '相手',
+        text: '元の発言',
+      } as ChatMessage;
+      const msg = createMockMessage({
+        name: '自分',
+        text: '返事',
+        replyTo: 'msg-target-coc',
+        replyToMessage: targetMessage,
+      } as Partial<ChatMessage> & { replyToMessage: ChatMessage });
+      const result = ChatLogExporter.formatMessageCoc('タブ', msg);
+      expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('<span>自分</span>'));
+      expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('返事'));
+    });
+
+    it('CoC形式の本文を内包するラッパは <p> ではなく <div> (blockquote の auto-close 回避)', () => {
+      const msg = createMockMessage({ name: '探索者', text: '本文' });
+      const result = ChatLogExporter.formatMessageCoc('タブ', msg);
+      expect(result).not.toContain('<p ');
+      expect(result).toContain('<div ');
+    });
+
     it('CoC形式でも立ち絵 (message.image) を <img> として name の前に挿入する', () => {
       const portrait = {
         identifier: 'portrait-2',
