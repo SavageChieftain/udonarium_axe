@@ -1,8 +1,10 @@
 import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { Attributes } from '@axe/core/sync/attributes';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -124,6 +126,26 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   }
   override get index(): number {
     return this.minorIndex + this.timestamp;
+  }
+
+  // replyTo / quoteOf は被参照メッセージの identifier (context 側) を文字列として保持する。
+  // 既定の ObjectNode は context.identifier を XML に書き出さないので、save → load の
+  // たびに ID が振り直されて参照が切れてしまう。ChatMessage は relationship を保つために
+  // identifier を XML 属性として明示的に出し入れする。
+  override toAttributes(): Attributes {
+    const attrs: Attributes = { ...ObjectSerializer.toAttributes(this.attributes as Attributes) };
+    attrs['identifier'] = this.identifier;
+    return attrs;
+  }
+
+  override parseAttributes(attributes: NamedNodeMap): void {
+    ObjectSerializer.parseAttributes(this.attributes, attributes);
+    const persistedId = this.attributes['identifier'];
+    if (typeof persistedId === 'string' && persistedId.length > 0) {
+      (this as unknown as { context: { identifier: string } }).context.identifier = persistedId;
+      // attributes 側からは消す (identifier は context だけが正)
+      delete (this.attributes as Record<string, unknown>)['identifier'];
+    }
   }
   get isDirect(): boolean {
     return this.sendTo.length > 0;

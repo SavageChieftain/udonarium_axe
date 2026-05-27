@@ -376,5 +376,39 @@ describe('ChatMessage', () => {
       expect(restored.replyTo).toBe('msg-target-1');
       expect(restored.quoteOf).toBe('msg-quote-1');
     });
+
+    it('identifier が XML に保持されるので reload 後でも replyToMessage で被参照を辿れる', () => {
+      const target = new ChatMessage();
+      target.initialize();
+      target.name = '相手';
+      target.text = '元の発言';
+      const targetId = target.identifier;
+
+      const reply = new ChatMessage();
+      reply.initialize();
+      reply.replyTo = targetId;
+      reply.name = '自分';
+      reply.text = '返事';
+
+      const targetXml = target.toXml();
+      const replyXml = reply.toXml();
+
+      // 両方の identifier が XML 属性として出ている
+      expect(targetXml).toContain(`identifier="${targetId}"`);
+      expect(replyXml).toContain(`identifier="${reply.identifier}"`);
+
+      // ストアを空にしてからパース (zip ロードのシミュレーション)
+      store.delete(target, false);
+      store.delete(reply, false);
+      store.clearDeleteHistory();
+
+      const restoredTarget = ObjectSerializer.instance.parseXml(targetXml) as ChatMessage;
+      const restoredReply = ObjectSerializer.instance.parseXml(replyXml) as ChatMessage;
+
+      expect(restoredTarget.identifier).toBe(targetId);
+      expect(restoredReply.replyTo).toBe(targetId);
+      // identifier が保たれていれば replyToMessage が再リンクできる
+      expect(restoredReply.replyToMessage).toBe(restoredTarget);
+    });
   });
 });
