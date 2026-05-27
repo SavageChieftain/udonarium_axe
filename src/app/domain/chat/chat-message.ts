@@ -93,6 +93,11 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     const target = ObjectStore.instance.get<ChatMessage>(this.replyTo);
     return target instanceof ChatMessage ? target : null;
   }
+  get quoteOfMessage(): ChatMessage | null {
+    if (!this.quoteOf) return null;
+    const target = ObjectStore.instance.get<ChatMessage>(this.quoteOf);
+    return target instanceof ChatMessage ? target : null;
+  }
   get attachmentImageIdentifierList(): string[] {
     const rawValue = String(this.attachmentImageIdentifiers ?? '').trim();
     if (rawValue.startsWith('[')) {

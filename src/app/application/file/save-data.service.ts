@@ -256,8 +256,9 @@ export class SaveDataService {
     let nextIndex = 0;
     await Promise.all(
       [...seen.values()].map(async (image) => {
-        const maxDimension = portraitIds.has(image.identifier) ? SaveDataService.PORTRAIT_MAX_DIMENSION : 0;
-        const src = await this.createChatLogImageSrc(image, maxDimension);
+        const isPortrait = portraitIds.has(image.identifier);
+        const maxDimension = isPortrait ? SaveDataService.PORTRAIT_MAX_DIMENSION : 0;
+        const src = await this.createChatLogImageSrc(image, maxDimension, isPortrait);
         if (!src) return;
         const key = `i${nextIndex++}`;
         keyByIdentifier.set(image.identifier, key);
@@ -270,27 +271,31 @@ export class SaveDataService {
     return { resolver, registryScript };
   }
 
-  private async createChatLogImageSrc(image: ImageFile, maxDimension: number): Promise<string> {
+  private async createChatLogImageSrc(image: ImageFile, maxDimension: number, square = false): Promise<string> {
     let blob = image.blob;
     if (blob) {
       if (maxDimension > 0) {
-        blob = (await downscaleImageBlob(blob, maxDimension)) ?? blob;
+        blob = (await downscaleImageBlob(blob, maxDimension, { square })) ?? blob;
       }
       return FileReaderUtil.readAsDataURLAsync(blob);
     }
 
     const url = image.url;
     if (!url || url.startsWith('data:')) return url;
-    return (await this.createChatLogImageSrcFromUrl(url, maxDimension)) ?? url;
+    return (await this.createChatLogImageSrcFromUrl(url, maxDimension, square)) ?? url;
   }
 
-  private async createChatLogImageSrcFromUrl(url: string, maxDimension: number): Promise<string | null> {
+  private async createChatLogImageSrcFromUrl(
+    url: string,
+    maxDimension: number,
+    square: boolean
+  ): Promise<string | null> {
     try {
       const response = await fetch(url);
       if (!response.ok) return null;
       let blob = await response.blob();
       if (maxDimension > 0) {
-        blob = (await downscaleImageBlob(blob, maxDimension)) ?? blob;
+        blob = (await downscaleImageBlob(blob, maxDimension, { square })) ?? blob;
       }
       return FileReaderUtil.readAsDataURLAsync(blob);
     } catch {

@@ -1,13 +1,24 @@
+export interface DownscaleOptions {
+  /**
+   * true のとき中心を基準に正方形クロップしてから maxDimension にリサンプルする。
+   * 立ち絵のサムネイル化など、サイズが揃ってほしい用途に。
+   */
+  square?: boolean;
+}
+
 /**
  * Blob 画像を最大辺 maxDimension まで canvas でリサンプルしたうえで Blob に書き戻す。
  *
- * - 元画像が maxDimension 以下なら何もせず元 Blob を返す。
+ * - 元画像が maxDimension 以下 (かつ square 不要) なら何もせず元 Blob を返す。
  * - ブラウザ以外 (Node / happy-dom 等) や canvas 未対応環境では何もせず元 Blob を返す。
  * - 縮小結果が元より大きくなった場合 (低解像度元画像など) も元 Blob を返す。
- *
- * 主にチャットログ HTML エクスポートで base64 化前の立ち絵を一気に小さくするために使う。
+ * - square: true なら中心基準の正方形クロップを行ったうえでリサンプル。出力は常に maxDimension × maxDimension。
  */
-export async function downscaleImageBlob(blob: Blob | null | undefined, maxDimension: number): Promise<Blob | null> {
+export async function downscaleImageBlob(
+  blob: Blob | null | undefined,
+  maxDimension: number,
+  options: DownscaleOptions = {}
+): Promise<Blob | null> {
   if (!blob) return blob ?? null;
   if (maxDimension <= 0) return blob;
   // 画像でない blob (テスト用の text/plain など) を canvas に通そうとすると
@@ -21,19 +32,40 @@ export async function downscaleImageBlob(blob: Blob | null | undefined, maxDimen
   try {
     objectUrl = URL.createObjectURL(blob);
     const img = await loadImage(objectUrl);
-    const longSide = Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height);
-    if (longSide <= 0 || longSide <= maxDimension) return blob;
+    const naturalW = img.naturalWidth || img.width;
+    const naturalH = img.naturalHeight || img.height;
+    if (naturalW <= 0 || naturalH <= 0) return blob;
 
-    const scale = maxDimension / longSide;
-    const targetW = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
-    const targetH = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+    const square = options.square === true;
+    let sx = 0;
+    let sy = 0;
+    let sw = naturalW;
+    let sh = naturalH;
+    let targetW: number;
+    let targetH: number;
+
+    if (square) {
+      // 短辺基準で中央クロップ
+      const side = Math.min(naturalW, naturalH);
+      sx = Math.floor((naturalW - side) / 2);
+      sy = Math.floor((naturalH - side) / 2);
+      sw = side;
+      sh = side;
+      targetW = targetH = Math.min(side, maxDimension);
+    } else {
+      const longSide = Math.max(naturalW, naturalH);
+      if (longSide <= maxDimension) return blob;
+      const scale = maxDimension / longSide;
+      targetW = Math.max(1, Math.round(naturalW * scale));
+      targetH = Math.max(1, Math.round(naturalH * scale));
+    }
 
     const canvas = document.createElement('canvas');
     canvas.width = targetW;
     canvas.height = targetH;
     const ctx = canvas.getContext('2d');
     if (!ctx) return blob;
-    ctx.drawImage(img, 0, 0, targetW, targetH);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
 
     // 透過保持のため PNG。JPEG 元のときは JPEG (透過不要 + 軽い)。
     const outputType = blob.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';

@@ -51,6 +51,7 @@ export class ChatLogExporter {
       str += `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}：`;
     }
 
+    str += ChatLogExporter.formatReferenceBlock(message, textDecoder);
     str += ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
 
     str += "<font color='";
@@ -88,6 +89,8 @@ export class ChatLogExporter {
     let str = '';
     str += `    <p style="color:${message.messColor.toLowerCase()};">\n`;
     str += `      <span> [${tabName}]</span>\n`;
+    const refBlock = ChatLogExporter.formatReferenceBlock(message, textDecoder);
+    if (refBlock) str += `      ${refBlock}\n`;
     const portraitImg = ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
     if (portraitImg) str += `      ${portraitImg}\n`;
     const decodedName = ChatLogExporter.decode(message.name, textDecoder);
@@ -265,13 +268,71 @@ export class ChatLogExporter {
   // 出力 HTML は <img data-img-key="K" ...> となり、末尾に注入されるハイドレーション
   // スクリプトが key→data URL の辞書を引いて src を埋める。
   // これで同じ立ち絵が N 回登場しても base64 文字列は 1 回しか出ない。
+  // 立ち絵は 40×40 の正方形枠で揃え、足りない場合は object-fit:cover で中央クロップする。
   private static formatPortraitImage(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const portrait = message.image;
     if (!portrait) return '';
     const key = imageSrcResolver?.(portrait) ?? portrait.url;
     if (!key) return '';
     const alt = message.name || 'portrait';
-    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="height:40px;width:auto;max-width:64px;vertical-align:middle;margin-right:6px;border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:contain;" />`;
+    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="width:40px;height:40px;vertical-align:middle;margin-right:6px;border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:cover;" />`;
+  }
+
+  // 引用 (quoteOf) / 返信 (replyTo) の被参照メッセージを小さな blockquote として
+  // 本文の直前に挿入する。チャット UI 側のプレビューと同じ程度に長さを切り詰める。
+  private static formatReferenceBlock(message: ChatMessage, textDecoder?: ChatLogTextDecoder): string {
+    const quote = message.quoteOf ? message.quoteOfMessage : null;
+    const reply = message.replyTo ? message.replyToMessage : null;
+    if (!quote && !reply) return '';
+
+    const blocks: string[] = [];
+    if (quote) {
+      blocks.push(
+        ChatLogExporter.formatReferenceBlockBody({
+          label: '引用',
+          icon: '❝',
+          target: quote,
+          maxTextLength: 280,
+          textDecoder,
+        })
+      );
+    }
+    if (reply) {
+      blocks.push(
+        ChatLogExporter.formatReferenceBlockBody({
+          label: '返信先',
+          icon: '↩',
+          target: reply,
+          maxTextLength: 120,
+          textDecoder,
+        })
+      );
+    }
+    return blocks.join('');
+  }
+
+  private static formatReferenceBlockBody(opts: {
+    label: string;
+    icon: string;
+    target: ChatMessage;
+    maxTextLength: number;
+    textDecoder?: ChatLogTextDecoder;
+  }): string {
+    const { label, icon, target, maxTextLength, textDecoder } = opts;
+    const rawName = ChatLogExporter.decode(target.name, textDecoder);
+    const rawText = ChatLogExporter.decode(target.text, textDecoder).replace(/\s+/g, ' ').trim();
+    const truncated = rawText.length > maxTextLength ? rawText.slice(0, maxTextLength) + '…' : rawText;
+    const name = ChatLogExporter.escapeHtml(rawName || label);
+    const text = ChatLogExporter.escapeHtml(truncated);
+    // 本文と区別しやすいよう左罫線つきの淡いブロックで描画。
+    return (
+      `<blockquote style="margin:4px 0 4px 6px;padding:2px 8px;` +
+      `border-left:3px solid #aaaaaa;color:#666666;font-size:0.9em;background:#f7f7f7;` +
+      `display:inline-block;max-width:100%;vertical-align:top;">` +
+      `<span style="font-weight:bold;margin-right:4px;">${icon} ${name}</span>` +
+      `<span>${text}</span>` +
+      `</blockquote><br>`
+    );
   }
 
   private static formatAttachmentImages(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {

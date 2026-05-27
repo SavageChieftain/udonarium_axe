@@ -189,6 +189,56 @@ describe('ChatLogExporter', () => {
       expect(ChatLogExporter.formatMessageStandard(false, '', null!)).toBe('');
     });
 
+    it('立ち絵 <img> は 40×40 の正方形枠で出力される', () => {
+      const portrait = {
+        identifier: 'portrait-square',
+        name: 'hero.png',
+        url: 'blob:portrait',
+      };
+      const msg = createMockMessage({ name: '勇者', image: portrait } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg, undefined, () => 'k1');
+      expect(result).toContain('width:40px');
+      expect(result).toContain('height:40px');
+      expect(result).toContain('object-fit:cover');
+      expect(result).not.toContain('max-width:64px');
+    });
+
+    it('replyTo があれば被参照メッセージを返信先ブロックとして本文の前に表示する', () => {
+      const targetMessage = {
+        identifier: 'msg-target',
+        name: '相手',
+        text: '元の発言',
+      } as ChatMessage;
+      const msg = createMockMessage({
+        name: '自分',
+        text: '返事',
+        replyTo: 'msg-target',
+        replyToMessage: targetMessage,
+      } as Partial<ChatMessage> & { replyToMessage: ChatMessage });
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+      expect(result).toContain('↩');
+      expect(result).toContain('相手');
+      expect(result).toContain('元の発言');
+      expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('返事'));
+    });
+
+    it('quoteOf があれば被参照メッセージを引用ブロックとして本文の前に表示する', () => {
+      const targetMessage = {
+        identifier: 'msg-quote',
+        name: '相手',
+        text: '引用される本文',
+      } as ChatMessage;
+      const msg = createMockMessage({
+        name: '自分',
+        text: 'コメント',
+        quoteOf: 'msg-quote',
+        quoteOfMessage: targetMessage,
+      } as Partial<ChatMessage> & { quoteOfMessage: ChatMessage });
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+      expect(result).toContain('❝');
+      expect(result).toContain('引用される本文');
+    });
+
     it('textDecoder が指定されたら message.name / message.text を変換した上で escape する', () => {
       const msg = createMockMessage({
         name: '@i18n:common.chat.systemName:{}',
