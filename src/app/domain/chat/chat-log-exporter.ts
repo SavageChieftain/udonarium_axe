@@ -227,13 +227,17 @@ export class ChatLogExporter {
     return parts.join('');
   }
 
+  // resolver は data URL ではなく短い「key」(レジストリの索引) を返す前提に変更している。
+  // 出力 HTML は <img data-img-key="K" ...> となり、末尾に注入されるハイドレーション
+  // スクリプトが key→data URL の辞書を引いて src を埋める。
+  // これで同じ立ち絵が N 回登場しても base64 文字列は 1 回しか出ない。
   private static formatPortraitImage(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const portrait = message.image;
     if (!portrait) return '';
-    const src = imageSrcResolver?.(portrait) ?? portrait.url;
-    if (!src) return '';
+    const key = imageSrcResolver?.(portrait) ?? portrait.url;
+    if (!key) return '';
     const alt = message.name || 'portrait';
-    return `<img src="${ChatLogExporter.escapeAttribute(src)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="height:40px;width:auto;max-width:64px;vertical-align:middle;margin-right:6px;border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:contain;" />`;
+    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="height:40px;width:auto;max-width:64px;vertical-align:middle;margin-right:6px;border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:contain;" />`;
   }
 
   private static formatAttachmentImages(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
@@ -242,10 +246,10 @@ export class ChatLogExporter {
 
     const imageTags = images
       .map((image) => {
-        const src = imageSrcResolver?.(image) ?? image.url;
-        if (!src) return '';
+        const key = imageSrcResolver?.(image) ?? image.url;
+        if (!key) return '';
         const alt = image.name || '添付画像';
-        return `<img src="${ChatLogExporter.escapeAttribute(src)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="max-width:180px;max-height:120px;width:auto;height:auto;object-fit:contain;border:1px solid #cccccc;border-radius:4px;background:#ffffff;vertical-align:top;margin:2px 4px 2px 0;" />`;
+        return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="max-width:180px;max-height:120px;width:auto;height:auto;object-fit:contain;border:1px solid #cccccc;border-radius:4px;background:#ffffff;vertical-align:top;margin:2px 4px 2px 0;" />`;
       })
       .filter((imageTag) => imageTag.length > 0)
       .join('');

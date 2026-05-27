@@ -144,7 +144,7 @@ describe('ChatLogExporter', () => {
       );
 
       expect(result).toContain('<img');
-      expect(result).toContain('src="data:image/png;base64,AAAA"');
+      expect(result).toContain('data-img-key="data:image/png;base64,AAAA"');
       expect(result).toContain('alt="stamp.png"');
     });
 
@@ -160,7 +160,7 @@ describe('ChatLogExporter', () => {
       } as Partial<ChatMessage>);
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
 
-      expect(result).toContain('src="https://example.test/stamp.png?x=1&amp;y=2"');
+      expect(result).toContain('data-img-key="https://example.test/stamp.png?x=1&amp;y=2"');
       expect(result).toContain('alt="|画像《がぞう》"');
       expect(result).not.toContain('<ruby>画像');
     });
@@ -200,7 +200,7 @@ describe('ChatLogExporter', () => {
         image === portrait ? 'data:image/png;base64,PORTRAIT' : image.url
       );
 
-      expect(result).toContain('src="data:image/png;base64,PORTRAIT"');
+      expect(result).toContain('data-img-key="data:image/png;base64,PORTRAIT"');
       expect(result).toContain('alt="勇者"');
       const imgPos = result.indexOf('<img');
       const namePos = result.indexOf('<b>勇者</b>');
@@ -241,7 +241,7 @@ describe('ChatLogExporter', () => {
       const result = ChatLogExporter.formatMessageCoc('メインタブ', msg, undefined, () => 'data:image/png;base64,BBBB');
 
       expect(result).toContain('<img');
-      expect(result).toContain('src="data:image/png;base64,BBBB"');
+      expect(result).toContain('data-img-key="data:image/png;base64,BBBB"');
       expect(result).toContain('alt="stamp.png"');
     });
 
@@ -260,7 +260,7 @@ describe('ChatLogExporter', () => {
         image === portrait ? 'data:image/png;base64,COC' : image.url
       );
 
-      expect(result).toContain('src="data:image/png;base64,COC"');
+      expect(result).toContain('data-img-key="data:image/png;base64,COC"');
       const imgPos = result.indexOf('<img');
       const namePos = result.indexOf('<span>KP</span>');
       expect(imgPos).toBeGreaterThan(-1);

@@ -3,6 +3,7 @@ import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
+import { downscaleImageBlob } from '@axe/core/storage/image-downscale';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
@@ -176,77 +177,132 @@ export class SaveDataService {
   }
 
   async saveHtmlChatLog(chatTab: ChatTab, fileName: string): Promise<void> {
-    const imageSrcResolver = await this.createChatLogImageSrcResolver([chatTab]);
-    const text: string = ChatLogExporter.exportTabHtml(chatTab, undefined, imageSrcResolver);
+    const { resolver, registryScript } = await this.buildChatLogImageRegistry([chatTab]);
+    const body: string = ChatLogExporter.exportTabHtml(chatTab, undefined, resolver);
+    const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
   async saveHtmlChatLogAll(fileName: string): Promise<void> {
-    const imageSrcResolver = await this.createChatLogImageSrcResolver(this.chatTabList.chatTabs);
-    const text: string = ChatLogExporter.exportAllTabsHtml(
+    const { resolver, registryScript } = await this.buildChatLogImageRegistry(this.chatTabList.chatTabs);
+    const body: string = ChatLogExporter.exportAllTabsHtml(
       this.chatTabList.chatTabs,
       this.chatTabList.simpleDispFlagTime,
       undefined,
-      imageSrcResolver
+      resolver
     );
+    const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
   async saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string): Promise<void> {
-    const imageSrcResolver = await this.createChatLogImageSrcResolver([chatTab]);
-    const text: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, imageSrcResolver);
+    const { resolver, registryScript } = await this.buildChatLogImageRegistry([chatTab]);
+    const body: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, resolver);
+    const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
   async saveHtmlChatLogAllCoc(fileName: string): Promise<void> {
-    const imageSrcResolver = await this.createChatLogImageSrcResolver(this.chatTabList.chatTabs);
-    const text: string = ChatLogExporter.exportAllTabsHtmlCoc(this.chatTabList.chatTabs, undefined, imageSrcResolver);
+    const { resolver, registryScript } = await this.buildChatLogImageRegistry(this.chatTabList.chatTabs);
+    const body: string = ChatLogExporter.exportAllTabsHtmlCoc(this.chatTabList.chatTabs, undefined, resolver);
+    const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
   }
 
-  private async createChatLogImageSrcResolver(chatTabs: readonly ChatTab[]): Promise<ChatLogImageSrcResolver> {
-    const images = new Map<string, ImageFile>();
+  private static readonly PORTRAIT_MAX_DIMENSION = 80;
+
+  /**
+   * 同じ画像が複数回出てくる場合に備えて key (i0, i1, ...) → data URL のレジストリを作り、
+   * 各 <img> に data-img-key="K" だけを残す。ロード時にハイドレーションスクリプトが
+   * src を流し込む。base64 巨大文字列の重複が消えるので HTML サイズが激減する。
+   */
+  private async buildChatLogImageRegistry(
+    chatTabs: readonly ChatTab[]
+  ): Promise<{ resolver: ChatLogImageSrcResolver; registryScript: string }> {
+    const portraitIds = new Set<string>();
+    const seen = new Map<string, ImageFile>();
     for (const chatTab of chatTabs) {
       for (const message of chatTab.chatMessages) {
         const portrait = message.image;
-        if (portrait) images.set(portrait.identifier, portrait);
+        if (portrait) {
+          seen.set(portrait.identifier, portrait);
+          portraitIds.add(portrait.identifier);
+        }
         for (const image of message.attachmentImages) {
-          images.set(image.identifier, image);
+          if (!seen.has(image.identifier)) seen.set(image.identifier, image);
         }
       }
     }
 
-    const imageSources = new Map<string, string>();
+    const keyByIdentifier = new Map<string, string>();
+    const srcByKey: Record<string, string> = {};
+    let nextIndex = 0;
     await Promise.all(
-      [...images.values()].map(async (image) => {
-        imageSources.set(image.identifier, await this.createChatLogImageSrc(image));
+      [...seen.values()].map(async (image) => {
+        const maxDimension = portraitIds.has(image.identifier) ? SaveDataService.PORTRAIT_MAX_DIMENSION : 0;
+        const src = await this.createChatLogImageSrc(image, maxDimension);
+        if (!src) return;
+        const key = `i${nextIndex++}`;
+        keyByIdentifier.set(image.identifier, key);
+        srcByKey[key] = src;
       })
     );
 
-    return (image) => imageSources.get(image.identifier) ?? image.url;
+    const resolver: ChatLogImageSrcResolver = (image) => keyByIdentifier.get(image.identifier) ?? '';
+    const registryScript = SaveDataService.buildImageRegistryScript(srcByKey);
+    return { resolver, registryScript };
   }
 
-  private async createChatLogImageSrc(image: ImageFile): Promise<string> {
-    const blob = image.blob;
-    if (blob) return FileReaderUtil.readAsDataURLAsync(blob);
+  private async createChatLogImageSrc(image: ImageFile, maxDimension: number): Promise<string> {
+    let blob = image.blob;
+    if (blob) {
+      if (maxDimension > 0) {
+        blob = (await downscaleImageBlob(blob, maxDimension)) ?? blob;
+      }
+      return FileReaderUtil.readAsDataURLAsync(blob);
+    }
 
     const url = image.url;
     if (!url || url.startsWith('data:')) return url;
-    return (await this.createChatLogImageSrcFromUrl(url)) ?? url;
+    return (await this.createChatLogImageSrcFromUrl(url, maxDimension)) ?? url;
   }
 
-  private async createChatLogImageSrcFromUrl(url: string): Promise<string | null> {
+  private async createChatLogImageSrcFromUrl(url: string, maxDimension: number): Promise<string | null> {
     try {
       const response = await fetch(url);
       if (!response.ok) return null;
-      return FileReaderUtil.readAsDataURLAsync(await response.blob());
+      let blob = await response.blob();
+      if (maxDimension > 0) {
+        blob = (await downscaleImageBlob(blob, maxDimension)) ?? blob;
+      }
+      return FileReaderUtil.readAsDataURLAsync(blob);
     } catch {
       return null;
     }
+  }
+
+  private static buildImageRegistryScript(srcByKey: Record<string, string>): string {
+    if (Object.keys(srcByKey).length === 0) return '';
+    // base64 / fetched URL に "</script>" は混入しないが念のためエスケープ
+    const json = JSON.stringify(srcByKey).replace(/<\/(script)/gi, '<\\/$1');
+    return (
+      `<script>(function(){var m=${json};` +
+      `document.querySelectorAll('img[data-img-key]').forEach(function(el){` +
+      `var k=el.getAttribute('data-img-key');` +
+      `if(k&&Object.prototype.hasOwnProperty.call(m,k))el.setAttribute('src',m[k]);` +
+      `});})();</script>`
+    );
+  }
+
+  private static injectImageRegistry(html: string, registryScript: string): string {
+    if (!registryScript) return html;
+    const lastBodyClose = html.lastIndexOf('</body>');
+    if (lastBodyClose < 0) return html + '\n' + registryScript;
+    return html.slice(0, lastBodyClose) + registryScript + '\n' + html.slice(lastBodyClose);
   }
 
   private appendTimestamp(fileName: string): string {
