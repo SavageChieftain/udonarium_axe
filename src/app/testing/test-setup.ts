@@ -88,6 +88,64 @@ if (!navigator.mediaDevices) {
   });
 }
 
+// happy-dom には WebAudio API が無い。AudioPlayer.resumeAudioContext() で登録された
+// document.mousedown / touchstart リスナーは別の spec から残留することがあるため、
+// user-interaction-unlock.spec などが dispatchEvent した瞬間に AudioContext を new
+// しようとして "is not a constructor" で落ちる。最小スタブを globalThis / window に張る。
+if (typeof globalThis.AudioContext === 'undefined') {
+  class FakeAudioParam {
+    value = 1;
+    setValueAtTime() {
+      return this;
+    }
+    setTargetAtTime() {
+      return this;
+    }
+  }
+  class FakeGainNode {
+    readonly gain = new FakeAudioParam();
+    connect() {
+      return this;
+    }
+    disconnect() {
+      return this;
+    }
+  }
+  class FakeMediaElementSource {
+    connect() {
+      return this;
+    }
+    disconnect() {
+      return this;
+    }
+  }
+  class FakeAudioContext {
+    currentTime = 0;
+    destination: object = {};
+    resume() {
+      return Promise.resolve();
+    }
+    suspend() {
+      return Promise.resolve();
+    }
+    close() {
+      return Promise.resolve();
+    }
+    createGain() {
+      return new FakeGainNode();
+    }
+    createMediaElementSource() {
+      return new FakeMediaElementSource();
+    }
+  }
+  (globalThis as unknown as Record<string, unknown>)['AudioContext'] = FakeAudioContext;
+  (globalThis as unknown as Record<string, unknown>)['webkitAudioContext'] = FakeAudioContext;
+  if (typeof window !== 'undefined') {
+    (window as unknown as Record<string, unknown>)['AudioContext'] = FakeAudioContext;
+    (window as unknown as Record<string, unknown>)['webkitAudioContext'] = FakeAudioContext;
+  }
+}
+
 // happy-dom's FileReader loses readAs* once zone.js patches it; rebuild on Blob API.
 class FileReaderPolyfill {
   result: string | ArrayBuffer | null = null;
