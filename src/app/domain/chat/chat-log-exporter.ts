@@ -26,6 +26,20 @@ const HTML_ESCAPE_MAP: Record<string, string> = {
 };
 
 export class ChatLogExporter {
+  static readonly STYLE_BLOCK =
+    '<style>' +
+    '.m{display:flex;align-items:flex-start;margin:2px 0;line-height:1.5}' +
+    '.tb{flex:0 0 auto;color:#888;font-size:.85em;margin-right:4px;padding-top:11px}' +
+    '.tm{flex:0 0 auto;width:48px;color:#888;font-size:.85em;padding-top:11px}' +
+    '.tc{flex:0 0 auto;margin-right:4px;padding-top:11px}' +
+    '.av{display:inline-block;width:40px;height:40px;vertical-align:middle;margin-right:6px}' +
+    '.ap{border:1px solid #ccc;border-radius:4px;background:#fff;object-fit:cover}' +
+    '.ct{flex:1 1 auto;min-width:0}' +
+    '.bq{margin:0 4px 0 0;padding:2px 8px;border-left:3px solid #aaa;color:#666;font-size:.9em;background:#f7f7f7;display:inline-block;max-width:70%;vertical-align:middle}' +
+    '.bn{font-weight:bold;margin-right:4px}' +
+    '.ai{max-width:180px;max-height:120px;width:auto;height:auto;object-fit:contain;border:1px solid #ccc;border-radius:4px;background:#fff;vertical-align:top;margin:2px 4px 2px 0}' +
+    '.aw{display:block;margin-top:6px;white-space:normal}' +
+    '</style>\n';
   static escapeHtml(value: unknown): string {
     if (typeof value !== 'string') {
       return String(value);
@@ -43,26 +57,21 @@ export class ChatLogExporter {
     textDecoder?: ChatLogTextDecoder
   ): string {
     if (!message) return '';
-    // 1 メッセージ = 1 flex 行で [tab?] [time?] [avatar] [content] の列を縦に揃える。
-    // 本文や引用ブロックは content 列の中で折り返すので、引用/返信メッセージでも
-    // 立ち絵 (avatar) の x 位置がぶれない。
-    let str = '<div style="display:flex;align-items:flex-start;margin:2px 0;line-height:1.5;">';
+    let str = '<div class="m">';
 
     if (tabName) {
-      str += `<span style="flex:0 0 auto;color:#888888;font-size:0.85em;margin-right:4px;padding-top:11px;">[${ChatLogExporter.escapeHtml(
-        tabName
-      )}]</span>`;
+      str += `<span class="tb">[${ChatLogExporter.escapeHtml(tabName)}]</span>`;
     }
 
     if (isTime) {
       const date = new Date(message.timestamp);
       const time = `${('00' + date.getHours()).slice(-2)}:${('00' + date.getMinutes()).slice(-2)}`;
-      str += `<span style="flex:0 0 auto;width:48px;color:#888888;font-size:0.85em;padding-top:11px;">${time}</span>`;
+      str += `<span class="tm">${time}</span>`;
     }
 
     str += ChatLogExporter.formatPortraitImage(message, imageSrcResolver);
 
-    str += '<div style="flex:1 1 auto;min-width:0;">';
+    str += '<div class="ct">';
     str += ChatLogExporter.formatReferenceBlock(message, textDecoder);
     str += "<font color='";
     if (message.messColor) str += message.messColor.toLowerCase();
@@ -97,10 +106,10 @@ export class ChatLogExporter {
   ): string {
     if (!message) return '';
     let str = '';
-    str += `    <div style="color:${message.messColor.toLowerCase()};display:flex;align-items:flex-start;margin:2px 0;line-height:1.5;">\n`;
-    str += `      <span style="flex:0 0 auto;margin-right:4px;padding-top:11px;"> [${tabName}]</span>\n`;
+    str += `    <div class="m" style="color:${message.messColor.toLowerCase()}">\n`;
+    str += `      <span class="tc"> [${tabName}]</span>\n`;
     str += `      ${ChatLogExporter.formatPortraitImage(message, imageSrcResolver)}\n`;
-    str += '      <div style="flex:1 1 auto;min-width:0;">\n';
+    str += '      <div class="ct">\n';
     str += '        ';
     const refBlock = ChatLogExporter.formatReferenceBlock(message, textDecoder);
     if (refBlock) str += refBlock;
@@ -141,7 +150,7 @@ export class ChatLogExporter {
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
     <title>チャットログ：${ChatLogExporter.escapeHtml(tab.name)}</title>
-  </head>
+    ${ChatLogExporter.STYLE_BLOCK}  </head>
   <body>
 `;
     const parts: string[] = [];
@@ -165,7 +174,7 @@ export class ChatLogExporter {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Udonalium Axe - logs</title>
-  </head>
+    ${ChatLogExporter.STYLE_BLOCK}  </head>
   <body>
 
 `;
@@ -198,7 +207,7 @@ export class ChatLogExporter {
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
     <title>チャットログ：全タブ</title>
-  </head>
+    ${ChatLogExporter.STYLE_BLOCK}  </head>
   <body>
 `;
     const main = ChatLogExporter.mergeTabMessages(
@@ -223,7 +232,7 @@ export class ChatLogExporter {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Udonalium Axe - logs</title>
-  </head>
+    ${ChatLogExporter.STYLE_BLOCK}  </head>
   <body>
 
 `;
@@ -273,24 +282,14 @@ export class ChatLogExporter {
     return parts.join('');
   }
 
-  // resolver は data URL ではなく短い「key」(レジストリの索引) を返す前提に変更している。
-  // 出力 HTML は <img data-img-key="K" ...> となり、末尾に注入されるハイドレーション
-  // スクリプトが key→data URL の辞書を引いて src を埋める。
-  // これで同じ立ち絵が N 回登場しても base64 文字列は 1 回しか出ない。
-  // 立ち絵は 40×40 の正方形枠で揃え、足りない場合は object-fit:cover で中央クロップする。
-  // 立ち絵が無いメッセージにも同じ寸法の placeholder を出してログ全体の avatar 列を揃える。
-  private static readonly AVATAR_BOX_STYLE =
-    'display:inline-block;width:40px;height:40px;vertical-align:middle;margin-right:6px;';
-
   private static formatPortraitImage(message: ChatMessage, imageSrcResolver?: ChatLogImageSrcResolver): string {
     const portrait = message.image;
     const key = portrait ? (imageSrcResolver?.(portrait) ?? portrait.url) : '';
     if (!portrait || !key) {
-      // avatar 列を崩さないための透明 placeholder
-      return `<span style="${ChatLogExporter.AVATAR_BOX_STYLE}"></span>`;
+      return '<span class="av"></span>';
     }
     const alt = message.name || 'portrait';
-    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="${ChatLogExporter.AVATAR_BOX_STYLE}border:1px solid #cccccc;border-radius:4px;background:#ffffff;object-fit:cover;" />`;
+    return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" class="av ap" />`;
   }
 
   // 引用 (quoteOf) / 返信 (replyTo) の被参照メッセージを小さな blockquote として
@@ -342,10 +341,8 @@ export class ChatLogExporter {
     // 本文と区別しやすいよう左罫線つきの淡いブロックで描画。
     // name の直後にコンパクトに収まる inline 表示。本文は <br> を挟んで次の行に流す。
     return (
-      `<blockquote style="margin:0 4px 0 0;padding:2px 8px;` +
-      `border-left:3px solid #aaaaaa;color:#666666;font-size:0.9em;background:#f7f7f7;` +
-      `display:inline-block;max-width:70%;vertical-align:middle;">` +
-      `<span style="font-weight:bold;margin-right:4px;">${icon} ${name}</span>` +
+      `<blockquote class="bq">` +
+      `<span class="bn">${icon} ${name}</span>` +
       `<span>${text}</span>` +
       `</blockquote><br>`
     );
@@ -360,13 +357,13 @@ export class ChatLogExporter {
         const key = imageSrcResolver?.(image) ?? image.url;
         if (!key) return '';
         const alt = image.name || '添付画像';
-        return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" style="max-width:180px;max-height:120px;width:auto;height:auto;object-fit:contain;border:1px solid #cccccc;border-radius:4px;background:#ffffff;vertical-align:top;margin:2px 4px 2px 0;" />`;
+        return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" class="ai" />`;
       })
       .filter((imageTag) => imageTag.length > 0)
       .join('');
 
     if (!imageTags) return '';
-    return `<span style="display:block;margin-top:6px;white-space:normal;">${imageTags}</span>`;
+    return `<span class="aw">${imageTags}</span>`;
   }
 
   private static escapeAttribute(value: string): string {

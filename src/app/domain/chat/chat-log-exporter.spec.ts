@@ -27,6 +27,16 @@ function createMockTab(name: string, messages: ChatMessage[]): ChatTab {
 }
 
 describe('ChatLogExporter', () => {
+  describe('STYLE_BLOCK', () => {
+    it('全 CSS クラス定義を含む', () => {
+      const block = ChatLogExporter.STYLE_BLOCK;
+      expect(block).toMatch(/^<style>.+<\/style>\n$/);
+      for (const cls of ['.m{', '.tb{', '.tm{', '.tc{', '.av{', '.ap{', '.ct{', '.bq{', '.bn{', '.ai{', '.aw{']) {
+        expect(block).toContain(cls);
+      }
+    });
+  });
+
   describe('escapeHtml', () => {
     it('HTMLの特殊文字をエスケープする', () => {
       expect(ChatLogExporter.escapeHtml('<script>alert("xss")</script>')).toBe(
@@ -189,7 +199,7 @@ describe('ChatLogExporter', () => {
       expect(ChatLogExporter.formatMessageStandard(false, '', null!)).toBe('');
     });
 
-    it('立ち絵 <img> は 40×40 の正方形枠で出力される', () => {
+    it('立ち絵 <img> は avatar + portrait の CSS クラスで出力される', () => {
       const portrait = {
         identifier: 'portrait-square',
         name: 'hero.png',
@@ -197,10 +207,7 @@ describe('ChatLogExporter', () => {
       };
       const msg = createMockMessage({ name: '勇者', image: portrait } as Partial<ChatMessage>);
       const result = ChatLogExporter.formatMessageStandard(false, '', msg, undefined, () => 'k1');
-      expect(result).toContain('width:40px');
-      expect(result).toContain('height:40px');
-      expect(result).toContain('object-fit:cover');
-      expect(result).not.toContain('max-width:64px');
+      expect(result).toContain('class="av ap"');
     });
 
     it('replyTo があれば被参照メッセージを返信先ブロックとして本文の前に表示する', () => {
@@ -275,12 +282,50 @@ describe('ChatLogExporter', () => {
       expect(imgPos).toBeLessThan(namePos);
     });
 
-    it('立ち絵が無いメッセージでも 40×40 の placeholder で avatar 列を揃える', () => {
+    it('立ち絵が無いメッセージでも avatar placeholder で列を揃える', () => {
       const msg = createMockMessage({ image: null } as Partial<ChatMessage>);
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
       expect(result).not.toContain('<img');
-      expect(result).toContain('width:40px');
-      expect(result).toContain('height:40px');
+      expect(result).toContain('class="av"');
+    });
+
+    it('メッセージ行は class="m"、コンテンツ div は class="ct" で出力される', () => {
+      const msg = createMockMessage();
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+      expect(result).toContain('<div class="m">');
+      expect(result).toContain('<div class="ct">');
+    });
+
+    it('タブ名は class="tb" で出力される', () => {
+      const msg = createMockMessage();
+      const result = ChatLogExporter.formatMessageStandard(false, 'タブ名', msg);
+      expect(result).toContain('<span class="tb">');
+    });
+
+    it('時刻は class="tm" で出力される', () => {
+      const msg = createMockMessage({ timestamp: new Date(2024, 0, 1, 9, 5).getTime() });
+      const result = ChatLogExporter.formatMessageStandard(true, '', msg);
+      expect(result).toContain('<span class="tm">');
+    });
+
+    it('引用ブロックは class="bq"、ラベルは class="bn" で出力される', () => {
+      const target = { identifier: 'q', name: '相手', text: '引用文' } as ChatMessage;
+      const msg = createMockMessage({
+        quoteOf: 'q',
+        quoteOfMessage: target,
+      } as Partial<ChatMessage> & { quoteOfMessage: ChatMessage });
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+      expect(result).toContain('<blockquote class="bq">');
+      expect(result).toContain('<span class="bn">');
+    });
+
+    it('添付画像は class="ai"、ラッパは class="aw" で出力される', () => {
+      const msg = createMockMessage({
+        attachmentImages: [{ identifier: 'img-1', name: 'test.png', url: 'blob:test' }],
+      } as Partial<ChatMessage>);
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg);
+      expect(result).toContain('class="ai"');
+      expect(result).toContain('<span class="aw">');
     });
   });
 
@@ -342,6 +387,19 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('<div ');
     });
 
+    it('CoC 形式のメッセージ行は class="m" + inline color で出力される', () => {
+      const msg = createMockMessage({ messColor: '#FF0000' });
+      const result = ChatLogExporter.formatMessageCoc('タブ', msg);
+      expect(result).toContain('class="m"');
+      expect(result).toContain('style="color:#ff0000"');
+    });
+
+    it('CoC 形式のタブ名は class="tc" で出力される', () => {
+      const msg = createMockMessage();
+      const result = ChatLogExporter.formatMessageCoc('タブ', msg);
+      expect(result).toContain('class="tc"');
+    });
+
     it('CoC形式でも立ち絵 (message.image) を <img> として name の前に挿入する', () => {
       const portrait = {
         identifier: 'portrait-2',
@@ -395,6 +453,12 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('開始');
       expect(result).toContain('</html>');
     });
+
+    it('<head> に STYLE_BLOCK を含む', () => {
+      const tab = createMockTab('T', [createMockMessage()]);
+      const result = ChatLogExporter.exportTabHtml(tab);
+      expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
+    });
   });
 
   describe('exportTabHtmlCoc', () => {
@@ -407,6 +471,12 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('Udonalium Axe - logs');
       expect(result).toContain('探索者');
       expect(result).toContain('SAN値チェック');
+    });
+
+    it('<head> に STYLE_BLOCK を含む', () => {
+      const tab = createMockTab('T', [createMockMessage()]);
+      const result = ChatLogExporter.exportTabHtmlCoc(tab);
+      expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
     });
   });
 
@@ -432,6 +502,11 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('<body>');
       expect(result).toContain('</body>');
     });
+
+    it('<head> に STYLE_BLOCK を含む', () => {
+      const result = ChatLogExporter.exportAllTabsHtml([], false);
+      expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
+    });
   });
 
   describe('exportAllTabsHtmlCoc', () => {
@@ -441,6 +516,12 @@ describe('ChatLogExporter', () => {
 
       expect(result).toContain('Udonalium Axe - logs');
       expect(result).toContain('KP');
+    });
+
+    it('<head> に STYLE_BLOCK を含む', () => {
+      const tab = createMockTab('T', [createMockMessage({ timestamp: 1 })]);
+      const result = ChatLogExporter.exportAllTabsHtmlCoc([tab]);
+      expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
     });
   });
 });
