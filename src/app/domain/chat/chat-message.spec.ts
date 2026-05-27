@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 
@@ -351,6 +352,29 @@ describe('ChatMessage', () => {
       msg.from = 'user-A';
       msg.name = 'キャラ名';
       expect(msg.isChangeableBy('user-B')).toBe(false);
+    });
+  });
+
+  describe('XML round-trip', () => {
+    it('replyTo / quoteOf が toXml で属性として書き出され、parseXml で復元される', () => {
+      const msg = new ChatMessage();
+      msg.initialize();
+      msg.replyTo = 'msg-target-1';
+      msg.quoteOf = 'msg-quote-1';
+      msg.name = '自分';
+      msg.text = 'コメント';
+
+      const xml = msg.toXml();
+      expect(xml).toContain('replyTo="msg-target-1"');
+      expect(xml).toContain('quoteOf="msg-quote-1"');
+
+      // 再パースしても保持されている
+      store.delete(msg, false);
+      store.clearDeleteHistory();
+      const restored = ObjectSerializer.instance.parseXml(xml) as ChatMessage;
+      expect(restored).toBeInstanceOf(ChatMessage);
+      expect(restored.replyTo).toBe('msg-target-1');
+      expect(restored.quoteOf).toBe('msg-quote-1');
     });
   });
 });
