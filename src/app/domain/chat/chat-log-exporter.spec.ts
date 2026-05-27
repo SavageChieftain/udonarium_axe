@@ -189,6 +189,22 @@ describe('ChatLogExporter', () => {
       expect(ChatLogExporter.formatMessageStandard(false, '', null!)).toBe('');
     });
 
+    it('textDecoder が指定されたら message.name / message.text を変換した上で escape する', () => {
+      const msg = createMockMessage({
+        name: '@i18n:common.chat.systemName:{}',
+        text: '@i18n:common.chat.logClearedBy:{"user":"GM"}',
+      });
+      const decoder = (text: string) => {
+        if (text === '@i18n:common.chat.systemName:{}') return 'システム';
+        if (text === '@i18n:common.chat.logClearedBy:{"user":"GM"}') return 'GM がログを消去しました';
+        return text;
+      };
+      const result = ChatLogExporter.formatMessageStandard(false, '', msg, undefined, undefined, decoder);
+      expect(result).toContain('<b>システム</b>');
+      expect(result).toContain('GM がログを消去しました');
+      expect(result).not.toContain('@i18n:');
+    });
+
     it('立ち絵 (message.image) を <img> として <b>name</b> の前に挿入する', () => {
       const portrait = {
         identifier: 'portrait-1',

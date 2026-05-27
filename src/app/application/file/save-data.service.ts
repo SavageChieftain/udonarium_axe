@@ -1,4 +1,6 @@
 import { inject, Injectable } from '@angular/core';
+import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
@@ -11,7 +13,7 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { xml2element } from '@axe/core/util/xml-util';
-import { ChatLogExporter, ChatLogImageSrcResolver } from '@axe/domain/chat/chat-log-exporter';
+import { ChatLogExporter, ChatLogImageSrcResolver, ChatLogTextDecoder } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
@@ -32,6 +34,11 @@ export class SaveDataService {
   private readonly chatTabList = inject(ChatTabList);
   private readonly appConfig = inject(Config);
   private readonly dataSummarySetting = inject(DataSummarySetting);
+  private readonly translate = inject(TRANSLATE_FN);
+
+  // ChatLogExporter は `@i18n:key:{params}` 形式の生メッセージ (システム通知など) を
+  // そのまま出力してしまうため、翻訳結果に置換して渡す。
+  private readonly chatLogTextDecoder: ChatLogTextDecoder = (text) => decodeI18nMessage(text, this.translate);
 
   private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
 
@@ -178,7 +185,7 @@ export class SaveDataService {
 
   async saveHtmlChatLog(chatTab: ChatTab, fileName: string): Promise<void> {
     const { resolver, registryScript } = await this.buildChatLogImageRegistry([chatTab]);
-    const body: string = ChatLogExporter.exportTabHtml(chatTab, undefined, resolver);
+    const body: string = ChatLogExporter.exportTabHtml(chatTab, undefined, resolver, this.chatLogTextDecoder);
     const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
@@ -190,7 +197,8 @@ export class SaveDataService {
       this.chatTabList.chatTabs,
       this.chatTabList.simpleDispFlagTime,
       undefined,
-      resolver
+      resolver,
+      this.chatLogTextDecoder
     );
     const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -199,7 +207,7 @@ export class SaveDataService {
 
   async saveHtmlChatLogCoc(chatTab: ChatTab, fileName: string): Promise<void> {
     const { resolver, registryScript } = await this.buildChatLogImageRegistry([chatTab]);
-    const body: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, resolver);
+    const body: string = ChatLogExporter.exportTabHtmlCoc(chatTab, undefined, resolver, this.chatLogTextDecoder);
     const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
@@ -207,7 +215,12 @@ export class SaveDataService {
 
   async saveHtmlChatLogAllCoc(fileName: string): Promise<void> {
     const { resolver, registryScript } = await this.buildChatLogImageRegistry(this.chatTabList.chatTabs);
-    const body: string = ChatLogExporter.exportAllTabsHtmlCoc(this.chatTabList.chatTabs, undefined, resolver);
+    const body: string = ChatLogExporter.exportAllTabsHtmlCoc(
+      this.chatTabList.chatTabs,
+      undefined,
+      resolver,
+      this.chatLogTextDecoder
+    );
     const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');
