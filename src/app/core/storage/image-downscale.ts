@@ -9,7 +9,7 @@ export interface DownscaleOptions {
 /**
  * Blob 画像を最大辺 maxDimension まで canvas でリサンプルしたうえで Blob に書き戻す。
  *
- * - 元画像が maxDimension 以下 (かつ square 不要) なら何もせず元 Blob を返す。
+ * - 元画像が maxDimension 以下でも WebP 再エンコードを試み、小さくなれば採用する。
  * - ブラウザ以外 (Node / happy-dom 等) や canvas 未対応環境では何もせず元 Blob を返す。
  * - 縮小結果が元より大きくなった場合 (低解像度元画像など) も元 Blob を返す。
  * - square: true なら中心基準の正方形クロップを行ったうえでリサンプル。出力は常に maxDimension × maxDimension。
@@ -54,10 +54,14 @@ export async function downscaleImageBlob(
       targetW = targetH = Math.min(side, maxDimension);
     } else {
       const longSide = Math.max(naturalW, naturalH);
-      if (longSide <= maxDimension) return blob;
-      const scale = maxDimension / longSide;
-      targetW = Math.max(1, Math.round(naturalW * scale));
-      targetH = Math.max(1, Math.round(naturalH * scale));
+      if (longSide <= maxDimension) {
+        targetW = naturalW;
+        targetH = naturalH;
+      } else {
+        const scale = maxDimension / longSide;
+        targetW = Math.max(1, Math.round(naturalW * scale));
+        targetH = Math.max(1, Math.round(naturalH * scale));
+      }
     }
 
     const canvas = document.createElement('canvas');
@@ -67,9 +71,7 @@ export async function downscaleImageBlob(
     if (!ctx) return blob;
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
 
-    // 透過保持のため PNG。JPEG 元のときは JPEG (透過不要 + 軽い)。
-    const outputType = blob.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
-    const downscaled = await canvasToBlob(canvas, outputType, 0.85);
+    const downscaled = await canvasToBlobPreferWebP(canvas, 0.8);
     if (!downscaled) return blob;
     return downscaled.size < blob.size ? downscaled : blob;
   } catch {
@@ -100,6 +102,12 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     };
     img.src = src;
   });
+}
+
+async function canvasToBlobPreferWebP(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
+  const webp = await canvasToBlob(canvas, 'image/webp', quality);
+  if (webp && webp.type === 'image/webp') return webp;
+  return canvasToBlob(canvas, 'image/png', quality);
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {

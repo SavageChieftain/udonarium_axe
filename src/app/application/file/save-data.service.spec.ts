@@ -8,7 +8,7 @@ describe('SaveDataService', () => {
   type SaveDataServicePrivateApi = {
     _saveRoomAsync: (fileName?: string) => Promise<void>;
     _saveGameObjectAsync: (gameObject: object, fileName?: string) => Promise<void>;
-    createChatLogImageSrc: (image: ImageFile, maxDimension: number) => Promise<string>;
+    createChatLogImageSrc: (image: ImageFile, maxDimension: number, square?: boolean) => Promise<string>;
     convertToXml: (gameObject: unknown) => string;
     searchImageFiles: (xml: string) => ImageFile[];
     saveAsync: (files: File[], zipName: string, updateCallback?: (percent: number) => void) => Promise<void>;
@@ -171,6 +171,40 @@ describe('SaveDataService', () => {
 
       const { registryScript } = await api.buildChatLogImageRegistry([tab]);
       expect(registryScript).toBe('');
+    });
+
+    it('ポートレート画像は maxDimension=48, square=true で処理される', async () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+      const api = service as unknown as RegistryApi;
+
+      const spy = vi.spyOn(privateApi, 'createChatLogImageSrc').mockResolvedValue('data:text/plain;base64,X');
+      const portrait = {
+        identifier: 'portrait-dim',
+        blob: new Blob(['P'], { type: 'text/plain' }),
+      } as unknown as ImageFile;
+      const tab = makeTab([{ image: portrait }]);
+
+      await api.buildChatLogImageRegistry([tab]);
+
+      expect(spy).toHaveBeenCalledWith(portrait, 48, true);
+    });
+
+    it('添付画像は maxDimension=360, square=false で処理される', async () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+      const api = service as unknown as RegistryApi;
+
+      const spy = vi.spyOn(privateApi, 'createChatLogImageSrc').mockResolvedValue('data:text/plain;base64,X');
+      const attachment = {
+        identifier: 'attach-dim',
+        blob: new Blob(['A'], { type: 'text/plain' }),
+      } as unknown as ImageFile;
+      const tab = makeTab([{ attachmentImages: [attachment] }]);
+
+      await api.buildChatLogImageRegistry([tab]);
+
+      expect(spy).toHaveBeenCalledWith(attachment, 360, false);
     });
   });
 

@@ -226,7 +226,8 @@ export class SaveDataService {
     downloadBlob(blob, fileName + '.html');
   }
 
-  private static readonly PORTRAIT_MAX_DIMENSION = 80;
+  private static readonly PORTRAIT_MAX_DIMENSION = 48;
+  private static readonly ATTACHMENT_MAX_DIMENSION = 360;
 
   /**
    * 同じ画像が複数回出てくる場合に備えて key (i0, i1, ...) → data URL のレジストリを作り、
@@ -257,7 +258,9 @@ export class SaveDataService {
     await Promise.all(
       [...seen.values()].map(async (image) => {
         const isPortrait = portraitIds.has(image.identifier);
-        const maxDimension = isPortrait ? SaveDataService.PORTRAIT_MAX_DIMENSION : 0;
+        const maxDimension = isPortrait
+          ? SaveDataService.PORTRAIT_MAX_DIMENSION
+          : SaveDataService.ATTACHMENT_MAX_DIMENSION;
         const src = await this.createChatLogImageSrc(image, maxDimension, isPortrait);
         if (!src) return;
         const key = `i${nextIndex++}`;
