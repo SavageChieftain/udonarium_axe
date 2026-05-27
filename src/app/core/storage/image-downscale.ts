@@ -104,6 +104,67 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+const SKIP_WEBP_CONVERT = new Set(['image/gif', 'image/apng', 'image/webp', 'image/svg+xml']);
+
+export async function convertBlobToWebP(blob: Blob): Promise<Blob> {
+  if (!blob || blob.size === 0) return blob;
+
+  const type = blob.type;
+  if (SKIP_WEBP_CONVERT.has(type)) return blob;
+  if (type && !type.startsWith('image/')) return blob;
+
+  if (type === 'image/png') {
+    const header = await blob.slice(0, 1024).arrayBuffer();
+    if (isAnimatedPng(header)) return blob;
+  }
+
+  if (typeof document === 'undefined' || typeof Image === 'undefined' || typeof URL === 'undefined') return blob;
+  if (typeof URL.createObjectURL !== 'function') return blob;
+
+  let objectUrl: string | null = null;
+  try {
+    objectUrl = URL.createObjectURL(blob);
+    const img = await loadImage(objectUrl);
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+    if (w <= 0 || h <= 0) return blob;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return blob;
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const webp = await canvasToBlobPreferWebP(canvas, 0.9);
+    if (!webp) return blob;
+    return webp.size < blob.size ? webp : blob;
+  } catch {
+    return blob;
+  } finally {
+    if (objectUrl !== null) URL.revokeObjectURL(objectUrl);
+  }
+}
+
+export function isAnimatedPng(buffer: ArrayBuffer): boolean {
+  if (buffer.byteLength < 8) return false;
+  const view = new DataView(buffer);
+  let offset = 8;
+  const end = buffer.byteLength;
+  while (offset + 8 <= end) {
+    const chunkLength = view.getUint32(offset);
+    const chunkType =
+      String.fromCharCode(view.getUint8(offset + 4)) +
+      String.fromCharCode(view.getUint8(offset + 5)) +
+      String.fromCharCode(view.getUint8(offset + 6)) +
+      String.fromCharCode(view.getUint8(offset + 7));
+    if (chunkType === 'acTL') return true;
+    if (chunkType === 'IDAT') return false;
+    offset += 12 + chunkLength;
+  }
+  return false;
+}
+
 async function canvasToBlobPreferWebP(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
   const webp = await canvasToBlob(canvas, 'image/webp', quality);
   if (webp && webp.type === 'image/webp') return webp;

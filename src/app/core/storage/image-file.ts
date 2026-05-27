@@ -1,4 +1,5 @@
 import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
+import { convertBlobToWebP } from '@axe/core/storage/image-downscale';
 
 export enum ImageState {
   NULL = 0,
@@ -99,13 +100,18 @@ export class ImageFile {
     return await ImageFile._createAsync(arg);
   }
 
+  private static readonly SAVE_DATA_FILENAME_RE = /^([0-9a-f]{64})\./;
+
   private static async _createAsync(blob: Blob, name?: string): Promise<ImageFile> {
-    const arrayBuffer = await FileReaderUtil.readAsArrayBufferAsync(blob);
+    const converted = await convertBlobToWebP(blob);
+    const arrayBuffer = await FileReaderUtil.readAsArrayBufferAsync(converted);
+
+    const preservedId = name ? (ImageFile.SAVE_DATA_FILENAME_RE.exec(name)?.[1] ?? null) : null;
 
     const imageFile = new ImageFile();
-    imageFile.context.identifier = await FileReaderUtil.calcSHA256Async(arrayBuffer);
+    imageFile.context.identifier = preservedId ?? (await FileReaderUtil.calcSHA256Async(arrayBuffer));
     imageFile.context.name = name ?? '';
-    imageFile.context.blob = new Blob([arrayBuffer], { type: blob.type });
+    imageFile.context.blob = new Blob([arrayBuffer], { type: converted.type });
     imageFile.context.url = window.URL.createObjectURL(imageFile.context.blob);
 
     imageFile.context.thumbnail = await ImageFile.createThumbnailAsync(imageFile.context);
