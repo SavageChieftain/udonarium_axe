@@ -74,6 +74,13 @@ function emit(eventName: string, data: unknown, opts: { sendFrom?: string } = {}
 describe('AudioSharingSystem', () => {
   let sendSpy: ReturnType<typeof vi.spyOn>;
 
+  // 静的 getter `Network.peerId` / `peerIds` は Object.defineProperty で上書きする。
+  // vi.restoreAllMocks() は defineProperty による書き換えを戻さないので、
+  // 別ファイルのテストがこの値で汚染されないよう、元 descriptor を保存しておき
+  // afterEach で確実に復元する。
+  const ORIGINAL_PEER_ID = Object.getOwnPropertyDescriptor(Network, 'peerId')!;
+  const ORIGINAL_PEER_IDS = Object.getOwnPropertyDescriptor(Network, 'peerIds')!;
+
   beforeEach(() => {
     // 前のインスタンスのサブスクリプションをクリーンアップ（real networkMessage$ を使うため）
     audioSharingStatic._instance?.cleanups.forEach((c) => c());
@@ -100,6 +107,8 @@ describe('AudioSharingSystem', () => {
   afterEach(() => {
     audioSharingStatic._instance?.cleanups.forEach((c) => c());
     vi.restoreAllMocks();
+    Object.defineProperty(Network, 'peerId', ORIGINAL_PEER_ID);
+    Object.defineProperty(Network, 'peerIds', ORIGINAL_PEER_IDS);
   });
 
   // ─── instance (シングルトン) ────────────────────────────────────────────────

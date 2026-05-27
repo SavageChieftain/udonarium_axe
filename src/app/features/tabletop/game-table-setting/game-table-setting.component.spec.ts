@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
@@ -17,6 +19,13 @@ describe('GameTableSettingComponent', () => {
   });
 
   beforeEach(() => {
+    // GameTableSettingComponent.gameType は ObjectStore から 'Config' を直接引いて
+    // defaultDiceBot を読む。テスト単体実行で Config が存在しないと null 参照になるため
+    // 必ずシングルトン Config を登録しておく。
+    if (!ObjectStore.instance.get('Config')) {
+      const config = new Config('Config');
+      config.initialize();
+    }
     fixture = TestBed.createComponent(GameTableSettingComponent);
     component = fixture.componentInstance;
   });
