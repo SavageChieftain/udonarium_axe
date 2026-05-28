@@ -372,6 +372,7 @@
         "rangeShapePentagon": "Pentagon",
         "rangeShapeHexagon": "Hexagon",
         "rangeShapeCircle": "Circle",
+        "rangeShapeCustom": "Custom cells",
         "rangeBorder": "Border",
         "rangeFill": "Fill",
         "fillOptions": "Fill options",
@@ -466,6 +467,7 @@
         "showChatPalette": "Show chat palette",
         "showRemoteController": "Show remote controller",
         "editBuff": "Edit buffs",
+        "invokeRangeShape": "Invoke registered range",
         "hideInventoryOn": "☑ Hide from inventory",
         "hideInventoryOff": "☐ Hide from inventory",
         "nonTalkOn": "☑ Don't speak",
@@ -508,6 +510,31 @@
         "cancel": "Cancel"
       }
     },
+    "range": {
+      "custom": {
+        "editorTitle": "Custom range editor",
+        "name": "Name",
+        "namePlaceholder": "Range name",
+        "gridType": "Grid",
+        "gridSquare": "Square",
+        "gridHexVertical": "Hex (vertical)",
+        "gridHexHorizontal": "Hex (horizontal)",
+        "gridColor": "Fill color",
+        "rangeColor": "Border color",
+        "rotatable": "Rotatable",
+        "summary": "{{count}} cells / {{width}}×{{height}}",
+        "clear": "Clear",
+        "cancel": "Cancel",
+        "save": "Save",
+        "edit": "Edit",
+        "editCells": "Edit cells",
+        "spawn": "Place on tabletop",
+        "emptyShape": "(empty)",
+        "cellCount": "{{count}} cells",
+        "defaultName": "Custom range",
+        "unnamedShape": "Range {{index}}"
+      }
+    },
     "tabletop": {
       "action": {
         "createCharacter": "Create character",
@@ -532,7 +559,8 @@
         "rangeShapeSquare": "Square",
         "rangeShapePentagon": "Pentagon",
         "rangeShapeHexagon": "Hexagon",
-        "rangeShapeCircle": "Circle"
+        "rangeShapeCircle": "Circle",
+        "rangeShapeCustom": "Custom cells"
       },
       "panel": {
         "terrain": "Terrain settings",
@@ -590,6 +618,7 @@
         "shapePentagon": "Pentagon",
         "shapeHexagon": "Hexagon",
         "shapeCircle": "Circle",
+        "shapeCustom": "Custom cells",
         "rangeEdit": "Edit range",
         "scratchStart": "Start scratch",
         "scratchFinish": "Finish scratch",
@@ -1018,7 +1047,8 @@
       "check": "Check",
       "select": "Select",
       "calc": "Calc",
-      "image": "Image"
+      "image": "Image",
+      "rangeShape": "Range shape"
     },
     "field": {
       "choices": "Choices",

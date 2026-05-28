@@ -372,6 +372,7 @@
         "rangeShapePentagon": "五角形",
         "rangeShapeHexagon": "六角形",
         "rangeShapeCircle": "円形",
+        "rangeShapeCustom": "任意マス",
         "rangeBorder": "境界線",
         "rangeFill": "塗りつぶし",
         "fillOptions": "塗りオプション",
@@ -466,6 +467,7 @@
         "showChatPalette": "チャットパレットを表示",
         "showRemoteController": "リモコンを表示",
         "editBuff": "バフ編集",
+        "invokeRangeShape": "登録済み射程を出す",
         "hideInventoryOn": "☑ インベントリ非表示",
         "hideInventoryOff": "☐ インベントリ非表示",
         "nonTalkOn": "☑ 発言しない",
@@ -508,6 +510,31 @@
         "cancel": "キャンセル"
       }
     },
+    "range": {
+      "custom": {
+        "editorTitle": "任意マス射程エディタ",
+        "name": "名前",
+        "namePlaceholder": "射程の名前",
+        "gridType": "グリッド",
+        "gridSquare": "四角",
+        "gridHexVertical": "ヘクス (縦)",
+        "gridHexHorizontal": "ヘクス (横)",
+        "gridColor": "塗り色",
+        "rangeColor": "境界色",
+        "rotatable": "回転可能",
+        "summary": "{{count}} マス / {{width}}×{{height}}",
+        "clear": "全消去",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "edit": "編集",
+        "editCells": "セルを編集",
+        "spawn": "盤上に出す",
+        "emptyShape": "（未設定）",
+        "cellCount": "{{count}} マス",
+        "defaultName": "任意マス射程",
+        "unnamedShape": "射程 {{index}}"
+      }
+    },
     "tabletop": {
       "action": {
         "createCharacter": "キャラクターを作成",
@@ -532,7 +559,8 @@
         "rangeShapeSquare": "四角形",
         "rangeShapePentagon": "五角形",
         "rangeShapeHexagon": "六角形",
-        "rangeShapeCircle": "円形"
+        "rangeShapeCircle": "円形",
+        "rangeShapeCustom": "任意マス"
       },
       "panel": {
         "terrain": "地形設定",
@@ -590,6 +618,7 @@
         "shapePentagon": "五角形",
         "shapeHexagon": "六角形",
         "shapeCircle": "円形",
+        "shapeCustom": "任意マス",
         "rangeEdit": "射程範囲を編集",
         "scratchStart": "スクラッチ開始",
         "scratchFinish": "スクラッチ確定",
@@ -1018,7 +1047,8 @@
       "check": "チェック",
       "select": "選択",
       "calc": "計算",
-      "image": "画像"
+      "image": "画像",
+      "rangeShape": "射程図形"
     },
     "field": {
       "choices": "選択肢",
