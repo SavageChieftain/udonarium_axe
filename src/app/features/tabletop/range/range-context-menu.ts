@@ -16,7 +16,8 @@ export function buildRangeContextMenu(
   tabletopActionService: TabletopActionService,
   onDockingWindowOpen: () => void,
   onEdit: (r: RangeArea) => void,
-  t: TranslateFn
+  t: TranslateFn,
+  onEditCells?: (r: RangeArea) => void
 ): ContextMenuAction[] {
   const menuArray: ContextMenuAction[] = [];
 
@@ -149,8 +150,30 @@ export function buildRangeContextMenu(
           SoundEffect.play(PresetSound.sweep);
         },
       },
+      {
+        name: (range.type === 'CUSTOM' ? '✔ ' : '') + t('feature.tabletop.contextMenu.shapeCustom'),
+        action: () => {
+          range.type = 'CUSTOM';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      },
     ],
   });
+  if (range.type === 'CUSTOM') {
+    menuArray.push({
+      name: t('feature.range.custom.editCells'),
+      action: () => {
+        onEditCells?.(range);
+      },
+    });
+    menuArray.push({
+      name: (range.isRotatable ? '☑ ' : '☐ ') + t('feature.range.custom.rotatable'),
+      action: () => {
+        range.isRotatable = !range.isRotatable;
+        SoundEffect.play(PresetSound.sweep);
+      },
+    });
+  }
   menuArray.push(ContextMenuSeparator);
   menuArray.push({
     name: t('feature.tabletop.contextMenu.rangeEdit'),

@@ -159,6 +159,11 @@ export class TabletopActionService {
       case 'HEXAGON':
         range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);
         break;
+      case 'CUSTOM':
+        range = RangeArea.createCustom(this.t('feature.tabletop.action.defaultRangeName'), '0,0', 'square', 100, {
+          isRotatable: false,
+        });
+        break;
       case 'CORN':
       default:
         range = RangeArea.create(this.t('feature.tabletop.action.defaultRangeName'), 3, 3, 100);

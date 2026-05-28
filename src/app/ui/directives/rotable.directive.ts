@@ -222,7 +222,8 @@ export class RotableDirective {
     if (polygonal <= 1) return;
     if (this.tabletopObject instanceof RangeArea) {
       const range = this.tabletopObject as RangeArea;
-      if (range.subDivisionSnapPolygonal) polygonal = 240;
+      if (range.type === 'CUSTOM') polygonal = 4;
+      else if (range.subDivisionSnapPolygonal) polygonal = 240;
     }
     this.rotate = this.rotate < 0 ? this.rotate - 180 / polygonal : this.rotate + 180 / polygonal;
     this.rotate -= this.rotate % (360 / polygonal);

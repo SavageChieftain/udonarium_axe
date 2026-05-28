@@ -47,5 +47,6 @@ export function getRangeMenuItems(): RangeMenuItem[] {
     { menuName: 'feature.tabletop.action.rangeShapePentagon', typeName: 'PENTAGON' },
     { menuName: 'feature.tabletop.action.rangeShapeHexagon', typeName: 'HEXAGON' },
     { menuName: 'feature.tabletop.action.rangeShapeCircle', typeName: 'CIRCLE' },
+    { menuName: 'feature.tabletop.action.rangeShapeCustom', typeName: 'CUSTOM' },
   ];
 }

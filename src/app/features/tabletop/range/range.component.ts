@@ -41,6 +41,7 @@ import {
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render';
 import { clipAreaToPolygonCss, clipCircleCss } from '@axe/features/tabletop/range/range-render-util';
+import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
@@ -96,6 +97,11 @@ export class RangeComponent {
         return clipAreaToPolygonCss(this.clipAreaPentagon);
       case 'HEXAGON':
         return clipAreaToPolygonCss(this.clipAreaHexagon);
+      case 'CUSTOM': {
+        const hx = Math.max(this.gridSize, this.customHalfWidthPx) + this.gridSize;
+        const hy = Math.max(this.gridSize, this.customHalfHeightPx) + this.gridSize;
+        return `polygon(${-hx}px ${-hy}px, ${hx}px ${-hy}px, ${hx}px ${hy}px, ${-hx}px ${hy}px)`;
+      }
       case 'CORN':
       default:
         return clipAreaToPolygonCss(this.clipAreaCorn);
@@ -218,6 +224,13 @@ export class RangeComponent {
   });
 
   readonly areaQuadrantSize = computed(() => {
+    this.rangeVersion();
+    if (this.range().type === 'CUSTOM') {
+      const cells = parseCellPattern(this.range().cellPattern);
+      const bb = cellPatternBoundingBox(cells);
+      const span = Math.max(bb.width, bb.height, 1);
+      return Math.ceil(span) + 1;
+    }
     const w = this.width() < 1 ? 1 : this.width();
     const l = this.length() < 1 ? 1 : this.length();
     return Math.ceil(Math.sqrt(w * w + l * l)) + 1;
@@ -225,12 +238,22 @@ export class RangeComponent {
 
   readonly isRotatableRangeType = computed(() => {
     this.rangeVersion();
-    return ['LINE', 'CORN', 'SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(this.range().type);
+    const range = this.range();
+    if (range.type === 'CUSTOM') return range.isRotatable === true;
+    return ['LINE', 'CORN', 'SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(range.type);
   });
+
+  readonly isCustomRangeType = computed(() => {
+    this.rangeVersion();
+    return this.range().type === 'CUSTOM';
+  });
+
+  private customHalfWidthPx = 25;
+  private customHalfHeightPx = 25;
 
   readonly usesSingleRotateGrab = computed(() => {
     this.rangeVersion();
-    return ['SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON'].includes(this.range().type);
+    return ['SQUARE', 'TRIANGLE', 'PENTAGON', 'HEXAGON', 'CUSTOM'].includes(this.range().type);
   });
 
   readonly rotateGrabDistancePx = computed(() => Math.max(1, this.length()) * this.gridSize);
@@ -341,7 +364,8 @@ export class RangeComponent {
       this.tabletopActionService,
       () => this.dockingWindowOpen(),
       (r) => this.showDetail(r),
-      this.translateFn
+      this.translateFn,
+      (r) => this.openCellEditor(r)
     );
     this.contextMenuService.open(menuPosition, menuArray, this.name());
   }
@@ -373,6 +397,51 @@ export class RangeComponent {
 
   private adjustMinBounds(value: number, min: number = 0): number {
     return value < min ? min : value;
+  }
+
+  private async openCellEditor(range: RangeArea): Promise<void> {
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const option: PanelOption = {
+      title: this.translateFn('feature.range.custom.editorTitle'),
+      left: coordinate.x - 320,
+      top: coordinate.y - 240,
+      width: 640,
+      height: 540,
+    };
+    const { RangeShapeEditorComponent } =
+      await import('@axe/features/tabletop/range-shape-editor/range-shape-editor.component');
+    const editor = this.panelService.open(RangeShapeEditorComponent, option);
+    editor.initialize({
+      name: range.name,
+      cellPattern: range.cellPattern,
+      gridType:
+        range.customGridType === 'hex-vertical' || range.customGridType === 'hex-horizontal'
+          ? range.customGridType
+          : 'square',
+      gridColor: range.gridColor,
+      rangeColor: range.rangeColor,
+      isRotatable: range.isRotatable,
+    });
+    editor.saved.subscribe((result) => {
+      range.cellPattern = result.cellPattern;
+      range.customGridType = result.gridType;
+      range.gridColor = result.gridColor;
+      range.rangeColor = result.rangeColor;
+      range.isRotatable = result.isRotatable;
+      if (result.name) range.name = result.name;
+      this.syncLengthWidthToPattern(range);
+      this.objectChange.notifyChanged(range.identifier);
+      this.setRange();
+    });
+  }
+
+  private syncLengthWidthToPattern(range: RangeArea): void {
+    const cells = parseCellPattern(range.cellPattern);
+    const bb = cellPatternBoundingBox(cells);
+    const lengthEl = range.commonDataElement?.getFirstElementByName('length');
+    const widthEl = range.commonDataElement?.getFirstElementByName('width');
+    if (lengthEl) lengthEl.value = Math.max(1, bb.height);
+    if (widthEl) widthEl.value = Math.max(1, bb.width);
   }
 
   private showDetail(gameObject: RangeArea) {
@@ -444,6 +513,15 @@ export class RangeComponent {
       case 'HEXAGON':
         this.clipAreaHexagon = render.renderHexagon(setting);
         break;
+      case 'CUSTOM': {
+        const bb = render.renderCustom(setting, {
+          cellPattern: this.range().cellPattern,
+          rotationDegrees: degree,
+        });
+        this.customHalfWidthPx = bb.halfWidthPx;
+        this.customHalfHeightPx = bb.halfHeightPx;
+        break;
+      }
       case 'CORN':
       default:
         this.clipAreaCorn = render.renderCorn(setting);

@@ -1,6 +1,11 @@
 export * from '@axe/features/tabletop/range/range-render-types';
 
 import {
+  CustomRenderBoundingBox,
+  CustomRenderInput,
+  renderCustom,
+} from '@axe/features/tabletop/range/range-render-custom';
+import {
   renderHexagon,
   renderLine,
   renderPentagon,
@@ -50,5 +55,9 @@ export class RangeRender {
 
   renderHexagon(setting: RangeRenderSetting): ClipAreaHexagon {
     return renderHexagon(this.canvasElement, this.canvasElementRange, setting);
+  }
+
+  renderCustom(setting: RangeRenderSetting, input: CustomRenderInput): CustomRenderBoundingBox {
+    return renderCustom(this.canvasElement, this.canvasElementRange, setting, input);
   }
 }
