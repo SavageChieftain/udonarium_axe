@@ -39,6 +39,7 @@ export const DataElementFieldType = {
   CHECK_TABLE: 'checkTable',
   IMAGE: 'image',
   CALC: 'calc',
+  RANGE_SHAPE: 'rangeShape',
 } as const;
 
 export type DataElementFieldTypeValue = (typeof DataElementFieldType)[keyof typeof DataElementFieldType];
