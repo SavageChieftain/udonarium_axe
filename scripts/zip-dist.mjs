@@ -45,4 +45,6 @@ if (Object.keys(entries).length === 0) {
 
 const archive = zipSync(entries, { level: 6 });
 writeFileSync(outFile, archive);
-console.log(`[zip-dist] ${outFile} (${(archive.length / 1024 / 1024).toFixed(2)} MB, ${Object.keys(entries).length} files)`);
+console.log(
+  `[zip-dist] ${outFile} (${(archive.length / 1024 / 1024).toFixed(2)} MB, ${Object.keys(entries).length} files)`
+);
