@@ -1,0 +1,124 @@
+<div
+  class="bg-ui-panel text-ui-text flex h-full w-full flex-col gap-3 p-3"
+  *transloco="let t"
+  (pointerup)="onPointerUp()"
+  (pointerleave)="onPointerUp()"
+>
+  <header class="flex flex-wrap items-center gap-3">
+    <label class="flex items-center gap-1.5">
+      <span class="text-sm">{{ t('feature.range.custom.name') }}</span>
+      <input
+        type="text"
+        class="bg-ui-elevated border-ui-border-panel min-w-0 flex-1 rounded border px-2 py-1 text-sm"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        [placeholder]="t('feature.range.custom.namePlaceholder')"
+      />
+    </label>
+
+    <label class="flex items-center gap-1.5">
+      <span class="text-sm">{{ t('feature.range.custom.gridType') }}</span>
+      <select
+        class="bg-ui-elevated border-ui-border-panel rounded border px-2 py-1 text-sm"
+        [ngModel]="gridType()"
+        (ngModelChange)="setGridType($event)"
+      >
+        <option value="square">{{ t('feature.range.custom.gridSquare') }}</option>
+        <option value="hex-vertical">{{ t('feature.range.custom.gridHexVertical') }}</option>
+        <option value="hex-horizontal">{{ t('feature.range.custom.gridHexHorizontal') }}</option>
+      </select>
+    </label>
+
+    <label class="flex items-center gap-1.5">
+      <span class="text-sm">{{ t('feature.range.custom.gridColor') }}</span>
+      <input type="color" [ngModel]="gridColor()" (ngModelChange)="gridColor.set($event)" />
+    </label>
+
+    <label class="flex items-center gap-1.5">
+      <span class="text-sm">{{ t('feature.range.custom.rangeColor') }}</span>
+      <input type="color" [ngModel]="rangeColor()" (ngModelChange)="rangeColor.set($event)" />
+    </label>
+
+    <label class="flex items-center gap-1.5">
+      <input type="checkbox" [ngModel]="isRotatable()" (ngModelChange)="isRotatable.set($event)" />
+      <span class="text-sm">{{ t('feature.range.custom.rotatable') }}</span>
+    </label>
+  </header>
+
+  <div class="border-ui-border-panel relative flex-1 overflow-auto rounded border">
+    <svg
+      [attr.viewBox]="'0 0 ' + geometry().viewWidth + ' ' + geometry().viewHeight"
+      [attr.width]="geometry().viewWidth"
+      [attr.height]="geometry().viewHeight"
+      class="block touch-none select-none"
+    >
+      @for (cell of geometry().cells; track cell.key) {
+        @if (cell.hexPoints) {
+          <polygon
+            [attr.points]="cell.hexPoints"
+            [attr.fill]="isFilled(cell) ? gridColor() : 'transparent'"
+            [attr.stroke]="rangeColor()"
+            stroke-width="1"
+            class="cursor-crosshair"
+            (pointerdown)="onCellPointerDown(cell, $event)"
+            (pointerenter)="onCellPointerEnter(cell)"
+          />
+        } @else {
+          <rect
+            [attr.x]="cell.cx - 25"
+            [attr.y]="cell.cy - 25"
+            width="50"
+            height="50"
+            [attr.fill]="isFilled(cell) ? gridColor() : 'transparent'"
+            [attr.stroke]="rangeColor()"
+            stroke-width="1"
+            class="cursor-crosshair"
+            (pointerdown)="onCellPointerDown(cell, $event)"
+            (pointerenter)="onCellPointerEnter(cell)"
+          />
+        }
+      }
+      <circle
+        [attr.cx]="geometry().viewWidth / 2"
+        [attr.cy]="geometry().viewHeight / 2"
+        r="4"
+        [attr.fill]="rangeColor()"
+      />
+    </svg>
+  </div>
+
+  <footer class="flex flex-wrap items-center gap-2 text-sm">
+    <span class="text-ui-muted">
+      {{
+        t('feature.range.custom.summary', {
+          count: boundingSummary().count,
+          width: boundingSummary().width,
+          height: boundingSummary().height,
+        })
+      }}
+    </span>
+    <div class="ml-auto flex gap-2">
+      <button
+        type="button"
+        class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded border px-3 py-1"
+        (click)="clear()"
+      >
+        {{ t('feature.range.custom.clear') }}
+      </button>
+      <button
+        type="button"
+        class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded border px-3 py-1"
+        (click)="cancel()"
+      >
+        {{ t('feature.range.custom.cancel') }}
+      </button>
+      <button
+        type="button"
+        class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent cursor-pointer rounded px-3 py-1"
+        (click)="save()"
+      >
+        {{ t('feature.range.custom.save') }}
+      </button>
+    </div>
+  </footer>
+</div>
