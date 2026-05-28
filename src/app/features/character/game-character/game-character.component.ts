@@ -228,6 +228,44 @@ export class GameCharacterComponent {
   viewRotateX = 50;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
+  readonly rotateSignal = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return 0;
+    this.objectChange.versionOf(char.identifier)();
+    return char.rotate;
+  });
+
+  private readonly buffPanelHeightEstimate = computed(() => {
+    if (this.foldingBuff()) return 25;
+    const n = this.buffNum();
+    return Math.max(25, n * 17 + 8);
+  });
+
+  readonly billboardTransform = computed(() => this.makeBillboardTransform(30));
+
+  readonly billboardTransformBuff = computed(() => this.makeBillboardTransform(40 + this.buffPanelHeightEstimate()));
+
+  private makeBillboardTransform(verticalOffset3D: number): string {
+    const r = this.uiSignalService.tableViewRotation();
+    const tableX = r?.x ?? 50;
+    const tableY = r?.y ?? 0;
+    const tableZ = r?.z ?? 10;
+    const charRotate = this.rotateSignal();
+    const roll = this.rollSignal();
+    const tx = (tableX * Math.PI) / 180;
+    const sinRx = Math.sin(tx);
+    const cosRx = Math.cos(tx);
+    const denom = Math.max(0.05, cosRx);
+    const compensateZ = ((-verticalOffset3D * (1 - sinRx)) / denom).toFixed(2);
+    return (
+      `translateZ(${compensateZ}px) ` +
+      `rotateZ(${-roll}deg) ` +
+      `rotateY(90deg) rotateZ(90deg) rotateY(-90deg) ` +
+      `rotateZ(${-charRotate}deg) ` +
+      `rotateZ(${-tableZ}deg) rotateX(${-tableX}deg) rotateY(${-tableY}deg)`
+    );
+  }
+
   readonly movableOption = signal<MovableOption>({});
   private input: InputHandler | null = null;
 

@@ -111,177 +111,107 @@
               @if (buffEl && buffNum() > 0) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
                   <div
-                    class="border-ui-border-panel bg-ui-panel text-ui-text absolute -top-8.75 m-auto box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
+                    class="absolute -top-10 m-auto whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
                       transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY(-100%)',
                     }"
                   >
                     <div
-                      [hidden]="!isTargeted()"
-                      class="animate-arrowmove2 absolute -left-2.5 mt-px ml-[50%] box-border w-7.5 text-[20px]"
+                      class="border-ui-border-panel bg-ui-panel text-ui-text box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
+                      [ngStyle]="{ transform: billboardTransformBuff() }"
                     >
-                      <img src="./assets/images/target/target.png" />
-                    </div>
-                    <div class="flex items-center gap-1.25 whitespace-nowrap">
                       <div
-                        class="min-w-0 flex-1 [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
+                        [hidden]="!isTargeted()"
+                        class="animate-arrowmove2 absolute -left-2.5 mt-px ml-[50%] box-border w-7.5 text-[20px]"
                       >
-                        @if (!foldingBuff()) {
-                          @for (childElement of buffChildren(); track childElement.identifier) {
-                            <div
-                              class="block"
-                              game-data-element-buff
-                              [gameDataElement]="childElement"
-                              [isEdit]="false"
-                              [isPieceMode]="true"
-                            ></div>
-                          }
-                        } @else {
-                          <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
-                            'feature.character.buff.count' | transloco: { count: buffNum() }
-                          }}</span>
-                        }
+                        <img src="./assets/images/target/target.png" />
                       </div>
-                      <button
-                        class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
-                        (mousedown)="foldingBuffFlag(!foldingBuff())"
-                        [title]="
-                          foldingBuff()
-                            ? ('feature.character.buff.detail' | transloco)
-                            : ('feature.character.buff.simple' | transloco)
-                        "
-                      >
-                        {{ foldingBuff() ? '▲' : '▼' }}
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    class="border-ui-border-panel bg-ui-panel text-ui-text absolute -top-8.75 m-auto box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-                    [ngStyle]="{
-                      transform:
-                        'translateX(-50%) translateX(' +
-                        (size() * gridSize) / 2 +
-                        'px) translateY(-100%) rotateY(180deg)',
-                    }"
-                  >
-                    <div
-                      class="animate-arrowmove2 absolute -left-5 mt-px ml-[50%] box-border w-7.5 text-[20px]"
-                      [hidden]="!isTargeted()"
-                      [ngStyle]="{ transform: 'rotateY(180deg)' }"
-                    >
-                      <img src="./assets/images/target/target.png" />
-                    </div>
-                    <div class="flex items-center gap-1.25 whitespace-nowrap">
-                      <div
-                        class="min-w-0 flex-1 [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
-                      >
-                        @if (!foldingBuff()) {
-                          @for (childElement of buffChildren(); track childElement.identifier) {
-                            <div
-                              class="block"
-                              game-data-element-buff
-                              [gameDataElement]="childElement"
-                              [isEdit]="false"
-                              [isPieceMode]="true"
-                            ></div>
+                      <div class="flex items-center gap-1.25 whitespace-nowrap">
+                        <div
+                          class="min-w-0 flex-1 [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
+                        >
+                          @if (!foldingBuff()) {
+                            @for (childElement of buffChildren(); track childElement.identifier) {
+                              <div
+                                class="block"
+                                game-data-element-buff
+                                [gameDataElement]="childElement"
+                                [isEdit]="false"
+                                [isPieceMode]="true"
+                              ></div>
+                            }
+                          } @else {
+                            <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
+                              'feature.character.buff.count' | transloco: { count: buffNum() }
+                            }}</span>
                           }
-                        } @else {
-                          <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
-                            'feature.character.buff.count' | transloco: { count: buffNum() }
-                          }}</span>
-                        }
+                        </div>
+                        <button
+                          class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
+                          (mousedown)="foldingBuffFlag(!foldingBuff())"
+                          [title]="
+                            foldingBuff()
+                              ? ('feature.character.buff.detail' | transloco)
+                              : ('feature.character.buff.simple' | transloco)
+                          "
+                        >
+                          {{ foldingBuff() ? '▲' : '▼' }}
+                        </button>
                       </div>
-                      <button
-                        class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
-                        (mousedown)="foldingBuffFlag(!foldingBuff())"
-                        [title]="
-                          foldingBuff()
-                            ? ('feature.character.buff.detail' | transloco)
-                            : ('feature.character.buff.simple' | transloco)
-                        "
-                      >
-                        {{ foldingBuff() ? '▲' : '▼' }}
-                      </button>
                     </div>
                   </div>
                 </div>
               }
               <div [hidden]="!(buffNum() === 0)">
                 <div
-                  class="animate-arrowmove absolute left-1.5 box-border w-7.5 text-[20px]"
+                  class="absolute left-1.5 [-webkit-transform-style:preserve-3d] transform-3d"
                   [hidden]="!isTargeted()"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
                 >
-                  <img src="./assets/images/target/target.png" />
+                  <div
+                    class="animate-arrowmove box-border w-7.5 text-[20px] [-webkit-transform-style:preserve-3d] transform-3d"
+                    [ngStyle]="{ transform: billboardTransform() }"
+                  >
+                    <img src="./assets/images/target/target.png" />
+                  </div>
                 </div>
               </div>
-              @if (this.gameCharacter()!.nonTalkFlag) {
-                @if (name()) {
-                  <div
-                    class="bg-ui-panel text-ui-text absolute -top-7.5 box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-                    [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
-                      'background-color': 'rgba(255,255,255, 0.6)',
-                      color: '#333',
-                      border: 'solid 1px #555',
-                    }"
-                  >
-                    <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
-                      {{ name() }}
-                      @if (isLock) {
-                        <i class="material-icons inline align-middle text-[15px]!">lock</i>
-                      }
+              @if (name()) {
+                <div
+                  class="absolute -top-7.5 whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
+                >
+                  @if (this.gameCharacter()!.nonTalkFlag) {
+                    <div
+                      class="box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
+                      [ngStyle]="{
+                        transform: billboardTransform(),
+                        'background-color': 'rgba(255,255,255, 0.6)',
+                        color: '#333',
+                        border: 'solid 1px #555',
+                      }"
+                    >
+                      <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
+                        {{ name() }}
+                        @if (isLock) {
+                          <i class="material-icons inline align-middle text-[15px]!">lock</i>
+                        }
+                      </div>
                     </div>
-                  </div>
-                }
-                @if (name()) {
-                  <div
-                    class="bg-ui-panel text-ui-text absolute -top-7.5 box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-                    [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) rotateY(180deg)',
-                      'background-color': 'rgba(255,255,255, 0.6)',
-                      color: '#333',
-                      border: 'solid 1px #555',
-                    }"
-                  >
-                    <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
-                      {{ name() }}
-                      @if (isLock) {
-                        <i class="material-icons inline align-middle text-[15px]!">lock</i>
-                      }
+                  } @else {
+                    <div
+                      class="bg-ui-panel text-ui-text box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
+                      [ngStyle]="{ transform: billboardTransform() }"
+                    >
+                      <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
+                        {{ name() }}
+                        @if (isLock) {
+                          <i class="material-icons inline align-middle text-[15px]!">lock</i>
+                        }
+                      </div>
                     </div>
-                  </div>
-                }
-              }
-              @if (!this.gameCharacter()!.nonTalkFlag) {
-                @if (name()) {
-                  <div
-                    class="bg-ui-panel text-ui-text absolute -top-7.5 box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-                    [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
-                  >
-                    <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
-                      {{ name() }}
-                      @if (isLock) {
-                        <i class="material-icons inline align-middle text-[15px]!">lock</i>
-                      }
-                    </div>
-                  </div>
-                }
-                @if (name()) {
-                  <div
-                    class="bg-ui-panel text-ui-text absolute -top-7.5 box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-                    [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) rotateY(180deg)',
-                    }"
-                  >
-                    <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
-                      {{ name() }}
-                      @if (isLock) {
-                        <i class="material-icons inline align-middle text-[15px]!">lock</i>
-                      }
-                    </div>
-                  </div>
-                }
+                  }
+                </div>
               }
               @if (!isLock) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
