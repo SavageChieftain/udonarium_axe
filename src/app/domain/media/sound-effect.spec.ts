@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { emitSendMessage } from '@axe/core/event/domain-events';
+import { Network } from '@axe/core/network/network';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 
 describe('PresetSound', () => {
@@ -74,10 +77,6 @@ describe('SoundEffect', () => {
 
   describe('sendMessage$購読によるダイス音再生', () => {
     it('isDicebotがtrueのメッセージでSoundEffect.playが呼ばれる', async () => {
-      const { emitSendMessage } = await import('@axe/core/event/domain-events');
-      const { ChatMessage } = await import('@axe/domain/chat/chat-message');
-      const { Network } = await import('@axe/core/network/network');
-
       const se = new SoundEffect('test-se');
       se.initialize();
       store.add(se);
@@ -105,10 +104,6 @@ describe('SoundEffect', () => {
     });
 
     it('isDicebotがfalseのメッセージではplayが呼ばれない', async () => {
-      const { emitSendMessage } = await import('@axe/core/event/domain-events');
-      const { ChatMessage } = await import('@axe/domain/chat/chat-message');
-      const { Network } = await import('@axe/core/network/network');
-
       const se = new SoundEffect('test-se-2');
       se.initialize();
       store.add(se);
