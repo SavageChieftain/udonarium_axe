@@ -16,6 +16,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -69,6 +70,7 @@ export class GameCharacterComponent {
   private readonly tabletopOverlap = inject(TabletopOverlapService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
+  private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
 
   readonly isTargeted = computed(() => {
     this.uiSignalService.targetChange();
@@ -402,6 +404,7 @@ export class GameCharacterComponent {
           onShowChatPalette: () => this.showChatPalette(char),
           onShowRemoteController: () => this.showRemoteController(char),
           onShowBuffEdit: () => this.showBuffEdit(char),
+          onInvokeRangeShape: (value) => this.rangeShapeInvoke.spawnForCharacter(char, value),
         },
         this.translateFn,
         overlapEntries

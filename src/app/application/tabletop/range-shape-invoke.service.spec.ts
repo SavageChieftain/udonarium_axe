@@ -1,0 +1,82 @@
+import { TestBed } from '@angular/core/testing';
+import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { RangeArea } from '@axe/domain/tabletop/range';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+describe('RangeShapeInvokeService', () => {
+  let service: RangeShapeInvokeService;
+  let store: ObjectStore;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
+    service = TestBed.inject(RangeShapeInvokeService);
+    store = ObjectStore.instance;
+    const allObjects = store.getObjects();
+    allObjects.forEach((obj) => store.delete(obj, false));
+    store.clearDeleteHistory();
+  });
+
+  afterEach(() => {
+    const allObjects = store.getObjects();
+    allObjects.forEach((obj) => store.delete(obj, false));
+    store.clearDeleteHistory();
+  });
+
+  function makeField(overrides: Partial<RangeShapeFieldValue> = {}): RangeShapeFieldValue {
+    return {
+      name: '攻撃',
+      cellPattern: '0,0;1,0;0,1',
+      gridType: 'square',
+      gridColor: '#FF0000',
+      rangeColor: '#00FF00',
+      isRotatable: false,
+      ...overrides,
+    };
+  }
+
+  it('spawnAt で RangeArea が生成され CUSTOM 型になる', () => {
+    const tabletopService = TestBed.inject(TabletopService);
+    const table = new GameTable();
+    Object.defineProperty(tabletopService, 'currentTable', { get: () => table });
+
+    const range = service.spawnAt({ x: 100, y: 200, z: 0 }, makeField());
+
+    expect(range).toBeInstanceOf(RangeArea);
+    expect(range.type).toBe('CUSTOM');
+    expect(range.cellPattern).toBe('0,0;1,0;0,1');
+    expect(range.customGridType).toBe('square');
+    expect(range.gridColor).toBe('#FF0000');
+    expect(range.rangeColor).toBe('#00FF00');
+    expect(range.location.x).toBe(100);
+    expect(range.location.y).toBe(200);
+    expect(range.isRotatable).toBe(false);
+  });
+
+  it('spawnAt は field.isRotatable を伝搬する', () => {
+    const tabletopService = TestBed.inject(TabletopService);
+    const table = new GameTable();
+    Object.defineProperty(tabletopService, 'currentTable', { get: () => table });
+
+    const range = service.spawnAt({ x: 0, y: 0, z: 0 }, makeField({ isRotatable: true }));
+    expect(range.isRotatable).toBe(true);
+  });
+
+  it('spawnForCharacter でキャラ中心位置に出現', () => {
+    const tabletopService = TestBed.inject(TabletopService);
+    const table = new GameTable();
+    Object.defineProperty(tabletopService, 'currentTable', { get: () => table });
+
+    const character = GameCharacter.create('テスト', 2, '');
+    character.location.x = 300;
+    character.location.y = 400;
+
+    const range = service.spawnForCharacter(character, makeField());
+    expect(range.location.x).toBe(300 + (2 * 50) / 2);
+    expect(range.location.y).toBe(400 + (2 * 50) / 2);
+  });
+});

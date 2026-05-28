@@ -3,7 +3,32 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { Network } from '@axe/core/index';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
+import { decodeRangeShapeField, RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+
+export interface RegisteredRangeShape {
+  label: string;
+  value: RangeShapeFieldValue;
+}
+
+export function collectRegisteredRangeShapes(char: GameCharacter): RegisteredRangeShape[] {
+  const result: RegisteredRangeShape[] = [];
+  const walk = (element: DataElement): void => {
+    if (element.fieldType === DataElementFieldType.RANGE_SHAPE) {
+      const value = decodeRangeShapeField(element.currentValue);
+      if (value) {
+        const label = value.name?.trim() || element.name?.trim() || '';
+        result.push({ label, value });
+      }
+    }
+    for (const child of element.children) walk(child);
+  };
+  for (const child of char.children) {
+    if (child instanceof DataElement) walk(child);
+  }
+  return result;
+}
 
 export function buildGameCharacterContextMenu(
   char: GameCharacter,
@@ -14,10 +39,12 @@ export function buildGameCharacterContextMenu(
     onShowChatPalette: () => void;
     onShowRemoteController: () => void;
     onShowBuffEdit: () => void;
+    onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
   },
   t: TranslateFn,
   overlapEntries: ContextMenuAction[] = []
 ): ContextMenuAction[] {
+  const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
   return [
     ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
     {
@@ -88,6 +115,20 @@ export function buildGameCharacterContextMenu(
       name: t('feature.character.contextMenu.editBuff'),
       action: () => callbacks.onShowBuffEdit(),
     },
+    ...(registeredShapes.length > 0 && callbacks.onInvokeRangeShape
+      ? [
+          {
+            name: t('feature.character.contextMenu.invokeRangeShape'),
+            action: undefined,
+            subActions: registeredShapes.map((shape, index) => ({
+              name: shape.label || t('feature.range.custom.unnamedShape', { index: index + 1 }),
+              action: () => {
+                callbacks.onInvokeRangeShape?.(shape.value);
+              },
+            })),
+          } as ContextMenuAction,
+        ]
+      : []),
     char.hideInventory
       ? {
           name: t('feature.character.contextMenu.hideInventoryOn'),
