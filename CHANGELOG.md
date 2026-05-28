@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.5.0...v1.6.0) (2026-05-28)
+
+### ✨ Features
+
+* **game-character:** billboard name and buff labels toward the camera ([083c3a7](https://github.com/SavageChieftain/udonarium_axe/commit/083c3a7046176113f3bff3f30072ca8531c030f4))
+
 ## [1.5.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.4.8...v1.5.0) (2026-05-28)
 
 ### ✨ Features
