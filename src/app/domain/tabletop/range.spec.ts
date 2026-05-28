@@ -121,5 +121,40 @@ describe('RangeArea', () => {
       expect(range.type).toBe('SQUARE');
       expect(range.rotate).toBe(45);
     });
+
+    it('cellPattern と customGridType がデフォルト空文字', () => {
+      const range = RangeArea.create('test', 1, 1, 50);
+      expect(range.cellPattern).toBe('');
+      expect(range.customGridType).toBe('');
+    });
+  });
+
+  describe('createCustom()', () => {
+    it('CUSTOM 型でセルパターンとグリッド種別を保存', () => {
+      const range = RangeArea.createCustom('カスタム', '0,0;1,0;0,1', 'square', 100);
+      expect(range.type).toBe('CUSTOM');
+      expect(range.cellPattern).toBe('0,0;1,0;0,1');
+      expect(range.customGridType).toBe('square');
+    });
+
+    it('セルの bounding box から width/length を算出', () => {
+      const range = RangeArea.createCustom('L字', '0,0;1,0;2,0;0,1;0,2', 'square', 100);
+      expect(range.width).toBe(3);
+      expect(range.length).toBe(3);
+    });
+
+    it('空セルでも最低 1x1', () => {
+      const range = RangeArea.createCustom('空', '', 'square', 100);
+      expect(range.width).toBe(1);
+      expect(range.length).toBe(1);
+      expect(range.cellPattern).toBe('');
+    });
+
+    it('isRotatable オプションが反映される', () => {
+      const rotatable = RangeArea.createCustom('回転可', '0,0', 'square', 100, { isRotatable: true });
+      const fixed = RangeArea.createCustom('回転不可', '0,0', 'square', 100);
+      expect(rotatable.isRotatable).toBe(true);
+      expect(fixed.isRotatable).toBe(false);
+    });
   });
 });

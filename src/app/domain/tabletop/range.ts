@@ -4,6 +4,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { generateUuid } from '@axe/core/util/uuid';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('range')
@@ -24,6 +25,9 @@ export class RangeArea extends TabletopObject {
   @SyncVar('type') private _type: string = 'CORN';
   @SyncVar() fillOutLine: boolean = false;
   @SyncVar() subDivisionSnapPolygonal: boolean = true;
+  @SyncVar() cellPattern: string = '';
+  @SyncVar() customGridType: string = '';
+  @SyncVar() isRotatable: boolean = false;
 
   get type(): string {
     return this._type;
@@ -96,6 +100,25 @@ export class RangeArea extends TabletopObject {
     );
     object.initialize();
 
+    return object;
+  }
+
+  static createCustom(
+    name: string,
+    cellPattern: string,
+    gridType: string,
+    opacity: number,
+    options: { isRotatable?: boolean; identifier?: string } = {}
+  ): RangeArea {
+    const cells = parseCellPattern(cellPattern);
+    const bb = cellPatternBoundingBox(cells);
+    const width = Math.max(1, bb.width);
+    const length = Math.max(1, bb.height);
+    const object = RangeArea.create(name, width, length, opacity, options.identifier);
+    object._type = 'CUSTOM';
+    object.cellPattern = cellPattern;
+    object.customGridType = gridType;
+    object.isRotatable = options.isRotatable === true;
     return object;
   }
 
