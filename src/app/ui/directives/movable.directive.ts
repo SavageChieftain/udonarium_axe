@@ -58,7 +58,7 @@ export class MovableDirective {
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 
   private tabletopObject!: TabletopObject;
-  private layerName: string = '';
+  layerName: string = '';
   private colideLayers: string[] = [];
   private transformCssOffset: string = '';
   private snapOrigin: { x: number; y: number } | undefined;

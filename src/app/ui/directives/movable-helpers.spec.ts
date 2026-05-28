@@ -9,6 +9,8 @@ import {
   calcHexVertexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
+  MovableLayerItem,
+  setLayerCollidable,
   shouldTransitionTo,
   toTransformCss,
 } from '@axe/ui/directives/movable-helpers';
@@ -241,6 +243,79 @@ describe('movable-helpers', () => {
       const cx = result.x + gridSize / 2;
       const cy = result.y + gridSize / 2;
       expect(Math.sqrt(cx * cx + cy * cy)).toBeCloseTo(inradius);
+    });
+  });
+
+  describe('setLayerCollidable', () => {
+    interface FakeItem extends MovableLayerItem {
+      pointerEvents: 'auto' | 'none' | null;
+    }
+
+    function makeItem(layerName: string, isGrabbing = false): FakeItem {
+      const item: FakeItem = {
+        layerName,
+        input: { isGrabbing },
+        pointerEvents: null,
+        setPointerEvents(isEnable: boolean) {
+          item.pointerEvents = isEnable ? 'auto' : 'none';
+        },
+      };
+      return item;
+    }
+
+    it('掴み中の自レイヤ仲間には pointer-events:none を伝播 (自レイヤ衝突によるドラッグ解除の防止)', () => {
+      const self = makeItem('terrain', true);
+      const peerA = makeItem('terrain');
+      const peerB = makeItem('terrain');
+      const layerHash = { terrain: [self, peerA, peerB] };
+
+      setLayerCollidable(layerHash, ['terrain'], self, true, true);
+
+      expect(peerA.pointerEvents).toBe('none');
+      expect(peerB.pointerEvents).toBe('none');
+    });
+
+    it('掴み中、自レイヤを含まない他レイヤは pointer-events:none', () => {
+      const self = makeItem('terrain', true);
+      const character = makeItem('character');
+      const layerHash = { terrain: [self], character: [character] };
+
+      setLayerCollidable(layerHash, ['terrain'], self, true, true);
+
+      expect(character.pointerEvents).toBe('none');
+    });
+
+    it('掴み中、自レイヤ以外で colideLayers に含まれる層は pointer-events:auto に保たれる (衝突判定の維持)', () => {
+      const self = makeItem('character', true);
+      const terrain = makeItem('terrain');
+      const layerHash = { character: [self], terrain: [terrain] };
+
+      setLayerCollidable(layerHash, ['terrain'], self, true, true);
+
+      // character は自レイヤなので none、terrain は衝突対象なので auto
+      expect(terrain.pointerEvents).toBe('auto');
+    });
+
+    it('掴みを離す (selfIsGrabbing=false, isCollidable=false) と全ての他要素を pointer-events:auto に戻す', () => {
+      const self = makeItem('terrain', false);
+      const peer = makeItem('terrain');
+      const character = makeItem('character');
+      const layerHash = { terrain: [self, peer], character: [character] };
+
+      setLayerCollidable(layerHash, ['terrain'], self, false, false);
+
+      expect(peer.pointerEvents).toBe('auto');
+      expect(character.pointerEvents).toBe('auto');
+    });
+
+    it('自身および既に他で掴まれている要素はスキップする', () => {
+      const self = makeItem('terrain', true);
+      const otherGrabbing = makeItem('terrain', true);
+      const layerHash = { terrain: [self, otherGrabbing] };
+
+      setLayerCollidable(layerHash, ['terrain'], self, true, true);
+
+      expect(otherGrabbing.pointerEvents).toBeNull();
     });
   });
 

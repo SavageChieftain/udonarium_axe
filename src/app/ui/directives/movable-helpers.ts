@@ -3,6 +3,7 @@ import { hexCellCenter, hexCircumradius, hexSpacing, hexStartAngle } from '@axe/
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export type MovableLayerItem = {
+  layerName: string;
   input?: { isGrabbing: boolean } | null;
   setPointerEvents(isEnable: boolean): void;
 };
@@ -241,8 +242,15 @@ export function setLayerCollidable(
   isCollidable: boolean
 ) {
   for (const layerName of Object.keys(layerHash)) {
-    let isEnable = isCollidable;
-    if (-1 < colideLayers.indexOf(layerName)) {
+    let isEnable: boolean;
+    if (selfIsGrabbing && layerName === self.layerName) {
+      // While dragging, force same-layer siblings to pointer-events:none.
+      // Self-colliding layers (e.g. terrain colides with 'terrain') would otherwise leave
+      // peers interactive — and when the cursor crosses one of them mid-drag the browser
+      // can fire synthetic pointer-events-toggle mousemoves with `buttons === 0`, which
+      // PointerDeviceService treats as drag-end and cancels the drag (the original bug).
+      isEnable = false;
+    } else if (-1 < colideLayers.indexOf(layerName)) {
       isEnable = selfIsGrabbing ? isCollidable : true;
     } else {
       isEnable = !isCollidable;
