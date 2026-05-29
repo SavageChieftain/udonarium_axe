@@ -13,6 +13,7 @@
       class="pointer-events-auto size-full transform-3d"
       appRotable
       [rotable.option]="rotableOption()"
+      [rotable.disable]="mode2dEnabled()"
       (rotable.ondragstart)="onMove()"
       (rotable.ondragend)="onMoved()"
     >
@@ -24,7 +25,7 @@
         class="absolute box-border size-full rounded-[5px] border-2 border-solid border-[#212121] backface-hidden"
       ></div>
       @if (!isIconHidden()) {
-        @if (!isLock) {
+        @if (!isLock && !mode2dEnabled()) {
           <div
             class="rotate-grab absolute -top-5.5 -left-1.5 -z-1 h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
           >
