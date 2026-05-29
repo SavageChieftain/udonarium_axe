@@ -109,4 +109,8 @@ export class UiSignalService {
   requestChatJump(messageIdentifier: string): void {
     this.chatJumpRequest.set({ messageIdentifier, timestamp: Date.now() });
   }
+
+  clearChatJump(): void {
+    this.chatJumpRequest.set(null);
+  }
 }

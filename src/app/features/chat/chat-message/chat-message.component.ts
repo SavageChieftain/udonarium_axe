@@ -248,6 +248,11 @@ export class ChatMessageComponent {
     const me = this.chatMessageInput()?.identifier;
     if (!me || me !== req.messageIdentifier) return;
     queueMicrotask(() => {
+      // Consume the request first so any concurrent / subsequent reads (newly mounted
+      // chat-message components, input updates after a new post, etc.) see null and skip
+      // the scroll. Deferred to the microtask so we don't write to a signal we just read
+      // synchronously inside the same effect cycle.
+      this.uiSignalService.clearChatJump();
       this.hostElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       this.isHighlighted.set(true);
       if (this.highlightTimer) clearTimeout(this.highlightTimer);

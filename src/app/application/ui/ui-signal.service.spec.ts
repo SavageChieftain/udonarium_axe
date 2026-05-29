@@ -57,4 +57,18 @@ describe('UiSignalService', () => {
     const data = service.tableViewRotation();
     expect(data).toEqual({ x: 10, y: 20, z: 30 });
   });
+
+  it('should set chatJumpRequest on requestChatJump', () => {
+    service.requestChatJump('msg-1');
+    const data = service.chatJumpRequest();
+    expect(data?.messageIdentifier).toBe('msg-1');
+    expect(data?.timestamp).toBeGreaterThan(0);
+  });
+
+  it('clearChatJump で chatJumpRequest が null に戻る (新規発言で再スクロールしないため)', () => {
+    service.requestChatJump('msg-1');
+    expect(service.chatJumpRequest()).not.toBeNull();
+    service.clearChatJump();
+    expect(service.chatJumpRequest()).toBeNull();
+  });
 });

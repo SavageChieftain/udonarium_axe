@@ -245,4 +245,47 @@ describe('ChatMessageComponent', () => {
       expect(spy).not.toHaveBeenCalled();
     });
   });
+
+  describe('「元のメッセージへ移動」consume 動作', () => {
+    /**
+     * 引用/返信ジャンプは consume 後に必ずクリアされること。
+     * クリアされないと、その後の発言で chat-message コンポーネントが新規マウントされる度に
+     * effect 初回実行で同じ jump request を読み再スクロールしてしまう (報告された不具合)。
+     */
+    function setupMessage(identifier: string) {
+      const message = new ChatMessage(identifier);
+      message.initialize();
+      message.from = 'tester';
+      message.text = 'hello';
+      fixture.componentRef.setInput('chatMessage', message);
+      fixture.detectChanges();
+      // happy-dom: scrollIntoView は no-op で十分。stub しておかないと未実装エラーになる。
+      const host = fixture.nativeElement as HTMLElement;
+      host.scrollIntoView = vi.fn();
+      return host;
+    }
+
+    it('自身宛の jump request を消費した直後に chatJumpRequest が null に戻る', async () => {
+      setupMessage('jump-target-msg');
+      const ui = TestBed.inject(UiSignalService);
+
+      ui.requestChatJump('jump-target-msg');
+      fixture.detectChanges();
+      // queueMicrotask 内でクリア + scrollIntoView を呼ぶ
+      await Promise.resolve();
+
+      expect(ui.chatJumpRequest()).toBeNull();
+    });
+
+    it('自身宛でない jump request は触らない (他コンポーネントが消費するため)', () => {
+      setupMessage('msg-A');
+      const ui = TestBed.inject(UiSignalService);
+
+      ui.requestChatJump('msg-B');
+      fixture.detectChanges();
+
+      const req = ui.chatJumpRequest();
+      expect(req?.messageIdentifier).toBe('msg-B');
+    });
+  });
 });
