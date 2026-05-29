@@ -247,6 +247,15 @@ export class GameCharacterComponent {
 
   readonly billboardTransformBuff = computed(() => this.makeBillboardTransform(40 + this.buffPanelHeightEstimate()));
 
+  readonly billboardTransformImage = computed(() => this.makeBillboardTransform(0));
+
+  readonly imageBillboardEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return table.imageBillboard;
+  });
+
   private makeBillboardTransform(verticalOffset3D: number): string {
     const r = this.uiSignalService.tableViewRotation();
     const tableX = r?.x ?? 50;

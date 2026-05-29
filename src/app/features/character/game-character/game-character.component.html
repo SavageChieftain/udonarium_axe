@@ -237,7 +237,11 @@
                     display: 'inline-block',
                     left: 'auto',
                     right: 'auto',
-                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
+                    transform:
+                      'translateX(-50%) translateX(' +
+                      (size() * gridSize) / 2 +
+                      'px)' +
+                      (imageBillboardEnabled() ? ' ' + billboardTransformImage() : ''),
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
@@ -245,7 +249,10 @@
               @if (0 < imageFile().url.length && !specifyKomaImageFlag()) {
                 <img
                   class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
-                  [ngStyle]="{ width: '100%' }"
+                  [ngStyle]="{
+                    width: '100%',
+                    transform: imageBillboardEnabled() ? billboardTransformImage() : '',
+                  }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }

@@ -14,6 +14,7 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -54,6 +55,7 @@ export class DiceSymbolComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -148,6 +150,14 @@ export class DiceSymbolComponent {
 
   readonly billboardTransform = computed(() => this.makeBillboardTransform(30));
   readonly billboardTransformOwner = computed(() => this.makeBillboardTransform(55));
+  readonly billboardTransformImage = computed(() => this.makeBillboardTransform(0));
+
+  readonly imageBillboardEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return table.imageBillboard;
+  });
 
   private makeBillboardTransform(verticalOffset3D: number): string {
     const r = this.uiSignalService.tableViewRotation();

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
@@ -82,6 +83,27 @@ describe('DiceSymbolComponent', () => {
 
       const match = (s: string) => Number(s.match(/translateZ\((-?[\d.]+)px\)/)?.[1] ?? 0);
       expect(match(component.billboardTransformOwner())).toBeLessThan(match(component.billboardTransform()));
+    });
+
+    it('imageBillboardEnabled が currentTable.imageBillboard を反映すること', async () => {
+      const diceSymbol = DiceSymbol.create('画像追従テスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      const tabletopService = TestBed.inject(TabletopService);
+
+      tabletopService.currentTable.imageBillboard = false;
+      expect(component.imageBillboardEnabled()).toBe(false);
+
+      tabletopService.currentTable.imageBillboard = true;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.imageBillboardEnabled()).toBe(true);
+    });
+
+    it('billboardTransformImage は verticalOffset=0 の transform を返すこと', () => {
+      const diceSymbol = DiceSymbol.create('画像オフセットテスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
+
+      expect(component.billboardTransformImage()).toContain('translateZ(0.00px)');
     });
   });
 

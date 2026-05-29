@@ -670,6 +670,7 @@
         "snapVertex": "Vertex",
         "snapBoth": "Cell + vertex",
         "snapAll": "Cell + vertex + edge",
+        "imageBillboard": "Billboard piece images",
         "bgFilter": "Background filter",
         "bgFilterNone": "None",
         "bgFilterWhite": "White",

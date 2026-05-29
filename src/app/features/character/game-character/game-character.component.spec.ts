@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -85,6 +86,23 @@ describe('GameCharacterComponent', () => {
       char.destroy();
       ImageStorage.instance.delete('piece-height-url');
     }
+  });
+
+  describe('imageBillboardEnabled テーブル設定追従', () => {
+    it('currentTable.imageBillboard の値を反映すること', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.imageBillboard = false;
+      expect(component.imageBillboardEnabled()).toBe(false);
+
+      tabletopService.currentTable.imageBillboard = true;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.imageBillboardEnabled()).toBe(true);
+    });
+
+    it('billboardTransformImage は verticalOffset=0 の transform を返すこと', () => {
+      TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
+      expect(component.billboardTransformImage()).toContain('translateZ(0.00px)');
+    });
   });
 
   describe('ALTクリックのターゲット切り替え', () => {

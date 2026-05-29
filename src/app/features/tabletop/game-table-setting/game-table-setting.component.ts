@@ -124,6 +124,15 @@ export class GameTableSettingComponent {
     this.selectedTable.gridSnap = tableGridSnap;
   }
 
+  get tableImageBillboard(): boolean {
+    return this.selectedTable?.imageBillboard ?? false;
+  }
+  set tableImageBillboard(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.imageBillboard = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
   get tableGridSnapStyle(): GridSnapStyle {
     return this.selectedTable?.gridSnapStyle ?? GridSnapStyle.CENTER;
   }

@@ -41,6 +41,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridShow: boolean = false;
   @SyncVar() gridSnap: boolean = true;
   @SyncVar() gridSnapStyle: GridSnapStyle = GridSnapStyle.CENTER;
+  @SyncVar() imageBillboard: boolean = false;
 
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {

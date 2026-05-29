@@ -97,7 +97,11 @@
                     maxWidth: 'none',
                     left: 'auto',
                     right: 'auto',
-                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)',
+                    transform:
+                      'translateX(-50%) translateX(' +
+                      (size() * gridSize) / 2 +
+                      'px)' +
+                      (imageBillboardEnabled() ? ' ' + billboardTransformImage() : ''),
                   }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                   [class.is-black-mask]="!isVisible"
@@ -107,7 +111,10 @@
               @if (imageFile().url && !specifyImageFlag()) {
                 <img
                   class="bottom-0 m-auto h-auto align-bottom transform-3d [&.is-black-mask]:filter-[brightness(0)]! [&.is-harf-black-mask]:filter-[brightness(0.5)]!"
-                  [ngStyle]="{ width: '100%' }"
+                  [ngStyle]="{
+                    width: '100%',
+                    transform: imageBillboardEnabled() ? billboardTransformImage() : '',
+                  }"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                   [class.is-black-mask]="!isVisible"
                   [class.is-harf-black-mask]="isMine"
