@@ -105,6 +105,62 @@ describe('DiceSymbolComponent', () => {
 
       expect(component.billboardTransformImage()).toContain('translateZ(0.00px)');
     });
+
+    it('mode2d=true なら imageBillboard=false でも true を返すこと', async () => {
+      const diceSymbol = DiceSymbol.create('mode2dテスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      const tabletopService = TestBed.inject(TabletopService);
+
+      tabletopService.currentTable.imageBillboard = false;
+      tabletopService.currentTable.mode2d = true;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.imageBillboardEnabled()).toBe(true);
+    });
+  });
+
+  describe('nameLabelOrbit 2Dモード時のスクリーン上方追従', () => {
+    it('3Dモードでは translateY(-distance3d) を返すこと', async () => {
+      const diceSymbol = DiceSymbol.create('orbit3dテスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = false;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.nameLabelOrbit()).toBe('translateY(-30px)');
+    });
+
+    it('2Dモードでヨー=0なら translateZ(-d) で画面上方向に配置されること', async () => {
+      const diceSymbol = DiceSymbol.create('orbit2dテスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      TestBed.inject(UiSignalService).notifyTableViewRotation(0, 0, 0);
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      const transform = component.nameLabelOrbit();
+      expect(transform).toContain('translateZ(-60.00px)');
+    });
+
+    it('オーナー名のオフセットの絶対値の方が名前より大きいこと', async () => {
+      const diceSymbol = DiceSymbol.create('orbit比較テスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      TestBed.inject(UiSignalService).notifyTableViewRotation(0, 0, 0);
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      const nameZ = Math.abs(Number(component.nameLabelOrbit().match(/translateZ\((-?[\d.]+)px\)/)?.[1] ?? 0));
+      const ownerZ = Math.abs(Number(component.ownerLabelOrbit().match(/translateZ\((-?[\d.]+)px\)/)?.[1] ?? 0));
+      expect(ownerZ).toBeGreaterThan(nameZ);
+    });
+
+    it('2Dモードでは billboardTransform の compensateZ が 0 になること', async () => {
+      const diceSymbol = DiceSymbol.create('compZテスト', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', diceSymbol);
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.billboardTransform()).toContain('translateZ(0.00px)');
+      expect(component.billboardTransformOwner()).toContain('translateZ(0.00px)');
+    });
   });
 
   describe('timer cleanup on destroy', () => {

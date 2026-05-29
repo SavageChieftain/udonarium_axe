@@ -111,9 +111,13 @@
               @if (buffEl && buffNum() > 0) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
                   <div
-                    class="absolute -top-10 m-auto whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                    class="absolute m-auto whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY(-100%)',
+                      transform:
+                        'translateX(-50%) translateX(' +
+                        (size() * gridSize) / 2 +
+                        'px) translateY(-100%) ' +
+                        buffLabelOrbit(),
                     }"
                   >
                     <div
@@ -178,8 +182,10 @@
               </div>
               @if (name()) {
                 <div
-                  class="absolute -top-7.5 whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
-                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
+                  class="absolute whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                  [ngStyle]="{
+                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + nameLabelOrbit(),
+                  }"
                 >
                   @if (this.gameCharacter()!.nonTalkFlag) {
                     <div

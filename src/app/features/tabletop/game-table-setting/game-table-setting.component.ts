@@ -133,6 +133,15 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
+  get tableMode2d(): boolean {
+    return this.selectedTable?.mode2d ?? false;
+  }
+  set tableMode2d(value: boolean) {
+    if (!this.selectedTable) return;
+    this.selectedTable.mode2d = value;
+    triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
   get tableGridSnapStyle(): GridSnapStyle {
     return this.selectedTable?.gridSnapStyle ?? GridSnapStyle.CENTER;
   }

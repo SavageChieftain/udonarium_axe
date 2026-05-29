@@ -671,6 +671,7 @@
         "snapBoth": "セル＋交差点",
         "snapAll": "セル＋交差点＋辺",
         "imageBillboard": "画像をカメラに追従",
+        "mode2d": "2Dモード（俯瞰固定）",
         "bgFilter": "背景フィルタ",
         "bgFilterNone": "なし",
         "bgFilterWhite": "ホワイト",

@@ -671,6 +671,7 @@
         "snapBoth": "Cell + vertex",
         "snapAll": "Cell + vertex + edge",
         "imageBillboard": "Billboard piece images",
+        "mode2d": "2D mode (top-down)",
         "bgFilter": "Background filter",
         "bgFilterNone": "None",
         "bgFilterWhite": "White",

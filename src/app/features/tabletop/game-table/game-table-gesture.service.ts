@@ -21,6 +21,8 @@ export class GameTableGestureService {
   viewRotateY = 0;
   viewRotateZ = 10;
 
+  tiltLocked = false;
+
   private mouseGesture: TableMouseGesture | null = null;
   private touchGesture: TableTouchGesture | null = null;
 
@@ -65,6 +67,10 @@ export class GameTableGestureService {
   }
 
   setTransform(tX: number, tY: number, tZ: number, rX: number, rY: number, rZ: number): void {
+    if (this.tiltLocked) {
+      rX = -this.viewRotateX;
+      rY = -this.viewRotateY;
+    }
     this.viewRotateX += rX;
     this.viewRotateY += rY;
     this.viewRotateZ += rZ;

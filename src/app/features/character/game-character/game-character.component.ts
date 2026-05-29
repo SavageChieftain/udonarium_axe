@@ -253,8 +253,29 @@ export class GameCharacterComponent {
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
-    return table.imageBillboard;
+    return table.imageBillboard || table.mode2d;
   });
+
+  readonly mode2dEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return table.mode2d;
+  });
+
+  private labelOrbitTransform(distance3d: number, distance2d: number): string {
+    if (!this.mode2dEnabled()) {
+      return `translateY(${-distance3d}px)`;
+    }
+    const r = this.uiSignalService.tableViewRotation();
+    const yawRad = ((r?.z ?? 10) * Math.PI) / 180;
+    const sin = Math.sin(yawRad);
+    const cos = Math.cos(yawRad);
+    return `translateX(${(-distance2d * sin).toFixed(2)}px) translateZ(${(-distance2d * cos).toFixed(2)}px)`;
+  }
+
+  readonly nameLabelOrbit = computed(() => this.labelOrbitTransform(30, 60));
+  readonly buffLabelOrbit = computed(() => this.labelOrbitTransform(40, 85 + this.buffPanelHeightEstimate() / 2));
 
   private makeBillboardTransform(verticalOffset3D: number): string {
     const r = this.uiSignalService.tableViewRotation();
@@ -267,7 +288,7 @@ export class GameCharacterComponent {
     const sinRx = Math.sin(tx);
     const cosRx = Math.cos(tx);
     const denom = Math.max(0.05, cosRx);
-    const compensateZ = ((-verticalOffset3D * (1 - sinRx)) / denom).toFixed(2);
+    const compensateZ = this.mode2dEnabled() ? '0.00' : ((-verticalOffset3D * (1 - sinRx)) / denom).toFixed(2);
     return (
       `translateZ(${compensateZ}px) ` +
       `rotateZ(${-roll}deg) ` +

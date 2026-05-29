@@ -53,8 +53,10 @@
             <div class="absolute inset-x-0 bottom-0 h-auto w-full transform-3d">
               @if (name()) {
                 <div
-                  class="absolute -top-7.5 whitespace-nowrap transform-3d"
-                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
+                  class="absolute whitespace-nowrap transform-3d"
+                  [ngStyle]="{
+                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + nameLabelOrbit(),
+                  }"
                 >
                   <div
                     class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[15px] whitespace-nowrap transform-3d"
@@ -77,8 +79,10 @@
               }
               @if (hasOwner && ownerName) {
                 <div
-                  class="absolute -top-13.75 whitespace-nowrap transform-3d"
-                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
+                  class="absolute whitespace-nowrap transform-3d"
+                  [ngStyle]="{
+                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + ownerLabelOrbit(),
+                  }"
                 >
                   <div
                     class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[12px] whitespace-nowrap transform-3d"

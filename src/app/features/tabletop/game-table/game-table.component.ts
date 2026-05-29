@@ -140,6 +140,7 @@ export class GameTableComponent {
           this.currentTable.gridColor,
           this.currentTable.gridFontColor
         );
+        this.syncMode2d();
       },
       this.destroyRef
     );
@@ -168,7 +169,16 @@ export class GameTableComponent {
       );
       this.gestureService.setTransform(0, 0, 0, 0, 0, 0);
       this.coordinateService.tabletopOriginElement = this.gameObjects().nativeElement;
+      this.syncMode2d();
     });
+  }
+
+  private syncMode2d(): void {
+    const enabled = this.currentTable.mode2d;
+    this.gestureService.tiltLocked = enabled;
+    if (enabled) {
+      this.gestureService.setTransform(0, 0, 0, 0, 0, 0);
+    }
   }
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');

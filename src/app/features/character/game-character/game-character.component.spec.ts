@@ -103,6 +103,54 @@ describe('GameCharacterComponent', () => {
       TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
       expect(component.billboardTransformImage()).toContain('translateZ(0.00px)');
     });
+
+    it('mode2d=true なら imageBillboard=false でも true を返すこと', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.imageBillboard = false;
+      tabletopService.currentTable.mode2d = true;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.imageBillboardEnabled()).toBe(true);
+    });
+  });
+
+  describe('nameLabelOrbit 2Dモード時のスクリーン上方追従', () => {
+    it('3Dモードでは translateY(-distance3d) を返すこと', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = false;
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.nameLabelOrbit()).toBe('translateY(-30px)');
+    });
+
+    it('2Dモードでヨー=0なら translateZ(-d) で画面上方向に配置されること', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      TestBed.inject(UiSignalService).notifyTableViewRotation(0, 0, 0);
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      const transform = component.nameLabelOrbit();
+      const x = Number(transform.match(/translateX\((-?[\d.]+)px\)/)?.[1] ?? NaN);
+      expect(x).toBeCloseTo(0, 5);
+      expect(transform).toContain('translateZ(-60.00px)');
+    });
+
+    it('2Dモードでヨーが90度なら translateX(-d), translateZ(0) になること', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      TestBed.inject(UiSignalService).notifyTableViewRotation(0, 0, 90);
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      const transform = component.nameLabelOrbit();
+      expect(transform).toContain('translateX(-60.00px)');
+      const z = Number(transform.match(/translateZ\((-?[\d.]+)px\)/)?.[1] ?? NaN);
+      expect(z).toBeCloseTo(0, 5);
+    });
+
+    it('2Dモードでは billboardTransform の compensateZ が 0 になること', async () => {
+      const tabletopService = TestBed.inject(TabletopService);
+      tabletopService.currentTable.mode2d = true;
+      TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      expect(component.billboardTransform()).toContain('translateZ(0.00px)');
+      expect(component.billboardTransformBuff()).toContain('translateZ(0.00px)');
+    });
   });
 
   describe('ALTクリックのターゲット切り替え', () => {
