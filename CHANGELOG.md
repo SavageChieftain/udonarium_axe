@@ -1,3 +1,24 @@
+## [1.7.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.6.0...v1.7.0) (2026-05-29)
+
+### ✨ Features
+
+* **character:** invoke registered range shapes from context menu ([cde65e6](https://github.com/SavageChieftain/udonarium_axe/commit/cde65e6f7cbb8cf7a2389ac89a89c8c518b1f8b7))
+* **data-element:** add RANGE_SHAPE field type with thumbnail preview ([9b38271](https://github.com/SavageChieftain/udonarium_axe/commit/9b38271dae2e15923bc7dabf4ce4f2bfe0492719))
+* **dice:** make name and owner labels follow camera like character pieces ([d4af5bb](https://github.com/SavageChieftain/udonarium_axe/commit/d4af5bbc503636dbefd97ed6e322139edb7258c3))
+* **domain:** add cell-pattern utilities and CUSTOM range type ([6da237a](https://github.com/SavageChieftain/udonarium_axe/commit/6da237a935efdc5f2aea529a3ec770fb6f87c5fe))
+* **i18n:** add strings for custom range feature ([fdea3a1](https://github.com/SavageChieftain/udonarium_axe/commit/fdea3a10ed78e18b2dfa7c12624a06e46a8acd73))
+* **range-shape-editor:** add cell painter panel component ([2dec805](https://github.com/SavageChieftain/udonarium_axe/commit/2dec805846f5da496f8ff89479357bd5429a5f67))
+* **range:** render CUSTOM cells aligned to the table grid ([20930c8](https://github.com/SavageChieftain/udonarium_axe/commit/20930c862f54e9dd5b56a297c517d91f63302a8c))
+* **tabletop:** add 2D top-down mode with orbit-aware piece labels ([c896dea](https://github.com/SavageChieftain/udonarium_axe/commit/c896deab1b4f171d5f4f2f4d6751a1e54d5123e3))
+* **tabletop:** add per-table toggle to billboard character and dice images ([1d2b12a](https://github.com/SavageChieftain/udonarium_axe/commit/1d2b12a281d0d6b7a2db4baa5db405976bcf9902))
+* **tabletop:** disable piece rotation gestures in 2D mode ([8e28aed](https://github.com/SavageChieftain/udonarium_axe/commit/8e28aed8c33526b156bcb4f9149944e4ab1069f2))
+
+### 🐛 Bug Fixes
+
+* **chat:** clear chatJumpRequest after the target consumes it ([5237451](https://github.com/SavageChieftain/udonarium_axe/commit/5237451f69bc8e3cf62e0cf4d1c0e22455c4e54e))
+* **chat:** skip scrollToBottom$ when auto-follow is off ([722ad02](https://github.com/SavageChieftain/udonarium_axe/commit/722ad02bca481a3634e3803e0ede6980dbcbd39b))
+* **ui:** keep same-layer peers passthrough while a movable is dragged ([1862eef](https://github.com/SavageChieftain/udonarium_axe/commit/1862eef8f6c9f74697aa981fb22cc8049d306791))
+
 ## [1.6.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.5.0...v1.6.0) (2026-05-28)
 
 ### ✨ Features
