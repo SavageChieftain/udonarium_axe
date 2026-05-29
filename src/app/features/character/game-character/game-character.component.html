@@ -6,6 +6,7 @@
     appMovable
     [movable.option]="movableOption()"
     [movable.disable]="isLock"
+    [appSelectable]="gameCharacter()"
     (movable.ondragstart)="onMove()"
     (movable.ondragend)="onMoved()"
     (pointerdown)="checkKey($event)"

@@ -15,6 +15,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -32,6 +33,7 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -40,7 +42,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'card-stack',
   templateUrl: './card-stack.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgClass, RotableDirective, NgStyle, SafePipe, TranslocoModule],
+  imports: [MovableDirective, NgClass, RotableDirective, SelectableDirective, NgStyle, SafePipe, TranslocoModule],
   host: {
     class: 'block',
     '(carddrop)': 'onCardDrop($event)',
@@ -251,6 +253,17 @@ export class CardStackComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
+    const multi = tryBuildMultiSelectionContextMenu({
+      self: this.cardStack(),
+      selectionSignalService: this.selectionSignalService,
+      objectStore: this.objectStore,
+      t: this.translateFn,
+      gridSize: this.gridSize,
+    });
+    if (multi) {
+      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
+      return;
+    }
     const menuArray = buildCardStackContextMenu(
       this.cardStack(),
       this.gridSize,

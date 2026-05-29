@@ -5,6 +5,7 @@
   appMovable
   [movable.option]="movableOption()"
   [movable.disable]="isLock"
+  [appSelectable]="diceSymbol()"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >

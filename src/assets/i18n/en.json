@@ -536,6 +536,13 @@
       }
     },
     "tabletop": {
+      "selection": {
+        "title": "Selected objects",
+        "countLabel": "{{count}} selected",
+        "copyAll": "Copy all selected",
+        "moveAllGraveyard": "Move all to graveyard",
+        "clear": "Clear selection"
+      },
       "action": {
         "createCharacter": "Create character",
         "createMask": "Create map mask",

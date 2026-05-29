@@ -4,6 +4,7 @@
   appMovable
   [movable.option]="movableOption()"
   [movable.disable]="isLock"
+  [appSelectable]="card()"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >

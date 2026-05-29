@@ -16,6 +16,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -32,6 +33,7 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
@@ -39,7 +41,7 @@ import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offse
   selector: 'dice-symbol',
   templateUrl: './dice-symbol.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgStyle, SafePipe],
+  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
   host: {
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',
@@ -288,6 +290,17 @@ export class DiceSymbolComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
+    const multi = tryBuildMultiSelectionContextMenu({
+      self: this.diceSymbol(),
+      selectionSignalService: this.selectionSignalService,
+      objectStore: this.objectStore,
+      t: this.translateFn,
+      gridSize: this.gridSize,
+    });
+    if (multi) {
+      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
+      return;
+    }
     this.contextMenuService.open(
       position,
       buildDiceSymbolContextMenu(

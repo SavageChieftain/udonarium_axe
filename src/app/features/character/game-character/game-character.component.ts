@@ -19,6 +19,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
@@ -40,6 +41,7 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -49,7 +51,15 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'game-character',
   templateUrl: './game-character.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgStyle, GameDataElementBuffComponent, SafePipe, TranslocoModule],
+  imports: [
+    MovableDirective,
+    RotableDirective,
+    SelectableDirective,
+    NgStyle,
+    GameDataElementBuffComponent,
+    SafePipe,
+    TranslocoModule,
+  ],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -416,6 +426,17 @@ export class GameCharacterComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
+    const multi = tryBuildMultiSelectionContextMenu({
+      self: char,
+      selectionSignalService: this.selectionSignalService,
+      objectStore: this.objectStore,
+      t: this.translateFn,
+      gridSize: this.gridSize,
+    });
+    if (multi) {
+      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
+      return;
+    }
     const overlapEntries = buildOverlapContextMenu(
       this.tabletopOverlap,
       char,

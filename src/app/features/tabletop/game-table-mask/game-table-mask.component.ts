@@ -17,7 +17,9 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -41,6 +43,7 @@ import {
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_MASK_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -49,7 +52,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'game-table-mask',
   templateUrl: './game-table-mask.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgStyle, SafePipe, TranslocoModule],
+  imports: [MovableDirective, SelectableDirective, NgStyle, SafePipe, TranslocoModule],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -72,6 +75,7 @@ export class GameTableMaskComponent {
   private readonly tableSelecter = inject(TableSelecter);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -494,6 +498,17 @@ export class GameTableMaskComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const menuPosition = this.pointerDeviceService.pointers[0];
+    const multi = tryBuildMultiSelectionContextMenu({
+      self: mask,
+      selectionSignalService: this.selectionSignalService,
+      objectStore: this.objectStore,
+      t: this.translateFn,
+      gridSize: this.gridSize,
+    });
+    if (multi) {
+      this.contextMenuService.open(menuPosition, multi, this.translateFn('feature.tabletop.selection.title'));
+      return;
+    }
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
     const menuArray = buildGameTableMaskContextMenu({
       mask: mask,

@@ -17,6 +17,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -31,6 +32,7 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -40,7 +42,7 @@ import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-tex
   selector: 'text-note',
   templateUrl: './text-note.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgStyle, FormsModule, LinkifyPipe, SafePipe],
+  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, FormsModule, LinkifyPipe, SafePipe],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -330,6 +332,17 @@ export class TextNoteComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
+    const multi = tryBuildMultiSelectionContextMenu({
+      self: this.textNote(),
+      selectionSignalService: this.selectionSignalService,
+      objectStore: this.objectStore,
+      t: this.translateFn,
+      gridSize: this.gridSize,
+    });
+    if (multi) {
+      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
+      return;
+    }
     this.contextMenuService.open(
       position,
       buildTextNoteContextMenu(

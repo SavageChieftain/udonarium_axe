@@ -509,6 +509,15 @@ chat-message > div > div {
   --ui-shadow-lg: 0 8px 40px rgba(91, 64, 116, 0.22), 0 2px 8px rgba(91, 64, 116, 0.14);
 }
 
+/* Multi-select highlight applied by SelectableDirective on tabletop object roots.
+   Uses an inset glow so it tracks any non-rectangular pedestal/border without
+   adding a wrapper element. */
+.app-selected {
+  outline: 2px solid color-mix(in srgb, var(--ui-accent) 90%, transparent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-accent) 24%, transparent);
+}
+
 /* badge bounce animation (moved from component CSS) */
 @keyframes bounce {
   0% {

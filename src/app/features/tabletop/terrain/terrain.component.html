@@ -5,6 +5,7 @@
   appMovable
   [movable.option]="movableOption()"
   [movable.disable]="isLocked()"
+  [appSelectable]="terrain()"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >

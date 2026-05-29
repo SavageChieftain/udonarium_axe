@@ -20,6 +20,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
@@ -45,6 +46,7 @@ import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -69,7 +71,7 @@ interface TerrainGridViewport extends TerrainGridBounds {
   selector: 'terrain',
   templateUrl: './terrain.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, NgStyle, SafePipe],
+  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
   host: {
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
@@ -478,6 +480,17 @@ export class TerrainComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const menuPosition = this.pointerDeviceService.pointers[0];
+    const multi = tryBuildMultiSelectionContextMenu({
+      self: this.terrain(),
+      selectionSignalService: this.selectionSignalService,
+      objectStore: this.objectStore,
+      t: this.translateFn,
+      gridSize: this.gridSize,
+    });
+    if (multi) {
+      this.contextMenuService.open(menuPosition, multi, this.translateFn('feature.tabletop.selection.title'));
+      return;
+    }
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
     const overlapEntries = buildOverlapContextMenu(
       this.tabletopOverlap,

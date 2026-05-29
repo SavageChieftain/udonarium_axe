@@ -536,6 +536,13 @@
       }
     },
     "tabletop": {
+      "selection": {
+        "title": "選択中のオブジェクト",
+        "countLabel": "{{count}} 件選択中",
+        "copyAll": "選択をすべてコピー",
+        "moveAllGraveyard": "選択をすべて墓場へ",
+        "clear": "選択をクリア"
+      },
       "action": {
         "createCharacter": "キャラクターを作成",
         "createMask": "マップマスクを作成",

@@ -4,6 +4,7 @@
   appMovable
   [movable.option]="movableOption()"
   [movable.disable]="isLock()"
+  [appSelectable]="range()"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >

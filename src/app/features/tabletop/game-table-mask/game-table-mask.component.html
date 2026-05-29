@@ -9,6 +9,7 @@
     appMovable
     [movable.option]="movableOption()"
     [movable.disable]="isLock || isScratching"
+    [appSelectable]="gameTableMask()"
     (movable.ondragstart)="onMove()"
     (movable.ondragend)="onMoved()"
   >
