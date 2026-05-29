@@ -80,4 +80,75 @@ describe('SelectionSignalService', () => {
     service.cancelTableGesture();
     expect(service.cancelTableGestureVersion()).toBe(initial + 3);
   });
+
+  describe('複数選択 API', () => {
+    it('初期状態では selectedObjects は空の Set', () => {
+      expect(service.selectedObjects()).toBeInstanceOf(Set);
+      expect(service.selectedObjects().size).toBe(0);
+      expect(service.selectionSize()).toBe(0);
+    });
+
+    it('addSelection で identifier が追加される', () => {
+      service.addSelection('id-1', 'GameCharacter');
+      expect(service.isSelected('id-1')).toBe(true);
+      expect(service.selectionSize()).toBe(1);
+      expect(service.selectedObject()).toEqual({ identifier: 'id-1', className: 'GameCharacter' });
+    });
+
+    it('addSelection は同じ id を二重登録しない', () => {
+      service.addSelection('id-1');
+      service.addSelection('id-1');
+      expect(service.selectionSize()).toBe(1);
+    });
+
+    it('removeSelection で identifier が削除される', () => {
+      service.addSelection('id-1');
+      service.addSelection('id-2');
+      service.removeSelection('id-1');
+      expect(service.isSelected('id-1')).toBe(false);
+      expect(service.isSelected('id-2')).toBe(true);
+    });
+
+    it('toggleSelection は未選択なら追加・選択中なら削除', () => {
+      service.toggleSelection('id-1', 'GameCharacter');
+      expect(service.isSelected('id-1')).toBe(true);
+      service.toggleSelection('id-1');
+      expect(service.isSelected('id-1')).toBe(false);
+    });
+
+    it('replaceSelection は集合を置換する', () => {
+      service.addSelection('id-1');
+      service.addSelection('id-2');
+      service.replaceSelection(['id-3', 'id-4'], { identifier: 'id-3', className: 'DiceSymbol' });
+      expect(service.isSelected('id-1')).toBe(false);
+      expect(service.isSelected('id-3')).toBe(true);
+      expect(service.isSelected('id-4')).toBe(true);
+      expect(service.selectedObject()?.identifier).toBe('id-3');
+    });
+
+    it('clearSelection で集合が空になる', () => {
+      service.addSelection('id-1');
+      service.addSelection('id-2');
+      service.clearSelection();
+      expect(service.selectionSize()).toBe(0);
+    });
+
+    it('集合更新時に新しい Set 参照を返す（イミュータブル）', () => {
+      const before = service.selectedObjects();
+      service.addSelection('id-1');
+      const after = service.selectedObjects();
+      expect(after).not.toBe(before);
+    });
+  });
+
+  describe('marqueeState', () => {
+    it('初期状態は null', () => {
+      expect(service.marqueeState()).toBeNull();
+    });
+
+    it('signal として更新できる', () => {
+      service.marqueeState.set({ x1: 0, y1: 0, x2: 100, y2: 100 });
+      expect(service.marqueeState()).toEqual({ x1: 0, y1: 0, x2: 100, y2: 100 });
+    });
+  });
 });

@@ -41,6 +41,7 @@ import {
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
+import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
@@ -66,6 +67,7 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
     DiceSymbolComponent,
     GameCharacterComponent,
     SafePipe,
+    TableMarqueeOverlayComponent,
   ],
   host: {
     class: 'block',
@@ -73,6 +75,7 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
     '(document:mousedown)': 'onDocumentMouseDown($event)',
     '(document:touchstart)': 'onDocumentTouchStart($event)',
     '(document:contextmenu)': 'onDocumentContextMenu($event)',
+    '(document:keydown.escape)': 'onEscapeKey($event)',
   },
 })
 export class GameTableComponent {
@@ -90,6 +93,7 @@ export class GameTableComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
   private _initialized = false;
+  private _lastTableId: string | null = null;
   readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
@@ -132,6 +136,11 @@ export class GameTableComponent {
       () => (this._initialized ? [this.currentTable.identifier, this.tableSelecter.identifier] : []),
       () => {
         if (!this._initialized) return;
+        const id = this.currentTable.identifier;
+        if (this._lastTableId !== null && this._lastTableId !== id) {
+          this.selectionSignalService.clearSelection();
+        }
+        this._lastTableId = id;
         this.setGameTableGrid(
           this.currentTable.width,
           this.currentTable.height,
@@ -316,6 +325,10 @@ export class GameTableComponent {
   onDocumentContextMenu(e: MouseEvent) {
     if (this.gestureService.isTableTransformed && !this.pointerDeviceService.isAllowedToOpenContextMenu)
       e.preventDefault();
+  }
+
+  onEscapeKey(_e: Event) {
+    this.selectionSignalService.clearSelection();
   }
 
   private watchCurrentTable(): GameTable {

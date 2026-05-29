@@ -1,0 +1,9 @@
+@if (style(); as s) {
+  <div
+    class="pointer-events-none absolute border-2 border-dashed border-blue-400 bg-blue-400/15 backface-hidden transform-3d"
+    [style.left]="s.left"
+    [style.top]="s.top"
+    [style.width]="s.width"
+    [style.height]="s.height"
+  ></div>
+}

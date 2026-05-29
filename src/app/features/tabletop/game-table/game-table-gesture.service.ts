@@ -1,8 +1,19 @@
 import { inject, Injectable } from '@angular/core';
+import { selectByRect } from '@axe/application/ui/rect-hit-test';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
+import {
+  MarqueeModifiers,
+  MarqueePoint,
+  MarqueeRect,
+  TableMarqueeGesture,
+} from '@axe/features/tabletop/game-table/table-marquee-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
 
 @Injectable()
@@ -10,6 +21,9 @@ export class GameTableGestureService {
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly tabletopService = inject(TabletopService);
+  private readonly coordinateService = inject(CoordinateService);
 
   isTableTransformMode = false;
   isTableTransformed = false;
@@ -25,6 +39,7 @@ export class GameTableGestureService {
 
   private mouseGesture: TableMouseGesture | null = null;
   private touchGesture: TableTouchGesture | null = null;
+  private marqueeGesture: TableMarqueeGesture | null = null;
 
   private gameTableEl!: HTMLElement;
   private gameObjectsEl!: HTMLElement;
@@ -55,11 +70,18 @@ export class GameTableGestureService {
     this.mouseGesture.onend = (e) => this.onTableMouseEnd(e);
     this.mouseGesture.ontransform = (tX, tY, tZ, rX, rY, rZ, ev, src) =>
       this.onTableMouseTransform(tX, tY, tZ, rX, rY, rZ, ev, src);
+
+    this.marqueeGesture = new TableMarqueeGesture((screenX, screenY) => this.screenToTablePoint(screenX, screenY));
+    this.marqueeGesture.onMarqueeStart = (point, mods) => this.onMarqueeStart(point, mods);
+    this.marqueeGesture.onMarqueeUpdate = (point) => this.onMarqueeUpdate(point);
+    this.marqueeGesture.onMarqueeEnd = (rect, mods) => this.onMarqueeEnd(rect, mods);
   }
 
   cancelInput(): void {
     if (!this.gridCanvasEl) return;
     this.mouseGesture?.cancel();
+    this.marqueeGesture?.cancel();
+    this.selectionSignalService.marqueeState.set(null);
     this.isTableTransformMode = true;
     this.pointerDeviceService.isDragging = false;
     const opacity = this.getGridShow() ? 1.0 : 0.0;
@@ -93,6 +115,7 @@ export class GameTableGestureService {
 
   private onTableTouchStart(): void {
     this.mouseGesture?.cancel();
+    this.marqueeGesture?.cancel();
   }
 
   private onTableTouchEnd(): void {
@@ -141,13 +164,14 @@ export class GameTableGestureService {
   private onTableMouseStart(e: TouchEvent | MouseEvent | PointerEvent): void {
     const me = e as MouseEvent;
     const target = me.target as HTMLElement;
-    if (
+    const isEmptyTablePress =
       target.contains(this.gameObjectsEl) ||
       me.button === 1 ||
       me.button === 2 ||
-      target.closest('[data-table-passthrough]') != null
-    ) {
+      target.closest('[data-table-passthrough]') != null;
+    if (isEmptyTablePress) {
       this.isTableTransformMode = true;
+      this.marqueeGesture?.arm(e as PointerEvent);
     } else {
       this.isTableTransformMode = false;
       this.pointerDeviceService.isDragging = true;
@@ -160,9 +184,15 @@ export class GameTableGestureService {
     }
   }
 
-  private onTableMouseEnd(_e: TouchEvent | MouseEvent | PointerEvent): void {
+  private onTableMouseEnd(e: TouchEvent | MouseEvent | PointerEvent): void {
+    const wasMarqueeActive = this.marqueeGesture?.isActive ?? false;
+    const released = this.marqueeGesture?.release(e as PointerEvent) ?? false;
     this.cancelInput();
     this.uiSignalService.notifyTerrainGridEnd();
+
+    if (!released && !wasMarqueeActive && !this.isTableTransformed) {
+      this.selectionSignalService.clearSelection();
+    }
   }
 
   private onTableMouseTransform(
@@ -175,6 +205,15 @@ export class GameTableGestureService {
     _event: TableMouseGestureEvent,
     srcEvent: TouchEvent | MouseEvent | PointerEvent | KeyboardEvent
   ): void {
+    if (this.marqueeGesture && (this.marqueeGesture.isArmed || this.marqueeGesture.isActive)) {
+      const pointer = this.pointerDeviceService.pointers[0];
+      this.marqueeGesture.updatePointer(pointer.x, pointer.y);
+      if (this.marqueeGesture.isActive) {
+        if ((srcEvent as Event).cancelable) (srcEvent as Event).preventDefault();
+        return;
+      }
+    }
+
     if (!this.isTableTransformMode || document.body !== document.activeElement) return;
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu && this.contextMenuService.isShow) {
@@ -190,6 +229,55 @@ export class GameTableGestureService {
 
     this.setTransform(transformX, transformY, transformZ, rotateX, rotateY, rotateZ);
     this.isTableTransformed = true;
+  }
+
+  private screenToTablePoint(screenX: number, screenY: number): MarqueePoint {
+    const local = this.coordinateService.calcTabletopLocalCoordinate(
+      { x: screenX, y: screenY, z: 0 },
+      this.gameObjectsEl
+    );
+    return { x: local.x, y: local.y };
+  }
+
+  private onMarqueeStart(point: MarqueePoint, _modifiers: MarqueeModifiers): void {
+    this.isTableTransformMode = false;
+    this.selectionSignalService.marqueeState.set({ x1: point.x, y1: point.y, x2: point.x, y2: point.y });
+  }
+
+  private onMarqueeUpdate(point: MarqueePoint): void {
+    const current = this.selectionSignalService.marqueeState();
+    if (!current) return;
+    this.selectionSignalService.marqueeState.set({
+      x1: current.x1,
+      y1: current.y1,
+      x2: point.x,
+      y2: point.y,
+    });
+  }
+
+  private onMarqueeEnd(rect: MarqueeRect, modifiers: MarqueeModifiers): void {
+    this.selectionSignalService.marqueeState.set(null);
+    const candidates = this.collectSelectableObjects();
+    const hits = selectByRect(candidates, rect);
+    if (modifiers.shift) {
+      for (const id of hits) this.selectionSignalService.addSelection(id);
+    } else if (modifiers.ctrl) {
+      for (const id of hits) this.selectionSignalService.toggleSelection(id);
+    } else {
+      this.selectionSignalService.replaceSelection(hits);
+    }
+  }
+
+  private collectSelectableObjects(): TabletopObject[] {
+    return [
+      ...this.tabletopService.characters,
+      ...this.tabletopService.diceSymbols,
+      ...this.tabletopService.tableMasks,
+      ...this.tabletopService.terrains,
+      ...this.tabletopService.textNotes,
+      ...this.tabletopService.cards,
+      ...this.tabletopService.cardStacks,
+    ];
   }
 
   private removeSelectionRanges(): void {
