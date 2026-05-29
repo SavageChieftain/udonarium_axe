@@ -17,6 +17,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { callRollDiceSymbol } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
@@ -52,6 +53,7 @@ export class DiceSymbolComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly uiSignalService = inject(UiSignalService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -138,6 +140,33 @@ export class DiceSymbolComponent {
   readonly isIconHidden = signal(false);
 
   readonly gridSize = 50;
+
+  readonly rotateSignal = computed(() => {
+    this.objectChange.versionOf(this.diceSymbol().identifier)();
+    return this.diceSymbol().rotate;
+  });
+
+  readonly billboardTransform = computed(() => this.makeBillboardTransform(30));
+  readonly billboardTransformOwner = computed(() => this.makeBillboardTransform(55));
+
+  private makeBillboardTransform(verticalOffset3D: number): string {
+    const r = this.uiSignalService.tableViewRotation();
+    const tableX = r?.x ?? 50;
+    const tableY = r?.y ?? 0;
+    const tableZ = r?.z ?? 10;
+    const diceRotate = this.rotateSignal();
+    const tx = (tableX * Math.PI) / 180;
+    const sinRx = Math.sin(tx);
+    const cosRx = Math.cos(tx);
+    const denom = Math.max(0.05, cosRx);
+    const compensateZ = ((-verticalOffset3D * (1 - sinRx)) / denom).toFixed(2);
+    return (
+      `translateZ(${compensateZ}px) ` +
+      `rotateX(90deg) ` +
+      `rotateZ(${-diceRotate}deg) ` +
+      `rotateZ(${-tableZ}deg) rotateX(${-tableX}deg) rotateY(${-tableY}deg)`
+    );
+  }
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});

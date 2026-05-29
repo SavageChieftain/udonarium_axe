@@ -53,54 +53,38 @@
             <div class="absolute inset-x-0 bottom-0 h-auto w-full transform-3d">
               @if (name()) {
                 <div
-                  class="bg-ui-panel text-ui-text absolute -top-7.5 box-border rounded-md px-2.25 py-0.75 text-[15px] whitespace-nowrap backface-hidden"
+                  class="absolute -top-7.5 whitespace-nowrap transform-3d"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
                 >
-                  <div>
-                    {{ name() }}:
-                    @if (isVisible) {
-                      <span>{{ face }}</span>
-                    }
-                    @if (!isVisible) {
-                      <span>???</span>
-                    }
-                    @if (isLock) {
-                      <i class="material-icons! inline! align-middle text-[15px]!">lock</i>
-                    }
-                  </div>
-                </div>
-              }
-              @if (name()) {
-                <div
-                  class="bg-ui-panel text-ui-text absolute -top-7.5 box-border rounded-md px-2.25 py-0.75 text-[15px] whitespace-nowrap backface-hidden"
-                  [ngStyle]="{
-                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) rotateY(180deg)',
-                  }"
-                >
-                  <div>
-                    {{ name() }}:
-                    @if (isVisible) {
-                      <span>{{ face }}</span>
-                    }
-                    @if (!isVisible) {
-                      <span>???</span>
-                    }
-                    @if (isLock) {
-                      <i class="material-icons! inline! align-middle text-[15px]!">lock</i>
-                    }
+                  <div
+                    class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[15px] whitespace-nowrap transform-3d"
+                    [ngStyle]="{ transform: billboardTransform() }"
+                  >
+                    <div>
+                      {{ name() }}:
+                      @if (isVisible) {
+                        <span>{{ face }}</span>
+                      }
+                      @if (!isVisible) {
+                        <span>???</span>
+                      }
+                      @if (isLock) {
+                        <i class="material-icons! inline! align-middle text-[15px]!">lock</i>
+                      }
+                    </div>
                   </div>
                 </div>
               }
               @if (hasOwner && ownerName) {
                 <div
-                  class="bg-ui-panel text-ui-text absolute -top-13.75 box-border rounded-md px-2.25 py-0.75 text-[12px] whitespace-nowrap transform-3d"
+                  class="absolute -top-13.75 whitespace-nowrap transform-3d"
                   [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
                 >
-                  <div class="max-w-72 truncate backface-hidden transform-3d">{{ ownerName }}</div>
                   <div
-                    class="absolute top-0.75 max-w-72 transform-[rotateY(-180deg)] truncate backface-hidden transform-3d"
+                    class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[12px] whitespace-nowrap transform-3d"
+                    [ngStyle]="{ transform: billboardTransformOwner() }"
                   >
-                    {{ ownerName }}
+                    <div class="max-w-72 truncate">{{ ownerName }}</div>
                   </div>
                 </div>
               }
