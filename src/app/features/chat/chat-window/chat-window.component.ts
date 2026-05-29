@@ -255,9 +255,14 @@ export class ChatWindowComponent {
     if (isForce) this.isAutoScroll = true;
     if (!this.isAutoScroll) return;
     if (!this.panelService.scrollablePanel) return;
-    this.panelService.scrollToBottom$.emit();
-    if (this.scrollToBottomTimer != null) return;
     const shouldMoveScroll = isForce || this.chatPrefs.autoFollowScroll();
+    // `scrollToBottom$` triggers chat-tab.resetMessages() which jams the rendered range to the
+    // very bottom. If we are not actually going to move the scroll (non-follow mode + non-force),
+    // emitting it leaves the rendered slice at the bottom of a growing container while the
+    // viewport stays put — the messageContainer slides off-screen below the panel and the chat
+    // appears blank. Only emit when we will follow up with an actual scroll.
+    if (shouldMoveScroll) this.panelService.scrollToBottom$.emit();
+    if (this.scrollToBottomTimer != null) return;
     this.scrollToBottomTimer = setTimeout(() => {
       this.chatTab()?.markForRead();
       this.objectChange.notifyChanged(this.chatTabidentifier);

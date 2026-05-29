@@ -154,4 +154,79 @@ describe('ChatWindowComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
   });
+
+  describe('非追従モードのスクロール挙動', () => {
+    /**
+     * 非追従モード + 非 force 呼び出し時に scrollToBottom$ を発火しないこと。
+     * 発火すると chat-tab.resetMessages() が走り、bottomIndex を末尾にリセットする一方で
+     * 実際の scroll は移動しないため、メッセージコンテナが flex justify-end で
+     * 下方向にスライドして画面外に押し出されて空白表示になる (報告された不具合)。
+     */
+    it('非追従モード + isForce=false なら scrollToBottom$ を発火しないこと', async () => {
+      const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
+      const prefs = TestBed.inject(ChatPreferencesService);
+      prefs.setAutoFollowScroll(false);
+      try {
+        fixture.detectChanges();
+        const panelEl = document.createElement('div');
+        Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
+        const priv = component as unknown as {
+          panelService: { scrollablePanel: HTMLDivElement | null; scrollToBottom$: { emit: () => void } };
+          isAutoScroll: boolean;
+        };
+        priv.panelService.scrollablePanel = panelEl;
+        priv.isAutoScroll = true; // 「ボトム付近」状態を強制
+        const emitSpy = vi.spyOn(priv.panelService.scrollToBottom$, 'emit');
+
+        component.scrollToBottom(false);
+
+        expect(emitSpy).not.toHaveBeenCalled();
+      } finally {
+        prefs.setAutoFollowScroll(true);
+      }
+    });
+
+    it('追従モードでは scrollToBottom$ を発火すること', async () => {
+      const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
+      const prefs = TestBed.inject(ChatPreferencesService);
+      prefs.setAutoFollowScroll(true);
+
+      fixture.detectChanges();
+      const panelEl = document.createElement('div');
+      Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
+      const priv = component as unknown as {
+        panelService: { scrollablePanel: HTMLDivElement | null; scrollToBottom$: { emit: () => void } };
+        isAutoScroll: boolean;
+      };
+      priv.panelService.scrollablePanel = panelEl;
+      priv.isAutoScroll = true;
+      const emitSpy = vi.spyOn(priv.panelService.scrollToBottom$, 'emit');
+
+      component.scrollToBottom(false);
+
+      expect(emitSpy).toHaveBeenCalled();
+    });
+
+    it('isForce=true なら追従設定にかかわらず scrollToBottom$ を発火すること', async () => {
+      const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
+      const prefs = TestBed.inject(ChatPreferencesService);
+      prefs.setAutoFollowScroll(false);
+      try {
+        fixture.detectChanges();
+        const panelEl = document.createElement('div');
+        Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
+        const priv = component as unknown as {
+          panelService: { scrollablePanel: HTMLDivElement | null; scrollToBottom$: { emit: () => void } };
+        };
+        priv.panelService.scrollablePanel = panelEl;
+        const emitSpy = vi.spyOn(priv.panelService.scrollToBottom$, 'emit');
+
+        component.scrollToBottom(true); // 「ボトムに戻る」ボタン相当
+
+        expect(emitSpy).toHaveBeenCalled();
+      } finally {
+        prefs.setAutoFollowScroll(true);
+      }
+    });
+  });
 });
