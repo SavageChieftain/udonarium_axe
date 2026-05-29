@@ -1,6 +1,7 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
 import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
+import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -49,6 +50,7 @@ export class MovableDirective {
   private readonly coordinateService = inject(CoordinateService);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly multiMovableService = inject(MultiMovableService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopOverlap = inject(TabletopOverlapService);
   private readonly destroyRef = inject(DestroyRef);
@@ -134,20 +136,66 @@ export class MovableDirective {
       this.snapStyle = opt.snapStyle;
       this.refreshOverlapRegistration();
       this.refreshObjectChangeListener();
+      this.refreshMultiMovableRegistration();
     });
     afterNextRender(() => {
       this.batchService.add(() => this.initialize(), this.elementRef);
       this.setPosition(this.tabletopObject);
       this.refreshOverlapRegistration();
+      this.refreshMultiMovableRegistration();
     });
     this.destroyRef.onDestroy(() => {
       this.cancel();
       if (this.input) this.input.destroy();
       this.unregister();
       this.unregisterOverlap();
+      this.unregisterMultiMovable();
       this.batchService.remove(this);
       this.batchService.remove(this.elementRef);
     });
+  }
+
+  private _multiAdapter: import('@axe/application/ui/multi-movable.service').MovableLike | null = null;
+  private _multiAdapterId: string | null = null;
+
+  private refreshMultiMovableRegistration(): void {
+    const id = this.tabletopObject?.identifier ?? null;
+    if (id === this._multiAdapterId) return;
+    if (this._multiAdapter) this.multiMovableService.unregister(this._multiAdapter);
+    this._multiAdapter = null;
+    this._multiAdapterId = id;
+    if (!id) return;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    this._multiAdapter = {
+      get identifier() {
+        return self.tabletopObject?.identifier ?? '';
+      },
+      get tabletopObject() {
+        return self.tabletopObject;
+      },
+      get posX() {
+        return self.posX;
+      },
+      set posX(v: number) {
+        self.posX = v;
+      },
+      get posY() {
+        return self.posY;
+      },
+      set posY(v: number) {
+        self.posY = v;
+      },
+    };
+    this.multiMovableService.register(this._multiAdapter);
+  }
+
+  private unregisterMultiMovable(): void {
+    if (this._multiAdapter) {
+      this.multiMovableService.unregister(this._multiAdapter);
+      this._multiAdapter = null;
+      this._multiAdapterId = null;
+    }
   }
 
   private _objectChangeUnsubscribe: (() => void) | null = null;
@@ -250,6 +298,7 @@ export class MovableDirective {
     this.callSelectedEvent();
     if (this.collidableElements.length < 1) this.findCollidableElements();
 
+    if (this._multiAdapter) this.multiMovableService.beginDrag(this._multiAdapter);
     handleInputStart(this as unknown as MovableInteractionContext, e);
   }
 
@@ -259,6 +308,7 @@ export class MovableDirective {
 
   onInputEnd(e: MouseEvent | TouchEvent) {
     handleInputEnd(this as unknown as MovableInteractionContext, e);
+    if (this._multiAdapter) this.multiMovableService.endDrag(this._multiAdapter);
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
@@ -387,6 +437,9 @@ export class MovableDirective {
       }, 66);
     }
     this.updateTransformCss();
+    if (this.input?.isGrabbing && this._multiAdapter) {
+      this.multiMovableService.applyLeaderDelta(this._multiAdapter);
+    }
   }
 
   private findCollidableElements() {
