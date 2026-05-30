@@ -142,6 +142,103 @@ export class GameTableSettingComponent {
     triggerUpdateGameObject(this.selectedTable.toContext());
   }
 
+  minWallHeight: number = 1;
+  maxWallHeight: number = 20;
+
+  readonly wallFields = [
+    {
+      key: 'north',
+      label: 'feature.tabletop.tableSetting.imageNorthWall',
+      alt: 'feature.tabletop.tableSetting.imageNorthWallAlt',
+      add: 'feature.tabletop.tableSetting.addImageNorthWall',
+      image: () => this.tableNorthWallImage,
+      show: () => this.tableShowNorthWall,
+      setShow: (value: boolean) => (this.tableShowNorthWall = value),
+      open: () => this.openNorthWallImageModal(),
+    },
+    {
+      key: 'east',
+      label: 'feature.tabletop.tableSetting.imageEastWall',
+      alt: 'feature.tabletop.tableSetting.imageEastWallAlt',
+      add: 'feature.tabletop.tableSetting.addImageEastWall',
+      image: () => this.tableEastWallImage,
+      show: () => this.tableShowEastWall,
+      setShow: (value: boolean) => (this.tableShowEastWall = value),
+      open: () => this.openEastWallImageModal(),
+    },
+    {
+      key: 'south',
+      label: 'feature.tabletop.tableSetting.imageSouthWall',
+      alt: 'feature.tabletop.tableSetting.imageSouthWallAlt',
+      add: 'feature.tabletop.tableSetting.addImageSouthWall',
+      image: () => this.tableSouthWallImage,
+      show: () => this.tableShowSouthWall,
+      setShow: (value: boolean) => (this.tableShowSouthWall = value),
+      open: () => this.openSouthWallImageModal(),
+    },
+    {
+      key: 'west',
+      label: 'feature.tabletop.tableSetting.imageWestWall',
+      alt: 'feature.tabletop.tableSetting.imageWestWallAlt',
+      add: 'feature.tabletop.tableSetting.addImageWestWall',
+      image: () => this.tableWestWallImage,
+      show: () => this.tableShowWestWall,
+      setShow: (value: boolean) => (this.tableShowWestWall = value),
+      open: () => this.openWestWallImageModal(),
+    },
+  ];
+
+  get tableWallHeight(): number {
+    return this.selectedTable?.wallHeight ?? 4;
+  }
+  set tableWallHeight(value: number) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.wallHeight = Number(value);
+  }
+
+  private wallImage(identifier: string | undefined): ImageFile {
+    this.objectChange.fileVersion();
+    if (this.selectedTable) this.objectChange.versionOf(this.selectedTable.identifier)();
+    return this.imageService.getEmptyOr(identifier ?? '');
+  }
+
+  get tableNorthWallImage(): ImageFile {
+    return this.wallImage(this.selectedTable?.northWallImageIdentifier);
+  }
+  get tableEastWallImage(): ImageFile {
+    return this.wallImage(this.selectedTable?.eastWallImageIdentifier);
+  }
+  get tableSouthWallImage(): ImageFile {
+    return this.wallImage(this.selectedTable?.southWallImageIdentifier);
+  }
+  get tableWestWallImage(): ImageFile {
+    return this.wallImage(this.selectedTable?.westWallImageIdentifier);
+  }
+
+  get tableShowNorthWall(): boolean {
+    return this.selectedTable?.showNorthWall ?? false;
+  }
+  set tableShowNorthWall(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.showNorthWall = value;
+  }
+  get tableShowEastWall(): boolean {
+    return this.selectedTable?.showEastWall ?? false;
+  }
+  set tableShowEastWall(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.showEastWall = value;
+  }
+  get tableShowSouthWall(): boolean {
+    return this.selectedTable?.showSouthWall ?? false;
+  }
+  set tableShowSouthWall(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.showSouthWall = value;
+  }
+  get tableShowWestWall(): boolean {
+    return this.selectedTable?.showWestWall ?? false;
+  }
+  set tableShowWestWall(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.showWestWall = value;
+  }
+
   get tableGridSnapStyle(): GridSnapStyle {
     return this.selectedTable?.gridSnapStyle ?? GridSnapStyle.CENTER;
   }
@@ -289,6 +386,26 @@ export class GameTableSettingComponent {
       if (!this.selectedTable || !value) return;
       this.selectedTable.backgroundImageIdentifier = value;
     });
+  }
+
+  private openWallImageModal(apply: (table: GameTable, value: string) => void) {
+    if (this.isDeleted) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
+      if (!this.selectedTable || !value) return;
+      apply(this.selectedTable, value);
+    });
+  }
+  openNorthWallImageModal() {
+    this.openWallImageModal((t, v) => (t.northWallImageIdentifier = v));
+  }
+  openEastWallImageModal() {
+    this.openWallImageModal((t, v) => (t.eastWallImageIdentifier = v));
+  }
+  openSouthWallImageModal() {
+    this.openWallImageModal((t, v) => (t.southWallImageIdentifier = v));
+  }
+  openWestWallImageModal() {
+    this.openWallImageModal((t, v) => (t.westWallImageIdentifier = v));
   }
 
   onSelectGameTable(event: Event): void {

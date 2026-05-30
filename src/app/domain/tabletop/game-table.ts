@@ -43,6 +43,15 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridSnapStyle: GridSnapStyle = GridSnapStyle.CENTER;
   @SyncVar() imageBillboard: boolean = false;
   @SyncVar() mode2d: boolean = false;
+  @SyncVar() wallHeight: number = 4;
+  @SyncVar() northWallImageIdentifier: string = 'imageIdentifier';
+  @SyncVar() eastWallImageIdentifier: string = 'imageIdentifier';
+  @SyncVar() southWallImageIdentifier: string = 'imageIdentifier';
+  @SyncVar() westWallImageIdentifier: string = 'imageIdentifier';
+  @SyncVar() showNorthWall: boolean = false;
+  @SyncVar() showEastWall: boolean = false;
+  @SyncVar() showSouthWall: boolean = false;
+  @SyncVar() showWestWall: boolean = false;
 
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {

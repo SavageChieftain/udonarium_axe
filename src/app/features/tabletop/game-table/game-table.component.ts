@@ -212,6 +212,36 @@ export class GameTableComponent {
     { equal: imageFileEqual() }
   );
 
+  private wallImageFor(getter: () => string) {
+    return computed(
+      () => {
+        this.objectChangeService.fileVersion();
+        this.objectChangeService.versionOf(this.currentTable.identifier)();
+        this.objectChangeService.versionOf(this.tableSelecter.identifier)();
+        return this.imageService.getEmptyOr(getter());
+      },
+      { equal: imageFileEqual() }
+    );
+  }
+
+  readonly northWallImage = this.wallImageFor(() => this.currentTable.northWallImageIdentifier);
+  readonly eastWallImage = this.wallImageFor(() => this.currentTable.eastWallImageIdentifier);
+  readonly southWallImage = this.wallImageFor(() => this.currentTable.southWallImageIdentifier);
+  readonly westWallImage = this.wallImageFor(() => this.currentTable.westWallImageIdentifier);
+
+  readonly wallState = computed(() => {
+    const table = this.watchCurrentTable();
+    return {
+      heightPx: table.wallHeight * table.gridSize,
+      widthPx: table.width * table.gridSize,
+      depthPx: table.height * table.gridSize,
+      showNorth: table.showNorthWall,
+      showEast: table.showEastWall,
+      showSouth: table.showSouthWall,
+      showWest: table.showWestWall,
+    };
+  });
+
   readonly tableSurfaceStyle = computed<Record<string, string>>(() => {
     const table = this.watchCurrentTable();
     const geo = computeHexMaskGeometry(table.width, table.height, table.gridSize, table.gridType);

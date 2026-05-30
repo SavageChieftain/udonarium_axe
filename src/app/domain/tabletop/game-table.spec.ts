@@ -132,6 +132,21 @@ describe('GameTable', () => {
       table.initialize();
       expect(table.gridSnap).toBe(true);
     });
+
+    it('wallHeight がデフォルト 4', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.wallHeight).toBe(4);
+    });
+
+    it('北/東/南/西 の壁表示フラグがすべてデフォルト false', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.showNorthWall).toBe(false);
+      expect(table.showEastWall).toBe(false);
+      expect(table.showSouthWall).toBe(false);
+      expect(table.showWestWall).toBe(false);
+    });
   });
 
   describe('プロパティ変更', () => {

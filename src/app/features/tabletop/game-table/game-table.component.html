@@ -24,6 +24,34 @@
           [ngStyle]="tableSurfaceBorderStyle()"
         ></div>
       </div>
+      @if (wallState().showNorth && northWallImage().url) {
+        <div
+          class="pointer-events-none absolute bottom-full left-0 w-full origin-[50%_100%] transform-[rotateX(-90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+          [style.height.px]="wallState().heightPx"
+          [style.background-image]="'url(' + northWallImage().url + ')' | safe: 'style'"
+        ></div>
+      }
+      @if (wallState().showSouth && southWallImage().url) {
+        <div
+          class="pointer-events-none absolute top-full left-0 w-full origin-[50%_0%] transform-[rotateX(90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+          [style.height.px]="wallState().heightPx"
+          [style.background-image]="'url(' + southWallImage().url + ')' | safe: 'style'"
+        ></div>
+      }
+      @if (wallState().showWest && westWallImage().url) {
+        <div
+          class="pointer-events-none absolute top-0 right-full h-full origin-[100%_50%] transform-[rotateY(90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+          [style.width.px]="wallState().heightPx"
+          [style.background-image]="'url(' + westWallImage().url + ')' | safe: 'style'"
+        ></div>
+      }
+      @if (wallState().showEast && eastWallImage().url) {
+        <div
+          class="pointer-events-none absolute top-0 left-full h-full origin-[0%_50%] transform-[rotateY(-90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+          [style.width.px]="wallState().heightPx"
+          [style.background-image]="'url(' + eastWallImage().url + ')' | safe: 'style'"
+        ></div>
+      }
       @if (terrains().length) {
         <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
           <div
