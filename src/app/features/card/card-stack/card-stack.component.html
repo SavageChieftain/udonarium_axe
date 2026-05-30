@@ -13,6 +13,7 @@
     class="border-ui-elevated bg-ui-elevated pointer-events-auto -mt-1.25 -ml-1.25 size-full cursor-grab rounded-[5px] border-[5px] border-solid backface-hidden"
     appRotable
     [rotable.option]="rotableOption()"
+    [rotable.disable]="tabletopService.mode2d()"
     (rotable.ondragstart)="onMove()"
     (rotable.ondragend)="onMoved()"
   >

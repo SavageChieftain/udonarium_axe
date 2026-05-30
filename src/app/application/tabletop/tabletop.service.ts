@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, Signal } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
@@ -37,6 +37,17 @@ export class TabletopService {
     const table = this.tableSelecter.viewTable;
     return table ? table : this._emptyTable;
   }
+
+  readonly currentTableVersion = computed(() => {
+    this.objectChange.versionOf(this.tableSelecter.identifier)();
+    const table = this.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    return table;
+  });
+
+  readonly mode2d: Signal<boolean> = computed(() => this.currentTableVersion().mode2d);
+  readonly imageBillboard: Signal<boolean> = computed(() => this.currentTableVersion().imageBillboard);
+  readonly gridSize: Signal<number> = computed(() => this.currentTableVersion().gridSize);
 
   private locationMap: Map<ObjectIdentifier, LocationName> = new Map();
   private parentMap: Map<ObjectIdentifier, ObjectIdentifier> = new Map();

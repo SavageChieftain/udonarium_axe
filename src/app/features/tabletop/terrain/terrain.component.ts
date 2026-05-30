@@ -86,7 +86,7 @@ export class TerrainComponent {
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
-  private readonly tabletopService = inject(TabletopService);
+  protected readonly tabletopService = inject(TabletopService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
@@ -274,7 +274,9 @@ export class TerrainComponent {
   readonly isVisibleWallTopBottom = computed(() => 0 < this.width() * this.height());
   readonly isVisibleWallLeftRight = computed(() => 0 < this.depth() * this.height());
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
 
   readonly isWallExist = computed(
     () => !!(this.hasWall() && this.wallImage() && this.wallImage().url && this.wallImage().url.length > 0)

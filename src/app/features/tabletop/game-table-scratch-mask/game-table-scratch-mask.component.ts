@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -25,12 +26,15 @@ export class GameTableScratchMaskComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   private readonly tabletopActionService = inject(TabletopActionService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly translateFn = inject(TRANSLATE_FN);
 
   readonly gameTableScratchMask = input<GameTableScratchMask | null>(null);
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
   readonly movableOption = signal<MovableOption>({});
 
   constructor() {

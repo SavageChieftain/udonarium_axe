@@ -52,7 +52,7 @@ export class CardComponent {
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly panelService = inject(PanelService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly tabletopService = inject(TabletopService);
+  protected readonly tabletopService = inject(TabletopService);
   private readonly imageService = inject(ImageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
@@ -149,7 +149,9 @@ export class CardComponent {
   private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});

@@ -71,7 +71,7 @@ export class RangeComponent {
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
-  private readonly tabletopService = inject(TabletopService);
+  protected readonly tabletopService = inject(TabletopService);
   private readonly objectStore = inject(ObjectStore);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
@@ -290,7 +290,9 @@ export class RangeComponent {
 
   private readonly _clipVersion = signal(0);
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
   math = Math;
 
   viewRotateX = 50;

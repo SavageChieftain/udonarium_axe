@@ -12,6 +12,7 @@
     class="pointer-events-auto box-border size-full backface-hidden transform-3d"
     appRotable
     [rotable.option]="rotableOption()"
+    [rotable.disable]="tabletopService.mode2d()"
     (rotable.ondragstart)="onMove()"
     (rotable.ondragend)="onMoved()"
   >

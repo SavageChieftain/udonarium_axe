@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -60,6 +61,7 @@ export class TextNoteComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  protected readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -245,7 +247,9 @@ export class TextNoteComponent {
 
   private callbackOnMouseUp = (e: MouseEvent) => this.onMouseUp(e);
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
   math = Math;
 
   private _transitionTimeout: ReturnType<typeof setTimeout> | null = null;

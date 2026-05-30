@@ -14,6 +14,7 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -76,6 +77,7 @@ export class GameTableMaskComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -302,7 +304,9 @@ export class GameTableMaskComponent {
     return mask?.ownerColor ?? '';
   }
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
   math = Math;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 

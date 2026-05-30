@@ -14,6 +14,7 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -59,6 +60,7 @@ export class CardStackComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  protected readonly tabletopService = inject(TabletopService);
   private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
@@ -131,7 +133,9 @@ export class CardStackComponent {
   private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});

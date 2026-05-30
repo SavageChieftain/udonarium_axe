@@ -17,7 +17,7 @@
     [rotable.option]="rotableOption()"
     (rotable.ondragstart)="onMove()"
     (rotable.ondragend)="onMoved()"
-    [rotable.disable]="isLocked()"
+    [rotable.disable]="isLocked() || tabletopService.mode2d()"
   >
     @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
       @if (isDropShadow() && (terreinAltitude() !== 0 || (isSlope() && !hasWall()))) {
