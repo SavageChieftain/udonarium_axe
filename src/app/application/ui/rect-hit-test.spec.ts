@@ -1,5 +1,6 @@
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { normalizeRect, selectByRect } from '@axe/application/ui/rect-hit-test';
+import { makeFakeTabletopObject } from '@axe/testing/factories/tabletop-object.factory';
 
 function makeObject(opts: {
   id: string;
@@ -11,14 +12,16 @@ function makeObject(opts: {
   height?: number;
   location?: string;
 }): TabletopObject {
-  return {
+  return makeFakeTabletopObject({
     identifier: opts.id,
     aliasName: opts.alias,
-    location: { name: opts.location ?? 'table', x: opts.x, y: opts.y },
+    x: opts.x,
+    y: opts.y,
     size: opts.size,
     width: opts.width,
     height: opts.height,
-  } as unknown as TabletopObject;
+    locationName: opts.location,
+  });
 }
 
 describe('normalizeRect', () => {

@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { MovableLike, MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { makeFakeTabletopObject } from '@axe/testing/factories/tabletop-object.factory';
 
 function makeMovable(opts: { id: string; x?: number; y?: number; isLock?: boolean }): MovableLike {
-  const obj = { identifier: opts.id, isLock: opts.isLock ?? false } as unknown as TabletopObject;
+  const obj = makeFakeTabletopObject({ identifier: opts.id, isLock: opts.isLock ?? false });
   return {
     identifier: opts.id,
     tabletopObject: obj,

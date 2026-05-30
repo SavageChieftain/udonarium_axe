@@ -2,10 +2,11 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { makeFakeTabletopObject } from '@axe/testing/factories/tabletop-object.factory';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 
 function makeObj(id: string, alias = 'character'): TabletopObject {
-  return { identifier: id, aliasName: alias } as unknown as TabletopObject;
+  return makeFakeTabletopObject({ identifier: id, aliasName: alias });
 }
 
 @Component({
