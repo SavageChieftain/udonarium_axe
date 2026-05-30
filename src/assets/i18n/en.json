@@ -643,7 +643,13 @@
         "aliasRange": "Range",
         "aliasDiceSymbol": "Dice",
         "aliasCard": "Card",
-        "aliasCardStack": "Deck"
+        "aliasCardStack": "Deck",
+        "moveToSurface": "Move to surface",
+        "surfaceFloor": "Floor",
+        "surfaceNorthWall": "North wall",
+        "surfaceEastWall": "East wall",
+        "surfaceSouthWall": "South wall",
+        "surfaceWestWall": "West wall"
       },
       "tableSetting": {
         "title": "Table settings",

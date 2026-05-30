@@ -643,7 +643,13 @@
         "aliasRange": "射程",
         "aliasDiceSymbol": "ダイス",
         "aliasCard": "カード",
-        "aliasCardStack": "山札"
+        "aliasCardStack": "山札",
+        "moveToSurface": "別の面へ移動",
+        "surfaceFloor": "床",
+        "surfaceNorthWall": "北壁",
+        "surfaceEastWall": "東壁",
+        "surfaceSouthWall": "南壁",
+        "surfaceWestWall": "西壁"
       },
       "tableSetting": {
         "title": "テーブル設定",

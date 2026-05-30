@@ -13,10 +13,11 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -262,17 +263,23 @@ export class CardComponent {
       this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
       return;
     }
+    const surfaceEntries = buildSurfaceSwitchContextMenu(
+      this.card(),
+      this.tabletopService.currentTable,
+      this.translateFn
+    );
+    const baseMenu = buildCardContextMenu(
+      this.card(),
+      this.gridSize,
+      {
+        onCreateStack: () => this.createStack(),
+        onShowDetail: () => this.showDetail(this.card()),
+      },
+      this.translateFn
+    );
     this.contextMenuService.open(
       position,
-      buildCardContextMenu(
-        this.card(),
-        this.gridSize,
-        {
-          onCreateStack: () => this.createStack(),
-          onShowDetail: () => this.showDetail(this.card()),
-        },
-        this.translateFn
-      ),
+      surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
       this.isVisible ? this.name() : this.translateFn('feature.card.title')
     );
   }

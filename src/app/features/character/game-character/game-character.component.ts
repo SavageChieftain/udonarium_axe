@@ -16,11 +16,12 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -430,22 +431,24 @@ export class GameCharacterComponent {
       position.y,
       this.translateFn
     );
+    const surfaceEntries = buildSurfaceSwitchContextMenu(char, this.tabletopService.currentTable, this.translateFn);
+    const baseMenu = buildGameCharacterContextMenu(
+      char,
+      this.gridSize,
+      this.inventoryService,
+      {
+        onShowDetail: () => this.showDetail(char),
+        onShowChatPalette: () => this.showChatPalette(char),
+        onShowRemoteController: () => this.showRemoteController(char),
+        onShowBuffEdit: () => this.showBuffEdit(char),
+        onInvokeRangeShape: (value) => this.rangeShapeInvoke.spawnForCharacter(char, value),
+      },
+      this.translateFn,
+      overlapEntries
+    );
     this.contextMenuService.open(
       position,
-      buildGameCharacterContextMenu(
-        char,
-        this.gridSize,
-        this.inventoryService,
-        {
-          onShowDetail: () => this.showDetail(char),
-          onShowChatPalette: () => this.showChatPalette(char),
-          onShowRemoteController: () => this.showRemoteController(char),
-          onShowBuffEdit: () => this.showBuffEdit(char),
-          onInvokeRangeShape: (value) => this.rangeShapeInvoke.spawnForCharacter(char, value),
-        },
-        this.translateFn,
-        overlapEntries
-      ),
+      surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
       this.name()
     );
   }

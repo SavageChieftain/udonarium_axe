@@ -13,11 +13,12 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -300,7 +301,16 @@ export class CardStackComponent {
       (cs) => this.showDetail(cs),
       this.translateFn
     );
-    this.contextMenuService.open(position, menuArray, this.name());
+    const surfaceEntries = buildSurfaceSwitchContextMenu(
+      this.cardStack(),
+      this.tabletopService.currentTable,
+      this.translateFn
+    );
+    this.contextMenuService.open(
+      position,
+      surfaceEntries.length > 0 ? [...menuArray, ContextMenuSeparator, ...surfaceEntries] : menuArray,
+      this.name()
+    );
   }
 
   onMove() {
