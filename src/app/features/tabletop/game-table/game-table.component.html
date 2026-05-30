@@ -9,7 +9,7 @@
   #root
 >
   <div class="absolute inset-0 m-auto block size-1500 backface-hidden transform-3d" #gameTable>
-    <div id="app-game-table" class="absolute size-full backface-hidden transform-3d" #gameObjects>
+    <div id="app-game-table" class="absolute size-full backface-hidden transform-3d" data-surface="floor" #gameObjects>
       <div
         class="pointer-events-none absolute top-0 left-0 size-full overflow-hidden bg-white/15 bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
         [ngStyle]="tableSurfaceStyle()"
@@ -24,33 +24,54 @@
           [ngStyle]="tableSurfaceBorderStyle()"
         ></div>
       </div>
-      @if (wallState().showNorth && northWallImage().url) {
+      @for (wall of activeWalls(); track wall.surface) {
         <div
-          class="pointer-events-none absolute bottom-full left-0 w-full origin-[50%_100%] transform-[rotateX(-90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
-          [style.height.px]="wallState().heightPx"
-          [style.background-image]="'url(' + northWallImage().url + ')' | safe: 'style'"
-        ></div>
-      }
-      @if (wallState().showSouth && southWallImage().url) {
-        <div
-          class="pointer-events-none absolute top-full left-0 w-full origin-[50%_0%] transform-[rotateX(90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
-          [style.height.px]="wallState().heightPx"
-          [style.background-image]="'url(' + southWallImage().url + ')' | safe: 'style'"
-        ></div>
-      }
-      @if (wallState().showWest && westWallImage().url) {
-        <div
-          class="pointer-events-none absolute top-0 right-full h-full origin-[100%_50%] transform-[rotateY(90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
-          [style.width.px]="wallState().heightPx"
-          [style.background-image]="'url(' + westWallImage().url + ')' | safe: 'style'"
-        ></div>
-      }
-      @if (wallState().showEast && eastWallImage().url) {
-        <div
-          class="pointer-events-none absolute top-0 left-full h-full origin-[0%_50%] transform-[rotateY(-90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
-          [style.width.px]="wallState().heightPx"
-          [style.background-image]="'url(' + eastWallImage().url + ')' | safe: 'style'"
-        ></div>
+          class="absolute bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+          [attr.data-surface]="wall.surface"
+          [ngClass]="wall.containerClass"
+          [style.transform]="wall.containerTransform"
+          [style.width.px]="wall.widthPx"
+          [style.height.px]="wall.heightPx"
+          [style.background-image]="'url(' + wall.image.url + ')' | safe: 'style'"
+        >
+          @for (textNote of textNotesBySurface()[wall.surface]; track textNote.identifier) {
+            <text-note
+              class="absolute will-change-transform backface-visible transform-3d"
+              [textNote]="textNote"
+              [appTooltip]="textNote"
+              [ngStyle]="{ 'z-index': textNote.zindex }"
+            ></text-note>
+          }
+          @for (cardStack of cardStacksBySurface()[wall.surface]; track cardStack.identifier) {
+            <card-stack
+              class="absolute will-change-transform backface-visible transform-3d"
+              [cardStack]="cardStack"
+              [appTooltip]="cardStack"
+              [ngStyle]="{
+                'z-index': cardStack.zindex,
+                transform: 'translateZ(' + cardStack.zindex * 0.001 + 'px)',
+              }"
+            ></card-stack>
+          }
+          @for (card of cardsBySurface()[wall.surface]; track card.identifier) {
+            <card
+              class="absolute will-change-transform backface-visible transform-3d"
+              [card]="card"
+              [appTooltip]="card"
+              [ngStyle]="{
+                'z-index': card.zindex,
+                transform: 'translateZ(' + card.zindex * 0.001 + 'px)',
+              }"
+            ></card>
+          }
+          @for (character of charactersBySurface()[wall.surface]; track character.identifier) {
+            <game-character
+              class="absolute will-change-transform backface-visible transform-3d"
+              [gameCharacter]="character"
+              [appTooltip]="character"
+            ></game-character>
+          }
+        </div>
       }
       @if (terrains().length) {
         <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
@@ -73,12 +94,12 @@
         >
         </game-table-scratch-mask>
       }
-      @if (textNotes().length) {
+      @if (textNotesBySurface().floor.length) {
         <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
           <div
             class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
           ></div>
-          @for (textNote of textNotes(); track textNote.identifier) {
+          @for (textNote of textNotesBySurface().floor; track textNote.identifier) {
             <text-note
               class="absolute will-change-transform backface-visible transform-3d"
               [textNote]="textNote"
@@ -88,7 +109,7 @@
           }
         </div>
       }
-      @for (cardStack of cardStacks(); track cardStack.identifier) {
+      @for (cardStack of cardStacksBySurface().floor; track cardStack.identifier) {
         <card-stack
           class="absolute will-change-transform backface-visible transform-3d"
           [cardStack]="cardStack"
@@ -99,7 +120,7 @@
           }"
         ></card-stack>
       }
-      @for (card of cards(); track card.identifier) {
+      @for (card of cardsBySurface().floor; track card.identifier) {
         <card
           class="absolute will-change-transform backface-visible transform-3d"
           [card]="card"
@@ -138,12 +159,12 @@
           }
         </div>
       }
-      @if (characters().length) {
+      @if (charactersBySurface().floor.length) {
         <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
           <div
             class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
           ></div>
-          @for (character of characters(); track character.identifier) {
+          @for (character of charactersBySurface().floor; track character.identifier) {
             <game-character
               class="absolute will-change-transform backface-visible transform-3d"
               [gameCharacter]="character"

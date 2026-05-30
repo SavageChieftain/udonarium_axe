@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { surfaceOf, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 describe('TabletopObject', () => {
   let store: ObjectStore;
@@ -26,6 +26,19 @@ describe('TabletopObject', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(obj.location).toEqual({ name: 'table', x: 0, y: 0 });
+    });
+
+    it('surfaceOf は location.surface が未設定なら floor を返す', () => {
+      const obj = new TabletopObject();
+      obj.initialize();
+      expect(surfaceOf(obj)).toBe('floor');
+    });
+
+    it('surfaceOf は location.surface が設定されていればその値を返す', () => {
+      const obj = new TabletopObject();
+      obj.initialize();
+      obj.location.surface = 'north-wall';
+      expect(surfaceOf(obj)).toBe('north-wall');
     });
 
     it('posZのデフォルトは0', () => {

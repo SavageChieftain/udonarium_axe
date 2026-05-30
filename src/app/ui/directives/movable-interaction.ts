@@ -14,6 +14,7 @@ export interface MovableInteractionContext {
   pointerDeviceService: PointerDeviceService;
   coordinateService: CoordinateService;
   nativeElement: HTMLElement;
+  surfaceElement(): HTMLElement;
   posX: number;
   posY: number;
   posZ: number;
@@ -59,7 +60,7 @@ export function handleInputStart(context: MovableInteractionContext, e: MouseEve
     y: context.posY + context.height / 2,
     z: context.posZ,
   };
-  const target2d = context.coordinateService.convertToGlobal(target3d, context.coordinateService.tabletopOriginElement);
+  const target2d = context.coordinateService.convertToGlobal(target3d, context.surfaceElement());
 
   context.setPointerEvents(true);
 
@@ -100,12 +101,10 @@ export function handleInputMove(context: MovableInteractionContext, e: MouseEven
   pointer2d.x = Math.min(window.innerWidth - 0.1, Math.max(pointer2d.x, 0.1));
   pointer2d.y = Math.min(window.innerHeight - 0.1, Math.max(pointer2d.y, 0.1));
 
-  const element = document.elementFromPoint(pointer2d.x, pointer2d.y) as HTMLElement;
-  if (element == null) return;
-
-  const pointer3d = context.coordinateService.calcTabletopLocalCoordinate(pointer2d, element);
+  const pointer3d = context.coordinateService.convertToLocal(pointer2d, context.surfaceElement());
   pointer3d.x -= context.width / 2;
   pointer3d.y -= context.height / 2;
+  pointer3d.z = Math.max(0, pointer3d.z ?? 0);
 
   if (context.posX === pointer3d.x && context.posY === pointer3d.y && context.posZ === pointer3d.z) return;
 

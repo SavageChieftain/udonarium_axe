@@ -25,6 +25,7 @@ import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
@@ -242,6 +243,72 @@ export class GameTableComponent {
     };
   });
 
+  readonly activeWalls = computed<
+    readonly {
+      surface: TableSurface;
+      image: ImageFile;
+      containerClass: string;
+      containerTransform: string;
+      widthPx: number;
+      heightPx: number;
+    }[]
+  >(() => {
+    const state = this.wallState();
+    const walls = [] as {
+      surface: TableSurface;
+      image: ImageFile;
+      containerClass: string;
+      containerTransform: string;
+      widthPx: number;
+      heightPx: number;
+    }[];
+    const north = this.northWallImage();
+    if (state.showNorth && north.url) {
+      walls.push({
+        surface: 'north-wall',
+        image: north,
+        containerClass: 'bottom-full left-0 origin-[50%_100%]',
+        containerTransform: 'rotateX(-90deg)',
+        widthPx: state.widthPx,
+        heightPx: state.heightPx,
+      });
+    }
+    const south = this.southWallImage();
+    if (state.showSouth && south.url) {
+      walls.push({
+        surface: 'south-wall',
+        image: south,
+        containerClass: 'top-full left-0 origin-[50%_0%]',
+        containerTransform: 'rotateX(90deg)',
+        widthPx: state.widthPx,
+        heightPx: state.heightPx,
+      });
+    }
+    const west = this.westWallImage();
+    if (state.showWest && west.url) {
+      walls.push({
+        surface: 'west-wall',
+        image: west,
+        containerClass: 'top-0 right-full origin-[100%_50%]',
+        containerTransform: 'rotateY(90deg)',
+        widthPx: state.heightPx,
+        heightPx: state.depthPx,
+      });
+    }
+    const east = this.eastWallImage();
+    if (state.showEast && east.url) {
+      walls.push({
+        surface: 'east-wall',
+        image: east,
+        containerClass: 'top-0 left-full origin-[0%_50%]',
+        containerTransform: 'rotateY(-90deg)',
+        widthPx: state.heightPx,
+        heightPx: state.depthPx,
+      });
+    }
+    return walls;
+  });
+
   readonly tableSurfaceStyle = computed<Record<string, string>>(() => {
     const table = this.watchCurrentTable();
     const geo = computeHexMaskGeometry(table.width, table.height, table.gridSize, table.gridType);
@@ -323,6 +390,27 @@ export class GameTableComponent {
     this.objectChangeService.collectionOf('PeerCursor')();
     return this.tabletopService.peerCursors;
   });
+
+  private static bySurface<T extends { location: { surface?: TableSurface } }>(
+    list: readonly T[]
+  ): Record<TableSurface, T[]> {
+    const result = TABLE_SURFACES.reduce(
+      (acc, s) => {
+        acc[s] = [];
+        return acc;
+      },
+      {} as Record<TableSurface, T[]>
+    );
+    for (const item of list) result[surfaceOf(item)].push(item);
+    return result;
+  }
+
+  readonly charactersBySurface = computed(() => GameTableComponent.bySurface(this.characters()));
+  readonly cardsBySurface = computed(() => GameTableComponent.bySurface(this.cards()));
+  readonly cardStacksBySurface = computed(() => GameTableComponent.bySurface(this.cardStacks()));
+  readonly rangesBySurface = computed(() => GameTableComponent.bySurface(this.ranges()));
+  readonly textNotesBySurface = computed(() => GameTableComponent.bySurface(this.textNotes()));
+  readonly diceSymbolsBySurface = computed(() => GameTableComponent.bySurface(this.diceSymbols()));
 
   onContextMenu(e: MouseEvent) {
     if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;

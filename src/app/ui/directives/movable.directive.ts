@@ -306,6 +306,11 @@ export class MovableDirective {
     handleInputMove(this as unknown as MovableInteractionContext, e);
   }
 
+  surfaceElement(): HTMLElement {
+    const closest = this.nativeElement.closest<HTMLElement>('[data-surface]');
+    return closest ?? this.coordinateService.tabletopOriginElement;
+  }
+
   onInputEnd(e: MouseEvent | TouchEvent) {
     handleInputEnd(this as unknown as MovableInteractionContext, e);
     if (this._multiAdapter) this.multiMovableService.endDrag(this._multiAdapter);

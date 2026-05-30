@@ -10,6 +10,21 @@ export interface TabletopLocation {
   name: string;
   x: number;
   y: number;
+  surface?: TableSurface;
+}
+
+export type TableSurface = 'floor' | 'north-wall' | 'east-wall' | 'south-wall' | 'west-wall';
+
+export const TABLE_SURFACES: readonly TableSurface[] = [
+  'floor',
+  'north-wall',
+  'east-wall',
+  'south-wall',
+  'west-wall',
+] as const;
+
+export function surfaceOf(object: { location: { surface?: TableSurface } }): TableSurface {
+  return object.location.surface ?? 'floor';
 }
 
 @SyncObject('TabletopObject')
