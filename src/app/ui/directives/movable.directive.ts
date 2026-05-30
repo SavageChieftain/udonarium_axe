@@ -9,7 +9,7 @@ import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer
 import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import {
   applyPointerEvents,
@@ -312,8 +312,37 @@ export class MovableDirective {
   }
 
   onInputEnd(e: MouseEvent | TouchEvent) {
+    if (this.input?.isDragging && !this.isScratcOwner()) {
+      this.maybeSwitchSurfaceOnDrop();
+    }
     handleInputEnd(this as unknown as MovableInteractionContext, e);
     if (this._multiAdapter) this.multiMovableService.endDrag(this._multiAdapter);
+  }
+
+  private maybeSwitchSurfaceOnDrop() {
+    if (!this.tabletopObject) return;
+    const pointer = this.input?.pointer;
+    if (!pointer) return;
+    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
+    if (!target) return;
+    const targetSurfaceEl = target.closest<HTMLElement>('[data-surface]');
+    if (!targetSurfaceEl) return;
+    const currentSurfaceEl = this.surfaceElement();
+    if (targetSurfaceEl === currentSurfaceEl) return;
+    const targetSurface = (targetSurfaceEl.dataset.surface ?? 'floor') as TableSurface;
+    const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurfaceEl);
+    const newX = this.mathFloor ? Math.floor(local.x - this.width / 2) : local.x - this.width / 2;
+    const newY = this.mathFloor ? Math.floor(local.y - this.height / 2) : local.y - this.height / 2;
+    if (this.updateTimer !== null) {
+      clearTimeout(this.updateTimer);
+      this.updateTimer = null;
+    }
+    this._posX = newX;
+    this._posY = newY;
+    this.tabletopObject.location.x = newX;
+    this.tabletopObject.location.y = newY;
+    this.tabletopObject.location.surface = targetSurface === 'floor' ? undefined : targetSurface;
+    this.updateTransformCss();
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {

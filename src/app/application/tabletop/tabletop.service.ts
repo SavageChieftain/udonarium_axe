@@ -50,6 +50,7 @@ export class TabletopService {
   readonly gridSize: Signal<number> = computed(() => this.currentTableVersion().gridSize);
 
   private locationMap: Map<ObjectIdentifier, LocationName> = new Map();
+  private surfaceMap: Map<ObjectIdentifier, string> = new Map();
   private parentMap: Map<ObjectIdentifier, ObjectIdentifier> = new Map();
   private characterCache = new TabletopCache<GameCharacter>(() =>
     this.objectStore.getObjects(GameCharacter).filter((obj) => obj.isVisibleOnTable)
@@ -236,17 +237,20 @@ export class TabletopService {
   private shouldRefreshCache(object: TabletopObject): boolean {
     return (
       this.locationMap.get(object.identifier) !== object.location.name ||
+      this.surfaceMap.get(object.identifier) !== (object.location.surface ?? 'floor') ||
       this.parentMap.get(object.identifier) !== object.parentId
     );
   }
 
   private updateMap(object: TabletopObject) {
     this.locationMap.set(object.identifier, object.location.name);
+    this.surfaceMap.set(object.identifier, object.location.surface ?? 'floor');
     this.parentMap.set(object.identifier, object.parentId);
   }
 
   private clearMap() {
     this.locationMap.clear();
+    this.surfaceMap.clear();
     this.parentMap.clear();
   }
 
