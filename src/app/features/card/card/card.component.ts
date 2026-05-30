@@ -1,11 +1,9 @@
 import { NgStyle } from '@angular/common';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
-  effect,
   ElementRef,
   inject,
   input,
@@ -27,13 +25,13 @@ import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
@@ -159,29 +157,26 @@ export class CardComponent {
   private doubleClickTimer: NodeJS.Timeout | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
-  private input: InputHandler | null = null;
-
   constructor() {
-    effect(() => {
-      const card = this.card();
-      this.movableOption.set({
-        tabletopObject: card,
-        transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
-        colideLayers: ['terrain'],
-      });
-      this.rotableOption.set({
-        tabletopObject: card,
-      });
-    });
-    afterNextRender(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      this.input.onStart = (e) => this.onInputStart(e);
+    setupMovableRotableForPiece(this, {
+      target: this.card,
+      collideLayers: ['terrain'],
+      transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
     });
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.doubleClickTimer ?? undefined);
       clearTimeout(this.iconHiddenTimer ?? undefined);
-      if (this.input) this.input.destroy();
     });
+  }
+
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
   }
 
   onCardDrop(e: Event) {

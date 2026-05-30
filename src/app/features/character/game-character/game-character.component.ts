@@ -1,6 +1,5 @@
 import { NgStyle } from '@angular/common';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -15,11 +14,11 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
+import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
@@ -36,7 +35,6 @@ import { buildGameCharacterContextMenu } from '@axe/features/character/game-char
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -45,6 +43,7 @@ import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
+import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -115,30 +114,27 @@ export class GameCharacterComponent {
       }, 1010);
     });
 
-    effect(() => {
-      const char = this.gameCharacter();
-      if (!char) return;
-      this.movableOption.set({
-        tabletopObject: char,
-        transformCssOffset: translateZCss(Z_OFFSET_TALL_OBJECT_PX),
-        colideLayers: ['terrain'],
-        snapStyle: char.size % 1 !== 0 ? GridSnapStyle.VERTEX : undefined,
-      });
-      this.rotableOption.set({
-        tabletopObject: char,
-      });
-    });
-
-    afterNextRender(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      if (this.input) this.input.onStart = (e) => this.onInputStart(e);
+    setupMovableRotableForPiece(this, {
+      target: this.gameCharacter,
+      collideLayers: ['terrain'],
+      transformCssOffset: translateZCss(Z_OFFSET_TALL_OBJECT_PX),
+      snapStyle: (char) => (char.size % 1 !== 0 ? GridSnapStyle.VERTEX : undefined),
     });
 
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.highlightTimer);
       clearTimeout(this.unhighlightTimer);
-      if (this.input) this.input.destroy();
     });
+  }
+
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
   }
 
   readonly gameCharacter = input<GameCharacter | null>(null);
@@ -300,7 +296,6 @@ export class GameCharacterComponent {
   }
 
   readonly movableOption = signal<MovableOption>({});
-  private input: InputHandler | null = null;
 
   readonly rotableOption = signal<RotableOption>({});
 

@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
-import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -25,7 +25,6 @@ import {
   encodeRangeShapeField,
   RangeShapeFieldValue,
 } from '@axe/domain/data/range-shape-field';
-import { buildRangeShapeThumbnail } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
 import {
   buildTableColumnHeaderGroups,
   canRenderAsTable as canRenderAsTableShared,
@@ -45,6 +44,7 @@ import {
 } from '@axe/features/data-element/game-data-element/game-data-element-structure-drop';
 import { GameDataElementTableViewComponent } from '@axe/features/data-element/game-data-element/game-data-element-table-view.component';
 import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-element/game-data-element-utils';
+import { buildRangeShapeThumbnail } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';

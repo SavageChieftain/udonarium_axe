@@ -32,6 +32,7 @@ import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
+import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import {
   buildHexOuterBorderSvg,
@@ -41,7 +42,6 @@ import {
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
-import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';

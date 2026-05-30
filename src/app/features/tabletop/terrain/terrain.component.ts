@@ -19,8 +19,8 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
+import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
@@ -41,7 +41,6 @@ import {
   HexSlopeStepFloor,
 } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -49,6 +48,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
+import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 interface TerrainGridBounds {
@@ -127,15 +127,9 @@ export class TerrainComponent {
         this.currentTable.gridFontColor
       );
     });
-    effect(() => {
-      const terrain = this.terrain();
-      this.movableOption.set({
-        tabletopObject: terrain,
-        colideLayers: ['terrain'],
-      });
-      this.rotableOption.set({
-        tabletopObject: terrain,
-      });
+    setupMovableRotableForPiece(this, {
+      target: this.terrain,
+      collideLayers: ['terrain'],
     });
     this.objectChange.onObjectChangedFor(
       // input.required guarded by _initialized to avoid NG0950 during construction.
@@ -158,8 +152,6 @@ export class TerrainComponent {
     );
     afterNextRender(() => {
       this._initialized = true;
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      this.input.onStart = (e) => this.onInputStart(e);
       this.setGameTableGrid(
         this.width(),
         this.depth(),
@@ -169,9 +161,16 @@ export class TerrainComponent {
         this.currentTable.gridFontColor
       );
     });
-    this.destroyRef.onDestroy(() => {
-      if (this.input) this.input.destroy();
-    });
+  }
+
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
   }
 
   readonly terrain = input.required<Terrain>();
@@ -462,7 +461,6 @@ export class TerrainComponent {
   math = Math;
   slopeDirectionState = SlopeDirection;
 
-  private input: InputHandler | null = null;
   private _initialized = false;
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 

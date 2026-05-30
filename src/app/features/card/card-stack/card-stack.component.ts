@@ -1,11 +1,9 @@
 import { NgClass, NgStyle } from '@angular/common';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
-  effect,
   ElementRef,
   inject,
   input,
@@ -16,8 +14,8 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -29,13 +27,13 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CardDrawCountDialogComponent } from '@axe/features/card/card-draw-count-dialog/card-draw-count-dialog.component';
 import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -143,8 +141,6 @@ export class CardStackComponent {
   private doubleClickTimer: NodeJS.Timeout | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
-  private input: InputHandler | null = null;
-
   constructor() {
     this.objectChange.shuffleCardStack$.subscribe((event) => {
       if (event.identifier === this.cardStack().identifier) {
@@ -155,26 +151,25 @@ export class CardStackComponent {
       if (event.cardStackIdentifier === this.cardStack().identifier && this.cardStack())
         this.cardsVersion.update((v) => v + 1);
     }, this.destroyRef);
-    effect(() => {
-      const cardStack = this.cardStack();
-      this.movableOption.set({
-        tabletopObject: cardStack,
-        transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
-        colideLayers: ['terrain'],
-      });
-      this.rotableOption.set({
-        tabletopObject: cardStack,
-      });
-    });
-    afterNextRender(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      this.input.onStart = (e) => this.onInputStart(e);
+    setupMovableRotableForPiece(this, {
+      target: this.cardStack,
+      collideLayers: ['terrain'],
+      transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
     });
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.doubleClickTimer ?? undefined);
       clearTimeout(this.iconHiddenTimer ?? undefined);
-      if (this.input) this.input.destroy();
     });
+  }
+
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
   }
 
   onShuffleDone() {

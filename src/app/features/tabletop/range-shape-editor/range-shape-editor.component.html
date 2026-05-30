@@ -1,5 +1,5 @@
 <div
-  class="bg-ui-panel text-ui-text flex h-full w-full flex-col gap-3 p-3"
+  class="bg-ui-panel text-ui-text flex size-full flex-col gap-3 p-3"
   *transloco="let t"
   (pointerup)="onPointerUp()"
   (pointerleave)="onPointerUp()"
@@ -9,7 +9,7 @@
       <span class="text-sm">{{ t('feature.range.custom.name') }}</span>
       <input
         type="text"
-        class="bg-ui-elevated border-ui-border-panel min-w-0 flex-1 rounded border px-2 py-1 text-sm"
+        class="bg-ui-elevated border-ui-border-panel min-w-0 flex-1 rounded-sm border px-2 py-1 text-sm"
         [ngModel]="name()"
         (ngModelChange)="name.set($event)"
         [placeholder]="t('feature.range.custom.namePlaceholder')"
@@ -19,7 +19,7 @@
     <label class="flex items-center gap-1.5">
       <span class="text-sm">{{ t('feature.range.custom.gridType') }}</span>
       <select
-        class="bg-ui-elevated border-ui-border-panel rounded border px-2 py-1 text-sm"
+        class="bg-ui-elevated border-ui-border-panel rounded-sm border px-2 py-1 text-sm"
         [ngModel]="gridType()"
         (ngModelChange)="setGridType($event)"
       >
@@ -45,7 +45,7 @@
     </label>
   </header>
 
-  <div class="border-ui-border-panel relative flex-1 overflow-auto rounded border">
+  <div class="border-ui-border-panel relative flex-1 overflow-auto rounded-sm border">
     <svg
       [attr.viewBox]="'0 0 ' + geometry().viewWidth + ' ' + geometry().viewHeight"
       [attr.width]="geometry().viewWidth"
@@ -100,21 +100,21 @@
     <div class="ml-auto flex gap-2">
       <button
         type="button"
-        class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded border px-3 py-1"
+        class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded-sm border px-3 py-1"
         (click)="clear()"
       >
         {{ t('feature.range.custom.clear') }}
       </button>
       <button
         type="button"
-        class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded border px-3 py-1"
+        class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded-sm border px-3 py-1"
         (click)="cancel()"
       >
         {{ t('feature.range.custom.cancel') }}
       </button>
       <button
         type="button"
-        class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent cursor-pointer rounded px-3 py-1"
+        class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent cursor-pointer rounded-sm px-3 py-1"
         (click)="save()"
       >
         {{ t('feature.range.custom.save') }}

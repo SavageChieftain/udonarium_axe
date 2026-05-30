@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -12,6 +12,7 @@ import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-ma
 import { buildScratchMaskContextMenu } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
+import { setupMovableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 
 @Component({
   selector: 'game-table-scratch-mask',
@@ -38,13 +39,9 @@ export class GameTableScratchMaskComponent {
   readonly movableOption = signal<MovableOption>({});
 
   constructor() {
-    effect(() => {
-      const mask = this.gameTableScratchMask();
-      if (!mask) return;
-      this.movableOption.set({
-        tabletopObject: mask,
-        colideLayers: ['terrain'],
-      });
+    setupMovableForPiece(this, {
+      target: this.gameTableScratchMask,
+      collideLayers: ['terrain'],
     });
   }
 

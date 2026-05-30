@@ -1,11 +1,11 @@
-import { GridType } from '@axe/domain/tabletop/game-table';
 import {
+  CellCoord,
   cellKey,
   cellPatternToSet,
-  CellCoord,
   parseCellPattern,
   rotateCellPattern,
 } from '@axe/domain/tabletop/cell-pattern';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCellCenter, hexCircumradius, hexSpacing, pixelToHexCell } from '@axe/domain/tabletop/hex-geometry';
 import { RangeRenderSetting } from '@axe/features/tabletop/range/range-render-types';
 import { calcGridOffsets, fillGridCells, isHexGrid, makeBrush } from '@axe/features/tabletop/range/range-render-util';

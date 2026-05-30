@@ -282,7 +282,7 @@
                   [attr.viewBox]="rangeShapeThumbnail().viewBox"
                   width="36"
                   height="36"
-                  class="border-ui-border-panel bg-ui-elevated shrink-0 rounded border"
+                  class="border-ui-border-panel bg-ui-elevated shrink-0 rounded-sm border"
                   preserveAspectRatio="xMidYMid meet"
                 >
                   @for (cell of rangeShapeThumbnail().cells; track $index) {
@@ -311,14 +311,14 @@
               <div class="ml-auto flex shrink-0 gap-1">
                 <button
                   type="button"
-                  class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded border px-2 py-0.5 text-[0.85em]"
+                  class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded-sm border px-2 py-0.5 text-[0.85em]"
                   (click)="openRangeShapeEditor()"
                 >
                   {{ 'feature.range.custom.edit' | transloco }}
                 </button>
                 <button
                   type="button"
-                  class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent cursor-pointer rounded px-2 py-0.5 text-[0.85em]"
+                  class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent cursor-pointer rounded-sm px-2 py-0.5 text-[0.85em]"
                   (click)="spawnRangeShape()"
                 >
                   {{ 'feature.range.custom.spawn' | transloco }}

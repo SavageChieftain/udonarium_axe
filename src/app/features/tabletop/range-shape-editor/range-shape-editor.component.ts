@@ -1,20 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoModule } from '@jsverse/transloco';
-
 import {
   CellCoord,
   cellPatternBoundingBox,
   parseCellPattern,
   serializeCellPattern,
 } from '@axe/domain/tabletop/cell-pattern';
-
 import {
   buildEditorBoardGeometry,
   cellsFromKeys,
   EditorCellGeometry,
   EditorGridType,
 } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
+import { TranslocoModule } from '@jsverse/transloco';
 
 export interface RangeShapeEditorResult {
   name: string;

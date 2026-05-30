@@ -1,6 +1,5 @@
 import { NgStyle } from '@angular/common';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -28,7 +27,6 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -36,6 +34,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-text';
 
@@ -73,19 +72,10 @@ export class TextNoteComponent {
         this.calcFitHeight();
       }
     });
-    effect(() => {
-      this.movableOption.set({
-        tabletopObject: this.textNote(),
-        transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
-        colideLayers: ['terrain'],
-      });
-      this.rotableOption.set({
-        tabletopObject: this.textNote(),
-      });
-    });
-    afterNextRender(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      this.input.onStart = (e) => this.onInputStart(e);
+    setupMovableRotableForPiece(this, {
+      target: this.textNote,
+      collideLayers: ['terrain'],
+      transformCssOffset: translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX),
     });
     this.destroyRef.onDestroy(() => {
       if (this._transitionTimeout) clearTimeout(this._transitionTimeout);
@@ -291,7 +281,15 @@ export class TextNoteComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private input: InputHandler | null = null;
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
+  }
   readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
 
   onDragstart(e: DragEvent) {

@@ -5,7 +5,6 @@ import {
   Component,
   computed,
   DestroyRef,
-  effect,
   ElementRef,
   inject,
   input,
@@ -27,6 +26,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { RangeArea } from '@axe/domain/tabletop/range';
@@ -43,15 +43,14 @@ import {
   RangeRenderSetting,
 } from '@axe/features/tabletop/range/range-render';
 import { clipAreaToPolygonCss, clipCircleCss } from '@axe/features/tabletop/range/range-render-util';
-import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
 import { RangeDockingCharacterComponent } from '@axe/features/tabletop/range-docking-character/range-docking-character.component';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_RANGE_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
@@ -301,7 +300,6 @@ export class RangeComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private input: InputHandler | null = null;
   private _initialized = false;
 
   constructor() {
@@ -320,29 +318,30 @@ export class RangeComponent {
       },
       this.destroyRef
     );
-    effect(() => {
-      const range = this.range();
-      const half = this.gridSize / 2;
-      const snapXY = isHexGrid(this.currentTable.gridType) ? 0 : half;
-      this.movableOption.set({
-        tabletopObject: range,
-        transformCssOffset: translateZCss(Z_OFFSET_RANGE_PX),
-        colideLayers: ['terrain'],
-        snapOrigin: { x: snapXY, y: snapXY },
-      });
-      this.rotableOption.set({
-        tabletopObject: this.range(),
-      });
+    setupMovableRotableForPiece(this, {
+      target: this.range,
+      collideLayers: ['terrain'],
+      transformCssOffset: translateZCss(Z_OFFSET_RANGE_PX),
+      snapOrigin: () => {
+        const half = this.gridSize / 2;
+        const snapXY = isHexGrid(this.currentTable.gridType) ? 0 : half;
+        return { x: snapXY, y: snapXY };
+      },
     });
     afterNextRender(() => {
       this._initialized = true;
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      this.input.onStart = (e) => this.onInputStart(e);
       this.setRange();
     });
-    this.destroyRef.onDestroy(() => {
-      if (this.input) this.input.destroy();
-    });
+  }
+
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
   }
 
   onDragstart(e: DragEvent) {

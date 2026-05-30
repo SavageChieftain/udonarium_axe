@@ -1,19 +1,19 @@
 import { inject, Injectable } from '@angular/core';
-import { selectByRect } from '@axe/application/ui/rect-hit-test';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { selectByRect } from '@axe/application/ui/rect-hit-test';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
 import {
   MarqueeModifiers,
   MarqueePoint,
   MarqueeRect,
   TableMarqueeGesture,
 } from '@axe/features/tabletop/game-table/table-marquee-gesture';
+import { TableMouseGesture, TableMouseGestureEvent } from '@axe/features/tabletop/game-table/table-mouse-gesture';
 import { TableTouchGesture, TableTouchGestureEvent } from '@axe/features/tabletop/game-table/table-touch-gesture';
 
 @Injectable()

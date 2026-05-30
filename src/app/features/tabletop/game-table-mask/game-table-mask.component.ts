@@ -1,11 +1,9 @@
 import { NgStyle } from '@angular/common';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
-  effect,
   ElementRef,
   inject,
   input,
@@ -41,11 +39,11 @@ import {
   computeHexMaskGeometry,
   type ScratchGridInfo,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
-import { InputHandler } from '@axe/ui/directives/input-handler';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { setupInputHandler, setupMovableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_MASK_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -82,26 +80,29 @@ export class GameTableMaskComponent {
   private readonly translateFn = inject(TRANSLATE_FN);
 
   constructor() {
-    effect(() => {
-      const mask = this.gameTableMask();
-      if (!mask) return;
-      const geo = computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType());
-      this.movableOption.set({
-        tabletopObject: mask,
-        transformCssOffset: translateZCss(Z_OFFSET_MASK_PX),
-        colideLayers: ['terrain'],
-        snapOrigin: geo ? { x: geo.offsetX, y: geo.offsetY } : undefined,
-      });
-    });
-    afterNextRender(() => {
-      this.input = new InputHandler(this.elementRef.nativeElement);
-      this.input.onStart = (e) => this.onInputStart(e);
-      this.input.onMove = (e) => this.onInputMove(e);
+    setupMovableForPiece(this, {
+      target: this.gameTableMask,
+      collideLayers: ['terrain'],
+      transformCssOffset: translateZCss(Z_OFFSET_MASK_PX),
+      snapOrigin: () => {
+        const geo = computeHexMaskGeometry(this.width, this.height, this.gridSize, this.gridType());
+        return geo ? { x: geo.offsetX, y: geo.offsetY } : undefined;
+      },
     });
     this.destroyRef.onDestroy(() => {
-      if (this.input) this.input.destroy();
       clearTimeout(this._scratchingTimerId);
     });
+  }
+
+  private readonly inputRef = setupInputHandler({
+    elementRef: this.elementRef,
+    destroyRef: this.destroyRef,
+    onStart: (e) => this.onInputStart(e),
+    onMove: (e) => this.onInputMove(e),
+  });
+
+  private get input() {
+    return this.inputRef.current;
   }
 
   readonly gameTableMask = input<GameTableMask | null>(null);
@@ -344,8 +345,6 @@ export class GameTableMaskComponent {
   }
 
   readonly movableOption = signal<MovableOption>({});
-
-  private input: InputHandler | null = null;
 
   private buildScratchingGrids(set: Set<string>): string {
     const grids: string[] = [];
