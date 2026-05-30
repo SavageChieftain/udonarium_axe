@@ -3,7 +3,6 @@
   appMovable
   [movable.option]="movableOption()"
   [movable.disable]="isSelected"
-  [appSelectable]="textNote()"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >
@@ -11,12 +10,14 @@
     class="[-webkit-transform-style:preserve-3d] transform-3d"
     appRotable
     [rotable.option]="rotableOption()"
+    [rotable.disable]="tabletopService.mode2d()"
     (rotable.ondragstart)="onMove()"
     (rotable.ondragend)="onMoved()"
   >
     <div
       class="pointer-events-auto size-full transform-[translateX(-50%)] [-webkit-transform-style:preserve-3d] transform-3d"
       [style.width.px]="width * gridSize"
+      [appSelectable]="textNote()"
     >
       <div
         class="[-webkit-transform-style:preserve-3d] transform-3d"
