@@ -51,10 +51,13 @@ export function buildSurfaceSwitchContextMenu(
   ).map((s) => ({
     name: t(SURFACE_LABEL_KEY[s]),
     action: () => {
-      obj.location.surface = s === 'floor' ? undefined : s;
       const center = centerOf(table, s);
-      obj.location.x = center.x;
-      obj.location.y = center.y;
+      obj.location = {
+        name: obj.location.name,
+        x: center.x,
+        y: center.y,
+        surface: s === 'floor' ? undefined : s,
+      };
     },
   }));
   if (subActions.length === 0) return [];

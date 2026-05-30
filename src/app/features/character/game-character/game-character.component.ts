@@ -88,6 +88,14 @@ export class GameCharacterComponent {
     return this.gameCharacter()?.targeted ?? false;
   });
 
+  readonly isPoster = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return false;
+    this.objectChange.versionOf(char.identifier)();
+    const surface = char.location.surface ?? 'floor';
+    return surface !== 'floor';
+  });
+
   constructor() {
     effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
