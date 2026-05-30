@@ -43,6 +43,7 @@ import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -234,7 +235,9 @@ export class GameCharacterComponent {
   }
 
   protected readonly foldingBuff = signal(false);
-  readonly gridSize = 50;
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
   math = Math;
 
   viewRotateX = 50;
@@ -274,38 +277,26 @@ export class GameCharacterComponent {
   });
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
-    if (!this.mode2dEnabled()) {
-      return `translateY(${-distance3d}px)`;
-    }
-    const r = this.uiSignalService.tableViewRotation();
-    const yawRad = ((r?.z ?? 10) * Math.PI) / 180;
-    const sin = Math.sin(yawRad);
-    const cos = Math.cos(yawRad);
-    return `translateX(${(-distance2d * sin).toFixed(2)}px) translateZ(${(-distance2d * cos).toFixed(2)}px)`;
+    return makeLabelOrbitTransform({
+      rotation: this.uiSignalService.tableViewRotation(),
+      distance3d,
+      distance2d,
+      mode2d: this.mode2dEnabled(),
+    });
   }
 
   readonly nameLabelOrbit = computed(() => this.labelOrbitTransform(30, 60));
   readonly buffLabelOrbit = computed(() => this.labelOrbitTransform(40, 85 + this.buffPanelHeightEstimate() / 2));
 
   private makeBillboardTransform(verticalOffset3D: number): string {
-    const r = this.uiSignalService.tableViewRotation();
-    const tableX = r?.x ?? 50;
-    const tableY = r?.y ?? 0;
-    const tableZ = r?.z ?? 10;
-    const charRotate = this.rotateSignal();
-    const roll = this.rollSignal();
-    const tx = (tableX * Math.PI) / 180;
-    const sinRx = Math.sin(tx);
-    const cosRx = Math.cos(tx);
-    const denom = Math.max(0.05, cosRx);
-    const compensateZ = this.mode2dEnabled() ? '0.00' : ((-verticalOffset3D * (1 - sinRx)) / denom).toFixed(2);
-    return (
-      `translateZ(${compensateZ}px) ` +
-      `rotateZ(${-roll}deg) ` +
-      `rotateY(90deg) rotateZ(90deg) rotateY(-90deg) ` +
-      `rotateZ(${-charRotate}deg) ` +
-      `rotateZ(${-tableZ}deg) rotateX(${-tableX}deg) rotateY(${-tableY}deg)`
-    );
+    return makeBillboardTransform({
+      rotation: this.uiSignalService.tableViewRotation(),
+      pieceRotate: this.rotateSignal(),
+      pieceRoll: this.rollSignal(),
+      parentInverseRotation: 'rotateY(90deg) rotateZ(90deg) rotateY(-90deg)',
+      verticalOffset3D,
+      mode2d: this.mode2dEnabled(),
+    });
   }
 
   readonly movableOption = signal<MovableOption>({});
