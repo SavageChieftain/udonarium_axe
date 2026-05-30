@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { isLockable } from '@axe/domain/tabletop/lockable';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface MovableLike {
@@ -84,8 +85,8 @@ export class MultiMovableService {
   }
 
   private isLocked(ref: MovableLike): boolean {
-    const obj = ref.tabletopObject as unknown as { isLock?: boolean; isLocked?: boolean } | undefined;
+    const obj = ref.tabletopObject;
     if (!obj) return false;
-    return obj.isLock === true || obj.isLocked === true;
+    return isLockable(obj) && obj.isLock;
   }
 }
