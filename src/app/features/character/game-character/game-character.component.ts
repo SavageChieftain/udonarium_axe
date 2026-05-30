@@ -268,6 +268,7 @@ export class GameCharacterComponent {
   readonly billboardTransformImage = computed(() => this.makeBillboardTransform(0));
 
   readonly imageBillboardEnabled = computed(() => {
+    if (this.isPoster()) return true;
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
@@ -275,6 +276,7 @@ export class GameCharacterComponent {
   });
 
   readonly mode2dEnabled = computed(() => {
+    if (this.isPoster()) return true;
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();

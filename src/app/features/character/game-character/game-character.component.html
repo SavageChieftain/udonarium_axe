@@ -12,358 +12,335 @@
     (pointerdown)="checkKey($event)"
     #root
   >
-    @if (isPoster()) {
+    <div class="animate-bounce-in size-full [-webkit-transform-style:preserve-3d] transform-3d">
       <div
-        class="bg-ui-elevated absolute inset-0 box-border flex flex-col items-center justify-end overflow-hidden rounded-md border-2 border-solid border-[#212121] backface-hidden transform-3d"
+        class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"
+        appRotable
+        [rotable.option]="rotableOption()"
+        [rotable.disable]="mode2dEnabled()"
+        (rotable.ondragstart)="onMove()"
+        (rotable.ondragend)="onMoved()"
       >
-        @if (0 < imageFile().url.length) {
+        @if (!this.gameCharacter()!.hideInventory) {
+          <div
+            class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ffcc80] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
+            [ngStyle]="pedestalStyle('#FFCC80')"
+          ></div>
+        }
+        @if (this.gameCharacter()!.hideInventory) {
+          <div
+            class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#A0E0FF] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
+            [ngStyle]="pedestalStyle('#A0E0FF')"
+          ></div>
+        }
+        <div
+          class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
+          [ngStyle]="pedestalOuterStyle()"
+        ></div>
+        @if (!isLock && !mode2dEnabled()) {
+          <div
+            class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
+            [ngStyle]="pedestalGrabStyle()"
+          >
+            <div
+              class="pointer-events-none box-border size-full rounded-[37px] border-x-12 border-y-28 border-solid border-t-[#999] border-r-[#ccc] border-b-[#ccc] border-l-[#999]"
+              [ngStyle]="pedestalGrabBorderStyle()"
+            >
+              <div
+                class="material-icons text-ui-muted absolute inset-x-0 bottom-0 m-auto hidden w-6 group-hover:inline group-active:inline"
+              >
+                autorenew
+              </div>
+              <div
+                class="material-icons text-ui-muted absolute inset-x-0 top-0 m-auto hidden w-6 group-hover:inline group-active:inline"
+              >
+                autorenew
+              </div>
+            </div>
+          </div>
+        }
+        @if (isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
           <img
-            class="chrome-smooth-image-trick pointer-events-none block size-full object-contain"
+            class="chrome-smooth-image-trick pointer-events-none filter-[brightness(0)_opacity(0.7)_blur(1px)]"
+            [ngStyle]="{
+              position: 'absolute',
+              bottom: '0',
+              left: '50%',
+              height: komaImageHeightSignal() + 'px',
+              width: 'auto',
+              maxWidth: 'none',
+              transform: 'translateX(-50%) scaleY(0.5) translateY(-150%) translateY(' + size() * gridSize + 'px)',
+            }"
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         }
-        @if (name()) {
-          <div
-            class="bg-ui-panel text-ui-text pointer-events-none absolute inset-x-0 bottom-0 box-border truncate px-1.5 py-0.5 text-center text-[12px]"
-          >
-            {{ name() }}
-            @if (isLock) {
-              <i class="material-icons inline align-middle text-[12px]!">lock</i>
-            }
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="animate-bounce-in size-full [-webkit-transform-style:preserve-3d] transform-3d">
-        <div
-          class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"
-          appRotable
-          [rotable.option]="rotableOption()"
-          [rotable.disable]="mode2dEnabled()"
-          (rotable.ondragstart)="onMove()"
-          (rotable.ondragend)="onMoved()"
-        >
-          @if (!this.gameCharacter()!.hideInventory) {
-            <div
-              class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ffcc80] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-              [ngStyle]="pedestalStyle('#FFCC80')"
-            ></div>
-          }
-          @if (this.gameCharacter()!.hideInventory) {
-            <div
-              class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#A0E0FF] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-              [ngStyle]="pedestalStyle('#A0E0FF')"
-            ></div>
-          }
-          <div
-            class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
-            [ngStyle]="pedestalOuterStyle()"
-          ></div>
-          @if (!isLock && !mode2dEnabled()) {
-            <div
-              class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
-              [ngStyle]="pedestalGrabStyle()"
-            >
-              <div
-                class="pointer-events-none box-border size-full rounded-[37px] border-x-12 border-y-28 border-solid border-t-[#999] border-r-[#ccc] border-b-[#ccc] border-l-[#999]"
-                [ngStyle]="pedestalGrabBorderStyle()"
-              >
-                <div
-                  class="material-icons text-ui-muted absolute inset-x-0 bottom-0 m-auto hidden w-6 group-hover:inline group-active:inline"
-                >
-                  autorenew
-                </div>
-                <div
-                  class="material-icons text-ui-muted absolute inset-x-0 top-0 m-auto hidden w-6 group-hover:inline group-active:inline"
-                >
-                  autorenew
-                </div>
-              </div>
-            </div>
-          }
-          @if (isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
-            <img
-              class="chrome-smooth-image-trick pointer-events-none filter-[brightness(0)_opacity(0.7)_blur(1px)]"
-              [ngStyle]="{
-                position: 'absolute',
-                bottom: '0',
-                left: '50%',
-                height: komaImageHeightSignal() + 'px',
-                width: 'auto',
-                maxWidth: 'none',
-                transform: 'translateX(-50%) scaleY(0.5) translateY(-150%) translateY(' + size() * gridSize + 'px)',
-              }"
-              [src]="imageFile().url | safe: 'resourceUrl'"
-            />
-          }
-          @if (isDropShadow && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
-            <img
-              class="chrome-smooth-image-trick pointer-events-none inset-x-0 bottom-0 m-auto h-auto align-bottom filter-[brightness(0)_opacity(0.7)_blur(1px)]"
-              [ngStyle]="{
-                width: '100%',
-                transform:
-                  'translateX(-50%) translateX(' +
-                  (size() * gridSize) / 2 +
-                  'px) scaleY(0.5) translateY(-150%) translateY(' +
-                  size() * gridSize +
-                  'px)',
-              }"
-              [src]="imageFile().url | safe: 'resourceUrl'"
-            />
-          }
-          <div
-            class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
+        @if (isDropShadow && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
+          <img
+            class="chrome-smooth-image-trick pointer-events-none inset-x-0 bottom-0 m-auto h-auto align-bottom filter-[brightness(0)_opacity(0.7)_blur(1px)]"
             [ngStyle]="{
+              width: '100%',
               transform:
-                'rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) translateY(-50%) translateY(' +
-                -altitude() * gridSize +
+                'translateX(-50%) translateX(' +
+                (size() * gridSize) / 2 +
+                'px) scaleY(0.5) translateY(-150%) translateY(' +
+                size() * gridSize +
                 'px)',
             }"
+            [src]="imageFile().url | safe: 'resourceUrl'"
+          />
+        }
+        <div
+          class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
+          [ngStyle]="{
+            transform:
+              'rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) translateY(-50%) translateY(' +
+              -altitude() * gridSize +
+              'px)',
+          }"
+        >
+          <div
+            class="inset-x-0 bottom-0 [-webkit-transform-style:preserve-3d] transform-3d"
+            [style.width.px]="size() * gridSize"
+            [style.height.px]="size() * gridSize"
+            appRotable
+            [rotable.value]="rollSignal()"
+            [rotable.disable]="mode2dEnabled()"
+            (rotable.valueChange)="roll = $event"
+            (rotable.ondragstart)="onMove()"
+            (rotable.ondragend)="onMoved()"
           >
-            <div
-              class="inset-x-0 bottom-0 [-webkit-transform-style:preserve-3d] transform-3d"
-              [style.width.px]="size() * gridSize"
-              [style.height.px]="size() * gridSize"
-              appRotable
-              [rotable.value]="rollSignal()"
-              [rotable.disable]="mode2dEnabled()"
-              (rotable.valueChange)="roll = $event"
-              (rotable.ondragstart)="onMove()"
-              (rotable.ondragend)="onMoved()"
-            >
-              <div class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d">
-                @let buffEl = this.gameCharacter()!.buffDataElement;
-                @if (buffEl && buffNum() > 0) {
-                  <div class="[-webkit-transform-style:preserve-3d] transform-3d">
-                    <div
-                      class="absolute m-auto whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
-                      [ngStyle]="{
-                        transform:
-                          'translateX(-50%) translateX(' +
-                          (size() * gridSize) / 2 +
-                          'px) translateY(-100%) ' +
-                          buffLabelOrbit(),
-                      }"
-                    >
-                      <div
-                        class="border-ui-border-panel bg-ui-panel text-ui-text box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
-                        [ngStyle]="{ transform: billboardTransformBuff() }"
-                      >
-                        <div
-                          [hidden]="!isTargeted()"
-                          class="animate-arrowmove2 absolute -left-2.5 mt-px ml-[50%] box-border w-7.5 text-[20px]"
-                        >
-                          <img src="./assets/images/target/target.png" />
-                        </div>
-                        <div class="flex items-center gap-1.25 whitespace-nowrap">
-                          <div
-                            class="min-w-0 flex-1 [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
-                          >
-                            @if (!foldingBuff()) {
-                              @for (childElement of buffChildren(); track childElement.identifier) {
-                                <div
-                                  class="block"
-                                  game-data-element-buff
-                                  [gameDataElement]="childElement"
-                                  [isEdit]="false"
-                                  [isPieceMode]="true"
-                                ></div>
-                              }
-                            } @else {
-                              <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
-                                'feature.character.buff.count' | transloco: { count: buffNum() }
-                              }}</span>
-                            }
-                          </div>
-                          <button
-                            class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
-                            (mousedown)="foldingBuffFlag(!foldingBuff())"
-                            [title]="
-                              foldingBuff()
-                                ? ('feature.character.buff.detail' | transloco)
-                                : ('feature.character.buff.simple' | transloco)
-                            "
-                          >
-                            {{ foldingBuff() ? '▲' : '▼' }}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                }
-                <div [hidden]="!(buffNum() === 0)">
+            <div class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d">
+              @let buffEl = this.gameCharacter()!.buffDataElement;
+              @if (buffEl && buffNum() > 0) {
+                <div class="[-webkit-transform-style:preserve-3d] transform-3d">
                   <div
-                    class="absolute left-1.5 [-webkit-transform-style:preserve-3d] transform-3d"
-                    [hidden]="!isTargeted()"
-                    [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
-                  >
-                    <div
-                      class="animate-arrowmove box-border w-7.5 text-[20px] [-webkit-transform-style:preserve-3d] transform-3d"
-                      [ngStyle]="{ transform: billboardTransform() }"
-                    >
-                      <img src="./assets/images/target/target.png" />
-                    </div>
-                  </div>
-                </div>
-                @if (name()) {
-                  <div
-                    class="absolute whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                    class="absolute m-auto whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
-                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + nameLabelOrbit(),
-                    }"
-                  >
-                    @if (this.gameCharacter()!.nonTalkFlag) {
-                      <div
-                        class="box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
-                        [ngStyle]="{
-                          transform: billboardTransform(),
-                          'background-color': 'rgba(255,255,255, 0.6)',
-                          color: '#333',
-                          border: 'solid 1px #555',
-                        }"
-                      >
-                        <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
-                          {{ name() }}
-                          @if (isLock) {
-                            <i class="material-icons inline align-middle text-[15px]!">lock</i>
-                          }
-                        </div>
-                      </div>
-                    } @else {
-                      <div
-                        class="bg-ui-panel text-ui-text box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
-                        [ngStyle]="{ transform: billboardTransform() }"
-                      >
-                        <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
-                          {{ name() }}
-                          @if (isLock) {
-                            <i class="material-icons inline align-middle text-[15px]!">lock</i>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-                @if (!isLock && !mode2dEnabled()) {
-                  <div class="[-webkit-transform-style:preserve-3d] transform-3d">
-                    <div
-                      class="rotate-grab bg-ui-elevated text-ui-muted absolute -top-10.5 z-1 box-border size-7 cursor-default rounded-full p-0.5 text-[8px] opacity-0 will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
-                      [ngStyle]="{
-                        transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY( -0px)',
-                      }"
-                    >
-                      <i class="material-icons hidden will-change-[opacity] group-hover:inline group-active:inline"
-                        >autorenew</i
-                      >
-                    </div>
-                  </div>
-                }
-                @if (0 < imageFile().url.length && specifyKomaImageFlag()) {
-                  <img
-                    class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
-                    [ngStyle]="{
-                      height: komaImageHeightSignal() + 'px',
-                      width: 'auto',
-                      maxWidth: 'none',
-                      display: 'inline-block',
-                      left: 'auto',
-                      right: 'auto',
                       transform:
                         'translateX(-50%) translateX(' +
                         (size() * gridSize) / 2 +
-                        'px)' +
-                        (imageBillboardEnabled() ? ' ' + billboardTransformImage() : ''),
+                        'px) translateY(-100%) ' +
+                        buffLabelOrbit(),
                     }"
-                    [src]="imageFile().url | safe: 'resourceUrl'"
-                  />
-                }
-                @if (0 < imageFile().url.length && !specifyKomaImageFlag()) {
-                  <img
-                    class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
-                    [ngStyle]="{
-                      width: '100%',
-                      transform: imageBillboardEnabled() ? billboardTransformImage() : '',
-                    }"
-                    [src]="imageFile().url | safe: 'resourceUrl'"
-                  />
-                }
-                @if (!isLock && !mode2dEnabled()) {
-                  <div class="[-webkit-transform-style:preserve-3d] transform-3d">
-                    @if (!isLock) {
+                  >
+                    <div
+                      class="border-ui-border-panel bg-ui-panel text-ui-text box-border rounded-xl border border-solid px-2.25 py-0.75 whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
+                      [ngStyle]="{ transform: billboardTransformBuff() }"
+                    >
                       <div
-                        class="rotate-grab bg-ui-elevated text-ui-muted absolute -bottom-7.5 z-1 box-border size-7 cursor-default rounded-full p-0.5 text-[8px] opacity-0 will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
-                        [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px' }"
+                        [hidden]="!isTargeted()"
+                        class="animate-arrowmove2 absolute -left-2.5 mt-px ml-[50%] box-border w-7.5 text-[20px]"
                       >
-                        @if (!isLock) {
-                          <i class="material-icons hidden will-change-[opacity] group-hover:inline group-active:inline"
-                            >autorenew</i
-                          >
+                        <img src="./assets/images/target/target.png" />
+                      </div>
+                      <div class="flex items-center gap-1.25 whitespace-nowrap">
+                        <div
+                          class="min-w-0 flex-1 [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
+                        >
+                          @if (!foldingBuff()) {
+                            @for (childElement of buffChildren(); track childElement.identifier) {
+                              <div
+                                class="block"
+                                game-data-element-buff
+                                [gameDataElement]="childElement"
+                                [isEdit]="false"
+                                [isPieceMode]="true"
+                              ></div>
+                            }
+                          } @else {
+                            <span class="font-sans text-[12px] [-webkit-font-smoothing:antialiased]">{{
+                              'feature.character.buff.count' | transloco: { count: buffNum() }
+                            }}</span>
+                          }
+                        </div>
+                        <button
+                          class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent m-0 shrink-0 cursor-pointer self-center rounded-[3px] border border-solid px-1 py-0.5 text-[9px] leading-none opacity-80 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
+                          (mousedown)="foldingBuffFlag(!foldingBuff())"
+                          [title]="
+                            foldingBuff()
+                              ? ('feature.character.buff.detail' | transloco)
+                              : ('feature.character.buff.simple' | transloco)
+                          "
+                        >
+                          {{ foldingBuff() ? '▲' : '▼' }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+              <div [hidden]="!(buffNum() === 0)">
+                <div
+                  class="absolute left-1.5 [-webkit-transform-style:preserve-3d] transform-3d"
+                  [hidden]="!isTargeted()"
+                  [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
+                >
+                  <div
+                    class="animate-arrowmove box-border w-7.5 text-[20px] [-webkit-transform-style:preserve-3d] transform-3d"
+                    [ngStyle]="{ transform: billboardTransform() }"
+                  >
+                    <img src="./assets/images/target/target.png" />
+                  </div>
+                </div>
+              </div>
+              @if (name()) {
+                <div
+                  class="absolute whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                  [ngStyle]="{
+                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + nameLabelOrbit(),
+                  }"
+                >
+                  @if (this.gameCharacter()!.nonTalkFlag) {
+                    <div
+                      class="box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
+                      [ngStyle]="{
+                        transform: billboardTransform(),
+                        'background-color': 'rgba(255,255,255, 0.6)',
+                        color: '#333',
+                        border: 'solid 1px #555',
+                      }"
+                    >
+                      <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
+                        {{ name() }}
+                        @if (isLock) {
+                          <i class="material-icons inline align-middle text-[15px]!">lock</i>
                         }
                       </div>
-                    }
+                    </div>
+                  } @else {
+                    <div
+                      class="bg-ui-panel text-ui-text box-border rounded-3xl px-2.25 py-0.75 text-[15px] whitespace-nowrap will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d"
+                      [ngStyle]="{ transform: billboardTransform() }"
+                    >
+                      <div class="max-w-[24em] truncate [-webkit-transform-style:preserve-3d] transform-3d">
+                        {{ name() }}
+                        @if (isLock) {
+                          <i class="material-icons inline align-middle text-[15px]!">lock</i>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              @if (!isLock && !mode2dEnabled()) {
+                <div class="[-webkit-transform-style:preserve-3d] transform-3d">
+                  <div
+                    class="rotate-grab bg-ui-elevated text-ui-muted absolute -top-10.5 z-1 box-border size-7 cursor-default rounded-full p-0.5 text-[8px] opacity-0 will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
+                    [ngStyle]="{
+                      transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) translateY( -0px)',
+                    }"
+                  >
+                    <i class="material-icons hidden will-change-[opacity] group-hover:inline group-active:inline"
+                      >autorenew</i
+                    >
                   </div>
-                }
-              </div>
+                </div>
+              }
+              @if (0 < imageFile().url.length && specifyKomaImageFlag()) {
+                <img
+                  class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
+                  [ngStyle]="{
+                    height: komaImageHeightSignal() + 'px',
+                    width: 'auto',
+                    maxWidth: 'none',
+                    display: 'inline-block',
+                    left: 'auto',
+                    right: 'auto',
+                    transform:
+                      'translateX(-50%) translateX(' +
+                      (size() * gridSize) / 2 +
+                      'px)' +
+                      (imageBillboardEnabled() ? ' ' + billboardTransformImage() : ''),
+                  }"
+                  [src]="imageFile().url | safe: 'resourceUrl'"
+                />
+              }
+              @if (0 < imageFile().url.length && !specifyKomaImageFlag()) {
+                <img
+                  class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
+                  [ngStyle]="{
+                    width: '100%',
+                    transform: imageBillboardEnabled() ? billboardTransformImage() : '',
+                  }"
+                  [src]="imageFile().url | safe: 'resourceUrl'"
+                />
+              }
+              @if (!isLock && !mode2dEnabled()) {
+                <div class="[-webkit-transform-style:preserve-3d] transform-3d">
+                  @if (!isLock) {
+                    <div
+                      class="rotate-grab bg-ui-elevated text-ui-muted absolute -bottom-7.5 z-1 box-border size-7 cursor-default rounded-full p-0.5 text-[8px] opacity-0 will-change-[opacity] [-webkit-transform-style:preserve-3d] transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
+                      [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px' }"
+                    >
+                      @if (!isLock) {
+                        <i class="material-icons hidden will-change-[opacity] group-hover:inline group-active:inline"
+                          >autorenew</i
+                        >
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </div>
           </div>
         </div>
-        @if (isAltitudeIndicate && (altitude() <= -0.5 || 0.5 <= altitude())) {
-          <div
-            class="flex origin-top-left flex-col justify-between border-l-2 border-dashed border-l-black [-webkit-transform-style:preserve-3d] transform-3d"
-            [style.height.px]="math.abs(altitude() * gridSize) - (altitude() > 0 ? 0 : 0)"
-            [ngStyle]="{
-              transform:
-                'translateX(' +
-                (size() * gridSize) / 2 +
-                'px) translateY(' +
-                (-size() * gridSize) / 2 +
-                'px) rotateX(-90deg) translateY(' +
-                (altitude() > 0 ? -altitude() * gridSize : 0) +
-                'px) rotateY(' +
-                viewRotateZ() +
-                'deg)',
-            }"
-          >
-            <div
-              class="[-webkit-transform-style:preserve-3d] transform-3d"
-              [style.visibility]="altitude() > 0 ? 'visible' : 'hidden'"
-            >
-              <span
-                class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
-                ><i>{{ elevation }}</i></span
-              >
-              <span
-                class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
-                ><i>{{ elevation }}</i></span
-              >
-            </div>
-            <div class="[-webkit-transform-style:preserve-3d] transform-3d">
-              <span
-                class="text-ui-text absolute pl-0.5 text-[10px] [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
-                >{{ math.abs(altitude()) }}</span
-              >
-              <span
-                class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[10px] [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
-                >{{ math.abs(altitude()) }}</span
-              >
-            </div>
-            <div
-              class="[-webkit-transform-style:preserve-3d] transform-3d"
-              [style.visibility]="altitude() < 0 ? 'visible' : 'hidden'"
-              [ngStyle]="{ transform: 'translateY(' + (chatBubbleAltitude + 4) + 'px)' }"
-            >
-              <span
-                class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
-                ><i>{{ elevation }}</i></span
-              >
-              <span
-                class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
-                ><i>{{ elevation }}</i></span
-              >
-            </div>
-          </div>
-        }
       </div>
-    }
+      @if (isAltitudeIndicate && (altitude() <= -0.5 || 0.5 <= altitude())) {
+        <div
+          class="flex origin-top-left flex-col justify-between border-l-2 border-dashed border-l-black [-webkit-transform-style:preserve-3d] transform-3d"
+          [style.height.px]="math.abs(altitude() * gridSize) - (altitude() > 0 ? 0 : 0)"
+          [ngStyle]="{
+            transform:
+              'translateX(' +
+              (size() * gridSize) / 2 +
+              'px) translateY(' +
+              (-size() * gridSize) / 2 +
+              'px) rotateX(-90deg) translateY(' +
+              (altitude() > 0 ? -altitude() * gridSize : 0) +
+              'px) rotateY(' +
+              viewRotateZ() +
+              'deg)',
+          }"
+        >
+          <div
+            class="[-webkit-transform-style:preserve-3d] transform-3d"
+            [style.visibility]="altitude() > 0 ? 'visible' : 'hidden'"
+          >
+            <span
+              class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
+              ><i>{{ elevation }}</i></span
+            >
+            <span
+              class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
+              ><i>{{ elevation }}</i></span
+            >
+          </div>
+          <div class="[-webkit-transform-style:preserve-3d] transform-3d">
+            <span
+              class="text-ui-text absolute pl-0.5 text-[10px] [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
+              >{{ math.abs(altitude()) }}</span
+            >
+            <span
+              class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[10px] [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
+              >{{ math.abs(altitude()) }}</span
+            >
+          </div>
+          <div
+            class="[-webkit-transform-style:preserve-3d] transform-3d"
+            [style.visibility]="altitude() < 0 ? 'visible' : 'hidden'"
+            [ngStyle]="{ transform: 'translateY(' + (chatBubbleAltitude + 4) + 'px)' }"
+          >
+            <span
+              class="text-ui-text absolute pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
+              ><i>{{ elevation }}</i></span
+            >
+            <span
+              class="text-ui-text absolute transform-[rotateY(-180deg)] pl-0.5 text-[12px] font-extrabold [-webkit-transform-style:preserve-3d] [text-shadow:var(--ui-panel-bg)_0px_0px_3px] backface-hidden transform-3d"
+              ><i>{{ elevation }}</i></span
+            >
+          </div>
+        </div>
+      }
+    </div>
   </div>
 }
