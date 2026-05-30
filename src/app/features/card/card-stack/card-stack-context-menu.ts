@@ -1,5 +1,6 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
+import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { callShuffleCardStack } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -16,21 +17,7 @@ export function buildCardStackContextMenu(
   t: TranslateFn
 ): ContextMenuAction[] {
   return [
-    cardStack.isLock
-      ? {
-          name: t('feature.tabletop.contextMenu.unlock'),
-          action: () => {
-            cardStack.isLock = false;
-            SoundEffect.play(PresetSound.unlock);
-          },
-        }
-      : {
-          name: t('feature.tabletop.contextMenu.lock'),
-          action: () => {
-            cardStack.isLock = true;
-            SoundEffect.play(PresetSound.lock);
-          },
-        },
+    buildLockToggleAction(cardStack.isLock, (next) => (cardStack.isLock = next), t),
     ContextMenuSeparator,
     {
       name: t('feature.cardStack.contextMenu.drawOne'),

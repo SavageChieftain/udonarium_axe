@@ -2,6 +2,7 @@ import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
+import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
@@ -78,21 +79,7 @@ export function buildTerrainContextMenu(
       ],
     },
     ContextMenuSeparator,
-    terrain.isLocked
-      ? {
-          name: t('feature.tabletop.contextMenu.unlock'),
-          action: () => {
-            terrain.isLocked = false;
-            SoundEffect.play(PresetSound.unlock);
-          },
-        }
-      : {
-          name: t('feature.tabletop.contextMenu.lock'),
-          action: () => {
-            terrain.isLocked = true;
-            SoundEffect.play(PresetSound.lock);
-          },
-        },
+    buildLockToggleAction(terrain.isLocked, (next) => (terrain.isLocked = next), t),
     ContextMenuSeparator,
     {
       name: t('feature.tabletop.contextMenu.slope'),

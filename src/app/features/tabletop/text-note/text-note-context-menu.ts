@@ -1,6 +1,7 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
+import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 
@@ -50,21 +51,7 @@ export function buildTextNoteContextMenu(
       ],
     },
     ContextMenuSeparator,
-    textNote.isLock
-      ? {
-          name: t('feature.tabletop.contextMenu.unlock'),
-          action: () => {
-            textNote.isLock = false;
-            SoundEffect.play(PresetSound.unlock);
-          },
-        }
-      : {
-          name: t('feature.tabletop.contextMenu.lock'),
-          action: () => {
-            textNote.isLock = true;
-            SoundEffect.play(PresetSound.lock);
-          },
-        },
+    buildLockToggleAction(textNote.isLock, (next) => (textNote.isLock = next), t),
     ContextMenuSeparator,
     textNote.isUpright
       ? {

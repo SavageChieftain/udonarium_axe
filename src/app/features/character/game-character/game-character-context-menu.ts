@@ -1,6 +1,7 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
+import { buildCopyAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { Network } from '@axe/core/index';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
@@ -186,31 +187,8 @@ export function buildGameCharacterContextMenu(
       },
     },
     ContextMenuSeparator,
-    char.isLock
-      ? {
-          name: t('feature.tabletop.contextMenu.unlock'),
-          action: () => {
-            char.isLock = false;
-            SoundEffect.play(PresetSound.unlock);
-          },
-        }
-      : {
-          name: t('feature.tabletop.contextMenu.lock'),
-          action: () => {
-            char.isLock = true;
-            SoundEffect.play(PresetSound.lock);
-          },
-        },
+    buildLockToggleAction(char.isLock, (next) => (char.isLock = next), t),
     ContextMenuSeparator,
-    {
-      name: t('feature.tabletop.contextMenu.copy'),
-      action: () => {
-        const cloneObject = char.clone();
-        cloneObject.location.x += gridSize;
-        cloneObject.location.y += gridSize;
-        cloneObject.update();
-        SoundEffect.play(PresetSound.piecePut);
-      },
-    },
+    buildCopyAction(char, gridSize, t),
   ];
 }

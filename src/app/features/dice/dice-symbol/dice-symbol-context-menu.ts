@@ -1,5 +1,6 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
+import { buildCopyAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { Network } from '@axe/core/index';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -57,23 +58,7 @@ export function buildDiceSymbolContextMenu(
 
   actions.push(ContextMenuSeparator);
 
-  actions.push(
-    diceSymbol.isLock
-      ? {
-          name: t('feature.tabletop.contextMenu.unlock'),
-          action: () => {
-            diceSymbol.isLock = false;
-            SoundEffect.play(PresetSound.unlock);
-          },
-        }
-      : {
-          name: t('feature.tabletop.contextMenu.lock'),
-          action: () => {
-            diceSymbol.isLock = true;
-            SoundEffect.play(PresetSound.lock);
-          },
-        }
-  );
+  actions.push(buildLockToggleAction(diceSymbol.isLock, (next) => (diceSymbol.isLock = next), t));
 
   actions.push(ContextMenuSeparator);
 
@@ -81,16 +66,7 @@ export function buildDiceSymbolContextMenu(
     name: t('feature.character.contextMenu.showDetail'),
     action: () => callbacks.onShowDetail(),
   });
-  actions.push({
-    name: t('feature.tabletop.contextMenu.copy'),
-    action: () => {
-      const cloneObject = diceSymbol.clone();
-      cloneObject.location.x += gridSize;
-      cloneObject.location.y += gridSize;
-      cloneObject.update();
-      SoundEffect.play(PresetSound.dicePut);
-    },
-  });
+  actions.push(buildCopyAction(diceSymbol, gridSize, t, { sound: PresetSound.dicePut }));
   actions.push({
     name: t('feature.tabletop.contextMenu.delete'),
     action: () => {
