@@ -304,6 +304,65 @@ export class MovableDirective {
 
   onInputMove(e: MouseEvent | TouchEvent) {
     handleInputMove(this as unknown as MovableInteractionContext, e);
+    this.updateDragPreview();
+  }
+
+  private dragPreviewElement: HTMLElement | null = null;
+  private dragPreviewSurface: HTMLElement | null = null;
+
+  private updateDragPreview(): void {
+    if (!this.input?.isDragging) {
+      this.clearDragPreview();
+      return;
+    }
+    const pointer = this.input.pointer;
+    if (!pointer) {
+      this.clearDragPreview();
+      return;
+    }
+    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
+    const targetSurface = target?.closest<HTMLElement>('[data-surface]') ?? null;
+    if (!targetSurface || targetSurface === this.surfaceElement()) {
+      this.clearDragPreview();
+      return;
+    }
+    if (this.dragPreviewSurface !== targetSurface) {
+      this.clearDragPreview();
+      this.dragPreviewSurface = targetSurface;
+      this.dragPreviewElement = this.createDragPreviewElement();
+      targetSurface.appendChild(this.dragPreviewElement);
+    }
+    const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurface);
+    const x = local.x - this.width / 2;
+    const y = local.y - this.height / 2;
+    this.dragPreviewElement!.style.transform = `translate3d(${Math.floor(x)}px, ${Math.floor(y)}px, 0)`;
+  }
+
+  private createDragPreviewElement(): HTMLElement {
+    const el = document.createElement('div');
+    el.style.position = 'absolute';
+    el.style.left = '0';
+    el.style.top = '0';
+    el.style.width = `${this.width}px`;
+    el.style.height = `${this.height}px`;
+    el.style.pointerEvents = 'none';
+    el.style.boxSizing = 'border-box';
+    el.style.borderRadius = '12px';
+    el.style.outline = '3px dashed rgba(80, 200, 255, 0.95)';
+    el.style.outlineOffset = '-3px';
+    el.style.backgroundColor = 'rgba(80, 200, 255, 0.18)';
+    el.style.willChange = 'transform';
+    el.style.transformStyle = 'preserve-3d';
+    el.dataset.dragPreview = '';
+    return el;
+  }
+
+  private clearDragPreview(): void {
+    if (this.dragPreviewElement) {
+      this.dragPreviewElement.remove();
+      this.dragPreviewElement = null;
+      this.dragPreviewSurface = null;
+    }
   }
 
   surfaceElement(): HTMLElement {
@@ -315,6 +374,7 @@ export class MovableDirective {
     if (this.input?.isDragging && !this.isScratcOwner()) {
       this.maybeSwitchSurfaceOnDrop();
     }
+    this.clearDragPreview();
     handleInputEnd(this as unknown as MovableInteractionContext, e);
     if (this._multiAdapter) this.multiMovableService.endDrag(this._multiAdapter);
   }

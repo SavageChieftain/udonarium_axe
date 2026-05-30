@@ -26,14 +26,18 @@
       </div>
       @for (wall of activeWalls(); track wall.surface) {
         <div
-          class="absolute bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
+          class="pointer-events-none absolute backface-hidden transform-3d"
           [attr.data-surface]="wall.surface"
           [ngClass]="wall.containerClass"
           [style.transform]="wall.containerTransform"
           [style.width.px]="wall.widthPx"
           [style.height.px]="wall.heightPx"
-          [style.background-image]="'url(' + wall.image.url + ')' | safe: 'style'"
         >
+          <div
+            class="pointer-events-auto absolute inset-0 bg-size-[100%_100%] bg-no-repeat"
+            data-table-passthrough
+            [style.background-image]="'url(' + wall.image.url + ')' | safe: 'style'"
+          ></div>
           @for (textNote of textNotesBySurface()[wall.surface]; track textNote.identifier) {
             <text-note
               class="absolute will-change-transform backface-visible transform-3d"

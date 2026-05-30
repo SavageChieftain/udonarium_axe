@@ -21,22 +21,24 @@
         (rotable.ondragstart)="onMove()"
         (rotable.ondragend)="onMoved()"
       >
-        @if (!this.gameCharacter()!.hideInventory) {
+        @if (!isPoster() && !this.gameCharacter()!.hideInventory) {
           <div
             class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ffcc80] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
             [ngStyle]="pedestalStyle('#FFCC80')"
           ></div>
         }
-        @if (this.gameCharacter()!.hideInventory) {
+        @if (!isPoster() && this.gameCharacter()!.hideInventory) {
           <div
             class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#A0E0FF] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
             [ngStyle]="pedestalStyle('#A0E0FF')"
           ></div>
         }
-        <div
-          class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
-          [ngStyle]="pedestalOuterStyle()"
-        ></div>
+        @if (!isPoster()) {
+          <div
+            class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
+            [ngStyle]="pedestalOuterStyle()"
+          ></div>
+        }
         @if (!isLock && !mode2dEnabled()) {
           <div
             class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
@@ -59,7 +61,7 @@
             </div>
           </div>
         }
-        @if (isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
+        @if (!isPoster() && isDropShadow && 0 < imageFile().url.length && specifyKomaImageFlag()) {
           <img
             class="chrome-smooth-image-trick pointer-events-none filter-[brightness(0)_opacity(0.7)_blur(1px)]"
             [ngStyle]="{
@@ -74,7 +76,7 @@
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         }
-        @if (isDropShadow && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
+        @if (!isPoster() && isDropShadow && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
           <img
             class="chrome-smooth-image-trick pointer-events-none inset-x-0 bottom-0 m-auto h-auto align-bottom filter-[brightness(0)_opacity(0.7)_blur(1px)]"
             [ngStyle]="{
