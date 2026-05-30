@@ -115,6 +115,33 @@ export class CardStackComponent {
   get topCard(): Card | null {
     return this.cardStack().topCard;
   }
+
+  private static readonly STACK_PIXELS_PER_CARD = 1.0;
+  private static readonly STACK_MAX_THICKNESS_PX = 60;
+  private static readonly STACK_MAX_LAYERS = 30;
+
+  protected readonly stackThicknessPx = computed<number>(() => {
+    this.cardsVersion();
+    if (this.tabletopService.mode2d()) return 0;
+    const count = this.cardStack().cards.length;
+    if (count <= 1) return 0;
+    return Math.min(CardStackComponent.STACK_MAX_THICKNESS_PX, count * CardStackComponent.STACK_PIXELS_PER_CARD);
+  });
+
+  protected readonly stackLayers = computed<readonly { z: number; bg: string }[]>(() => {
+    this.cardsVersion();
+    if (this.tabletopService.mode2d()) return [];
+    const count = this.cardStack().cards.length;
+    if (count <= 1) return [];
+    const thickness = this.stackThicknessPx();
+    const layerCount = Math.min(count - 1, CardStackComponent.STACK_MAX_LAYERS);
+    const spacing = thickness / layerCount;
+    return Array.from({ length: layerCount }, (_, i) => ({
+      z: i * spacing,
+      bg: i % 2 === 0 ? '#f5efe2' : '#2a1f0d',
+    }));
+  });
+
   readonly imageFile = computed(
     () => {
       this.objectChange.fileVersion();
