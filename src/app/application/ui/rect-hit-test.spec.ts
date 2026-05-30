@@ -1,5 +1,5 @@
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { normalizeRect, selectByRect } from '@axe/application/ui/rect-hit-test';
+import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { makeFakeTabletopObject } from '@axe/testing/factories/tabletop-object.factory';
 
 function makeObject(opts: {
