@@ -261,11 +261,13 @@ export class GameCharacterComponent {
     return Math.max(25, n * 17 + 8);
   });
 
-  readonly billboardTransform = computed(() => this.makeBillboardTransform(30));
+  readonly billboardTransform = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(30)));
 
-  readonly billboardTransformBuff = computed(() => this.makeBillboardTransform(40 + this.buffPanelHeightEstimate()));
+  readonly billboardTransformBuff = computed(() =>
+    this.isPoster() ? '' : this.makeBillboardTransform(40 + this.buffPanelHeightEstimate())
+  );
 
-  readonly billboardTransformImage = computed(() => this.makeBillboardTransform(0));
+  readonly billboardTransformImage = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(0)));
 
   readonly imageBillboardEnabled = computed(() => {
     if (this.isPoster()) return true;
