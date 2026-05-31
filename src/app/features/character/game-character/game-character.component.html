@@ -94,10 +94,11 @@
         <div
           class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
           [ngStyle]="{
-            transform:
-              'rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) translateY(-50%) translateY(' +
-              -altitude() * gridSize +
-              'px)',
+            transform: isPoster()
+              ? 'none'
+              : 'rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) translateY(-50%) translateY(' +
+                -altitude() * gridSize +
+                'px)',
           }"
         >
           <div
