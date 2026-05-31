@@ -189,7 +189,7 @@ export class GameTableSettingComponent {
   ];
 
   get tableWallHeight(): number {
-    return this.selectedTable?.wallHeight ?? 4;
+    return this.selectedTable?.wallHeight ?? 10;
   }
   set tableWallHeight(value: number) {
     if (this.isEditable && this.selectedTable) this.selectedTable.wallHeight = Number(value);

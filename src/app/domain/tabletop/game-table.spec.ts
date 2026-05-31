@@ -133,10 +133,10 @@ describe('GameTable', () => {
       expect(table.gridSnap).toBe(true);
     });
 
-    it('wallHeight がデフォルト 4', () => {
+    it('wallHeight がデフォルト 10', () => {
       const table = new GameTable();
       table.initialize();
-      expect(table.wallHeight).toBe(4);
+      expect(table.wallHeight).toBe(10);
     });
 
     it('北/東/南/西 の壁表示フラグがすべてデフォルト false', () => {
