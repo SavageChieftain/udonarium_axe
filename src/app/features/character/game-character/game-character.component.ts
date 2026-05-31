@@ -299,7 +299,7 @@ export class GameCharacterComponent {
     return this.labelOrbitTransform(30, 60);
   });
   readonly buffLabelOrbit = computed(() => {
-    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5 + 22 + 5)}px)`;
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5 + 22)}px)`;
     return this.labelOrbitTransform(40, 85 + this.buffPanelHeightEstimate() / 2);
   });
 

@@ -391,8 +391,14 @@ export class MovableDirective {
     if (targetSurfaceEl === currentSurfaceEl) return;
     const targetSurface = (targetSurfaceEl.dataset.surface ?? 'floor') as TableSurface;
     const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurfaceEl);
-    const newX = this.mathFloor ? Math.floor(local.x - this.width / 2) : local.x - this.width / 2;
-    const newY = this.mathFloor ? Math.floor(local.y - this.height / 2) : local.y - this.height / 2;
+    const rawX = local.x - this.width / 2;
+    const rawY = local.y - this.height / 2;
+    const surfaceW = targetSurfaceEl.offsetWidth || targetSurfaceEl.clientWidth;
+    const surfaceH = targetSurfaceEl.offsetHeight || targetSurfaceEl.clientHeight;
+    const clampedX = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
+    const clampedY = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
+    const newX = this.mathFloor ? Math.floor(clampedX) : clampedX;
+    const newY = this.mathFloor ? Math.floor(clampedY) : clampedY;
     if (this.updateTimer !== null) {
       clearTimeout(this.updateTimer);
       this.updateTimer = null;

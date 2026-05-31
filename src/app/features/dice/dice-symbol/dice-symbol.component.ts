@@ -193,7 +193,7 @@ export class DiceSymbolComponent {
     return this.labelOrbitTransform(30, 60);
   });
   readonly ownerLabelOrbit = computed(() => {
-    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5 + 22 + 5)}px)`;
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5 + 22)}px)`;
     return this.labelOrbitTransform(55, 90);
   });
 
