@@ -15,6 +15,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -61,6 +62,7 @@ export class CardStackComponent {
   private readonly objectChange = inject(ObjectChangeService);
   protected readonly tabletopService = inject(TabletopService);
   private readonly modalService = inject(ModalService);
+  private readonly multiMovableService = inject(MultiMovableService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -218,7 +220,12 @@ export class CardStackComponent {
         (card.location.x - this.cardStack().location.x) ** 2 +
         (card.location.y - this.cardStack().location.y) ** 2 +
         (card.posZ - this.cardStack().posZ) ** 2;
-      if (distance < 50 ** 2) this.cardStack().putOnTop(card);
+      if (distance < 50 ** 2) {
+        this.cardStack().putOnTop(card);
+        for (const follower of this.multiMovableService.followerTabletopObjectsFor(card.identifier)) {
+          if (follower instanceof Card) this.cardStack().putOnTop(follower);
+        }
+      }
     } else if (ce.detail instanceof CardStack) {
       const cardStack: CardStack = ce.detail;
       const distance: number =

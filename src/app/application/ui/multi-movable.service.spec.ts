@@ -81,6 +81,33 @@ describe('MultiMovableService', () => {
     expect(follower.posX).toBe(0);
   });
 
+  it('followerTabletopObjectsFor は drag 中の leader に対して follower の tabletopObject を返す', () => {
+    const leader = makeMovable({ id: 'leader' });
+    const f1 = makeMovable({ id: 'f1' });
+    const f2 = makeMovable({ id: 'f2' });
+    service.register(leader);
+    service.register(f1);
+    service.register(f2);
+    selection.replaceSelection(['leader', 'f1', 'f2']);
+
+    service.beginDrag(leader);
+    const followers = service.followerTabletopObjectsFor('leader');
+    expect(followers.map((o) => o.identifier)).toEqual(['f1', 'f2']);
+  });
+
+  it('followerTabletopObjectsFor は別 leader / drag 終了後は空配列を返す', () => {
+    const leader = makeMovable({ id: 'leader' });
+    const f1 = makeMovable({ id: 'f1' });
+    service.register(leader);
+    service.register(f1);
+    selection.replaceSelection(['leader', 'f1']);
+    service.beginDrag(leader);
+
+    expect(service.followerTabletopObjectsFor('other')).toEqual([]);
+    service.endDrag(leader);
+    expect(service.followerTabletopObjectsFor('leader')).toEqual([]);
+  });
+
   it('unregister された follower は追従しない', () => {
     const leader = makeMovable({ id: 'a' });
     const follower = makeMovable({ id: 'b', x: 10, y: 10 });

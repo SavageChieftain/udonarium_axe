@@ -79,6 +79,16 @@ export class MultiMovableService {
     this.clear();
   }
 
+  followerTabletopObjectsFor(leaderIdentifier: string): readonly TabletopObject[] {
+    if (!leaderIdentifier || this.leaderId !== leaderIdentifier) return [];
+    const result: TabletopObject[] = [];
+    for (const f of this.followers) {
+      const obj = f.ref.tabletopObject;
+      if (obj) result.push(obj);
+    }
+    return result;
+  }
+
   private clear(): void {
     this.leaderId = null;
     this.followers = [];
