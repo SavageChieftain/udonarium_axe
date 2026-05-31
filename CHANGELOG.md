@@ -1,3 +1,50 @@
+## [1.8.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.7.0...v1.8.0) (2026-05-31)
+
+### ✨ Features
+
+* **card-stack:** show deck thickness as stacked card layers ([debd667](https://github.com/SavageChieftain/udonarium_axe/commit/debd667fdc53ee23873acaebe16a7af691cd27e7)), closes [#f5efe2](https://github.com/SavageChieftain/udonarium_axe/issues/f5efe2) [#2a1f0d](https://github.com/SavageChieftain/udonarium_axe/issues/2a1f0d)
+* **card:** return all selected cards to stack on multi-drag drop ([04df639](https://github.com/SavageChieftain/udonarium_axe/commit/04df639c3d7e0bdabeac36e7b83c0fc0053fd16d))
+* **tabletop:** add marquee selection with long-press on empty table ([f93f677](https://github.com/SavageChieftain/udonarium_axe/commit/f93f6776dcf3a118aee028af0b2b9f94374a620d))
+* **tabletop:** add toggleable north/east/south/west wall surfaces ([41c06bf](https://github.com/SavageChieftain/udonarium_axe/commit/41c06bf8a973fdb349d50f186fb9fd6ec51f549d))
+* **tabletop:** context-menu action to move objects between surfaces (Sub-C) ([3aa6513](https://github.com/SavageChieftain/udonarium_axe/commit/3aa6513be8b4ec645b3dfdc943ec1b91f09954be))
+* **tabletop:** drop tabletop objects onto another surface to move them (Sub-B) ([31e6c61](https://github.com/SavageChieftain/udonarium_axe/commit/31e6c61555e60313aaebce0aebeec8348cdb5b6e))
+* **tabletop:** host tabletop objects on each wall surface (Sub-A) ([76edefb](https://github.com/SavageChieftain/udonarium_axe/commit/76edefb2ed5d3062d66dff7dfed82e12ca8edfad)), closes [#gameObjects](https://github.com/SavageChieftain/udonarium_axe/issues/gameObjects)
+* **ui:** drag selected tabletop objects together as a group ([1720340](https://github.com/SavageChieftain/udonarium_axe/commit/1720340b281a221dd8b1cd672738c1c8b9a5c66c))
+* **ui:** toggle tabletop object selection via Ctrl+click and add batch menu ([a801b89](https://github.com/SavageChieftain/udonarium_axe/commit/a801b89a7ce733795a6e4b9c2446fdc989c5d1f9))
+
+### 🐛 Bug Fixes
+
+* **character:** drop camera billboarding from labels on wall characters ([9d48c57](https://github.com/SavageChieftain/udonarium_axe/commit/9d48c57f0005684a568086bc3ed7633502c34bf2))
+* **character:** fit wall character image inside the size box ([d3ce1d9](https://github.com/SavageChieftain/udonarium_axe/commit/d3ce1d95755cf9e0e5b6f9118ee0b8073dd307f3))
+* **character:** hoist poster image out of the h-auto inner div ([8b23c81](https://github.com/SavageChieftain/udonarium_axe/commit/8b23c81e1bb6542febf66928d62b22e8a43a28bc))
+* **character:** keep pedestal/labels on wall characters and center the body ([ae5f38a](https://github.com/SavageChieftain/udonarium_axe/commit/ae5f38a1d82cae2fb4b3ee38a7bf872a9c4f213a))
+* **character:** render wall characters with the existing 2D-mode layout ([fa61b7d](https://github.com/SavageChieftain/udonarium_axe/commit/fa61b7dafc1fef05eef3105c09d1e202d98f30bd))
+* **character:** stop double-rotating wall characters into a flat sliver ([6205b83](https://github.com/SavageChieftain/udonarium_axe/commit/6205b83846016f2a38010a3a6de727ff10c4b200))
+* **dice:** add -webkit-transform-style:preserve-3d to dice template ([7949b9a](https://github.com/SavageChieftain/udonarium_axe/commit/7949b9a854de56b608809c3a9b4b3330b6be898c))
+* **dice:** revert dice template patches and use character-equivalent wall hooks only ([e9f516c](https://github.com/SavageChieftain/udonarium_axe/commit/e9f516c441650c995129f1dbd2b243952d248be9))
+* **game-table:** apply wall transform-origin via inline style ([2926a87](https://github.com/SavageChieftain/udonarium_axe/commit/2926a87ebaaee4925c66be6cc60ed0de650bb61a))
+* **movable:** force pointer3d.z to 0 during drag and on surface switch ([f2c982c](https://github.com/SavageChieftain/udonarium_axe/commit/f2c982c5d6de7332a768a3dc41a1b7b1886e24f4))
+* **tabletop:** adopt terrain-style wall transforms so image bottom sits on floor ([e1052d1](https://github.com/SavageChieftain/udonarium_axe/commit/e1052d1972e5539a43d5adb25e019a87db6d300e))
+* **tabletop:** apply selection highlight to text-note visible content ([7e181a8](https://github.com/SavageChieftain/udonarium_axe/commit/7e181a8c09db5fba0a05a851bab7e138819db7f3))
+* **tabletop:** clamp cross-surface drop to surface bounds and tighten secondary label ([a8f88ca](https://github.com/SavageChieftain/udonarium_axe/commit/a8f88ca7d745076ac415e211b03c1fe154bdbfed))
+* **tabletop:** drop the Z lift for wall objects and align labels with the head ([dc2e328](https://github.com/SavageChieftain/udonarium_axe/commit/dc2e328566a1d49e455afcfb88fec49c5e150071))
+* **tabletop:** freeze movable position while pointer hovers a different surface ([3a93ef6](https://github.com/SavageChieftain/udonarium_axe/commit/3a93ef687073a0beda0c5745a21bba0bf85164fb))
+* **tabletop:** hide pedestal on wall characters and pass empty wall area to table gesture ([25c90c5](https://github.com/SavageChieftain/udonarium_axe/commit/25c90c5c7668f0712f0aefe2abc93d97258445fa))
+* **tabletop:** keep east wall anchored to east edge while mirroring text ([8f7aafc](https://github.com/SavageChieftain/udonarium_axe/commit/8f7aafc947fb6878ee714e45b9e126e9f202c695))
+* **tabletop:** keep wall content visible from every camera angle ([e07b5d4](https://github.com/SavageChieftain/udonarium_axe/commit/e07b5d4d8d44db6aeccd22a65c01f660e5a0730b))
+* **tabletop:** lift wall name above the head and render wall dice image ([1461e5d](https://github.com/SavageChieftain/udonarium_axe/commit/1461e5de158c97875cb94c1761b3513ab3e72153))
+* **tabletop:** make surface switch fire immediately and render wall characters as posters ([6b573ab](https://github.com/SavageChieftain/udonarium_axe/commit/6b573ab99cbdc639ac4ec35374dfd0759cfbc0d1))
+* **tabletop:** reject cross-surface drops that project far outside the wall ([b8074cc](https://github.com/SavageChieftain/udonarium_axe/commit/b8074ccf3a85260963901e792d0841eaa5bc2bcd))
+* **tabletop:** un-squash wall dice and tighten character label spacing ([f4240ae](https://github.com/SavageChieftain/udonarium_axe/commit/f4240ae12f5272392afb772d1a1fc94baa3f9f67))
+
+### ♻️ Refactor
+
+* **domain:** introduce Lockable interface and drop duck-type casts ([bed556f](https://github.com/SavageChieftain/udonarium_axe/commit/bed556f7587a6f95efe88ccde36dc66ba82ff2fd))
+* **tabletop:** centralize gridSize and mode2d on TabletopService ([116487e](https://github.com/SavageChieftain/udonarium_axe/commit/116487e28777c5489bae2eac32a6bc6cb4962260))
+* **ui:** extract billboard and label-orbit transforms to shared helpers ([2741b8b](https://github.com/SavageChieftain/udonarium_axe/commit/2741b8bbfee21adb7588921f8a7419ebaee0c29b))
+* **ui:** extract lock-toggle and copy context-menu builders ([84c8320](https://github.com/SavageChieftain/udonarium_axe/commit/84c83207c14138ff979c8317a692f2b9a03383f5))
+* **ui:** extract MovableOption setup and InputHandler boilerplate ([76080e7](https://github.com/SavageChieftain/udonarium_axe/commit/76080e7d5a447a2d1f6208260c1021d7a4d971b5))
+
 ## [1.7.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.6.0...v1.7.0) (2026-05-29)
 
 ### ✨ Features
