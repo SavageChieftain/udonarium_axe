@@ -269,8 +269,8 @@ export class GameTableComponent {
       walls.push({
         surface: 'north-wall',
         image: north,
-        containerClass: 'bottom-full left-0',
-        containerTransform: 'rotateX(-90deg)',
+        containerClass: 'top-0 left-0',
+        containerTransform: 'translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1)',
         containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
@@ -281,9 +281,9 @@ export class GameTableComponent {
       walls.push({
         surface: 'south-wall',
         image: south,
-        containerClass: 'top-full left-0',
-        containerTransform: 'rotateX(90deg)',
-        containerOrigin: '50% 0%',
+        containerClass: 'bottom-0 left-0',
+        containerTransform: 'rotateX(-90deg)',
+        containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
       });
@@ -293,11 +293,11 @@ export class GameTableComponent {
       walls.push({
         surface: 'west-wall',
         image: west,
-        containerClass: 'top-0 right-full',
-        containerTransform: 'rotateY(90deg)',
-        containerOrigin: '100% 50%',
-        widthPx: state.heightPx,
-        heightPx: state.depthPx,
+        containerClass: 'top-0 left-0',
+        containerTransform: 'rotateZ(90deg) rotateX(-90deg) scaleX(-1) translateX(-100%) translateY(-100%)',
+        containerOrigin: '0% 0%',
+        widthPx: state.depthPx,
+        heightPx: state.heightPx,
       });
     }
     const east = this.eastWallImage();
@@ -305,11 +305,11 @@ export class GameTableComponent {
       walls.push({
         surface: 'east-wall',
         image: east,
-        containerClass: 'top-0 left-full',
-        containerTransform: 'rotateY(-90deg)',
-        containerOrigin: '0% 50%',
-        widthPx: state.heightPx,
-        heightPx: state.depthPx,
+        containerClass: 'top-0 right-0',
+        containerTransform: 'rotateZ(-90deg) rotateX(-90deg) translateY(-100%)',
+        containerOrigin: '100% 0%',
+        widthPx: state.depthPx,
+        heightPx: state.heightPx,
       });
     }
     return walls;
