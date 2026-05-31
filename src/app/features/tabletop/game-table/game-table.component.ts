@@ -249,6 +249,7 @@ export class GameTableComponent {
       image: ImageFile;
       containerClass: string;
       containerTransform: string;
+      containerOrigin: string;
       widthPx: number;
       heightPx: number;
     }[]
@@ -259,6 +260,7 @@ export class GameTableComponent {
       image: ImageFile;
       containerClass: string;
       containerTransform: string;
+      containerOrigin: string;
       widthPx: number;
       heightPx: number;
     }[];
@@ -267,8 +269,9 @@ export class GameTableComponent {
       walls.push({
         surface: 'north-wall',
         image: north,
-        containerClass: 'bottom-full left-0 origin-[50%_100%]',
+        containerClass: 'bottom-full left-0',
         containerTransform: 'rotateX(-90deg)',
+        containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
       });
@@ -278,8 +281,9 @@ export class GameTableComponent {
       walls.push({
         surface: 'south-wall',
         image: south,
-        containerClass: 'top-full left-0 origin-[50%_0%]',
+        containerClass: 'top-full left-0',
         containerTransform: 'rotateX(90deg)',
+        containerOrigin: '50% 0%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
       });
@@ -289,8 +293,9 @@ export class GameTableComponent {
       walls.push({
         surface: 'west-wall',
         image: west,
-        containerClass: 'top-0 right-full origin-[100%_50%]',
+        containerClass: 'top-0 right-full',
         containerTransform: 'rotateY(90deg)',
+        containerOrigin: '100% 50%',
         widthPx: state.heightPx,
         heightPx: state.depthPx,
       });
@@ -300,8 +305,9 @@ export class GameTableComponent {
       walls.push({
         surface: 'east-wall',
         image: east,
-        containerClass: 'top-0 left-full origin-[0%_50%]',
+        containerClass: 'top-0 left-full',
         containerTransform: 'rotateY(-90deg)',
+        containerOrigin: '0% 50%',
         widthPx: state.heightPx,
         heightPx: state.depthPx,
       });
