@@ -34,6 +34,8 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+const NEAR_BOTTOM_THRESHOLD_PX = 350;
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-window',
@@ -233,16 +235,32 @@ export class ChatWindowComponent {
     });
   }
 
-  private onScrollPositionChange() {
-    if (!this.panelService.scrollablePanel) return;
+  private distanceFromBottom(): number | null {
     const panel = this.panelService.scrollablePanel;
-    const distanceFromBottom = panel.scrollHeight - panel.clientHeight - panel.scrollTop;
-    const nearBottom = distanceFromBottom <= 350;
+    if (!panel) return null;
+    return panel.scrollHeight - panel.clientHeight - panel.scrollTop;
+  }
+
+  private refreshNearBottom() {
+    const distance = this.distanceFromBottom();
+    if (distance == null) return;
+    this.isNearBottom.set(distance <= NEAR_BOTTOM_THRESHOLD_PX);
+  }
+
+  private onScrollPositionChange() {
+    const distance = this.distanceFromBottom();
+    if (distance == null) return;
+    const nearBottom = distance <= NEAR_BOTTOM_THRESHOLD_PX;
     this.isNearBottom.set(nearBottom);
     if (nearBottom) {
       this.hasNewMessage.set(false);
       this.newMessageCount.set(0);
     }
+  }
+
+  onAddMessage() {
+    this.scrollToBottom();
+    if (!this.chatPrefs.autoFollowScroll()) this.refreshNearBottom();
   }
 
   onClickScrollToBottom() {
@@ -276,12 +294,9 @@ export class ChatWindowComponent {
   }
 
   checkAutoScroll() {
-    if (!this.panelService.scrollablePanel) return;
-    const distanceFromBottom =
-      this.panelService.scrollablePanel.scrollHeight -
-      this.panelService.scrollablePanel.clientHeight -
-      this.panelService.scrollablePanel.scrollTop;
-    this.isAutoScroll = distanceFromBottom <= 350;
+    const distance = this.distanceFromBottom();
+    if (distance == null) return;
+    this.isAutoScroll = distance <= NEAR_BOTTOM_THRESHOLD_PX;
   }
 
   updatePanelTitle() {

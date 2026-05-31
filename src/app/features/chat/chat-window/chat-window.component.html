@@ -1,7 +1,7 @@
 <div class="flex min-h-full min-w-0 flex-col">
   <div class="min-w-0 flex-1">
     @if (chatTab()) {
-      <chat-tab [chatTab]="chatTab()" (addMessage)="scrollToBottom()"></chat-tab>
+      <chat-tab [chatTab]="chatTab()" (addMessage)="onAddMessage()"></chat-tab>
     }
   </div>
   <div

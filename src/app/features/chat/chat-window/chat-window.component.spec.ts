@@ -228,5 +228,49 @@ describe('ChatWindowComponent', () => {
         prefs.setAutoFollowScroll(true);
       }
     });
+
+    it('非追従モードでメッセージ蓄積により下端から離れたら isNearBottom が false になること', async () => {
+      const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
+      const prefs = TestBed.inject(ChatPreferencesService);
+      prefs.setAutoFollowScroll(false);
+      try {
+        fixture.detectChanges();
+        const panelEl = document.createElement('div');
+        Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
+        Object.defineProperty(panelEl, 'clientHeight', { value: 500, configurable: true });
+        panelEl.scrollTop = 100;
+        const priv = component as unknown as { panelService: { scrollablePanel: HTMLDivElement | null } };
+        priv.panelService.scrollablePanel = panelEl;
+        component.isNearBottom.set(true);
+
+        component.onAddMessage();
+
+        expect(component.isNearBottom()).toBe(false);
+      } finally {
+        prefs.setAutoFollowScroll(true);
+      }
+    });
+
+    it('非追従モードで下端付近なら isNearBottom が true のままであること', async () => {
+      const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
+      const prefs = TestBed.inject(ChatPreferencesService);
+      prefs.setAutoFollowScroll(false);
+      try {
+        fixture.detectChanges();
+        const panelEl = document.createElement('div');
+        Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
+        Object.defineProperty(panelEl, 'clientHeight', { value: 500, configurable: true });
+        panelEl.scrollTop = 499;
+        const priv = component as unknown as { panelService: { scrollablePanel: HTMLDivElement | null } };
+        priv.panelService.scrollablePanel = panelEl;
+        component.isNearBottom.set(false);
+
+        component.onAddMessage();
+
+        expect(component.isNearBottom()).toBe(true);
+      } finally {
+        prefs.setAutoFollowScroll(true);
+      }
+    });
   });
 });
