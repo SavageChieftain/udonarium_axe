@@ -835,7 +835,7 @@
         "dm1": "Direct messages (private chat) are not recorded in save files.",
         "dm2": "Past direct messages also become invisible once your ID is renewed, even in the same room. Take care.",
         "env": "Desktop Chrome is the recommended environment. Mobile browsers may not work properly for now.",
-        "simple": "Lily extension: the simplified chat view becomes available once you send your first chat message.",
+        "simple": "The simplified chat view becomes available once you send your first chat message.",
         "end": "End of tutorial. These messages disappear once you send your first chat message."
       },
       "message": {
