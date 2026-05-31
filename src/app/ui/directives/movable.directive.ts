@@ -518,6 +518,11 @@ export class MovableDirective {
     }
   }
 
+  private isOnWallSurface(): boolean {
+    const surface = this.tabletopObject?.location?.surface;
+    return !!surface && surface !== 'floor';
+  }
+
   private setPosition(object: TabletopObject) {
     if (!object?.location) return;
     this._posX = this.mathFloor ? Math.floor(object.location.x) : object.location.x;
@@ -563,7 +568,8 @@ export class MovableDirective {
   }
 
   private updateTransformCss() {
-    this.nativeElement.style.transform = toTransformCss(this.posX, this.posY, this.posZ, this.transformCssOffset);
+    const offset = this.isOnWallSurface() ? '' : this.transformCssOffset;
+    this.nativeElement.style.transform = toTransformCss(this.posX, this.posY, this.posZ, offset);
   }
 
   setCollidableLayer(isCollidable: boolean) {
