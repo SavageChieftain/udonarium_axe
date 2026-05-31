@@ -104,7 +104,7 @@ export function handleInputMove(context: MovableInteractionContext, e: MouseEven
   const pointer3d = context.coordinateService.convertToLocal(pointer2d, context.surfaceElement());
   pointer3d.x -= context.width / 2;
   pointer3d.y -= context.height / 2;
-  pointer3d.z = Math.max(0, pointer3d.z ?? 0);
+  pointer3d.z = 0;
 
   if (context.posX === pointer3d.x && context.posY === pointer3d.y && context.posZ === pointer3d.z) return;
 

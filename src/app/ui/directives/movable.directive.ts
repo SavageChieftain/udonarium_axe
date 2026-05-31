@@ -441,8 +441,10 @@ export class MovableDirective {
     }
     this._posX = newX;
     this._posY = newY;
+    this._posZ = 0;
     this.tabletopObject.location.x = newX;
     this.tabletopObject.location.y = newY;
+    this.tabletopObject.posZ = 0;
     this.tabletopObject.location.surface = targetSurface === 'floor' ? undefined : targetSurface;
     this.updateTransformCss();
   }
