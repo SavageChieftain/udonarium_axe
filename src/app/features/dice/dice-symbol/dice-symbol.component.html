@@ -1,5 +1,5 @@
 <div
-  class="group pointer-events-none absolute cursor-grab select-none [-moz-user-drag:none] [-webkit-transform-style:preserve-3d] [-webkit-user-drag:none] transform-3d [&_.material-icons]:hidden group-active:[&_.material-icons]:inline hover:[&_.material-icons]:inline"
+  class="group pointer-events-none absolute cursor-grab select-none [-moz-user-drag:none] [-webkit-user-drag:none] transform-3d [&_.material-icons]:hidden group-active:[&_.material-icons]:inline hover:[&_.material-icons]:inline"
   [style.width.px]="size() * gridSize"
   [style.height.px]="size() * gridSize"
   appMovable
@@ -9,9 +9,9 @@
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >
-  <div class="animate-bounce-in size-full [-webkit-transform-style:preserve-3d] transform-3d">
+  <div class="animate-bounce-in size-full transform-3d">
     <div
-      class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"
+      class="pointer-events-auto size-full transform-3d"
       appRotable
       [rotable.option]="rotableOption()"
       [rotable.disable]="mode2dEnabled()"
@@ -28,7 +28,7 @@
       @if (!isIconHidden()) {
         @if (!isLock && !mode2dEnabled()) {
           <div
-            class="rotate-grab absolute -top-5.5 -left-1.5 -z-1 h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
+            class="rotate-grab absolute -top-5.5 -left-1.5 -z-1 h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden transform-3d group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
           >
             <div
               class="pointer-events-none box-border size-full rounded-[22px] border-x-12 border-y-7 border-y-[28px] border-solid border-t-[#999] border-r-[#ccc] border-b-[#ccc] border-l-[#999]"
@@ -39,38 +39,30 @@
           </div>
         }
       }
-      @if (isPoster() && imageFile().url) {
-        <img
-          class="chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain [&.is-black-mask]:filter-[brightness(0)]! [&.is-harf-black-mask]:filter-[brightness(0.5)]!"
-          [src]="imageFile().url | safe: 'resourceUrl'"
-          [class.is-black-mask]="!isVisible"
-          [class.is-harf-black-mask]="isMine"
-        />
-      }
       <div
-        class="size-full [-webkit-transform-style:preserve-3d] transform-3d"
+        class="size-full transform-3d"
         [class.animate-dice-rolling]="animeState() === 'active'"
         (animationend)="onDiceRollEnd()"
       >
         <div
-          class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
+          class="absolute inset-x-0 bottom-0 h-auto w-full transform-3d"
           [ngStyle]="{ transform: isPoster() ? 'translateY(-50%)' : 'rotateX(-90deg) translateY(-50%)' }"
         >
           <div
-            class="inset-x-0 bottom-0 [-webkit-transform-style:preserve-3d] transform-3d"
+            class="inset-x-0 bottom-0 transform-3d"
             [style.width.px]="size() * gridSize"
             [style.height.px]="size() * gridSize"
           >
-            <div class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d">
+            <div class="absolute inset-x-0 bottom-0 h-auto w-full transform-3d">
               @if (name()) {
                 <div
-                  class="absolute whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                  class="absolute whitespace-nowrap transform-3d"
                   [ngStyle]="{
                     transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + nameLabelOrbit(),
                   }"
                 >
                   <div
-                    class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[15px] whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                    class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[15px] whitespace-nowrap transform-3d"
                     [ngStyle]="{ transform: billboardTransform() }"
                   >
                     <div>
@@ -90,22 +82,22 @@
               }
               @if (hasOwner && ownerName) {
                 <div
-                  class="absolute whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                  class="absolute whitespace-nowrap transform-3d"
                   [ngStyle]="{
                     transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + ownerLabelOrbit(),
                   }"
                 >
                   <div
-                    class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[12px] whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
+                    class="bg-ui-panel text-ui-text box-border rounded-md px-2.25 py-0.75 text-[12px] whitespace-nowrap transform-3d"
                     [ngStyle]="{ transform: billboardTransformOwner() }"
                   >
                     <div class="max-w-72 truncate">{{ ownerName }}</div>
                   </div>
                 </div>
               }
-              @if (!isPoster() && imageFile().url && specifyImageFlag()) {
+              @if (imageFile().url && specifyImageFlag()) {
                 <img
-                  class="bottom-0 inline-block h-auto align-bottom filter-[none!] [-webkit-transform-style:preserve-3d] transform-3d [&.is-black-mask]:filter-[brightness(0)]! [&.is-harf-black-mask]:filter-[brightness(0.5)]!"
+                  class="bottom-0 inline-block h-auto align-bottom filter-[none!] transform-3d [&.is-black-mask]:filter-[brightness(0)]! [&.is-harf-black-mask]:filter-[brightness(0.5)]!"
                   [ngStyle]="{
                     height: +imageHeignt() + 'px',
                     width: 'auto',
@@ -123,9 +115,9 @@
                   [class.is-harf-black-mask]="isMine"
                 />
               }
-              @if (!isPoster() && imageFile().url && !specifyImageFlag()) {
+              @if (imageFile().url && !specifyImageFlag()) {
                 <img
-                  class="bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d [&.is-black-mask]:filter-[brightness(0)]! [&.is-harf-black-mask]:filter-[brightness(0.5)]!"
+                  class="bottom-0 m-auto h-auto align-bottom transform-3d [&.is-black-mask]:filter-[brightness(0)]! [&.is-harf-black-mask]:filter-[brightness(0.5)]!"
                   [ngStyle]="{
                     width: '100%',
                     transform: imageBillboardEnabled() ? billboardTransformImage() : '',

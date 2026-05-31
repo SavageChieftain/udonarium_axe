@@ -155,8 +155,7 @@ export class DiceSymbolComponent {
   readonly isPoster = computed(() => {
     const dice = this.diceSymbol();
     this.objectChange.versionOf(dice.identifier)();
-    const surface = dice.location.surface ?? 'floor';
-    return surface !== 'floor';
+    return (dice.location.surface ?? 'floor') !== 'floor';
   });
 
   readonly billboardTransform = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(30)));

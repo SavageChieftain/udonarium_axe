@@ -342,7 +342,7 @@ export class MovableDirective {
     const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurface);
     const surfaceW = targetSurface.offsetWidth || targetSurface.clientWidth;
     const surfaceH = targetSurface.offsetHeight || targetSurface.clientHeight;
-    const tolerance = 80;
+    const tolerance = 0;
     if (
       local.x < -tolerance ||
       local.x > surfaceW + tolerance ||
@@ -420,7 +420,7 @@ export class MovableDirective {
     const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurfaceEl);
     const surfaceW = targetSurfaceEl.offsetWidth || targetSurfaceEl.clientWidth;
     const surfaceH = targetSurfaceEl.offsetHeight || targetSurfaceEl.clientHeight;
-    const tolerance = 80;
+    const tolerance = 0;
     if (
       local.x < -tolerance ||
       local.x > surfaceW + tolerance ||
