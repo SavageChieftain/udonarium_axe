@@ -237,7 +237,13 @@
                   </div>
                 </div>
               }
-              @if (0 < imageFile().url.length && specifyKomaImageFlag()) {
+              @if (isPoster() && 0 < imageFile().url.length) {
+                <img
+                  class="image chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain"
+                  [src]="imageFile().url | safe: 'resourceUrl'"
+                />
+              }
+              @if (!isPoster() && 0 < imageFile().url.length && specifyKomaImageFlag()) {
                 <img
                   class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                   [ngStyle]="{
@@ -256,7 +262,7 @@
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
-              @if (0 < imageFile().url.length && !specifyKomaImageFlag()) {
+              @if (!isPoster() && 0 < imageFile().url.length && !specifyKomaImageFlag()) {
                 <img
                   class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                   [ngStyle]="{
