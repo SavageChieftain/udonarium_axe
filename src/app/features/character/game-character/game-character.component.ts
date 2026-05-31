@@ -286,9 +286,6 @@ export class GameCharacterComponent {
   });
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
-    if (this.isPoster()) {
-      return `translateY(${-distance3d}px)`;
-    }
     return makeLabelOrbitTransform({
       rotation: this.uiSignalService.tableViewRotation(),
       distance3d,
@@ -297,8 +294,14 @@ export class GameCharacterComponent {
     });
   }
 
-  readonly nameLabelOrbit = computed(() => this.labelOrbitTransform(30, 60));
-  readonly buffLabelOrbit = computed(() => this.labelOrbitTransform(40, 85 + this.buffPanelHeightEstimate() / 2));
+  readonly nameLabelOrbit = computed(() => {
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5)}px)`;
+    return this.labelOrbitTransform(30, 60);
+  });
+  readonly buffLabelOrbit = computed(() => {
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5 + 22 + 5)}px)`;
+    return this.labelOrbitTransform(40, 85 + this.buffPanelHeightEstimate() / 2);
+  });
 
   private makeBillboardTransform(verticalOffset3D: number): string {
     return makeBillboardTransform({
