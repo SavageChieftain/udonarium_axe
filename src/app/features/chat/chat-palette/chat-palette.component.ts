@@ -297,6 +297,8 @@ export class ChatPaletteComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    replyTo: string;
+    quoteOf: string;
   }) {
     const character = this.character();
     const palette = this.palette;
@@ -362,7 +364,9 @@ export class ChatPaletteComponent {
         value.portraitIndex,
         value.messColor,
         messageTargetContext,
-        attachmentImageIdentifiers
+        attachmentImageIdentifiers,
+        value.replyTo,
+        value.quoteOf
       );
     }
   }
