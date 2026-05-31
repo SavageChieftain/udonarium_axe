@@ -303,8 +303,21 @@ export class MovableDirective {
   }
 
   onInputMove(e: MouseEvent | TouchEvent) {
+    if (this.isPointerOverDifferentSurface()) {
+      this.updateDragPreview();
+      return;
+    }
     handleInputMove(this as unknown as MovableInteractionContext, e);
     this.updateDragPreview();
+  }
+
+  private isPointerOverDifferentSurface(): boolean {
+    const pointer = this.input?.pointer;
+    if (!pointer) return false;
+    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
+    const pointerSurface = target?.closest<HTMLElement>('[data-surface]') ?? null;
+    if (!pointerSurface) return false;
+    return pointerSurface !== this.surfaceElement();
   }
 
   private dragPreviewElement: HTMLElement | null = null;
