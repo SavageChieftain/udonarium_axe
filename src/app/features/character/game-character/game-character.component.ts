@@ -286,6 +286,9 @@ export class GameCharacterComponent {
   });
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
+    if (this.isPoster()) {
+      return `translateY(${-distance3d}px)`;
+    }
     return makeLabelOrbitTransform({
       rotation: this.uiSignalService.tableViewRotation(),
       distance3d,

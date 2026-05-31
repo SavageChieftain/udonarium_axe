@@ -13,10 +13,11 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { callRollDiceSymbol } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -151,11 +152,19 @@ export class DiceSymbolComponent {
     return this.diceSymbol().rotate;
   });
 
-  readonly billboardTransform = computed(() => this.makeBillboardTransform(30));
-  readonly billboardTransformOwner = computed(() => this.makeBillboardTransform(55));
-  readonly billboardTransformImage = computed(() => this.makeBillboardTransform(0));
+  readonly isPoster = computed(() => {
+    const dice = this.diceSymbol();
+    this.objectChange.versionOf(dice.identifier)();
+    const surface = dice.location.surface ?? 'floor';
+    return surface !== 'floor';
+  });
+
+  readonly billboardTransform = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(30)));
+  readonly billboardTransformOwner = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(55)));
+  readonly billboardTransformImage = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(0)));
 
   readonly imageBillboardEnabled = computed(() => {
+    if (this.isPoster()) return true;
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
@@ -163,6 +172,7 @@ export class DiceSymbolComponent {
   });
 
   readonly mode2dEnabled = computed(() => {
+    if (this.isPoster()) return true;
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
@@ -170,6 +180,9 @@ export class DiceSymbolComponent {
   });
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
+    if (this.isPoster()) {
+      return `translateY(${-distance3d}px)`;
+    }
     return makeLabelOrbitTransform({
       rotation: this.uiSignalService.tableViewRotation(),
       distance3d,
@@ -288,17 +301,23 @@ export class DiceSymbolComponent {
       this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
       return;
     }
+    const baseMenu = buildDiceSymbolContextMenu(
+      this.diceSymbol(),
+      this.gridSize,
+      {
+        onDiceRoll: () => this.diceRoll(),
+        onShowDetail: () => this.showDetail(this.diceSymbol()),
+      },
+      this.translateFn
+    );
+    const surfaceEntries = buildSurfaceSwitchContextMenu(
+      this.diceSymbol(),
+      this.tabletopService.currentTable,
+      this.translateFn
+    );
     this.contextMenuService.open(
       position,
-      buildDiceSymbolContextMenu(
-        this.diceSymbol(),
-        this.gridSize,
-        {
-          onDiceRoll: () => this.diceRoll(),
-          onShowDetail: () => this.showDetail(this.diceSymbol()),
-        },
-        this.translateFn
-      ),
+      surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
       this.name()
     );
   }

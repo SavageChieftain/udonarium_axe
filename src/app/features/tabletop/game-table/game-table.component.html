@@ -75,6 +75,13 @@
               [appTooltip]="character"
             ></game-character>
           }
+          @for (diceSymbol of diceSymbolsBySurface()[wall.surface]; track diceSymbol.identifier) {
+            <dice-symbol
+              class="absolute will-change-transform backface-visible transform-3d"
+              [diceSymbol]="diceSymbol"
+              [appTooltip]="diceSymbol"
+            ></dice-symbol>
+          }
         </div>
       }
       @if (terrains().length) {
@@ -149,12 +156,12 @@
       @for (range of ranges(); track range.identifier) {
         <range class="absolute will-change-transform backface-visible transform-3d" [range]="range"></range>
       }
-      @if (diceSymbols().length) {
+      @if (diceSymbolsBySurface().floor.length) {
         <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
           <div
             class="pointer-events-none absolute size-px transform-[translate3d(0,0,0)] will-change-[opacity] backface-hidden transform-3d"
           ></div>
-          @for (diceSymbol of diceSymbols(); track diceSymbol.identifier) {
+          @for (diceSymbol of diceSymbolsBySurface().floor; track diceSymbol.identifier) {
             <dice-symbol
               class="absolute will-change-transform backface-visible transform-3d"
               [diceSymbol]="diceSymbol"
