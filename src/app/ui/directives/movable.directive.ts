@@ -326,15 +326,29 @@ export class MovableDirective {
       this.clearDragPreview();
       return;
     }
+    const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurface);
+    const surfaceW = targetSurface.offsetWidth || targetSurface.clientWidth;
+    const surfaceH = targetSurface.offsetHeight || targetSurface.clientHeight;
+    const tolerance = 80;
+    if (
+      local.x < -tolerance ||
+      local.x > surfaceW + tolerance ||
+      local.y < -tolerance ||
+      local.y > surfaceH + tolerance
+    ) {
+      this.clearDragPreview();
+      return;
+    }
     if (this.dragPreviewSurface !== targetSurface) {
       this.clearDragPreview();
       this.dragPreviewSurface = targetSurface;
       this.dragPreviewElement = this.createDragPreviewElement();
       targetSurface.appendChild(this.dragPreviewElement);
     }
-    const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurface);
-    const x = local.x - this.width / 2;
-    const y = local.y - this.height / 2;
+    const rawX = local.x - this.width / 2;
+    const rawY = local.y - this.height / 2;
+    const x = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
+    const y = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
     this.dragPreviewElement!.style.transform = `translate3d(${Math.floor(x)}px, ${Math.floor(y)}px, 0)`;
   }
 
@@ -391,10 +405,19 @@ export class MovableDirective {
     if (targetSurfaceEl === currentSurfaceEl) return;
     const targetSurface = (targetSurfaceEl.dataset.surface ?? 'floor') as TableSurface;
     const local = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, targetSurfaceEl);
-    const rawX = local.x - this.width / 2;
-    const rawY = local.y - this.height / 2;
     const surfaceW = targetSurfaceEl.offsetWidth || targetSurfaceEl.clientWidth;
     const surfaceH = targetSurfaceEl.offsetHeight || targetSurfaceEl.clientHeight;
+    const tolerance = 80;
+    if (
+      local.x < -tolerance ||
+      local.x > surfaceW + tolerance ||
+      local.y < -tolerance ||
+      local.y > surfaceH + tolerance
+    ) {
+      return;
+    }
+    const rawX = local.x - this.width / 2;
+    const rawY = local.y - this.height / 2;
     const clampedX = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
     const clampedY = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
     const newX = this.mathFloor ? Math.floor(clampedX) : clampedX;
