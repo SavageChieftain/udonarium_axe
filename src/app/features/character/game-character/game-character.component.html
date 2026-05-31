@@ -89,6 +89,12 @@
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         }
+        @if (isPoster() && 0 < imageFile().url.length) {
+          <img
+            class="image chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain"
+            [src]="imageFile().url | safe: 'resourceUrl'"
+          />
+        }
         <div
           class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
           [ngStyle]="{
@@ -236,12 +242,6 @@
                     >
                   </div>
                 </div>
-              }
-              @if (isPoster() && 0 < imageFile().url.length) {
-                <img
-                  class="image chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain"
-                  [src]="imageFile().url | safe: 'resourceUrl'"
-                />
               }
               @if (!isPoster() && 0 < imageFile().url.length && specifyKomaImageFlag()) {
                 <img
