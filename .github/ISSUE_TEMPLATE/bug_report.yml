@@ -1,0 +1,129 @@
+name: 🐛 バグ報告
+description: 不具合・想定外の挙動を報告する
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグ報告ありがとうございます。再現に必要な情報をできるだけ埋めてください。
+        セキュリティに関わる問題は Issue ではなく非公開で報告してください。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 確認事項
+      options:
+        - label: 既存の Issue に同じ報告がないか検索した
+          required: true
+        - label: 最新バージョンでも再現することを確認した（できる範囲で）
+          required: false
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何が起きたかを一言で説明してください。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 手順を順番に記載してください。
+      placeholder: |
+        1. ルームを作成する
+        2. キャラクターを配置する
+        3. ……
+        4. エラーが発生する
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する挙動
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の挙動
+      description: エラーメッセージやコンソールログがあれば貼り付けてください。
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影響範囲
+      description: 関係する機能・領域を選択してください（Conventional Commits の scope に対応）。
+      multiple: true
+      options:
+        - chat
+        - tabletop
+        - character
+        - card
+        - dice
+        - lobby
+        - media
+        - controller
+        - vote
+        - inventory
+        - alarm
+        - network
+        - storage
+        - sync
+        - css
+        - その他 / 不明
+    validations:
+      required: false
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: P2P 接続時の役割
+      description: 不具合発生時の接続状況を選択してください。
+      options:
+        - 単独（接続なし）
+        - ルームのホスト（ルーム作成者）
+        - ルームの参加者
+        - 不明 / 該当なし
+    validations:
+      required: false
+
+  - type: input
+    id: peers
+    attributes:
+      label: 同時接続人数
+      description: 発生時に接続していたおおよその人数。
+      placeholder: 例）3 人
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: バージョン
+      description: package.json の version、または画面に表示されているバージョン。
+      placeholder: 例）1.8.0
+    validations:
+      required: false
+
+  - type: input
+    id: env
+    attributes:
+      label: 環境（ブラウザ / OS）
+      placeholder: 例）Chrome 126 / Windows 11
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: スクリーンショット・補足
+      description: スクリーンショットや動画、追加情報があれば添付してください。
+    validations:
+      required: false
