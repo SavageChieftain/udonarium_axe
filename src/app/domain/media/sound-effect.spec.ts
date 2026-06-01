@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { emitSendMessage } from '@axe/core/event/domain-events';
-import { Network } from '@axe/core/network/network';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { resetPeerContextProvider, setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -76,6 +77,21 @@ describe('SoundEffect', () => {
   });
 
   describe('sendMessage$購読によるダイス音再生', () => {
+    const selfUserId = 'self-user';
+
+    beforeEach(() => {
+      setPeerContextProvider({
+        peerContext: { userId: selfUserId } as unknown as IPeerContext,
+        peerContexts: [],
+        peerIds: [],
+        peerId: selfUserId,
+      });
+    });
+
+    afterEach(() => {
+      resetPeerContextProvider();
+    });
+
     it('isDicebotがtrueのメッセージでSoundEffect.playが呼ばれる', async () => {
       const se = new SoundEffect('test-se');
       se.initialize();
@@ -83,17 +99,15 @@ describe('SoundEffect', () => {
 
       const playSpy = vi.spyOn(SoundEffect, 'play').mockImplementation(() => {});
 
-      // isDicebotがtrueになるChatMessageを作成
       const msg = new ChatMessage();
       msg.setAttribute('tag', 'system');
       msg.setAttribute('from', 'System-BCDice');
-      msg.setAttribute('sendFrom', Network.peerContext.userId);
+      msg.setAttribute('originFrom', selfUserId);
       msg.initialize();
       store.add(msg);
 
       emitSendMessage({ messageIdentifier: msg.identifier, messageTarget: null });
 
-      // 非同期のSubscription処理を待つ
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(playSpy).toHaveBeenCalledTimes(1);
@@ -110,10 +124,9 @@ describe('SoundEffect', () => {
 
       const playSpy = vi.spyOn(SoundEffect, 'play').mockImplementation(() => {});
 
-      // 通常メッセージ（isDicebot = false）
       const msg = new ChatMessage();
       msg.setAttribute('tag', '');
-      msg.setAttribute('from', Network.peerContext.userId);
+      msg.setAttribute('from', selfUserId);
       msg.initialize();
       store.add(msg);
 
