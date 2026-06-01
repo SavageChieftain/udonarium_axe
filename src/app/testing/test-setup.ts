@@ -191,6 +191,13 @@ class FileReaderPolyfill {
 }
 (globalThis as unknown as Record<string, unknown>)['FileReader'] = FileReaderPolyfill;
 
+// happy-dom resolves relative URLs against http://localhost:3000, so an unmocked fetch
+// (config.json / SkyWay backend / NTP) opens a real socket that rejects late as
+// ECONNREFUSED and bleeds into unrelated specs. Disable network by default; specs that
+// need fetch override this via vi.spyOn(globalThis, 'fetch') / vi.stubGlobal('fetch', ...).
+(globalThis as unknown as Record<string, unknown>)['fetch'] = () =>
+  Promise.reject(new Error('fetch is disabled in unit tests'));
+
 const GLOBAL_TEST_PROVIDERS = [
   AppConfigService,
   ChatMessageService,
