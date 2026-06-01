@@ -11,12 +11,13 @@ WebRTC (SkyWay SDK) による P2P 通信でサーバレスにオブジェクト�
 
 ## アーキテクチャ規範
 
-依存方向（ESLint で自動検査、`pre-commit` で必ず検出）:
+依存方向（各層は右側の層を import 可。逆流は ESLint で禁止、`pre-commit` で検出）:
 
 ```
 composition → features → ui → application → infrastructure → domain → core
-                          ↘────────────────↗  application は domain も直接読む
 ```
+
+※ infrastructure は現状空のため、application は domain を直接 import する
 
 | レイヤー                              | 一行サマリ                                      |
 | ------------------------------------- | ----------------------------------------------- |
@@ -50,6 +51,7 @@ composition → features → ui → application → infrastructure → domain �
 
 - `@axe/*` → `src/app/*`
 - `@env/*` → `src/environments/*`
+- `@pkg` → `package.json`
 
 ## 技術スタック
 
@@ -61,20 +63,21 @@ composition → features → ui → application → infrastructure → domain �
 - **E2E** — Playwright (`npm run e2e` / `npm run e2e:ui`)
 - **P2P / シリアライズ** — `@skyway-sdk/core` v2 + `@msgpack/msgpack` v3
 - **ダイス** — `bcdice` v4 / **UI セレクト** — `@ng-select/ng-select`
+- **i18n** — `@jsverse/transloco`（言語切替 UI は `features/language-selector`）
 
 ## 開発コマンド
 
-| コマンド               | 用途                                          |
-| ---------------------- | --------------------------------------------- |
-| `npm start`            | 開発サーバー（`ng serve`）                    |
-| `npm run build`        | プロダクションビルド（`ng build`）            |
-| `npm test`             | ユニットテスト（Angular builder + Vitest）    |
-| `npx vitest run`       | ユニットテスト（直接 Vitest、上記とは別経路） |
-| `npm run e2e`          | Playwright E2E                                |
-| `npm run e2e:ui`       | Playwright UI モード                          |
-| `npm run lint`         | ESLint                                        |
-| `npm run format`       | Prettier 整形                                 |
-| `npm run format:check` | Prettier チェックのみ                         |
+| コマンド               | 用途                                                           |
+| ---------------------- | -------------------------------------------------------------- |
+| `npm start`            | 開発サーバー（`ng serve`）                                     |
+| `npm run build`        | プロダクションビルド（`ng build` + 既定設定コピー + zip 生成） |
+| `npm test`             | ユニットテスト（Angular builder + Vitest）                     |
+| `npx vitest run`       | ユニットテスト（直接 Vitest、上記とは別経路）                  |
+| `npm run e2e`          | Playwright E2E                                                 |
+| `npm run e2e:ui`       | Playwright UI モード                                           |
+| `npm run lint`         | ESLint                                                         |
+| `npm run format`       | Prettier 整形                                                  |
+| `npm run format:check` | Prettier チェックのみ                                          |
 
 ## コミット・フック規約（要点）
 
@@ -85,10 +88,9 @@ composition → features → ui → application → infrastructure → domain �
 - 複数の論理的変更を 1 コミットに混ぜない
 - **lefthook 迂回は絶対禁止**（`--no-verify` / `LEFTHOOK=0` / `core.hooksPath` 変更等）。
   フックが落ちたら原因を直してから再コミットする
-  - `commit-msg`: `commitlint` / `pre-commit`: `ng lint` + `ng test` / `pre-push`: `ng build`
+  - `commit-msg`: `commitlint` / `pre-commit`: `ng lint` + `ng test` / `pre-push`: `npm run build`
 
 ## 留意事項
 
 - `package.json` の `version` がリリース番号。更新は `chore(release): ...` で
 - `ng build` の予算は initial 10MB 警告 / 15MB エラー（[angular.json](angular.json) の `budgets`）
-- `.github/copilot-instructions.md` も同趣旨だが、本ファイルが現状実装に対する正

@@ -72,7 +72,7 @@ chore(release): bump version to 1.2.2
 | ------------ | ---------------------------------- |
 | `commit-msg` | `commitlint`（メッセージ形式検査） |
 | `pre-commit` | `ng lint` + `ng test`（並列）      |
-| `pre-push`   | `ng build`                         |
+| `pre-push`   | `npm run build`                    |
 
 設定: [../lefthook.yml](../lefthook.yml)
 

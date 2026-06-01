@@ -7,9 +7,9 @@
 
 ```
 composition → features → ui → application → infrastructure → domain → core
-                          ↘────────────────↗
-                      （application は domain も直接読む）
 ```
+
+※ infrastructure は現状空のため、application は domain を直接 import する
 
 | レイヤー                       | 一行サマリ                                                      |
 | ------------------------------ | --------------------------------------------------------------- |
@@ -62,7 +62,7 @@ domain ↔ DOM/Web を橋渡しするアダプタ層。現状空。
 
 Angular DI で `domain` / `infrastructure` をラップしたユースケース / 状態サービス層。
 
-- **配下**: `sync`（`ObjectChangeService`）, `ui`（`PanelService` / `ModalService` / `ContextMenuService` / `ThemeService` 等）, `chat`, `inventory`, `tabletop`
+- **配下**: `sync`（`ObjectChangeService`）, `ui`（`PanelService` / `ModalService` / `ContextMenuService` / `ThemeService` 等）, `chat`, `inventory`, `tabletop`, `file`, `i18n`, `media`, `storage`
 - **依存可能**: `core`, `domain`, `infrastructure`
 - **入れる**: `@Injectable` サービス。複数 feature が共有する状態管理（PanelService, ContextMenuService, ObjectChangeService 等）。core/domain の Angular DI 化レイヤー
 - **入れない**: `ui` パーツや `features` の参照、特定 feature 専用 UI 開閉ロジック
@@ -72,7 +72,7 @@ Angular DI で `domain` / `infrastructure` をラップしたユースケース 
 
 feature に紐付かない汎用 UI 部品。
 
-- **配下**: `components`（ui-panel, modal, context-menu, file-selecter…）, `directives`（draggable, resizable, rotable, movable, tooltip…）, `pipes`, `tabletop`（z-offset 等の UI 定数）
+- **配下**: `components`（ui-panel, modal, context-menu, file-selecter…）, `directives`（draggable, resizable, rotable, movable, tooltip…）, `pipes`, `tabletop`（z-offset 等の UI 定数）, `text-decoration`
 - **依存可能**: `core`, `domain`, `infrastructure`, `application`
 - **入れる**: feature に紐付かない汎用 directive / component / pipe。`TabletopObject` 等の domain 型をプロパティに取るのは OK（型は domain）
 - **入れない**: 特定 feature の component 名（`OverviewPanelComponent` / `ChatTab` 等）を import する構造。`features` に対する逆流
@@ -82,7 +82,7 @@ feature に紐付かない汎用 UI 部品。
 
 ユーザ向け 1 機能 = 1 サブフォルダ。
 
-- **配下**: `chat`, `tabletop`, `character`, `card`, `controller`, `dice`, `file`, `inventory`, `lobby`, `media`, `vote`, `alarm`
+- **配下**: `chat`, `tabletop`, `character`, `card`, `controller`, `data-element`, `dice`, `file`, `inventory`, `language-selector`, `lobby`, `media`, `vote`, `alarm`
 - **依存可能**: `core`, `domain`, `infrastructure`, `application`, `ui`
 - **入れる**: 1 機能の UI（component + html）、その feature 専用の context-menu builder / event-handler.service / helpers / spec
 - **入れない**: 他 feature の component を直接 import するのは原則禁止（共通化したいなら `ui/` / `application/` / `domain/` のいずれかへ）
@@ -109,7 +109,7 @@ feature に紐付かない汎用 UI 部品。
   `ObjectSynchronizer` / `ImageStorage` / `AudioStorage` / `FileArchiver` /
   `ChatTabList` / `Config` / `DataSummarySetting` / `TableSelecter` 等）は
   `CLASS_SINGLETON_PROVIDERS` で DI に橋渡しされている
-  ([src/app/core/di/class-provider.ts](../src/app/core/di/class-provider.ts))。
+  ([src/app/composition/class-provider.ts](../src/app/composition/class-provider.ts))。
   Angular 側は `inject(ObjectStore)` 等で取得する
 - DI 管理外のクラスから DI サービスに触る必要があるときだけ
   `ServiceLocator.get<T>(token)` を使う
@@ -151,11 +151,11 @@ this.objectChange.onObjectChangedForAlias(
 - **テンプレートは外部ファイル分離** (`templateUrl`)
 - **スタイルは原則テンプレート内 Tailwind utility class**。`styleUrls` / `styles` は使わない。
   どうしても Tailwind で表現できない場合に限り `styleUrls` を許容するが、
-  現状の例外は [src/app/features/character/game-data-element/game-data-element.component.css](../src/app/features/character/game-data-element/game-data-element.component.css) 1 ファイルのみ。SCSS は使わない
+  現状 `.component.css` を持つコンポーネントは存在しない（例外なし）。SCSS は使わない
 - 変更検知は `OnPush` + Signals で駆動
 - `markForCheck()` は使わない。`detectChanges()` は DOM 計測用途のみ
-  （現状の使用箇所はテストヘルパー
-  [src/app/testing/panel-drag-recovery.ts](../src/app/testing/panel-drag-recovery.ts) のみ）
+  （プロダクションコードでは使わず、テストヘルパー
+  [src/app/testing/panel-drag-recovery.ts](../src/app/testing/panel-drag-recovery.ts) と各 spec でのみ使用）
 - `@SyncObject` 由来の値を template でリアクティブに使うときは
   `versionOf()` / `collectionOf()` で signal を取り、依存配線する
 - `input.required<T>()` の値をテンプレート以外で読むときは `_initialized` フラグ等で

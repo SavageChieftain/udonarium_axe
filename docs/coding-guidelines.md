@@ -12,7 +12,7 @@
 - `templateUrl` で外部分離。インラインテンプレートは使わない
 - `styleUrls` / `styles` は使わない。Tailwind utility class をテンプレートに直接書く
   - どうしても Tailwind で表現できない場合に限り `styleUrls` を許容するが、
-    現状の例外は [../src/app/features/character/game-data-element/game-data-element.component.css](../src/app/features/character/game-data-element/game-data-element.component.css) 1 ファイルのみ
+    現状 `.component.css` を持つコンポーネントは存在しない（例外なし）
   - SCSS は使わない
 - **selector**: 原則 prefix なし（`game-character`, `chat-window`, `range` 等）。
   ただし汎用 UI directive は `app` prefix を付ける（`appDraggable`, `appTooltip`, `appResizable` 等）。
@@ -23,8 +23,8 @@
 - Signals + `versionOf()` / `collectionOf()` で配線する
 - `markForCheck()` 禁止
 - `detectChanges()` は DOM 計測用途のみ
-  （現状の使用箇所はテストヘルパー
-  [../src/app/testing/panel-drag-recovery.ts](../src/app/testing/panel-drag-recovery.ts) のみ）
+  （プロダクションコードでは使わず、テストヘルパー
+  [../src/app/testing/panel-drag-recovery.ts](../src/app/testing/panel-drag-recovery.ts) と各 spec でのみ使用）
 - `@SyncObject` 由来の値を template でリアクティブに使うときは必ず
   `versionOf(identifier)()` / `collectionOf(aliasName)()` を読んで依存配線する
 - `input.required<T>()` の値をテンプレート以外で読むときは `_initialized` フラグ等で
@@ -83,5 +83,6 @@
   必ずパスエイリアス (`@axe/*` / `@env/*`) を使う
 - **層境界の自動検査**: `no-restricted-imports` で各レイヤーの逆流 import を error 化
   - 詳細: [architecture.md#@axe/core/\*](architecture.md#axecore) 以降の各層 / [../eslint.config.ts](../eslint.config.ts)
+- **Tailwind class 整列**: `eslint-plugin-better-tailwindcss` で canonical 変換 / 並び替え / 改行整形
 
 設定: [../eslint.config.ts](../eslint.config.ts)
