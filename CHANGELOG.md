@@ -1,3 +1,16 @@
+## [1.8.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.8.0...v1.8.1) (2026-06-01)
+
+### 🐛 Bug Fixes
+
+* **chat:** forward reply and quote info from chat palette ([ce4ad8f](https://github.com/SavageChieftain/udonarium_axe/commit/ce4ad8f1d89257e524e14f8a6f44fdfef73de0d9))
+* **chat:** reveal jump-to-latest button as messages pile up when auto-follow is off ([1fe4191](https://github.com/SavageChieftain/udonarium_axe/commit/1fe4191960f4bab9739a5c1708ff5cd00e0010c6))
+
+### 📝 Documentation
+
+* fix stale references and clarify dependency diagram ([5682393](https://github.com/SavageChieftain/udonarium_axe/commit/5682393914fcdd1b29c4cbfff3bd2bfd02fc2a16))
+* **github:** add bug report and feature request issue templates ([567e5bc](https://github.com/SavageChieftain/udonarium_axe/commit/567e5bc73b2c8b07ed81639a25acfd37f838b9f1))
+* rewrite README and add docs/features.md ([abb85e9](https://github.com/SavageChieftain/udonarium_axe/commit/abb85e96a5ce2b605437bae4230cf41b44ffbed1))
+
 ## [1.8.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.7.0...v1.8.0) (2026-05-31)
 
 ### ✨ Features
