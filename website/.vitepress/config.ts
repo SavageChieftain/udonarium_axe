@@ -13,11 +13,24 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'ガイド', link: '/guide/getting-started' },
+      { text: '操作マニュアル', link: '/manual/' },
       { text: 'バックエンド', link: '/guide/backend' },
-      { text: '機能', link: '/guide/features' },
       { text: 'リリースノート', link: '/release-notes/' },
     ],
     sidebar: {
+      '/manual/': [
+        {
+          text: '操作マニュアル',
+          items: [
+            { text: '画面の見かた', link: '/manual/' },
+            { text: 'テーブルとオブジェクト', link: '/manual/tabletop' },
+            { text: 'キャラクターコマ', link: '/manual/character' },
+            { text: 'カード・ダイス・共有メモ', link: '/manual/cards-dice' },
+            { text: 'チャットとダイスボット', link: '/manual/chat' },
+            { text: 'パネル機能', link: '/manual/panels' },
+          ],
+        },
+      ],
       '/guide/': [
         {
           text: 'はじめに',
