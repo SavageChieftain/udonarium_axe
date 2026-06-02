@@ -417,6 +417,7 @@ export class GameTableComponent {
   readonly rangesBySurface = computed(() => GameTableComponent.bySurface(this.ranges()));
   readonly textNotesBySurface = computed(() => GameTableComponent.bySurface(this.textNotes()));
   readonly diceSymbolsBySurface = computed(() => GameTableComponent.bySurface(this.diceSymbols()));
+  readonly terrainsBySurface = computed(() => GameTableComponent.bySurface(this.terrains()));
 
   onContextMenu(e: MouseEvent) {
     if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;

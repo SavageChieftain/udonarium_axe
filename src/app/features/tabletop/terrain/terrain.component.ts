@@ -18,11 +18,12 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
-import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -33,6 +34,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
@@ -273,6 +275,11 @@ export class TerrainComponent {
   readonly isVisibleWallTopBottom = computed(() => 0 < this.width() * this.height());
   readonly isVisibleWallLeftRight = computed(() => 0 < this.depth() * this.height());
 
+  readonly onWall = computed(() => {
+    this.terrainVersion();
+    return surfaceOf(this.terrain()) !== 'floor';
+  });
+
   get gridSize(): number {
     return this.tabletopService.gridSize();
   }
@@ -509,7 +516,12 @@ export class TerrainComponent {
       this.translateFn,
       overlapEntries
     );
-    this.contextMenuService.open(menuPosition, menuArray, this.name());
+    const surfaceEntries = buildSurfaceSwitchContextMenu(this.terrain()!, this.currentTable, this.translateFn);
+    this.contextMenuService.open(
+      menuPosition,
+      surfaceEntries.length > 0 ? [...menuArray, ContextMenuSeparator, ...surfaceEntries] : menuArray,
+      this.name()
+    );
   }
 
   onMove() {

@@ -19,7 +19,7 @@
     (rotable.ondragend)="onMoved()"
     [rotable.disable]="isLocked() || tabletopService.mode2d()"
   >
-    @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
+    @if (!onWall() && hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
       @if (isDropShadow() && (terreinAltitude() !== 0 || (isSlope() && !hasWall()))) {
         <div
           class="chrome-smooth-image-trick absolute size-full transform-[translateZ(0.3px)_scale(0.98)] bg-size-[100%_100%] bg-no-repeat opacity-70 filter-[brightness(0)_blur(1px)] backface-visible transform-3d"
@@ -33,7 +33,7 @@
     <div
       class="absolute z-1 size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
       [class.transition-[transform_132ms_cubic-bezier(0.21,0.97,0.75,1.25)]]="height() >= 0.5 && altitude() === 0"
-      [ngStyle]="{ transform: 'translateZ(' + altitude() * gridSize + 'px)' }"
+      [ngStyle]="{ transform: (onWall() ? 'rotateY(180deg) ' : '') + 'translateZ(' + altitude() * gridSize + 'px)' }"
     >
       @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
@@ -249,6 +249,7 @@
     </div>
   </div>
   @if (
+    !onWall() &&
     isAltitudeIndicate() &&
     !((isSlope() || isWallExist()) && -height() < altitude() && altitude() < 0) &&
     (terreinAltitude() <= -0.5 || 0.5 <= terreinAltitude())
