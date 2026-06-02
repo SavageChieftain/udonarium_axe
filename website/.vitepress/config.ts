@@ -19,17 +19,52 @@ export default defineConfig({
     ],
     sidebar: {
       '/manual/': [
+        { text: 'はじめに', items: [{ text: '画面の見かた', link: '/manual/' }] },
         {
-          text: '操作マニュアル',
+          text: 'テーブル',
           items: [
-            { text: '画面の見かた', link: '/manual/' },
-            { text: 'テーブルとオブジェクト', link: '/manual/tabletop' },
+            { text: '視点とテーブル操作', link: '/manual/tabletop' },
+            { text: 'テーブル設定', link: '/manual/table-setting' },
+            { text: '地形', link: '/manual/terrain' },
+            { text: 'マップマスク', link: '/manual/map-mask' },
+          ],
+        },
+        {
+          text: 'オブジェクト',
+          items: [
+            { text: 'オブジェクトの基本操作', link: '/manual/objects' },
             { text: 'キャラクターコマ', link: '/manual/character' },
+            { text: 'バフ／デバフ', link: '/manual/buff' },
             { text: 'カード', link: '/manual/cards' },
             { text: 'ダイス', link: '/manual/dice' },
             { text: '共有メモ', link: '/manual/notes' },
-            { text: 'チャットとダイスボット', link: '/manual/chat' },
-            { text: 'パネル機能', link: '/manual/panels' },
+            { text: '射程範囲', link: '/manual/range' },
+          ],
+        },
+        {
+          text: 'チャット',
+          items: [
+            { text: 'チャットの基本', link: '/manual/chat' },
+            { text: 'ダイスボット', link: '/manual/dicebot' },
+            { text: 'チャットパレット', link: '/manual/chat-palette' },
+            { text: '投票・点呼', link: '/manual/vote' },
+            { text: 'アラーム', link: '/manual/alarm' },
+          ],
+        },
+        {
+          text: 'メディア',
+          items: [
+            { text: '画像', link: '/manual/images' },
+            { text: 'ジュークボックス', link: '/manual/jukebox' },
+            { text: 'カットイン', link: '/manual/cut-in' },
+          ],
+        },
+        {
+          text: '管理・全体',
+          items: [
+            { text: 'インベントリ', link: '/manual/inventory' },
+            { text: '保存と読み込み', link: '/manual/save-load' },
+            { text: 'テーマ', link: '/manual/theme' },
           ],
         },
       ],

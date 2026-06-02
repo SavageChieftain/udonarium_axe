@@ -31,10 +31,27 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 
 ## このマニュアルの構成
 
-- [テーブルとオブジェクト](/manual/tabletop) — 視点操作とオブジェクトの配置・移動
-- [キャラクターコマ](/manual/character) — コマの作成・メニュー・シート
-- [カード](/manual/cards) — 山札とカードの操作
-- [ダイス](/manual/dice) — ダイスシンボルとダイスボット
-- [共有メモ](/manual/notes) — テーブルに貼るメモ
-- [チャットとダイスボット](/manual/chat) — 発言・ダイス・タブ設定
-- [パネル機能](/manual/panels) — テーブル設定・画像・音楽・インベントリ
+**テーブル**
+
+- [視点とテーブル操作](/manual/tabletop) — 視点移動・ズーム・2D
+- [テーブル設定](/manual/table-setting) — グリッド・スナップ・背景
+- [地形](/manual/terrain) / [マップマスク](/manual/map-mask)
+
+**オブジェクト**
+
+- [オブジェクトの基本操作](/manual/objects) — 移動・回転・高度・複数選択
+- [キャラクターコマ](/manual/character) / [バフ・デバフ](/manual/buff)
+- [カード](/manual/cards) / [ダイス](/manual/dice) / [共有メモ](/manual/notes) / [射程範囲](/manual/range)
+
+**チャット**
+
+- [チャットの基本](/manual/chat) / [ダイスボット](/manual/dicebot) / [チャットパレット](/manual/chat-palette)
+- [投票・点呼](/manual/vote) / [アラーム](/manual/alarm)
+
+**メディア**
+
+- [画像](/manual/images) / [ジュークボックス](/manual/jukebox) / [カットイン](/manual/cut-in)
+
+**管理・全体**
+
+- [インベントリ](/manual/inventory) / [保存と読み込み](/manual/save-load) / [テーマ](/manual/theme)
