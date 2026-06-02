@@ -35,6 +35,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
 const NEAR_BOTTOM_THRESHOLD_PX = 350;
+const AT_BOTTOM_THRESHOLD_PX = 8;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -181,7 +182,8 @@ export class ChatWindowComponent {
     }, this.destroyRef);
     this.objectChange.writingMessage$.subscribe((event) => {
       if (event.isSendFromSelf || event.tabIdentifier !== this.chatTabidentifier) return;
-      if (!this.isNearBottom()) return;
+      const distance = this.distanceFromBottom();
+      if (distance == null || distance > AT_BOTTOM_THRESHOLD_PX) return;
       if (!this.chatPrefs.autoFollowScroll()) return;
       setTimeout(() => {
         const panel = this.panelService.scrollablePanel;
@@ -250,9 +252,8 @@ export class ChatWindowComponent {
   private onScrollPositionChange() {
     const distance = this.distanceFromBottom();
     if (distance == null) return;
-    const nearBottom = distance <= NEAR_BOTTOM_THRESHOLD_PX;
-    this.isNearBottom.set(nearBottom);
-    if (nearBottom) {
+    this.isNearBottom.set(distance <= NEAR_BOTTOM_THRESHOLD_PX);
+    if (distance <= AT_BOTTOM_THRESHOLD_PX) {
       this.hasNewMessage.set(false);
       this.newMessageCount.set(0);
     }
@@ -296,7 +297,7 @@ export class ChatWindowComponent {
   checkAutoScroll() {
     const distance = this.distanceFromBottom();
     if (distance == null) return;
-    this.isAutoScroll = distance <= NEAR_BOTTOM_THRESHOLD_PX;
+    this.isAutoScroll = distance <= AT_BOTTOM_THRESHOLD_PX;
   }
 
   updatePanelTitle() {

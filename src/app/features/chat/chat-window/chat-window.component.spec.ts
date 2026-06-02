@@ -273,4 +273,61 @@ describe('ChatWindowComponent', () => {
       }
     });
   });
+
+  describe('最下段にいる時だけ追従する判定', () => {
+    function setPanel(scrollTop: number) {
+      const panelEl = document.createElement('div');
+      Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
+      Object.defineProperty(panelEl, 'clientHeight', { value: 500, configurable: true });
+      panelEl.scrollTop = scrollTop;
+      const priv = component as unknown as { panelService: { scrollablePanel: HTMLDivElement | null } };
+      priv.panelService.scrollablePanel = panelEl;
+      return priv;
+    }
+
+    it('最下段なら checkAutoScroll で追従が有効になること', () => {
+      fixture.detectChanges();
+      const priv = setPanel(500) as unknown as { isAutoScroll: boolean };
+      priv.isAutoScroll = false;
+
+      component.checkAutoScroll();
+
+      expect(priv.isAutoScroll).toBe(true);
+    });
+
+    it('一行分でも上に遡っていたら checkAutoScroll で追従しないこと', () => {
+      fixture.detectChanges();
+      const priv = setPanel(470) as unknown as { isAutoScroll: boolean };
+      priv.isAutoScroll = true;
+
+      component.checkAutoScroll();
+
+      expect(priv.isAutoScroll).toBe(false);
+    });
+
+    it('最下段に戻ると新着バッジがリセットされること', () => {
+      fixture.detectChanges();
+      const priv = setPanel(500) as unknown as { onScrollPositionChange: () => void };
+      component.newMessageCount.set(3);
+      component.hasNewMessage.set(true);
+
+      priv.onScrollPositionChange();
+
+      expect(component.newMessageCount()).toBe(0);
+      expect(component.hasNewMessage()).toBe(false);
+    });
+
+    it('遡って閲覧中（最下段付近だが下端ではない）は新着バッジを保持すること', () => {
+      fixture.detectChanges();
+      const priv = setPanel(470) as unknown as { onScrollPositionChange: () => void };
+      component.newMessageCount.set(3);
+      component.hasNewMessage.set(true);
+
+      priv.onScrollPositionChange();
+
+      expect(component.newMessageCount()).toBe(3);
+      expect(component.hasNewMessage()).toBe(true);
+      expect(component.isNearBottom()).toBe(true);
+    });
+  });
 });
