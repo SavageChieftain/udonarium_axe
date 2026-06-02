@@ -36,6 +36,8 @@ import {
   MovableInteractionContext,
 } from '@axe/ui/directives/movable-interaction';
 
+const WALL_OCCLUSION_INSET_PX = 2;
+
 export interface MovableOption {
   readonly tabletopObject?: TabletopObject;
   readonly layerName?: string;
@@ -643,7 +645,7 @@ export class MovableDirective {
   private updateTransformCss() {
     const onWall = this.isOnWallSurface();
     const offset = onWall ? '' : this.transformCssOffset;
-    const posZ = onWall ? -this.posZ : this.posZ;
+    const posZ = onWall ? -this.posZ - WALL_OCCLUSION_INSET_PX : this.posZ;
     this.nativeElement.style.transform = toTransformCss(this.posX, this.posY, posZ, offset);
   }
 
