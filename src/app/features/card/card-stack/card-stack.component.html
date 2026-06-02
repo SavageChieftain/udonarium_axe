@@ -27,6 +27,8 @@
     <div
       class="border-ui-elevated bg-ui-elevated relative size-full rounded-[5px] border-[5px] border-solid backface-hidden transform-3d"
       [style.transform]="'translateZ(' + stackThicknessPx() + 'px)'"
+      [style.transform-style]="isPoster() ? 'inherit' : null"
+      [style.backface-visibility]="isPoster() ? 'visible' : null"
     >
       @if (topCard && imageFile()) {
         <div [class.shuffling]="animeState() === 'active'" (animationend)="onShuffleDone()">

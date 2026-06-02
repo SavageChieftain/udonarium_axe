@@ -27,6 +27,7 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { CardDrawCountDialogComponent } from '@axe/features/card/card-draw-count-dialog/card-draw-count-dialog.component';
 import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
@@ -123,9 +124,14 @@ export class CardStackComponent {
   private static readonly STACK_MAX_THICKNESS_PX = 60;
   private static readonly STACK_MAX_LAYERS = 30;
 
+  readonly isPoster = computed(() => {
+    this.objectChange.versionOf(this.cardStack().identifier)();
+    return surfaceOf(this.cardStack()) !== 'floor';
+  });
+
   protected readonly stackThicknessPx = computed<number>(() => {
     this.cardsVersion();
-    if (this.tabletopService.mode2d()) return 0;
+    if (this.tabletopService.mode2d() || this.isPoster()) return 0;
     const count = this.cardStack().cards.length;
     if (count <= 1) return 0;
     return Math.min(CardStackComponent.STACK_MAX_THICKNESS_PX, count * CardStackComponent.STACK_PIXELS_PER_CARD);
@@ -133,7 +139,7 @@ export class CardStackComponent {
 
   protected readonly stackLayers = computed<readonly { z: number; bg: string }[]>(() => {
     this.cardsVersion();
-    if (this.tabletopService.mode2d()) return [];
+    if (this.tabletopService.mode2d() || this.isPoster()) return [];
     const count = this.cardStack().cards.length;
     if (count <= 1) return [];
     const thickness = this.stackThicknessPx();
