@@ -19,6 +19,8 @@
     @if (imageFile()) {
       <img
         class="m-auto block h-auto w-full [transform-style:inherit]"
+        [style.transform]="isPoster() ? 'rotateY(180deg)' : null"
+        [style.backface-visibility]="isPoster() ? 'hidden' : null"
         [src]="(isFront ? frontImage.url : backImage.url) | safe: 'resourceUrl'"
       />
     }
@@ -33,6 +35,8 @@
     @if (isHand && frontImage) {
       <img
         class="absolute m-auto block h-auto w-full scale-90 filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
+        [style.transform]="isPoster() ? 'rotateY(180deg)' : null"
+        [style.backface-visibility]="isPoster() ? 'hidden' : null"
         [src]="frontImage.url | safe: 'resourceUrl'"
       />
     }
