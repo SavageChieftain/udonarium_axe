@@ -25,7 +25,6 @@ import { Card, CardState } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
@@ -85,10 +84,6 @@ export class CardComponent {
       if (cursor) this.objectChange.versionOf(cursor.identifier)();
     }
     return this.card().name;
-  });
-  readonly isPoster = computed(() => {
-    this.objectChange.versionOf(this.card().identifier)();
-    return surfaceOf(this.card()) !== 'floor';
   });
   get state(): CardState {
     return this.card().state;
