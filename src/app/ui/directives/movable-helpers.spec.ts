@@ -9,7 +9,11 @@ import {
   calcHexVertexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
+  ContactFootprint,
+  findContactSupportZ,
+  MovableCoordinateResolver,
   MovableLayerItem,
+  resolveMovableLocalCoordinate,
   setLayerCollidable,
   shouldTransitionTo,
   toTransformCss,
@@ -346,6 +350,65 @@ describe('movable-helpers', () => {
       const edgeResult = calcHexEdgeMidpointSnapPosition(mx - 0.5, my, gridSize, GridType.HEX_VERTICAL);
       expect(result.x).toBeCloseTo(edgeResult.x);
       expect(result.y).toBeCloseTo(edgeResult.y);
+    });
+  });
+
+  describe('findContactSupportZ', () => {
+    const footprints: ContactFootprint[] = [
+      { left: 0, top: 0, right: 100, bottom: 100, topZ: 50 },
+      { left: 0, top: 0, right: 100, bottom: 100, topZ: 150 },
+      { left: 500, top: 500, right: 600, bottom: 600, topZ: 999 },
+    ];
+
+    it('中心を含む footprint のうち最も高い topZ を返す', () => {
+      expect(findContactSupportZ(footprints, 50, 50)).toBe(150);
+    });
+
+    it('どの footprint にも含まれなければ 0 (床)', () => {
+      expect(findContactSupportZ(footprints, 300, 300)).toBe(0);
+    });
+
+    it('footprint が空なら 0', () => {
+      expect(findContactSupportZ([], 50, 50)).toBe(0);
+    });
+  });
+
+  describe('resolveMovableLocalCoordinate', () => {
+    function makeSurface(surface?: string): HTMLElement {
+      const el = document.createElement('div');
+      if (surface) el.dataset.surface = surface;
+      return el;
+    }
+
+    const resolver: MovableCoordinateResolver = {
+      convertToLocal: (c) => ({ x: c.x, y: c.y, z: 0 }),
+    };
+
+    it('床ではポインタ中心の接触支持 Z を採り、地形の天面に乗る (接触判定の復元)', () => {
+      const floor = makeSurface('floor');
+      const contactSupportZ = (cx: number, cy: number) => (cx === 10 && cy === 20 ? 100 : 0);
+
+      const result = resolveMovableLocalCoordinate(resolver, floor, { x: 10, y: 20, z: 0 }, contactSupportZ);
+
+      expect(result).toEqual({ x: 10, y: 20, z: 100 });
+    });
+
+    it('壁サーフェスではサーフェス投影し、面に垂直な Z は 0 に保つ (壁機能の保護)', () => {
+      const wall = makeSurface('north');
+      const contactSupportZ = () => 999;
+
+      const result = resolveMovableLocalCoordinate(resolver, wall, { x: 5, y: 6, z: 0 }, contactSupportZ);
+
+      expect(result).toEqual({ x: 5, y: 6, z: 0 });
+    });
+
+    it('床で支持が無ければ Z=0 (床が浮かない)', () => {
+      const floor = makeSurface('floor');
+      const contactSupportZ = () => 0;
+
+      const result = resolveMovableLocalCoordinate(resolver, floor, { x: 1, y: 2, z: 0 }, contactSupportZ);
+
+      expect(result).toEqual({ x: 1, y: 2, z: 0 });
     });
   });
 });

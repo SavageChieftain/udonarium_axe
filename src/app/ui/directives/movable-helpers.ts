@@ -1,6 +1,29 @@
+import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCellCenter, hexCircumradius, hexSpacing, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+
+export interface MovableCoordinateResolver {
+  convertToLocal(pointer: PointerCoordinate, element: HTMLElement): PointerCoordinate;
+}
+
+export interface ContactFootprint {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  topZ: number;
+}
+
+export function findContactSupportZ(footprints: ContactFootprint[], centerX: number, centerY: number): number {
+  let maxZ = 0;
+  for (const footprint of footprints) {
+    if (centerX < footprint.left || centerX > footprint.right) continue;
+    if (centerY < footprint.top || centerY > footprint.bottom) continue;
+    if (footprint.topZ > maxZ) maxZ = footprint.topZ;
+  }
+  return maxZ;
+}
 
 export type MovableLayerItem = {
   layerName: string;
@@ -194,6 +217,21 @@ export function shouldTransitionTo(
 ): boolean {
   if (!object?.location) return false;
   return object.location.x !== posX || object.location.y !== posY || object.posZ !== posZ;
+}
+
+export function resolveMovableLocalCoordinate(
+  coordinateService: MovableCoordinateResolver,
+  surfaceElement: HTMLElement,
+  pointer2d: PointerCoordinate,
+  contactSupportZ: (centerX: number, centerY: number) => number
+): PointerCoordinate {
+  const surface = surfaceElement.dataset.surface;
+  const isWallSurface = !!surface && surface !== 'floor';
+  const local = coordinateService.convertToLocal(pointer2d, surfaceElement);
+  if (isWallSurface) {
+    return { x: local.x, y: local.y, z: 0 };
+  }
+  return { x: local.x, y: local.y, z: Math.max(0, contactSupportZ(local.x, local.y)) };
 }
 
 export function collectCollidableElements(root: HTMLElement): HTMLElement[] {

@@ -1,5 +1,6 @@
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { resolveMovableLocalCoordinate } from '@axe/ui/directives/movable-helpers';
 
 export interface MovableInteractionContext {
   isGridSnap: boolean;
@@ -15,6 +16,7 @@ export interface MovableInteractionContext {
   coordinateService: CoordinateService;
   nativeElement: HTMLElement;
   surfaceElement(): HTMLElement;
+  contactSupportZ(centerX: number, centerY: number): number;
   posX: number;
   posY: number;
   posZ: number;
@@ -101,10 +103,14 @@ export function handleInputMove(context: MovableInteractionContext, e: MouseEven
   pointer2d.x = Math.min(window.innerWidth - 0.1, Math.max(pointer2d.x, 0.1));
   pointer2d.y = Math.min(window.innerHeight - 0.1, Math.max(pointer2d.y, 0.1));
 
-  const pointer3d = context.coordinateService.convertToLocal(pointer2d, context.surfaceElement());
+  const pointer3d = resolveMovableLocalCoordinate(
+    context.coordinateService,
+    context.surfaceElement(),
+    pointer2d,
+    (centerX, centerY) => context.contactSupportZ(centerX, centerY)
+  );
   pointer3d.x -= context.width / 2;
   pointer3d.y -= context.height / 2;
-  pointer3d.z = 0;
 
   if (context.posX === pointer3d.x && context.posY === pointer3d.y && context.posZ === pointer3d.z) return;
 

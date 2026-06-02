@@ -1,5 +1,6 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
 import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -19,6 +20,8 @@ import {
   calcHexVertexSnapPosition,
   calcSnapNum,
   collectCollidableElements,
+  ContactFootprint,
+  findContactSupportZ,
   registerLayer,
   setLayerCollidable,
   shouldTransitionTo,
@@ -56,6 +59,7 @@ export class MovableDirective {
   private readonly destroyRef = inject(DestroyRef);
 
   private registeredOverlapId: string | null = null;
+  private contactProbe: ContactFootprint[] | null = null;
 
   private static layerHash: { [layerName: string]: MovableDirective[] } = {};
 
@@ -253,6 +257,36 @@ export class MovableDirective {
     }
   }
 
+  contactSupportZ(centerX: number, centerY: number): number {
+    if (this.contactProbe === null) this.contactProbe = this.buildContactProbe();
+    return findContactSupportZ(this.contactProbe, centerX, centerY);
+  }
+
+  private buildContactProbe(): ContactFootprint[] {
+    if (this.isOnWallSurface()) return [];
+    const selfId = this.tabletopObject?.identifier;
+    const footprints: ContactFootprint[] = [];
+    for (const entry of this.tabletopOverlap.entries()) {
+      if (entry.object.identifier === selfId) continue;
+      const surface = entry.object.location?.surface;
+      if (surface && surface !== 'floor') continue;
+      const left = entry.object.location.x;
+      const top = entry.object.location.y;
+      footprints.push({
+        left,
+        top,
+        right: left + entry.element.offsetWidth,
+        bottom: top + entry.element.offsetHeight,
+        topZ: GravityService.topZ(entry.object),
+      });
+    }
+    return footprints;
+  }
+
+  private clearContactProbe() {
+    this.contactProbe = null;
+  }
+
   initialize() {
     this.input = new InputHandler(this.nativeElement);
     this.input.onStart = (e) => this.onInputStart(e);
@@ -270,6 +304,7 @@ export class MovableDirective {
     this.setPointerEvents(true);
     this.setAnimatedTransition(true);
     this.setCollidableLayer(false);
+    this.clearContactProbe();
   }
 
   cancelTableGesture() {
