@@ -44,7 +44,7 @@ const FORBID_FOR_UI = {
 
 export default defineConfig([
   {
-    ignores: ['projects/**/*'],
+    ignores: ['projects/**/*', 'website/**'],
   },
   {
     files: ['**/*.ts'],

@@ -1,1 +1,5 @@
 plan-*.md
+
+# VitePress build artifacts (docs site)
+website/.vitepress/dist
+website/.vitepress/cache
