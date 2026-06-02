@@ -2,7 +2,7 @@
   class="group pointer-events-none absolute h-0 w-px cursor-default select-none [-moz-user-drag:none] [-webkit-transform-style:preserve-3d] [-webkit-user-drag:none] backface-hidden transform-3d"
   appMovable
   [movable.option]="movableOption()"
-  [movable.disable]="isSelected"
+  [movable.disable]="isSelected || isLock"
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >
@@ -53,7 +53,7 @@
           }
           @if (isEditing()) {
             <textarea
-              class="text-ui-text transform-style-flat m-0 box-border min-h-0 w-full flex-1 resize-none overflow-x-hidden overflow-y-auto rounded-none border-none bg-transparent px-2.5 py-2 font-sans text-base leading-[1.65] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-wrap antialiased outline-none backface-hidden focus:bg-white/3 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-xs [&::-webkit-scrollbar-thumb]:bg-(--ui-panel-border) [&::-webkit-scrollbar-track]:bg-transparent"
+              class="text-ui-text transform-style-flat m-0 box-border min-h-0 w-full flex-1 resize-none overflow-x-hidden overflow-y-auto rounded-none border-none bg-transparent px-2.5 py-2 font-sans text-base leading-[1.65] wrap-anywhere [word-break:break-word] whitespace-pre-wrap antialiased outline-none backface-hidden focus:bg-white/3 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-xs [&::-webkit-scrollbar-thumb]:bg-(--ui-panel-border) [&::-webkit-scrollbar-track]:bg-transparent"
               (input)="calcFitHeight()"
               (blur)="onTextAreaBlur()"
               #textArea
@@ -66,7 +66,7 @@
             ></textarea>
           } @else {
             <div
-              class="text-ui-text transform-style-flat [&_a]:text-ui-accent m-0 box-border min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2.5 py-2 font-sans text-base leading-[1.65] [overflow-wrap:anywhere] wrap-break-word [word-break:break-word] whitespace-pre-line antialiased backface-hidden [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-xs [&::-webkit-scrollbar-thumb]:bg-(--ui-panel-border) [&::-webkit-scrollbar-track]:bg-transparent"
+              class="text-ui-text transform-style-flat [&_a]:text-ui-accent m-0 box-border min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2.5 py-2 font-sans text-base leading-[1.65] wrap-anywhere [word-break:break-word] whitespace-pre-line antialiased backface-hidden [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-xs [&::-webkit-scrollbar-thumb]:bg-(--ui-panel-border) [&::-webkit-scrollbar-track]:bg-transparent"
               [attr.data-v]="textNoteVersion()"
               [style.font-size.px]="fontSize + 9"
               [innerHTML]="decoratedHtml() | linkify | safe"
