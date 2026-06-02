@@ -225,12 +225,7 @@ export function resolveMovableLocalCoordinate(
   pointer2d: PointerCoordinate,
   contactSupportZ: (centerX: number, centerY: number) => number
 ): PointerCoordinate {
-  const surface = surfaceElement.dataset.surface;
-  const isWallSurface = !!surface && surface !== 'floor';
   const local = coordinateService.convertToLocal(pointer2d, surfaceElement);
-  if (isWallSurface) {
-    return { x: local.x, y: local.y, z: 0 };
-  }
   return { x: local.x, y: local.y, z: Math.max(0, contactSupportZ(local.x, local.y)) };
 }
 

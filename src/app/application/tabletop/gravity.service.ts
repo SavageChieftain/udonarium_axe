@@ -3,7 +3,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 
 const GRID_PX = 50;
@@ -65,7 +65,7 @@ export class GravityService {
   private apply(): void {
     this.applying = true;
     try {
-      const entries = this.overlapService.entries();
+      const entries = this.overlapService.entries().filter((e) => surfaceOf(e.object) === 'floor');
       if (entries.length === 0) return;
 
       // Footprint と Z を一度だけ読み出し、以降の inner loop で reflow を起こさないキャッシュにする
@@ -122,6 +122,12 @@ export class GravityService {
     const baseZ = obj.altitude * GRID_PX + obj.posZ;
     if (obj instanceof Terrain) return baseZ + obj.height * GRID_PX;
     return baseZ;
+  }
+
+  static contactTopZ(obj: TabletopObject, surface: TableSurface): number {
+    if (surface === 'floor') return GravityService.topZ(obj);
+    const heightPx = obj instanceof Terrain ? obj.height * GRID_PX : 0;
+    return obj.posZ + heightPx;
   }
 
   private static footprintCenter(entry: TabletopOverlapRegistryEntry): { x: number; y: number } {

@@ -71,6 +71,23 @@ describe('GravityService.topZ', () => {
   });
 });
 
+describe('GravityService.contactTopZ', () => {
+  it('床では topZ と同じ (altitude を含む)', () => {
+    const entry = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, altitude: 1, posZ: 25 });
+    expect(GravityService.contactTopZ(entry.object, 'floor')).toBe(GravityService.topZ(entry.object));
+  });
+
+  it('壁では posZ + 地形の height のみ (altitude は不使用)', () => {
+    const entry = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, altitude: 1, posZ: 25 });
+    expect(GravityService.contactTopZ(entry.object, 'north-wall')).toBe(25 + 2 * 50);
+  });
+
+  it('壁では地形以外は posZ のみ (奥行きなし)', () => {
+    const entry = makeCharacter({ x: 0, y: 0, altitude: 1, posZ: 10 });
+    expect(GravityService.contactTopZ(entry.object, 'east-wall')).toBe(10);
+  });
+});
+
 describe('GravityService.findSupportZ', () => {
   it('対象の中心が他オブジェクトの footprint 内にあれば topZ を支台として返す', () => {
     const base = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 2, identifier: 'base' });

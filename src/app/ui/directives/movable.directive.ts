@@ -10,7 +10,7 @@ import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer
 import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import {
   applyPointerEvents,
@@ -263,13 +263,13 @@ export class MovableDirective {
   }
 
   private buildContactProbe(): ContactFootprint[] {
-    if (this.isOnWallSurface()) return [];
-    const selfId = this.tabletopObject?.identifier;
+    const self = this.tabletopObject;
+    if (!self) return [];
+    const selfSurface = surfaceOf(self);
     const footprints: ContactFootprint[] = [];
     for (const entry of this.tabletopOverlap.entries()) {
-      if (entry.object.identifier === selfId) continue;
-      const surface = entry.object.location?.surface;
-      if (surface && surface !== 'floor') continue;
+      if (entry.object.identifier === self.identifier) continue;
+      if (surfaceOf(entry.object) !== selfSurface) continue;
       const left = entry.object.location.x;
       const top = entry.object.location.y;
       footprints.push({
@@ -277,7 +277,7 @@ export class MovableDirective {
         top,
         right: left + entry.element.offsetWidth,
         bottom: top + entry.element.offsetHeight,
-        topZ: GravityService.topZ(entry.object),
+        topZ: GravityService.contactTopZ(entry.object, selfSurface),
       });
     }
     return footprints;

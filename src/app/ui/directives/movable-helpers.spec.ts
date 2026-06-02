@@ -393,22 +393,30 @@ describe('movable-helpers', () => {
       expect(result).toEqual({ x: 10, y: 20, z: 100 });
     });
 
-    it('壁サーフェスではサーフェス投影し、面に垂直な Z は 0 に保つ (壁機能の保護)', () => {
+    it('壁サーフェスでも接触支持 Z を採る (壁の垂直方向にスタック)', () => {
       const wall = makeSurface('north');
-      const contactSupportZ = () => 999;
+      const contactSupportZ = (cx: number, cy: number) => (cx === 5 && cy === 6 ? 50 : 0);
 
       const result = resolveMovableLocalCoordinate(resolver, wall, { x: 5, y: 6, z: 0 }, contactSupportZ);
 
-      expect(result).toEqual({ x: 5, y: 6, z: 0 });
+      expect(result).toEqual({ x: 5, y: 6, z: 50 });
     });
 
-    it('床で支持が無ければ Z=0 (床が浮かない)', () => {
+    it('支持が無ければ Z=0 (床も壁も浮かない)', () => {
       const floor = makeSurface('floor');
+      const wall = makeSurface('north');
       const contactSupportZ = () => 0;
 
-      const result = resolveMovableLocalCoordinate(resolver, floor, { x: 1, y: 2, z: 0 }, contactSupportZ);
-
-      expect(result).toEqual({ x: 1, y: 2, z: 0 });
+      expect(resolveMovableLocalCoordinate(resolver, floor, { x: 1, y: 2, z: 0 }, contactSupportZ)).toEqual({
+        x: 1,
+        y: 2,
+        z: 0,
+      });
+      expect(resolveMovableLocalCoordinate(resolver, wall, { x: 1, y: 2, z: 0 }, contactSupportZ)).toEqual({
+        x: 1,
+        y: 2,
+        z: 0,
+      });
     });
   });
 });
