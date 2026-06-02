@@ -1,3 +1,18 @@
+## [1.9.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.8.1...v1.9.0) (2026-06-02)
+
+### ✨ Features
+
+* **tabletop:** make object contact stacking surface-aware ([f569b14](https://github.com/SavageChieftain/udonarium_axe/commit/f569b14feffc8ce97404af73b41ed291eef926b7))
+* **tabletop:** render and place terrain on wall surfaces ([a0233d3](https://github.com/SavageChieftain/udonarium_axe/commit/a0233d30256c55344e315d5d4beb075120621059))
+* **tabletop:** stack objects inward when on a wall surface ([acd425b](https://github.com/SavageChieftain/udonarium_axe/commit/acd425b3bfb8a9e798cec4ac91c6b6779d93ebff))
+
+### 🐛 Bug Fixes
+
+* **card:** render card stack as a flat poster on wall surfaces ([cec273d](https://github.com/SavageChieftain/udonarium_axe/commit/cec273d30b346fa76ba345091283b54d0eb54fb2))
+* **dice:** restore dice image brightness with chrome-smooth-image-trick ([b19c9b6](https://github.com/SavageChieftain/udonarium_axe/commit/b19c9b691c816321472f80d18d5d70067a621882))
+* **tabletop:** inset wall objects so the wall occludes them from behind ([b721aba](https://github.com/SavageChieftain/udonarium_axe/commit/b721abacb80f009e1832cc58a1507eab6dd27e39))
+* **tabletop:** restore object stacking via overlap-geometry contact ([f324da8](https://github.com/SavageChieftain/udonarium_axe/commit/f324da8cf151a5a066b4f03e9e3d5023bd9c4aa2))
+
 ## [1.8.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.8.0...v1.8.1) (2026-06-01)
 
 ### 🐛 Bug Fixes
