@@ -641,8 +641,10 @@ export class MovableDirective {
   }
 
   private updateTransformCss() {
-    const offset = this.isOnWallSurface() ? '' : this.transformCssOffset;
-    this.nativeElement.style.transform = toTransformCss(this.posX, this.posY, this.posZ, offset);
+    const onWall = this.isOnWallSurface();
+    const offset = onWall ? '' : this.transformCssOffset;
+    const posZ = onWall ? -this.posZ : this.posZ;
+    this.nativeElement.style.transform = toTransformCss(this.posX, this.posY, posZ, offset);
   }
 
   setCollidableLayer(isCollidable: boolean) {
