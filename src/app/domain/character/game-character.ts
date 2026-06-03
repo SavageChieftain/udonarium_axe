@@ -35,6 +35,8 @@ export class GameCharacter extends TabletopObject {
 
   @SyncVar() hideInventory: boolean = false;
   @SyncVar() nonTalkFlag: boolean = false;
+  @SyncVar() hideName: boolean = false;
+  @SyncVar() hideBuff: boolean = false;
   @SyncVar() overViewWidth: number = 270;
   @SyncVar() overViewMaxHeight: number = 250;
 

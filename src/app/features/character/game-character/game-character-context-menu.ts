@@ -164,6 +164,42 @@ export function buildGameCharacterContextMenu(
             SoundEffect.play(PresetSound.sweep);
           },
         },
+    {
+      name: t('feature.character.contextMenu.displaySettings'),
+      action: undefined,
+      subActions: [
+        char.hideName
+          ? {
+              name: t('feature.character.contextMenu.hideNameOn'),
+              action: () => {
+                char.hideName = false;
+                SoundEffect.play(PresetSound.sweep);
+              },
+            }
+          : {
+              name: t('feature.character.contextMenu.hideNameOff'),
+              action: () => {
+                char.hideName = true;
+                SoundEffect.play(PresetSound.sweep);
+              },
+            },
+        char.hideBuff
+          ? {
+              name: t('feature.character.contextMenu.hideBuffOn'),
+              action: () => {
+                char.hideBuff = false;
+                SoundEffect.play(PresetSound.sweep);
+              },
+            }
+          : {
+              name: t('feature.character.contextMenu.hideBuffOff'),
+              action: () => {
+                char.hideBuff = true;
+                SoundEffect.play(PresetSound.sweep);
+              },
+            },
+      ],
+    },
     ContextMenuSeparator,
     {
       name: t('feature.character.contextMenu.moveCommon'),

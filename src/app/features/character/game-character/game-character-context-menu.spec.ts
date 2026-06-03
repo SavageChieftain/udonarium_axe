@@ -12,6 +12,8 @@ interface MutableChar {
   isDropShadow: boolean;
   hideInventory: boolean;
   nonTalkFlag: boolean;
+  hideName: boolean;
+  hideBuff: boolean;
   isLock: boolean;
   setLocation: ReturnType<typeof vi.fn>;
   clone: ReturnType<typeof vi.fn>;
@@ -28,6 +30,8 @@ function makeChar(overrides: Partial<MutableChar> = {}): MutableChar {
     isDropShadow: false,
     hideInventory: false,
     nonTalkFlag: false,
+    hideName: false,
+    hideBuff: false,
     isLock: false,
     setLocation: vi.fn(),
     clone: vi.fn(() => ({ location: { x: 0, y: 0 }, update: vi.fn() })),
@@ -102,6 +106,38 @@ describe('buildGameCharacterContextMenu()', () => {
       t
     );
     expect(names(silent)).toContain('☑ 発言しない');
+  });
+
+  it('「表示」サブメニューで名前/バフ非表示のチェックが切り替わる', () => {
+    const def = buildGameCharacterContextMenu(
+      makeChar() as unknown as GameCharacter,
+      50,
+      makeService(),
+      callbacks(),
+      t
+    );
+    const display = def.find((m) => m.name === '表示');
+    expect(names(display!.subActions!)).toEqual(['☐ 名前を隠す', '☐ バフを隠す']);
+
+    const hidden = buildGameCharacterContextMenu(
+      makeChar({ hideName: true, hideBuff: true }) as unknown as GameCharacter,
+      50,
+      makeService(),
+      callbacks(),
+      t
+    );
+    const display2 = hidden.find((m) => m.name === '表示');
+    expect(names(display2!.subActions!)).toEqual(['☑ 名前を隠す', '☑ バフを隠す']);
+  });
+
+  it('「名前を隠す」「バフを隠す」アクションでフラグが反転する', () => {
+    const char = makeChar();
+    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
+    const display = menu.find((m) => m.name === '表示')!;
+    display.subActions!.find((s) => s.name === '☐ 名前を隠す')!.action!();
+    display.subActions!.find((s) => s.name === '☐ バフを隠す')!.action!();
+    expect(char.hideName).toBe(true);
+    expect(char.hideBuff).toBe(true);
   });
 
   it('移動先 3 つ（共有 / 個人 / 墓場）が常に出る、それぞれ setLocation を呼ぶ', () => {

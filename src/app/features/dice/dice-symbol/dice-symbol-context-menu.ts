@@ -60,6 +60,24 @@ export function buildDiceSymbolContextMenu(
 
   actions.push(buildLockToggleAction(diceSymbol.isLock, (next) => (diceSymbol.isLock = next), t));
 
+  actions.push(
+    diceSymbol.hideName
+      ? {
+          name: t('feature.dice.contextMenu.hideNameOn'),
+          action: () => {
+            diceSymbol.hideName = false;
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+      : {
+          name: t('feature.dice.contextMenu.hideNameOff'),
+          action: () => {
+            diceSymbol.hideName = true;
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+  );
+
   actions.push(ContextMenuSeparator);
 
   actions.push({

@@ -164,6 +164,18 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(char.identifier)();
     return char.name;
   });
+  readonly hideName = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return false;
+    this.objectChange.versionOf(char.identifier)();
+    return char.hideName;
+  });
+  readonly hideBuff = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return false;
+    this.objectChange.versionOf(char.identifier)();
+    return char.hideBuff;
+  });
   readonly size = computed(() => {
     const char = this.gameCharacter();
     this.objectChange.versionOf(char?.identifier ?? '')();

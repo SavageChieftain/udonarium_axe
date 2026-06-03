@@ -25,6 +25,12 @@
           [(ngModel)]="size"
         />
       </div>
+      <div class="mb-2 flex items-center gap-2 last:mb-0">
+        <label class="text-ui-muted min-w-22.5 text-[12px]">{{
+          'feature.dice.symbolSheet.hideName' | transloco
+        }}</label>
+        <input type="checkbox" [(ngModel)]="hideName" />
+      </div>
     </section>
 
     <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">

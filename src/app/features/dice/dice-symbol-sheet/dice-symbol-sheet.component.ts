@@ -112,6 +112,14 @@ export class DiceSymbolSheetComponent {
     if (dice) dice.size = value;
   }
 
+  get hideName(): boolean {
+    return this._diceSymbol()?.hideName ?? false;
+  }
+  set hideName(value: boolean) {
+    const dice = this._diceSymbol();
+    if (dice) dice.hideName = value;
+  }
+
   get specifyKomaImageFlag(): boolean {
     return this._diceSymbol()?.specifyKomaImageFlag ?? false;
   }

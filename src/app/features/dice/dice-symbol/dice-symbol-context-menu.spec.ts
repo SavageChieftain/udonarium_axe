@@ -9,6 +9,7 @@ interface MutableDice {
   isMine: boolean;
   hasOwner: boolean;
   isLock: boolean;
+  hideName: boolean;
   owner: string;
   face: string;
   faces: string[];
@@ -23,6 +24,7 @@ function makeDice(overrides: Partial<MutableDice> = {}): MutableDice {
     isMine: false,
     hasOwner: false,
     isLock: false,
+    hideName: false,
     owner: '',
     face: '1',
     faces: ['1', '2', '3'],
@@ -79,6 +81,18 @@ describe('buildDiceSymbolContextMenu()', () => {
     const subs = menu.find((m) => m.name === 'ダイス目を設定')?.subActions;
     subs?.find((s) => s.name === '3')!.action!();
     expect(dice.face).toBe('3');
+  });
+
+  it('hideName でチェックマーク表示が切り替わり、アクションでフラグが反転する', () => {
+    const shown = makeDice({ hideName: false });
+    const shownMenu = buildDiceSymbolContextMenu(shown as unknown as DiceSymbol, 50, cb(), t);
+    expect(names(shownMenu)).toContain('☐ 名前を隠す');
+    shownMenu.find((m) => m.name === '☐ 名前を隠す')!.action!();
+    expect(shown.hideName).toBe(true);
+
+    const hidden = makeDice({ hideName: true });
+    const hiddenMenu = buildDiceSymbolContextMenu(hidden as unknown as DiceSymbol, 50, cb(), t);
+    expect(names(hiddenMenu)).toContain('☑ 名前を隠す');
   });
 
   it('「削除する」が dice.destroy() を呼ぶ', () => {

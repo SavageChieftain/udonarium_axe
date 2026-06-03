@@ -91,6 +91,10 @@ export class DiceSymbolComponent {
     }
     return this.diceSymbol().name;
   });
+  readonly hideName = computed(() => {
+    this.objectChange.versionOf(this.diceSymbol().identifier)();
+    return this.diceSymbol().hideName;
+  });
   readonly size = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
     return this.adjustMinBounds(this.diceSymbol().size);

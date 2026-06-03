@@ -104,6 +104,20 @@
           'feature.inventory.settingsTab.showShadow' | transloco
         }}
       </label>
+      <label
+        class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+      >
+        <input type="checkbox" [(ngModel)]="character().hideName" />{{
+          'feature.inventory.settingsTab.hideName' | transloco
+        }}
+      </label>
+      <label
+        class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+      >
+        <input type="checkbox" [(ngModel)]="character().hideBuff" />{{
+          'feature.inventory.settingsTab.hideBuff' | transloco
+        }}
+      </label>
     </div>
     <div class="flex items-center gap-1.5 text-[0.82em]">
       <span class="text-ui-muted min-w-[6em] shrink-0 text-[0.85em] whitespace-nowrap">{{

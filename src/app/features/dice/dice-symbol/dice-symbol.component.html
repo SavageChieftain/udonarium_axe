@@ -54,7 +54,7 @@
             [style.height.px]="size() * gridSize"
           >
             <div class="absolute inset-x-0 bottom-0 h-auto w-full transform-3d">
-              @if (name()) {
+              @if (name() && !hideName()) {
                 <div
                   class="absolute whitespace-nowrap transform-3d"
                   [ngStyle]="{

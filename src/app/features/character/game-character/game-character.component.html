@@ -118,7 +118,7 @@
           >
             <div class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d">
               @let buffEl = this.gameCharacter()!.buffDataElement;
-              @if (buffEl && buffNum() > 0) {
+              @if (buffEl && buffNum() > 0 && !hideBuff()) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
                   <div
                     class="absolute m-auto whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
@@ -190,7 +190,7 @@
                   </div>
                 </div>
               </div>
-              @if (name()) {
+              @if (name() && !hideName()) {
                 <div
                   class="absolute whitespace-nowrap [-webkit-transform-style:preserve-3d] transform-3d"
                   [ngStyle]="{
