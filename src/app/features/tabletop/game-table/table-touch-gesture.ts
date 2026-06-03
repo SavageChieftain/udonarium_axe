@@ -78,7 +78,7 @@ export class TableTouchGesture {
     const element = this.targetElement as HTMLElement;
     element.style.touchAction = 'none';
     element.addEventListener('pointerdown', this.onPointerDownBound, { passive: true });
-    element.addEventListener('pointermove', this.onPointerMoveBound, { passive: true });
+    element.addEventListener('pointermove', this.onPointerMoveBound, { passive: false });
     element.addEventListener('pointerup', this.onPointerUpBound, { passive: true });
     element.addEventListener('pointercancel', this.onPointerCancelBound, { passive: true });
   }
