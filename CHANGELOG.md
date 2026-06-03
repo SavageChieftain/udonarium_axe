@@ -1,3 +1,16 @@
+## [1.10.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.10.0...v1.10.1) (2026-06-03)
+
+### 🐛 Bug Fixes
+
+* **docs:** isolate the VitePress build from the root PostCSS config ([554c5c3](https://github.com/SavageChieftain/udonarium_axe/commit/554c5c3452f882587b47c6d0118b895ae3f3bebd))
+
+### 📝 Documentation
+
+* add operation manual to the documentation site ([8d78dbf](https://github.com/SavageChieftain/udonarium_axe/commit/8d78dbff76fb2b0428363164e7d586fbfa9ff341))
+* add VitePress documentation site with end-user quickstart guide ([5ae48d2](https://github.com/SavageChieftain/udonarium_axe/commit/5ae48d2701b26e6f127e737daf0c00c4b5cb6ae2))
+* restructure the operation manual into one page per feature ([e5b85e0](https://github.com/SavageChieftain/udonarium_axe/commit/e5b85e055654601615b9c5adf07095a6d07cfc4b))
+* split cards/dice/notes into separate manual pages ([119a4ee](https://github.com/SavageChieftain/udonarium_axe/commit/119a4ee0ff90aa30c439693f777aa77d3807d554))
+
 ## [1.10.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.9.0...v1.10.0) (2026-06-02)
 
 ### ✨ Features
