@@ -1,3 +1,13 @@
+## [1.11.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.10.1...v1.11.0) (2026-06-03)
+
+### ✨ Features
+
+* **tabletop:** add toggles to hide character and dice names and buffs ([98b5c0e](https://github.com/SavageChieftain/udonarium_axe/commit/98b5c0e5d9eaff3df3b71a31c49ca7443c6382a6))
+
+### 📝 Documentation
+
+* add user-facing v1.10.0 release notes ([c8c0395](https://github.com/SavageChieftain/udonarium_axe/commit/c8c0395b9002a0c0696e081af4d159783ab5f054))
+
 ## [1.10.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.10.0...v1.10.1) (2026-06-03)
 
 ### 🐛 Bug Fixes
