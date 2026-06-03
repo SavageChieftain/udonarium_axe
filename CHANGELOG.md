@@ -1,3 +1,17 @@
+## [1.10.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.9.0...v1.10.0) (2026-06-02)
+
+### ✨ Features
+
+* **chat:** follow new messages only while pinned to the bottom ([43fd470](https://github.com/SavageChieftain/udonarium_axe/commit/43fd4705bc813bb7071bfa609a6295d62ab9c488))
+
+### 🐛 Bug Fixes
+
+* **tabletop:** disable dragging for locked text notes ([be3d7f5](https://github.com/SavageChieftain/udonarium_axe/commit/be3d7f5f699c84f9a6df0325ef3473f69d5d8a11))
+
+### 📝 Documentation
+
+* **readme:** reorient README around end-user quickstart and backend setup ([0dc3184](https://github.com/SavageChieftain/udonarium_axe/commit/0dc3184f91a83dd51552a047173b7c8c6d2836f5))
+
 ## [1.9.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.8.1...v1.9.0) (2026-06-02)
 
 ### ✨ Features
