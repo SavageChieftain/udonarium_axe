@@ -35,7 +35,7 @@
       }
       @if (isMinimized()) {
         <div
-          class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-base text-white opacity-0 transition-opacity group-hover/disc:opacity-100"
+          class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-base text-white opacity-0 transition-opacity group-hover/disc:opacity-100 pointer-coarse:opacity-100"
         >
           <i class="material-icons">open_in_full</i>
         </div>
@@ -67,7 +67,7 @@
         }
       </div>
       <button
-        class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-5.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 opacity-0 transition-[opacity,background,color] group-hover:opacity-100 hover:border-transparent hover:shadow-none"
+        class="text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-5.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 opacity-0 transition-[opacity,background,color] group-hover:opacity-100 hover:border-transparent hover:shadow-none pointer-coarse:opacity-100"
         (mousedown)="$event.stopPropagation()"
         (click)="toggleMinimize()"
         [title]="'feature.media.miniJukebox.minimize' | transloco"
