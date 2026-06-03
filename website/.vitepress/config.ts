@@ -10,6 +10,9 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
   head: [['meta', { name: 'theme-color', content: '#8b7cf6' }]],
+  vite: {
+    css: { postcss: { plugins: [] } },
+  },
   themeConfig: {
     nav: [
       { text: 'ガイド', link: '/guide/getting-started' },
