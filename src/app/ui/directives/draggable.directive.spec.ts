@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 @Component({
   selector: 'test-host',
   template: `<div appDraggable [draggable.disable]="isDisabled"></div>`,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DraggableDirective],
 })
 class TestHostComponent {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -7,6 +7,7 @@ import { MovableDirective } from '@axe/ui/directives/movable.directive';
 @Component({
   selector: 'test-host',
   template: `<div appMovable [movable.option]="movableOption"></div>`,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MovableDirective],
 })
 class TestHostComponent {

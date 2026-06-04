@@ -60,7 +60,7 @@
             <button
               type="button"
               class="group/thumb bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative size-14 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.06] hover:shadow-md"
-              [style.background-image]="'url(' + card.frontImage?.url + ')' | safe: 'style'"
+              [style.background-image]="'url(' + $safeNavigationMigration(card.frontImage?.url) + ')' | safe: 'style'"
               [attr.title]="'feature.inventory.sheet.changeFrontImage' | transloco"
               (click)="setImage(card, 'front')"
             >
@@ -73,7 +73,7 @@
             <button
               type="button"
               class="group/thumb bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative size-14 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.06] hover:shadow-md"
-              [style.background-image]="'url(' + card.backImage?.url + ')' | safe: 'style'"
+              [style.background-image]="'url(' + $safeNavigationMigration(card.backImage?.url) + ')' | safe: 'style'"
               [attr.title]="'feature.inventory.sheet.changeBackImage' | transloco"
               (click)="setImage(card, 'back')"
             >

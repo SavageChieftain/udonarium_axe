@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { APP_INITIALIZER, enableProdMode, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
@@ -41,7 +41,7 @@ bootstrapApplication(AppComponent, {
       NgSelectModule
     ),
     provideZonelessChangeDetection(),
-    provideHttpClient(),
+    provideHttpClient(withXhr()),
     provideTransloco({ config: transLocoConfig, loader: TranslocoHttpLoader }),
     ...CLASS_SINGLETON_PROVIDERS,
     AppConfigService,

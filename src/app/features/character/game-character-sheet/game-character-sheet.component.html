@@ -834,7 +834,7 @@
                 <button
                   type="button"
                   class="group bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative aspect-2/3 h-32 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.04] hover:shadow-md"
-                  [style.background-image]="'url(' + c.frontImage?.url + ')' | safe: 'style'"
+                  [style.background-image]="'url(' + $safeNavigationMigration(c.frontImage?.url) + ')' | safe: 'style'"
                   [attr.title]="'feature.inventory.sheet.changeFrontImage' | transloco"
                   (click)="openModal('front')"
                 >
@@ -850,7 +850,7 @@
                 <button
                   type="button"
                   class="group bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative aspect-2/3 h-32 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.04] hover:shadow-md"
-                  [style.background-image]="'url(' + c.backImage?.url + ')' | safe: 'style'"
+                  [style.background-image]="'url(' + $safeNavigationMigration(c.backImage?.url) + ')' | safe: 'style'"
                   [attr.title]="'feature.inventory.sheet.changeBackImage' | transloco"
                   (click)="openModal('back')"
                 >

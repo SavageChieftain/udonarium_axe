@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 @Component({
   selector: 'test-host',
   template: `<div appRotable [rotable.option]="rotableOption"></div>`,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RotableDirective],
 })
 class TestHostComponent {

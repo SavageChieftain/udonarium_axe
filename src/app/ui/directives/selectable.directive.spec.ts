@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -11,6 +11,7 @@ function makeObj(id: string, alias = 'character'): TabletopObject {
 
 @Component({
   imports: [SelectableDirective],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<div data-host [appSelectable]="target()"></div>`,
 })
 class HostComponent {
