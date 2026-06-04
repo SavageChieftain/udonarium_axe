@@ -52,6 +52,8 @@ export class MiniJukeboxComponent {
 
   private initialLeft = '';
   private initialTop = '';
+  private expandedWidth = 0;
+  private expandedHeight = 0;
 
   constructor() {
     afterNextRender(() => {
@@ -60,6 +62,8 @@ export class MiniJukeboxComponent {
       el.style.top = '3px';
       this.initialLeft = el.style.left;
       this.initialTop = el.style.top;
+      this.expandedWidth = el.offsetWidth;
+      this.expandedHeight = el.offsetHeight;
     });
     afterEveryRender(() => {
       const textEl = this.titleTextEl()?.nativeElement;
@@ -241,8 +245,13 @@ export class MiniJukeboxComponent {
       el.style.left = `${window.innerWidth - 64}px`;
       el.style.top = `${window.innerHeight - 64}px`;
     } else {
-      el.style.left = this.initialLeft;
-      el.style.top = this.initialTop;
+      const margin = 3;
+      const maxLeft = Math.max(margin, window.innerWidth - this.expandedWidth - margin);
+      const maxTop = Math.max(margin, window.innerHeight - this.expandedHeight - margin);
+      const left = Math.min(Math.max(parseFloat(this.initialLeft) || 0, margin), maxLeft);
+      const top = Math.min(Math.max(parseFloat(this.initialTop) || 0, margin), maxTop);
+      el.style.left = `${left}px`;
+      el.style.top = `${top}px`;
     }
   }
 
