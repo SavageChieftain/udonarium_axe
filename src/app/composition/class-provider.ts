@@ -12,6 +12,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { Config } from '@axe/domain/peer/config';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { TurnState } from '@axe/domain/tabletop/turn-state';
 
 export const CLASS_SINGLETON_PROVIDERS: Provider[] = [
   { provide: ObjectFactory, useFactory: () => ObjectFactory.instance },
@@ -29,4 +30,5 @@ export const CLASS_SINGLETON_PROVIDERS: Provider[] = [
   { provide: Config, useFactory: () => Config.instance },
   { provide: DataSummarySetting, useFactory: () => DataSummarySetting.instance },
   { provide: TableSelecter, useFactory: () => TableSelecter.instance },
+  { provide: TurnState, useFactory: () => TurnState.instance },
 ];

@@ -24,6 +24,7 @@ import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { TurnState } from '@axe/domain/tabletop/turn-state';
 import { Vote } from '@axe/domain/vote/vote';
 import { NgSelectConfig } from '@ng-select/ng-select';
 
@@ -36,6 +37,7 @@ export class AppInitializationService {
   private readonly audioStorage = inject(AudioStorage);
   private readonly chatTabList = inject(ChatTabList);
   private readonly tableSelecter = inject(TableSelecter);
+  private readonly turnState = inject(TurnState);
   private readonly config = inject(Config);
   private readonly dataSummarySetting = inject(DataSummarySetting);
   private readonly ngSelectConfig = inject(NgSelectConfig);
@@ -51,6 +53,7 @@ export class AppInitializationService {
     this.ngSelectConfig.appendTo = 'body';
 
     this.tableSelecter.initialize();
+    this.turnState.initialize();
     this.chatTabList.initialize();
     this.config.initialize();
     this.dataSummarySetting.initialize();

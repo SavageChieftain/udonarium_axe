@@ -1,10 +1,15 @@
 <div
   class="draggable-panel animate-fly-in rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text absolute top-50 box-border h-50 max-h-full w-75 max-w-full overflow-visible border border-solid p-0 shadow-[var(--ui-shadow-md),inset_0_1px_0_rgba(255,255,255,0.06)] [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
   [ngClass]="{ 'pointer-events-none': isPointerDragging }"
+  [class.bg-transparent!]="contentMinimized"
+  [class.border-transparent!]="contentMinimized"
+  [class.shadow-none!]="contentMinimized"
+  [style.backdrop-filter]="contentMinimized ? 'none' : null"
+  [style.-webkit-backdrop-filter]="contentMinimized ? 'none' : null"
   [style.left.px]="left"
   [style.top.px]="top"
   [style.width.px]="width"
-  [style.height.px]="height"
+  [style.height]="contentMinimized ? 'auto' : height + 'px'"
   [style.visibility]="panelService.invisible ? 'hidden' : ''"
   [style.pointer-events]="panelService.invisible ? 'none' : ''"
   [resizable.disable]="isMinimized() || isFullScreen()"
@@ -20,6 +25,10 @@
   <div
     class="rounded-t-ui-lg border-ui-border-titlebar bg-ui-titlebar text-ui-muted relative box-border h-7 w-full border-b border-solid px-2 text-xs/7 font-medium tracking-[0.02em] select-none"
     #titleBar
+    [class.border-transparent!]="contentMinimized"
+    [style.background]="contentMinimized ? 'color-mix(in srgb, var(--color-ui-titlebar) 55%, transparent)' : null"
+    [style.backdrop-filter]="contentMinimized ? 'blur(8px)' : null"
+    [style.-webkit-backdrop-filter]="contentMinimized ? 'blur(8px)' : null"
     [style.display]="showTitle() ? '' : 'none'"
   >
     @if (title !== menuTitle) {
@@ -46,7 +55,11 @@
         </button>
       </div>
     }
-    <div class="block truncate pr-21.5" [appTextTooltip]="panelService.titleTooltip">
+    <div
+      class="block truncate pr-21.5"
+      [class.invisible]="contentMinimized"
+      [appTextTooltip]="panelService.titleTooltip"
+    >
       {{ panelService.title }}
     </div>
   </div>
@@ -69,10 +82,11 @@
   }
   <div
     class="rounded-b-ui-lg absolute bottom-0 box-border w-full overflow-auto overscroll-contain"
+    [class.static!]="contentMinimized"
     [ngStyle]="{
       padding: padding_,
       top: showTitle() ? '28px' : '0',
-      overflow: overflowVisible() ? 'visible' : undefined,
+      overflow: overflowVisible() || contentMinimized ? 'visible' : undefined,
     }"
     #scrollablePanel
   >

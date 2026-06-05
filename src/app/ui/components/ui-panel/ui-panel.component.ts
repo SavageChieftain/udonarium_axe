@@ -133,6 +133,10 @@ export class UIPanelComponent {
   readonly isFullScreen = signal(false);
   readonly isMinimized = signal(false);
 
+  get contentMinimized(): boolean {
+    return this.panelService.minimizeToContent && this.isMinimized();
+  }
+
   protected readonly portraitDispByMouse = signal(true);
   private timerCheckWindowSize: ReturnType<typeof setInterval> | null = null;
 
@@ -201,14 +205,22 @@ export class UIPanelComponent {
     const panel = this.draggablePanel().nativeElement;
     if (this.isMinimized()) {
       this.isMinimized.set(false);
+      this.panelService.isMinimized.set(false);
       body.style.display = '';
+      if (this.panelService.minimizeToContent) this.width = this.preWidth;
       this.height = this.preHeight;
     } else {
       this.preHeight = panel.offsetHeight;
-
       this.isMinimized.set(true);
-      body.style.display = 'none';
-      this.height = this.titleBar().nativeElement.offsetHeight;
+      this.panelService.isMinimized.set(true);
+      if (this.panelService.minimizeToContent) {
+        this.preWidth = panel.offsetWidth;
+        body.style.display = '';
+        this.width = 128;
+      } else {
+        body.style.display = 'none';
+        this.height = this.titleBar().nativeElement.offsetHeight;
+      }
     }
   }
 

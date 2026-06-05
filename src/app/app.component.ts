@@ -14,6 +14,7 @@ import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { CutInService } from '@axe/application/media/cut-in.service';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
+import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -96,6 +97,7 @@ export class AppComponent {
     inject(NetworkEventHandlerService);
     inject(CutInService);
     inject(GravityService);
+    inject(TurnOrderService);
 
     afterNextRender(() => {
       PanelService.defaultParentViewContainerRef =
@@ -175,6 +177,7 @@ export class AppComponent {
       case 'GameObjectInventoryComponent':
         component = GameObjectInventoryComponent;
         option.title = this.t('common.panel.inventory');
+        option.minimizeToContent = true;
         break;
     }
     if (component) {

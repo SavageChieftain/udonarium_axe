@@ -1,9 +1,10 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -39,6 +40,7 @@ export class GameObjectInventoryComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly turnOrderService = inject(TurnOrderService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
@@ -68,6 +70,44 @@ export class GameObjectInventoryComponent {
 
   readonly isEdit = signal(false);
   readonly isMultiMove = signal(false);
+
+  setTurnOrder(event: Event, gameObject: GameObject): void {
+    event.stopPropagation();
+    this.turnOrderService.setCurrent(gameObject.identifier);
+  }
+
+  readonly isPanelMinimized = computed(() => this.panelService.isMinimized());
+
+  readonly turnOrderList = computed<GameCharacter[]>(() => {
+    this.inventoryService.inventoryVersion();
+    return this.turnOrderService.orderedCharacters();
+  });
+
+  readonly currentTurnId = computed<string>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return this.turnOrderService.currentIdentifier;
+  });
+
+  readonly turnRound = computed<number>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return this.turnOrderService.round;
+  });
+
+  selectTurn(character: GameCharacter): void {
+    this.turnOrderService.setCurrent(character.identifier);
+  }
+
+  turnNext(): void {
+    this.turnOrderService.next();
+  }
+
+  turnPrev(): void {
+    this.turnOrderService.prev();
+  }
+
+  turnReset(): void {
+    this.turnOrderService.reset();
+  }
 
   get sortTag(): string {
     return this.inventoryService.sortTag;

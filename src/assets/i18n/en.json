@@ -278,6 +278,19 @@
         "delete": "Delete"
       }
     },
+    "turnOrder": {
+      "title": "Turn order",
+      "announce": "It's {{name}}'s turn.",
+      "next": "Next",
+      "prev": "Prev",
+      "round": "Round {{n}}",
+      "roundStart": "Round {{n}} begins.",
+      "roundEnd": "Round {{n}} ends.",
+      "reset": "Reset round",
+      "resetAnnounce": "The round has been reset.",
+      "empty": "No characters on the table",
+      "setCurrent": "Set as current turn"
+    },
     "inventory": {
       "contextMenu": {
         "moveTable": "Move to table",

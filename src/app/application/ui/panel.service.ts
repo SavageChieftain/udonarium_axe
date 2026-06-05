@@ -1,4 +1,4 @@
-import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
+import { ComponentRef, Injectable, signal, ViewContainerRef } from '@angular/core';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -20,6 +20,7 @@ export interface PanelOption {
   isCutIn?: boolean;
   cutInIdentifier?: string;
   invisible?: boolean;
+  minimizeToContent?: boolean;
 }
 
 interface UIPanelInstance {
@@ -45,7 +46,8 @@ type PanelServiceAssignableKey =
   | 'minHeight'
   | 'isCutIn'
   | 'cutInIdentifier'
-  | 'invisible';
+  | 'invisible'
+  | 'minimizeToContent';
 
 @Injectable()
 export class PanelService {
@@ -65,6 +67,8 @@ export class PanelService {
   isCutIn: boolean = false;
   cutInIdentifier: string = '';
   invisible: boolean = false;
+  minimizeToContent: boolean = false;
+  readonly isMinimized = signal(false);
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
   scrollablePanel: HTMLDivElement | null = null;
@@ -122,7 +126,7 @@ export class PanelService {
       panelComponentRef.setInput(key, value);
     }
 
-    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible'] as const;
+    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent'] as const;
     for (const key of serviceOnly) {
       const value = adjusted[key];
       if (value === undefined) continue;

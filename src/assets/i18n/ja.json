@@ -278,6 +278,19 @@
         "delete": "削除"
       }
     },
+    "turnOrder": {
+      "title": "行動順",
+      "announce": "{{name}} の行動です。",
+      "next": "次へ",
+      "prev": "前へ",
+      "round": "ラウンド {{n}}",
+      "roundStart": "ラウンド{{n}}開始です。",
+      "roundEnd": "ラウンド{{n}}終了です。",
+      "reset": "ラウンドをリセット",
+      "resetAnnounce": "ラウンドがリセットされました。",
+      "empty": "テーブルにキャラクターがいません",
+      "setCurrent": "この手番にする"
+    },
     "inventory": {
       "contextMenu": {
         "moveTable": "テーブルに移動",
