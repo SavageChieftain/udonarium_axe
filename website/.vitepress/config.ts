@@ -42,6 +42,7 @@ export default defineConfig({
             { text: 'ダイス', link: '/manual/dice' },
             { text: '共有メモ', link: '/manual/notes' },
             { text: '射程範囲', link: '/manual/range' },
+            { text: '行動順', link: '/manual/turn-order' },
           ],
         },
         {
