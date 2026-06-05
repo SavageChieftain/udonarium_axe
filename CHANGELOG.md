@@ -1,3 +1,24 @@
+## [1.12.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.11.0...v1.12.0) (2026-06-05)
+
+### ✨ Features
+
+* **turn-order:** add synced turn-order tracker shown as a minimized inventory widget ([34e6e15](https://github.com/SavageChieftain/udonarium_axe/commit/34e6e15423e3daacb7833cdefa50cf789f7a3670))
+
+### 🐛 Bug Fixes
+
+* **media:** clamp mini-jukebox restore position within the viewport ([d3a3830](https://github.com/SavageChieftain/udonarium_axe/commit/d3a3830021fa3e2654989c2d12663234d7f0b9b6))
+* **media:** keep mini-jukebox minimize and restore controls reachable on touch ([341ebea](https://github.com/SavageChieftain/udonarium_axe/commit/341ebea7eb869a6ae90bd03dff65baa35d43ba5e))
+* **tabletop:** make table pointermove listener non-passive so preventDefault works ([89c9fcb](https://github.com/SavageChieftain/udonarium_axe/commit/89c9fcb32bb04eb6bc36284e13fad453affffd8b))
+
+### 📝 Documentation
+
+* add user-facing v1.11.0 release notes ([6f756e4](https://github.com/SavageChieftain/udonarium_axe/commit/6f756e478d524a5a747745d80236402ca811445e))
+* **turn-order:** add turn-order manual page ([1dd623b](https://github.com/SavageChieftain/udonarium_axe/commit/1dd623b3a10df7c2e717f00bfd7bb264031828fc))
+
+### ♻️ Refactor
+
+* **tabletop:** reorganize table settings into aligned grouped sections ([34dc9bf](https://github.com/SavageChieftain/udonarium_axe/commit/34dc9bf42fed2124369e4a36a2a14f61f8cd9bd2))
+
 ## [1.11.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.10.1...v1.11.0) (2026-06-03)
 
 ### ✨ Features
