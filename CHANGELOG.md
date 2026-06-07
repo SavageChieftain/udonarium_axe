@@ -1,3 +1,14 @@
+## [1.12.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.12.0...v1.12.1) (2026-06-07)
+
+### 🐛 Bug Fixes
+
+* **turn-order:** announce turns to the main chat tab only ([8edd014](https://github.com/SavageChieftain/udonarium_axe/commit/8edd0145a02b2a49ee7ee4bcbc41116f171db513))
+* **turn-order:** exclude inventory-hidden characters from the tracker ([c82dd37](https://github.com/SavageChieftain/udonarium_axe/commit/c82dd374ad9e47305d425dc54b4100217b1c951e))
+
+### 📝 Documentation
+
+* add user-facing v1.12.0 release notes ([1d536de](https://github.com/SavageChieftain/udonarium_axe/commit/1d536deb90b4a8b7be34d835d42c567af22141dc))
+
 ## [1.12.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.11.0...v1.12.0) (2026-06-05)
 
 ### ✨ Features
