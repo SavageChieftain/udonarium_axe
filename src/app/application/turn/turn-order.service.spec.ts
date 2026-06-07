@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { TurnState } from '@axe/domain/tabletop/turn-state';
@@ -9,6 +10,7 @@ describe('TurnOrderService', () => {
   let service: TurnOrderService;
   let turnState: TurnState;
   let chars: GameCharacter[];
+  let orderedSpy: ReturnType<typeof vi.spyOn>;
   let sendSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -23,12 +25,22 @@ describe('TurnOrderService', () => {
     chars.forEach((c) => c.initialize());
 
     service = TestBed.inject(TurnOrderService);
-    vi.spyOn(service, 'orderedCharacters').mockReturnValue(chars);
+    orderedSpy = vi.spyOn(service, 'orderedCharacters').mockReturnValue(chars);
     sendSpy = vi.spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessage').mockReturnValue(undefined as never);
   });
 
   it('should create', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('orderedCharacters excludes inventory-hidden characters', () => {
+    orderedSpy.mockRestore();
+    const inventory = TestBed.inject(GameObjectInventoryService);
+    const [visible, hidden] = [new GameCharacter(), new GameCharacter()];
+    [visible, hidden].forEach((c) => c.initialize());
+    hidden.hideInventory = true;
+    vi.spyOn(inventory.tableInventory, 'tabletopObjects', 'get').mockReturnValue([visible, hidden]);
+    expect(service.orderedCharacters()).toEqual([visible]);
   });
 
   it('next from idle begins round 1 without a character', () => {

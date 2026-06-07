@@ -42,7 +42,9 @@ export class TurnOrderService {
   }
 
   orderedCharacters(): GameCharacter[] {
-    return this.inventory.tableInventory.tabletopObjects as GameCharacter[];
+    return (this.inventory.tableInventory.tabletopObjects as GameCharacter[]).filter(
+      (character) => !character.hideInventory
+    );
   }
 
   setCurrent(identifier: string): void {
