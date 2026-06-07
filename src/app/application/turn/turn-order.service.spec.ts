@@ -26,7 +26,9 @@ describe('TurnOrderService', () => {
 
     service = TestBed.inject(TurnOrderService);
     orderedSpy = vi.spyOn(service, 'orderedCharacters').mockReturnValue(chars);
-    sendSpy = vi.spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessage').mockReturnValue(undefined as never);
+    sendSpy = vi
+      .spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessageToMainTab')
+      .mockReturnValue(undefined as never);
   });
 
   it('should create', () => {

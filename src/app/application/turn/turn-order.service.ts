@@ -99,7 +99,7 @@ export class TurnOrderService {
 
   reset(): void {
     this.toIdle();
-    this.chat.sendSystemMessage(this.t('feature.turnOrder.resetAnnounce'));
+    this.chat.sendSystemMessageToMainTab(this.t('feature.turnOrder.resetAnnounce'));
   }
 
   private beginRound(round: number): void {
@@ -107,7 +107,7 @@ export class TurnOrderService {
     turnState.round = Math.max(1, round);
     turnState.phase = 'roundStart';
     turnState.currentIdentifier = '';
-    this.chat.sendSystemMessage(this.t('feature.turnOrder.roundStart', { n: turnState.round }));
+    this.chat.sendSystemMessageToMainTab(this.t('feature.turnOrder.roundStart', { n: turnState.round }));
   }
 
   private enterActing(identifier: string): void {
@@ -122,7 +122,7 @@ export class TurnOrderService {
     turnState.round = Math.max(1, round);
     turnState.phase = 'roundEnd';
     turnState.currentIdentifier = '';
-    this.chat.sendSystemMessage(this.t('feature.turnOrder.roundEnd', { n: turnState.round }));
+    this.chat.sendSystemMessageToMainTab(this.t('feature.turnOrder.roundEnd', { n: turnState.round }));
   }
 
   private toIdle(): void {
@@ -135,6 +135,6 @@ export class TurnOrderService {
   private announceCharacter(identifier: string): void {
     const character = this.objectStore.get<GameCharacter>(identifier);
     if (!character) return;
-    this.chat.sendSystemMessage(this.t('feature.turnOrder.announce', { name: character.name }));
+    this.chat.sendSystemMessageToMainTab(this.t('feature.turnOrder.announce', { name: character.name }));
   }
 }

@@ -118,6 +118,11 @@ export class ChatMessageService {
     return chatTab.addMessage(chatMessage);
   }
 
+  sendSystemMessageToMainTab(text: string, color?: string): ChatMessage {
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.sendSystemMessageToTab(chatTabList!.chatTabs[0], text, color);
+  }
+
   sendSystemMessageOnePlayer(chatTab: ChatTab, text: string, sendTo: string, color?: string): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
