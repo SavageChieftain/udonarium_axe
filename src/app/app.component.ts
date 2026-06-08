@@ -13,6 +13,8 @@ import { SaveDataService } from '@axe/application/file/save-data.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { CutInService } from '@axe/application/media/cut-in.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -22,6 +24,7 @@ import { ThemeService } from '@axe/application/ui/theme.service';
 import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handler.service';
 import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
@@ -30,6 +33,7 @@ import { GameCharacterSheetComponent } from '@axe/features/character/game-charac
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
+import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { LanguageSelectorComponent } from '@axe/features/language-selector/language-selector.component';
@@ -69,9 +73,16 @@ export class AppComponent {
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
 
   readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
+
+  readonly isMyselfGameMaster = computed(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return PeerCursor.isMyselfGameMaster;
+  });
 
   fabOpen = signal(true);
   isSaving = signal(false);
@@ -135,6 +146,7 @@ export class AppComponent {
       | 'CutInListComponent'
       | 'GameCharacterGeneratorComponent'
       | 'GameObjectInventoryComponent'
+      | 'GameObjectListPanelComponent'
   ) {
     let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
@@ -179,6 +191,10 @@ export class AppComponent {
         option.title = this.t('common.panel.inventory');
         option.minimizeToContent = true;
         break;
+      case 'GameObjectListPanelComponent':
+        component = GameObjectListPanelComponent;
+        option = { width: 460, height: 620, left: 100, title: this.t('common.panel.objectList') };
+        break;
     }
     if (component) {
       option.top = ((this.openPanelCount % 10) + 1) * 20;
@@ -209,6 +225,10 @@ export class AppComponent {
 
   handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
+    if (!this.rolePermission.canEditTabletop) {
+      input.value = '';
+      return;
+    }
     const files = input.files;
     const reloadCheck = this.objectStore.get<ReloadCheck>('ReloadCheck');
     reloadCheck?.reloadCheckStart(Network.peerContext.roomName != '');

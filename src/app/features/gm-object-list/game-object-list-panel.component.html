@@ -1,0 +1,230 @@
+@if (isGameMaster()) {
+  <div class="bg-ui-elevated text-ui-text flex h-full flex-col overflow-hidden text-[13px]">
+    <div class="border-ui-border-panel flex shrink-0 flex-col gap-2 border-b border-solid p-2.5">
+      <div class="flex items-center gap-2">
+        <i class="material-icons text-ui-muted text-[18px]!">search</i>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent min-w-0 flex-1 border border-solid px-2 py-1.25 text-[13px] outline-none"
+          [placeholder]="'feature.gmObjectList.searchPlaceholder' | transloco"
+          [(ngModel)]="search"
+          name="object-search"
+        />
+        <span class="text-ui-dim shrink-0 text-[11px]">{{ filteredRows().length }} / {{ rows().length }}</span>
+      </div>
+      <div class="flex flex-wrap gap-1">
+        @for (type of types; track type.key) {
+          <button
+            type="button"
+            class="rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid px-1.5 py-0.75 text-[11px] transition-colors [&_.material-icons]:text-[13px]!"
+            [class.border-ui-accent]="isTypeEnabled(type.key)"
+            [class.text-ui-accent]="isTypeEnabled(type.key)"
+            [class.bg-ui-accent-bg]="isTypeEnabled(type.key)"
+            [class.border-ui-border-panel]="!isTypeEnabled(type.key)"
+            [class.text-ui-dim]="!isTypeEnabled(type.key)"
+            (click)="toggleType(type.key)"
+          >
+            <i class="material-icons">{{ type.icon }}</i>
+            {{ type.labelKey | transloco }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <ul class="m-0 flex-1 list-none overflow-y-auto p-1.5" role="list">
+      @for (row of filteredRows(); track row.identifier) {
+        <li
+          class="hover:bg-ui-hover rounded-ui-sm mb-0.5 flex flex-col px-2 py-1.5"
+          (contextmenu)="openRowMenu($event, row)"
+        >
+          <div class="flex items-start gap-2">
+            @if (row.rangeThumbnail; as thumb) {
+              <svg
+                class="border-ui-border-panel bg-ui-elevated mt-0.5 size-8 shrink-0 rounded-sm border border-solid p-0.5"
+                [attr.viewBox]="thumb.viewBox"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                @for (cell of thumb.cells; track $index) {
+                  @if (cell.hexPoints) {
+                    <polygon
+                      [attr.points]="cell.hexPoints"
+                      [attr.fill]="thumb.gridColor"
+                      [attr.stroke]="thumb.rangeColor"
+                      stroke-width="1"
+                    />
+                  } @else {
+                    <rect
+                      [attr.x]="cell.rectX"
+                      [attr.y]="cell.rectY"
+                      [attr.width]="cell.rectSize"
+                      [attr.height]="cell.rectSize"
+                      [attr.fill]="thumb.gridColor"
+                      [attr.stroke]="thumb.rangeColor"
+                      stroke-width="1"
+                    />
+                  }
+                }
+              </svg>
+            } @else if (row.imageUrl) {
+              <img
+                class="border-ui-border-panel mt-0.5 size-8 shrink-0 rounded-sm border border-solid bg-black/10 object-contain"
+                [src]="row.imageUrl | safe: 'resourceUrl'"
+                alt=""
+              />
+            } @else {
+              <i
+                class="material-icons text-ui-muted mt-0.5 flex size-8 shrink-0 items-center justify-center text-[18px]!"
+                >{{ typeIcon(row.typeKey) }}</i
+              >
+            }
+            <div class="min-w-0 flex-1 cursor-pointer" (click)="onRowClick(row)">
+              <div class="flex items-center gap-1.5">
+                <span class="text-ui-text truncate text-[13px]">{{
+                  row.name || ('feature.gmObjectList.unnamed' | transloco)
+                }}</span>
+                @if (row.isLock) {
+                  <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
+                }
+                @if (row.isHidden) {
+                  <i
+                    class="material-icons text-ui-dim shrink-0 text-[13px]!"
+                    [title]="'feature.gmObjectList.hidden' | transloco"
+                    >visibility_off</i
+                  >
+                }
+              </div>
+              <div class="text-ui-dim mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                <span class="inline-flex items-center gap-0.5">
+                  <i class="material-icons text-[12px]!">place</i>
+                  @switch (row.locationKind) {
+                    @case ('table') {
+                      {{ 'feature.gmObjectList.locTable' | transloco }}
+                    }
+                    @case ('common') {
+                      {{ 'feature.gmObjectList.locCommon' | transloco }}
+                    }
+                    @case ('graveyard') {
+                      {{ 'feature.gmObjectList.locGraveyard' | transloco }}
+                    }
+                    @case ('personal') {
+                      {{ 'feature.gmObjectList.locPersonal' | transloco: { name: row.locationDetail } }}
+                    }
+                    @default {
+                      {{ 'feature.gmObjectList.locOther' | transloco }}
+                    }
+                  }
+                  @if (row.locationKind === 'table' && row.surface !== 'floor') {
+                    <span class="text-ui-muted"
+                      >·
+                      @switch (row.surface) {
+                        @case ('north-wall') {
+                          {{ 'feature.tabletop.contextMenu.surfaceNorthWall' | transloco }}
+                        }
+                        @case ('east-wall') {
+                          {{ 'feature.tabletop.contextMenu.surfaceEastWall' | transloco }}
+                        }
+                        @case ('south-wall') {
+                          {{ 'feature.tabletop.contextMenu.surfaceSouthWall' | transloco }}
+                        }
+                        @case ('west-wall') {
+                          {{ 'feature.tabletop.contextMenu.surfaceWestWall' | transloco }}
+                        }
+                      }
+                    </span>
+                  }
+                </span>
+                @if (row.disclosable) {
+                  <span class="inline-flex items-center gap-0.5">
+                    <i class="material-icons text-[12px]!">visibility</i>
+                    @switch (row.disclosureMode) {
+                      @case ('gm') {
+                        {{ 'feature.disclosure.gmOnly' | transloco }}
+                      }
+                      @case ('selected') {
+                        {{ 'feature.disclosure.selected' | transloco }}
+                      }
+                      @default {
+                        {{ 'feature.disclosure.all' | transloco }}
+                      }
+                    }
+                  </span>
+                }
+                @if (row.hasOwner) {
+                  <span class="inline-flex items-center gap-0.5">
+                    <i class="material-icons text-[12px]!">person</i>
+                    {{ row.ownerName || ('feature.gmObjectList.unknownOwner' | transloco) }}
+                  </span>
+                }
+              </div>
+            </div>
+            <button
+              type="button"
+              class="rounded-ui-sm text-ui-muted hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_.material-icons]:text-[18px]!"
+              [class.text-ui-accent]="isEditing(row.identifier)"
+              [class.bg-ui-accent-bg]="isEditing(row.identifier)"
+              [title]="'feature.gmObjectList.editPosition' | transloco"
+              (click)="toggleEdit(row.identifier)"
+            >
+              <i class="material-icons">edit_location_alt</i>
+            </button>
+            <button
+              type="button"
+              class="rounded-ui-sm text-ui-muted hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_.material-icons]:text-[18px]!"
+              [title]="'feature.gmObjectList.menu.title' | transloco"
+              (click)="openRowMenu($event, row)"
+            >
+              <i class="material-icons">more_vert</i>
+            </button>
+          </div>
+          @if (isEditing(row.identifier)) {
+            <div
+              class="border-ui-border-panel mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-solid pt-1.5 pl-10 text-[11px]"
+            >
+              <label class="text-ui-muted inline-flex items-center gap-1">
+                {{ 'feature.gmObjectList.surface' | transloco }}
+                <select
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text border border-solid px-1.5 py-0.75 text-[11px] outline-none"
+                  [ngModel]="row.surface"
+                  (ngModelChange)="setSurface(row.object, $event)"
+                  [name]="'surface-' + row.identifier"
+                >
+                  @for (s of availableSurfaces(); track s) {
+                    <option [value]="s">{{ surfaceLabelKey(s) | transloco }}</option>
+                  }
+                </select>
+              </label>
+              <label class="text-ui-muted inline-flex items-center gap-1">
+                X
+                <input
+                  type="number"
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-16 border border-solid px-1.5 py-0.75 text-[11px] outline-none"
+                  [ngModel]="row.object.location.x"
+                  (ngModelChange)="setCoord(row.object, 'x', $event)"
+                  [name]="'x-' + row.identifier"
+                />
+              </label>
+              <label class="text-ui-muted inline-flex items-center gap-1">
+                Y
+                <input
+                  type="number"
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-16 border border-solid px-1.5 py-0.75 text-[11px] outline-none"
+                  [ngModel]="row.object.location.y"
+                  (ngModelChange)="setCoord(row.object, 'y', $event)"
+                  [name]="'y-' + row.identifier"
+                />
+              </label>
+            </div>
+          }
+        </li>
+      } @empty {
+        <li class="text-ui-dim flex h-full items-center justify-center py-8 text-center text-[12px]">
+          {{ 'feature.gmObjectList.empty' | transloco }}
+        </li>
+      }
+    </ul>
+  </div>
+} @else {
+  <div class="text-ui-dim flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-[13px]">
+    <i class="material-icons text-[32px]! opacity-50">lock</i>
+    {{ 'feature.gmObjectList.gmOnly' | transloco }}
+  </div>
+}
