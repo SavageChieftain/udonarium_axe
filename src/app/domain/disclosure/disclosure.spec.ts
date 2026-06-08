@@ -1,0 +1,68 @@
+import {
+  canEditDisclosure,
+  canViewDisclosable,
+  DEFAULT_DISCLOSURE_MODE,
+  Disclosable,
+  DisclosureMode,
+  isDisclosureMode,
+  normalizeDisclosureMode,
+  toggleDisclosureUserId,
+} from '@axe/domain/disclosure/disclosure';
+
+const make = (overrides: Partial<Disclosable> = {}): Disclosable => ({
+  disclosureMode: '',
+  disclosureUserIds: [],
+  ...overrides,
+});
+
+describe('disclosure', () => {
+  it('defaults unknown/empty mode to All (public, backward compatible)', () => {
+    expect(DEFAULT_DISCLOSURE_MODE).toBe(DisclosureMode.All);
+    expect(normalizeDisclosureMode('')).toBe(DisclosureMode.All);
+    expect(normalizeDisclosureMode(undefined)).toBe(DisclosureMode.All);
+    expect(normalizeDisclosureMode('gm')).toBe(DisclosureMode.GameMaster);
+    expect(isDisclosureMode('selected')).toBe(true);
+    expect(isDisclosureMode('nope')).toBe(false);
+  });
+
+  it('lets the game master view anything', () => {
+    const gm = { userId: 'gm', isGameMaster: true };
+    expect(canViewDisclosable(make({ disclosureMode: 'gm' }), gm)).toBe(true);
+    expect(canViewDisclosable(make({ disclosureMode: 'selected', disclosureUserIds: [] }), gm)).toBe(true);
+  });
+
+  it('treats empty/all mode as visible to everyone', () => {
+    const pl = { userId: 'p1', isGameMaster: false };
+    expect(canViewDisclosable(make(), pl)).toBe(true);
+    expect(canViewDisclosable(make({ disclosureMode: 'all' }), pl)).toBe(true);
+  });
+
+  it('hides gm-only objects from players', () => {
+    const pl = { userId: 'p1', isGameMaster: false };
+    expect(canViewDisclosable(make({ disclosureMode: 'gm' }), pl)).toBe(false);
+  });
+
+  it('shows selected objects only to listed users', () => {
+    const obj = make({ disclosureMode: 'selected', disclosureUserIds: ['p1', 'p3'] });
+    expect(canViewDisclosable(obj, { userId: 'p1', isGameMaster: false })).toBe(true);
+    expect(canViewDisclosable(obj, { userId: 'p2', isGameMaster: false })).toBe(false);
+  });
+
+  it('always lets the owner view their own object', () => {
+    const obj = make({ disclosureMode: 'gm' });
+    expect(canViewDisclosable(obj, { userId: 'p2', isGameMaster: false, ownerUserId: 'p2' })).toBe(true);
+    expect(canViewDisclosable(obj, { userId: 'p2', isGameMaster: false, ownerUserId: 'p9' })).toBe(false);
+  });
+
+  it('allows editing disclosure for GM and the owner only', () => {
+    expect(canEditDisclosure({ userId: 'p1', isGameMaster: true })).toBe(true);
+    expect(canEditDisclosure({ userId: 'p2', isGameMaster: false, ownerUserId: 'p2' })).toBe(true);
+    expect(canEditDisclosure({ userId: 'p2', isGameMaster: false, ownerUserId: 'p9' })).toBe(false);
+    expect(canEditDisclosure({ userId: 'p2', isGameMaster: false })).toBe(false);
+  });
+
+  it('toggles a user id in/out of the audience list', () => {
+    expect(toggleDisclosureUserId(['a', 'b'], 'b')).toEqual(['a']);
+    expect(toggleDisclosureUserId(['a'], 'c')).toEqual(['a', 'c']);
+  });
+});

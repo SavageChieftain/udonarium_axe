@@ -14,6 +14,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -26,6 +28,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
@@ -53,6 +56,16 @@ import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-tex
 })
 export class TextNoteComponent {
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly disclosureService = inject(DisclosureService);
+
+  readonly canView = computed(() => {
+    const note = this.textNote();
+    if (!note) return false;
+    this.objectChange.versionOf(note.identifier)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.disclosureService.canView(note);
+  });
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -110,8 +123,15 @@ export class TextNoteComponent {
     this.objectChange.versionOf(note.identifier)();
     return decorateChatStyleText(this._text());
   });
+  readonly maskedHtml = computed(() => {
+    const note = this.textNote();
+    this.objectChange.versionOf(note.identifier)();
+    return this._text().replace(/\S/g, '█');
+  });
+  readonly maskedTitle = computed(() => this.title().replace(/\S/g, '█'));
 
   enterEdit() {
+    if (!this.rolePermission.canEditTabletop) return;
     if (this.textNote().isLock) return;
     if (this.isEditing()) return;
     this.isEditing.set(true);
@@ -426,6 +446,7 @@ export class TextNoteComponent {
   }
 
   private showDetail(gameObject: TextNote) {
+    if (!this.disclosureService.canView(gameObject)) return;
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = this.translateFn('feature.tabletop.panel.textNote');

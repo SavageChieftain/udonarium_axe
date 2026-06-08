@@ -7,6 +7,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { decodeRangeShapeField, RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { buildDisclosureContextMenu } from '@axe/features/disclosure/disclosure-context-menu';
 
 export interface RegisteredRangeShape {
   label: string;
@@ -46,8 +47,43 @@ export function buildGameCharacterContextMenu(
   overlapEntries: ContextMenuAction[] = []
 ): ContextMenuAction[] {
   const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
-  return [
-    ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
+
+  // 1. 開く / 確認
+  const openActions: ContextMenuAction[] = [
+    {
+      name: t('feature.character.contextMenu.showDetail'),
+      action: () => callbacks.onShowDetail(),
+    },
+    {
+      name: t('feature.character.contextMenu.showChatPalette'),
+      action: () => callbacks.onShowChatPalette(),
+    },
+    {
+      name: t('feature.character.contextMenu.showRemoteController'),
+      action: () => callbacks.onShowRemoteController(),
+    },
+    {
+      name: t('feature.character.contextMenu.editBuff'),
+      action: () => callbacks.onShowBuffEdit(),
+    },
+    ...(registeredShapes.length > 0 && callbacks.onInvokeRangeShape
+      ? [
+          {
+            name: t('feature.character.contextMenu.invokeRangeShape'),
+            action: undefined,
+            subActions: registeredShapes.map((shape, index) => ({
+              name: shape.label || t('feature.range.custom.unnamedShape', { index: index + 1 }),
+              action: () => {
+                callbacks.onInvokeRangeShape?.(shape.value);
+              },
+            })),
+          } as ContextMenuAction,
+        ]
+      : []),
+  ];
+
+  // 2. 表示設定
+  const displayActions: ContextMenuAction[] = [
     {
       name: t('feature.tabletop.contextMenu.altitudeSetting'),
       action: undefined,
@@ -99,71 +135,6 @@ export function buildGameCharacterContextMenu(
             },
       ],
     },
-    ContextMenuSeparator,
-    {
-      name: t('feature.character.contextMenu.showDetail'),
-      action: () => callbacks.onShowDetail(),
-    },
-    {
-      name: t('feature.character.contextMenu.showChatPalette'),
-      action: () => callbacks.onShowChatPalette(),
-    },
-    {
-      name: t('feature.character.contextMenu.showRemoteController'),
-      action: () => callbacks.onShowRemoteController(),
-    },
-    {
-      name: t('feature.character.contextMenu.editBuff'),
-      action: () => callbacks.onShowBuffEdit(),
-    },
-    ...(registeredShapes.length > 0 && callbacks.onInvokeRangeShape
-      ? [
-          {
-            name: t('feature.character.contextMenu.invokeRangeShape'),
-            action: undefined,
-            subActions: registeredShapes.map((shape, index) => ({
-              name: shape.label || t('feature.range.custom.unnamedShape', { index: index + 1 }),
-              action: () => {
-                callbacks.onInvokeRangeShape?.(shape.value);
-              },
-            })),
-          } as ContextMenuAction,
-        ]
-      : []),
-    char.hideInventory
-      ? {
-          name: t('feature.character.contextMenu.hideInventoryOn'),
-          action: () => {
-            char.hideInventory = false;
-            inventoryService.notifyInventoryUpdate();
-            SoundEffect.play(PresetSound.sweep);
-          },
-        }
-      : {
-          name: t('feature.character.contextMenu.hideInventoryOff'),
-          action: () => {
-            char.hideInventory = true;
-            inventoryService.notifyInventoryUpdate();
-            SoundEffect.play(PresetSound.sweep);
-          },
-        },
-    char.nonTalkFlag
-      ? {
-          name: t('feature.character.contextMenu.nonTalkOn'),
-          action: () => {
-            char.nonTalkFlag = false;
-            inventoryService.notifyInventoryUpdate();
-            SoundEffect.play(PresetSound.sweep);
-          },
-        }
-      : {
-          name: t('feature.character.contextMenu.nonTalkOff'),
-          action: () => {
-            char.nonTalkFlag = true;
-            inventoryService.notifyInventoryUpdate();
-            SoundEffect.play(PresetSound.sweep);
-          },
-        },
     {
       name: t('feature.character.contextMenu.displaySettings'),
       action: undefined,
@@ -200,7 +171,44 @@ export function buildGameCharacterContextMenu(
             },
       ],
     },
-    ContextMenuSeparator,
+    char.hideInventory
+      ? {
+          name: t('feature.character.contextMenu.hideInventoryOn'),
+          action: () => {
+            char.hideInventory = false;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+      : {
+          name: t('feature.character.contextMenu.hideInventoryOff'),
+          action: () => {
+            char.hideInventory = true;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
+    char.nonTalkFlag
+      ? {
+          name: t('feature.character.contextMenu.nonTalkOn'),
+          action: () => {
+            char.nonTalkFlag = false;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        }
+      : {
+          name: t('feature.character.contextMenu.nonTalkOff'),
+          action: () => {
+            char.nonTalkFlag = true;
+            inventoryService.notifyInventoryUpdate();
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
+  ];
+
+  // 4. 移動
+  const moveActions: ContextMenuAction[] = [
     {
       name: t('feature.character.contextMenu.moveCommon'),
       action: () => {
@@ -222,9 +230,19 @@ export function buildGameCharacterContextMenu(
         SoundEffect.play(PresetSound.sweep);
       },
     },
+  ];
+
+  return [
+    ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
+    ...openActions,
+    ContextMenuSeparator,
+    ...displayActions,
+    // 3. 公開範囲 / オーナー（権限があるときのみ。先頭にセパレータを含む）
+    ...buildDisclosureContextMenu(char, t),
+    ContextMenuSeparator,
+    ...moveActions,
     ContextMenuSeparator,
     buildLockToggleAction(char.isLock, (next) => (char.isLock = next), t),
-    ContextMenuSeparator,
     buildCopyAction(char, gridSize, t),
   ];
 }

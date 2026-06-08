@@ -215,7 +215,7 @@
             </div>
           }
 
-          @if (character()?.rootDataElement) {
+          @if (character()?.rootDataElement && canView(character()!)) {
             <div class="flex flex-wrap gap-1 px-2 pt-1 pb-0.5">
               @for (data of character()?.detailDataElement?.children ?? []; track data.identifier) {
                 @for (dataElm of data.children; track dataElm.identifier) {

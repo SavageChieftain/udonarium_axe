@@ -10,6 +10,8 @@ import {
   signal,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -49,6 +51,8 @@ import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-o
 })
 export class CardComponent {
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly disclosureService = inject(DisclosureService);
   private readonly panelService = inject(PanelService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly tabletopService = inject(TabletopService);
@@ -226,6 +230,7 @@ export class CardComponent {
 
   onDoubleClick() {
     this.stopDoubleClickTimer();
+    if (!this.rolePermission.canEditTabletop) return;
     const distance =
       (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
     if (distance < 10 ** 2) {
@@ -346,6 +351,7 @@ export class CardComponent {
   }
 
   private showDetail(gameObject: Card) {
+    if (!this.disclosureService.canView(gameObject)) return;
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = this.translateFn('feature.card.settingTitle');

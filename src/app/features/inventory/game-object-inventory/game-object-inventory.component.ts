@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, injec
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -16,6 +18,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   buildInventoryMultiMoveContextMenu,
@@ -42,6 +45,8 @@ export class GameObjectInventoryComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly turnOrderService = inject(TurnOrderService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -80,7 +85,8 @@ export class GameObjectInventoryComponent {
 
   readonly turnOrderList = computed<GameCharacter[]>(() => {
     this.inventoryService.inventoryVersion();
-    return this.turnOrderService.orderedCharacters();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.turnOrderService.orderedCharacters(this.rolePermission.canSeeHidden);
   });
 
   readonly currentTurnId = computed<string>(() => {
@@ -200,17 +206,12 @@ export class GameObjectInventoryComponent {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('character')();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
     switch (inventoryType) {
       case 'table': {
-        const showHidden = this.isMultiMove() || this.isEdit();
-        if (showHidden) return [...this.inventoryService.tableInventory.tabletopObjects];
-        const tableCharacterList_dest = [];
-        const tableCharacterList_scr = this.inventoryService.tableInventory.tabletopObjects;
-        for (const character of tableCharacterList_scr) {
-          const character_: GameCharacter = character as GameCharacter;
-          if (!character_.hideInventory) tableCharacterList_dest.push(character as TabletopObject);
-        }
-        return tableCharacterList_dest;
+        const all = this.inventoryService.tableInventory.tabletopObjects as GameCharacter[];
+        const showHidden = this.isMultiMove() || this.isEdit() || this.rolePermission.canSeeHidden;
+        return showHidden ? [...all] : all.filter((character) => !character.hideInventory);
       }
 
       default:
@@ -220,6 +221,12 @@ export class GameObjectInventoryComponent {
 
   isInventoryHiddenObject(gameObject: TabletopObject): boolean {
     return gameObject instanceof GameCharacter && gameObject.hideInventory;
+  }
+
+  canView(gameObject: TabletopObject): boolean {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    if (gameObject instanceof GameCharacter) return this.disclosureService.canView(gameObject);
+    return true;
   }
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
@@ -232,6 +239,7 @@ export class GameObjectInventoryComponent {
     e.stopPropagation();
     e.preventDefault();
 
+    if (!this.canView(gameObject)) return;
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     this.selectGameObject(gameObject);
@@ -254,6 +262,7 @@ export class GameObjectInventoryComponent {
   }
 
   toggleEdit() {
+    if (!this.rolePermission.canEditTabletop) return;
     this.isEdit.update((v) => !v);
   }
 
@@ -265,6 +274,7 @@ export class GameObjectInventoryComponent {
   }
 
   cleanInventory() {
+    if (!this.rolePermission.canEditTabletop) return;
     const tabTitle = this.getTabTitle(this.selectTab());
     const gameObjects = this.getGameObjects(this.selectTab());
     if (!confirm(this.t('feature.inventory.panel.confirmCleanTab', { tab: tabTitle, count: gameObjects.length })))
@@ -328,6 +338,7 @@ export class GameObjectInventoryComponent {
   }
 
   multiMove(location: string) {
+    if (!this.rolePermission.canEditTabletop) return;
     for (const gameObjectIdentifier of this.multiMoveTargets()) {
       const gameObject = this.objectStore.get(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter) {
@@ -343,6 +354,7 @@ export class GameObjectInventoryComponent {
   }
 
   multiSetHideInventory(hide: boolean) {
+    if (!this.rolePermission.canEditTabletop) return;
     for (const gameObjectIdentifier of this.multiMoveTargets()) {
       const gameObject = this.objectStore.get<GameCharacter>(gameObjectIdentifier);
       if (gameObject instanceof GameCharacter) {
@@ -362,6 +374,7 @@ export class GameObjectInventoryComponent {
   }
 
   multiDelete(): boolean {
+    if (!this.rolePermission.canEditTabletop) return false;
     const inGraveyard: Set<GameCharacter> = new Set();
     for (const gameObjectIdentifier of this.multiMoveTargets()) {
       const gameObject = this.objectStore.get<GameCharacter>(gameObjectIdentifier);
@@ -379,6 +392,7 @@ export class GameObjectInventoryComponent {
   }
 
   private cloneGameObject(gameObject: TabletopObject) {
+    if (!this.rolePermission.canEditTabletop) return;
     gameObject.clone();
   }
 
@@ -441,6 +455,7 @@ export class GameObjectInventoryComponent {
   }
 
   protected focusToObject(e: Event, gameObject: TabletopObject) {
+    if (!this.canView(gameObject)) return;
     if (!(e.target instanceof HTMLElement)) {
       return;
     }
@@ -454,6 +469,7 @@ export class GameObjectInventoryComponent {
   }
 
   selectGameObject(gameObject: GameObject) {
+    if (gameObject instanceof GameCharacter && !this.canView(gameObject)) return;
     if (this.isMultiMove()) {
       if (this.multiMoveTargets().has(gameObject.identifier)) {
         this.multiMoveTargets.update((s) => {
@@ -470,6 +486,7 @@ export class GameObjectInventoryComponent {
   }
 
   private deleteGameObject(gameObject: GameObject) {
+    if (!this.rolePermission.canEditTabletop) return;
     gameObject.destroy();
   }
 }

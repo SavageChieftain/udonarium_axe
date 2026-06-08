@@ -4,7 +4,7 @@
   #draggablePanel
   [attr.data-v]="objectVersion()"
 >
-  @if (tabletopObject) {
+  @if (tabletopObject && canViewObject()) {
     @switch (tabletopObject.aliasName) {
       @case ('numberResource') {}
       @case ('card') {
@@ -29,6 +29,13 @@
         <ng-container *ngTemplateOutlet="overviewCharacter; context: { character: tabletopObject }"></ng-container>
       }
     }
+  } @else if (tabletopObject) {
+    <div
+      class="text-ui-muted bg-ui-panel border-ui-border-panel pointer-events-none flex items-center gap-1.5 rounded-md border border-solid px-3 py-2 text-[12px]"
+    >
+      <i class="material-icons text-[16px]!">lock</i>
+      <span>{{ 'feature.disclosure.locked' | transloco }}</span>
+    </div>
   }
 </div>
 
@@ -441,9 +448,9 @@
         <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
         <div class="box-border truncate text-right text-[1.2em]/6">
           @if (dataElm.isChecked) {
-            <input type="checkbox" checked (click)="dataElm.value = 0" />
+            <input type="checkbox" checked (click)="setCheckValue(dataElm, 0)" />
           } @else {
-            <input type="checkbox" (click)="dataElm.value = 1" />
+            <input type="checkbox" (click)="setCheckValue(dataElm, 1)" />
           }
         </div>
       }

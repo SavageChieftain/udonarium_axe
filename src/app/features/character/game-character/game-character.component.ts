@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -30,6 +32,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
@@ -82,6 +85,8 @@ export class GameCharacterComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly disclosureService = inject(DisclosureService);
 
   readonly isTargeted = computed(() => {
     this.uiSignalService.targetChange();
@@ -168,7 +173,8 @@ export class GameCharacterComponent {
     const char = this.gameCharacter();
     if (!char) return false;
     this.objectChange.versionOf(char.identifier)();
-    return char.hideName;
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return char.hideName && !this.rolePermission.canSeeHidden;
   });
   readonly hideBuff = computed(() => {
     const char = this.gameCharacter();
@@ -440,6 +446,7 @@ export class GameCharacterComponent {
     const char = this.gameCharacter();
     if (!char) return;
 
+    if (!this.disclosureService.canView(char)) return;
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
@@ -525,6 +532,7 @@ export class GameCharacterComponent {
   }
 
   private showDetail(gameObject: GameCharacter) {
+    if (!this.disclosureService.canView(gameObject)) return;
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = this.translateFn('feature.character.panel.sheet');
     if (gameObject.name.length) title += ' - ' + gameObject.name;
@@ -540,6 +548,7 @@ export class GameCharacterComponent {
   }
 
   private showChatPalette(gameObject: GameCharacter) {
+    if (!this.disclosureService.canView(gameObject)) return;
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.translateFn('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
@@ -556,6 +565,7 @@ export class GameCharacterComponent {
   }
 
   private showRemoteController(gameObject: GameCharacter) {
+    if (!this.disclosureService.canView(gameObject)) return;
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.translateFn('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
@@ -575,6 +585,7 @@ export class GameCharacterComponent {
   }
 
   private showBuffEdit(gameObject: GameCharacter) {
+    if (!this.disclosureService.canView(gameObject)) return;
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       left: coordinate.x,

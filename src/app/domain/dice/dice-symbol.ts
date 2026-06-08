@@ -22,6 +22,8 @@ export class DiceSymbol extends OwnedTabletopObject {
   @SyncVar() face: string = '0';
   @SyncVar() owner: string = '';
   @SyncVar() rotate: number = 0;
+  @SyncVar() disclosureMode: string = '';
+  @SyncVar() disclosureUserIds: string[] = [];
 
   @SyncVar() specifyKomaImageFlag: boolean = false;
   @SyncVar('komaImageHeignt') komaImageHeight: number = 100;

@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -30,6 +31,7 @@ import {
   DataElementRole,
 } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CharacterSheetTarget } from '@axe/domain/tabletop/character-sheet-target';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
@@ -46,6 +48,7 @@ import { GameCharacterSettingsTabComponent } from '@axe/features/character/game-
 import { clampInRange, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 import { ImportCharacterImgComponent } from '@axe/features/character/import-character-img/import-character-img.component';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
+import { DisclosureControlComponent } from '@axe/features/disclosure/disclosure-control/disclosure-control.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -57,6 +60,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   host: { class: 'block' },
   imports: [
     CardStackCardListComponent,
+    DisclosureControlComponent,
     FormsModule,
     GameCharacterSettingsTabComponent,
     GameDataElementComponent,
@@ -76,6 +80,12 @@ export class GameCharacterSheetComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly dataElementDrag = inject(DataElementDragService);
   private readonly translateFn = inject(TRANSLATE_FN);
+  private readonly rolePermission = inject(RolePermissionService);
+
+  readonly isReadOnly = computed(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return !this.rolePermission.canEditTabletop;
+  });
 
   private readonly _tabletopObject = signal<CharacterSheetTarget | null>(null);
   get tabletopObject(): CharacterSheetTarget | null {
@@ -265,6 +275,18 @@ export class GameCharacterSheetComponent {
   get textNote(): TextNote | null {
     return this.tabletopObject instanceof TextNote ? this.tabletopObject : null;
   }
+  get disclosableObject(): GameCharacter | TextNote | Card | DiceSymbol | null {
+    const object = this.tabletopObject;
+    if (
+      object instanceof GameCharacter ||
+      object instanceof TextNote ||
+      object instanceof Card ||
+      object instanceof DiceSymbol
+    ) {
+      return object;
+    }
+    return null;
+  }
   get scratchMask(): GameTableScratchMask | null {
     return this.tabletopObject instanceof GameTableScratchMask ? this.tabletopObject : null;
   }
@@ -420,6 +442,7 @@ export class GameCharacterSheetComponent {
   }
 
   clone() {
+    if (!this.rolePermission.canEditTabletop) return;
     if (this.tabletopObject) cloneTabletopObject(this.tabletopObject);
   }
 

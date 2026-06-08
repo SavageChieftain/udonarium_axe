@@ -18,6 +18,8 @@ export class Card extends OwnedTabletopObject {
   @SyncVar() rotate: number = 0;
   @SyncVar() owner: string = '';
   @SyncVar() zindex: number = 0;
+  @SyncVar() disclosureMode: string = '';
+  @SyncVar() disclosureUserIds: string[] = [];
 
   @SyncVar() overViewWidth: number = 250;
   @SyncVar() overViewMaxHeight: number = 250;

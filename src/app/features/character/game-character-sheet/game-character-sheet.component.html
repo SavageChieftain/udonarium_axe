@@ -42,6 +42,9 @@
 }
 
 @if (tabletopObject) {
+  @if (disclosableObject; as disclosable) {
+    <disclosure-control [object]="disclosable" />
+  }
   @if (character) {
     <div class="flex w-full flex-col gap-0">
       <div class="border-ui-border-panel bg-ui-surface flex items-end gap-px border-b border-solid px-2 pt-1.5">
@@ -74,7 +77,7 @@
       </div>
 
       @if (activeTab() === 'sheet') {
-        <div class="grid grid-cols-[180px_1fr] items-start gap-3 px-2.5 pt-2.5">
+        <div class="grid grid-cols-[180px_1fr] items-start gap-3 px-2.5 pt-2.5" [attr.inert]="isReadOnly() ? '' : null">
           <div class="flex w-45 min-w-0 shrink-0 flex-col gap-1.5 overflow-hidden">
             <div
               class="border-ui-border-panel text-ui-accent mx-0 mt-0 mb-2 flex items-center gap-1.25 border-b border-solid pb-1.25 text-[0.72em] font-semibold tracking-[0.06em] uppercase [&_.material-icons]:text-[14px]!"

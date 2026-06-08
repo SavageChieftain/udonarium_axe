@@ -16,10 +16,11 @@ import {
   type DataElementRoleValue,
   DataElementType,
 } from '@axe/domain/data/data-element';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 
 @SyncObject('character')
-export class GameCharacter extends TabletopObject {
+export class GameCharacter extends OwnedTabletopObject {
+  @SyncVar() owner: string = '';
   private static readonly MAX_DETAIL_GROUP_DEPTH = 2;
 
   constructor(identifier: string = generateUuid()) {
@@ -37,6 +38,8 @@ export class GameCharacter extends TabletopObject {
   @SyncVar() nonTalkFlag: boolean = false;
   @SyncVar() hideName: boolean = false;
   @SyncVar() hideBuff: boolean = false;
+  @SyncVar() disclosureMode: string = '';
+  @SyncVar() disclosureUserIds: string[] = [];
   @SyncVar() overViewWidth: number = 270;
   @SyncVar() overViewMaxHeight: number = 250;
 

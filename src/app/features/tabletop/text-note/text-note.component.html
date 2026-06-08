@@ -43,9 +43,12 @@
               class="bg-ui-titlebar border-b-ui-border-titlebar border-l-ui-accent transform-style-flat pointer-events-none flex min-h-7 items-center gap-1.25 border-b border-l-[3px] border-solid py-1.25 pr-2 pl-2.5 antialiased backface-hidden"
             >
               <i class="material-icons text-ui-accent shrink-0 text-[14px]! opacity-75">subject</i>
-              <span class="text-ui-muted flex-1 truncate text-[11px] font-bold tracking-[0.06em] uppercase">{{
-                title()
-              }}</span>
+              <span
+                class="text-ui-muted flex-1 truncate text-[11px] font-bold tracking-[0.06em] uppercase"
+                [style.filter]="canView() ? null : 'blur(4px)'"
+                [class.select-none]="!canView()"
+                >{{ canView() ? title() : maskedTitle() }}</span
+              >
               @if (isLock) {
                 <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
               }
@@ -67,9 +70,12 @@
           } @else {
             <div
               class="text-ui-text transform-style-flat [&_a]:text-ui-accent m-0 box-border min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2.5 py-2 font-sans text-base leading-[1.65] wrap-anywhere [word-break:break-word] whitespace-pre-line antialiased backface-hidden [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-xs [&::-webkit-scrollbar-thumb]:bg-(--ui-panel-border) [&::-webkit-scrollbar-track]:bg-transparent"
+              [class.pointer-events-none]="!canView()"
+              [class.select-none]="!canView()"
               [attr.data-v]="textNoteVersion()"
               [style.font-size.px]="fontSize + 9"
-              [innerHTML]="decoratedHtml() | linkify | safe"
+              [style.filter]="canView() ? null : 'blur(5px)'"
+              [innerHTML]="canView() ? (decoratedHtml() | linkify | safe) : (maskedHtml() | safe)"
             ></div>
           }
         </div>

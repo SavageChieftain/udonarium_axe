@@ -20,8 +20,10 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
+import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
@@ -46,7 +48,14 @@ export class TabletopActionService {
     character.location.x = position.x - 25;
     character.location.y = position.y - 25;
     character.posZ = position.z;
+    this.applyCreationDefaults(character);
     return character;
+  }
+
+  private applyCreationDefaults(object: { owner: string; disclosureMode: string; update(): void }): void {
+    object.owner = PeerCursor.myCursor?.userId ?? '';
+    if (PeerCursor.isMyselfGameMaster) object.disclosureMode = DisclosureMode.GameMaster;
+    object.update();
   }
 
   createGameTableMask(position: PointerCoordinate): GameTableMask | undefined {
@@ -117,6 +126,7 @@ export class TabletopActionService {
     textNote.location.x = position.x;
     textNote.location.y = position.y;
     textNote.posZ = position.z;
+    this.applyCreationDefaults(textNote);
     return textNote;
   }
 

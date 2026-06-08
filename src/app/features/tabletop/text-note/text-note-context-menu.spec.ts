@@ -38,7 +38,7 @@ function makeTextNote(
 const names = (a: { name: string }[]) => a.map((x) => x.name);
 
 describe('buildTextNoteContextMenu()', () => {
-  it('先頭は「高度設定」サブメニュー、続いて固定切替・直立切替・編集・コピー・削除', () => {
+  it('先頭は「メモを編集」、高度設定・直立切替・固定切替・コピー・削除を含む', () => {
     const note = makeTextNote();
     const menu = buildTextNoteContextMenu(
       note as unknown as TextNote,
@@ -47,8 +47,9 @@ describe('buildTextNoteContextMenu()', () => {
       { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
       t
     );
-    expect(menu[0].name).toBe('高度設定');
-    expect(menu[0].subActions?.length).toBe(2);
+    expect(menu[0].name).toBe('メモを編集');
+    const altitude = menu.find((m) => m.name === '高度設定');
+    expect(altitude?.subActions?.length).toBe(2);
     expect(names(menu)).toContain('固定する');
     expect(names(menu)).toContain('直立させる');
     expect(names(menu)).toContain('メモを編集');
@@ -120,7 +121,7 @@ describe('buildTextNoteContextMenu()', () => {
     expect(note.destroy).toHaveBeenCalled();
   });
 
-  it('separator はちょうど 3 つ', () => {
+  it('権限なし時の separator はちょうど 2 つ（開く後 / 操作前）', () => {
     const note = makeTextNote();
     const menu = buildTextNoteContextMenu(
       note as unknown as TextNote,
@@ -129,6 +130,6 @@ describe('buildTextNoteContextMenu()', () => {
       { onSetUpright: vi.fn(), onShowDetail: vi.fn() },
       t
     );
-    expect(menu.filter((m) => m.type === ContextMenuType.SEPARATOR)).toHaveLength(3);
+    expect(menu.filter((m) => m.type === ContextMenuType.SEPARATOR)).toHaveLength(2);
   });
 });

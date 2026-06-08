@@ -1,11 +1,14 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 
 @SyncObject('text-note')
-export class TextNote extends TabletopObject {
+export class TextNote extends OwnedTabletopObject {
+  @SyncVar() owner: string = '';
   @SyncVar() isLock: boolean = false;
+  @SyncVar() disclosureMode: string = '';
+  @SyncVar() disclosureUserIds: string[] = [];
 
   @SyncVar() rotate: number = 0;
   @SyncVar() zindex: number = 0;

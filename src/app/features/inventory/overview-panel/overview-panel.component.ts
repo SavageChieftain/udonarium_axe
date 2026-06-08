@@ -12,6 +12,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -42,6 +44,7 @@ import {
   type TableColumn as OverviewTableColumn,
   type TableColumnHeaderGroup as OverviewTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
+import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TextNote } from '@axe/domain/tabletop/text-note'; //
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
@@ -75,7 +78,31 @@ export class OverviewPanelComponent {
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
+
+  private get canEdit(): boolean {
+    return this.rolePermission.canEditTabletop;
+  }
+
+  canViewObject(): boolean {
+    const object = this.tabletopObject;
+    if (
+      object instanceof GameCharacter ||
+      object instanceof TextNote ||
+      object instanceof Card ||
+      object instanceof DiceSymbol
+    ) {
+      return this.disclosureService.canView(object);
+    }
+    return true;
+  }
+
+  setCheckValue(element: DataElement, value: number): void {
+    if (!this.canEdit) return;
+    element.value = value;
+  }
 
   readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');
   tabletopObject: TabletopObject | null = null;
@@ -252,6 +279,7 @@ export class OverviewPanelComponent {
   }
 
   setGapTableColumnActive(element: DataElement, column: OverviewTableColumn, event: Event): void {
+    if (!this.canEdit) return;
     event.stopPropagation();
     const gapCell = this.getGapTableColumnCell(element, column);
     if (!gapCell) return;
@@ -286,10 +314,12 @@ export class OverviewPanelComponent {
   }
 
   setTableSelectCellValue(cell: DataElement, value: string): void {
+    if (!this.canEdit) return;
     cell.value = value;
   }
 
   setTableSelectCellValueFromEvent(cell: DataElement, event: Event): void {
+    if (!this.canEdit) return;
     cell.value = event.target instanceof HTMLSelectElement ? event.target.value : '';
   }
 
@@ -317,6 +347,7 @@ export class OverviewPanelComponent {
   }
 
   toggleTableCheckCell(cell: DataElement, event?: Event): void {
+    if (!this.canEdit) return;
     cell.value = nextCheckCellValue(cell, event);
   }
 

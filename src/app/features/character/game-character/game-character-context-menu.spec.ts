@@ -48,11 +48,18 @@ const callbacks = () => ({
 });
 
 describe('buildGameCharacterContextMenu()', () => {
-  it('先頭は「高度設定」サブメニュー（高度=0, 高度表示, 影の表示）', () => {
+  it('先頭は「詳細を表示」（開く/確認グループが最上段）', () => {
     const char = makeChar();
     const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
-    expect(menu[0].name).toBe('高度設定');
-    expect(menu[0].subActions?.length).toBe(3);
+    expect(menu[0].name).toBe('詳細を表示');
+  });
+
+  it('「高度設定」サブメニュー（高度=0, 高度表示, 影の表示）が表示設定グループに含まれる', () => {
+    const char = makeChar();
+    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
+    const altitude = menu.find((m) => m.name === '高度設定');
+    expect(altitude).toBeDefined();
+    expect(altitude!.subActions?.length).toBe(3);
   });
 
   it('「詳細を表示」「チャットパレット」「リモコン」「バフ編集」がコールバックを呼ぶ', () => {
@@ -169,7 +176,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(names(unlocked)).toContain('固定する');
   });
 
-  it('separator は 4 つ（高度設定後 / 移動前 / 固定前 / コピー前）', () => {
+  it('権限なし時の separator は 3 つ（開く後 / 移動前 / 操作前）', () => {
     const menu = buildGameCharacterContextMenu(
       makeChar() as unknown as GameCharacter,
       50,
@@ -177,6 +184,6 @@ describe('buildGameCharacterContextMenu()', () => {
       callbacks(),
       t
     );
-    expect(menu.filter((m) => m.type === ContextMenuType.SEPARATOR)).toHaveLength(4);
+    expect(menu.filter((m) => m.type === ContextMenuType.SEPARATOR)).toHaveLength(3);
   });
 });

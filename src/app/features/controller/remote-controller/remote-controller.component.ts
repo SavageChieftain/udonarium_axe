@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -69,6 +70,7 @@ export class RemoteControllerComponent {
   readonly chatMessageService = inject(ChatMessageService);
   private readonly panelService = inject(PanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
+  private readonly disclosureService = inject(DisclosureService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
@@ -293,10 +295,11 @@ export class RemoteControllerComponent {
   }
 
   onSelectedCharacter(identifier: string) {
+    const object = this.objectStore.get(identifier);
+    if (object instanceof GameCharacter && !this.disclosureService.canView(object)) return;
     if (this.isEdit()) {
       this.toggleEditMode();
     }
-    const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) {
       this.character.set(object);
       const gameType = object.remoteController ? object.remoteController.dicebot : '';
@@ -351,7 +354,12 @@ export class RemoteControllerComponent {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('character')();
-    return getGameObjects(inventoryType, this.inventoryService);
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return getGameObjects(inventoryType, this.inventoryService).filter((object) => this.canView(object));
+  }
+
+  canView(object: TabletopObject): boolean {
+    return object instanceof GameCharacter ? this.disclosureService.canView(object) : true;
   }
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {

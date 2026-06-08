@@ -10,6 +10,8 @@ import {
   signal,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { DisclosureService } from '@axe/application/permission/disclosure.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -58,6 +60,8 @@ export class DiceSymbolComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly tabletopService = inject(TabletopService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -93,7 +97,8 @@ export class DiceSymbolComponent {
   });
   readonly hideName = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
-    return this.diceSymbol().hideName;
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.diceSymbol().hideName && !this.rolePermission.canSeeHidden;
   });
   readonly size = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
@@ -132,7 +137,7 @@ export class DiceSymbolComponent {
     return this.diceSymbol().ownerName;
   }
   get isVisible(): boolean {
-    return this.diceSymbol().isVisible;
+    return this.diceSymbol().isVisible || this.rolePermission.canSeeHidden;
   }
 
   get isLock(): boolean {
@@ -283,6 +288,7 @@ export class DiceSymbolComponent {
 
   onDoubleClick() {
     this.stopDoubleClickTimer();
+    if (!this.rolePermission.canEditTabletop) return;
     const distance =
       (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
     if (distance < 10 ** 2) {
@@ -343,6 +349,7 @@ export class DiceSymbolComponent {
   }
 
   showDetail(gameObject: DiceSymbol) {
+    if (!this.disclosureService.canView(gameObject)) return;
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
     let title = this.translateFn('feature.dice.symbolSheet.title');
