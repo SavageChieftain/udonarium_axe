@@ -18,6 +18,9 @@ class StubObjectChange {
   readonly networkOpen$ = new EventChannel<NetworkPeerEvent>();
   readonly networkError$ = new EventChannel<NetworkErrorEvent>();
   readonly peerConnect$ = new EventChannel<NetworkPeerEvent>();
+  onObjectChangedForAlias(): () => void {
+    return () => {};
+  }
 }
 
 describe('NetworkEventHandlerService', () => {

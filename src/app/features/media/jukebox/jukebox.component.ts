@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -33,6 +34,7 @@ export class JukeboxComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -208,6 +210,10 @@ export class JukeboxComponent {
 
   handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
+    if (!this.rolePermission.canEditTabletop) {
+      input.value = '';
+      return;
+    }
     const files = input.files;
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';

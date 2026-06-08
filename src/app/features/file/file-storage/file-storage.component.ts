@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectFile } from '@axe/core/event/domain-events';
@@ -25,6 +26,7 @@ export class FileStorageComponent {
   private readonly imageStorage = inject(ImageStorage);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
 
   displayTagName(tag: string): string {
@@ -137,6 +139,10 @@ export class FileStorageComponent {
 
   handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
+    if (!this.rolePermission.canEditTabletop) {
+      input.value = '';
+      return;
+    }
     const files = input.files;
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';

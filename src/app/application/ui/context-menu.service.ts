@@ -1,4 +1,5 @@
-import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
+import { ComponentRef, inject, Injectable, ViewContainerRef } from '@angular/core';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 interface ContextMenuPoint {
@@ -30,6 +31,7 @@ export interface ContextMenuAction {
 export class ContextMenuService {
   static defaultParentViewContainerRef: ViewContainerRef;
   static ContextMenuComponentClass: { new (...args: unknown[]): unknown } = null!;
+  private readonly rolePermission = inject(RolePermissionService);
   private panelComponentRef: ComponentRef<unknown> | null = null;
 
   title: string = '';
@@ -47,6 +49,7 @@ export class ContextMenuService {
     parentViewContainerRef?: ViewContainerRef
   ) {
     this.close();
+    if (!this.rolePermission.canEditTabletop) return;
     if (!parentViewContainerRef) {
       parentViewContainerRef = ContextMenuService.defaultParentViewContainerRef;
     }

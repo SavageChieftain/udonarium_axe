@@ -34,10 +34,61 @@
       "jukebox": "Jukebox",
       "cutInList": "Cut-ins",
       "characterGenerator": "Character generator",
-      "inventory": "Inventory"
+      "inventory": "Inventory",
+      "objectList": "Object list"
     }
   },
   "feature": {
+    "role": {
+      "gm": "Game Master",
+      "gmShort": "GM",
+      "player": "Player",
+      "playerShort": "PL",
+      "guest": "Guest"
+    },
+    "disclosure": {
+      "label": "Disclosure",
+      "all": "Everyone",
+      "selected": "Selected",
+      "gmOnly": "GM only",
+      "selectPlayers": "Disclose to",
+      "noPlayers": "No other players",
+      "owner": "Owner",
+      "ownerNone": "None",
+      "locked": "Not disclosed"
+    },
+    "gmObjectList": {
+      "searchPlaceholder": "Search by name or owner",
+      "gmOnly": "This tool is for the Game Master only",
+      "empty": "No matching objects",
+      "unnamed": "(unnamed)",
+      "hidden": "Hidden from inventory",
+      "unknownOwner": "Unknown",
+      "surface": "Surface",
+      "editPosition": "Edit surface & coordinates",
+      "typeCharacter": "Character",
+      "typeCard": "Card",
+      "typeCardStack": "Card stack",
+      "typeDice": "Dice",
+      "typeNote": "Shared note",
+      "typeTerrain": "Terrain",
+      "typeRange": "Range",
+      "locTable": "Table",
+      "locCommon": "Common",
+      "locGraveyard": "Graveyard",
+      "locPersonal": "Personal ({{name}})",
+      "locOther": "Other",
+      "menu": {
+        "title": "Actions",
+        "focus": "Focus",
+        "detail": "Show details",
+        "move": "Move",
+        "moveTable": "To table",
+        "moveCommon": "To common",
+        "moveGraveyard": "To graveyard",
+        "delete": "Delete"
+      }
+    },
     "media": {
       "jukebox": {
         "title": "Jukebox",
@@ -753,6 +804,7 @@
         "connecting": "[Connecting] ",
         "latency": "RTT:",
         "latencyUnit": "s",
+        "roleLabel": "Role",
         "showLobby": "Show lobby (room list)"
       },
       "lobby": {
@@ -843,6 +895,7 @@
         "you": " (you)",
         "everyone": "Everyone",
         "textareaPlaceholder": "Enter: send / Shift+Enter: new line / Ctrl+Up/Down: history / Ctrl+Left/Right: switch tab",
+        "viewOnly": "View only — you can't post in this tab",
         "diceBotNotFound": "* Dice bot not found",
         "colorSetting": "Color settings",
         "colorSettingWithChar": "Color settings - {{name}}",
@@ -923,6 +976,10 @@
         "createTab": "Create tab",
         "tabNameLabel": "Tab name",
         "tabNamePlaceholder": "Enter tab name",
+        "permissionLabel": "View / speak permissions",
+        "permView": "View",
+        "permSpeak": "Speak",
+        "permGmNote": "GM can always view and speak",
         "moveUpTooltip": "Move up",
         "moveDownTooltip": "Move down",
         "deletedNotice": "This tab is deleted",
@@ -971,6 +1028,7 @@
       "jukebox": "Jukebox",
       "cutIn": "Cut-in",
       "inventory": "Inventory",
+      "objectList": "Object list (GM)",
       "zipLoad": "Load ZIP",
       "save": "Save"
     },

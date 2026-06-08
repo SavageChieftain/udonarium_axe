@@ -133,6 +133,10 @@ export class PeerContext implements IPeerContext {
     const h = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     return format.replace(/\*/g, () => h[Math.floor(Math.random() * h.length)]);
   }
+
+  static generateUserId(): string {
+    return crypto.randomUUID();
+  }
 }
 
 async function calcDigestRoomName(roomName: string): Promise<string> {

@@ -5,7 +5,9 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
+import { saveIdentity } from '@axe/core/storage/identity-storage';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -43,10 +45,19 @@ export class RoomSettingComponent {
   }
 
   createRoom() {
-    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
-    Network.open(userId, PeerContext.generateId('***'), this.roomName(), this.password());
+    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateUserId();
+    const roomId = PeerContext.generateId('***');
+    Network.open(userId, roomId, this.roomName(), this.password());
     PeerCursor.myCursor.peerId = Network.peerId;
+    if (PeerCursor.myCursor.role === PeerRole.Player) PeerCursor.myCursor.role = PeerRole.GameMaster;
     this.myPeer.reConnectPass = this.password();
+    saveIdentity({
+      userId,
+      roomId,
+      roomName: this.roomName(),
+      role: PeerCursor.myCursor.role,
+      reConnectPass: this.password(),
+    });
     this.modalService.resolve(true);
   }
 }

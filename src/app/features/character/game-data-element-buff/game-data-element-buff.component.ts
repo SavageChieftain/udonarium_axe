@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -9,9 +11,16 @@ import { TranslocoModule } from '@jsverse/transloco';
   templateUrl: './game-data-element-buff.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TranslocoModule],
+  host: { '[attr.inert]': "isReadOnly() ? '' : null" },
 })
 export class GameDataElementBuffComponent {
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly rolePermission = inject(RolePermissionService);
+
+  readonly isReadOnly = computed(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return !this.rolePermission.canEditTabletop;
+  });
 
   readonly gameDataElement = input.required<DataElement>();
   readonly isEdit = input(false);

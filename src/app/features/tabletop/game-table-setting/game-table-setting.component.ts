@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -12,6 +13,7 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { Config } from '@axe/domain/peer/config';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
@@ -23,11 +25,17 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
-  host: { class: 'block' },
+  host: { class: 'block', '[attr.inert]': "isReadOnly() ? '' : null" },
   imports: [FormsModule, NgSelectComponent, NgOptionComponent, SafePipe, TranslocoModule],
 })
 export class GameTableSettingComponent {
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
+
+  readonly isReadOnly = computed(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return !this.rolePermission.canEditTabletop;
+  });
   private readonly modalService = inject(ModalService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly imageService = inject(ImageService);
@@ -333,6 +341,7 @@ export class GameTableSettingComponent {
   }
 
   createGameTable() {
+    if (!this.rolePermission.canEditTabletop) return;
     const gameTable = new GameTable();
     gameTable.name = this.t('feature.tabletop.tableSetting.defaultName');
     gameTable.imageIdentifier = ImageFile.Empty.identifier;
@@ -358,6 +367,7 @@ export class GameTableSettingComponent {
   }
 
   delete() {
+    if (!this.rolePermission.canEditTabletop) return;
     if (!this.isEmpty && this.selectedTable) {
       this.selectedTableXml = this.selectedTable.toXml();
       this.selectedTable.destroy();
@@ -365,6 +375,7 @@ export class GameTableSettingComponent {
   }
 
   restore() {
+    if (!this.rolePermission.canEditTabletop) return;
     if (this.selectedTable && this.selectedTableXml) {
       const restoreTable = this.objectSerializer.parseXml(this.selectedTableXml)!;
       this.selectGameTable(restoreTable.identifier);

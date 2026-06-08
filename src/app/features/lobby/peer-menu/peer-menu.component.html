@@ -26,12 +26,28 @@
       [placeholder]="'feature.lobby.peerMenu.nickname' | transloco"
     />
     <div class="space-y-0.5 text-xs text-(--ui-text-muted)">
-      <div>
-        <span>{{ 'feature.lobby.peerMenu.id' | transloco }}</span>
+      <div class="flex items-baseline gap-1">
+        <span class="shrink-0">{{ 'feature.lobby.peerMenu.id' | transloco }}</span>
         @if (networkService.isOpen) {
-          <span class="font-bold text-(--ui-accent)">{{ networkService.peerContext.userId }}</span>
+          <span class="font-bold text-(--ui-accent)" [title]="networkService.peerContext.userId">{{
+            shortId(networkService.peerContext.peerId)
+          }}</span>
         } @else {
           <span class="font-bold text-(--ui-text-dim)">???</span>
+        }
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span>{{ 'feature.lobby.peerMenu.roleLabel' | transloco }}</span>
+        @for (role of assignableRoles; track role) {
+          <button
+            class="rounded-sm px-1.5 py-0.5 text-[0.7rem]"
+            [class]="
+              myPeer.role === role ? roleBadgeClass(role) : 'border border-(--ui-panel-border) text-(--ui-text-muted)'
+            "
+            (click)="setMyRole(role)"
+          >
+            {{ roleShortLabelKey(role) | transloco }}
+          </button>
         }
       </div>
       <div class="text-(--ui-text-dim)">{{ myTime() | date: 'yy/MM/dd HH:mm:ss' }}</div>
@@ -92,17 +108,42 @@
 
 @for (context of networkService.peerContexts; track context) {
   <div class="border-t border-(--ui-panel-border) px-3 py-1 text-xs text-(--ui-text-muted)">
-    @if (!context.isOpen) {
-      <span class="text-(--ui-accent)">{{ 'feature.lobby.peerMenu.connecting' | transloco }}</span>
-    }
-    <span>{{ findUserId(context.peerId) }} [{{ findPeerName(context.peerId) }}]</span>
-    @if (findPeerTimeReceive(context.peerId) <= 0) {
-      <span class="ml-2 text-(--ui-text-dim)">[-:--:--]</span>
-    } @else {
-      <span class="ml-2 text-(--ui-text-dim)">{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}</span>
-    }
+    <div class="flex items-center gap-2">
+      @if (!context.isOpen) {
+        <span class="shrink-0 text-(--ui-accent)">{{ 'feature.lobby.peerMenu.connecting' | transloco }}</span>
+      }
+      <span class="min-w-0 flex-1 truncate" [title]="findUserId(context.peerId)">{{
+        findPeerName(context.peerId) || findUserId(context.peerId)
+      }}</span>
+      @if (isMyselfGameMaster) {
+        <select
+          class="shrink-0 text-[0.7rem]"
+          [ngModel]="findPeerRole(context.peerId)"
+          (ngModelChange)="reassignRole(context.peerId, $event)"
+          [name]="'peer-role-' + context.peerId"
+        >
+          @for (role of assignableRoles; track role) {
+            <option [ngValue]="role">{{ roleShortLabelKey(role) | transloco }}</option>
+          }
+        </select>
+      } @else {
+        <span
+          class="shrink-0 rounded-sm px-1.5 py-0.5 text-[0.65rem] font-bold"
+          [class]="roleBadgeClass(findPeerRole(context.peerId))"
+          >{{ roleShortLabelKey(findPeerRole(context.peerId)) | transloco }}</span
+        >
+      }
+      @if (findPeerTimeReceive(context.peerId) <= 0) {
+        <span class="shrink-0 text-(--ui-text-dim)">[-:--:--]</span>
+      } @else {
+        <span class="shrink-0 text-(--ui-text-dim)">{{ findPeerTimeReceive(context.peerId) | date: 'HH:mm:ss' }}</span>
+      }
+    </div>
+    <div class="text-[0.65rem] text-(--ui-text-dim)" [title]="findUserId(context.peerId)">
+      {{ shortId(context.peerId) }}
+    </div>
     @if (dispDetailFlag() && findPeerTimeReceive(context.peerId) > 0) {
-      <span class="ml-2"
+      <span class="text-(--ui-text-dim)"
         >{{ 'feature.lobby.peerMenu.latency' | transloco }}{{ findPeerTimeLatency(context.peerId)
         }}{{ 'feature.lobby.peerMenu.latencyUnit' | transloco }}</span
       >

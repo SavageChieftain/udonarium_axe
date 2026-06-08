@@ -7,6 +7,7 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
+import { DEFAULT_PEER_ROLE, PeerRole } from '@axe/domain/peer/peer-role';
 import { Vote } from '@axe/domain/vote/vote';
 
 const PEER_DISCONNECT_TIMEOUT_MS = 30_000;
@@ -21,6 +22,7 @@ export class PeerCursor extends GameObject {
   @SyncVar() peerId: PeerId = '';
   @SyncVar() name = '';
   @SyncVar() imageIdentifier = '';
+  @SyncVar() role: PeerRole = DEFAULT_PEER_ROLE;
 
   @SyncVar() lastControlImageIdentifier = '';
   @SyncVar() lastControlCharacterName = '';
@@ -178,6 +180,25 @@ export class PeerCursor extends GameObject {
 
   get isMine(): boolean {
     return PeerCursor.myCursor && PeerCursor.myCursor === this;
+  }
+  get isGameMaster(): boolean {
+    return this.role === PeerRole.GameMaster;
+  }
+  get isGuest(): boolean {
+    return this.role === PeerRole.Guest;
+  }
+  get isPlayer(): boolean {
+    return this.role === PeerRole.Player;
+  }
+
+  static get myRole(): PeerRole {
+    return PeerCursor.myCursor?.role ?? DEFAULT_PEER_ROLE;
+  }
+  static get isMyselfGameMaster(): boolean {
+    return PeerCursor.myCursor?.isGameMaster ?? false;
+  }
+  static get isMyselfGuest(): boolean {
+    return PeerCursor.myCursor?.isGuest ?? false;
   }
   get image(): ImageFile | null {
     return ImageStorage.instance.get(this.imageIdentifier);

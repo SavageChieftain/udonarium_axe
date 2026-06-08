@@ -127,7 +127,7 @@ export class LobbyComponent {
 
     if (!(await context.verifyPassword(password))) return;
 
-    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateId();
+    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateUserId();
     Network.open(userId, context.roomId, context.roomName, password);
     PeerCursor.myCursor.peerId = Network.peerId;
 

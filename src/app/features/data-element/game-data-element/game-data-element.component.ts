@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
@@ -35,6 +36,7 @@ import {
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { evaluateCalcElement } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 import {
   canAcceptChildRole,
@@ -74,6 +76,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
     '[class.elm-drop-before]': "structureDropPosition() === 'before'",
     '[class.elm-drop-after]': "structureDropPosition() === 'after'",
     '[class.elm-drop-inside]': "structureDropPosition() === 'inside'",
+    '[attr.inert]': "isReadOnly() ? '' : null",
   },
 })
 export class GameDataElementComponent {
@@ -86,6 +89,12 @@ export class GameDataElementComponent {
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
+  private readonly rolePermission = inject(RolePermissionService);
+
+  readonly isReadOnly = computed(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return !this.rolePermission.canEditTabletop;
+  });
   private readonly pointerDeviceService = inject(PointerDeviceService);
 
   readonly gameDataElement = input.required<DataElement>();

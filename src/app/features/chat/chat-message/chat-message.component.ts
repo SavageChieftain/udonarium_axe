@@ -16,6 +16,7 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -24,6 +25,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
@@ -53,6 +55,11 @@ export class ChatMessageComponent {
   private readonly t = inject(TRANSLATE_FN);
   private readonly language = inject(LanguageService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly rolePermission = inject(RolePermissionService);
+
+  protected get canRevealSecret(): boolean {
+    return this.rolePermission.canSeeHidden;
+  }
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
   get chatMessage(): ChatMessage {
@@ -267,6 +274,13 @@ export class ChatMessageComponent {
     this.language.currentLang();
     if (!this.isSystemMessage) return name;
     return decodeI18nMessage(name, this.t);
+  }
+
+  shortFrom(from: string): string {
+    if (!from) return '';
+    const peerId = PeerCursor.findByUserId(from)?.peerId;
+    if (peerId) return peerId.slice(0, 6);
+    return from.length > 8 ? from.slice(0, 6) : from;
   }
 
   escapeHtmlAndRuby(text: string) {

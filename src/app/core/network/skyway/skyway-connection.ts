@@ -59,7 +59,7 @@ export class SkyWayConnection implements Connection {
   }
 
   openStandby(userId?: string): void {
-    PeerContext.create(userId ?? PeerContext.generateId()).then((peer) => this.openSkyWay(peer));
+    PeerContext.create(userId ?? PeerContext.generateUserId()).then((peer) => this.openSkyWay(peer));
   }
 
   open(userId: string, roomId: string, roomName: string, password: string): void {

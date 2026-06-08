@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { getMyPeerId } from '@axe/core/network/peer-context-source';
@@ -9,19 +10,26 @@ import {
   countConvertibleCheckTableElements,
 } from '@axe/domain/data/check-table-converter';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-character-settings-tab',
   templateUrl: './game-character-settings-tab.component.html',
-  host: { class: 'block' },
+  host: { class: 'block', '[attr.inert]': "isReadOnly() ? '' : null" },
   imports: [FormsModule, TranslocoModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameCharacterSettingsTabComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly rolePermission = inject(RolePermissionService);
+
+  readonly isReadOnly = computed(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return !this.rolePermission.canEditTabletop;
+  });
 
   readonly character = input.required<GameCharacter>();
 

@@ -20,7 +20,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 export function resolveReconnectUserId(previousUserId: string, currentUserId: string): string {
   if (previousUserId?.length) return previousUserId;
   if (currentUserId?.length) return currentUserId;
-  return PeerContext.generateId();
+  return PeerContext.generateUserId();
 }
 
 export function createExpectedPeerIdSet(peerContexts: PeerContext[], selfPeerId: string): Set<string> {

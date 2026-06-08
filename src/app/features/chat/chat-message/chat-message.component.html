@@ -31,7 +31,7 @@
           <div class="pl-2.5 align-top text-[13px] font-medium text-inherit">
             <span class="msg-name">{{ displayName(chatMessage.name) }}</span>
             <span class="tip"> | </span>
-            <span class="tip msg-from">{{ chatMessage.from }}</span>
+            <span class="tip msg-from" [title]="chatMessage.from">{{ shortFrom(chatMessage.from) }}</span>
             <span class="tip"> | </span>
             <span class="tip msg-timestamp">{{ chatMessage.timestamp | date: 'y/M/d H:mm' }}</span>
             @if (!isEditing()) {
@@ -126,7 +126,7 @@
                   </button>
                 </div>
               </div>
-            } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
+            } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf || canRevealSecret) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
               @if (attachmentImageFiles().length > 0) {
                 <div class="mt-1.5 flex flex-wrap gap-1.5 whitespace-normal">
@@ -139,7 +139,7 @@
                   }
                 </div>
               }
-              @if (chatMessage.isSecret) {
+              @if (chatMessage.isSecret && chatMessage.isSendFromSelf) {
                 <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
               }
             } @else {
@@ -170,7 +170,7 @@
             <font class="msg-name">{{ displayName(chatMessage.name) }}</font
             >：
             @if (simpleDispFlagUserId()) {
-              <font class="tip msg-from">{{ chatMessage.from }}</font>
+              <font class="tip msg-from" [title]="chatMessage.from">{{ shortFrom(chatMessage.from) }}</font>
             }
             @if (simpleDispFlagUserId() && simpleDispFlagTime()) {
               <span class="tip"> | </span>
@@ -236,7 +236,7 @@
                     </button>
                   </span>
                 </span>
-              } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf) {
+              } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf || canRevealSecret) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
                 @if (attachmentImageFiles().length > 0) {
                   <span class="ml-1.5 inline-flex align-middle">

@@ -41,10 +41,9 @@ export class TurnOrderService {
     return this.turnState.round;
   }
 
-  orderedCharacters(): GameCharacter[] {
-    return (this.inventory.tableInventory.tabletopObjects as GameCharacter[]).filter(
-      (character) => !character.hideInventory
-    );
+  orderedCharacters(includeHidden = false): GameCharacter[] {
+    const characters = this.inventory.tableInventory.tabletopObjects as GameCharacter[];
+    return includeHidden ? [...characters] : characters.filter((character) => !character.hideInventory);
   }
 
   setCurrent(identifier: string): void {

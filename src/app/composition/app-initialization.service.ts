@@ -6,6 +6,7 @@ import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioSharingSystem } from '@axe/core/storage/audio-sharing-system';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { loadIdentity } from '@axe/core/storage/identity-storage';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageSharingSystem } from '@axe/core/storage/image-sharing-system';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -22,6 +23,7 @@ import { Playlist } from '@axe/domain/media/playlist';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { normalizePeerRole } from '@axe/domain/peer/peer-role';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TurnState } from '@axe/domain/tabletop/turn-state';
@@ -142,5 +144,11 @@ export class AppInitializationService {
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.name = 'プレイヤー';
     PeerCursor.myCursor.imageIdentifier = noneIconImage.identifier;
+
+    const storedIdentity = loadIdentity();
+    if (storedIdentity) {
+      PeerCursor.myCursor.reConnectPass = storedIdentity.reConnectPass;
+      PeerCursor.myCursor.role = normalizePeerRole(storedIdentity.role);
+    }
   }
 }

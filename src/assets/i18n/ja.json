@@ -34,10 +34,61 @@
       "jukebox": "ジュークボックス",
       "cutInList": "カットインリスト",
       "characterGenerator": "キャラクタージェネレーター",
-      "inventory": "インベントリ"
+      "inventory": "インベントリ",
+      "objectList": "オブジェクト一覧"
     }
   },
   "feature": {
+    "role": {
+      "gm": "ゲームマスター",
+      "gmShort": "GM",
+      "player": "プレイヤー",
+      "playerShort": "PL",
+      "guest": "見学"
+    },
+    "disclosure": {
+      "label": "公開範囲",
+      "all": "全員",
+      "selected": "特定PL",
+      "gmOnly": "GMのみ",
+      "selectPlayers": "公開する相手",
+      "noPlayers": "他の参加者がいません",
+      "owner": "オーナー",
+      "ownerNone": "なし",
+      "locked": "非公開"
+    },
+    "gmObjectList": {
+      "searchPlaceholder": "名前・オーナーで検索",
+      "gmOnly": "このツールはゲームマスター専用です",
+      "empty": "該当するオブジェクトがありません",
+      "unnamed": "（無名）",
+      "hidden": "インベントリ非表示",
+      "unknownOwner": "不明",
+      "surface": "サーフェス",
+      "editPosition": "サーフェス・座標を編集",
+      "typeCharacter": "キャラクター",
+      "typeCard": "カード",
+      "typeCardStack": "山札",
+      "typeDice": "ダイス",
+      "typeNote": "共有メモ",
+      "typeTerrain": "地形",
+      "typeRange": "射程範囲",
+      "locTable": "卓上",
+      "locCommon": "共通",
+      "locGraveyard": "墓場",
+      "locPersonal": "個人（{{name}}）",
+      "locOther": "その他",
+      "menu": {
+        "title": "操作",
+        "focus": "フォーカス",
+        "detail": "詳細を表示",
+        "move": "移動",
+        "moveTable": "卓上へ",
+        "moveCommon": "共通へ",
+        "moveGraveyard": "墓場へ",
+        "delete": "削除する"
+      }
+    },
     "media": {
       "jukebox": {
         "title": "ジュークボックス",
@@ -753,6 +804,7 @@
         "connecting": "[接続中] ",
         "latency": "往復：",
         "latencyUnit": "秒",
+        "roleLabel": "役割",
         "showLobby": "ロビー（ルーム一覧）を表示"
       },
       "lobby": {
@@ -843,6 +895,7 @@
         "you": "（あなた）",
         "everyone": "全員",
         "textareaPlaceholder": "Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替",
+        "viewOnly": "このタブは閲覧のみ（発言できません）",
         "diceBotNotFound": "※ダイスボットが見つかりません",
         "colorSetting": "色設定",
         "colorSettingWithChar": "色設定 - {{name}}",
@@ -923,6 +976,10 @@
         "createTab": "タブを作成",
         "tabNameLabel": "タブ名",
         "tabNamePlaceholder": "タブ名を入力",
+        "permissionLabel": "閲覧・発言の権限",
+        "permView": "閲覧",
+        "permSpeak": "発言",
+        "permGmNote": "GM は常に閲覧・発言できます",
         "moveUpTooltip": "上に移動",
         "moveDownTooltip": "下に移動",
         "deletedNotice": "このタブは削除されています",
@@ -971,6 +1028,7 @@
       "jukebox": "ジュークボックス",
       "cutIn": "カットイン",
       "inventory": "インベントリ",
+      "objectList": "オブジェクト一覧（GM）",
       "zipLoad": "ZIP読込",
       "save": "保存"
     },

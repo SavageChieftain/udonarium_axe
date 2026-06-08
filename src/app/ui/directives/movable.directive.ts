@@ -1,4 +1,5 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { BatchService } from '@axe/application/ui/batch.service';
@@ -58,6 +59,7 @@ export class MovableDirective {
   private readonly multiMovableService = inject(MultiMovableService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopOverlap = inject(TabletopOverlapService);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly destroyRef = inject(DestroyRef);
 
   private registeredOverlapId: string | null = null;
@@ -329,6 +331,10 @@ export class MovableDirective {
 
     pointerSchratch3d.x -= this.posX;
     pointerSchratch3d.y -= this.posY;
+  }
+
+  isReadOnly(): boolean {
+    return !this.rolePermission.canEditTabletop;
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {

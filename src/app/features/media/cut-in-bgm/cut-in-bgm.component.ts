@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -25,6 +26,7 @@ export class CutInBgmComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly audioStorage = inject(AudioStorage);
   private readonly fileArchiver = inject(FileArchiver);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -82,6 +84,7 @@ export class CutInBgmComponent {
   }
 
   handleFileSelect(event: Event) {
+    if (!this.rolePermission.canEditTabletop) return;
     const files = (event.target as HTMLInputElement).files;
     if (files && files.length) this.fileArchiver.load(files);
   }

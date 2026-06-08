@@ -1,4 +1,5 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -24,6 +25,7 @@ export class RotableDirective {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly destroyRef = inject(DestroyRef);
 
   private tabletopObject: RotableTabletopObject | null = null;
@@ -155,9 +157,19 @@ export class RotableDirective {
     this.setAnimatedTransition(true);
   }
 
+  private get isReadOnly(): boolean {
+    return !this.rolePermission.canEditTabletop;
+  }
+
   onInputStart(e: MouseEvent | TouchEvent) {
     this.grabbingElement = e.target as HTMLElement;
-    if (this.isDisable() || !this.isAllowedToRotate || (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2)
+    if (
+      this.isDisable() ||
+      this.isReadOnly ||
+      !this.isAllowedToRotate ||
+      (e as MouseEvent).button === 1 ||
+      (e as MouseEvent).button === 2
+    )
       return this.cancel();
     const input = this.input;
     const grabbingElement = this.grabbingElement;
@@ -176,7 +188,7 @@ export class RotableDirective {
     if (this.input?.isGrabbing && !this.pointerDeviceService.isDragging) {
       return this.cancel();
     }
-    if (this.isDisable() || !this.input?.isGrabbing) return this.cancel();
+    if (this.isDisable() || this.isReadOnly || !this.input?.isGrabbing) return this.cancel();
 
     const input = this.input;
     const grabbingElement = this.grabbingElement;
@@ -194,7 +206,7 @@ export class RotableDirective {
   }
 
   onInputEnd(e: MouseEvent | TouchEvent) {
-    if (this.isDisable()) return this.cancel();
+    if (this.isDisable() || this.isReadOnly) return this.cancel();
     e.stopPropagation();
     if (this.input?.isDragging) this.ondragend.emit(e as PointerEvent);
     this.cancel();

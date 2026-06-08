@@ -5,6 +5,7 @@ import { resolveMovableLocalCoordinate } from '@axe/ui/directives/movable-helper
 export interface MovableInteractionContext {
   isGridSnap: boolean;
   isDisable(): boolean;
+  isReadOnly(): boolean;
   isScratcOwner(): boolean;
   input: {
     isGrabbing: boolean;
@@ -41,7 +42,7 @@ export interface MovableInteractionContext {
 }
 
 export function handleInputStart(context: MovableInteractionContext, e: MouseEvent | TouchEvent): void {
-  const isLocked = context.isDisable() && !context.isScratcOwner();
+  const isLocked = (context.isDisable() && !context.isScratcOwner()) || context.isReadOnly();
   const isContextMenuButton = (e as MouseEvent).button === 1 || (e as MouseEvent).button === 2;
   if (isLocked || isContextMenuButton) {
     if (isContextMenuButton && !isLocked) context.cancelTableGesture();
@@ -88,7 +89,8 @@ export function handleInputMove(context: MovableInteractionContext, e: MouseEven
     return context.cancel();
   }
 
-  if ((context.isDisable() && !context.isScratcOwner()) || !context.input.isGrabbing) return context.cancel();
+  if ((context.isDisable() && !context.isScratcOwner()) || context.isReadOnly() || !context.input.isGrabbing)
+    return context.cancel();
 
   if (e.cancelable) e.preventDefault();
 
@@ -133,7 +135,7 @@ export function handleInputMove(context: MovableInteractionContext, e: MouseEven
 }
 
 export function handleInputEnd(context: MovableInteractionContext, e: MouseEvent | TouchEvent): void {
-  if (context.isDisable()) return context.cancel();
+  if (context.isDisable() || context.isReadOnly()) return context.cancel();
   if (context.input.isDragging) context.ondragend.emit(e as PointerEvent);
   if (context.isGridSnap && context.input.isDragging && !context.isScratcOwner()) context.snapToGrid();
   context.cancel();

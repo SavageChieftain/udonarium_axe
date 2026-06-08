@@ -6,8 +6,16 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
+import { saveIdentity } from '@axe/core/storage/identity-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import {
+  ASSIGNABLE_PEER_ROLES,
+  DEFAULT_PEER_ROLE,
+  PeerRole,
+  roleBadgeClass,
+  roleShortLabelKey,
+} from '@axe/domain/peer/peer-role';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { LobbyComponent } from '@axe/features/lobby/lobby/lobby.component';
 import { ReConnectComponent } from '@axe/features/lobby/re-connect/re-connect.component';
@@ -35,8 +43,45 @@ export class PeerMenuComponent {
   readonly isPasswordVisible = signal(false);
   readonly dispDetailFlag = signal(false);
 
+  readonly assignableRoles = ASSIGNABLE_PEER_ROLES;
+  protected readonly roleShortLabelKey = roleShortLabelKey;
+  protected readonly roleBadgeClass = roleBadgeClass;
+
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
+  }
+
+  get isMyselfGameMaster(): boolean {
+    return PeerCursor.isMyselfGameMaster;
+  }
+
+  findPeerRole(peerId: string): PeerRole {
+    return PeerCursor.findByPeerId(peerId)?.role ?? DEFAULT_PEER_ROLE;
+  }
+
+  shortId(peerId: string): string {
+    return peerId.slice(0, 6);
+  }
+
+  setMyRole(role: PeerRole) {
+    this.myPeer.role = role;
+    this.myPeer.update();
+    const peer = Network.peerContext;
+    saveIdentity({
+      userId: peer.userId,
+      roomId: peer.roomId,
+      roomName: peer.roomName,
+      role,
+      reConnectPass: this.myPeer.reConnectPass,
+    });
+  }
+
+  reassignRole(peerId: string, role: PeerRole) {
+    if (!this.isMyselfGameMaster) return;
+    const cursor = PeerCursor.findByPeerId(peerId);
+    if (!cursor || cursor.isMine) return;
+    cursor.role = role;
+    cursor.update();
   }
 
   constructor() {
