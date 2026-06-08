@@ -22,6 +22,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { canRoleSpeakTab, canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
@@ -152,6 +153,21 @@ export class ChatWindowComponent {
     return [...tabs];
   });
 
+  readonly visibleChatTabs = computed(() => {
+    const tabs = this.chatTabsVersion();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const role = PeerCursor.myRole;
+    return tabs.filter((tab) => canRoleViewTab(tab, role));
+  });
+
+  readonly canSpeakCurrentTab = computed(() => {
+    const tab = this.chatTab();
+    if (!tab) return false;
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.versionOf(tab.identifier)();
+    return canRoleSpeakTab(tab, PeerCursor.myRole);
+  });
+
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
@@ -221,6 +237,13 @@ export class ChatWindowComponent {
     effect(() => {
       this.chatTabsVersion();
       queueMicrotask(() => this.updateTabScrollState());
+    });
+    effect(() => {
+      const visible = this.visibleChatTabs();
+      const current = this._chatTabidentifier();
+      if (current && !visible.some((tab) => tab.identifier === current)) {
+        this.chatTabidentifier = visible.length > 0 ? visible[0].identifier : '';
+      }
     });
     afterNextRender(() => {
       queueMicrotask(() => this.scrollToBottom(true));
@@ -429,6 +452,7 @@ export class ChatWindowComponent {
     quoteOf: string;
   }) {
     const tab = this.chatTab();
+    if (tab && !canRoleSpeakTab(tab, PeerCursor.myRole)) return;
     if (tab) {
       let outtext = '';
       let objects: GameCharacter[];

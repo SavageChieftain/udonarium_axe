@@ -68,6 +68,7 @@ export class ChatInputComponent {
 
   readonly onlyCharacters = input(false);
   readonly disableQuote = input(false);
+  readonly canSpeak = input(true);
   readonly chatTabidentifier = input('');
   readonly autoCompleteIndex = input(-1);
 
@@ -419,6 +420,7 @@ export class ChatInputComponent {
   sendChat(event: Event | null) {
     if (event) event.preventDefault();
 
+    if (!this.canSpeak()) return;
     if (!this.text.length) return;
     if (event && (event as KeyboardEvent).key !== 'Enter') return;
     if (event && (event as KeyboardEvent).isComposing) return;

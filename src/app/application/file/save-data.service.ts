@@ -191,10 +191,10 @@ export class SaveDataService {
     downloadBlob(blob, fileName + '.html');
   }
 
-  async saveHtmlChatLogAll(fileName: string): Promise<void> {
-    const { resolver, registryScript } = await this.buildChatLogImageRegistry(this.chatTabList.chatTabs);
+  async saveHtmlChatLogAll(fileName: string, tabs: readonly ChatTab[] = this.chatTabList.chatTabs): Promise<void> {
+    const { resolver, registryScript } = await this.buildChatLogImageRegistry(tabs);
     const body: string = ChatLogExporter.exportAllTabsHtml(
-      this.chatTabList.chatTabs,
+      tabs,
       this.chatTabList.simpleDispFlagTime,
       undefined,
       resolver,
@@ -213,14 +213,9 @@ export class SaveDataService {
     downloadBlob(blob, fileName + '.html');
   }
 
-  async saveHtmlChatLogAllCoc(fileName: string): Promise<void> {
-    const { resolver, registryScript } = await this.buildChatLogImageRegistry(this.chatTabList.chatTabs);
-    const body: string = ChatLogExporter.exportAllTabsHtmlCoc(
-      this.chatTabList.chatTabs,
-      undefined,
-      resolver,
-      this.chatLogTextDecoder
-    );
+  async saveHtmlChatLogAllCoc(fileName: string, tabs: readonly ChatTab[] = this.chatTabList.chatTabs): Promise<void> {
+    const { resolver, registryScript } = await this.buildChatLogImageRegistry(tabs);
+    const body: string = ChatLogExporter.exportAllTabsHtmlCoc(tabs, undefined, resolver, this.chatLogTextDecoder);
     const text = SaveDataService.injectImageRegistry(body, registryScript);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, fileName + '.html');

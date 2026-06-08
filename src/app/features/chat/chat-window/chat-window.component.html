@@ -134,7 +134,7 @@
           #tabPillsContainer
           (scroll)="onTabPillsScroll()"
         >
-          @for (chatTab of chatTabsVersion(); track trackByChatTab($index, chatTab)) {
+          @for (chatTab of visibleChatTabs(); track trackByChatTab($index, chatTab)) {
             <label class="relative inline-block flex-none overflow-visible">
               <input
                 class="peer hidden"
@@ -237,6 +237,7 @@
     </form>
     <chat-input
       [chatTabidentifier]="chatTabidentifier"
+      [canSpeak]="canSpeakCurrentTab()"
       [(gameType)]="gameType"
       [(sendFrom)]="sendFrom"
       (chat)="sendChat($event)"

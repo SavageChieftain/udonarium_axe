@@ -12,6 +12,7 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -55,6 +56,26 @@ export class ChatTabSettingComponent {
   }
   set tabName(tabName: string) {
     if (this.isEditable && this.selectedTab()) this.selectedTab()!.name = tabName;
+  }
+
+  perm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak'): boolean {
+    if (this.selectedTab()) this.objectChange.versionOf(this.selectedTab()!.identifier)();
+    return this.selectedTab()?.[key] ?? false;
+  }
+  setPerm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak', value: boolean): void {
+    const tab = this.selectedTab();
+    if (!this.isEditable || !tab) return;
+    tab[key] = value;
+    // 発言できるなら必ず閲覧もできる（発言のみ可・閲覧不可の状態は存在しない）
+    if (key === 'plCanSpeak' && value) tab.plCanView = true;
+    else if (key === 'plCanView' && !value) tab.plCanSpeak = false;
+    else if (key === 'guestCanSpeak' && value) tab.guestCanView = true;
+    else if (key === 'guestCanView' && !value) tab.guestCanSpeak = false;
+  }
+
+  get canViewSelectedTab(): boolean {
+    const tab = this.selectedTab();
+    return tab ? canRoleViewTab(tab, PeerCursor.myRole) : false;
   }
 
   get chatTabs(): readonly ChatTab[] {
@@ -163,7 +184,7 @@ export class ChatTabSettingComponent {
   }
 
   saveLog() {
-    if (!this.selectedTab()) return;
+    if (!this.selectedTab() || !this.canViewSelectedTab) return;
     const fileName: string = this.roomName + '_log_' + this.selectedTab()!.name;
     const fileName_: string = this.appendTimestamp(fileName);
 
@@ -174,14 +195,20 @@ export class ChatTabSettingComponent {
     }
   }
 
+  private get viewableChatTabs(): ChatTab[] {
+    const role = PeerCursor.myRole;
+    return this.chatMessageService.chatTabs.filter((tab) => canRoleViewTab(tab, role));
+  }
+
   saveAllLog() {
     const fileName: string = this.roomName + '_log_' + this.t('feature.chat.tabSetting.allTabsLogName');
     const fileName_: string = this.appendTimestamp(fileName);
+    const tabs = this.viewableChatTabs;
 
     if (this.modeCocLog) {
-      this.saveDataService.saveHtmlChatLogAllCoc(fileName_);
+      this.saveDataService.saveHtmlChatLogAllCoc(fileName_, tabs);
     } else {
-      this.saveDataService.saveHtmlChatLogAll(fileName_);
+      this.saveDataService.saveHtmlChatLogAll(fileName_, tabs);
     }
   }
 

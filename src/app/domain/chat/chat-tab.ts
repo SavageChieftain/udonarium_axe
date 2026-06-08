@@ -13,6 +13,10 @@ const DEFAULT_IMAGE_IDENTIFIERS: readonly string[] = ['a', 'b', 'c', 'd', 'e', '
 @SyncObject('chat-tab')
 export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() name = 'タブ';
+  @SyncVar() plCanView = true;
+  @SyncVar() plCanSpeak = true;
+  @SyncVar() guestCanView = true;
+  @SyncVar() guestCanSpeak = false;
 
   @SyncVar() pos_num = -1;
   @SyncVar() imageIdentifier: string[] = [...DEFAULT_IMAGE_IDENTIFIERS];
