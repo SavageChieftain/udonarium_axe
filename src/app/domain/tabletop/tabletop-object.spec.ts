@@ -41,6 +41,11 @@ describe('TabletopObject', () => {
       expect(surfaceOf(obj)).toBe('north-wall');
     });
 
+    it('surfaceOf は不正な surface（空文字・未知値）でも floor にフォールバックする', () => {
+      expect(surfaceOf({ location: { surface: '' as never } })).toBe('floor');
+      expect(surfaceOf({ location: { surface: 'wall' as never } })).toBe('floor');
+    });
+
     it('posZのデフォルトは0', () => {
       const obj = new TabletopObject();
       obj.initialize();

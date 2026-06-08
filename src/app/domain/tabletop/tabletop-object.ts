@@ -24,7 +24,8 @@ export const TABLE_SURFACES: readonly TableSurface[] = [
 ] as const;
 
 export function surfaceOf(object: { location: { surface?: TableSurface } }): TableSurface {
-  return object.location.surface ?? 'floor';
+  const surface = object.location.surface;
+  return surface && TABLE_SURFACES.includes(surface) ? surface : 'floor';
 }
 
 @SyncObject('TabletopObject')

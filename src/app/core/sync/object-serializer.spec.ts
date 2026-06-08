@@ -122,6 +122,29 @@ describe('ObjectSerializer', () => {
       const attrs = ObjectSerializer.toAttributes({});
       expect(Object.keys(attrs)).toHaveLength(0);
     });
+
+    it('undefined のネスト値は属性に含めない（"undefined" 文字列化を防ぐ）', () => {
+      const syncData = { location: { name: 'table', x: 10, y: 20, surface: undefined } };
+      const attrs = ObjectSerializer.toAttributes(syncData);
+
+      expect(attrs['location.x']).toBe(10);
+      expect(Object.keys(attrs)).not.toContain('location.surface');
+    });
+  });
+
+  describe('toXml() の undefined 属性', () => {
+    it('undefined のネスト値が location.surface="undefined" として書き出されない', () => {
+      const element = DataElement.create('name', 'hello', { type: 'text' });
+      (element as unknown as { location: Record<string, unknown> }).location = {
+        name: 'table',
+        x: 1,
+        y: 2,
+        surface: undefined,
+      };
+      const xml = serializer.toXml(element);
+
+      expect(xml).not.toContain('surface="undefined"');
+    });
   });
 
   describe('toXml/parseXml ラウンドトリップ', () => {

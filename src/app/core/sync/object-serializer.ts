@@ -58,6 +58,8 @@ export class ObjectSerializer {
       return ObjectSerializer.array2attributes(item, key);
     } else if (item != null && typeof item === 'object') {
       return ObjectSerializer.object2attributes(item as Record<string, unknown>, key);
+    } else if (item === undefined) {
+      return {};
     } else {
       return { [key]: item as string | number };
     }
