@@ -24,6 +24,14 @@ export default defineConfig({
       '/manual/': [
         { text: 'はじめに', items: [{ text: '画面の見かた', link: '/manual/' }] },
         {
+          text: 'ロールと公開範囲',
+          items: [
+            { text: 'ロール（GM / PL / 見学）', link: '/manual/roles' },
+            { text: '情報の公開範囲', link: '/manual/disclosure' },
+            { text: 'オブジェクト一覧（GM）', link: '/manual/gm-object-list' },
+          ],
+        },
+        {
           text: 'テーブル',
           items: [
             { text: '視点とテーブル操作', link: '/manual/tabletop' },
