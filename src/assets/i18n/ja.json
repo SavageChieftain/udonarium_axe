@@ -957,9 +957,9 @@
         "reconnecting": "再接続を試みます..."
       },
       "peerCursor": {
-        "noSignal": "{{userId}}[{{name}}] さんからあなたへの接続確認信号が{{seconds}}秒以上受信できません。通信障害の可能性があります。",
-        "reconnected": "あなたと{{userId}}[{{name}}] さんの接続を確認しました。",
-        "loggedOut": "{{userId}}[{{name}}] さんがログアウトしました。"
+        "noSignal": "{{name}} さんからあなたへの接続確認信号が{{seconds}}秒以上受信できません。通信障害の可能性があります。",
+        "reconnected": "あなたと {{name}} さんの接続を確認しました。",
+        "loggedOut": "{{name}} さんがログアウトしました。"
       }
     },
     "chat": {

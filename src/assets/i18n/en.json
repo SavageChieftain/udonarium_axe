@@ -957,9 +957,9 @@
         "reconnecting": "Attempting to reconnect..."
       },
       "peerCursor": {
-        "noSignal": "No keepalive signal from {{userId}}[{{name}}] for over {{seconds}}s. Connection may be unstable.",
-        "reconnected": "Reconnected to {{userId}}[{{name}}].",
-        "loggedOut": "{{userId}}[{{name}}] logged out."
+        "noSignal": "No keepalive signal from {{name}} for over {{seconds}}s. Connection may be unstable.",
+        "reconnected": "Reconnected to {{name}}.",
+        "loggedOut": "{{name}} logged out."
       }
     },
     "chat": {

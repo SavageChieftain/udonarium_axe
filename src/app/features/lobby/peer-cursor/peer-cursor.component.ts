@@ -186,8 +186,7 @@ export class PeerCursorComponent {
         this.cursor().isDisConnect = true;
         if (sysTab) {
           const text = encodeI18nMessage('feature.lobby.peerCursor.noSignal', {
-            userId: this.cursor().userId,
-            name: this.cursor().name,
+            name: this.cursor().name || this.cursor().userId.slice(0, 6),
             seconds: PeerCursor.myCursor.timeout,
           });
           this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
@@ -198,8 +197,7 @@ export class PeerCursorComponent {
         setTimeout(() => {
           this.timestampInterval = null;
           const text = encodeI18nMessage('feature.lobby.peerCursor.reconnected', {
-            userId: this.cursor().userId,
-            name: this.cursor().name,
+            name: this.cursor().name || this.cursor().userId.slice(0, 6),
           });
           if (sysTab) {
             this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
@@ -221,8 +219,7 @@ export class PeerCursorComponent {
     const sysTab = chatTabList.systemMessageTab;
     if (sysTab) {
       const text = encodeI18nMessage('feature.lobby.peerCursor.loggedOut', {
-        userId: this.cursor().userId,
-        name: this.cursor().name,
+        name: this.cursor().name || this.cursor().userId.slice(0, 6),
       });
       this.chatMessageService.sendSystemMessageOnePlayer(sysTab, text, PeerCursor.myCursor.identifier, '#006633');
     }
