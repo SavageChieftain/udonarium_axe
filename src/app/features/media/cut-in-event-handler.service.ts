@@ -2,8 +2,9 @@ import { DestroyRef, inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { AudioPlayer } from '@axe/core/storage/audio-player';
+import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 
@@ -29,6 +30,8 @@ export class CutInEventHandlerService {
       } else {
         const audio = this.audioStorage.get(cutIn.audioIdentifier);
         if (audio) {
+          const isSE = AudioTag.get(cutIn.audioIdentifier)?.tag === 'SE';
+          this.soundOnlyPlayer.volumeType = isSE ? VolumeType.SE : VolumeType.MASTER;
           this.soundOnlyPlayer.loop = false;
           this.soundOnlyPlayer.play(audio);
         }

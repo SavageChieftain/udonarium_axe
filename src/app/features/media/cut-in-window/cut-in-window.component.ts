@@ -14,11 +14,12 @@ import { YouTubePlayer } from '@angular/youtube-player';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { AudioPlayer } from '@axe/core/storage/audio-player';
+import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -162,6 +163,8 @@ export class CutInWindowComponent {
 
     const audio = this.cutIn.audio;
     if (audio) {
+      const isSE = AudioTag.get(this.cutIn.audioIdentifier)?.tag === 'SE';
+      this.audioPlayer.volumeType = isSE ? VolumeType.SE : VolumeType.MASTER;
       this.audioPlayer.loop = this.cutIn.isLoop;
       if (!this.cutIn.videoId) {
         this.audioPlayer.play(audio);

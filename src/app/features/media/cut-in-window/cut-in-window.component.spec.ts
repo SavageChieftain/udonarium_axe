@@ -1,8 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AudioFile } from '@axe/core/storage/audio-file';
+import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+function makeReadyAudio(identifier: string): AudioFile {
+  const audio = AudioFile.createEmpty(identifier);
+  const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
+  ctx['blob'] = new Blob(['x']);
+  ctx['url'] = 'blob:x';
+  return audio;
+}
 
 describe('CutInWindowComponent', () => {
   let component: CutInWindowComponent;
@@ -29,6 +41,7 @@ describe('CutInWindowComponent', () => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
+    AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
     vi.restoreAllMocks();
   });
 
@@ -54,6 +67,40 @@ describe('CutInWindowComponent', () => {
       component.isTest = true;
 
       expect(component.videoVolume).toBe(50);
+    });
+  });
+
+  describe('startCutIn — 音量タイプ', () => {
+    it('SE タグの音声は volumeType=SE で再生する', () => {
+      vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
+      vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
+      AudioStorage.instance.add(makeReadyAudio('cutin-se'));
+      const tag = AudioTag.create('cutin-se');
+      tag.tag = 'SE';
+
+      const cutIn = new CutIn('cutin-se-test');
+      cutIn.initialize();
+      cutIn.audioIdentifier = 'cutin-se';
+      component.cutIn = cutIn;
+
+      component.startCutIn();
+
+      expect(component.audioPlayer.volumeType).toBe(VolumeType.SE);
+    });
+
+    it('SE タグでない音声は volumeType=MASTER で再生する', () => {
+      vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
+      vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
+      AudioStorage.instance.add(makeReadyAudio('cutin-bgm'));
+
+      const cutIn = new CutIn('cutin-bgm-test');
+      cutIn.initialize();
+      cutIn.audioIdentifier = 'cutin-bgm';
+      component.cutIn = cutIn;
+
+      component.startCutIn();
+
+      expect(component.audioPlayer.volumeType).toBe(VolumeType.MASTER);
     });
   });
 

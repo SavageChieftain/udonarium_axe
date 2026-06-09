@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSoundOnlyCutIn, emitStartCutIn } from '@axe/core/event/domain-events';
+import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -23,6 +26,7 @@ function makeCutIn(overrides: Partial<CutIn> = {}): CutIn {
 describe('CutInEventHandlerService', () => {
   let panelStub: { open: ReturnType<typeof vi.fn> };
   let audioStub: { get: ReturnType<typeof vi.fn> };
+  let service: CutInEventHandlerService;
 
   beforeEach(() => {
     panelStub = { open: vi.fn().mockReturnValue({ cutIn: null, forceNoLoop: false, startCutIn: vi.fn() }) };
@@ -30,7 +34,14 @@ describe('CutInEventHandlerService', () => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     TestBed.overrideProvider(PanelService, { useValue: panelStub });
     TestBed.overrideProvider(AudioStorage, { useValue: audioStub });
-    TestBed.inject(CutInEventHandlerService);
+    service = TestBed.inject(CutInEventHandlerService);
+  });
+
+  afterEach(() => {
+    const store = ObjectStore.instance;
+    store.getObjects().forEach((obj) => store.delete(obj, false));
+    store.clearDeleteHistory();
+    vi.restoreAllMocks();
   });
 
   it('startCutIn でパネルを開き、コンポーネントへ cutIn を渡す', () => {
@@ -72,5 +83,29 @@ describe('CutInEventHandlerService', () => {
 
     expect(panelStub.open).not.toHaveBeenCalled();
     expect(audioStub.get).not.toHaveBeenCalled();
+  });
+
+  it('soundOnlyCutIn: SE タグの音声は volumeType=SE で再生する', () => {
+    vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
+    vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
+    audioStub.get.mockReturnValue({ identifier: 'se-id' });
+    const tag = AudioTag.create('se-id');
+    tag.tag = 'SE';
+
+    emitSoundOnlyCutIn({ cutIn: makeCutIn({ audioIdentifier: 'se-id' }) });
+
+    const player = (service as unknown as { soundOnlyPlayer: AudioPlayer }).soundOnlyPlayer;
+    expect(player.volumeType).toBe(VolumeType.SE);
+  });
+
+  it('soundOnlyCutIn: SE タグでない音声は volumeType=MASTER で再生する', () => {
+    vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
+    vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
+    audioStub.get.mockReturnValue({ identifier: 'bgm-id' });
+
+    emitSoundOnlyCutIn({ cutIn: makeCutIn({ audioIdentifier: 'bgm-id' }) });
+
+    const player = (service as unknown as { soundOnlyPlayer: AudioPlayer }).soundOnlyPlayer;
+    expect(player.volumeType).toBe(VolumeType.MASTER);
   });
 });
