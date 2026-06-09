@@ -27,6 +27,8 @@ describe('AppInitializationService', () => {
 
   afterEach(() => {
     PeerCursor.myCursor = null!;
+    const presets = PresetSound as unknown as Record<string, string>;
+    for (const key of Object.keys(presets)) presets[key] = '';
   });
 
   it('should be created', () => {

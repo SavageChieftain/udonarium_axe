@@ -1,5 +1,6 @@
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuType } from '@axe/application/ui/context-menu.service';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { createSyncTranslate } from '@axe/testing/transloco-testing';
@@ -38,6 +39,10 @@ function makeTextNote(
 const names = (a: { name: string }[]) => a.map((x) => x.name);
 
 describe('buildTextNoteContextMenu()', () => {
+  beforeEach(() => {
+    PeerCursor.myCursor = null!;
+  });
+
   it('先頭は「メモを編集」、高度設定・直立切替・固定切替・コピー・削除を含む', () => {
     const note = makeTextNote();
     const menu = buildTextNoteContextMenu(

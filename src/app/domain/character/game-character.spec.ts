@@ -8,6 +8,7 @@ import {
   DataElementRole,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
+import { LightCategory, LightPreset, VisionType } from '@axe/domain/tabletop/vision-types';
 
 describe('GameCharacter', () => {
   let character: GameCharacter;
@@ -51,6 +52,41 @@ describe('GameCharacter', () => {
   describe('specifyKomaImageFlag', () => {
     it('初期値は false', () => {
       expect(character.specifyKomaImageFlag).toBe(false);
+    });
+  });
+
+  describe('視界 / 照明 (暗闇システム)', () => {
+    it('視界はデフォルトで通常・範囲0・影を落とす', () => {
+      expect(character.visionType).toBe(VisionType.NORMAL);
+      expect(character.visionRange).toBe(0);
+      expect(character.castsShadow).toBe(true);
+    });
+
+    it('光源はデフォルト無効・CUSTOM', () => {
+      expect(character.lightEnabled).toBe(false);
+      expect(character.lightPreset).toBe(LightPreset.CUSTOM);
+      expect(character.lightAngle).toBe(360);
+    });
+
+    it('lightSpec は物理光源として組み立てられる', () => {
+      character.lightEnabled = true;
+      character.lightBrightRadius = 3;
+      character.lightDimRadius = 6;
+      const spec = character.lightSpec;
+      expect(spec.enabled).toBe(true);
+      expect(spec.brightRadius).toBe(3);
+      expect(spec.dimRadius).toBe(6);
+      expect(spec.category).toBe(LightCategory.PHYSICAL);
+      expect(spec.ignoreOcclusion).toBe(false);
+      expect(spec.revealToAll).toBe(false);
+    });
+
+    it('光の向きはキャラの向き(rotate)に追従し、lightDirection はオフセット', () => {
+      character.rotate = 90;
+      character.lightDirection = 10;
+      expect(character.lightSpec.direction).toBe(100);
+      character.rotate = 200;
+      expect(character.lightSpec.direction).toBe(210);
     });
   });
 
