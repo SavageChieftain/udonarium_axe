@@ -53,6 +53,13 @@ export class DisclosureControlComponent {
     return this.disclosureService.canEdit(object);
   });
 
+  readonly canSetOwner = computed(() => {
+    const object = this.object();
+    this.objectChange.versionOf(object.identifier)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.disclosureService.canSetOwner(object);
+  });
+
   readonly mode = computed<DisclosureMode>(() => {
     const object = this.object();
     this.objectChange.versionOf(object.identifier)();
@@ -67,7 +74,7 @@ export class DisclosureControlComponent {
 
   setOwner(userId: string): void {
     const object = this.object();
-    if (!this.disclosureService.canEdit(object)) return;
+    if (!this.disclosureService.canSetOwner(object)) return;
     object.owner = userId;
     object.update();
   }

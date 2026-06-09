@@ -41,6 +41,10 @@ export function canEditDisclosure(viewer: DisclosureViewer): boolean {
   return !!viewer.ownerUserId && viewer.ownerUserId.length > 0 && viewer.ownerUserId === viewer.userId;
 }
 
+export function canClaimOwnership(viewer: DisclosureViewer): boolean {
+  return !viewer.ownerUserId || viewer.ownerUserId.length === 0;
+}
+
 export function toggleDisclosureUserId(userIds: readonly string[], userId: string): string[] {
   return userIds.includes(userId) ? userIds.filter((id) => id !== userId) : [...userIds, userId];
 }

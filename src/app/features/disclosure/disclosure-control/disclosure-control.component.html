@@ -1,50 +1,54 @@
-@if (canEdit()) {
+@if (canEdit() || canSetOwner()) {
   <div class="border-ui-border-panel flex flex-col gap-1.5 border-t border-solid px-2.5 py-2 text-xs">
-    <div class="flex items-center gap-1.5">
-      <span class="text-ui-muted">{{ 'feature.disclosure.owner' | transloco }}</span>
-      <select
-        class="min-w-0 flex-1 text-[0.7rem]"
-        name="disclosure-owner"
-        [ngModel]="owner()"
-        (ngModelChange)="setOwner($event)"
-      >
-        <option value="">{{ 'feature.disclosure.ownerNone' | transloco }}</option>
-        @for (peer of ownerCandidates(); track peer.userId) {
-          <option [value]="peer.userId">{{ peer.name }}</option>
-        }
-      </select>
-    </div>
-    <div class="flex flex-wrap items-center gap-1.5">
-      <span class="text-ui-muted">{{ 'feature.disclosure.label' | transloco }}</span>
-      @for (m of modes; track m) {
-        <button
-          class="rounded-sm border border-solid px-1.5 py-0.5 text-[0.7rem]"
-          [class]="
-            mode() === m
-              ? 'border-ui-accent bg-ui-accent text-white'
-              : 'border-(--ui-panel-border) text-(--ui-text-muted)'
-          "
-          (click)="setMode(m)"
+    @if (canSetOwner()) {
+      <div class="flex items-center gap-1.5">
+        <span class="text-ui-muted">{{ 'feature.disclosure.owner' | transloco }}</span>
+        <select
+          class="min-w-0 flex-1 text-[0.7rem]"
+          name="disclosure-owner"
+          [ngModel]="owner()"
+          (ngModelChange)="setOwner($event)"
         >
-          {{ modeLabelKey(m) | transloco }}
-        </button>
-      }
-    </div>
-    @if (mode() === 'selected') {
-      <div class="flex flex-col gap-0.5 pl-1">
-        <span class="text-ui-dim text-[0.65rem]">{{ 'feature.disclosure.selectPlayers' | transloco }}</span>
-        @for (peer of audienceCandidates(); track peer.userId) {
-          <label class="flex cursor-pointer items-center gap-1.5">
-            <input type="checkbox" [checked]="isDisclosedTo(peer.userId)" (change)="toggleUser(peer.userId)" />
-            <span class="min-w-0 flex-1 truncate">{{ peer.name }}</span>
-            <span class="shrink-0 rounded-sm px-1 text-[0.6rem] font-bold" [class]="roleBadgeClass(peer.role)">{{
-              roleShortLabelKey(peer.role) | transloco
-            }}</span>
-          </label>
-        } @empty {
-          <span class="text-ui-dim text-[0.65rem]">{{ 'feature.disclosure.noPlayers' | transloco }}</span>
+          <option value="">{{ 'feature.disclosure.ownerNone' | transloco }}</option>
+          @for (peer of ownerCandidates(); track peer.userId) {
+            <option [value]="peer.userId">{{ peer.name }}</option>
+          }
+        </select>
+      </div>
+    }
+    @if (canEdit()) {
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-ui-muted">{{ 'feature.disclosure.label' | transloco }}</span>
+        @for (m of modes; track m) {
+          <button
+            class="rounded-sm border border-solid px-1.5 py-0.5 text-[0.7rem]"
+            [class]="
+              mode() === m
+                ? 'border-ui-accent bg-ui-accent text-white'
+                : 'border-(--ui-panel-border) text-(--ui-text-muted)'
+            "
+            (click)="setMode(m)"
+          >
+            {{ modeLabelKey(m) | transloco }}
+          </button>
         }
       </div>
+      @if (mode() === 'selected') {
+        <div class="flex flex-col gap-0.5 pl-1">
+          <span class="text-ui-dim text-[0.65rem]">{{ 'feature.disclosure.selectPlayers' | transloco }}</span>
+          @for (peer of audienceCandidates(); track peer.userId) {
+            <label class="flex cursor-pointer items-center gap-1.5">
+              <input type="checkbox" [checked]="isDisclosedTo(peer.userId)" (change)="toggleUser(peer.userId)" />
+              <span class="min-w-0 flex-1 truncate">{{ peer.name }}</span>
+              <span class="shrink-0 rounded-sm px-1 text-[0.6rem] font-bold" [class]="roleBadgeClass(peer.role)">{{
+                roleShortLabelKey(peer.role) | transloco
+              }}</span>
+            </label>
+          } @empty {
+            <span class="text-ui-dim text-[0.65rem]">{{ 'feature.disclosure.noPlayers' | transloco }}</span>
+          }
+        </div>
+      }
     }
   </div>
 }

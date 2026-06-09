@@ -1,4 +1,5 @@
 import {
+  canClaimOwnership,
   canEditDisclosure,
   canViewDisclosable,
   DEFAULT_DISCLOSURE_MODE,
@@ -64,5 +65,11 @@ describe('disclosure', () => {
   it('toggles a user id in/out of the audience list', () => {
     expect(toggleDisclosureUserId(['a', 'b'], 'b')).toEqual(['a']);
     expect(toggleDisclosureUserId(['a'], 'c')).toEqual(['a', 'c']);
+  });
+
+  it('treats only unowned objects as claimable', () => {
+    expect(canClaimOwnership({ userId: 'p1', isGameMaster: false })).toBe(true);
+    expect(canClaimOwnership({ userId: 'p1', isGameMaster: false, ownerUserId: '' })).toBe(true);
+    expect(canClaimOwnership({ userId: 'p1', isGameMaster: false, ownerUserId: 'p2' })).toBe(false);
   });
 });

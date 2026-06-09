@@ -35,4 +35,28 @@ describe('DisclosureService', () => {
     expect(service.canEdit({ owner: 'p2' })).toBe(false);
     expect(service.canEdit({})).toBe(false);
   });
+
+  it('lets a player set the owner of an unowned object but not an owned one', () => {
+    setMe('p1', PeerRole.Player);
+    expect(service.canSetOwner({})).toBe(true);
+    expect(service.canSetOwner({ owner: '' })).toBe(true);
+    expect(service.canSetOwner({ owner: 'p1' })).toBe(true);
+    expect(service.canSetOwner({ owner: 'p2' })).toBe(false);
+  });
+
+  it('does not let a guest set the owner of an unowned object', () => {
+    setMe('g1', PeerRole.Guest);
+    expect(service.canSetOwner({})).toBe(false);
+  });
+
+  it('requires an identity to claim an unowned object', () => {
+    setMe('', PeerRole.Player);
+    expect(service.canSetOwner({})).toBe(false);
+  });
+
+  it('lets the GM set the owner of any object', () => {
+    setMe('gm', PeerRole.GameMaster);
+    expect(service.canSetOwner({})).toBe(true);
+    expect(service.canSetOwner({ owner: 'p2' })).toBe(true);
+  });
 });
