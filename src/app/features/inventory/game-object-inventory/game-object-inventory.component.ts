@@ -20,6 +20,7 @@ import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import {
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
@@ -48,7 +49,11 @@ export class GameObjectInventoryComponent {
   private readonly rolePermission = inject(RolePermissionService);
   private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly npcDrag = inject(NpcDragService);
   private readonly t = inject(TRANSLATE_FN);
+
+  private npcDragPending: { character: GameCharacter; startX: number; startY: number; dragging: boolean } | null = null;
+  private suppressNextClick = false;
 
   constructor() {
     effect(() => {
@@ -468,7 +473,45 @@ export class GameObjectInventoryComponent {
     this.selectionSignalService.focusToCoordinate(gameObject.location.x, gameObject.location.y);
   }
 
+  onObjectDragBlock(event: Event, gameObject: GameObject): void {
+    if (gameObject instanceof GameCharacter && PeerCursor.isMyselfGameMaster) event.stopPropagation();
+  }
+
+  onObjectPointerDown(event: PointerEvent, gameObject: GameObject): void {
+    if (event.button !== 0 || !(gameObject instanceof GameCharacter) || !PeerCursor.isMyselfGameMaster) return;
+    if ((event.target as HTMLElement).closest('button, input')) return;
+    this.npcDragPending = { character: gameObject, startX: event.clientX, startY: event.clientY, dragging: false };
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  onObjectPointerMove(event: PointerEvent): void {
+    const pending = this.npcDragPending;
+    if (!pending) return;
+    if (!pending.dragging) {
+      if (Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 6) return;
+      pending.dragging = true;
+      this.npcDrag.begin(pending.character, event.clientX, event.clientY);
+    } else {
+      this.npcDrag.move(event.clientX, event.clientY);
+    }
+  }
+
+  onObjectPointerUp(event: PointerEvent): void {
+    const pending = this.npcDragPending;
+    this.npcDragPending = null;
+    if (!pending) return;
+    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    if (!pending.dragging) return;
+    this.suppressNextClick = true;
+    const target = document.elementFromPoint(event.clientX, event.clientY);
+    this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
+  }
+
   selectGameObject(gameObject: GameObject) {
+    if (this.suppressNextClick) {
+      this.suppressNextClick = false;
+      return;
+    }
     if (gameObject instanceof GameCharacter && !this.canView(gameObject)) return;
     if (this.isMultiMove()) {
       if (this.multiMoveTargets().has(gameObject.identifier)) {

@@ -57,6 +57,13 @@
       "ownerNone": "None",
       "locked": "Not disclosed"
     },
+    "gmTools": {
+      "npcBar": {
+        "close": "Close",
+        "empty": "Drag characters here from the GM object list to register",
+        "unregister": "Remove from NPC bar"
+      }
+    },
     "gmObjectList": {
       "searchPlaceholder": "Search by name or owner",
       "gmOnly": "This tool is for the Game Master only",
@@ -66,6 +73,8 @@
       "unknownOwner": "Unknown",
       "surface": "Surface",
       "editPosition": "Edit surface & coordinates",
+      "npcRegister": "Register to NPC bar",
+      "npcUnregister": "Remove from NPC bar",
       "typeCharacter": "Character",
       "typeCard": "Card",
       "typeCardStack": "Card stack",
@@ -547,6 +556,8 @@
         "hideNameOff": "☐ Hide name",
         "hideBuffOn": "☑ Hide buffs",
         "hideBuffOff": "☐ Hide buffs",
+        "npcOn": "☑ Mark as NPC",
+        "npcOff": "☐ Mark as NPC",
         "moveCommon": "Move to shared inventory",
         "movePersonal": "Move to personal inventory",
         "moveGraveyard": "Move to graveyard"
@@ -1104,7 +1115,11 @@
       "jukebox": "Jukebox",
       "cutIn": "Cut-in",
       "inventory": "Inventory",
+      "gmTools": "GM tools",
       "objectList": "Object list (GM)",
+      "npcBar": "NPC bar",
+      "darknessOn": "Darkness: on (click to turn off)",
+      "darknessOff": "Darkness: off (click to turn on)",
       "zipLoad": "Load ZIP",
       "save": "Save"
     },

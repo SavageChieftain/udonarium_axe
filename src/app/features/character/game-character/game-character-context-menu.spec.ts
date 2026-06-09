@@ -15,6 +15,7 @@ interface MutableChar {
   nonTalkFlag: boolean;
   hideName: boolean;
   hideBuff: boolean;
+  isNpc: boolean;
   isLock: boolean;
   setLocation: ReturnType<typeof vi.fn>;
   clone: ReturnType<typeof vi.fn>;
@@ -33,6 +34,7 @@ function makeChar(overrides: Partial<MutableChar> = {}): MutableChar {
     nonTalkFlag: false,
     hideName: false,
     hideBuff: false,
+    isNpc: false,
     isLock: false,
     setLocation: vi.fn(),
     clone: vi.fn(() => ({ location: { x: 0, y: 0 }, update: vi.fn() })),
@@ -141,6 +143,26 @@ describe('buildGameCharacterContextMenu()', () => {
     );
     const display2 = hidden.find((m) => m.name === '表示');
     expect(names(display2!.subActions!)).toEqual(['☑ 名前を隠す', '☑ バフを隠す']);
+  });
+
+  it('GM のときだけ「表示」サブメニューに NPC トグルが出て、isNpc を反転する', () => {
+    const nonGmMenu = buildGameCharacterContextMenu(
+      makeChar() as unknown as GameCharacter,
+      50,
+      makeService(),
+      callbacks(),
+      t
+    );
+    const nonGmDisplay = nonGmMenu.find((m) => m.name === '表示')!;
+    expect(names(nonGmDisplay.subActions!)).not.toContain('☐ NPC にする');
+
+    PeerCursor.myCursor = { isGameMaster: true, userId: 'gm-1', name: 'GM' } as unknown as PeerCursor;
+    const char = makeChar();
+    const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
+    const display = menu.find((m) => m.name === '表示')!;
+    expect(names(display.subActions!)).toContain('☐ NPC にする');
+    display.subActions!.find((s) => s.name === '☐ NPC にする')!.action!();
+    expect(char.isNpc).toBe(true);
   });
 
   it('「名前を隠す」「バフを隠す」アクションでフラグが反転する', () => {

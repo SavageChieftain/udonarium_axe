@@ -47,6 +47,7 @@ export interface ObjectRow {
   surface: TableSurface;
   isLock: boolean;
   isHidden: boolean;
+  isNpc: boolean;
 }
 
 function hasProp<K extends string>(object: unknown, key: K): object is Record<K, unknown> {
@@ -149,6 +150,7 @@ export function buildObjectRow(
         ? Boolean((object as { isLock: boolean }).isLock)
         : false,
     isHidden: hasProp(object, 'hideInventory') ? Boolean((object as { hideInventory: boolean }).hideInventory) : false,
+    isNpc: typeKey === 'character' && hasProp(object, 'isNpc') ? Boolean((object as { isNpc: boolean }).isNpc) : false,
   };
 }
 

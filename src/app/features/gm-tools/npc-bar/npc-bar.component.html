@@ -1,0 +1,38 @@
+@if (barService.isOpen()) {
+  <div
+    class="npc-bar-dropzone npc-bar-dropdown rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute top-[calc(100%+6px)] left-0 z-10 flex max-w-[90vw] cursor-default items-center gap-1 overflow-x-auto border border-solid px-2 py-1.5 [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+    [class.ring-2]="drag.character()"
+    [class.ring-ui-accent]="drag.character()"
+  >
+    @for (npc of npcs(); track npc.identifier) {
+      <div class="group relative flex shrink-0">
+        <button
+          type="button"
+          class="rounded-ui-sm border-ui-border-panel hover:border-ui-accent hover:bg-ui-accent-bg flex w-14 cursor-pointer flex-col items-center gap-0.5 border border-solid bg-transparent p-0.5 transition-colors"
+          [attr.title]="npc.name"
+          (click)="select(npc)"
+          (contextmenu)="unregister(npc); $event.preventDefault()"
+        >
+          @if (imageUrl(npc)) {
+            <img class="size-9 rounded-sm object-contain" [src]="imageUrl(npc) | safe: 'resourceUrl'" alt="" />
+          } @else {
+            <i class="material-icons text-ui-muted flex size-9 items-center justify-center text-[20px]!">person</i>
+          }
+          <span class="text-ui-text w-full truncate text-center text-[10px] leading-tight">{{ npc.name }}</span>
+        </button>
+        <button
+          type="button"
+          class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:text-ui-accent absolute -top-1 -right-1 hidden size-4 cursor-pointer items-center justify-center rounded-full border border-solid p-0 group-hover:flex [&_.material-icons]:text-[11px]!"
+          [attr.title]="'feature.gmTools.npcBar.unregister' | transloco"
+          (click)="unregister(npc)"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+    } @empty {
+      <span class="text-ui-dim p-2 text-[11px] whitespace-nowrap">{{
+        'feature.gmTools.npcBar.empty' | transloco
+      }}</span>
+    }
+  </div>
+}

@@ -7,6 +7,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { decodeRangeShapeField, RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildDisclosureContextMenu } from '@axe/features/disclosure/disclosure-context-menu';
 
 export interface RegisteredRangeShape {
@@ -174,6 +175,25 @@ export function buildGameCharacterContextMenu(
                 SoundEffect.play(PresetSound.sweep);
               },
             },
+        ...(PeerCursor.isMyselfGameMaster
+          ? [
+              char.isNpc
+                ? {
+                    name: t('feature.character.contextMenu.npcOn'),
+                    action: () => {
+                      char.isNpc = false;
+                      SoundEffect.play(PresetSound.sweep);
+                    },
+                  }
+                : {
+                    name: t('feature.character.contextMenu.npcOff'),
+                    action: () => {
+                      char.isNpc = true;
+                      SoundEffect.play(PresetSound.sweep);
+                    },
+                  },
+            ]
+          : []),
       ],
     },
     char.hideInventory

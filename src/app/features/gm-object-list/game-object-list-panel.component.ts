@@ -10,6 +10,7 @@ import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switc
 import { buildCopyAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CharacterSheetTarget } from '@axe/domain/tabletop/character-sheet-target';
 import { TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -20,6 +21,7 @@ import {
   OBJECT_LIST_TYPES,
   ObjectRow,
 } from '@axe/features/gm-object-list/game-object-list-row';
+import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -40,7 +42,11 @@ export class GameObjectListPanelComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly tabletopService = inject(TabletopService);
   private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly npcDrag = inject(NpcDragService);
   protected readonly t = inject(TRANSLATE_FN);
+
+  private dragPending: { row: ObjectRow; startX: number; startY: number; dragging: boolean } | null = null;
+  private suppressNextClick = false;
 
   protected readonly types = OBJECT_LIST_TYPES;
   private readonly typeByKey = new Map(OBJECT_LIST_TYPES.map((type) => [type.key, type]));
@@ -143,7 +149,54 @@ export class GameObjectListPanelComponent {
   }
 
   protected onRowClick(row: ObjectRow): void {
+    if (this.suppressNextClick) {
+      this.suppressNextClick = false;
+      return;
+    }
     if (row.locationKind === 'table') this.focusRow(row);
+  }
+
+  protected toggleNpc(row: ObjectRow): void {
+    const character = row.object;
+    if (!(character instanceof GameCharacter)) return;
+    character.isNpc = !character.isNpc;
+    character.update();
+  }
+
+  protected onRowDragBlock(event: Event, row: ObjectRow): void {
+    if (row.typeKey === 'character') event.stopPropagation();
+  }
+
+  protected onRowPointerDown(event: PointerEvent, row: ObjectRow): void {
+    if (row.typeKey !== 'character' || event.button !== 0) return;
+    if ((event.target as HTMLElement).closest('button')) return;
+    this.dragPending = { row, startX: event.clientX, startY: event.clientY, dragging: false };
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  protected onRowPointerMove(event: PointerEvent): void {
+    const pending = this.dragPending;
+    if (!pending) return;
+    if (!pending.dragging) {
+      if (Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 6) return;
+      pending.dragging = true;
+      if (pending.row.object instanceof GameCharacter) {
+        this.npcDrag.begin(pending.row.object, event.clientX, event.clientY);
+      }
+    } else {
+      this.npcDrag.move(event.clientX, event.clientY);
+    }
+  }
+
+  protected onRowPointerUp(event: PointerEvent): void {
+    const pending = this.dragPending;
+    this.dragPending = null;
+    if (!pending) return;
+    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    if (!pending.dragging) return;
+    this.suppressNextClick = true;
+    const target = document.elementFromPoint(event.clientX, event.clientY);
+    this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
   }
 
   protected openRowMenu(event: MouseEvent, row: ObjectRow): void {

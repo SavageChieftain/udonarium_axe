@@ -266,7 +266,7 @@
       @for (gameObject of objects; track gameObject.identifier) {
         <div
           data-testid="inventory-item"
-          class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color]"
+          class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color] select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
           [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
           [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
           [class.opacity-50]="isInventoryHiddenObject(gameObject)"
@@ -278,6 +278,11 @@
           (contextmenu)="onContextMenu($event, gameObject)"
           (click)="selectGameObject(gameObject)"
           (dblclick)="focusToObject($event, gameObject)"
+          (pointerdown)="onObjectPointerDown($event, gameObject)"
+          (pointermove)="onObjectPointerMove($event)"
+          (pointerup)="onObjectPointerUp($event)"
+          (mousedown)="onObjectDragBlock($event, gameObject)"
+          (touchstart)="onObjectDragBlock($event, gameObject)"
         >
           @if (selectTab() === 'table') {
             <i
@@ -302,6 +307,7 @@
               <img
                 class="size-full object-cover object-top"
                 [src]="gameObject.imageFile.url | safe: 'resourceUrl'"
+                draggable="false"
                 alt=""
               />
             } @else {

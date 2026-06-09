@@ -34,6 +34,8 @@ import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
+import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
+import { NpcDragGhostComponent } from '@axe/features/gm-tools/npc-bar/npc-drag-ghost.component';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { LanguageSelectorComponent } from '@axe/features/language-selector/language-selector.component';
@@ -62,6 +64,8 @@ import { version as APP_VERSION } from '@pkg';
     GameTableComponent,
     NetworkIndicatorComponent,
     MiniJukeboxComponent,
+    GmToolbarComponent,
+    NpcDragGhostComponent,
     LanguageSelectorComponent,
     TranslocoModule,
   ],

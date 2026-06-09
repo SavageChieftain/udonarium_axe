@@ -36,7 +36,14 @@
           class="hover:bg-ui-hover rounded-ui-sm mb-0.5 flex flex-col px-2 py-1.5"
           (contextmenu)="openRowMenu($event, row)"
         >
-          <div class="flex items-start gap-2">
+          <div
+            class="flex items-start gap-2 select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
+            (pointerdown)="onRowPointerDown($event, row)"
+            (pointermove)="onRowPointerMove($event)"
+            (pointerup)="onRowPointerUp($event)"
+            (mousedown)="onRowDragBlock($event, row)"
+            (touchstart)="onRowDragBlock($event, row)"
+          >
             @if (row.rangeThumbnail; as thumb) {
               <svg
                 class="border-ui-border-panel bg-ui-elevated mt-0.5 size-8 shrink-0 rounded-sm border border-solid p-0.5"
@@ -68,6 +75,7 @@
               <img
                 class="border-ui-border-panel mt-0.5 size-8 shrink-0 rounded-sm border border-solid bg-black/10 object-contain"
                 [src]="row.imageUrl | safe: 'resourceUrl'"
+                draggable="false"
                 alt=""
               />
             } @else {
@@ -156,6 +164,20 @@
                 }
               </div>
             </div>
+            @if (row.typeKey === 'character') {
+              <button
+                type="button"
+                class="rounded-ui-sm hover:bg-ui-hover m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_.material-icons]:text-[18px]!"
+                [class.text-ui-accent]="row.isNpc"
+                [class.text-ui-muted]="!row.isNpc"
+                [title]="
+                  (row.isNpc ? 'feature.gmObjectList.npcUnregister' : 'feature.gmObjectList.npcRegister') | transloco
+                "
+                (click)="toggleNpc(row); $event.stopPropagation()"
+              >
+                <i class="material-icons">{{ row.isNpc ? 'star' : 'star_border' }}</i>
+              </button>
+            }
             <button
               type="button"
               class="rounded-ui-sm text-ui-muted hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_.material-icons]:text-[18px]!"

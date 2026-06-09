@@ -46,6 +46,7 @@ export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() nonTalkFlag: boolean = false;
   @SyncVar() hideName: boolean = false;
   @SyncVar() hideBuff: boolean = false;
+  @SyncVar() isNpc: boolean = false;
   @SyncVar() disclosureMode: string = '';
   @SyncVar() disclosureUserIds: string[] = [];
   @SyncVar() overViewWidth: number = 270;

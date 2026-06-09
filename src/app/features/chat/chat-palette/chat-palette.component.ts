@@ -28,6 +28,7 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
+import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -58,6 +59,7 @@ export class ChatPaletteComponent {
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly chatPaletteRegistry = inject(ChatPaletteRegistryService);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
@@ -152,7 +154,12 @@ export class ChatPaletteComponent {
     return this.objectStore.getObjects(PeerCursor);
   }
 
+  setCharacterById(identifier: string): void {
+    this.onSelectedCharacter(identifier);
+  }
+
   constructor() {
+    this.chatPaletteRegistry.register(this);
     queueMicrotask(() => this.updatePanelTitle());
     this.chatTabidentifier.set(this.chatMessageService.chatTabs[0]?.identifier ?? '');
     this._timeId = Date.now() + '_chat-palette';
@@ -170,6 +177,7 @@ export class ChatPaletteComponent {
       this.japmIndex(req.lineNo);
     });
     this.destroyRef.onDestroy(() => {
+      this.chatPaletteRegistry.unregister(this);
       if (this.isEdit()) this.toggleEditMode();
     });
   }

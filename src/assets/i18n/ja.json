@@ -57,6 +57,13 @@
       "ownerNone": "なし",
       "locked": "非公開"
     },
+    "gmTools": {
+      "npcBar": {
+        "close": "閉じる",
+        "empty": "ここに一覧・GMオブジェクト一覧からキャラをドラッグして登録",
+        "unregister": "NPC登録を解除"
+      }
+    },
     "gmObjectList": {
       "searchPlaceholder": "名前・オーナーで検索",
       "gmOnly": "このツールはゲームマスター専用です",
@@ -66,6 +73,8 @@
       "unknownOwner": "不明",
       "surface": "サーフェス",
       "editPosition": "サーフェス・座標を編集",
+      "npcRegister": "NPCバーに登録",
+      "npcUnregister": "NPC登録を解除",
       "typeCharacter": "キャラクター",
       "typeCard": "カード",
       "typeCardStack": "山札",
@@ -547,6 +556,8 @@
         "hideNameOff": "☐ 名前を隠す",
         "hideBuffOn": "☑ バフを隠す",
         "hideBuffOff": "☐ バフを隠す",
+        "npcOn": "☑ NPC にする",
+        "npcOff": "☐ NPC にする",
         "moveCommon": "共有イベントリに移動",
         "movePersonal": "個人イベントリに移動",
         "moveGraveyard": "墓場に移動"
@@ -1104,7 +1115,11 @@
       "jukebox": "ジュークボックス",
       "cutIn": "カットイン",
       "inventory": "インベントリ",
+      "gmTools": "GMツール",
       "objectList": "オブジェクト一覧（GM）",
+      "npcBar": "NPCバー",
+      "darknessOn": "暗闇: オン（クリックでオフ）",
+      "darknessOff": "暗闇: オフ（クリックでオン）",
       "zipLoad": "ZIP読込",
       "save": "保存"
     },

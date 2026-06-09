@@ -1,0 +1,49 @@
+@if (isGameMaster()) {
+  <div
+    #bar
+    class="npc-bar-dropzone rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-150 flex cursor-grab items-center gap-1 border border-solid px-2 py-1.5 [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
+    [class.ring-2]="drag.character()"
+    [class.ring-ui-accent]="drag.character()"
+    appDraggable
+    [draggable.unhandle]="'button,.npc-bar-dropdown'"
+  >
+    <span class="text-ui-muted flex cursor-grab items-center gap-1 px-1 text-[11px] font-semibold tracking-wide">
+      <i class="material-icons text-[16px]!">shield</i>
+      {{ 'app.fab.gmTools' | transloco }}
+    </span>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [title]="'app.fab.objectList' | transloco"
+      (click)="openObjectList()"
+    >
+      <i class="material-icons">category</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="npcBar.isOpen()"
+      [class.bg-ui-accent-bg]="npcBar.isOpen()"
+      [title]="'app.fab.npcBar' | transloco"
+      (click)="toggleNpcBar()"
+    >
+      <i class="material-icons">groups</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="darknessEnabled()"
+      [class.bg-ui-accent-bg]="darknessEnabled()"
+      [class.text-ui-dim]="!darknessEnabled()"
+      [title]="(darknessEnabled() ? 'app.fab.darknessOn' : 'app.fab.darknessOff') | transloco"
+      (click)="toggleDarkness()"
+    >
+      <i class="material-icons">{{ darknessEnabled() ? 'bedtime' : 'bedtime_off' }}</i>
+    </button>
+
+    <app-npc-bar></app-npc-bar>
+  </div>
+}
