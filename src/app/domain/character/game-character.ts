@@ -17,6 +17,14 @@ import {
   DataElementType,
 } from '@axe/domain/data/data-element';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
+import {
+  DEFAULT_LIGHT_COLOR,
+  LightAnimation,
+  LightCategory,
+  LightPreset,
+  LightSpec,
+  VisionType,
+} from '@axe/domain/tabletop/vision-types';
 
 @SyncObject('character')
 export class GameCharacter extends OwnedTabletopObject {
@@ -49,6 +57,38 @@ export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
   @SyncVar() overViewDataTags: string[] = [];
   @SyncVar() syncDummyCounter: number = 0;
+
+  @SyncVar() visionType: string = VisionType.NORMAL;
+  @SyncVar() visionRange: number = 0;
+  @SyncVar() castsShadow: boolean = true;
+
+  @SyncVar() lightEnabled: boolean = false;
+  @SyncVar() lightPreset: string = LightPreset.CUSTOM;
+  @SyncVar() lightBrightRadius: number = 0;
+  @SyncVar() lightDimRadius: number = 0;
+  @SyncVar() lightColor: string = DEFAULT_LIGHT_COLOR;
+  @SyncVar() lightAngle: number = 360;
+  @SyncVar() lightDirection: number = 0;
+  @SyncVar() lightPitch: number = 0;
+  @SyncVar() lightAnimation: string = LightAnimation.NONE;
+
+  get lightSpec(): LightSpec {
+    return {
+      enabled: this.lightEnabled,
+      preset: this.lightPreset as LightPreset,
+      brightRadius: this.lightBrightRadius,
+      dimRadius: this.lightDimRadius,
+      color: this.lightColor,
+      angle: this.lightAngle,
+      direction: this.rotate + this.lightDirection,
+      pitch: this.lightPitch,
+      animation: this.lightAnimation as LightAnimation,
+      category: LightCategory.PHYSICAL,
+      ignoreOcclusion: false,
+      revealToAll: false,
+      castShadows: true,
+    };
+  }
 
   chatBubbleAltitude: number = 0;
 

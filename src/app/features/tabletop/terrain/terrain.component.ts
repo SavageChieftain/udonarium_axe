@@ -18,6 +18,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
@@ -36,6 +37,7 @@ import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
+import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
   computeHexSlopeSteps,
@@ -43,6 +45,11 @@ import {
   HexSlopeStepFloor,
 } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
+import {
+  wallLightLayerStyle,
+  wallSilhouetteBackground,
+  wallSilhouetteStyle,
+} from '@axe/features/tabletop/wall-projection';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -89,6 +96,7 @@ export class TerrainComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   protected readonly tabletopService = inject(TabletopService);
+  protected readonly visionService = inject(VisionService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
@@ -557,25 +565,83 @@ export class TerrainComponent {
     return ret;
   });
 
-  readonly floorBrightness = computed(() => {
-    let ret = 1.0;
-    if (!this.isSurfaceShading()) return ret;
+  private readonly floorShade = computed(() => {
+    if (!this.isSurfaceShading()) return 1.0;
     switch (this.slopeDirection()) {
       case SlopeDirection.TOP:
-        ret = 0.4;
-        break;
-      case SlopeDirection.BOTTOM:
-        ret = 1.0;
-        break;
+        return 0.4;
       case SlopeDirection.LEFT:
-        ret = 0.6;
-        break;
+        return 0.6;
       case SlopeDirection.RIGHT:
-        ret = 0.9;
-        break;
+        return 0.9;
+      default:
+        return 1.0;
     }
-    return ret;
   });
+
+  readonly centerBrightness = computed(() => {
+    const terrain = this.terrain();
+    this.objectChange.versionOf(terrain.identifier)();
+    const w = this.width() * this.gridSize;
+    const d = this.depth() * this.gridSize;
+    const radius = Math.max(w, d) / 2;
+    return this.visionService.objectBrightness(terrain.location.x + w / 2, terrain.location.y + d / 2, radius, true);
+  });
+
+  readonly floorBrightness = computed(() => this.floorShade() * this.centerBrightness());
+
+  protected dimBrightness(base: number): string {
+    return 'brightness(' + (base * this.centerBrightness()).toFixed(3) + ')';
+  }
+
+  private faceOf(side: 'north' | 'south' | 'west' | 'east'): WallFace | null {
+    const terrain = this.terrain();
+    if (terrain.rotate % 360 !== 0) return null;
+    const x0 = terrain.location.x;
+    const y0 = terrain.location.y;
+    const w = this.width() * this.gridSize;
+    const d = this.depth() * this.gridSize;
+    const hpx = this.height() * this.gridSize;
+    switch (side) {
+      case 'north':
+        return { ax: x0, ay: y0, bx: x0 + w, by: y0, nx: 0, ny: -1, heightPx: hpx };
+      case 'south':
+        return { ax: x0, ay: y0 + d, bx: x0 + w, by: y0 + d, nx: 0, ny: 1, heightPx: hpx };
+      case 'west':
+        return { ax: x0, ay: y0, bx: x0, by: y0 + d, nx: -1, ny: 0, heightPx: hpx };
+      case 'east':
+        return { ax: x0 + w, ay: y0, bx: x0 + w, by: y0 + d, nx: 1, ny: 0, heightPx: hpx };
+    }
+  }
+
+  protected faceSilhouettes(side: 'north' | 'south' | 'west' | 'east'): WallSilhouette[] {
+    this.objectChange.versionOf(this.terrain().identifier)();
+    const face = this.faceOf(side);
+    return face ? this.visionService.wallSilhouettes(face) : [];
+  }
+
+  protected faceLights(side: 'north' | 'south' | 'west' | 'east'): WallLight[] {
+    this.objectChange.versionOf(this.terrain().identifier)();
+    const face = this.faceOf(side);
+    return face ? this.visionService.wallLights(face) : [];
+  }
+
+  protected wallLightStyle(pool: WallLight): Record<string, string> {
+    return wallLightLayerStyle(pool);
+  }
+
+  protected silhouetteBackground(silhouette: WallSilhouette): string {
+    return wallSilhouetteBackground(silhouette);
+  }
+
+  protected silhouetteStyle(silhouette: WallSilhouette): Record<string, string> {
+    return wallSilhouetteStyle(silhouette);
+  }
+
+  protected faceFilter(base: number): string {
+    this.objectChange.versionOf(this.terrain().identifier)();
+    return 'brightness(' + (base * this.visionService.ambientBrightness()).toFixed(3) + ')';
+  }
 
   private getFloorBounds(width: number = this.width(), depth: number = this.depth()): TerrainGridBounds {
     const params = this.pedestalHexParams();

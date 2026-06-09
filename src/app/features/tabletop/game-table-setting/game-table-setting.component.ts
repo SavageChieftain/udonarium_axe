@@ -5,6 +5,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/core/event/domain-events';
@@ -44,6 +45,7 @@ export class GameTableSettingComponent {
   private readonly objectSerializer = inject(ObjectSerializer);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly visionService = inject(VisionService);
   private readonly destroyRef = inject(DestroyRef);
 
   get gameType(): string {
@@ -148,6 +150,51 @@ export class GameTableSettingComponent {
     if (!this.selectedTable) return;
     this.selectedTable.mode2d = value;
     triggerUpdateGameObject(this.selectedTable.toContext());
+  }
+
+  get tableDarknessEnabled(): boolean {
+    return this.selectedTable?.darknessEnabled ?? false;
+  }
+  set tableDarknessEnabled(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.darknessEnabled = value;
+  }
+
+  get tableDarknessLevelPercent(): number {
+    return Math.round((this.selectedTable?.darknessLevel ?? 0) * 100);
+  }
+  set tableDarknessLevelPercent(value: number) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.darknessLevel = Number(value) / 100;
+  }
+
+  get tableGlobalIlluminationPercent(): number {
+    return Math.round((this.selectedTable?.globalIllumination ?? 0) * 100);
+  }
+  set tableGlobalIlluminationPercent(value: number) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.globalIllumination = Number(value) / 100;
+  }
+
+  get tableAmbientColor(): string {
+    return this.selectedTable?.ambientColor ?? '#05060a';
+  }
+  set tableAmbientColor(value: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.ambientColor = value;
+  }
+
+  get isGameMaster(): boolean {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return PeerCursor.isMyselfGameMaster;
+  }
+
+  get previewAsUserId(): string {
+    return this.visionService.previewAsUserId() ?? '';
+  }
+  set previewAsUserId(value: string) {
+    this.visionService.previewAsUserId.set(value ? value : null);
+  }
+
+  getNonGmCursors(): PeerCursor[] {
+    this.objectChange.collectionOf('PeerCursor')();
+    return this.objectStore.getObjects<PeerCursor>(PeerCursor).filter((cursor) => !cursor.isGameMaster);
   }
 
   minWallHeight: number = 1;

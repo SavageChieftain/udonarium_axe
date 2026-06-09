@@ -4,6 +4,7 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { Terrain } from '@axe/domain/tabletop/terrain';
+import { DEFAULT_AMBIENT_COLOR } from '@axe/domain/tabletop/vision-types';
 
 export enum GridType {
   NONE = -1,
@@ -52,6 +53,11 @@ export class GameTable extends ObjectNode {
   @SyncVar() showEastWall: boolean = false;
   @SyncVar() showSouthWall: boolean = false;
   @SyncVar() showWestWall: boolean = false;
+
+  @SyncVar() darknessEnabled: boolean = false;
+  @SyncVar() darknessLevel: number = 0.92;
+  @SyncVar() ambientColor: string = DEFAULT_AMBIENT_COLOR;
+  @SyncVar() globalIllumination: number = 0;
 
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {

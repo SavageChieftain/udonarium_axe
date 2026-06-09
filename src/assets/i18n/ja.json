@@ -536,6 +536,7 @@
         "showChatPalette": "チャットパレットを表示",
         "showRemoteController": "リモコンを表示",
         "editBuff": "バフ編集",
+        "lightSettings": "視界・光源設定…",
         "invokeRangeShape": "登録済み射程を出す",
         "hideInventoryOn": "☑ インベントリ非表示",
         "hideInventoryOff": "☐ インベントリ非表示",
@@ -584,6 +585,68 @@
         "cancel": "キャンセル"
       }
     },
+    "light": {
+      "contextMenu": {
+        "settings": "光源設定…",
+        "turnOn": "点灯する",
+        "turnOff": "消灯する",
+        "preset": "プリセット",
+        "follow": "トークンに追従",
+        "unfollow": "追従しない"
+      },
+      "preset": {
+        "custom": "カスタム",
+        "torch": "たいまつ",
+        "lantern": "ランタン",
+        "candle": "ろうそく",
+        "daylight": "太陽光",
+        "flashlight": "懐中電灯",
+        "neon": "ネオン",
+        "spotlight": "スポットライト"
+      },
+      "settings": {
+        "title": "光源",
+        "enabled": "点灯",
+        "preset": "プリセット",
+        "brightRadius": "明半径",
+        "dimRadius": "薄明半径",
+        "color": "色",
+        "angle": "照射角",
+        "direction": "向き",
+        "pitch": "仰俯角",
+        "animation": "アニメーション",
+        "theatrical": "演出",
+        "category": "種別",
+        "ignoreOcclusion": "壁で遮られない",
+        "revealToAll": "全員に見せる",
+        "castShadows": "影を落とす"
+      },
+      "animation": {
+        "none": "なし",
+        "flicker": "ゆらめき",
+        "pulse": "明滅",
+        "neon": "色変化（ネオン）"
+      },
+      "category": {
+        "physical": "物理光源",
+        "theatrical": "演出光源"
+      }
+    },
+    "vision": {
+      "settings": {
+        "title": "視界",
+        "visionType": "視界タイプ",
+        "visionRange": "視界範囲(マス)",
+        "castsShadow": "光を遮り影を落とす"
+      },
+      "type": {
+        "normal": "通常視界",
+        "darkvision": "暗視",
+        "truesight": "真視",
+        "blind": "盲目",
+        "thermal": "熱視界"
+      }
+    },
     "range": {
       "custom": {
         "editorTitle": "任意マス射程エディタ",
@@ -625,6 +688,7 @@
         "createTrump": "トランプの山札を作成",
         "createDice": "ダイスを作成",
         "createRange": "射程範囲を作成",
+        "createLight": "光源を作成",
         "defaultCharacterName": "新しいキャラクター",
         "defaultMaskName": "マップマスク",
         "defaultScratchMaskName": "スクラッチマスク",
@@ -632,6 +696,7 @@
         "defaultNoteName": "共有メモ",
         "defaultNoteText": "テキストを入力してください",
         "defaultRangeName": "射程範囲",
+        "defaultLightName": "光源",
         "defaultTrumpStackName": "トランプ山札",
         "defaultCardName": "カード",
         "rangeShapeLine": "直線",
@@ -677,6 +742,10 @@
         "delete": "削除する",
         "createObject": "オブジェクト作成",
         "terrainEdit": "地形設定を編集",
+        "lightSection": "暗闇（視界・発光）",
+        "blocksSight": "視界を遮る",
+        "blocksLight": "光を遮る（窓ならOFF）",
+        "terrainGlow": "発光する",
         "slope": "傾斜",
         "slopeNone": "なし",
         "slopeTop": "上（北）",
@@ -766,6 +835,13 @@
         "sectionDisplay": "表示モード",
         "imageBillboard": "画像をカメラに追従",
         "mode2d": "2Dモード（俯瞰固定）",
+        "sectionDarkness": "暗闇（視界・照明）",
+        "darknessEnabled": "暗闇を有効化",
+        "darknessLevel": "暗さ",
+        "globalIllumination": "環境光",
+        "ambientColor": "暗闇の色",
+        "previewAs": "視点プレビュー",
+        "previewSelf": "自分（GM視点）",
         "bgFilter": "背景フィルタ",
         "bgFilterNone": "なし",
         "bgFilterWhite": "ホワイト",

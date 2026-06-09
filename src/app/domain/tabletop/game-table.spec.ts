@@ -147,6 +147,15 @@ describe('GameTable', () => {
       expect(table.showSouthWall).toBe(false);
       expect(table.showWestWall).toBe(false);
     });
+
+    it('暗闇（ステージ効果）はデフォルト無効', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.darknessEnabled).toBe(false);
+      expect(table.darknessLevel).toBeGreaterThan(0);
+      expect(table.globalIllumination).toBe(0);
+      expect(table.ambientColor).toBeTruthy();
+    });
   });
 
   describe('プロパティ変更', () => {

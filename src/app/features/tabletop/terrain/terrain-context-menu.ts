@@ -6,6 +6,7 @@ import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 export function buildTerrainContextMenu(
   terrain: Terrain,
@@ -170,6 +171,48 @@ export function buildTerrainContextMenu(
             SoundEffect.play(PresetSound.sweep);
           },
         },
+    ContextMenuSeparator,
+    {
+      name: t('feature.tabletop.contextMenu.lightSection'),
+      action: undefined,
+      subActions: [
+        {
+          name: (terrain.blocksSight ? '☑ ' : '☐ ') + t('feature.tabletop.contextMenu.blocksSight'),
+          action: () => {
+            terrain.blocksSight = !terrain.blocksSight;
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
+        {
+          name: (terrain.blocksLight ? '☑ ' : '☐ ') + t('feature.tabletop.contextMenu.blocksLight'),
+          action: () => {
+            terrain.blocksLight = !terrain.blocksLight;
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
+        ContextMenuSeparator,
+        {
+          name: (terrain.lightEnabled ? '☑ ' : '☐ ') + t('feature.tabletop.contextMenu.terrainGlow'),
+          action: () => {
+            terrain.lightEnabled = !terrain.lightEnabled;
+            if (terrain.lightEnabled && terrain.lightDimRadius <= 0) applyLightPreset(terrain, LightPreset.TORCH);
+            SoundEffect.play(PresetSound.sweep);
+          },
+        },
+        {
+          name: t('feature.light.contextMenu.preset'),
+          action: undefined,
+          subActions: Object.values(LightPreset).map((preset) => ({
+            name: (terrain.lightPreset === preset ? '✔ ' : '') + t('feature.light.preset.' + preset),
+            action: () => {
+              applyLightPreset(terrain, preset);
+              terrain.lightEnabled = true;
+              SoundEffect.play(PresetSound.sweep);
+            },
+          })),
+        },
+      ],
+    },
     ContextMenuSeparator,
     {
       name: t('feature.tabletop.contextMenu.terrainEdit'),

@@ -41,6 +41,7 @@ export function buildGameCharacterContextMenu(
     onShowChatPalette: () => void;
     onShowRemoteController: () => void;
     onShowBuffEdit: () => void;
+    onShowLightSettings: () => void;
     onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
   },
   t: TranslateFn,
@@ -65,6 +66,10 @@ export function buildGameCharacterContextMenu(
     {
       name: t('feature.character.contextMenu.editBuff'),
       action: () => callbacks.onShowBuffEdit(),
+    },
+    {
+      name: t('feature.character.contextMenu.lightSettings'),
+      action: () => callbacks.onShowLightSettings(),
     },
     ...(registeredShapes.length > 0 && callbacks.onInvokeRangeShape
       ? [

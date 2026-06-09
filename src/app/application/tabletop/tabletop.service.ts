@@ -14,6 +14,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -72,6 +73,9 @@ export class TabletopService {
   private rangeCache = new TabletopCache<RangeArea>(() =>
     this.objectStore.getObjects(RangeArea).filter((obj) => obj.isVisibleOnTable)
   );
+  private lightSourceCache = new TabletopCache<LightSource>(() =>
+    this.objectStore.getObjects(LightSource).filter((obj) => obj.isVisibleOnTable)
+  );
   private terrainCache = new TabletopCache<Terrain>(() => {
     const viewTable = this.tableSelecter.viewTable;
     return viewTable ? viewTable.terrains : [];
@@ -96,6 +100,9 @@ export class TabletopService {
   }
   get ranges(): RangeArea[] {
     return this.rangeCache.objects;
+  }
+  get lightSources(): LightSource[] {
+    return this.lightSourceCache.objects;
   }
   get terrains(): Terrain[] {
     return this.terrainCache.objects;
@@ -205,6 +212,8 @@ export class TabletopService {
         return this.tableScratchMaskCache;
       case RangeArea.aliasName:
         return this.rangeCache;
+      case LightSource.aliasName:
+        return this.lightSourceCache;
       case Terrain.aliasName:
         return this.terrainCache;
       case TextNote.aliasName:
@@ -228,6 +237,7 @@ export class TabletopService {
     this.tableMaskCache.refresh();
     this.tableScratchMaskCache.refresh();
     this.rangeCache.refresh();
+    this.lightSourceCache.refresh();
     this.terrainCache.refresh();
     this.textNoteCache.refresh();
     this.diceSymbolCache.refresh();

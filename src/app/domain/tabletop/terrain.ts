@@ -2,6 +2,13 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { DataElement } from '@axe/domain/data/data-element';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import {
+  DEFAULT_LIGHT_COLOR,
+  LightAnimation,
+  LightCategory,
+  LightPreset,
+  LightSpec,
+} from '@axe/domain/tabletop/vision-types';
 
 export enum TerrainViewState {
   NULL = 0,
@@ -29,6 +36,37 @@ export class Terrain extends TabletopObject {
   @SyncVar() slopeDirection: number = SlopeDirection.NONE;
 
   @SyncVar() isGrid: boolean = false;
+
+  @SyncVar() blocksSight: boolean = true;
+  @SyncVar() blocksLight: boolean = true;
+
+  @SyncVar() lightEnabled: boolean = false;
+  @SyncVar() lightPreset: string = LightPreset.CUSTOM;
+  @SyncVar() lightBrightRadius: number = 0;
+  @SyncVar() lightDimRadius: number = 0;
+  @SyncVar() lightColor: string = DEFAULT_LIGHT_COLOR;
+  @SyncVar() lightAngle: number = 360;
+  @SyncVar() lightDirection: number = 0;
+  @SyncVar() lightPitch: number = 0;
+  @SyncVar() lightAnimation: string = LightAnimation.NONE;
+
+  get lightSpec(): LightSpec {
+    return {
+      enabled: this.lightEnabled,
+      preset: this.lightPreset as LightPreset,
+      brightRadius: this.lightBrightRadius,
+      dimRadius: this.lightDimRadius,
+      color: this.lightColor,
+      angle: this.lightAngle,
+      direction: this.rotate + this.lightDirection,
+      pitch: this.lightPitch,
+      animation: this.lightAnimation as LightAnimation,
+      category: LightCategory.PHYSICAL,
+      ignoreOcclusion: false,
+      revealToAll: false,
+      castShadows: true,
+    };
+  }
 
   get width(): number {
     return this.getCommonValue('width', 1);

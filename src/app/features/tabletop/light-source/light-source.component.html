@@ -1,0 +1,40 @@
+<div
+  class="group pointer-events-none absolute flex items-center justify-center select-none backface-hidden transform-3d"
+  [style.width.px]="gridSize"
+  [style.height.px]="gridSize"
+  [class.cursor-grab]="!isLock()"
+  appMovable
+  [movable.option]="movableOption()"
+  [movable.disable]="isLock()"
+  [appSelectable]="lightSource()"
+  (movable.ondragstart)="onMove()"
+  (movable.ondragend)="onMoved()"
+>
+  <div
+    class="pointer-events-none absolute inset-0 m-auto size-0 transform-3d"
+    appRotable
+    [rotable.option]="rotableOption()"
+    [rotable.disable]="isLock()"
+    (rotable.ondragstart)="onMove()"
+    (rotable.valueChange)="onRotated($event)"
+    (rotable.ondragend)="onMoved()"
+  >
+    @if (!isLock() && isCone()) {
+      <div
+        class="rotate-grab border-ui-border-panel bg-ui-elevated text-ui-muted pointer-events-auto absolute box-border flex size-7 -translate-1/2 transform-[translateZ(0.1px)] cursor-default items-center justify-center rounded-full border-2 border-solid p-0 opacity-0 transform-3d group-hover:opacity-90 [&_.material-icons]:text-[18px]!"
+        [style.left.px]="gridSize * 0.9"
+      >
+        <i class="material-icons">autorenew</i>
+      </div>
+    }
+  </div>
+
+  <div
+    class="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/40 backface-hidden transform-3d"
+    [class.opacity-40]="!enabled()"
+    [style.transform]="altitudeTransform()"
+    [appTooltip]="lightSource()"
+  >
+    <i class="material-icons text-[22px]" [style.color]="iconColor()">lightbulb</i>
+  </div>
+</div>

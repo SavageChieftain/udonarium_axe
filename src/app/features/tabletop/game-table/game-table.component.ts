@@ -15,6 +15,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -26,6 +27,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
+import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
@@ -42,9 +44,17 @@ import {
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
+import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-source.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
+import { TableBeamOverlayComponent } from '@axe/features/tabletop/table-beam-overlay/table-beam-overlay.component';
+import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision-overlay/table-vision-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
+import {
+  wallLightLayerStyle,
+  wallSilhouetteBackground,
+  wallSilhouetteStyle,
+} from '@axe/features/tabletop/wall-projection';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
@@ -69,6 +79,9 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
     GameCharacterComponent,
     SafePipe,
     TableMarqueeOverlayComponent,
+    TableVisionOverlayComponent,
+    TableBeamOverlayComponent,
+    LightSourceComponent,
   ],
   host: {
     class: 'block',
@@ -86,6 +99,7 @@ export class GameTableComponent {
   private readonly imageService = inject(ImageService);
   private readonly tabletopService = inject(TabletopService);
   private readonly tabletopActionService = inject(TabletopActionService);
+  protected readonly visionService = inject(VisionService);
   private readonly modalService = inject(ModalService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
@@ -380,6 +394,10 @@ export class GameTableComponent {
     this.objectChangeService.collectionOf('range')();
     return this.tabletopService.ranges;
   });
+  readonly lightSources = computed(() => {
+    this.objectChangeService.collectionOf('light-source')();
+    return this.tabletopService.lightSources;
+  });
   readonly terrains = computed(() => {
     this.objectChangeService.collectionOf('terrain')();
     return this.tabletopService.terrains;
@@ -454,6 +472,58 @@ export class GameTableComponent {
 
   onEscapeKey(_e: Event) {
     this.selectionSignalService.clearSelection();
+  }
+
+  private wallFaceFor(surface: TableSurface): WallFace | null {
+    const table = this.watchCurrentTable();
+    const w = table.width * table.gridSize;
+    const d = table.height * table.gridSize;
+    const hpx = table.wallHeight * table.gridSize;
+    switch (surface) {
+      case 'north-wall':
+        return { ax: 0, ay: 0, bx: w, by: 0, nx: 0, ny: 1, heightPx: hpx };
+      case 'south-wall':
+        return { ax: 0, ay: d, bx: w, by: d, nx: 0, ny: -1, heightPx: hpx };
+      case 'west-wall':
+        return { ax: 0, ay: 0, bx: 0, by: d, nx: 1, ny: 0, heightPx: hpx };
+      case 'east-wall':
+        return { ax: w, ay: 0, bx: w, by: d, nx: -1, ny: 0, heightPx: hpx };
+      default:
+        return null;
+    }
+  }
+
+  protected wallBaseFilter(): string | null {
+    const brightness = this.visionService.ambientBrightness();
+    return brightness < 1 ? 'brightness(' + brightness.toFixed(3) + ')' : null;
+  }
+
+  protected wallSilhouettesFor(surface: TableSurface): WallSilhouette[] {
+    const face = this.wallFaceFor(surface);
+    return face ? this.visionService.wallSilhouettes(face) : [];
+  }
+
+  protected wallPoolsFor(surface: TableSurface): WallLight[] {
+    const face = this.wallFaceFor(surface);
+    return face ? this.visionService.wallLights(face) : [];
+  }
+
+  protected wallPoolStyleFor(pool: WallLight, surface: TableSurface, faceLen: number): Record<string, string> {
+    const mirror = surface === 'south-wall' || surface === 'east-wall';
+    return wallLightLayerStyle(pool, mirror, faceLen);
+  }
+
+  protected wallSilhouetteBg(silhouette: WallSilhouette): string {
+    return wallSilhouetteBackground(silhouette);
+  }
+
+  protected wallSilhouetteStyleFor(
+    silhouette: WallSilhouette,
+    surface: TableSurface,
+    faceLen: number
+  ): Record<string, string> {
+    const mirror = surface === 'south-wall' || surface === 'east-wall';
+    return wallSilhouetteStyle(silhouette, mirror, faceLen);
   }
 
   private watchCurrentTable(): GameTable {

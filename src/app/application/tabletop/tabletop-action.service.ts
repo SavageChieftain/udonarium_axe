@@ -27,6 +27,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -189,6 +190,16 @@ export class TabletopActionService {
     return range;
   }
 
+  createLightSource(position: PointerCoordinate): LightSource {
+    const light = LightSource.create(this.t('feature.tabletop.action.defaultLightName'));
+    light.location.x = position.x - 25;
+    light.location.y = position.y - 25;
+    light.posZ = position.z;
+    light.owner = PeerCursor.myCursor?.userId ?? '';
+    light.update();
+    return light;
+  }
+
   createTrump(position: PointerCoordinate): CardStack {
     const cardStack = CardStack.create(this.t('feature.tabletop.action.defaultTrumpStackName'));
     cardStack.location.x = position.x - 25;
@@ -233,6 +244,7 @@ export class TabletopActionService {
       this.getCreateTrumpMenu(position),
       this.getCreateDiceSymbolMenu(position),
       this.getCreateRangeMenu(position),
+      this.getCreateLightSourceMenu(position),
     ];
   }
 
@@ -300,6 +312,17 @@ export class TabletopActionService {
       });
     });
     return { name: this.t('feature.tabletop.action.createDice'), action: undefined, subActions: subMenus };
+  }
+
+  private getCreateLightSourceMenu(position: PointerCoordinate): ContextMenuAction {
+    return {
+      name: this.t('feature.tabletop.action.createLight'),
+      action: () => {
+        const light = this.createLightSource(position);
+        this.selectionSignalService.selectObject(light.identifier, light.aliasName);
+        SoundEffect.play(PresetSound.cardPut);
+      },
+    };
   }
 
   private getCreateRangeMenu(position: PointerCoordinate): ContextMenuAction {

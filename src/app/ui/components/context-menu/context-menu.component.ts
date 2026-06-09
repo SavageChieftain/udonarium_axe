@@ -87,6 +87,13 @@ export class ContextMenuComponent {
     return null;
   }
 
+  onAltitudeChange(value: number | string): void {
+    const target = this.altitudeHande;
+    if (!target) return;
+    target.altitude = Number(value);
+    target.update();
+  }
+
   onOutsideClick(event: Event) {
     if (!this.rootElementRef().nativeElement.contains(event.target as Node)) {
       this.close();

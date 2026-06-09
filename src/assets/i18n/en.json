@@ -536,6 +536,7 @@
         "showChatPalette": "Show chat palette",
         "showRemoteController": "Show remote controller",
         "editBuff": "Edit buffs",
+        "lightSettings": "Vision & light…",
         "invokeRangeShape": "Invoke registered range",
         "hideInventoryOn": "☑ Hide from inventory",
         "hideInventoryOff": "☐ Hide from inventory",
@@ -584,6 +585,68 @@
         "cancel": "Cancel"
       }
     },
+    "light": {
+      "contextMenu": {
+        "settings": "Light settings…",
+        "turnOn": "Turn on",
+        "turnOff": "Turn off",
+        "preset": "Preset",
+        "follow": "Follow token",
+        "unfollow": "Stop following"
+      },
+      "preset": {
+        "custom": "Custom",
+        "torch": "Torch",
+        "lantern": "Lantern",
+        "candle": "Candle",
+        "daylight": "Daylight",
+        "flashlight": "Flashlight",
+        "neon": "Neon",
+        "spotlight": "Spotlight"
+      },
+      "settings": {
+        "title": "Light",
+        "enabled": "Enabled",
+        "preset": "Preset",
+        "brightRadius": "Bright radius",
+        "dimRadius": "Dim radius",
+        "color": "Color",
+        "angle": "Beam angle",
+        "direction": "Direction",
+        "pitch": "Pitch",
+        "animation": "Animation",
+        "theatrical": "Theatrical",
+        "category": "Category",
+        "ignoreOcclusion": "Ignore walls",
+        "revealToAll": "Reveal to all",
+        "castShadows": "Cast shadows"
+      },
+      "animation": {
+        "none": "None",
+        "flicker": "Flicker",
+        "pulse": "Pulse",
+        "neon": "Color cycle (neon)"
+      },
+      "category": {
+        "physical": "Physical",
+        "theatrical": "Theatrical"
+      }
+    },
+    "vision": {
+      "settings": {
+        "title": "Vision",
+        "visionType": "Vision type",
+        "visionRange": "Vision range (cells)",
+        "castsShadow": "Casts shadow (blocks light)"
+      },
+      "type": {
+        "normal": "Normal",
+        "darkvision": "Darkvision",
+        "truesight": "Truesight",
+        "blind": "Blind",
+        "thermal": "Thermal"
+      }
+    },
     "range": {
       "custom": {
         "editorTitle": "Custom range editor",
@@ -625,6 +688,7 @@
         "createTrump": "Create trump deck",
         "createDice": "Create dice",
         "createRange": "Create range",
+        "createLight": "Create light source",
         "defaultCharacterName": "New character",
         "defaultMaskName": "Map mask",
         "defaultScratchMaskName": "Scratch mask",
@@ -632,6 +696,7 @@
         "defaultNoteName": "Shared note",
         "defaultNoteText": "Enter text...",
         "defaultRangeName": "Range",
+        "defaultLightName": "Light source",
         "defaultTrumpStackName": "Trump deck",
         "defaultCardName": "Card",
         "rangeShapeLine": "Line",
@@ -677,6 +742,10 @@
         "delete": "Delete",
         "createObject": "Create object",
         "terrainEdit": "Edit terrain",
+        "lightSection": "Darkness (vision & glow)",
+        "blocksSight": "Blocks sight",
+        "blocksLight": "Blocks light (off = window)",
+        "terrainGlow": "Emit light",
         "slope": "Slope",
         "slopeNone": "None",
         "slopeTop": "Up (north)",
@@ -766,6 +835,13 @@
         "sectionDisplay": "Display mode",
         "imageBillboard": "Billboard piece images",
         "mode2d": "2D mode (top-down)",
+        "sectionDarkness": "Darkness (vision & lighting)",
+        "darknessEnabled": "Enable darkness",
+        "darknessLevel": "Darkness",
+        "globalIllumination": "Ambient light",
+        "ambientColor": "Darkness color",
+        "previewAs": "Preview as",
+        "previewSelf": "Myself (GM view)",
         "bgFilter": "Background filter",
         "bgFilterNone": "None",
         "bgFilterWhite": "White",

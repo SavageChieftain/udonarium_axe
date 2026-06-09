@@ -1,0 +1,353 @@
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { LightSource } from '@axe/domain/tabletop/light-source';
+import { perimeterSegments, rectangleSegments, Segment } from '@axe/domain/tabletop/los/segments';
+import { type SurfaceDims, surfaceInwardDirection, surfacePointTo3D } from '@axe/domain/tabletop/surface-space';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import {
+  computeLightBeam,
+  computeLightGlow,
+  computeWallLights,
+  computeWallSilhouettes,
+  darknessAlphaFor,
+  isPointVisible,
+  type LightBeam,
+  type LightGlow,
+  objectBrightnessFor,
+  type SceneLight,
+  type SceneViewer,
+  type SceneVisionSource,
+  type ShadowCaster,
+  type VisionScene,
+  type WallFace,
+  type WallLight,
+  type WallSilhouette,
+} from '@axe/domain/tabletop/vision-scene';
+import { LightSpec, VisionType } from '@axe/domain/tabletop/vision-types';
+
+const GEOMETRY_THROTTLE_MS = 40;
+const RELEVANT_ALIASES = new Set(['character', 'light-source', 'terrain', 'game-table']);
+const LIGHT_EMITTER_HEIGHT_CELLS = 0.5;
+const WALL_LIGHT_INSET_CELLS = 0.4;
+
+@Injectable({ providedIn: 'root' })
+export class VisionService {
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly tableSelecter = inject(TableSelecter);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly previewAsUserId = signal<string | null>(null);
+  private readonly geometryEpoch = signal(0);
+
+  constructor() {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const bump = () => {
+      if (timer !== null) return;
+      timer = setTimeout(() => {
+        timer = null;
+        this.geometryEpoch.update((v) => v + 1);
+      }, GEOMETRY_THROTTLE_MS);
+    };
+    this.objectChange.onObjectChangedForAlias([...RELEVANT_ALIASES], bump, this.destroyRef);
+    this.objectChange.objectAdded$.subscribe((event) => {
+      if (RELEVANT_ALIASES.has(event.aliasName)) bump();
+    }, this.destroyRef);
+    this.objectChange.objectRemoved$.subscribe((event) => {
+      if (RELEVANT_ALIASES.has(event.aliasName)) bump();
+    }, this.destroyRef);
+    this.destroyRef.onDestroy(() => {
+      if (timer !== null) clearTimeout(timer);
+    });
+  }
+
+  readonly viewer = computed<SceneViewer>(() => {
+    this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
+    const preview = this.previewAsUserId();
+    if (preview) return { userId: preview, isGameMaster: false };
+    const my = PeerCursor.myCursor;
+    return { userId: my?.userId ?? '', isGameMaster: my?.isGameMaster ?? false };
+  });
+
+  private currentTable(): GameTable | null {
+    this.objectChange.versionOf(this.tableSelecter.identifier)();
+    const table = this.tableSelecter.viewTable;
+    if (table) this.objectChange.versionOf(table.identifier)();
+    return table;
+  }
+
+  readonly active = computed(() => this.currentTable()?.darknessEnabled ?? false);
+
+  readonly scene = computed<VisionScene | null>(() => {
+    this.geometryEpoch();
+    const table = this.currentTable();
+    if (!table) return null;
+
+    const gridSize = table.gridSize;
+    const widthPx = table.width * gridSize;
+    const heightPx = table.height * gridSize;
+    const { sight, light } = this.collectSegments(table, gridSize, widthPx, heightPx);
+    return {
+      darknessEnabled: table.darknessEnabled,
+      darknessLevel: table.darknessLevel,
+      ambientColor: table.ambientColor,
+      globalIllumination: table.globalIllumination,
+      gridSize,
+      widthPx,
+      heightPx,
+      lights: this.collectLights(table, gridSize),
+      visionSources: this.collectVisionSources(gridSize),
+      sightSegments: sight,
+      lightSegments: light,
+      shadowCasters: this.collectShadowCasters(gridSize),
+    };
+  });
+
+  objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
+    const scene = this.scene();
+    if (!scene) return 1;
+    return objectBrightnessFor(scene, this.viewer(), x, y, radiusPx, ignoreShadowCasters);
+  }
+
+  objectFilter(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): string | null {
+    const brightness = this.objectBrightness(x, y, radiusPx, ignoreShadowCasters);
+    return brightness < 1 ? `brightness(${brightness.toFixed(3)})` : null;
+  }
+
+  wallSilhouettes(face: WallFace): WallSilhouette[] {
+    const scene = this.scene();
+    if (!scene || !scene.darknessEnabled) return [];
+    return computeWallSilhouettes(scene, face, scene.gridSize * 1.5);
+  }
+
+  wallLights(face: WallFace): WallLight[] {
+    const scene = this.scene();
+    if (!scene || !scene.darknessEnabled) return [];
+    return computeWallLights(scene, face);
+  }
+
+  ambientBrightness(): number {
+    const scene = this.scene();
+    if (!scene) return 1;
+    return 1 - darknessAlphaFor(scene, this.viewer());
+  }
+
+  private emissiveLights(): { lights: SceneLight[]; gridSize: number } {
+    this.geometryEpoch();
+    const table = this.currentTable();
+    if (!table) return { lights: [], gridSize: 50 };
+    return { lights: this.collectLights(table, table.gridSize), gridSize: table.gridSize };
+  }
+
+  lightBeams(): LightBeam[] {
+    const beams: LightBeam[] = [];
+    for (const light of this.emissiveLights().lights) {
+      const beam = computeLightBeam(light);
+      if (beam) beams.push(beam);
+    }
+    return beams;
+  }
+
+  lightGlows(): LightGlow[] {
+    const { lights, gridSize } = this.emissiveLights();
+    const glows: LightGlow[] = [];
+    for (const light of lights) {
+      const glow = computeLightGlow(light, gridSize);
+      if (glow) glows.push(glow);
+    }
+    return glows;
+  }
+
+  isTokenVisible(character: GameCharacter): boolean {
+    const scene = this.scene();
+    if (!scene || !scene.darknessEnabled) return true;
+    if (surfaceOf(character) !== 'floor') return true;
+    const viewer = this.viewer();
+    if (viewer.isGameMaster) return true;
+    if (character.owner && character.owner === viewer.userId) return true;
+    const half = (scene.gridSize * (character.size || 1)) / 2;
+    return isPointVisible(scene, character.location.x + half, character.location.y + half, viewer);
+  }
+
+  private objectZ(altitude: number, posZ: number, gridSize: number): number {
+    return (altitude + LIGHT_EMITTER_HEIGHT_CELLS) * gridSize + posZ;
+  }
+
+  private placeLight(obj: TabletopObject, centerX: number, centerY: number, gridSize: number, dims: SurfaceDims) {
+    const surface = surfaceOf(obj);
+    if (surface === 'floor') {
+      const h = this.objectZ(obj.altitude, obj.posZ, gridSize);
+      return {
+        pos: surfacePointTo3D('floor', obj.location.x + centerX, obj.location.y + centerY, dims, h),
+        dir: null,
+        surface,
+      };
+    }
+    return {
+      pos: surfacePointTo3D(
+        surface,
+        obj.location.x + centerX,
+        obj.location.y + centerY,
+        dims,
+        WALL_LIGHT_INSET_CELLS * gridSize
+      ),
+      dir: surfaceInwardDirection(surface),
+      surface,
+    };
+  }
+
+  private collectLights(table: GameTable, gridSize: number): SceneLight[] {
+    const lights: SceneLight[] = [];
+    const half = gridSize / 2;
+    const dims: SurfaceDims = {
+      widthPx: table.width * gridSize,
+      depthPx: table.height * gridSize,
+      wallHeightPx: table.wallHeight * gridSize,
+    };
+
+    for (const source of this.objectStore.getObjects(LightSource)) {
+      if (!source.isVisibleOnTable || !source.lightEnabled) continue;
+      const followed = source.followingCharacterIdentifier
+        ? this.objectStore.get<GameCharacter>(source.followingCharacterIdentifier)
+        : null;
+      const anchor = followed && followed.isVisibleOnTable ? followed : source;
+      const center = followed && followed.isVisibleOnTable ? (gridSize * (followed.size || 1)) / 2 : half;
+      const p = this.placeLight(anchor, center, center, gridSize, dims);
+      lights.push(
+        this.toSceneLight(source.lightSpec, p.pos.x, p.pos.y, p.pos.z, gridSize, source.identifier, p.dir, p.surface)
+      );
+    }
+
+    for (const character of this.objectStore.getObjects(GameCharacter)) {
+      if (!character.isVisibleOnTable || !character.lightEnabled) continue;
+      const center = (gridSize * (character.size || 1)) / 2;
+      const p = this.placeLight(character, center, center, gridSize, dims);
+      lights.push(
+        this.toSceneLight(
+          character.lightSpec,
+          p.pos.x,
+          p.pos.y,
+          p.pos.z,
+          gridSize,
+          character.identifier,
+          p.dir,
+          p.surface
+        )
+      );
+    }
+
+    for (const terrain of table.terrains) {
+      if (!terrain.lightEnabled) continue;
+      const cx = (terrain.width * gridSize) / 2;
+      const cy = (terrain.depth * gridSize) / 2;
+      const p = this.placeLight(terrain, cx, cy, gridSize, dims);
+      lights.push(
+        this.toSceneLight(terrain.lightSpec, p.pos.x, p.pos.y, p.pos.z, gridSize, terrain.identifier, p.dir, p.surface)
+      );
+    }
+    return lights;
+  }
+
+  private toSceneLight(
+    spec: LightSpec,
+    x: number,
+    y: number,
+    z: number,
+    gridSize: number,
+    sourceId: string,
+    dirOverride: number | null = null,
+    surface: TableSurface = 'floor'
+  ): SceneLight {
+    const dim = Math.max(spec.brightRadius, spec.dimRadius);
+    return {
+      x,
+      y,
+      z,
+      brightPx: spec.brightRadius * gridSize,
+      dimPx: dim * gridSize,
+      color: spec.color,
+      angle: spec.angle,
+      direction: dirOverride ?? spec.direction,
+      pitch: spec.pitch,
+      revealToAll: spec.revealToAll,
+      castShadows: spec.castShadows,
+      ignoreOcclusion: spec.ignoreOcclusion,
+      animation: spec.animation,
+      sourceId,
+      surface,
+    };
+  }
+
+  private collectSegments(
+    table: GameTable,
+    gridSize: number,
+    widthPx: number,
+    heightPx: number
+  ): { sight: Segment[]; light: Segment[] } {
+    const sight: Segment[] = [...perimeterSegments(widthPx, heightPx)];
+    const light: Segment[] = [];
+    const north: Segment = { x1: 0, y1: 0, x2: widthPx, y2: 0 };
+    const south: Segment = { x1: 0, y1: heightPx, x2: widthPx, y2: heightPx };
+    const west: Segment = { x1: 0, y1: 0, x2: 0, y2: heightPx };
+    const east: Segment = { x1: widthPx, y1: 0, x2: widthPx, y2: heightPx };
+    if (table.showNorthWall) light.push(north);
+    if (table.showSouthWall) light.push(south);
+    if (table.showWestWall) light.push(west);
+    if (table.showEastWall) light.push(east);
+
+    for (const terrain of table.terrains) {
+      if (!terrain.hasWall || surfaceOf(terrain) !== 'floor') continue;
+      const edges = rectangleSegments(
+        terrain.location.x,
+        terrain.location.y,
+        terrain.width * gridSize,
+        terrain.depth * gridSize,
+        terrain.rotate
+      );
+      if (terrain.blocksSight) sight.push(...edges);
+      if (terrain.blocksLight && !terrain.lightEnabled) light.push(...edges);
+    }
+    return { sight, light };
+  }
+
+  private collectShadowCasters(gridSize: number): ShadowCaster[] {
+    const casters: ShadowCaster[] = [];
+    for (const character of this.objectStore.getObjects(GameCharacter)) {
+      if (!character.isVisibleOnTable || !character.castsShadow) continue;
+      if (surfaceOf(character) !== 'floor') continue;
+      const size = (character.size || 1) * gridSize;
+      const half = size / 2;
+      casters.push({
+        ownerId: character.identifier,
+        x: character.location.x + half,
+        y: character.location.y + half,
+        radiusPx: half,
+        segments: rectangleSegments(character.location.x, character.location.y, size, size, 0),
+        imageUrl: character.imageFile?.url ?? '',
+      });
+    }
+    return casters;
+  }
+
+  private collectVisionSources(gridSize: number): SceneVisionSource[] {
+    const sources: SceneVisionSource[] = [];
+    for (const character of this.objectStore.getObjects(GameCharacter)) {
+      if (!character.isVisibleOnTable || !character.owner) continue;
+      if (surfaceOf(character) !== 'floor') continue;
+      const center = (gridSize * (character.size || 1)) / 2;
+      sources.push({
+        x: character.location.x + center,
+        y: character.location.y + center,
+        type: character.visionType as VisionType,
+        rangePx: character.visionRange * gridSize,
+        owner: character.owner,
+      });
+    }
+    return sources;
+  }
+}

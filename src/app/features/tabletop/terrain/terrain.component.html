@@ -112,7 +112,7 @@
                   'px) rotateZ(' +
                   wall.angle +
                   'rad) rotateX(-90deg) translateY(-100%)',
-                filter: 'brightness(' + wall.brightness + ')',
+                filter: dimBrightness(wall.brightness),
               }"
             ></div>
           }
@@ -133,7 +133,7 @@
                   'px) rotateZ(' +
                   wall.angle +
                   'rad) rotateX(-90deg) translateY(-100%)',
-                filter: 'brightness(' + wall.brightness + ')',
+                filter: dimBrightness(wall.brightness),
               }"
             ></div>
           }
@@ -143,56 +143,136 @@
             @if (isVisibleWallTopBottom()) {
               <div
                 [class.blinking-animation]="!isLocked()"
-                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.LEFT"
                 [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.RIGHT"
-                class="chrome-smooth-image-trick absolute top-0 left-0 size-full origin-[50%_100%] transform-[translateY(-100%)_rotateX(90deg)_rotateZ(180deg)_scaleX(-1)] bg-size-[100%_100%] bg-no-repeat filter-[brightness(0.3)] backface-hidden transform-3d"
-                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                class="absolute top-0 left-0 size-full origin-[50%_100%] transform-[translateY(-100%)_rotateX(90deg)_rotateZ(180deg)_scaleX(-1)] backface-hidden transform-3d"
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
-              ></div>
+              >
+                <div
+                  class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [style.filter]="faceFilter(isSurfaceShading() ? 0.3 : 1)"
+                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                ></div>
+                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                  @for (pool of faceLights('north'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                      [ngStyle]="wallLightStyle(pool)"
+                    ></div>
+                  }
+                  @for (sil of faceSilhouettes('north'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                      [ngStyle]="silhouetteStyle(sil)"
+                    ></div>
+                  }
+                </div>
+              </div>
             }
           }
           @if (slopeDirection() !== slopeDirectionState.BOTTOM) {
             @if (isVisibleWallTopBottom()) {
               <div
                 [class.blinking-animation]="!isLocked()"
-                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.LEFT"
                 [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.RIGHT"
-                class="chrome-smooth-image-trick absolute bottom-0 left-0 size-full origin-[50%_100%] transform-[rotateX(-90deg)] bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
-                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                class="absolute bottom-0 left-0 size-full origin-[50%_100%] transform-[rotateX(-90deg)] backface-hidden transform-3d"
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
-              ></div>
+              >
+                <div
+                  class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [style.filter]="faceFilter(1)"
+                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                ></div>
+                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                  @for (pool of faceLights('south'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                      [ngStyle]="wallLightStyle(pool)"
+                    ></div>
+                  }
+                  @for (sil of faceSilhouettes('south'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                      [ngStyle]="silhouetteStyle(sil)"
+                    ></div>
+                  }
+                </div>
+              </div>
             }
           }
           @if (slopeDirection() !== slopeDirectionState.LEFT) {
             @if (isVisibleWallLeftRight()) {
               <div
                 [class.blinking-animation]="!isLocked()"
-                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.BOTTOM"
                 [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.TOP"
-                class="chrome-smooth-image-trick absolute top-0 left-0 size-full origin-[0%_0%] transform-[rotateZ(90deg)_rotateX(-90deg)_scaleX(-1)_translateX(-100%)_translateY(-100%)] bg-size-[100%_100%] bg-no-repeat filter-[brightness(0.5)] backface-hidden transform-3d"
-                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                class="absolute top-0 left-0 size-full origin-[0%_0%] transform-[rotateZ(90deg)_rotateX(-90deg)_scaleX(-1)_translateX(-100%)_translateY(-100%)] backface-hidden transform-3d"
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
-              ></div>
+              >
+                <div
+                  class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [style.filter]="faceFilter(isSurfaceShading() ? 0.5 : 1)"
+                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                ></div>
+                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                  @for (pool of faceLights('west'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                      [ngStyle]="wallLightStyle(pool)"
+                    ></div>
+                  }
+                  @for (sil of faceSilhouettes('west'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                      [ngStyle]="silhouetteStyle(sil)"
+                    ></div>
+                  }
+                </div>
+              </div>
             }
           }
           @if (slopeDirection() !== slopeDirectionState.RIGHT) {
             @if (isVisibleWallLeftRight()) {
               <div
                 [class.blinking-animation]="!isLocked()"
-                [class.filter-[brightness(1)]!]="!isSurfaceShading()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.BOTTOM"
                 [class.[clip-path:polygon(0%_0%,100%_100%,0%_100%)]]="slopeDirection() === slopeDirectionState.TOP"
-                class="chrome-smooth-image-trick absolute top-0 right-0 size-full origin-[100%_0%] transform-[rotateZ(-90deg)_rotateX(-90deg)_translateY(-100%)] bg-size-[100%_100%] bg-no-repeat filter-[brightness(0.8)] backface-hidden transform-3d"
-                [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                class="absolute top-0 right-0 size-full origin-[100%_0%] transform-[rotateZ(-90deg)_rotateX(-90deg)_translateY(-100%)] backface-hidden transform-3d"
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
-              ></div>
+              >
+                <div
+                  class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [style.filter]="faceFilter(isSurfaceShading() ? 0.8 : 1)"
+                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                ></div>
+                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                  @for (pool of faceLights('east'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                      [ngStyle]="wallLightStyle(pool)"
+                    ></div>
+                  }
+                  @for (sil of faceSilhouettes('east'); track $index) {
+                    <div
+                      class="pointer-events-none absolute backface-hidden"
+                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                      [ngStyle]="silhouetteStyle(sil)"
+                    ></div>
+                  }
+                </div>
+              </div>
             }
           }
         }

@@ -18,6 +18,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
@@ -39,6 +40,7 @@ import { buildGameCharacterContextMenu } from '@axe/features/character/game-char
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
+import { LightSettingsComponent } from '@axe/features/tabletop/light-settings/light-settings.component';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -66,6 +68,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   ],
   host: {
     class: 'block',
+    '[style.display]': "isHiddenByVision() ? 'none' : null",
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',
   },
@@ -87,6 +90,7 @@ export class GameCharacterComponent {
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly disclosureService = inject(DisclosureService);
+  private readonly visionService = inject(VisionService);
 
   readonly isTargeted = computed(() => {
     this.uiSignalService.targetChange();
@@ -153,6 +157,13 @@ export class GameCharacterComponent {
 
   readonly gameCharacter = input<GameCharacter | null>(null);
   readonly rootElementRef = viewChild<ElementRef<HTMLElement>>('root');
+
+  readonly isHiddenByVision = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return false;
+    this.objectChange.versionOf(char.identifier)();
+    return !this.visionService.isTokenVisible(char);
+  });
 
   get isLock(): boolean {
     const char = this.gameCharacter();
@@ -478,6 +489,7 @@ export class GameCharacterComponent {
         onShowChatPalette: () => this.showChatPalette(char),
         onShowRemoteController: () => this.showRemoteController(char),
         onShowBuffEdit: () => this.showBuffEdit(char),
+        onShowLightSettings: () => this.showLightSettings(char),
         onInvokeRangeShape: (value) => this.rangeShapeInvoke.spawnForCharacter(char, value),
       },
       this.translateFn,
@@ -596,6 +608,20 @@ export class GameCharacterComponent {
     option.title = this.translateFn('feature.character.panel.buffEditWithName', { name: gameObject.name });
     const component = this.panelService.open<GameCharacterBuffViewComponent>(GameCharacterBuffViewComponent, option);
     component.character.set(gameObject);
+  }
+
+  private showLightSettings(gameObject: GameCharacter) {
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const option: PanelOption = {
+      title: this.translateFn('feature.character.contextMenu.lightSettings'),
+      left: coordinate.x - 180,
+      top: coordinate.y - 150,
+      width: 360,
+      height: 460,
+    };
+    const component = this.panelService.open<LightSettingsComponent>(LightSettingsComponent, option);
+    component.target = gameObject;
+    component.showVision = true;
   }
 
   protected foldingBuffFlag(flag: boolean) {

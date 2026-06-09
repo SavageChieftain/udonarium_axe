@@ -12,6 +12,7 @@ import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
@@ -34,6 +35,7 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(GameTable),
       ...ObjectStore.instance.getObjects(GameCharacter),
       ...ObjectStore.instance.getObjects(RangeArea),
+      ...ObjectStore.instance.getObjects(LightSource),
       ...ObjectStore.instance.getObjects(TextNote),
       ...ObjectStore.instance.getObjects(CardStack),
       ...ObjectStore.instance.getObjects(Card).filter((obj) => {
@@ -58,6 +60,7 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(Terrain),
       ...ObjectStore.instance.getObjects(GameCharacter),
       ...ObjectStore.instance.getObjects(RangeArea),
+      ...ObjectStore.instance.getObjects(LightSource),
       ...ObjectStore.instance.getObjects(TextNote),
       ...ObjectStore.instance.getObjects(CardStack),
       ...ObjectStore.instance.getObjects(Card),

@@ -1,0 +1,46 @@
+import { WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
+
+export function wallSilhouetteBackground(silhouette: WallSilhouette): string {
+  return silhouette.imageUrl ? 'url(' + silhouette.imageUrl + ')' : 'none';
+}
+
+export function wallLightLayerStyle(pool: WallLight, mirror = false, faceLen = 0): Record<string, string> {
+  const cx = mirror ? faceLen - pool.localX : pool.localX;
+  const mask =
+    'radial-gradient(' +
+    pool.radiusX +
+    'px ' +
+    pool.radiusY +
+    'px at ' +
+    cx +
+    'px ' +
+    pool.localY +
+    'px, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 78%)';
+  return {
+    position: 'absolute',
+    inset: '0',
+    'background-size': '100% 100%',
+    'background-repeat': 'no-repeat',
+    filter: 'brightness(' + (0.7 + 0.3 * pool.intensity).toFixed(3) + ')',
+    'mask-image': mask,
+    '-webkit-mask-image': mask,
+  };
+}
+
+export function wallSilhouetteStyle(silhouette: WallSilhouette, mirror = false, faceLen = 0): Record<string, string> {
+  const hasImage = silhouette.imageUrl.length > 0;
+  const center = mirror ? faceLen - silhouette.localX : silhouette.localX;
+  return {
+    position: 'absolute',
+    left: center - silhouette.width / 2 + 'px',
+    bottom: '0px',
+    width: silhouette.width + 'px',
+    height: silhouette.height + 'px',
+    opacity: String(silhouette.alpha),
+    'background-size': '100% 100%',
+    'background-repeat': 'no-repeat',
+    'background-color': hasImage ? 'transparent' : 'rgba(0, 0, 0, 0.85)',
+    'border-radius': hasImage ? '0' : '50%',
+    filter: hasImage ? 'brightness(0) blur(2px)' : 'blur(5px)',
+  };
+}

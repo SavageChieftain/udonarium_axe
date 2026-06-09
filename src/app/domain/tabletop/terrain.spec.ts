@@ -153,6 +153,41 @@ describe('Terrain', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isGrid).toBe(false);
     });
+
+    it('blocksSight / blocksLight がデフォルト true（既存卓の見た目を維持）', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+      expect(terrain.blocksSight).toBe(true);
+      expect(terrain.blocksLight).toBe(true);
+    });
+
+    it('窓硝子は blocksLight=false（光は通すが視界は遮る）に設定できる', () => {
+      const terrain = Terrain.create('窓', 1, 1, 1, '', '');
+      terrain.blocksLight = false;
+      expect(terrain.blocksSight).toBe(true);
+      expect(terrain.blocksLight).toBe(false);
+    });
+
+    it('発光はデフォルト無効、lightSpec を組み立てられる', () => {
+      const terrain = Terrain.create('結晶', 1, 1, 1, '', '');
+      expect(terrain.lightEnabled).toBe(false);
+      terrain.lightEnabled = true;
+      terrain.lightBrightRadius = 3;
+      terrain.lightDimRadius = 6;
+      const spec = terrain.lightSpec;
+      expect(spec.enabled).toBe(true);
+      expect(spec.brightRadius).toBe(3);
+      expect(spec.dimRadius).toBe(6);
+      expect(spec.ignoreOcclusion).toBe(false);
+    });
+
+    it('指向性光の向きは地形の回転(rotate)に追従し lightDirection を加算する', () => {
+      const terrain = Terrain.create('灯台', 1, 1, 1, '', '');
+      terrain.rotate = 90;
+      terrain.lightDirection = 15;
+      expect(terrain.lightSpec.direction).toBe(105);
+      terrain.rotate = 200;
+      expect(terrain.lightSpec.direction).toBe(215);
+    });
   });
 
   describe('dimensions getter/setter', () => {

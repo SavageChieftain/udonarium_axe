@@ -1,6 +1,7 @@
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuType } from '@axe/application/ui/context-menu.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { createSyncTranslate } from '@axe/testing/transloco-testing';
 
@@ -45,9 +46,14 @@ const callbacks = () => ({
   onShowChatPalette: vi.fn(),
   onShowRemoteController: vi.fn(),
   onShowBuffEdit: vi.fn(),
+  onShowLightSettings: vi.fn(),
 });
 
 describe('buildGameCharacterContextMenu()', () => {
+  beforeEach(() => {
+    PeerCursor.myCursor = null!;
+  });
+
   it('先頭は「詳細を表示」（開く/確認グループが最上段）', () => {
     const char = makeChar();
     const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);

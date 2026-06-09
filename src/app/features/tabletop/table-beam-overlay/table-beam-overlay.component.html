@@ -1,0 +1,16 @@
+@for (beam of beams(); track $index) {
+  @for (fin of beam.fins; track $index) {
+    <div
+      class="backface-visible"
+      [style.background]="beamBackground(beam) | safe: 'style'"
+      [ngStyle]="finStyle(beam, fin)"
+    ></div>
+  }
+}
+@for (glow of glows(); track $index) {
+  <div
+    class="backface-visible"
+    [style.background]="glowBackground(glow) | safe: 'style'"
+    [ngStyle]="glowStyle(glow)"
+  ></div>
+}
