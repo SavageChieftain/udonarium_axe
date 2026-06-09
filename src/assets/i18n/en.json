@@ -62,6 +62,11 @@
         "close": "Close",
         "empty": "Drag characters here from the GM object list to register",
         "unregister": "Remove from NPC bar"
+      },
+      "persona": {
+        "title": "Persona (review as a player)",
+        "self": "GM view (myself)",
+        "empty": "No players connected"
       }
     },
     "gmObjectList": {

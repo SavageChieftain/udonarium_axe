@@ -62,6 +62,11 @@
         "close": "閉じる",
         "empty": "ここに一覧・GMオブジェクト一覧からキャラをドラッグして登録",
         "unregister": "NPC登録を解除"
+      },
+      "persona": {
+        "title": "ペルソナ（プレイヤー視点でレビュー）",
+        "self": "GM視点（自分）",
+        "empty": "プレイヤーがいません"
       }
     },
     "gmObjectList": {

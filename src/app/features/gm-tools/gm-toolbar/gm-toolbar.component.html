@@ -2,10 +2,11 @@
   <div
     #bar
     class="npc-bar-dropzone rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-150 flex cursor-grab items-center gap-1 border border-solid px-2 py-1.5 [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
-    [class.ring-2]="drag.character()"
+    [class.ring-2]="drag.character() || currentPersona()"
     [class.ring-ui-accent]="drag.character()"
+    [class.ring-amber-400]="!drag.character() && currentPersona()"
     appDraggable
-    [draggable.unhandle]="'button,.npc-bar-dropdown'"
+    [draggable.unhandle]="'button,.npc-bar-dropdown,.persona-dropdown'"
   >
     <span class="text-ui-muted flex cursor-grab items-center gap-1 px-1 text-[11px] font-semibold tracking-wide">
       <i class="material-icons text-[16px]!">shield</i>
@@ -43,6 +44,51 @@
     >
       <i class="material-icons">{{ darknessEnabled() ? 'bedtime' : 'bedtime_off' }}</i>
     </button>
+
+    <div class="relative flex">
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex h-8 cursor-pointer items-center gap-1 border-none bg-transparent px-1.5 transition-colors [&_i]:text-[20px]!"
+        [class.bg-amber-400/20]="currentPersona()"
+        [class.text-amber-500]="currentPersona()"
+        [title]="'feature.gmTools.persona.title' | transloco"
+        (click)="togglePersona()"
+      >
+        <i class="material-icons">{{ currentPersona() ? 'visibility' : 'visibility_off' }}</i>
+        @if (currentPersona(); as persona) {
+          <span class="max-w-24 truncate text-[12px] font-semibold">{{ persona.name }}</span>
+        }
+      </button>
+
+      @if (personaOpen()) {
+        <ul
+          class="persona-dropdown border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md rounded-ui absolute top-[calc(100%+6px)] left-0 z-10 m-0 flex max-h-64 w-52 list-none flex-col gap-0.5 overflow-y-auto border border-solid p-1 [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+        >
+          <li
+            class="rounded-ui-sm hover:bg-ui-menu-hover hover:text-ui-accent flex cursor-pointer items-center gap-2 px-2 py-1.5 text-[12px] [&_i]:text-[16px]"
+            [class.text-ui-accent]="!currentPersona()"
+            [class.bg-ui-accent-bg]="!currentPersona()"
+            (click)="selectPersona(null)"
+          >
+            <i class="material-icons">shield</i>
+            <span>{{ 'feature.gmTools.persona.self' | transloco }}</span>
+          </li>
+          @for (persona of personas(); track persona.identifier) {
+            <li
+              class="rounded-ui-sm hover:bg-ui-menu-hover hover:text-ui-accent flex cursor-pointer items-center gap-2 px-2 py-1.5 text-[12px] [&_i]:text-[16px]"
+              [class.text-amber-500]="persona.userId === currentPersona()?.userId"
+              [class.bg-amber-400/20]="persona.userId === currentPersona()?.userId"
+              (click)="selectPersona(persona.userId)"
+            >
+              <i class="material-icons">visibility</i>
+              <span class="truncate">{{ persona.name }}</span>
+            </li>
+          } @empty {
+            <li class="text-ui-dim p-2 text-[11px]">{{ 'feature.gmTools.persona.empty' | transloco }}</li>
+          }
+        </ul>
+      }
+    </div>
 
     <app-npc-bar></app-npc-bar>
   </div>

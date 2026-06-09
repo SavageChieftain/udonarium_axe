@@ -1,8 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
@@ -23,14 +34,29 @@ export class GmToolbarComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
+  private readonly visionService = inject(VisionService);
+  private readonly objectStore = inject(ObjectStore);
   private readonly t = inject(TRANSLATE_FN);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
   private positioned = false;
 
+  protected readonly personaOpen = signal(false);
+
   readonly isGameMaster = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
     return PeerCursor.isMyselfGameMaster;
+  });
+
+  protected readonly personas = computed<PeerCursor[]>(() => {
+    this.objectChange.collectionOf('PeerCursor')();
+    return this.objectStore.getObjects<PeerCursor>(PeerCursor).filter((cursor) => !cursor.isGameMaster);
+  });
+
+  protected readonly currentPersona = computed<PeerCursor | null>(() => {
+    const userId = this.visionService.previewAsUserId();
+    if (!userId) return null;
+    return this.personas().find((cursor) => cursor.userId === userId) ?? null;
   });
 
   protected readonly darknessEnabled = computed(() => {
@@ -69,5 +95,14 @@ export class GmToolbarComponent {
     table.darknessEnabled = !table.darknessEnabled;
     table.update();
     this.objectChange.notifyChanged(table.identifier);
+  }
+
+  protected togglePersona(): void {
+    this.personaOpen.update((open) => !open);
+  }
+
+  protected selectPersona(userId: string | null): void {
+    this.visionService.previewAsUserId.set(userId);
+    this.personaOpen.set(false);
   }
 }

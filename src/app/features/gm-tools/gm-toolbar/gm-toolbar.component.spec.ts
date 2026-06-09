@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
@@ -36,5 +37,25 @@ describe('GmToolbarComponent', () => {
     expect(bar.isOpen()).toBe(true);
     (component as unknown as { toggleNpcBar: () => void }).toggleNpcBar();
     expect(bar.isOpen()).toBe(false);
+  });
+
+  it('selectPersona でプレイヤー視点プレビューを設定/解除する', () => {
+    const vision = TestBed.inject(VisionService);
+    const persona = component as unknown as { selectPersona: (id: string | null) => void };
+
+    expect(vision.previewAsUserId()).toBeNull();
+    persona.selectPersona('player-1');
+    expect(vision.previewAsUserId()).toBe('player-1');
+    expect(vision.viewer().isGameMaster).toBe(false);
+
+    persona.selectPersona(null);
+    expect(vision.previewAsUserId()).toBeNull();
+  });
+
+  it('togglePersona でドロップダウンの開閉を切り替える', () => {
+    const persona = component as unknown as { togglePersona: () => void; personaOpen: () => boolean };
+    expect(persona.personaOpen()).toBe(false);
+    persona.togglePersona();
+    expect(persona.personaOpen()).toBe(true);
   });
 });
