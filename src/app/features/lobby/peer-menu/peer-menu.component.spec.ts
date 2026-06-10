@@ -67,9 +67,21 @@ describe('PeerMenuComponent', () => {
       PeerCursor.createMyCursor();
     });
 
-    it('非GM は GM を自己割り当てできない', () => {
+    function addGameMasterPeer(): void {
+      const gm = new PeerCursor();
+      gm.role = PeerRole.GameMaster;
+      gm.initialize();
+    }
+
+    it('GM が在室なら非GM は GM を自己割り当てできない', () => {
+      addGameMasterPeer();
       PeerCursor.myCursor.role = PeerRole.Player;
       expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(false);
+    });
+
+    it('GM が不在なら非GM でも GM を自己割り当てできる（復旧）', () => {
+      PeerCursor.myCursor.role = PeerRole.Player;
+      expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(true);
     });
 
     it('非GM でも Player / Guest は自己割り当てできる', () => {
@@ -83,7 +95,8 @@ describe('PeerMenuComponent', () => {
       expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(true);
     });
 
-    it('setMyRole(GameMaster) を非GM が呼んでも昇格しない', () => {
+    it('GM 在室時に setMyRole(GameMaster) を非GM が呼んでも昇格しない', () => {
+      addGameMasterPeer();
       PeerCursor.myCursor.role = PeerRole.Player;
       component.setMyRole(PeerRole.GameMaster);
       expect(PeerCursor.myCursor.role).toBe(PeerRole.Player);

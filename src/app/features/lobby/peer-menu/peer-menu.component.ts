@@ -64,7 +64,12 @@ export class PeerMenuComponent {
   }
 
   isRoleSelfAssignable(role: PeerRole): boolean {
-    return role !== PeerRole.GameMaster || this.isMyselfGameMaster;
+    if (role !== PeerRole.GameMaster) return true;
+    return this.isMyselfGameMaster || !this.hasConnectedGameMaster();
+  }
+
+  private hasConnectedGameMaster(): boolean {
+    return this.objectStore.getObjects<PeerCursor>(PeerCursor).some((cursor) => cursor.isGameMaster);
   }
 
   setMyRole(role: PeerRole) {
