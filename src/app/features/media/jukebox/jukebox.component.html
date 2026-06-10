@@ -202,9 +202,9 @@
         >
           <div class="w-5 shrink-0 text-center">
             @if (audio === jukebox.audio) {
-              <i class="material-icons text-ui-accent text-base!">{{
-                getTagOf(audio) === 'SE' ? 'star' : 'library_music'
-              }}</i>
+              <i class="material-icons text-ui-accent text-base!">library_music</i>
+            } @else if (getTagOf(audio) === 'SE' && isSePlaying(audio)) {
+              <i class="material-icons text-ui-accent text-base!">graphic_eq</i>
             } @else if (audio === auditionPlayer.audio && !auditionPlayer.paused) {
               <i class="material-icons text-ui-muted text-base!">headphones</i>
             } @else {
@@ -246,18 +246,33 @@
                 <i class="material-icons">stop</i>
               </button>
             }
-            @if (audio !== jukebox.audio) {
+            @if (getTagOf(audio) === 'SE') {
+              @if (isSePlaying(audio)) {
+                <button
+                  class="bg-ui-accent-bg border-ui-accent text-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+                  (click)="stopSE(audio)"
+                  [title]="'feature.media.jukebox.stopSE' | transloco"
+                >
+                  <i class="material-icons">stop</i>
+                </button>
+              } @else {
+                <button
+                  class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
+                  (click)="playBGM(audio)"
+                  [disabled]="!audio.isReady"
+                  [title]="'feature.media.jukebox.playSE' | transloco"
+                >
+                  <i class="material-icons">play_arrow</i>
+                </button>
+              }
+            } @else if (audio !== jukebox.audio) {
               <button
                 class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex size-7 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-35 [&_.material-icons]:text-base!"
                 (click)="playBGM(audio)"
                 [disabled]="!audio.isReady"
-                [title]="
-                  getTagOf(audio) === 'SE'
-                    ? ('feature.media.jukebox.playSE' | transloco)
-                    : ('feature.media.jukebox.playBGM' | transloco)
-                "
+                [title]="'feature.media.jukebox.playBGM' | transloco"
               >
-                <i class="material-icons">{{ getTagOf(audio) === 'SE' ? 'star' : 'play_arrow' }}</i>
+                <i class="material-icons">play_arrow</i>
               </button>
             } @else {
               <button

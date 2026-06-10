@@ -302,6 +302,72 @@ export class AudioPlayer {
     source.start();
   }
 
+  private static readonly seSources = new Map<string, Set<{ source: AudioBufferSourceNode; gain: GainNode }>>();
+  private static readonly sePending = new Map<string, number>();
+
+  static playSE(audio: AudioFile): void {
+    const identifier = audio.identifier;
+    AudioPlayer.sePending.set(identifier, (AudioPlayer.sePending.get(identifier) ?? 0) + 1);
+    AudioPlayer.playSeBufferAsync(audio, identifier);
+  }
+
+  static stopSE(identifier: string): void {
+    const entries = AudioPlayer.seSources.get(identifier);
+    if (entries) {
+      for (const { source, gain } of entries) {
+        source.onended = null;
+        source.stop();
+        source.disconnect();
+        gain.disconnect();
+        source.buffer = null;
+      }
+      AudioPlayer.seSources.delete(identifier);
+    }
+    AudioPlayer.sePending.delete(identifier);
+  }
+
+  static stopAllSE(): void {
+    for (const identifier of [...AudioPlayer.seSources.keys()]) AudioPlayer.stopSE(identifier);
+    AudioPlayer.sePending.clear();
+  }
+
+  static isSePlaying(identifier: string): boolean {
+    return (AudioPlayer.seSources.get(identifier)?.size ?? 0) > 0 || (AudioPlayer.sePending.get(identifier) ?? 0) > 0;
+  }
+
+  private static async playSeBufferAsync(audio: AudioFile, identifier: string): Promise<void> {
+    const source = await AudioPlayer.createBufferSourceAsync(audio);
+    const remaining = (AudioPlayer.sePending.get(identifier) ?? 1) - 1;
+    if (remaining > 0) AudioPlayer.sePending.set(identifier, remaining);
+    else AudioPlayer.sePending.delete(identifier);
+    if (!source) return;
+
+    const gain = AudioPlayer.audioContext.createGain();
+    gain.gain.setValueAtTime(1, AudioPlayer.audioContext.currentTime);
+    gain.connect(AudioPlayer.seNode);
+    source.connect(gain);
+
+    let entries = AudioPlayer.seSources.get(identifier);
+    if (!entries) {
+      entries = new Set();
+      AudioPlayer.seSources.set(identifier, entries);
+    }
+    const set = entries;
+    const entry = { source, gain };
+    set.add(entry);
+
+    source.onended = () => {
+      source.stop();
+      source.disconnect();
+      gain.disconnect();
+      source.buffer = null;
+      set.delete(entry);
+      if (set.size === 0) AudioPlayer.seSources.delete(identifier);
+    };
+
+    source.start();
+  }
+
   private static async createBufferSourceAsync(audio: AudioFile): Promise<AudioBufferSourceNode | null> {
     try {
       let blob: Blob | undefined = audio.blob ?? undefined;

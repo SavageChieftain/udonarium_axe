@@ -195,23 +195,63 @@ describe('Jukebox', () => {
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('SE タグ付きの場合 volumeType=SE で loop=false', () => {
-      const playSpy = stubAudioPlayerPlay();
+    it('SE タグ付きは BGM を止めず、SE バッファ再生で重ねて鳴らす', () => {
+      stubAudioPlayerPlay();
       stubAudioPlayerStop();
+      const seSpy = vi.spyOn(AudioPlayer, 'playSE').mockImplementation(() => {});
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      const audio = makeReadyAudio('se-01');
-      AudioStorage.instance.add(audio);
-      const tag = AudioTag.create('se-01');
-      tag.tag = 'SE';
+      AudioStorage.instance.add(makeReadyAudio('bgm-01'));
+      jukebox.play('bgm-01');
+      expect(jukebox.audioIdentifier).toBe('bgm-01');
+      expect(jukebox.isPlaying).toBe(true);
 
-      jukebox.play('se-01', true); // isLoop=true でも SE なら loop=false
+      const seAudio = makeReadyAudio('se-01');
+      AudioStorage.instance.add(seAudio);
+      AudioTag.create('se-01').tag = 'SE';
+      jukebox.play('se-01', true);
 
-      const player = (jukebox as unknown as { audioPlayer: AudioPlayer }).audioPlayer;
-      expect(player.volumeType).toBe(VolumeType.SE);
-      expect(player.loop).toBe(false);
-      expect(playSpy).toHaveBeenCalledOnce();
+      // BGM の再生状態は一切変わらない
+      expect(jukebox.audioIdentifier).toBe('bgm-01');
+      expect(jukebox.isPlaying).toBe(true);
+      // SE は別トリガで同期し、SE バッファ再生で鳴る
+      expect(jukebox.seIdentifier).toBe('se-01');
+      expect(jukebox.seTrigger).toBe(1);
+      expect(seSpy).toHaveBeenCalledWith(seAudio);
+
+      // もう一度鳴らすと重ねて再生される（停止しない）
+      jukebox.play('se-01');
+      expect(jukebox.seTrigger).toBe(2);
+      expect(seSpy).toHaveBeenCalledTimes(2);
+      expect(jukebox.audioIdentifier).toBe('bgm-01');
+    });
+
+    it('stopSE は対象 SE を停止し、停止トリガを同期する', () => {
+      const stopSpy = vi.spyOn(AudioPlayer, 'stopSE').mockImplementation(() => {});
+      const jukebox = new Jukebox();
+      jukebox.initialize();
+
+      jukebox.stopSE('se-01');
+
+      expect(stopSpy).toHaveBeenCalledWith('se-01');
+      expect(jukebox.seStopIdentifier).toBe('se-01');
+      expect(jukebox.seStopTrigger).toBe(1);
+    });
+
+    it('apply で seStopTrigger の変化を検知してリモートの SE を停止する', () => {
+      stubAudioPlayerPlay();
+      stubAudioPlayerStop();
+      const stopSpy = vi.spyOn(AudioPlayer, 'stopSE').mockImplementation(() => {});
+      const jukebox = new Jukebox();
+      jukebox.initialize();
+      (jukebox as unknown as { isInitialSync: boolean }).isInitialSync = false;
+
+      const context = jukebox.toContext();
+      context.syncData = { ...context.syncData, seStopIdentifier: 'se-99', seStopTrigger: 5 };
+      jukebox.apply(context);
+
+      expect(stopSpy).toHaveBeenCalledWith('se-99');
     });
   });
 

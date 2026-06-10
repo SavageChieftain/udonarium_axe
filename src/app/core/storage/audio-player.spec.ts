@@ -614,6 +614,69 @@ describe('AudioPlayer', () => {
     });
   });
 
+  // ─── static SE playback ───────────────────────────────────────────────────
+
+  describe('static playSE() / stopSE() / isSePlaying()', () => {
+    beforeEach(() => {
+      AudioPlayer.stopAllSE();
+    });
+
+    it('playSE 直後に isSePlaying が true になり、source を SE ノードへ繋いで開始する', async () => {
+      const af = makeAudioFile({ blob: new Blob(['se']), identifier: 'se1' });
+
+      AudioPlayer.playSE(af);
+      expect(AudioPlayer.isSePlaying('se1')).toBe(true);
+
+      await vi.waitFor(() => {
+        const src = audioCtxMock.createBufferSource.mock.results[0]?.value as AudioBufferSourceNodeMock | undefined;
+        expect(src?.start).toHaveBeenCalled();
+      });
+      expect(AudioPlayer.isSePlaying('se1')).toBe(true);
+    });
+
+    it('stopSE で対象の source を停止し、isSePlaying が false になる', async () => {
+      const af = makeAudioFile({ blob: new Blob(['se']), identifier: 'se2' });
+
+      AudioPlayer.playSE(af);
+      await vi.waitFor(() => {
+        const src = audioCtxMock.createBufferSource.mock.results[0]?.value as AudioBufferSourceNodeMock | undefined;
+        expect(src?.start).toHaveBeenCalled();
+      });
+      const src = audioCtxMock.createBufferSource.mock.results[0].value as AudioBufferSourceNodeMock;
+
+      AudioPlayer.stopSE('se2');
+      expect(src.stop).toHaveBeenCalled();
+      expect(src.disconnect).toHaveBeenCalled();
+      expect(AudioPlayer.isSePlaying('se2')).toBe(false);
+    });
+
+    it('source.onended で再生中フラグが解除される', async () => {
+      const af = makeAudioFile({ blob: new Blob(['se']), identifier: 'se3' });
+
+      AudioPlayer.playSE(af);
+      await vi.waitFor(() => {
+        const src = audioCtxMock.createBufferSource.mock.results[0]?.value as AudioBufferSourceNodeMock | undefined;
+        expect(src?.start).toHaveBeenCalled();
+      });
+      const src = audioCtxMock.createBufferSource.mock.results[0].value as AudioBufferSourceNodeMock;
+
+      src.onended?.();
+      expect(AudioPlayer.isSePlaying('se3')).toBe(false);
+    });
+
+    it('別 identifier の SE は stopSE の影響を受けない', async () => {
+      const a = makeAudioFile({ blob: new Blob(['a']), identifier: 'seA' });
+      const b = makeAudioFile({ blob: new Blob(['b']), identifier: 'seB' });
+
+      AudioPlayer.playSE(a);
+      AudioPlayer.playSE(b);
+      AudioPlayer.stopSE('seA');
+
+      expect(AudioPlayer.isSePlaying('seA')).toBe(false);
+      expect(AudioPlayer.isSePlaying('seB')).toBe(true);
+    });
+  });
+
   // ─── static resumeAudioContext ───────────────────────────────────────────
 
   describe('static resumeAudioContext()', () => {

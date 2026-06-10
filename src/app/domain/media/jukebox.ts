@@ -19,6 +19,10 @@ export class Jukebox extends GameObject {
   @SyncVar() repeatMode: RepeatMode = 'one';
   @SyncVar() isPlaying: boolean = false;
   @SyncVar() isSeekLocked: boolean = true;
+  @SyncVar() seIdentifier: string = '';
+  @SyncVar() seTrigger: number = 0;
+  @SyncVar() seStopIdentifier: string = '';
+  @SyncVar() seStopTrigger: number = 0;
 
   get audio(): AudioFile | null {
     return AudioStorage.instance.get(this.audioIdentifier);
@@ -93,9 +97,29 @@ export class Jukebox extends GameObject {
   play(identifier: string, _isLoop: boolean = false) {
     const audio = AudioStorage.instance.get(identifier);
     if (!audio || !audio.isReady) return;
+    if (AudioTag.get(identifier)?.tag === 'SE') {
+      this.seIdentifier = identifier;
+      this.seTrigger = this.seTrigger + 1;
+      this.playSE(audio);
+      return;
+    }
     this.audioIdentifier = identifier;
     this.isPlaying = true;
     this._play();
+  }
+
+  private playSE(audio: AudioFile) {
+    AudioPlayer.playSE(audio);
+  }
+
+  stopSE(identifier: string) {
+    this.seStopIdentifier = identifier;
+    this.seStopTrigger = this.seStopTrigger + 1;
+    AudioPlayer.stopSE(identifier);
+  }
+
+  isSePlaying(identifier: string): boolean {
+    return AudioPlayer.isSePlaying(identifier);
   }
 
   private _play() {
@@ -218,11 +242,20 @@ export class Jukebox extends GameObject {
     const audioIdentifier = this.audioIdentifier;
     const isPlaying = this.isPlaying;
     const startTime = this.startTime;
+    const seTrigger = this.seTrigger;
+    const seStopTrigger = this.seStopTrigger;
     super.apply(context);
     if (this.isInitialSync) {
       this.isInitialSync = false;
       if (this.isPlaying) this._play();
       return;
+    }
+    if (this.seTrigger !== seTrigger && this.seIdentifier) {
+      const seAudio = AudioStorage.instance.get(this.seIdentifier);
+      if (seAudio?.isReady) this.playSE(seAudio);
+    }
+    if (this.seStopTrigger !== seStopTrigger && this.seStopIdentifier) {
+      AudioPlayer.stopSE(this.seStopIdentifier);
     }
     if ((audioIdentifier !== this.audioIdentifier || !isPlaying) && this.isPlaying) {
       this._play();

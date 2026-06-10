@@ -208,6 +208,14 @@ export class JukeboxComponent {
     if (this.jukebox.audio === audio) this.jukebox.stop();
   }
 
+  stopSE(audio: AudioFile) {
+    this.jukebox.stopSE(audio.identifier);
+  }
+
+  isSePlaying(audio: AudioFile): boolean {
+    return this.jukebox.isSePlaying(audio.identifier);
+  }
+
   handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!this.rolePermission.canEditTabletop) {

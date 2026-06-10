@@ -161,4 +161,22 @@ describe('JukeboxComponent', () => {
       expect(stopSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('stopSE / isSePlaying', () => {
+    it('stopSE で jukebox.stopSE を identifier で呼ぶ', () => {
+      const audio = makeReadyAudio('se-stop-01');
+      const stopSpy = vi.spyOn(component.jukebox, 'stopSE').mockImplementation(() => {});
+
+      component.stopSE(audio);
+
+      expect(stopSpy).toHaveBeenCalledWith('se-stop-01');
+    });
+
+    it('isSePlaying は jukebox.isSePlaying の結果を返す', () => {
+      const audio = makeReadyAudio('se-playing-01');
+      vi.spyOn(component.jukebox, 'isSePlaying').mockReturnValue(true);
+
+      expect(component.isSePlaying(audio)).toBe(true);
+    });
+  });
 });
