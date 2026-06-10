@@ -15,6 +15,7 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
+import { clearOwnershipTree } from '@axe/domain/tabletop/ownership';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -181,6 +182,7 @@ export class TabletopService {
         gameObject.location.x = pointer.x - 25;
         gameObject.location.y = pointer.y - 25;
         gameObject.posZ = pointer.z;
+        clearOwnershipTree(gameObject);
         this.placeToTabletop(gameObject);
         SoundEffect.play(PresetSound.piecePut);
       } else if (gameObject instanceof ChatTab) {

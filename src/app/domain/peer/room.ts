@@ -13,6 +13,7 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
+import { clearOwnership } from '@axe/domain/tabletop/ownership';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
@@ -77,6 +78,7 @@ export class Room extends GameObject implements InnerXml {
       for (let i = 0; i < element.children.length; i++) {
         ObjectSerializer.instance.parseXml(element.children[i]);
       }
+      clearOwnership(ObjectStore.instance.getObjects());
     }
   }
 }
