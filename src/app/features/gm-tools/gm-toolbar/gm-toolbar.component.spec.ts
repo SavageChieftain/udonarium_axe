@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { Card } from '@axe/domain/card/card';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
@@ -57,5 +59,45 @@ describe('GmToolbarComponent', () => {
     expect(persona.personaOpen()).toBe(false);
     persona.togglePersona();
     expect(persona.personaOpen()).toBe(true);
+  });
+
+  describe('releaseOrphanedOwnership', () => {
+    let store: ObjectStore;
+
+    beforeEach(() => {
+      store = ObjectStore.instance;
+    });
+
+    afterEach(() => {
+      store.getObjects().forEach((obj) => store.delete(obj, false));
+      store.clearDeleteHistory();
+      vi.unstubAllGlobals();
+    });
+
+    it('確認後、オフラインオーナーが持つ所有を解放する', () => {
+      const card = Card.create('カード', 'front.png', 'back.png');
+      card.owner = 'ghost-user';
+      vi.stubGlobal(
+        'confirm',
+        vi.fn(() => true)
+      );
+
+      (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
+
+      expect(card.owner).toBe('');
+    });
+
+    it('確認をキャンセルした場合は解放しない', () => {
+      const card = Card.create('カード', 'front.png', 'back.png');
+      card.owner = 'ghost-user';
+      vi.stubGlobal(
+        'confirm',
+        vi.fn(() => false)
+      );
+
+      (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
+
+      expect(card.owner).toBe('ghost-user');
+    });
   });
 });

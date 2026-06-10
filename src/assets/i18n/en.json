@@ -1127,6 +1127,8 @@
       "npcBar": "NPC bar",
       "darknessOn": "Darkness: on (click to turn off)",
       "darknessOff": "Darkness: off (click to turn on)",
+      "releaseOwnership": "Release offline ownership (for rejoining players)",
+      "releaseOwnershipConfirm": "Release ownership held by {{count}} offline owner(s)? (anyone can re-claim afterwards)",
       "zipLoad": "Load ZIP",
       "save": "Save"
     },

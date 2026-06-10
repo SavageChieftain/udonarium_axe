@@ -15,6 +15,7 @@ import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
@@ -95,6 +96,13 @@ export class GmToolbarComponent {
     table.darknessEnabled = !table.darknessEnabled;
     table.update();
     this.objectChange.notifyChanged(table.identifier);
+  }
+
+  protected releaseOrphanedOwnership(): void {
+    const orphaned = findOrphanedOwnership(this.objectStore.getObjects());
+    if (orphaned.length === 0) return;
+    if (!confirm(this.t('app.fab.releaseOwnershipConfirm', { count: orphaned.length }))) return;
+    for (const object of orphaned) object.owner = '';
   }
 
   protected togglePersona(): void {
