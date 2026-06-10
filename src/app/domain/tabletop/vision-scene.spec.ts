@@ -17,6 +17,7 @@ import {
   type SceneViewer,
   type SceneVisionSource,
   type ShadowCaster,
+  viewerOwns,
   type VisionScene,
   type WallFace,
   withinCone,
@@ -181,6 +182,24 @@ describe('vision-scene', () => {
     });
   });
 
+  describe('viewerOwns', () => {
+    it('通常の viewer は自分の userId のみ所有とみなす', () => {
+      expect(viewerOwns(PLAYER, 'p1')).toBe(true);
+      expect(viewerOwns(PLAYER, 'p2')).toBe(false);
+    });
+
+    it('visionOwnerIds 指定時はその集合を所有とみなす（見学の視界合算）', () => {
+      const spectator: SceneViewer = { userId: 'guest', isGameMaster: false, visionOwnerIds: ['p1', 'p2'] };
+      expect(viewerOwns(spectator, 'p1')).toBe(true);
+      expect(viewerOwns(spectator, 'p2')).toBe(true);
+      expect(viewerOwns(spectator, 'p3')).toBe(false);
+    });
+
+    it('空の owner は所有とみなさない', () => {
+      expect(viewerOwns(PLAYER, '')).toBe(false);
+    });
+  });
+
   describe('isPointVisible', () => {
     it('GM は常に可視', () => {
       expect(isPointVisible(scene(), 500, 500, GM)).toBe(true);
@@ -259,6 +278,35 @@ describe('vision-scene', () => {
         visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'other' })],
       });
       expect(isPointVisible(s, 820, 800, PLAYER)).toBe(false);
+    });
+
+    it('見学(visionOwnerIds)は対象プレイヤーの暗視源を引き継いで暗所が見える', () => {
+      const s = scene({
+        visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'other' })],
+      });
+      const spectator: SceneViewer = { userId: 'guest', isGameMaster: false, visionOwnerIds: ['other'] };
+      expect(isPointVisible(s, 820, 800, spectator)).toBe(true);
+    });
+
+    it('合算対象のいない見学は暗所が見えない', () => {
+      const s = scene({
+        visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'p1' })],
+      });
+      const spectator: SceneViewer = { userId: 'guest', isGameMaster: false, visionOwnerIds: [] };
+      expect(isPointVisible(s, 820, 800, spectator)).toBe(false);
+    });
+
+    it('見学は複数プレイヤーの視界を合算する', () => {
+      const s = scene({
+        visionSources: [
+          source({ x: 100, y: 100, type: VisionType.DARKVISION, rangePx: 100, owner: 'p1' }),
+          source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 100, owner: 'p2' }),
+        ],
+      });
+      const spectator: SceneViewer = { userId: 'guest', isGameMaster: false, visionOwnerIds: ['p1', 'p2'] };
+      expect(isPointVisible(s, 150, 100, spectator)).toBe(true);
+      expect(isPointVisible(s, 820, 800, spectator)).toBe(true);
+      expect(isPointVisible(s, 450, 450, spectator)).toBe(false);
     });
 
     it('壁が視界源と対象の間にあると遮蔽される', () => {

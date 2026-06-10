@@ -23,6 +23,7 @@ import {
   type SceneViewer,
   type SceneVisionSource,
   type ShadowCaster,
+  viewerOwns,
   type VisionScene,
   type WallFace,
   type WallLight,
@@ -68,11 +69,27 @@ export class VisionService {
 
   readonly viewer = computed<SceneViewer>(() => {
     this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
+    this.objectChange.collectionOf('PeerCursor')();
     const preview = this.previewAsUserId();
-    if (preview) return { userId: preview, isGameMaster: false };
+    if (preview) {
+      const cursor = PeerCursor.findByUserId(preview);
+      return cursor?.isGuest
+        ? { userId: preview, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() }
+        : { userId: preview, isGameMaster: false };
+    }
     const my = PeerCursor.myCursor;
+    if (my?.isGuest) {
+      return { userId: my.userId, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() };
+    }
     return { userId: my?.userId ?? '', isGameMaster: my?.isGameMaster ?? false };
   });
+
+  private playerVisionOwnerIds(): string[] {
+    return this.objectStore
+      .getObjects<PeerCursor>(PeerCursor)
+      .filter((cursor) => cursor.isPlayer && cursor.userId.length > 0)
+      .map((cursor) => cursor.userId);
+  }
 
   private currentTable(): GameTable | null {
     this.objectChange.versionOf(this.tableSelecter.identifier)();
@@ -169,7 +186,7 @@ export class VisionService {
     if (surfaceOf(character) !== 'floor') return true;
     const viewer = this.viewer();
     if (viewer.isGameMaster) return true;
-    if (character.owner && character.owner === viewer.userId) return true;
+    if (viewerOwns(viewer, character.owner)) return true;
     const half = (scene.gridSize * (character.size || 1)) / 2;
     return isPointVisible(scene, character.location.x + half, character.location.y + half, viewer);
   }

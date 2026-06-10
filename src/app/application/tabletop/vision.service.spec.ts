@@ -18,6 +18,14 @@ function makeMyCursor(userId: string, role: PeerRole): void {
   PeerCursor.myCursor = cursor;
 }
 
+function addPeer(userId: string, role: PeerRole): PeerCursor {
+  const cursor = new PeerCursor();
+  cursor.userId = userId;
+  cursor.role = role;
+  cursor.initialize();
+  return cursor;
+}
+
 function makeDarkTable(): GameTable {
   const table = new GameTable();
   table.width = 20;
@@ -212,5 +220,35 @@ describe('VisionService', () => {
     service.previewAsUserId.set('p1');
     expect(service.viewer().isGameMaster).toBe(false);
     expect(service.viewer().userId).toBe('p1');
+  });
+
+  it('見学(Guest)の viewer は接続中プレイヤーの userId を視界合算対象に持つ', () => {
+    addPeer('player-1', PeerRole.Player);
+    addPeer('player-2', PeerRole.Player);
+    addPeer('gm-1', PeerRole.GameMaster);
+    makeMyCursor('guest-1', PeerRole.Guest);
+
+    const viewer = service.viewer();
+    expect(viewer.isGameMaster).toBe(false);
+    expect(viewer.visionOwnerIds).toEqual(expect.arrayContaining(['player-1', 'player-2']));
+    expect(viewer.visionOwnerIds).not.toContain('gm-1');
+    expect(viewer.visionOwnerIds).not.toContain('guest-1');
+  });
+
+  it('プレイヤーの viewer は visionOwnerIds を持たない（自分の視界のみ）', () => {
+    makeMyCursor('player-x', PeerRole.Player);
+    expect(service.viewer().visionOwnerIds).toBeUndefined();
+  });
+
+  it('GM が見学をペルソナ表示すると見学の視界合算になる', () => {
+    addPeer('guest-2', PeerRole.Guest);
+    addPeer('player-3', PeerRole.Player);
+    makeMyCursor('gm-x', PeerRole.GameMaster);
+    service.previewAsUserId.set('guest-2');
+
+    const viewer = service.viewer();
+    expect(viewer.userId).toBe('guest-2');
+    expect(viewer.isGameMaster).toBe(false);
+    expect(viewer.visionOwnerIds).toContain('player-3');
   });
 });

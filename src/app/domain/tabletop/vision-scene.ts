@@ -38,6 +38,7 @@ export interface SceneVisionSource {
 export interface SceneViewer {
   userId: string;
   isGameMaster: boolean;
+  visionOwnerIds?: readonly string[];
 }
 
 export interface ShadowCaster {
@@ -293,8 +294,13 @@ export function isLit(scene: VisionScene, x: number, y: number, ignoreShadowCast
   return lightLevelAt(scene, x, y, ignoreShadowCasters, pz) > 0;
 }
 
-function ownedSources(scene: VisionScene, userId: string): SceneVisionSource[] {
-  return scene.visionSources.filter((source) => source.owner === userId && source.type !== VisionType.BLIND);
+export function viewerOwns(viewer: SceneViewer, ownerId: string): boolean {
+  if (!ownerId) return false;
+  return viewer.visionOwnerIds ? viewer.visionOwnerIds.includes(ownerId) : ownerId === viewer.userId;
+}
+
+function ownedSources(scene: VisionScene, viewer: SceneViewer): SceneVisionSource[] {
+  return scene.visionSources.filter((source) => viewerOwns(viewer, source.owner) && source.type !== VisionType.BLIND);
 }
 
 export function computeWallSilhouettes(scene: VisionScene, face: WallFace, casterHeightPx: number): WallSilhouette[] {
@@ -377,7 +383,7 @@ export function darknessAlphaFor(scene: VisionScene, viewer: SceneViewer): numbe
 export function isPointVisible(scene: VisionScene, x: number, y: number, viewer: SceneViewer): boolean {
   if (viewer.isGameMaster) return true;
 
-  const sources = ownedSources(scene, viewer.userId);
+  const sources = ownedSources(scene, viewer);
   const lit = isLit(scene, x, y, true);
   if (sources.length === 0) return lit;
 
@@ -569,7 +575,7 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
   }
 
   if (!isGm) {
-    for (const source of ownedSources(scene, viewer.userId)) {
+    for (const source of ownedSources(scene, viewer)) {
       if (!seesInDark(source.type) || source.rangePx <= 0) continue;
       const clipPolygon =
         source.type === VisionType.TRUESIGHT
