@@ -1,3 +1,38 @@
+## [1.13.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.12.1...v1.13.0) (2026-06-10)
+
+### ✨ Features
+
+* **chat:** add per-tab view/speak permissions by role ([2e78094](https://github.com/SavageChieftain/udonarium_axe/commit/2e78094cf44e0efe6902905a84200cba6e48e04d))
+* **chat:** let any participant save chat logs regardless of role ([ddcb618](https://github.com/SavageChieftain/udonarium_axe/commit/ddcb61809700fbdbb4a8f29701054bb309c09d4a))
+* **disclosure:** let players claim ownership of unowned objects ([a9ee2bc](https://github.com/SavageChieftain/udonarium_axe/commit/a9ee2bc18daa18c4ad61e2edac85f3f2be486372))
+* **gm-tools:** add a GM-only object list panel ([0bb9b65](https://github.com/SavageChieftain/udonarium_axe/commit/0bb9b6549fe64bf498a90430cb44004ff043915f))
+* **gm-tools:** add GM toolbar with NPC bar and quick chat-palette switching ([d878620](https://github.com/SavageChieftain/udonarium_axe/commit/d8786208d64aba87c8a0b9495ef8a0042ec15a61))
+* **gm-tools:** add persona preview to review the table as a player ([235cb41](https://github.com/SavageChieftain/udonarium_axe/commit/235cb41fe552bb3e65adee2aa58362f86b65e273))
+* **gm-tools:** let the GM release ownership held by offline players ([be1bc52](https://github.com/SavageChieftain/udonarium_axe/commit/be1bc52b09a1634d9cdf395e55e2702604b7447d))
+* **jukebox:** play, layer and stop sound effects over the BGM ([96657bc](https://github.com/SavageChieftain/udonarium_axe/commit/96657bcd96404dd6ed12629bf78536aeb04989c2))
+* **peer:** add participant roles (GM / player / spectator) ([f370381](https://github.com/SavageChieftain/udonarium_axe/commit/f370381577334917587d93fca7079f675dc9eef2))
+* **peer:** forbid players and guests from self-assigning the GM role ([0275646](https://github.com/SavageChieftain/udonarium_axe/commit/027564655162991232a9b96b2bcb6ddb7ffab863))
+* **peer:** let anyone reclaim GM when a room has no game master ([6f18b6d](https://github.com/SavageChieftain/udonarium_axe/commit/6f18b6d75283f8db2452a0d90485c51e0589e8d2))
+* **tabletop:** add 3D vision, lighting and darkness system ([66d382e](https://github.com/SavageChieftain/udonarium_axe/commit/66d382ed3ea81fa20b69ae98fb2864df3203268d))
+* **tabletop:** add per-object disclosure and ownership ([3fa606e](https://github.com/SavageChieftain/udonarium_axe/commit/3fa606e359719aa2d39bcbe39b76a3a2a47a5da1))
+* **tabletop:** release object ownership when loading from a save ([5e4368e](https://github.com/SavageChieftain/udonarium_axe/commit/5e4368e8be023c76609ec4ec2b95c25f0a9f5581))
+* **tabletop:** show spectators the union of player vision in darkness ([9206ac3](https://github.com/SavageChieftain/udonarium_axe/commit/9206ac3bd4cc1dfcd5d37ccc6f88a2d22ee2cb7f))
+
+### 🐛 Bug Fixes
+
+* **controller:** guard the chat-target check against a null self cursor ([4b5c0ed](https://github.com/SavageChieftain/udonarium_axe/commit/4b5c0ed48225d3f7433048ddfff1f331ae8b078e))
+* **media:** play SE-tagged cut-in audio at SE volume ([6274972](https://github.com/SavageChieftain/udonarium_axe/commit/62749720333c37246b387f12717ed1488200f132))
+* **peer:** drop raw UUID from peer connection messages ([61e40de](https://github.com/SavageChieftain/udonarium_axe/commit/61e40ded251cdc45528c70f0ceebc661087d563b))
+* **peer:** show the short id for unnamed peers in the peer menu ([3e04972](https://github.com/SavageChieftain/udonarium_axe/commit/3e049722867829679f142f0aa151c8a7ebee65b6))
+* **tabletop:** keep room objects loadable after moving to the floor ([d8e01c0](https://github.com/SavageChieftain/udonarium_axe/commit/d8e01c06c682b33d171724b0faedc9bb9dd762ee))
+
+### 📝 Documentation
+
+* add user-facing v1.12.1 release notes ([32bccab](https://github.com/SavageChieftain/udonarium_axe/commit/32bccab8c9ed7abad49986b125039d0aa8955bb9))
+* **website:** document darkness, vision and lighting ([49ca9c0](https://github.com/SavageChieftain/udonarium_axe/commit/49ca9c0491e03cb82ccc364a7370d55318e19cdb))
+* **website:** document role, vision, jukebox SE and ownership updates ([4f1aa9a](https://github.com/SavageChieftain/udonarium_axe/commit/4f1aa9aa9ee0071ba232f7738ed8187008249717))
+* **website:** document roles, disclosure, chat permissions and object list ([216da3f](https://github.com/SavageChieftain/udonarium_axe/commit/216da3f05fba8656920c9ca10887f0734bac70af))
+
 ## [1.12.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.12.0...v1.12.1) (2026-06-07)
 
 ### 🐛 Bug Fixes
