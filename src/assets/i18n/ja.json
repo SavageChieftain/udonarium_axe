@@ -898,6 +898,7 @@
         "latency": "往復：",
         "latencyUnit": "秒",
         "roleLabel": "役割",
+        "gmAssignOnlyByGm": "GM は GM のみが割り当てられます",
         "showLobby": "ロビー（ルーム一覧）を表示"
       },
       "lobby": {

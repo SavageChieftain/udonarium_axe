@@ -63,7 +63,12 @@ export class PeerMenuComponent {
     return peerId.slice(0, 6);
   }
 
+  isRoleSelfAssignable(role: PeerRole): boolean {
+    return role !== PeerRole.GameMaster || this.isMyselfGameMaster;
+  }
+
   setMyRole(role: PeerRole) {
+    if (!this.isRoleSelfAssignable(role)) return;
     this.myPeer.role = role;
     this.myPeer.update();
     const peer = Network.peerContext;

@@ -40,10 +40,12 @@
         <span>{{ 'feature.lobby.peerMenu.roleLabel' | transloco }}</span>
         @for (role of assignableRoles; track role) {
           <button
-            class="rounded-sm px-1.5 py-0.5 text-[0.7rem]"
+            class="rounded-sm px-1.5 py-0.5 text-[0.7rem] disabled:cursor-not-allowed disabled:opacity-40"
             [class]="
               myPeer.role === role ? roleBadgeClass(role) : 'border border-(--ui-panel-border) text-(--ui-text-muted)'
             "
+            [disabled]="!isRoleSelfAssignable(role)"
+            [title]="isRoleSelfAssignable(role) ? '' : ('feature.lobby.peerMenu.gmAssignOnlyByGm' | transloco)"
             (click)="setMyRole(role)"
           >
             {{ roleShortLabelKey(role) | transloco }}

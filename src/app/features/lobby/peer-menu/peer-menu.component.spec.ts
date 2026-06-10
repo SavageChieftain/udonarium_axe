@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -59,6 +60,34 @@ describe('PeerMenuComponent', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).not.toContain('プライベート接続');
+  });
+
+  describe('自己ロール昇格の制限', () => {
+    beforeEach(() => {
+      PeerCursor.createMyCursor();
+    });
+
+    it('非GM は GM を自己割り当てできない', () => {
+      PeerCursor.myCursor.role = PeerRole.Player;
+      expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(false);
+    });
+
+    it('非GM でも Player / Guest は自己割り当てできる', () => {
+      PeerCursor.myCursor.role = PeerRole.Guest;
+      expect(component.isRoleSelfAssignable(PeerRole.Player)).toBe(true);
+      expect(component.isRoleSelfAssignable(PeerRole.Guest)).toBe(true);
+    });
+
+    it('GM は GM を保持できる', () => {
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(true);
+    });
+
+    it('setMyRole(GameMaster) を非GM が呼んでも昇格しない', () => {
+      PeerCursor.myCursor.role = PeerRole.Player;
+      component.setMyRole(PeerRole.GameMaster);
+      expect(PeerCursor.myCursor.role).toBe(PeerRole.Player);
+    });
   });
 
   describe('findPeerTimeReceive', () => {

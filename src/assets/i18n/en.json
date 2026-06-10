@@ -898,6 +898,7 @@
         "latency": "RTT:",
         "latencyUnit": "s",
         "roleLabel": "Role",
+        "gmAssignOnlyByGm": "Only a GM can assign the GM role",
         "showLobby": "Show lobby (room list)"
       },
       "lobby": {
