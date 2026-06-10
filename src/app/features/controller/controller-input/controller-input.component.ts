@@ -221,20 +221,13 @@ export class ControllerInputComponent {
   }
 
   private allowsChat(gameCharacter: GameCharacter): boolean {
-    switch (gameCharacter.location.name) {
-      case 'table':
-        return !gameCharacter.hideInventory;
-      case this.myPeer.peerId:
-        return true;
-      case 'graveyard':
-        return false;
-      default:
-        for (const conn of Network.peerContexts) {
-          if (conn.isOpen && gameCharacter.location.name === conn.peerId) {
-            return false;
-          }
-        }
-        return true;
+    const locationName = gameCharacter.location.name;
+    if (locationName === 'table') return !gameCharacter.hideInventory;
+    if (locationName === this.myPeer?.peerId) return true;
+    if (locationName === 'graveyard') return false;
+    for (const conn of Network.peerContexts) {
+      if (conn.isOpen && locationName === conn.peerId) return false;
     }
+    return true;
   }
 }
