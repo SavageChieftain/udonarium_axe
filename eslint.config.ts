@@ -116,6 +116,12 @@ export default defineConfig([
     files: ['src/app/composition/**/*.ts', 'src/app/app.component.ts', 'src/main.ts'],
     rules: { 'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT] }] },
   },
+  /* spec / テスト用ユーティリティ内のテストホストコンポーネントは CD を明示制御するため
+   *  OnPush を強制しない（angular-eslint v22 で追加されたルール）。 */
+  {
+    files: ['src/app/**/*.spec.ts', 'src/app/testing/**/*.ts'],
+    rules: { '@angular-eslint/prefer-on-push-component-change-detection': 'off' },
+  },
   {
     files: ['src/app/**/*.html'],
     extends: [...angular.configs.templateRecommended],
