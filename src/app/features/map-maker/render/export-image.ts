@@ -1,0 +1,109 @@
+import { StampDef } from '@axe/features/map-maker/assets/stamp-types';
+import { MapScene, sceneHeightPx, sceneWidthPx, StampItem, StampLayer } from '@axe/features/map-maker/model/scene';
+import { isTextureId } from '@axe/features/map-maker/model/textures';
+import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
+import { getStampImage, warmStampImages } from '@axe/features/map-maker/render/stamp-image';
+import { createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+
+const MAX_SIDE = 8192;
+
+interface ExportOptions {
+  scale?: number;
+  drawGrid?: boolean;
+  mimeType?: string;
+  quality?: number;
+}
+
+function collectStampItems(scene: MapScene): StampItem[] {
+  const items: StampItem[] = [];
+  for (const layer of scene.layers) {
+    if (layer.kind === 'stamp') items.push(...(layer as StampLayer).items);
+  }
+  return items;
+}
+
+function clampScale(scene: MapScene, requested: number): number {
+  const width = sceneWidthPx(scene);
+  const height = sceneHeightPx(scene);
+  const longest = Math.max(width, height) || 1;
+  const scale = requested > 0 ? requested : 1;
+  if (longest * scale <= MAX_SIDE) return scale;
+  return MAX_SIDE / longest;
+}
+
+interface OffscreenTarget {
+  ctx: CanvasRenderingContext2D;
+  toBlob(mimeType: string, quality: number): Promise<Blob | null>;
+}
+
+function createTarget(width: number, height: number): OffscreenTarget | null {
+  if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    return {
+      ctx: ctx as CanvasRenderingContext2D,
+      toBlob: (mimeType, quality) =>
+        new Promise<Blob | null>((resolve) => {
+          if (typeof canvas.toBlob !== 'function') {
+            resolve(null);
+            return;
+          }
+          canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+        }),
+    };
+  }
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
+    if (!ctx) return null;
+    return {
+      ctx,
+      toBlob: (mimeType, quality) => {
+        if (typeof canvas.convertToBlob !== 'function') return Promise.resolve(null);
+        return canvas.convertToBlob({ type: mimeType, quality }).catch(() => null);
+      },
+    };
+  }
+  return null;
+}
+
+export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts: ExportOptions = {}): Promise<Blob> {
+  const scale = clampScale(scene, opts.scale ?? 1);
+  const outW = Math.max(1, Math.round(sceneWidthPx(scene) * scale));
+  const outH = Math.max(1, Math.round(sceneHeightPx(scene) * scale));
+
+  const target = createTarget(outW, outH);
+  if (!target) throw new Error('2D canvas context unavailable');
+
+  await warmStampImages(
+    collectStampItems(scene).map((item) => ({ stampId: item.stampId, size: item.size, color: item.color })),
+    defs
+  );
+
+  const defById = new Map(defs.map((def) => [def.id, def]));
+  const helpers: RenderHelpers = {
+    texturePattern: (fill, cellPx) =>
+      isTextureId(fill.textureId) ? createTexturePattern(target.ctx, fill.textureId, cellPx) : null,
+    stampImage: (item) => {
+      const def = defById.get(item.stampId);
+      return def ? getStampImage(def, item.size, item.color) : null;
+    },
+  };
+
+  target.ctx.save();
+  target.ctx.scale(scale, scale);
+  renderScene(target.ctx, scene, helpers, { drawGrid: opts.drawGrid });
+  target.ctx.restore();
+
+  const mimeType = opts.mimeType ?? 'image/webp';
+  const quality = opts.quality ?? 0.92;
+  const preferred = await target.toBlob(mimeType, quality);
+  if (preferred && (preferred.type === mimeType || mimeType !== 'image/webp')) return preferred;
+  const png = await target.toBlob('image/png', quality);
+  if (png) return png;
+  if (preferred) return preferred;
+  throw new Error('canvas toBlob produced no output');
+}
