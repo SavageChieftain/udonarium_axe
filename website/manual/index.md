@@ -57,6 +57,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 **メディア**
 
 - [画像](/manual/images) / [ジュークボックス](/manual/jukebox) / [カットイン](/manual/cut-in)
+- [ビジュアルノベルモード](/manual/visual-novel) — 立ち絵とメッセージウィンドウでチャットを再生
 
 **管理・全体**
 

@@ -70,6 +70,7 @@ export default defineConfig({
             { text: '画像', link: '/manual/images' },
             { text: 'ジュークボックス', link: '/manual/jukebox' },
             { text: 'カットイン', link: '/manual/cut-in' },
+            { text: 'ビジュアルノベルモード', link: '/manual/visual-novel' },
           ],
         },
         {
