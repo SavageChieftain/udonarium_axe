@@ -93,6 +93,11 @@ jobs:
           aws s3 cp dist/assets/config.json "s3://$BUCKET/assets/config.json" \
             --cache-control "public, max-age=0, must-revalidate" \
             --content-type "application/json"
+          # 翻訳ファイルもハッシュが付かず同名で差し替わるため revalidate
+          aws s3 cp dist/assets/i18n/ "s3://$BUCKET/assets/i18n/" \
+            --recursive \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --content-type "application/json"
 
       - name: Invalidate CloudFront
         env:
