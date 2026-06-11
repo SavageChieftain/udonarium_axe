@@ -13,6 +13,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { canRoleEdit } from '@axe/domain/peer/peer-role';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -63,7 +64,7 @@ export class ChatTabSettingComponent {
   }
   setPerm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak', value: boolean): void {
     const tab = this.selectedTab();
-    if (!this.isEditable || !tab) return;
+    if (!this.canEditPermission || !tab) return;
     tab[key] = value;
     // 発言できるなら必ず閲覧もできる（発言のみ可・閲覧不可の状態は存在しない）
     if (key === 'plCanSpeak' && value) tab.plCanView = true;
@@ -84,6 +85,10 @@ export class ChatTabSettingComponent {
   }
   get isEditable(): boolean {
     return !this.isEmpty && !this.isDeleted;
+  }
+  get canEditPermission(): boolean {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.isEditable && canRoleEdit(PeerCursor.myRole);
   }
 
   readonly isSaving = signal(false);

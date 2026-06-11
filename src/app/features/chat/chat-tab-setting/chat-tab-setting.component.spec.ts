@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
@@ -89,6 +90,56 @@ describe('ChatTabSettingComponent', () => {
 
       expect(spy).toHaveBeenCalledOnce();
       expect(spy.mock.calls[0][1]).toEqual(component.chatTabs);
+    });
+  });
+
+  describe('閲覧・発言の権限は見学が編集できない', () => {
+    let store: ObjectStore;
+
+    beforeEach(() => {
+      store = ObjectStore.instance;
+    });
+
+    afterEach(() => {
+      store.getObjects().forEach((obj) => store.delete(obj, false));
+      store.clearDeleteHistory();
+      (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
+      PeerCursor.myCursor = null!;
+    });
+
+    it('編集可能なタブでも見学では canEditPermission が false になる', () => {
+      PeerCursor.createMyCursor();
+      PeerCursor.myCursor.role = PeerRole.Guest;
+      const tab = ChatTabList.instance.addChatTab('test');
+      component.selectedTab.set(tab);
+
+      expect(component.canEditPermission).toBe(false);
+    });
+
+    it('見学が setPerm を呼んでも権限フラグが変更されない', () => {
+      PeerCursor.createMyCursor();
+      PeerCursor.myCursor.role = PeerRole.Guest;
+      const tab = ChatTabList.instance.addChatTab('test');
+      tab.guestCanSpeak = false;
+      component.selectedTab.set(tab);
+
+      component.setPerm('guestCanSpeak', true);
+
+      expect(tab.guestCanSpeak).toBe(false);
+    });
+
+    it('プレイヤーは setPerm で権限フラグを変更できる', () => {
+      PeerCursor.createMyCursor();
+      PeerCursor.myCursor.role = PeerRole.Player;
+      const tab = ChatTabList.instance.addChatTab('test');
+      tab.guestCanSpeak = false;
+      component.selectedTab.set(tab);
+
+      expect(component.canEditPermission).toBe(true);
+
+      component.setPerm('guestCanSpeak', true);
+
+      expect(tab.guestCanSpeak).toBe(true);
     });
   });
 });
