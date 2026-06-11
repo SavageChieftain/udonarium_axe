@@ -1,8 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
@@ -98,6 +101,57 @@ describe('GmToolbarComponent', () => {
       (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
 
       expect(card.owner).toBe('ghost-user');
+    });
+  });
+
+  describe('ロール切り替え時のツールバー位置', () => {
+    let objectChange: ObjectChangeService;
+    let store: ObjectStore;
+
+    beforeEach(() => {
+      store = ObjectStore.instance;
+      objectChange = TestBed.inject(ObjectChangeService);
+      PeerCursor.createMyCursor();
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+    });
+
+    afterEach(() => {
+      store.getObjects().forEach((obj) => store.delete(obj, false));
+      store.clearDeleteHistory();
+      PeerCursor.myCursor = null!;
+    });
+
+    function bar(): HTMLElement | null {
+      return fixture.nativeElement.querySelector('.npc-bar-dropzone');
+    }
+
+    function setRole(role: PeerRole): void {
+      PeerCursor.myCursor.role = role;
+      objectChange.notifyChanged(PeerCursor.myCursor.identifier);
+    }
+
+    it('GM→PL→GM の切り替え後もドラッグした位置を保持する', async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const el = bar();
+      expect(el).not.toBeNull();
+
+      el!.style.left = '480px';
+      el!.style.top = '320px';
+
+      setRole(PeerRole.Player);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(bar()).toBeNull();
+
+      setRole(PeerRole.GameMaster);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const restored = bar();
+      expect(restored).not.toBeNull();
+      expect(restored!.style.left).toBe('480px');
+      expect(restored!.style.top).toBe('320px');
     });
   });
 });

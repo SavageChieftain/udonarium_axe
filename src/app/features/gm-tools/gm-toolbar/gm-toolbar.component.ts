@@ -40,7 +40,8 @@ export class GmToolbarComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
-  private positioned = false;
+  private savedLeft: string | null = null;
+  private savedTop: string | null = null;
 
   protected readonly personaOpen = signal(false);
 
@@ -67,13 +68,20 @@ export class GmToolbarComponent {
   });
 
   constructor() {
-    effect(() => {
+    effect((onCleanup) => {
       const el = this.barRef()?.nativeElement;
-      if (el && !this.positioned) {
-        this.positioned = true;
+      if (!el) return;
+      if (this.savedLeft !== null && this.savedTop !== null) {
+        el.style.left = this.savedLeft;
+        el.style.top = this.savedTop;
+      } else {
         el.style.left = `${Math.max(8, (window.innerWidth - el.offsetWidth) / 2)}px`;
         el.style.top = '8px';
       }
+      onCleanup(() => {
+        this.savedLeft = el.style.left;
+        this.savedTop = el.style.top;
+      });
     });
   }
 
