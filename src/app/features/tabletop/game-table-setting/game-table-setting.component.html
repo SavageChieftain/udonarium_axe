@@ -87,7 +87,7 @@
           <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
             'feature.tabletop.tableSetting.imageTable' | transloco
           }}</label>
-          <div class="flex">
+          <div class="flex items-start gap-2">
             @if (tableBackgroundImage.url) {
               <img
                 class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent block h-16.5 w-22 cursor-pointer border border-solid object-contain transition-colors"
@@ -104,6 +104,15 @@
                 {{ 'feature.tabletop.tableSetting.addImageTable' | transloco }}
               </button>
             }
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:border-ui-accent hover:bg-ui-input hover:text-ui-accent m-0 flex h-16.5 w-22 cursor-pointer flex-col items-center justify-center gap-1 border border-solid p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+              (click)="openBgImageGridAdjust()"
+              [attr.disabled]="!isEditable ? '' : null"
+            >
+              <span class="material-icons text-[20px] leading-none">grid_on</span>
+              {{ 'feature.tabletop.tableSetting.alignToGrid' | transloco }}
+            </button>
           </div>
 
           <label class="text-ui-muted text-[11px] whitespace-nowrap">{{

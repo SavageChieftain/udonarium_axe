@@ -1,0 +1,166 @@
+<div class="bg-ui-panel box-border flex w-2xl max-w-full flex-col gap-3 p-3">
+  @if (loadState() === 'loading') {
+    <div class="text-ui-muted flex h-40 items-center justify-center text-[13px]">
+      {{ 'feature.tabletop.tableSetting.gridAdjuster.loading' | transloco }}
+    </div>
+  } @else if (loadState() === 'error') {
+    <div class="flex h-40 items-center justify-center text-[13px] text-red-400">
+      {{ 'feature.tabletop.tableSetting.gridAdjuster.loadError' | transloco }}
+    </div>
+  } @else {
+    <div class="flex flex-col gap-3 md:flex-row">
+      <div
+        #stage
+        tabindex="0"
+        class="border-ui-border-panel bg-ui-input focus:border-ui-accent relative flex shrink-0 touch-none items-center justify-center overflow-hidden border border-solid outline-none"
+        [style.width.px]="displayWidth()"
+        [style.height.px]="displayHeight()"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+        (wheel)="onWheel($event)"
+        (keydown)="onKeyDown($event)"
+      >
+        <img
+          class="pointer-events-none absolute top-0 left-0 select-none"
+          [src]="imageUrl()"
+          [style.width.px]="displayWidth()"
+          [style.height.px]="displayHeight()"
+          alt=""
+          draggable="false"
+        />
+        <div
+          class="pointer-events-none absolute top-0 left-0"
+          [style.width.px]="displayWidth()"
+          [style.height.px]="displayHeight()"
+          [style.background-image]="gridBackgroundImage()"
+          [style.background-size]="gridBackgroundSize()"
+          [style.background-position]="gridBackgroundPosition()"
+        ></div>
+        <div
+          class="border-ui-accent pointer-events-none absolute border-2 border-solid bg-(--ui-accent)/10"
+          [style.left]="regionStyle().left"
+          [style.top]="regionStyle().top"
+          [style.width]="regionStyle().width"
+          [style.height]="regionStyle().height"
+        ></div>
+      </div>
+
+      <div class="flex min-w-0 flex-1 flex-col gap-3">
+        <div class="grid grid-cols-[5rem_1fr_4rem] items-center gap-x-3 gap-y-2.5">
+          <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.cellSize' | transloco
+          }}</label>
+          <input
+            type="range"
+            class="min-w-0 [accent-color:var(--ui-accent)]"
+            [min]="4"
+            [max]="maxCellPx()"
+            step="1"
+            [ngModel]="cellPx()"
+            (ngModelChange)="setCellPx($event)"
+            name="cellPx"
+          />
+          <input
+            type="number"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full min-w-0 border border-solid px-2 py-1 text-[13px]"
+            [min]="4"
+            [max]="maxCellPx()"
+            step="1"
+            [ngModel]="cellPx()"
+            (ngModelChange)="setCellPx($event)"
+            name="cellPxNum"
+          />
+
+          <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.offsetX' | transloco
+          }}</label>
+          <input
+            type="range"
+            class="min-w-0 [accent-color:var(--ui-accent)]"
+            [min]="-cellPx()"
+            [max]="imageWidth()"
+            step="1"
+            [ngModel]="offsetX()"
+            (ngModelChange)="setOffsetX($event)"
+            name="offsetX"
+          />
+          <input
+            type="number"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full min-w-0 border border-solid px-2 py-1 text-[13px]"
+            step="1"
+            [ngModel]="offsetX()"
+            (ngModelChange)="setOffsetX($event)"
+            name="offsetXNum"
+          />
+
+          <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.offsetY' | transloco
+          }}</label>
+          <input
+            type="range"
+            class="min-w-0 [accent-color:var(--ui-accent)]"
+            [min]="-cellPx()"
+            [max]="imageHeight()"
+            step="1"
+            [ngModel]="offsetY()"
+            (ngModelChange)="setOffsetY($event)"
+            name="offsetY"
+          />
+          <input
+            type="number"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full min-w-0 border border-solid px-2 py-1 text-[13px]"
+            step="1"
+            [ngModel]="offsetY()"
+            (ngModelChange)="setOffsetY($event)"
+            name="offsetYNum"
+          />
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            class="rounded-ui-sm border-ui-border-panel border border-solid px-2.5 py-1.25 text-[12px]"
+            type="button"
+            (click)="reset()"
+          >
+            {{ 'feature.tabletop.tableSetting.gridAdjuster.reset' | transloco }}
+          </button>
+          <button
+            class="rounded-ui-sm border-ui-border-panel border border-solid px-2.5 py-1.25 text-[12px]"
+            type="button"
+            (click)="fit()"
+          >
+            {{ 'feature.tabletop.tableSetting.gridAdjuster.fit' | transloco }}
+          </button>
+        </div>
+
+        <div class="text-ui-muted flex flex-col gap-1 text-[12px]">
+          <span class="text-ui-text">{{
+            'feature.tabletop.tableSetting.gridAdjuster.size' | transloco: { cols: cols(), rows: rows() }
+          }}</span>
+          <span>{{ outputWidth() }} × {{ outputHeight() }} px</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="flex items-center justify-end gap-2">
+    @if (processing()) {
+      <span class="text-ui-muted mr-auto text-[12px]">{{
+        'feature.tabletop.tableSetting.gridAdjuster.processing' | transloco
+      }}</span>
+    }
+    <button class="px-2.5 py-1.25 text-[12px]" type="button" (click)="cancel()">
+      {{ 'feature.tabletop.tableSetting.gridAdjuster.cancel' | transloco }}
+    </button>
+    <button
+      class="border-ui-accent bg-ui-accent px-2.5 py-1.25 text-[12px] text-white disabled:cursor-not-allowed disabled:opacity-50"
+      type="button"
+      [disabled]="!canApply()"
+      (click)="apply()"
+    >
+      {{ 'feature.tabletop.tableSetting.gridAdjuster.apply' | transloco }}
+    </button>
+  </div>
+</div>

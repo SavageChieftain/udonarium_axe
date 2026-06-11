@@ -17,6 +17,10 @@ import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import {
+  MapImageGridAdjusterComponent,
+  MapImageGridAdjusterResult,
+} from '@axe/features/tabletop/map-image-grid-adjuster/map-image-grid-adjuster.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -435,6 +439,28 @@ export class GameTableSettingComponent {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
       if (!this.selectedTable || !value) return;
       this.selectedTable.imageIdentifier = value;
+    });
+  }
+
+  openBgImageGridAdjust() {
+    if (this.isDeleted) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).then((imageIdentifier) => {
+      if (!this.selectedTable || !imageIdentifier) return;
+      const gridSize = this.selectedTable.gridSize;
+      const gridColor = this.selectedTable.gridColor;
+      this.modalService
+        .open<MapImageGridAdjusterResult | null>(MapImageGridAdjusterComponent, {
+          imageIdentifier,
+          gridSize,
+          gridColor,
+        })
+        .then((res) => {
+          const table = this.selectedTable;
+          if (!table || !res) return;
+          table.imageIdentifier = res.imageIdentifier;
+          table.width = res.width;
+          table.height = res.height;
+        });
     });
   }
 
