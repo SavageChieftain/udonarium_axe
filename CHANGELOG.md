@@ -1,3 +1,21 @@
+## [1.14.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.13.0...v1.14.0) (2026-06-11)
+
+### ✨ Features
+
+* **chat:** restrict guest role from editing tab permissions ([0a86add](https://github.com/SavageChieftain/udonarium_axe/commit/0a86add58f2e3080f49229902761a37ca869297b))
+* **visual-novel:** add visual novel mode ([c5ca1fe](https://github.com/SavageChieftain/udonarium_axe/commit/c5ca1feb5a3abe19a532f2261e208da3826beac4))
+* **visual-novel:** route SE through jukebox and filter sound board to SE tag ([c94d741](https://github.com/SavageChieftain/udonarium_axe/commit/c94d7418ba47cb8ef0f42d20315b2feef44a6152))
+
+### 🐛 Bug Fixes
+
+* **gm-toolbar:** keep dragged position across role toggles ([3e92c2b](https://github.com/SavageChieftain/udonarium_axe/commit/3e92c2bc69d36960f8e1686306cc13ad02cda7f9))
+
+### 📝 Documentation
+
+* **website:** add user-facing v1.13.0 release notes ([b61d7b6](https://github.com/SavageChieftain/udonarium_axe/commit/b61d7b67be5f3b6dc33bfddbff3e7bbeab4ce03b))
+* **website:** document visual novel mode ([b2943c1](https://github.com/SavageChieftain/udonarium_axe/commit/b2943c1debd6a9faaa7a9096f7aff9446c2400b5))
+* **website:** note guests cannot edit chat tab permissions ([34c5ef7](https://github.com/SavageChieftain/udonarium_axe/commit/34c5ef707d67206029f0af6b877c5de7c30e7a97))
+
 ## [1.13.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.12.1...v1.13.0) (2026-06-10)
 
 ### ✨ Features
