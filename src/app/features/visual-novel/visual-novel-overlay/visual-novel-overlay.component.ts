@@ -26,7 +26,8 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { SoundEffect } from '@axe/domain/media/sound-effect';
+import { AudioTag } from '@axe/domain/media/audio-tag';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
@@ -116,6 +117,7 @@ export class VisualNovelOverlayComponent {
   readonly settings = inject(VisualNovelSettingsService);
 
   private readonly renderVersion = signal(0);
+  private readonly _seTick = signal(0);
   private readonly cursor = signal(-1);
   private readonly typedLength = signal(0);
   private typingTimer: ReturnType<typeof setInterval> | null = null;
@@ -583,11 +585,25 @@ export class VisualNovelOverlayComponent {
 
   readonly soundEffects = computed(() => {
     this.objectChange.fileVersion();
-    return this.audioStorage.audios.filter((audio) => !audio.isHidden);
+    this.objectChange.collectionOf('audio-tag')();
+    return this.audioStorage.audios.filter((audio) => !audio.isHidden && AudioTag.get(audio.identifier)?.tag === 'SE');
   });
 
+  private get jukebox(): Jukebox | null {
+    return this.objectStore.get<Jukebox>('Jukebox') ?? null;
+  }
+
   playSoundEffect(identifier: string): void {
-    SoundEffect.play(identifier);
+    this.jukebox?.play(identifier);
+  }
+
+  stopSoundEffect(identifier: string): void {
+    this.jukebox?.stopSE(identifier);
+  }
+
+  isSoundEffectPlaying(identifier: string): boolean {
+    this._seTick();
+    return this.jukebox?.isSePlaying(identifier) ?? false;
   }
 
   readonly attachedSe = signal<{ identifier: string; name: string } | null>(null);
@@ -686,6 +702,11 @@ export class VisualNovelOverlayComponent {
     const tabs = this.chatMessageService.chatTabs;
     this._chatTabIdentifier.set(tabs.length > 0 ? tabs[0].identifier : '');
     this._sendFrom.set(this.gameCharacters()[0]?.identifier ?? '');
+
+    const seTimer = setInterval(() => {
+      if (this.showSoundBoard()) this._seTick.update((v) => v + 1);
+    }, 500);
+    this.destroyRef.onDestroy(() => clearInterval(seTimer));
 
     this.objectChange.messageAdded$.subscribe(() => {
       this.renderVersion.update((version) => version + 1);
@@ -1011,7 +1032,7 @@ export class VisualNovelOverlayComponent {
         this.colorOf(sendFrom),
         [{ text: outText, object: null }]
       );
-      if (attachedSe) SoundEffect.play(attachedSe.identifier);
+      if (attachedSe) this.jukebox?.play(attachedSe.identifier);
     });
     this.attachedSe.set(null);
     this.text.set('');

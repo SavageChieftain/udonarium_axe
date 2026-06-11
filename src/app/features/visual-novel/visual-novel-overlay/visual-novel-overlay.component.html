@@ -768,14 +768,19 @@
               {{ 'feature.visualNovel.soundBoardTitle' | transloco }}
             </div>
             @for (audio of soundEffects(); track audio.identifier) {
+              @let sePlaying = isSoundEffectPlaying(audio.identifier);
               <div class="hover:bg-ui-hover rounded-ui flex w-full items-center gap-1 px-1 py-0.5 transition-colors">
                 <button
                   type="button"
                   class="text-ui-text rounded-ui flex min-w-0 grow cursor-pointer items-center gap-1.5 border-0 bg-transparent p-1 text-left text-[12px] [&_i]:text-[14px]"
-                  [title]="'feature.visualNovel.soundBoard' | transloco"
-                  (click)="playSoundEffect(audio.identifier)"
+                  [title]="(sePlaying ? 'feature.visualNovel.seStop' : 'feature.visualNovel.soundBoard') | transloco"
+                  (click)="sePlaying ? stopSoundEffect(audio.identifier) : playSoundEffect(audio.identifier)"
                 >
-                  <i class="material-icons text-ui-dim">play_circle</i>
+                  @if (sePlaying) {
+                    <i class="material-icons text-ui-accent">stop_circle</i>
+                  } @else {
+                    <i class="material-icons text-ui-dim">play_circle</i>
+                  }
                   <span class="truncate">{{ audio.name }}</span>
                 </button>
                 <button

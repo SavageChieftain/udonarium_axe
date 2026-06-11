@@ -1185,8 +1185,9 @@
         "large": "L"
       },
       "soundBoard": "Play SE",
+      "seStop": "Stop SE",
       "soundBoardTitle": "Sound effects",
-      "soundBoardEmpty": "No registered audio",
+      "soundBoardEmpty": "No sound effects",
       "portraitPattern": "Portrait pattern",
       "flip": "Flip portrait",
       "seAttach": "Play with next message",

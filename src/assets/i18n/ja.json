@@ -1185,8 +1185,9 @@
         "large": "大"
       },
       "soundBoard": "SE再生",
+      "seStop": "SEを停止",
       "soundBoardTitle": "サウンドエフェクト",
-      "soundBoardEmpty": "登録された音声がありません",
+      "soundBoardEmpty": "SEがありません",
       "portraitPattern": "立ち絵パターン",
       "flip": "立ち絵を反転",
       "seAttach": "次の発言と同時に再生",

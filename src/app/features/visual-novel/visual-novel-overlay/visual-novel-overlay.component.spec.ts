@@ -2,13 +2,17 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/index';
+import { AudioFile } from '@axe/core/storage/audio-file';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { SoundEffect } from '@axe/domain/media/sound-effect';
+import { AudioTag } from '@axe/domain/media/audio-tag';
+import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
@@ -55,6 +59,32 @@ describe('VisualNovelOverlayComponent', () => {
     return ImageStorage.instance.add(`test://vn/image-${nextImageId++}.png`).identifier;
   }
 
+  function makeReadyAudio(identifier: string, name?: string): AudioFile {
+    const audio = AudioFile.createEmpty(identifier);
+    const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
+    ctx['blob'] = new Blob(['x']);
+    ctx['url'] = 'blob:x';
+    ctx['name'] = name ?? identifier;
+    return audio;
+  }
+
+  function addAudio(identifier: string, tag: string, name?: string): AudioFile {
+    const audio = makeReadyAudio(identifier, name);
+    AudioStorage.instance.add(audio);
+    const audioTag = AudioTag.create(identifier);
+    audioTag.tag = tag;
+    return audio;
+  }
+
+  function ensureJukebox(): Jukebox {
+    let jukebox = ObjectStore.instance.get<Jukebox>('Jukebox');
+    if (!jukebox) {
+      jukebox = new Jukebox('Jukebox');
+      jukebox.initialize();
+    }
+    return jukebox;
+  }
+
   function createComponent(): void {
     fixture = TestBed.createComponent(VisualNovelOverlayComponent);
     component = fixture.componentInstance;
@@ -78,6 +108,8 @@ describe('VisualNovelOverlayComponent', () => {
     tab?.destroy();
     for (const character of charactersByName.values()) character.destroy();
     charactersByName.clear();
+    AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
+    ObjectStore.instance.getObjects(AudioTag).forEach((t) => ObjectStore.instance.delete(t, false));
     localStorage.removeItem('vn-settings');
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -577,12 +609,13 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.editingIndex()).toBe(-1);
   });
 
-  it('SE を添付して send() すると発言と同時に再生され添付が解除されること', async () => {
+  it('SE を添付して send() するとジュークボックス経由で再生され添付が解除されること', async () => {
+    const jukebox = ensureJukebox();
+    const playSpy = vi.spyOn(jukebox, 'play').mockImplementation(() => undefined);
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
     vi.spyOn(DiceBot, 'loadGameSystemAsync').mockResolvedValue(null as unknown as GameSystemClass);
-    const playSpy = vi.spyOn(SoundEffect, 'play').mockImplementation(() => undefined);
 
     component.attachSe('audio-1', 'ジャーン');
     component.text.set('ここで効果音');
@@ -591,6 +624,38 @@ describe('VisualNovelOverlayComponent', () => {
 
     expect(playSpy).toHaveBeenCalledWith('audio-1');
     expect(component.attachedSe()).toBeNull();
+  });
+
+  describe('SE サウンドボード', () => {
+    it('soundEffects は SE タグの音声のみを返す', () => {
+      addAudio('se-1', 'SE', 'ジャーン');
+      addAudio('bgm-1', 'BGM', '戦闘曲');
+      AudioStorage.instance.add(makeReadyAudio('no-tag', 'タグなし'));
+      createComponent();
+
+      expect(component.soundEffects().map((a) => a.identifier)).toEqual(['se-1']);
+    });
+
+    it('playSoundEffect / stopSoundEffect はジュークボックス経由で再生・停止する', () => {
+      const jukebox = ensureJukebox();
+      const playSpy = vi.spyOn(jukebox, 'play').mockImplementation(() => undefined);
+      const stopSpy = vi.spyOn(jukebox, 'stopSE').mockImplementation(() => undefined);
+      createComponent();
+
+      component.playSoundEffect('se-1');
+      expect(playSpy).toHaveBeenCalledWith('se-1');
+
+      component.stopSoundEffect('se-1');
+      expect(stopSpy).toHaveBeenCalledWith('se-1');
+    });
+
+    it('isSoundEffectPlaying はジュークボックスの再生状態を返す', () => {
+      const jukebox = ensureJukebox();
+      vi.spyOn(jukebox, 'isSePlaying').mockReturnValue(true);
+      createComponent();
+
+      expect(component.isSoundEffectPlaying('se-1')).toBe(true);
+    });
   });
 
   it('ダイス結果のシステムちゃんにロール主の名前とアバターが付くこと', () => {
