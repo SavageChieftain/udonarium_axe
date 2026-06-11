@@ -1109,6 +1109,101 @@
         "descSuffix": " — help",
         "intro": "[Dice bot] Type dice expressions in chat to roll dice.\nInput example) 2d6+1 attack!\nOutput example) 2d6+1 attack!\n              diceBot: (2d6) → 7\nYou can also include a dice expression followed by a space and additional text.\n\nUsage examples\n  3D6+1>=9 : Roll 3d6+1 and check whether the total is 9 or more.\n  1D100<=50 : D100 downward roll with target value 50.\n  3U6[5] : Roll 3d6 with reroll on 5+ (open-ended above).\n  3B6 : Roll 3d6 and output values separately (no sum).\n  10B6>=4 : Roll 10d6 and count dice with value 4+.\n  2R6[>3]>=5 : Reroll dice >3 then count dice with value 5+.\n  (8/2)D(4+6)<=(5*3) : Arithmetic is allowed in count/sides/target.\n  c(10-4*3/2+2) : c(expression) evaluates math only.\n  choice[a,b,c] : Pick one element at random.\n  S3d6 : Prefix S for a secret roll (others cannot see).\n  3d6/2 : Divide the result (rounding depends on system). Use /2C (ceil), /2R (round), /2F (floor).\n  D66 : D66 die. Order depends on the system: D66N (raw), D66A (ascending), D66D (descending).\n\nFor full details see the bcdice command guide:\nhttps://docs.bcdice.org/\n===================================\n"
       }
+    },
+    "visualNovel": {
+      "exit": "Exit",
+      "noMessages": "No messages yet. Use the input below to speak.",
+      "prev": "Previous message",
+      "next": "Next message",
+      "toLatest": "Jump to latest",
+      "speakerSelect": "Speaker",
+      "inputPlaceholder": "Type a message (Enter to send)",
+      "send": "Send",
+      "player": "Player",
+      "log": "Backlog",
+      "settings": {
+        "typewriter": "Text speed",
+        "portrait": "Portrait entrance",
+        "textSize": "Text size"
+      },
+      "speed": {
+        "off": "Off",
+        "slow": "Slow",
+        "normal": "Normal",
+        "fast": "Fast"
+      },
+      "anim": {
+        "none": "None",
+        "fade": "Fade",
+        "slide": "Slide",
+        "bounce": "Bounce"
+      },
+      "emote": {
+        "title": "Direction",
+        "shape": "Bubble shape",
+        "bubbleAnim": "Bubble animation",
+        "portraitAnim": "Portrait animation",
+        "mark": "Emotion mark",
+        "kind": "Message type",
+        "reset": "Reset"
+      },
+      "shape": {
+        "normal": "Normal",
+        "thought": "Thought",
+        "shout": "Shout",
+        "whisper": "Whisper"
+      },
+      "bubbleAnim": {
+        "none": "None",
+        "shake": "Shake",
+        "pop": "Pop",
+        "pulse": "Pulse",
+        "float": "Float"
+      },
+      "portraitEmote": {
+        "none": "None",
+        "jump": "Jump",
+        "tremble": "Tremble",
+        "zoom": "Zoom",
+        "nod": "Nod",
+        "sway": "Sway",
+        "droop": "Droop"
+      },
+      "diceBot": "Dice bot",
+      "logFilterPlaceholder": "Search log…",
+      "systemChan": "System-chan",
+      "slot": "Stage slot",
+      "kind": {
+        "normal": "Dialogue",
+        "narration": "Narration",
+        "location": "Location",
+        "scene": "Scene break"
+      },
+      "textSize": {
+        "small": "S",
+        "normal": "M",
+        "large": "L"
+      },
+      "soundBoard": "Play SE",
+      "soundBoardTitle": "Sound effects",
+      "soundBoardEmpty": "No registered audio",
+      "portraitPattern": "Portrait pattern",
+      "flip": "Flip portrait",
+      "seAttach": "Play with next message",
+      "seAttached": "Plays with the next message",
+      "edit": {
+        "title": "Edit",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "systemRollBy": "({{name}}'s roll)",
+      "autoPlay": "Auto play",
+      "flipOn": "Flipped",
+      "flipOff": "Normal",
+      "palette": "Chat palette",
+      "paletteEmpty": "Palette is empty",
+      "playbackSpeed": "Playback speed",
+      "sheet": "Open character sheet"
     }
   },
   "app": {
@@ -1122,6 +1217,7 @@
       "jukebox": "Jukebox",
       "cutIn": "Cut-in",
       "inventory": "Inventory",
+      "visualNovel": "Novel mode",
       "gmTools": "GM tools",
       "objectList": "Object list (GM)",
       "npcBar": "NPC bar",

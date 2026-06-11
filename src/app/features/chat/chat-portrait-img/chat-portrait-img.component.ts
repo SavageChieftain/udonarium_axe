@@ -19,6 +19,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 const PORTRAIT_COUNT = 12;
@@ -42,6 +43,7 @@ export interface PortraitSlot {
 })
 export class ChatPortraitImageComponent {
   chatMessageService = inject(ChatMessageService);
+  readonly vnMode = inject(VisualNovelModeService);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);

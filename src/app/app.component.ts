@@ -48,6 +48,8 @@ import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component'
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
+import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
+import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 import { ModalComponent } from '@axe/ui/components/modal/modal.component';
@@ -67,12 +69,14 @@ import { version as APP_VERSION } from '@pkg';
     GmToolbarComponent,
     NpcDragGhostComponent,
     LanguageSelectorComponent,
+    VisualNovelOverlayComponent,
     TranslocoModule,
   ],
 })
 export class AppComponent {
   readonly theme = inject(ThemeService);
   readonly language = inject(LanguageService);
+  readonly visualNovel = inject(VisualNovelModeService);
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);
