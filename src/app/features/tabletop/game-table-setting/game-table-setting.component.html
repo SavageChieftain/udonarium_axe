@@ -106,11 +106,11 @@
             }
             <button
               type="button"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:border-ui-accent hover:bg-ui-input hover:text-ui-accent m-0 flex h-16.5 w-22 cursor-pointer flex-col items-center justify-center gap-1 border border-solid p-1 text-center text-[11px] leading-[1.4] transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-muted hover:border-ui-accent hover:text-ui-accent m-0 inline-flex cursor-pointer items-center gap-1.5 self-center border border-solid px-2.5 py-1.5 text-[11px] whitespace-nowrap transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
               (click)="openBgImageGridAdjust()"
               [attr.disabled]="!isEditable ? '' : null"
             >
-              <span class="material-icons text-[20px] leading-none">grid_on</span>
+              <span class="material-icons text-[14px]! leading-none">grid_on</span>
               {{ 'feature.tabletop.tableSetting.alignToGrid' | transloco }}
             </button>
           </div>
