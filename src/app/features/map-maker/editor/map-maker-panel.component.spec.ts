@@ -120,7 +120,8 @@ describe('MapMakerPanelComponent', () => {
   });
 
   it('折れ線は3頂点で専用レイヤーへ stroke のみの polyline を作る', () => {
-    component['state'].tool.set('polyline');
+    component['state'].tool.set('line');
+    component['state'].lineKind.set('polyline');
     component['state'].strokeDash.set('dashed');
     (component as unknown as { draftPoints: number[] }).draftPoints = [0, 0, 50, 0, 50, 50];
     (component as unknown as { commitDraftPolyline: () => void }).commitDraftPolyline();
@@ -131,6 +132,15 @@ describe('MapMakerPanelComponent', () => {
     expect(item.fill).toBeNull();
     expect(item.stroke!.dash).toBe('dashed');
     expect(item.points).toEqual([0, 0, 50, 0, 50, 50]);
+  });
+
+  it('lineKind を切り替えるとドラフトがキャンセルされる', () => {
+    component['state'].tool.set('line');
+    component['state'].lineKind.set('polyline');
+    (component as unknown as { draftPoints: number[] }).draftPoints = [0, 0, 50, 0];
+    (component as unknown as { setLineKind: (k: string) => void }).setLineKind('straight');
+    expect((component as unknown as { draftPoints: number[] }).draftPoints.length).toBe(0);
+    expect(component['state'].lineKind()).toBe('straight');
   });
 
   it('画像のコーナードラッグは反対コーナー基準でリサイズし1履歴にまとまる', () => {

@@ -1238,7 +1238,6 @@
         "cellErase": "Erase cells",
         "fill": "Fill",
         "line": "Line",
-        "polyline": "Polyline",
         "polygon": "Polygon",
         "wall": "Wall",
         "stamp": "Stamp",
@@ -1329,6 +1328,10 @@
           "hexagon": "Hexagon",
           "star5": "5-point star",
           "star6": "6-point star"
+        },
+        "lineKinds": {
+          "straight": "Straight",
+          "polyline": "Polyline"
         }
       },
       "layers": {

@@ -1237,8 +1237,7 @@
         "cellPaint": "セル塗り",
         "cellErase": "セル消去",
         "fill": "塗りつぶし",
-        "line": "直線",
-        "polyline": "折れ線",
+        "line": "線",
         "polygon": "多角形",
         "wall": "壁",
         "stamp": "スタンプ",
@@ -1329,6 +1328,10 @@
           "hexagon": "六角形",
           "star5": "五芒星",
           "star6": "六芒星"
+        },
+        "lineKinds": {
+          "straight": "直線",
+          "polyline": "折れ線"
         }
       },
       "layers": {

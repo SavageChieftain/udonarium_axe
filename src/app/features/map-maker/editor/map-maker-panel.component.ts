@@ -20,7 +20,12 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-maker/assets/stamp-types';
 import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-maker/assets/stamps';
-import { EditorTool, MapMakerState, ShapeGeneratorKind } from '@axe/features/map-maker/editor/map-maker-state';
+import {
+  EditorTool,
+  LineKind,
+  MapMakerState,
+  ShapeGeneratorKind,
+} from '@axe/features/map-maker/editor/map-maker-state';
 import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import {
   cellKey,
@@ -89,7 +94,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
     { tool: 'fill', icon: 'format_paint', key: 'G' },
     { tool: 'shape', icon: 'category', key: 'R' },
     { tool: 'line', icon: 'show_chart', key: 'L' },
-    { tool: 'polyline', icon: 'timeline', key: 'N' },
     { tool: 'polygon', icon: 'polyline', key: 'P' },
     { tool: 'wall', icon: 'fence', key: 'W' },
     { tool: 'freehand', icon: 'gesture', key: 'F' },
@@ -99,6 +103,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   ];
 
   protected readonly dashKinds: StrokeDash[] = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash'];
+  protected readonly lineKinds: LineKind[] = ['straight', 'polyline'];
 
   protected readonly shapeKinds: ShapeGeneratorKind[] = [
     'rect',
@@ -188,7 +193,9 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   protected readonly canFinishDraft = computed(() => {
     const n = this.draftCount();
-    return this.state.tool() === 'polygon' ? n >= 3 : n >= 2;
+    const tool = this.state.tool();
+    if (tool === 'polygon') return n >= 3;
+    return n >= 2;
   });
 
   constructor() {
@@ -311,7 +318,11 @@ export class MapMakerPanelComponent implements AfterViewInit {
       }
     }
 
-    if (this.draftStart && this.draftCurrent && (tool === 'shape' || tool === 'line')) {
+    if (
+      this.draftStart &&
+      this.draftCurrent &&
+      (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight'))
+    ) {
       const x = Math.min(this.draftStart.x, this.draftCurrent.x);
       const y = Math.min(this.draftStart.y, this.draftCurrent.y);
       const w = Math.abs(this.draftCurrent.x - this.draftStart.x);
@@ -345,7 +356,10 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.drawMeasureBox(ctx, `${(w / scene.cellPx).toFixed(1)} × ${(h / scene.cellPx).toFixed(1)}`);
     }
 
-    if ((tool === 'polygon' || tool === 'wall' || tool === 'polyline') && this.draftPoints.length >= 2) {
+    if (
+      (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.state.lineKind() === 'polyline')) &&
+      this.draftPoints.length >= 2
+    ) {
       if (tool === 'polygon' && this.draftPoints.length >= 4) {
         ctx.save();
         ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
@@ -366,7 +380,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.drawSegmentMeasure(ctx);
     }
 
-    if (tool === 'line' && this.draftStart && this.draftCurrent) {
+    if (tool === 'line' && this.state.lineKind() === 'straight' && this.draftStart && this.draftCurrent) {
       this.drawSegmentMeasure(ctx);
     }
 
@@ -581,7 +595,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
     let bx: number;
     let by: number;
     let prevAngle: number | null = null;
-    if (tool === 'line') {
+    if (tool === 'line' && this.state.lineKind() === 'straight') {
       if (!this.draftStart || !this.draftCurrent) return;
       ax = this.draftStart.x;
       ay = this.draftStart.y;
@@ -612,6 +626,11 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected setTool(tool: EditorTool): void {
     this.cancelDraft();
     this.state.tool.set(tool);
+  }
+
+  protected setLineKind(kind: LineKind): void {
+    this.cancelDraft();
+    this.state.lineKind.set(kind);
   }
 
   private toScene(event: PointerEvent): { x: number; y: number } {
@@ -677,14 +696,14 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.dragging = false;
       return;
     }
-    if (tool === 'shape' || tool === 'line') {
+    if (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight')) {
       const snapped = this.state.snapPoint(pos.x, pos.y);
       this.draftStart = { x: snapped.x, y: snapped.y };
       this.draftCurrent = { x: snapped.x, y: snapped.y };
       this.bumpDraft();
       return;
     }
-    if (tool === 'polygon' || tool === 'wall' || tool === 'polyline') {
+    if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.state.lineKind() === 'polyline')) {
       const snapped = this.state.snapPoint(pos.x, pos.y);
       this.draftPoints.push(snapped.x, snapped.y);
       this.draftCurrent = { x: pos.x, y: pos.y };
@@ -740,7 +759,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       return;
     }
     if (!this.dragging) {
-      if (tool === 'polygon' || tool === 'wall' || tool === 'polyline') {
+      if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.state.lineKind() === 'polyline')) {
         this.draftCurrent = { x: pos.x, y: pos.y };
       }
       if (
@@ -749,7 +768,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
         tool === 'fill' ||
         tool === 'polygon' ||
         tool === 'wall' ||
-        tool === 'polyline'
+        (tool === 'line' && this.state.lineKind() === 'polyline')
       ) {
         this.bumpDraft();
       }
@@ -774,7 +793,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.paintAt(pos, tool);
       return;
     }
-    if (tool === 'shape' || tool === 'line') {
+    if (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight')) {
       this.draftCurrent = this.state.snapPoint(pos.x, pos.y);
       this.bumpDraft();
       return;
@@ -823,7 +842,11 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.state.endGesture();
       this.lastPaintedCell = null;
       this.lastPaintPx = null;
-    } else if ((tool === 'shape' || tool === 'line') && this.draftStart && this.draftCurrent) {
+    } else if (
+      (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight')) &&
+      this.draftStart &&
+      this.draftCurrent
+    ) {
       const w = Math.abs(this.draftCurrent.x - this.draftStart.x);
       const h = Math.abs(this.draftCurrent.y - this.draftStart.y);
       if (w > 2 || h > 2) {
@@ -890,7 +913,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
     const tool = this.state.tool();
     if (tool === 'polygon' && this.draftPoints.length >= 6) {
       this.state.addShapeItem('polygon', this.draftPoints.slice(), this.state.currentFill(), this.shapeLayerName());
-    } else if (tool === 'polyline' && this.draftPoints.length >= 4) {
+    } else if (tool === 'line' && this.state.lineKind() === 'polyline' && this.draftPoints.length >= 4) {
       this.state.addShapeItem('polyline', this.draftPoints.slice(), null, this.shapeLayerName());
     } else if (tool === 'wall' && this.draftPoints.length >= 4) {
       this.state.addWall(this.draftPoints.slice());
@@ -914,12 +937,14 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   private shapeLayerName(): string {
     const tool = this.state.tool();
-    const label =
-      tool === 'polygon'
-        ? this.t('feature.mapMaker.tools.polygon')
-        : tool === 'polyline'
-          ? this.t('feature.mapMaker.tools.polyline')
-          : this.t('feature.mapMaker.props.shapeKinds.' + this.state.shapeKind());
+    let label: string;
+    if (tool === 'polygon') {
+      label = this.t('feature.mapMaker.tools.polygon');
+    } else if (tool === 'line' && this.state.lineKind() === 'polyline') {
+      label = this.t('feature.mapMaker.props.lineKinds.polyline');
+    } else {
+      label = this.t('feature.mapMaker.props.shapeKinds.' + this.state.shapeKind());
+    }
     this.shapeLayerCounter += 1;
     return label + ' ' + this.shapeLayerCounter;
   }

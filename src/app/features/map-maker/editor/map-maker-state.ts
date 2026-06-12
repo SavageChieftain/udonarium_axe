@@ -62,13 +62,14 @@ export type EditorTool =
   | 'fill'
   | 'shape'
   | 'line'
-  | 'polyline'
   | 'polygon'
   | 'wall'
   | 'freehand'
   | 'text'
   | 'stamp'
   | 'image';
+
+export type LineKind = 'straight' | 'polyline';
 
 export type ShapeGeneratorKind = 'rect' | 'ellipse' | 'triangle' | 'pentagon' | 'hexagon' | 'star5' | 'star6';
 
@@ -98,6 +99,7 @@ export class MapMakerState {
   readonly textureRotation = signal(0);
 
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
+  readonly lineKind = signal<LineKind>('straight');
 
   readonly strokeColor = signal('#e8e8ea');
   readonly strokeWidth = signal(3);

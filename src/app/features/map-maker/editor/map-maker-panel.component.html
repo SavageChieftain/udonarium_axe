@@ -198,9 +198,26 @@
         </div>
       }
 
-      @if (
-        state.tool() === 'shape' || state.tool() === 'line' || state.tool() === 'polyline' || state.tool() === 'polygon'
-      ) {
+      @if (state.tool() === 'line') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.tools.line' | transloco }}</div>
+          <div class="grid grid-cols-2 gap-1">
+            @for (kind of lineKinds; track kind) {
+              <button
+                class="rounded-ui-sm border border-solid p-1 text-[10px] leading-tight"
+                [class.border-ui-accent]="state.lineKind() === kind"
+                [class.bg-ui-accent-bg]="state.lineKind() === kind"
+                [class.border-ui-border-panel]="state.lineKind() !== kind"
+                (click)="setLineKind(kind)"
+              >
+                {{ 'feature.mapMaker.props.lineKinds.' + kind | transloco }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (state.tool() === 'shape' || state.tool() === 'line' || state.tool() === 'polygon') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.props.stroke' | transloco }}</div>
           <label class="flex items-center justify-between gap-2">
@@ -592,7 +609,12 @@
           (dblclick)="onDoubleClick()"
         ></canvas>
       </div>
-      @if (draftCount() > 0 && (state.tool() === 'polygon' || state.tool() === 'wall' || state.tool() === 'polyline')) {
+      @if (
+        draftCount() > 0 &&
+        (state.tool() === 'polygon' ||
+          state.tool() === 'wall' ||
+          (state.tool() === 'line' && state.lineKind() === 'polyline'))
+      ) {
         <div
           class="bg-ui-panel border-ui-border-panel rounded-ui shadow-ui-md absolute top-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 border border-solid px-2 py-1"
         >
