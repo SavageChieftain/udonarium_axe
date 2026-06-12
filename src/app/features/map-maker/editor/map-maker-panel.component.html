@@ -1,0 +1,620 @@
+@if (!isGameMaster()) {
+  <div class="text-ui-muted flex h-full items-center justify-center p-6 text-center text-[13px]">
+    {{ 'feature.mapMaker.gmOnly' | transloco }}
+  </div>
+} @else {
+  <div class="text-ui-text grid h-full grid-cols-[44px_230px_1fr_210px] grid-rows-[1fr_auto] text-[12px]">
+    <div class="bg-ui-panel border-ui-border-panel row-span-2 flex flex-col gap-1 border-r border-solid p-1">
+      @for (def of tools; track def.tool) {
+        <button
+          class="hover:bg-ui-hover rounded-ui-sm inline-flex size-9 items-center justify-center border border-solid"
+          [class.bg-ui-accent-bg]="state.tool() === def.tool"
+          [class.text-ui-accent]="state.tool() === def.tool"
+          [class.border-ui-accent]="state.tool() === def.tool"
+          [class.border-transparent]="state.tool() !== def.tool"
+          [title]="'feature.mapMaker.tools.' + def.tool | transloco"
+          (click)="setTool(def.tool)"
+        >
+          <i class="material-icons text-[18px]!">{{ def.icon }}</i>
+        </button>
+      }
+    </div>
+
+    <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-3 overflow-auto border-r border-solid p-2">
+      <div class="border-ui-border-panel rounded-ui border border-solid">
+        <button
+          class="hover:bg-ui-hover flex w-full items-center justify-between px-2 py-1.5 font-semibold"
+          (click)="mapSettingsOpen.set(!mapSettingsOpen())"
+        >
+          <span>{{ 'feature.mapMaker.props.mapSettings' | transloco }}</span>
+          <i class="material-icons text-[16px]!">{{ mapSettingsOpen() ? 'expand_less' : 'expand_more' }}</i>
+        </button>
+        @if (mapSettingsOpen()) {
+          <div class="flex flex-col gap-1.5 px-2 pb-2">
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.cols' | transloco }}</span>
+              <input
+                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+                type="number"
+                min="1"
+                max="100"
+                [ngModel]="sceneInfo().cols"
+                (change)="onResizeCols($any($event.target).valueAsNumber)"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.rows' | transloco }}</span>
+              <input
+                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+                type="number"
+                min="1"
+                max="100"
+                [ngModel]="sceneInfo().rows"
+                (change)="onResizeRows($any($event.target).valueAsNumber)"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.cellPx' | transloco }}</span>
+              <input
+                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+                type="number"
+                min="16"
+                max="256"
+                [ngModel]="sceneInfo().cellPx"
+                (change)="onCellPx($any($event.target).valueAsNumber)"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.background' | transloco }}</span>
+              <input
+                type="color"
+                [ngModel]="state.current.background"
+                (change)="state.setBackground($any($event.target).value)"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridColor' | transloco }}</span>
+              <input
+                type="color"
+                [ngModel]="state.current.gridColor.slice(0, 7)"
+                (change)="state.setGridColor($any($event.target).value)"
+              />
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" [ngModel]="state.current.gridVisible" (change)="state.toggleGrid()" />
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridShow' | transloco }}</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" [ngModel]="state.snapEnabled()" (ngModelChange)="state.snapEnabled.set($event)" />
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.snap' | transloco }}</span>
+            </label>
+          </div>
+        }
+      </div>
+
+      @if (
+        state.tool() === 'cellPaint' ||
+        state.tool() === 'fill' ||
+        state.tool() === 'rect' ||
+        state.tool() === 'ellipse' ||
+        state.tool() === 'polygon'
+      ) {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.fill' | transloco }}</div>
+          <div class="flex gap-1">
+            <button
+              class="rounded-ui-sm flex-1 px-2 py-1"
+              [class.bg-ui-accent-bg]="state.fillMode() === 'solid'"
+              [class.bg-ui-input]="state.fillMode() !== 'solid'"
+              (click)="setFillMode('solid')"
+            >
+              {{ 'feature.mapMaker.props.fillSolid' | transloco }}
+            </button>
+            <button
+              class="rounded-ui-sm flex-1 px-2 py-1"
+              [class.bg-ui-accent-bg]="state.fillMode() === 'texture'"
+              [class.bg-ui-input]="state.fillMode() !== 'texture'"
+              (click)="setFillMode('texture')"
+            >
+              {{ 'feature.mapMaker.props.fillTexture' | transloco }}
+            </button>
+          </div>
+          @if (state.fillMode() === 'solid') {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+              <input type="color" [ngModel]="state.solidColor()" (ngModelChange)="state.solidColor.set($event)" />
+            </label>
+          } @else {
+            <div class="grid grid-cols-2 gap-1">
+              @for (id of textureIds; track id) {
+                <button
+                  class="rounded-ui-sm flex items-center gap-1 border border-solid p-1"
+                  [class.border-ui-accent]="state.textureId() === id"
+                  [class.border-ui-border-panel]="state.textureId() !== id"
+                  (click)="selectTexture(id)"
+                >
+                  <span class="inline-block size-4 rounded-sm" [style.background]="textureBaseColor[id]"></span>
+                  <span class="truncate text-[11px]">{{ 'feature.mapMaker.textures.' + id | transloco }}</span>
+                </button>
+              }
+            </div>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.textureScale' | transloco }}</span>
+              <input
+                type="range"
+                min="0.25"
+                max="3"
+                step="0.25"
+                [ngModel]="state.textureScale()"
+                (ngModelChange)="state.textureScale.set($event)"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.textureRotation' | transloco }}</span>
+              <input
+                type="range"
+                min="0"
+                max="360"
+                step="15"
+                [ngModel]="state.textureRotation()"
+                (ngModelChange)="state.textureRotation.set($event)"
+              />
+            </label>
+          }
+        </div>
+      }
+
+      @if (
+        state.tool() === 'rect' || state.tool() === 'ellipse' || state.tool() === 'line' || state.tool() === 'polygon'
+      ) {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.stroke' | transloco }}</div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+            <input type="color" [ngModel]="state.strokeColor()" (ngModelChange)="state.strokeColor.set($event)" />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.strokeWidth' | transloco }}</span>
+            <input
+              type="range"
+              min="1"
+              max="30"
+              step="1"
+              [ngModel]="state.strokeWidth()"
+              (ngModelChange)="state.strokeWidth.set($event)"
+            />
+          </label>
+        </div>
+      }
+
+      @if (state.tool() === 'wall') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.wall' | transloco }}</div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.wallThickness' | transloco }}</span>
+            <input
+              type="range"
+              min="1"
+              max="40"
+              step="1"
+              [ngModel]="state.wallThickness()"
+              (ngModelChange)="state.wallThickness.set($event)"
+            />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+            <input type="color" [ngModel]="state.wallColor()" (ngModelChange)="state.wallColor.set($event)" />
+          </label>
+        </div>
+      }
+
+      @if (state.tool() === 'stamp') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.stamp' | transloco }}</div>
+          <div class="flex flex-wrap gap-1">
+            @for (cat of stampCategories; track cat) {
+              <button
+                class="rounded-ui-sm px-1.5 py-0.5 text-[11px]"
+                [class.bg-ui-accent-bg]="state.stampCategory() === cat"
+                [class.bg-ui-input]="state.stampCategory() !== cat"
+                (click)="setStampCategory(cat)"
+              >
+                {{ 'feature.mapMaker.stampCategories.' + cat | transloco }}
+              </button>
+            }
+          </div>
+          <div class="grid grid-cols-4 gap-1">
+            @for (def of categoryStamps(); track def.id) {
+              <button
+                class="rounded-ui-sm flex aspect-square items-center justify-center border border-solid p-1"
+                [class.border-ui-accent]="state.stampId() === def.id"
+                [class.border-ui-border-panel]="state.stampId() !== def.id"
+                (click)="selectStamp(def.id)"
+              >
+                <img class="size-full" [src]="stampDataUri(def, state.stampColor())" alt="" />
+              </button>
+            }
+          </div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampSize' | transloco }}</span>
+            <input
+              type="range"
+              min="16"
+              max="256"
+              step="8"
+              [ngModel]="state.stampSize()"
+              (ngModelChange)="state.stampSize.set($event)"
+            />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampRotation' | transloco }}</span>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              step="15"
+              [ngModel]="state.stampRotation()"
+              (ngModelChange)="state.stampRotation.set($event)"
+            />
+          </label>
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" [ngModel]="state.stampFlipX()" (ngModelChange)="state.stampFlipX.set($event)" />
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} X</span>
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" [ngModel]="state.stampFlipY()" (ngModelChange)="state.stampFlipY.set($event)" />
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} Y</span>
+            </label>
+          </div>
+          <label class="flex items-center gap-1">
+            <input
+              type="checkbox"
+              [ngModel]="state.stampColor() === null"
+              (ngModelChange)="state.stampColor.set($event ? null : '#e8e8ea')"
+            />
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampColorAuto' | transloco }}</span>
+          </label>
+          @if (state.stampColor() !== null) {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+              <input type="color" [ngModel]="state.stampColor()" (ngModelChange)="state.stampColor.set($event)" />
+            </label>
+          }
+        </div>
+      }
+
+      @if (state.tool() === 'freehand') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.freehand' | transloco }}</div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+            <input type="color" [ngModel]="state.freehandColor()" (ngModelChange)="state.freehandColor.set($event)" />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.strokeWidth' | transloco }}</span>
+            <input
+              type="range"
+              min="1"
+              max="30"
+              step="1"
+              [ngModel]="state.freehandWidth()"
+              (ngModelChange)="state.freehandWidth.set($event)"
+            />
+          </label>
+        </div>
+      }
+
+      @if (state.tool() === 'text') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.text' | transloco }}</div>
+          <input
+            #textInput
+            class="bg-ui-input rounded-ui-sm px-2 py-1"
+            type="text"
+            [placeholder]="'feature.mapMaker.props.textPlaceholder' | transloco"
+            [ngModel]="textDraft()"
+            (ngModelChange)="textDraft.set($event)"
+            (keydown.enter)="commitText()"
+            (blur)="commitText()"
+          />
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.fontSize' | transloco }}</span>
+            <input
+              type="number"
+              min="8"
+              max="128"
+              class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+              [ngModel]="state.fontSize()"
+              (ngModelChange)="state.fontSize.set($event)"
+            />
+          </label>
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" [ngModel]="state.textBold()" (ngModelChange)="state.textBold.set($event)" />
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.bold' | transloco }}</span>
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" [ngModel]="state.textItalic()" (ngModelChange)="state.textItalic.set($event)" />
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.italic' | transloco }}</span>
+            </label>
+          </div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+            <input type="color" [ngModel]="state.textColor()" (ngModelChange)="state.textColor.set($event)" />
+          </label>
+        </div>
+      }
+
+      @if (state.tool() === 'select' && state.selectedItem(); as sel) {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.tools.select' | transloco }}</div>
+          @if (sel.layer.kind === 'stamp') {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampSize' | transloco }}</span>
+              <input
+                type="range"
+                min="16"
+                max="256"
+                step="8"
+                [ngModel]="$any(sel.item).size"
+                (ngModelChange)="state.updateSelectedStamp({ size: $event })"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampRotation' | transloco }}</span>
+              <input
+                type="range"
+                min="0"
+                max="360"
+                step="15"
+                [ngModel]="$any(sel.item).rotation"
+                (ngModelChange)="state.updateSelectedStamp({ rotation: $event })"
+              />
+            </label>
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  [ngModel]="$any(sel.item).flipX"
+                  (ngModelChange)="state.updateSelectedStamp({ flipX: $event })"
+                />
+                <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} X</span>
+              </label>
+              <label class="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  [ngModel]="$any(sel.item).flipY"
+                  (ngModelChange)="state.updateSelectedStamp({ flipY: $event })"
+                />
+                <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} Y</span>
+              </label>
+            </div>
+          }
+          <button
+            class="rounded-ui-sm bg-ui-input hover:bg-ui-hover flex items-center justify-center gap-1 px-2 py-1"
+            (click)="state.deleteSelection()"
+          >
+            <i class="material-icons text-[16px]!">delete</i>
+            {{ 'feature.mapMaker.layers.delete' | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="bg-ui-elevated relative overflow-auto" (wheel)="onWheel($event)">
+      <canvas
+        #board
+        class="block touch-none"
+        [style.width.px]="widthPx() * state.zoom()"
+        [style.height.px]="heightPx() * state.zoom()"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (dblclick)="onDoubleClick()"
+      ></canvas>
+      @if (notice()) {
+        <div class="bg-ui-accent-bg text-ui-accent rounded-ui absolute top-2 left-2 px-3 py-1.5">{{ notice() }}</div>
+      }
+      @if (errorNotice()) {
+        <div class="rounded-ui absolute top-2 left-2 bg-(--ui-danger-bg) px-3 py-1.5 text-(--ui-danger)">
+          {{ errorNotice() }}
+        </div>
+      }
+    </div>
+
+    <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-2 overflow-auto border-l border-solid p-2">
+      <div class="flex items-center justify-between">
+        <span class="font-semibold">{{ 'feature.mapMaker.layers.title' | transloco }}</span>
+        <div class="relative">
+          <button
+            class="hover:bg-ui-hover rounded-ui-sm inline-flex size-6 items-center justify-center"
+            [title]="'feature.mapMaker.layers.add' | transloco"
+            (click)="addLayerMenuOpen.set(!addLayerMenuOpen())"
+          >
+            <i class="material-icons text-[16px]!">add</i>
+          </button>
+          @if (addLayerMenuOpen()) {
+            <div
+              class="bg-ui-elevated border-ui-border-panel rounded-ui absolute right-0 z-10 flex flex-col border border-solid"
+            >
+              @for (kind of layerKinds; track kind) {
+                <button class="hover:bg-ui-hover px-3 py-1 text-left whitespace-nowrap" (click)="addLayerOfKind(kind)">
+                  {{ 'feature.mapMaker.layers.kinds.' + kind | transloco }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      @for (layer of layers(); track layer.id) {
+        <div
+          class="rounded-ui border border-solid p-1.5"
+          [class.border-ui-accent]="state.activeLayerId() === layer.id"
+          [class.border-ui-border-panel]="state.activeLayerId() !== layer.id"
+          (click)="setActive(layer)"
+        >
+          <div class="flex items-center gap-1">
+            <i class="material-icons text-ui-dim text-[15px]!">{{ layerIcon(layer.kind) }}</i>
+            @if (renamingLayerId() === layer.id) {
+              <input
+                class="bg-ui-input rounded-ui-sm min-w-0 flex-1 px-1"
+                type="text"
+                [ngModel]="layer.name"
+                (keydown.enter)="commitRename(layer, $any($event.target).value)"
+                (blur)="commitRename(layer, $any($event.target).value)"
+              />
+            } @else {
+              <span class="min-w-0 flex-1 truncate" (dblclick)="startRename(layer)">{{ layer.name }}</span>
+            }
+            <button
+              class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
+              [title]="'feature.mapMaker.layers.visible' | transloco"
+              (click)="$event.stopPropagation(); toggleVisible(layer)"
+            >
+              <i class="material-icons text-[14px]!">{{ layer.visible ? 'visibility' : 'visibility_off' }}</i>
+            </button>
+            <button
+              class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
+              [title]="'feature.mapMaker.layers.locked' | transloco"
+              (click)="$event.stopPropagation(); toggleLocked(layer)"
+            >
+              <i class="material-icons text-[14px]!">{{ layer.locked ? 'lock' : 'lock_open' }}</i>
+            </button>
+          </div>
+          <div class="mt-1 flex items-center gap-1">
+            <input
+              class="min-w-0 flex-1"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              [title]="'feature.mapMaker.layers.opacity' | transloco"
+              [ngModel]="layer.opacity"
+              (click)="$event.stopPropagation()"
+              (ngModelChange)="setOpacity(layer, $event)"
+            />
+            <button
+              class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
+              (click)="$event.stopPropagation(); moveLayerUp(layer)"
+            >
+              <i class="material-icons text-[14px]!">arrow_upward</i>
+            </button>
+            <button
+              class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
+              (click)="$event.stopPropagation(); moveLayerDown(layer)"
+            >
+              <i class="material-icons text-[14px]!">arrow_downward</i>
+            </button>
+            <button
+              class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
+              [title]="'feature.mapMaker.layers.delete' | transloco"
+              (click)="$event.stopPropagation(); deleteLayer(layer)"
+            >
+              <i class="material-icons text-[14px]!">delete</i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="bg-ui-panel border-ui-border-panel col-span-3 flex items-center gap-2 border-t border-solid px-2 py-1">
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 items-center justify-center disabled:opacity-40"
+        [disabled]="!state.canUndo()"
+        [title]="'feature.mapMaker.actions.undo' | transloco"
+        (click)="state.undo()"
+      >
+        <i class="material-icons text-[16px]!">undo</i>
+      </button>
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 items-center justify-center disabled:opacity-40"
+        [disabled]="!state.canRedo()"
+        [title]="'feature.mapMaker.actions.redo' | transloco"
+        (click)="state.redo()"
+      >
+        <i class="material-icons text-[16px]!">redo</i>
+      </button>
+
+      <div class="bg-ui-border-panel h-5 w-px"></div>
+
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 items-center justify-center"
+        [title]="'feature.mapMaker.actions.zoomOut' | transloco"
+        (click)="zoomOut()"
+      >
+        <i class="material-icons text-[16px]!">zoom_out</i>
+      </button>
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm px-1"
+        [title]="'feature.mapMaker.actions.zoomReset' | transloco"
+        (click)="zoomReset()"
+      >
+        {{ zoomPercent() }}%
+      </button>
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 items-center justify-center"
+        [title]="'feature.mapMaker.actions.zoomIn' | transloco"
+        (click)="zoomIn()"
+      >
+        <i class="material-icons text-[16px]!">zoom_in</i>
+      </button>
+
+      <span class="text-ui-muted">{{ sceneInfo().cols }}×{{ sceneInfo().rows }} / {{ sceneInfo().cellPx }}px</span>
+      @if (cursorCell(); as c) {
+        <span class="text-ui-dim">{{ 'feature.mapMaker.status.cell' | transloco: { col: c.col, row: c.row } }}</span>
+      }
+
+      <div class="ml-auto flex items-center gap-2">
+        <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-1" (click)="saveJson()">
+          {{ 'feature.mapMaker.actions.saveJson' | transloco }}
+        </button>
+        <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-1" (click)="triggerLoad()">
+          {{ 'feature.mapMaker.actions.loadJson' | transloco }}
+        </button>
+        <input
+          #fileInput
+          class="hidden"
+          type="file"
+          accept="application/json,.json"
+          (change)="onFileSelected($event)"
+        />
+
+        <div class="bg-ui-border-panel h-5 w-px"></div>
+
+        <select
+          class="bg-ui-input rounded-ui-sm p-1"
+          [ngModel]="exportScale()"
+          (ngModelChange)="exportScale.set($event)"
+          [title]="'feature.mapMaker.actions.exportScale' | transloco"
+        >
+          <option [ngValue]="1">1x</option>
+          <option [ngValue]="2">2x</option>
+        </select>
+        <label class="flex items-center gap-1">
+          <input type="checkbox" [ngModel]="exportGrid()" (ngModelChange)="exportGrid.set($event)" />
+          <span class="text-ui-muted">{{ 'feature.mapMaker.actions.exportGrid' | transloco }}</span>
+        </label>
+        <button
+          class="bg-ui-accent-bg text-ui-accent rounded-ui-sm px-2 py-1 disabled:opacity-40"
+          [disabled]="busy()"
+          (click)="saveImage()"
+        >
+          {{
+            busy()
+              ? ('feature.mapMaker.actions.exporting' | transloco)
+              : ('feature.mapMaker.actions.saveImage' | transloco)
+          }}
+        </button>
+        <button
+          class="bg-ui-accent-bg text-ui-accent rounded-ui-sm px-2 py-1 disabled:opacity-40"
+          [disabled]="busy()"
+          (click)="setAsTable()"
+        >
+          {{ 'feature.mapMaker.actions.setAsTable' | transloco }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

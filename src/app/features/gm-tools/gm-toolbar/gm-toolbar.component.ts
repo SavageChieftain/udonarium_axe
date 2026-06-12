@@ -20,6 +20,7 @@ import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
+import { MapMakerPanelComponent } from '@axe/features/map-maker/editor/map-maker-panel.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -92,6 +93,16 @@ export class GmToolbarComponent {
       left: 100,
       top: 40,
       title: this.t('common.panel.objectList'),
+    });
+  }
+
+  protected openMapMaker(): void {
+    this.panelService.open(MapMakerPanelComponent, {
+      width: 1100,
+      height: 740,
+      left: 80,
+      top: 60,
+      title: this.t('feature.mapMaker.title'),
     });
   }
 
