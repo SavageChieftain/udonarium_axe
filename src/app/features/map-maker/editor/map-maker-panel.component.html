@@ -12,7 +12,7 @@
           [class.text-ui-accent]="state.tool() === def.tool"
           [class.border-ui-accent]="state.tool() === def.tool"
           [class.border-transparent]="state.tool() !== def.tool"
-          [title]="'feature.mapMaker.tools.' + def.tool | transloco"
+          [title]="('feature.mapMaker.tools.' + def.tool | transloco) + ' (' + def.key + ')'"
           (click)="setTool(def.tool)"
         >
           <i class="material-icons text-[18px]!">{{ def.icon }}</i>
@@ -402,17 +402,37 @@
       }
     </div>
 
-    <div class="bg-ui-elevated relative overflow-auto" (wheel)="onWheel($event)">
-      <canvas
-        #board
-        class="block touch-none"
-        [style.width.px]="widthPx() * state.zoom()"
-        [style.height.px]="heightPx() * state.zoom()"
-        (pointerdown)="onPointerDown($event)"
-        (pointermove)="onPointerMove($event)"
-        (pointerup)="onPointerUp($event)"
-        (dblclick)="onDoubleClick()"
-      ></canvas>
+    <div #stage class="bg-ui-elevated relative overflow-auto" (wheel)="onWheel($event)">
+      <div class="grid size-max min-h-full min-w-full place-items-center p-10">
+        <canvas
+          #board
+          class="border-ui-border-panel shadow-ui-md block touch-none border border-solid"
+          [style.width.px]="widthPx() * state.zoom()"
+          [style.height.px]="heightPx() * state.zoom()"
+          [style.cursor]="canvasCursor()"
+          (pointerdown)="onPointerDown($event)"
+          (pointermove)="onPointerMove($event)"
+          (pointerup)="onPointerUp($event)"
+          (dblclick)="onDoubleClick()"
+        ></canvas>
+      </div>
+      @if (draftCount() > 0 && (state.tool() === 'polygon' || state.tool() === 'wall')) {
+        <div
+          class="bg-ui-panel border-ui-border-panel rounded-ui shadow-ui-md absolute top-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 border border-solid px-2 py-1"
+        >
+          <span class="text-ui-muted">{{ 'feature.mapMaker.draft.hint' | transloco }}</span>
+          <button
+            class="bg-ui-accent-bg text-ui-accent rounded-ui-sm px-2 py-0.5 disabled:opacity-40"
+            [disabled]="!canFinishDraft()"
+            (click)="finishDraft()"
+          >
+            {{ 'feature.mapMaker.draft.finish' | transloco }}
+          </button>
+          <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-0.5" (click)="cancelDraftPublic()">
+            {{ 'feature.mapMaker.draft.cancel' | transloco }}
+          </button>
+        </div>
+      }
       @if (notice()) {
         <div class="bg-ui-accent-bg text-ui-accent rounded-ui absolute top-2 left-2 px-3 py-1.5">{{ notice() }}</div>
       }

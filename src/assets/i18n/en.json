@@ -1329,6 +1329,11 @@
       },
       "status": {
         "cell": "{{col}}-{{row}}"
+      },
+      "draft": {
+        "hint": "Click to add points",
+        "finish": "Finish",
+        "cancel": "Cancel"
       }
     }
   },

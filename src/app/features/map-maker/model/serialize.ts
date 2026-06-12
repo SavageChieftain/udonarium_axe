@@ -1,4 +1,10 @@
-import { MAP_SCENE_VERSION, MapLayer, MapScene } from '@axe/features/map-maker/model/scene';
+import {
+  DEFAULT_SCENE_BACKGROUND,
+  DEFAULT_SCENE_GRID_COLOR,
+  MAP_SCENE_VERSION,
+  MapLayer,
+  MapScene,
+} from '@axe/features/map-maker/model/scene';
 
 export function serializeScene(scene: MapScene): string {
   return JSON.stringify({ ...scene, version: MAP_SCENE_VERSION });
@@ -96,8 +102,8 @@ export function deserializeScene(json: string): MapScene | null {
     cols: raw['cols'] as number,
     rows: raw['rows'] as number,
     cellPx: raw['cellPx'] as number,
-    background: typeof raw['background'] === 'string' ? raw['background'] : '#1b1b1f',
-    gridColor: typeof raw['gridColor'] === 'string' ? raw['gridColor'] : '#00000080',
+    background: typeof raw['background'] === 'string' ? raw['background'] : DEFAULT_SCENE_BACKGROUND,
+    gridColor: typeof raw['gridColor'] === 'string' ? raw['gridColor'] : DEFAULT_SCENE_GRID_COLOR,
     gridVisible: raw['gridVisible'] !== false,
     layers: rawLayers.map((l) => sanitizeLayer(l as Record<string, unknown>)),
   };

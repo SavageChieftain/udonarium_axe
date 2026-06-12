@@ -40,13 +40,19 @@ import { TranslocoModule } from '@jsverse/transloco';
 interface ToolDef {
   tool: EditorTool;
   icon: string;
+  key: string;
 }
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-map-maker-panel',
   templateUrl: './map-maker-panel.component.html',
-  host: { class: 'block h-full', tabindex: '0', '(keydown)': 'onKeyDown($event)' },
+  host: {
+    class: 'block h-full',
+    tabindex: '0',
+    '(keydown)': 'onKeyDown($event)',
+    '(keyup)': 'onKeyUp($event)',
+  },
   providers: [MapMakerState],
   imports: [FormsModule, TranslocoModule],
 })
@@ -63,21 +69,24 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
   private readonly textInputRef = viewChild<ElementRef<HTMLInputElement>>('textInput');
+  private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
   protected readonly tools: ToolDef[] = [
-    { tool: 'select', icon: 'pan_tool_alt' },
-    { tool: 'cellPaint', icon: 'format_color_fill' },
-    { tool: 'cellErase', icon: 'auto_fix_normal' },
-    { tool: 'fill', icon: 'format_paint' },
-    { tool: 'rect', icon: 'crop_square' },
-    { tool: 'ellipse', icon: 'circle' },
-    { tool: 'line', icon: 'show_chart' },
-    { tool: 'polygon', icon: 'polyline' },
-    { tool: 'wall', icon: 'fence' },
-    { tool: 'stamp', icon: 'approval' },
-    { tool: 'freehand', icon: 'gesture' },
-    { tool: 'text', icon: 'title' },
+    { tool: 'select', icon: 'pan_tool_alt', key: 'V' },
+    { tool: 'cellPaint', icon: 'format_color_fill', key: 'B' },
+    { tool: 'cellErase', icon: 'auto_fix_normal', key: 'E' },
+    { tool: 'fill', icon: 'format_paint', key: 'G' },
+    { tool: 'rect', icon: 'crop_square', key: 'R' },
+    { tool: 'ellipse', icon: 'circle', key: 'O' },
+    { tool: 'line', icon: 'show_chart', key: 'L' },
+    { tool: 'polygon', icon: 'polyline', key: 'P' },
+    { tool: 'wall', icon: 'fence', key: 'W' },
+    { tool: 'stamp', icon: 'approval', key: 'S' },
+    { tool: 'freehand', icon: 'gesture', key: 'F' },
+    { tool: 'text', icon: 'title', key: 'T' },
   ];
+
+  private readonly shortcutToTool = new Map<string, EditorTool>(this.tools.map((d) => [d.key, d.tool]));
 
   protected readonly textureIds = TEXTURE_IDS;
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
@@ -88,6 +97,9 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private readonly pendingStamps = new Set<string>();
 
   protected readonly cursorCell = signal<{ col: number; row: number } | null>(null);
+  protected readonly spacePan = signal(false);
+  protected readonly panning = signal(false);
+  protected readonly draftCount = signal(0);
   protected readonly pendingText = signal<{ x: number; y: number } | null>(null);
   protected readonly textDraft = signal('');
   protected readonly addLayerMenuOpen = signal(false);
@@ -105,7 +117,10 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private freehandPoints: number[] = [];
   private dragging = false;
   private lastPaintedCell: string | null = null;
+  private lastPaintedCol = NaN;
+  private lastPaintedRow = NaN;
   private lastMove: { x: number; y: number } | null = null;
+  private panLast: { x: number; y: number } | null = null;
 
   protected readonly isGameMaster = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
@@ -135,6 +150,16 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   protected readonly categoryStamps = computed<StampDef[]>(() => getStampsByCategory(this.state.stampCategory()));
 
+  protected readonly canvasCursor = computed(() => {
+    if (this.spacePan()) return this.panning() ? 'grabbing' : 'grab';
+    return this.state.tool() === 'select' ? 'default' : 'crosshair';
+  });
+
+  protected readonly canFinishDraft = computed(() => {
+    const n = this.draftCount();
+    return this.state.tool() === 'polygon' ? n >= 3 : n >= 2;
+  });
+
   constructor() {
     queueMicrotask(() => (this.panelService.title = this.t('feature.mapMaker.title')));
     effect(() => {
@@ -155,6 +180,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   }
   private bumpDraft(): void {
     this.draftSignal.update((v) => v + 1);
+    this.draftCount.set(this.draftPoints.length / 2);
   }
 
   protected stampDataUri(def: StampDef, color: string | null): string {
@@ -212,6 +238,22 @@ export class MapMakerPanelComponent implements AfterViewInit {
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
 
+    if ((tool === 'cellPaint' || tool === 'cellErase' || tool === 'fill') && this.lastMove && !this.panning()) {
+      const cellPx = this.state.current.cellPx;
+      const col = Math.floor(this.lastMove.x / cellPx);
+      const row = Math.floor(this.lastMove.y / cellPx);
+      if (col >= 0 && row >= 0 && col < this.state.current.cols && row < this.state.current.rows) {
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(91, 157, 255, 0.25)';
+        ctx.strokeStyle = '#5b9dff';
+        ctx.lineWidth = 1;
+        ctx.fillRect(col * cellPx, row * cellPx, cellPx, cellPx);
+        ctx.strokeRect(col * cellPx + 0.5, row * cellPx + 0.5, cellPx - 1, cellPx - 1);
+        ctx.restore();
+      }
+    }
+
     if (this.draftStart && this.draftCurrent && (tool === 'rect' || tool === 'ellipse' || tool === 'line')) {
       const x = Math.min(this.draftStart.x, this.draftCurrent.x);
       const y = Math.min(this.draftStart.y, this.draftCurrent.y);
@@ -245,13 +287,18 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (tool === 'stamp' && this.lastMove && this.state.stampId()) {
       const def = getStampById(this.state.stampId()!);
       if (def) {
-        const image = getStampImage(def, this.state.stampSize(), this.state.stampColor());
+        const size = this.state.stampSize();
+        const image = getStampImage(def, size, this.state.stampColor());
         if (image) {
-          ctx.globalAlpha = 0.5;
           const center = this.stampCenter(this.lastMove.x, this.lastMove.y);
-          const half = this.state.stampSize() / 2;
-          ctx.drawImage(image, center.x - half, center.y - half, this.state.stampSize(), this.state.stampSize());
-          ctx.globalAlpha = 1;
+          const half = size / 2;
+          ctx.save();
+          ctx.globalAlpha = 0.5;
+          ctx.translate(center.x, center.y);
+          if (this.state.stampRotation()) ctx.rotate((this.state.stampRotation() * Math.PI) / 180);
+          ctx.scale(this.state.stampFlipX() ? -1 : 1, this.state.stampFlipY() ? -1 : 1);
+          ctx.drawImage(image, -half, -half, size, size);
+          ctx.restore();
         }
       }
     }
@@ -286,21 +333,31 @@ export class MapMakerPanelComponent implements AfterViewInit {
         if (item.shape === 'rect' || item.shape === 'ellipse') {
           ctx.strokeRect(p[0] ?? 0, p[1] ?? 0, p[2] ?? 0, p[3] ?? 0);
         } else {
-          let minX = Infinity;
-          let minY = Infinity;
-          let maxX = -Infinity;
-          let maxY = -Infinity;
-          for (let i = 0; i + 1 < p.length; i += 2) {
-            minX = Math.min(minX, p[i]);
-            maxX = Math.max(maxX, p[i]);
-            minY = Math.min(minY, p[i + 1]);
-            maxY = Math.max(maxY, p[i + 1]);
-          }
-          if (Number.isFinite(minX)) ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+          this.strokePolylineBbox(ctx, p);
         }
       }
+    } else if (layer.kind === 'wall') {
+      const seg = layer.segments.find((s) => s.id === itemId);
+      if (seg) this.strokePolylineBbox(ctx, seg.points);
+    } else if (layer.kind === 'freehand') {
+      const stroke = layer.strokes.find((s) => s.id === itemId);
+      if (stroke) this.strokePolylineBbox(ctx, stroke.points);
     }
     ctx.restore();
+  }
+
+  private strokePolylineBbox(ctx: CanvasRenderingContext2D, p: number[]): void {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i + 1 < p.length; i += 2) {
+      minX = Math.min(minX, p[i]);
+      maxX = Math.max(maxX, p[i]);
+      minY = Math.min(minY, p[i + 1]);
+      maxY = Math.max(maxY, p[i + 1]);
+    }
+    if (Number.isFinite(minX)) ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
   }
 
   protected setTool(tool: EditorTool): void {
@@ -326,8 +383,15 @@ export class MapMakerPanelComponent implements AfterViewInit {
   }
 
   protected onPointerDown(event: PointerEvent): void {
-    if (event.button !== 0) return;
     const canvas = this.board()!.nativeElement;
+    if (event.button === 1 || (event.button === 0 && this.spacePan())) {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      this.panning.set(true);
+      this.panLast = { x: event.clientX, y: event.clientY };
+      return;
+    }
+    if (event.button !== 0) return;
     canvas.setPointerCapture(event.pointerId);
     const pos = this.toScene(event);
     const tool = this.state.tool();
@@ -343,6 +407,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (tool === 'cellPaint' || tool === 'cellErase') {
       this.state.beginGesture();
       this.lastPaintedCell = null;
+      this.lastPaintedCol = NaN;
+      this.lastPaintedRow = NaN;
       this.paintAt(pos, tool);
       return;
     }
@@ -388,6 +454,16 @@ export class MapMakerPanelComponent implements AfterViewInit {
   }
 
   protected onPointerMove(event: PointerEvent): void {
+    if (this.panning() && this.panLast) {
+      event.preventDefault();
+      const container = this.stage()?.nativeElement;
+      if (container) {
+        container.scrollLeft -= event.clientX - this.panLast.x;
+        container.scrollTop -= event.clientY - this.panLast.y;
+      }
+      this.panLast = { x: event.clientX, y: event.clientY };
+      return;
+    }
     const pos = this.toScene(event);
     const cellPx = this.state.current.cellPx;
     this.cursorCell.set({ col: Math.floor(pos.x / cellPx), row: Math.floor(pos.y / cellPx) });
@@ -401,6 +477,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (!this.dragging) {
       if (tool === 'polygon' || tool === 'wall') {
         this.draftCurrent = { x: pos.x, y: pos.y };
+      }
+      if (tool === 'cellPaint' || tool === 'cellErase' || tool === 'fill' || tool === 'polygon' || tool === 'wall') {
         this.bumpDraft();
       }
       return;
@@ -437,6 +515,11 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected onPointerUp(event: PointerEvent): void {
     const canvas = this.board()!.nativeElement;
     canvas.releasePointerCapture?.(event.pointerId);
+    if (this.panning()) {
+      this.panning.set(false);
+      this.panLast = null;
+      return;
+    }
     const tool = this.state.tool();
 
     if (tool === 'select' && this.dragging) {
@@ -446,6 +529,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
     } else if ((tool === 'cellPaint' || tool === 'cellErase') && this.dragging) {
       this.state.endGesture();
       this.lastPaintedCell = null;
+      this.lastPaintedCol = NaN;
+      this.lastPaintedRow = NaN;
     } else if ((tool === 'rect' || tool === 'ellipse' || tool === 'line') && this.draftStart && this.draftCurrent) {
       const w = Math.abs(this.draftCurrent.x - this.draftStart.x);
       const h = Math.abs(this.draftCurrent.y - this.draftStart.y);
@@ -474,10 +559,51 @@ export class MapMakerPanelComponent implements AfterViewInit {
     this.commitDraftPolyline();
   }
 
+  protected finishDraft(): void {
+    this.commitDraftPolyline();
+  }
+
+  protected cancelDraftPublic(): void {
+    this.cancelDraft();
+  }
+
   private paintAt(pos: { x: number; y: number }, tool: EditorTool): void {
     const cellPx = this.state.current.cellPx;
     const col = Math.floor(pos.x / cellPx);
     const row = Math.floor(pos.y / cellPx);
+    if (Number.isNaN(this.lastPaintedCol)) {
+      this.paintCellAt(col, row, tool);
+    } else {
+      this.walkCells(this.lastPaintedCol, this.lastPaintedRow, col, row, tool);
+    }
+    this.lastPaintedCol = col;
+    this.lastPaintedRow = row;
+  }
+
+  private walkCells(x0: number, y0: number, x1: number, y1: number, tool: EditorTool): void {
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    let cx = x0;
+    let cy = y0;
+    for (;;) {
+      this.paintCellAt(cx, cy, tool);
+      if (cx === x1 && cy === y1) break;
+      const e2 = 2 * err;
+      if (e2 > -dy) {
+        err -= dy;
+        cx += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        cy += sy;
+      }
+    }
+  }
+
+  private paintCellAt(col: number, row: number, tool: EditorTool): void {
     if (col < 0 || row < 0 || col >= this.state.current.cols || row >= this.state.current.rows) return;
     const key = cellKey(col, row);
     if (key === this.lastPaintedCell) return;
@@ -506,9 +632,22 @@ export class MapMakerPanelComponent implements AfterViewInit {
     this.bumpDraft();
   }
 
+  private isTypingTarget(event: KeyboardEvent): boolean {
+    const target = event.target as HTMLElement | null;
+    return !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT');
+  }
+
+  protected onKeyUp(event: KeyboardEvent): void {
+    if (event.code === 'Space') this.spacePan.set(false);
+  }
+
   protected onKeyDown(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) return;
+    if (this.isTypingTarget(event)) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      this.spacePan.set(true);
+      return;
+    }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !event.shiftKey) {
       event.preventDefault();
       this.state.undo();
@@ -539,13 +678,44 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.commitDraftPolyline();
       return;
     }
+    if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+      const tool = this.shortcutToTool.get(event.key.toUpperCase());
+      if (tool) {
+        event.preventDefault();
+        this.setTool(tool);
+      }
+    }
   }
 
   protected onWheel(event: WheelEvent): void {
     if (!(event.ctrlKey || event.metaKey)) return;
     event.preventDefault();
+    const before = this.state.zoom();
     const delta = event.deltaY < 0 ? 1.1 : 1 / 1.1;
-    this.state.zoom.update((z) => Math.max(0.25, Math.min(3, z * delta)));
+    const after = Math.max(0.25, Math.min(3, before * delta));
+    if (after === before) return;
+    const container = this.stage()?.nativeElement;
+    const canvas = this.board()?.nativeElement;
+    if (!container || !canvas) {
+      this.applyZoom(after);
+      return;
+    }
+    const canvasRect = canvas.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const offsetX = canvasRect.left - containerRect.left + container.scrollLeft;
+    const offsetY = canvasRect.top - containerRect.top + container.scrollTop;
+    const sceneX = (event.clientX - canvasRect.left) / before;
+    const sceneY = (event.clientY - canvasRect.top) / before;
+    this.applyZoom(after);
+    const scene = this.state.current;
+    canvas.style.width = sceneWidthPx(scene) * after + 'px';
+    canvas.style.height = sceneHeightPx(scene) * after + 'px';
+    container.scrollLeft = offsetX + sceneX * after - (event.clientX - containerRect.left);
+    container.scrollTop = offsetY + sceneY * after - (event.clientY - containerRect.top);
+  }
+
+  private applyZoom(z: number): void {
+    this.state.zoom.set(z);
     this.draftSignal.update((v) => v + 1);
   }
 

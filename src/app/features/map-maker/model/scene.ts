@@ -1,5 +1,8 @@
 export const MAP_SCENE_VERSION = 1;
 
+export const DEFAULT_SCENE_BACKGROUND = '#ece6d9';
+export const DEFAULT_SCENE_GRID_COLOR = '#00000059';
+
 export type LayerKind = 'cell' | 'shape' | 'wall' | 'stamp' | 'freehand' | 'text';
 
 export type FillStyle =
@@ -133,8 +136,8 @@ export function createScene(cols = 20, rows = 15, cellPx = 64): MapScene {
     cols,
     rows,
     cellPx,
-    background: '#1b1b1f',
-    gridColor: '#00000080',
+    background: DEFAULT_SCENE_BACKGROUND,
+    gridColor: DEFAULT_SCENE_GRID_COLOR,
     gridVisible: true,
     layers: [],
   };

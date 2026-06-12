@@ -1,5 +1,12 @@
 import { MapMakerState } from '@axe/features/map-maker/editor/map-maker-state';
-import { CellLayer, StampLayer } from '@axe/features/map-maker/model/scene';
+import {
+  CellLayer,
+  DEFAULT_SCENE_BACKGROUND,
+  DEFAULT_SCENE_GRID_COLOR,
+  FreehandLayer,
+  StampLayer,
+  WallLayer,
+} from '@axe/features/map-maker/model/scene';
 
 describe('MapMakerState', () => {
   let state: MapMakerState;
@@ -109,6 +116,51 @@ describe('MapMakerState', () => {
     state.selection.set(hit);
     state.deleteSelection();
     expect(layer.items.length).toBe(0);
+    expect(state.selection()).toBeNull();
+  });
+
+  it('新規シーンは視認できる紙色の既定値を持つ', () => {
+    expect(state.current.background).toBe(DEFAULT_SCENE_BACKGROUND);
+    expect(state.current.gridColor).toBe(DEFAULT_SCENE_GRID_COLOR);
+  });
+
+  it('壁セグメントの hitTest / move / delete が動く', () => {
+    state.wallThickness.set(8);
+    state.addWall([0, 0, 100, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'wall') as WallLayer;
+    expect(layer.segments.length).toBe(1);
+
+    const hit = state.hitTest(50, 2);
+    expect(hit).not.toBeNull();
+    expect(hit!.itemId).toBe(layer.segments[0].id);
+    expect(state.hitTest(50, 200)).toBeNull();
+
+    state.selection.set(hit);
+    state.moveSelection(10, 20);
+    expect(layer.segments[0].points).toEqual([10, 20, 110, 20]);
+
+    state.deleteSelection();
+    expect(layer.segments.length).toBe(0);
+    expect(state.selection()).toBeNull();
+  });
+
+  it('フリーハンドの hitTest / move / delete が動く', () => {
+    state.freehandWidth.set(4);
+    state.addFreehand([0, 0, 100, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
+    expect(layer.strokes.length).toBe(1);
+
+    const hit = state.hitTest(50, 1);
+    expect(hit).not.toBeNull();
+    expect(hit!.itemId).toBe(layer.strokes[0].id);
+    expect(state.hitTest(50, 200)).toBeNull();
+
+    state.selection.set(hit);
+    state.moveSelection(5, 7);
+    expect(layer.strokes[0].points).toEqual([5, 7, 105, 7]);
+
+    state.deleteSelection();
+    expect(layer.strokes.length).toBe(0);
     expect(state.selection()).toBeNull();
   });
 

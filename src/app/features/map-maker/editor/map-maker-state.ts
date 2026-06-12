@@ -34,7 +34,9 @@ import {
   floodFill,
   removeShape,
   removeStamp,
+  removeStroke,
   removeText,
+  removeWallSegment,
   resizeScene,
   setCell,
   updateStamp,
@@ -358,6 +360,8 @@ export class MapMakerState {
       if (layer.kind === 'stamp') removeStamp(layer, sel.itemId);
       else if (layer.kind === 'text') removeText(layer, sel.itemId);
       else if (layer.kind === 'shape') removeShape(layer, sel.itemId);
+      else if (layer.kind === 'wall') removeWallSegment(layer, sel.itemId);
+      else if (layer.kind === 'freehand') removeStroke(layer, sel.itemId);
     });
     this.selection.set(null);
   }
@@ -380,6 +384,20 @@ export class MapMakerState {
         const shapeLayer = layer;
         const idx = shapeLayer.items.findIndex((i) => i.id === sel.itemId);
         if (idx !== -1) shapeLayer.items[idx] = { ...item, points: moved };
+      }
+    } else if (layer.kind === 'wall') {
+      const idx = layer.segments.findIndex((s) => s.id === sel.itemId);
+      if (idx !== -1) {
+        const seg = layer.segments[idx];
+        const moved = seg.points.map((v, i) => (i % 2 === 0 ? v + dxPx : v + dyPx));
+        layer.segments[idx] = { ...seg, points: moved };
+      }
+    } else if (layer.kind === 'freehand') {
+      const idx = layer.strokes.findIndex((s) => s.id === sel.itemId);
+      if (idx !== -1) {
+        const stroke = layer.strokes[idx];
+        const moved = stroke.points.map((v, i) => (i % 2 === 0 ? v + dxPx : v + dyPx));
+        layer.strokes[idx] = { ...stroke, points: moved };
       }
     }
     this.bump();
@@ -436,6 +454,17 @@ export class MapMakerState {
     return { minX, minY, maxX, maxY };
   }
 
+  private pointToPolylineDistance(px: number, py: number, points: number[]): number {
+    if (points.length < 2) return Infinity;
+    if (points.length < 4) return Math.hypot(px - points[0], py - points[1]);
+    let best = Infinity;
+    for (let i = 0; i + 3 < points.length; i += 2) {
+      const d = this.pointToSegmentDistance(px, py, points[i], points[i + 1], points[i + 2], points[i + 3]);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
   private pointToSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -474,6 +503,20 @@ export class MapMakerState {
           const b = this.textBbox(item);
           if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) {
             return { layerId: layer.id, itemId: item.id };
+          }
+        }
+      } else if (layer.kind === 'wall') {
+        for (let j = layer.segments.length - 1; j >= 0; j -= 1) {
+          const seg = layer.segments[j];
+          if (this.pointToPolylineDistance(x, y, seg.points) <= Math.max(6, seg.thickness / 2 + 2)) {
+            return { layerId: layer.id, itemId: seg.id };
+          }
+        }
+      } else if (layer.kind === 'freehand') {
+        for (let j = layer.strokes.length - 1; j >= 0; j -= 1) {
+          const stroke = layer.strokes[j];
+          if (this.pointToPolylineDistance(x, y, stroke.points) <= Math.max(6, stroke.width / 2 + 2)) {
+            return { layerId: layer.id, itemId: stroke.id };
           }
         }
       } else if (layer.kind === 'shape') {
