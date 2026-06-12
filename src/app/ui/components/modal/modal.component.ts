@@ -20,6 +20,11 @@ export class ModalComponent {
     return this.modalService.titleTooltip;
   }
 
+  get isFitWidth(): boolean {
+    const option = this.modalService.option;
+    return option != null && typeof option === 'object' && (option as Record<string, unknown>)['fitWidth'] === true;
+  }
+
   readonly content = viewChild.required('content', { read: ViewContainerRef });
 
   clickBackground(event: MouseEvent) {

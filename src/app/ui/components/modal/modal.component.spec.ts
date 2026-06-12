@@ -26,4 +26,21 @@ describe('ModalComponent', () => {
       expect(component.title).toBe('テストタイトル');
     });
   });
+
+  describe('fitWidth オプション', () => {
+    it('既定では固定幅クラスを持つこと', () => {
+      fixture.detectChanges();
+      const panel = fixture.nativeElement.querySelector('.animate-fly-in') as HTMLElement;
+      expect(panel.classList.contains('w-200')).toBe(true);
+      expect(panel.classList.contains('w-fit')).toBe(false);
+    });
+
+    it('option.fitWidth が true なら子コンポーネント駆動の幅になること', () => {
+      vi.spyOn(component.modalService, 'option', 'get').mockReturnValue({ fitWidth: true });
+      fixture.detectChanges();
+      const panel = fixture.nativeElement.querySelector('.animate-fly-in') as HTMLElement;
+      expect(panel.classList.contains('w-fit')).toBe(true);
+      expect(panel.classList.contains('w-200')).toBe(false);
+    });
+  });
 });
