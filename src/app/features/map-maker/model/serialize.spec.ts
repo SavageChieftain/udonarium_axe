@@ -261,6 +261,46 @@ describe('deserializeScene round-trip', () => {
     }
   });
 
+  it('round-trips curve and closedCurve shapes keeping fill on the closed one', () => {
+    const scene = createScene(5, 5, 64);
+    scene.layers = [
+      {
+        id: 'sh',
+        kind: 'shape',
+        name: 'shapes',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          {
+            id: 's1',
+            shape: 'curve',
+            points: [0, 0, 5, 5, 10, 0, 15, 5],
+            fill: null,
+            stroke: { color: '#000', width: 2 },
+            rotation: 0,
+          },
+          {
+            id: 's2',
+            shape: 'closedCurve',
+            points: [0, 0, 10, 0, 10, 10],
+            fill: { type: 'solid', color: '#0f0' },
+            stroke: { color: '#000', width: 2 },
+            rotation: 0,
+          },
+        ],
+      },
+    ];
+    const result = deserializeScene(serializeScene(scene));
+    const out = result!.layers[0];
+    expect(out.kind).toBe('shape');
+    if (out.kind === 'shape') {
+      expect(out.items[0].shape).toBe('curve');
+      expect(out.items[1].shape).toBe('closedCurve');
+      expect(out.items[1].fill).toEqual({ type: 'solid', color: '#0f0' });
+    }
+  });
+
   it('drops an invalid dash to undefined', () => {
     const scene = createScene(5, 5, 64);
     const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;

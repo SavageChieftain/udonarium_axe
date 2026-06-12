@@ -42,7 +42,7 @@ export interface CellLayer extends BaseLayer {
   cells: Record<string, FillStyle>;
 }
 
-export type ShapeKind = 'rect' | 'ellipse' | 'line' | 'polygon' | 'polyline';
+export type ShapeKind = 'rect' | 'ellipse' | 'line' | 'polygon' | 'polyline' | 'curve' | 'closedCurve';
 
 export interface ShapeItem {
   id: string;

@@ -137,7 +137,12 @@
         </div>
       }
 
-      @if (state.tool() === 'cellPaint' || state.tool() === 'fill' || state.tool() === 'shape') {
+      @if (
+        state.tool() === 'cellPaint' ||
+        state.tool() === 'fill' ||
+        state.tool() === 'shape' ||
+        (state.tool() === 'line' && state.lineKind() === 'closedCurve')
+      ) {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.props.fill' | transloco }}</div>
           <div class="flex gap-1">

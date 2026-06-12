@@ -1342,7 +1342,9 @@
         },
         "lineKinds": {
           "straight": "直線",
-          "polyline": "折れ線"
+          "polyline": "折れ線",
+          "curve": "曲線",
+          "closedCurve": "閉じ曲線"
         }
       },
       "layers": {

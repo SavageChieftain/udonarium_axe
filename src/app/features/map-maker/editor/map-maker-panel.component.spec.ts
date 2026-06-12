@@ -147,6 +147,48 @@ describe('MapMakerPanelComponent', () => {
     expect(item.points).toEqual([0, 0, 50, 0, 50, 50]);
   });
 
+  it('線ツールの種類ピッカーは 4 つのボタンを表示する', () => {
+    TestBed.inject(ObjectChangeService);
+    PeerCursor.createMyCursor();
+    PeerCursor.myCursor.role = PeerRole.GameMaster;
+    component['state'].tool.set('line');
+    fixture.detectChanges();
+    const t = (component as unknown as { t: (k: string) => string }).t;
+    const expected = ['straight', 'polyline', 'curve', 'closedCurve'].map((k) =>
+      t('feature.mapMaker.props.lineKinds.' + k)
+    );
+    const titles = Array.from(fixture.nativeElement.querySelectorAll('button[title]')).map((b) =>
+      (b as HTMLElement).getAttribute('title')
+    );
+    const kindTitles = titles.filter((title) => expected.includes(title as string));
+    expect(kindTitles.length).toBe(4);
+  });
+
+  it('curve は頂点クリックと Enter で curve シェイプを作る', () => {
+    component['state'].tool.set('line');
+    component['state'].lineKind.set('curve');
+    (component as unknown as { draftPoints: number[] }).draftPoints = [0, 0, 50, 0, 50, 50];
+    (component as unknown as { commitDraftPolyline: () => void }).commitDraftPolyline();
+    const shapeLayers = component['state'].current.layers.filter((l) => l.kind === 'shape') as ShapeLayer[];
+    const item = shapeLayers[0].items[0];
+    expect(item.shape).toBe('curve');
+    expect(item.fill).toBeNull();
+    expect(item.points).toEqual([0, 0, 50, 0, 50, 50]);
+  });
+
+  it('closedCurve は現在の塗りを受け取り 3 頂点で作られる', () => {
+    component['state'].tool.set('line');
+    component['state'].lineKind.set('closedCurve');
+    component['state'].fillMode.set('solid');
+    component['state'].solidColor.set('#123456');
+    (component as unknown as { draftPoints: number[] }).draftPoints = [0, 0, 50, 0, 50, 50];
+    (component as unknown as { commitDraftPolyline: () => void }).commitDraftPolyline();
+    const shapeLayers = component['state'].current.layers.filter((l) => l.kind === 'shape') as ShapeLayer[];
+    const item = shapeLayers[0].items[0];
+    expect(item.shape).toBe('closedCurve');
+    expect(item.fill).toEqual({ type: 'solid', color: '#123456' });
+  });
+
   it('lineKind を切り替えるとドラフトがキャンセルされる', () => {
     component['state'].tool.set('line');
     component['state'].lineKind.set('polyline');

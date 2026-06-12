@@ -1,5 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCircumradius, hexStartAngle, isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { catmullRomSegments } from '@axe/features/map-maker/model/curve-geometry';
 import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import {
   FillStyle,
@@ -114,6 +115,17 @@ function pathShape(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
     ctx.ellipse((p[0] ?? 0) + w / 2, (p[1] ?? 0) + h / 2, Math.abs(w / 2), Math.abs(h / 2), 0, 0, Math.PI * 2);
     return;
   }
+  if (item.shape === 'curve' || item.shape === 'closedCurve') {
+    ctx.beginPath();
+    if (p.length >= 2) {
+      ctx.moveTo(p[0], p[1]);
+      for (const seg of catmullRomSegments(p, item.shape === 'closedCurve')) {
+        ctx.bezierCurveTo(seg.c1x, seg.c1y, seg.c2x, seg.c2y, seg.x, seg.y);
+      }
+      if (item.shape === 'closedCurve') ctx.closePath();
+    }
+    return;
+  }
   ctx.beginPath();
   if (p.length >= 2) {
     ctx.moveTo(p[0], p[1]);
@@ -134,7 +146,7 @@ function drawShapeItem(ctx: CanvasRenderingContext2D, item: ShapeItem, helpers: 
   }
   if (item.shadow) applyShadow(ctx, item.shadow);
   pathShape(ctx, item);
-  const fillable = item.shape !== 'line' && item.shape !== 'polyline';
+  const fillable = item.shape !== 'line' && item.shape !== 'polyline' && item.shape !== 'curve';
   if (item.fill && fillable) {
     const fill = resolveFill(item.fill, helpers, cellPx);
     if (fill) {

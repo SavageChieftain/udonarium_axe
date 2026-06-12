@@ -31,7 +31,15 @@ const VALID_KINDS = new Set(['cell', 'shape', 'wall', 'stamp', 'freehand', 'text
 
 const VALID_DASHES = new Set<StrokeDash>(['solid', 'dashed', 'dotted', 'dashdot', 'longdash']);
 
-const VALID_SHAPE_KINDS = new Set<ShapeItem['shape']>(['rect', 'ellipse', 'line', 'polygon', 'polyline']);
+const VALID_SHAPE_KINDS = new Set<ShapeItem['shape']>([
+  'rect',
+  'ellipse',
+  'line',
+  'polygon',
+  'polyline',
+  'curve',
+  'closedCurve',
+]);
 
 function sanitizeDash(value: unknown): StrokeDash | undefined {
   return typeof value === 'string' && VALID_DASHES.has(value as StrokeDash) ? (value as StrokeDash) : undefined;

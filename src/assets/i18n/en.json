@@ -1342,7 +1342,9 @@
         },
         "lineKinds": {
           "straight": "Straight",
-          "polyline": "Polyline"
+          "polyline": "Polyline",
+          "curve": "Curve",
+          "closedCurve": "Closed curve"
         }
       },
       "layers": {

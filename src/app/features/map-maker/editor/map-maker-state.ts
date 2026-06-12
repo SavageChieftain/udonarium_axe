@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { StampCategory } from '@axe/features/map-maker/assets/stamp-types';
+import { sampleCurvePoints } from '@axe/features/map-maker/model/curve-geometry';
 import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import { SceneHistory } from '@axe/features/map-maker/model/history';
 import {
@@ -68,7 +69,7 @@ export type EditorTool =
   | 'stamp'
   | 'image';
 
-export type LineKind = 'straight' | 'polyline';
+export type LineKind = 'straight' | 'polyline' | 'curve' | 'closedCurve';
 
 export type ShapeGeneratorKind = 'rect' | 'ellipse' | 'triangle' | 'pentagon' | 'hexagon' | 'star5' | 'star6';
 
@@ -635,6 +636,11 @@ export class MapMakerState {
           } else if (item.shape === 'polyline') {
             const width = item.stroke ? item.stroke.width : 1;
             if (this.pointToPolylineDistance(x, y, item.points) <= Math.max(6, width)) {
+              return { layerId: layer.id, itemId: item.id };
+            }
+          } else if (item.shape === 'curve') {
+            const width = item.stroke ? item.stroke.width : 1;
+            if (this.pointToPolylineDistance(x, y, sampleCurvePoints(item.points, false)) <= Math.max(6, width)) {
               return { layerId: layer.id, itemId: item.id };
             }
           } else {

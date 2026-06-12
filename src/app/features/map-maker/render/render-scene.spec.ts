@@ -66,6 +66,7 @@ function createMockCtx(): CanvasRenderingContext2D & MockCtx {
     'ellipse',
     'arc',
     'quadraticCurveTo',
+    'bezierCurveTo',
     'fill',
     'stroke',
     'fillText',
@@ -509,6 +510,60 @@ describe('renderScene', () => {
     expect(ctx.counts('fill')).toBe(0);
     expect(ctx.counts('closePath')).toBe(0);
     expect(ctx.counts('lineTo')).toBe(2);
+  });
+
+  it('strokes a curve via bezierCurveTo without filling or closing', () => {
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'curve',
+          points: [0, 0, 4, 4, 8, 0, 12, 4],
+          fill: { type: 'solid', color: '#f00' },
+          stroke: { color: '#000', width: 1 },
+          rotation: 0,
+        },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    expect(ctx.counts('bezierCurveTo')).toBeGreaterThanOrEqual(1);
+    expect(ctx.counts('stroke')).toBe(1);
+    expect(ctx.counts('fill')).toBe(0);
+    expect(ctx.counts('closePath')).toBe(0);
+  });
+
+  it('fills and closes a closedCurve via bezierCurveTo when fill present', () => {
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'closedCurve',
+          points: [0, 0, 8, 0, 8, 8],
+          fill: { type: 'solid', color: '#0f0' },
+          stroke: { color: '#000', width: 1 },
+          rotation: 0,
+        },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    expect(ctx.counts('bezierCurveTo')).toBeGreaterThanOrEqual(1);
+    expect(ctx.counts('closePath')).toBe(1);
+    expect(ctx.counts('fill')).toBe(1);
+    expect(ctx.counts('stroke')).toBe(1);
   });
 
   it('clips an image to grid cells and draws it unrotated when clipToCells is set', () => {

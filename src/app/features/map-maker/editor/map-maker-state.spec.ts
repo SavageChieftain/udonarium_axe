@@ -1,5 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { MapMakerState } from '@axe/features/map-maker/editor/map-maker-state';
+import { sampleCurvePoints } from '@axe/features/map-maker/model/curve-geometry';
 import {
   CellLayer,
   DEFAULT_SCENE_BACKGROUND,
@@ -254,6 +255,32 @@ describe('MapMakerState', () => {
 
     state.deleteSelection();
     expect(layer.items.length).toBe(0);
+  });
+
+  it('curve の hitTest が直線の弦から外れたスプライン上の点に当たる', () => {
+    state.snapEnabled.set(false);
+    state.strokeWidth.set(4);
+    state.addShapeItem('curve', [0, 0, 50, 100, 100, 0, 150, 100], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items[0].shape).toBe('curve');
+
+    const sampled = sampleCurvePoints(layer.items[0].points, false);
+    let bestIdx = 0;
+    let bestBulge = -Infinity;
+    for (let i = 2; i + 1 < sampled.length; i += 2) {
+      const t = sampled[i] / 150;
+      const chordY = 0 + t * 0;
+      const bulge = Math.abs(sampled[i + 1] - chordY);
+      if (bulge > bestBulge && sampled[i] > 5 && sampled[i] < 145) {
+        bestBulge = bulge;
+        bestIdx = i;
+      }
+    }
+    expect(bestBulge).toBeGreaterThan(20);
+    const hit = state.hitTest(sampled[bestIdx], sampled[bestIdx + 1]);
+    expect(hit).not.toBeNull();
+    expect(hit!.itemId).toBe(layer.items[0].id);
+    expect(state.hitTest(75, 300)).toBeNull();
   });
 
   it('updateSelectedImage で clipToCells が保持される', () => {

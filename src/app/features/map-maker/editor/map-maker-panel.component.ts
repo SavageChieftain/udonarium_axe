@@ -34,6 +34,7 @@ import {
   TextureCropDialogComponent,
   TextureCropDialogOption,
 } from '@axe/features/map-maker/editor/texture-crop-dialog.component';
+import { catmullRomSegments } from '@axe/features/map-maker/model/curve-geometry';
 import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import {
   cellKey,
@@ -155,7 +156,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   ];
 
   protected readonly dashKinds: StrokeDash[] = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash'];
-  protected readonly lineKinds: LineKind[] = ['straight', 'polyline'];
+  protected readonly lineKinds: LineKind[] = ['straight', 'polyline', 'curve', 'closedCurve'];
 
   protected readonly shapeKinds: ShapeGeneratorKind[] = [
     'rect',
@@ -299,6 +300,12 @@ export class MapMakerPanelComponent implements AfterViewInit {
     let inner: string;
     if (kind === 'straight') {
       inner = '<line x1="4" y1="18" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    } else if (kind === 'curve') {
+      inner =
+        '<path d="M3 18 C 7 4 13 22 21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    } else if (kind === 'closedCurve') {
+      inner =
+        '<path d="M12 4 C 18 4 21 9 19 14 C 17 19 9 20 6 16 C 3 12 6 4 12 4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>';
     } else {
       inner =
         '<polyline points="3,18 9,8 15,14 21,5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
@@ -463,27 +470,46 @@ export class MapMakerPanelComponent implements AfterViewInit {
     }
 
     if (
-      (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.state.lineKind() === 'polyline')) &&
+      (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.multiClickLine())) &&
       this.draftPoints.length >= 2
     ) {
-      if (tool === 'polygon' && this.draftPoints.length >= 4) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
+      const lineKind = this.state.lineKind();
+      const smooth = tool === 'line' && (lineKind === 'curve' || lineKind === 'closedCurve');
+      if (smooth) {
+        const verts = this.draftPoints.slice();
+        if (this.draftCurrent) verts.push(this.draftCurrent.x, this.draftCurrent.y);
+        const closed = lineKind === 'closedCurve';
+        if (closed && verts.length >= 6) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
+          this.traceCurvePath(ctx, verts, true);
+          ctx.fill();
+          ctx.restore();
+        }
+        this.traceCurvePath(ctx, verts, closed);
+        ctx.stroke();
+        this.drawSegmentMeasure(ctx);
+      } else {
+        if (tool === 'polygon' && this.draftPoints.length >= 4) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
+          ctx.beginPath();
+          ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
+          for (let i = 2; i + 1 < this.draftPoints.length; i += 2)
+            ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
+          if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
         ctx.beginPath();
         ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
         for (let i = 2; i + 1 < this.draftPoints.length; i += 2)
           ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
         if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
+        ctx.stroke();
+        this.drawSegmentMeasure(ctx);
       }
-      ctx.beginPath();
-      ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
-      for (let i = 2; i + 1 < this.draftPoints.length; i += 2) ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
-      if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
-      ctx.stroke();
-      this.drawSegmentMeasure(ctx);
     }
 
     if (tool === 'line' && this.state.lineKind() === 'straight' && this.draftStart && this.draftCurrent) {
@@ -629,6 +655,16 @@ export class MapMakerPanelComponent implements AfterViewInit {
     return -1;
   }
 
+  private traceCurvePath(ctx: CanvasRenderingContext2D, verts: number[], closed: boolean): void {
+    ctx.beginPath();
+    if (verts.length < 2) return;
+    ctx.moveTo(verts[0], verts[1]);
+    for (const seg of catmullRomSegments(verts, closed)) {
+      ctx.bezierCurveTo(seg.c1x, seg.c1y, seg.c2x, seg.c2y, seg.x, seg.y);
+    }
+    if (closed) ctx.closePath();
+  }
+
   private strokePolylineBbox(ctx: CanvasRenderingContext2D, p: number[]): void {
     let minX = Infinity;
     let minY = Infinity;
@@ -739,6 +775,11 @@ export class MapMakerPanelComponent implements AfterViewInit {
     this.state.lineKind.set(kind);
   }
 
+  private multiClickLine(): boolean {
+    const kind = this.state.lineKind();
+    return kind === 'polyline' || kind === 'curve' || kind === 'closedCurve';
+  }
+
   private toScene(event: PointerEvent): { x: number; y: number } {
     const canvas = this.board()!.nativeElement;
     const rect = canvas.getBoundingClientRect();
@@ -809,7 +850,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.bumpDraft();
       return;
     }
-    if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.state.lineKind() === 'polyline')) {
+    if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.multiClickLine())) {
       const snapped = this.state.snapPoint(pos.x, pos.y);
       this.draftPoints.push(snapped.x, snapped.y);
       this.draftCurrent = { x: pos.x, y: pos.y };
@@ -865,7 +906,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       return;
     }
     if (!this.dragging) {
-      if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.state.lineKind() === 'polyline')) {
+      if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.multiClickLine())) {
         this.draftCurrent = { x: pos.x, y: pos.y };
       }
       if (
@@ -874,7 +915,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
         tool === 'fill' ||
         tool === 'polygon' ||
         tool === 'wall' ||
-        (tool === 'line' && this.state.lineKind() === 'polyline')
+        (tool === 'line' && this.multiClickLine())
       ) {
         this.bumpDraft();
       }
@@ -1021,6 +1062,10 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.state.addShapeItem('polygon', this.draftPoints.slice(), this.state.currentFill(), this.shapeLayerName());
     } else if (tool === 'line' && this.state.lineKind() === 'polyline' && this.draftPoints.length >= 4) {
       this.state.addShapeItem('polyline', this.draftPoints.slice(), null, this.shapeLayerName());
+    } else if (tool === 'line' && this.state.lineKind() === 'curve' && this.draftPoints.length >= 4) {
+      this.state.addShapeItem('curve', this.draftPoints.slice(), null, this.shapeLayerName());
+    } else if (tool === 'line' && this.state.lineKind() === 'closedCurve' && this.draftPoints.length >= 6) {
+      this.state.addShapeItem('closedCurve', this.draftPoints.slice(), this.state.currentFill(), this.shapeLayerName());
     } else if (tool === 'wall' && this.draftPoints.length >= 4) {
       this.state.addWall(this.draftPoints.slice());
     }
@@ -1046,8 +1091,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
     let label: string;
     if (tool === 'polygon') {
       label = this.t('feature.mapMaker.tools.polygon');
-    } else if (tool === 'line' && this.state.lineKind() === 'polyline') {
-      label = this.t('feature.mapMaker.props.lineKinds.polyline');
+    } else if (tool === 'line' && this.multiClickLine()) {
+      label = this.t('feature.mapMaker.props.lineKinds.' + this.state.lineKind());
     } else {
       label = this.t('feature.mapMaker.props.shapeKinds.' + this.state.shapeKind());
     }
