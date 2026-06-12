@@ -32,7 +32,13 @@ test.describe('暗闇（ステージ効果）', () => {
       const element = document.querySelector('game-table');
       if (!ng || !element) return false;
       const component = ng.getComponent(element) as {
-        currentTable?: { width: number; height: number; gridSize: number; darknessEnabled: boolean; update?: () => void };
+        currentTable?: {
+          width: number;
+          height: number;
+          gridSize: number;
+          darknessEnabled: boolean;
+          update?: () => void;
+        };
       };
       const table = component?.currentTable;
       if (!table) return false;
@@ -48,7 +54,10 @@ test.describe('暗闇（ステージ効果）', () => {
     const tableArea = await page.evaluate(() => {
       const element = document.querySelector('game-table');
       const ng = window.ng;
-      const component = element && ng ? (ng.getComponent(element) as { currentTable?: { width: number; height: number; gridSize: number } }) : null;
+      const component =
+        element && ng
+          ? (ng.getComponent(element) as { currentTable?: { width: number; height: number; gridSize: number } })
+          : null;
       const table = component?.currentTable;
       return table ? { w: table.width * table.gridSize, h: table.height * table.gridSize } : { w: 0, h: 0 };
     });
