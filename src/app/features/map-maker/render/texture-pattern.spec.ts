@@ -3,6 +3,7 @@ import {
   clearTextureTileCache,
   createImageTexturePattern,
   createTexturePattern,
+  drawWrapped,
   tileableValueNoise,
 } from '@axe/features/map-maker/render/texture-pattern';
 import { describe, expect, it } from 'vitest';
@@ -45,6 +46,25 @@ describe('createTexturePattern', () => {
       },
     } as unknown as CanvasRenderingContext2D;
     expect(createTexturePattern(ctx, 'stone', 40)).toBeNull();
+  });
+});
+
+describe('drawWrapped', () => {
+  const noop = {} as unknown as CanvasRenderingContext2D;
+
+  it('invokes the draw callback at the 9 wrapped offsets', () => {
+    const offsets: { x: number; y: number }[] = [];
+    drawWrapped(noop, 100, 10, 20, (dx, dy) => offsets.push({ x: dx, y: dy }));
+    expect(offsets).toHaveLength(9);
+  });
+
+  it('places offsets one tile apart in each axis', () => {
+    const offsets: { x: number; y: number }[] = [];
+    drawWrapped(noop, 50, 5, 5, (dx, dy) => offsets.push({ x: dx, y: dy }));
+    const xs = [...new Set(offsets.map((o) => o.x))].sort((a, b) => a - b);
+    const ys = [...new Set(offsets.map((o) => o.y))].sort((a, b) => a - b);
+    expect(xs).toEqual([-45, 5, 55]);
+    expect(ys).toEqual([-45, 5, 55]);
   });
 });
 

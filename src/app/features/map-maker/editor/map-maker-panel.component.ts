@@ -1223,20 +1223,20 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.texturePreviewCache.set(id, '');
       return null;
     }
-    canvas.width = 64;
-    canvas.height = 64;
+    canvas.width = 128;
+    canvas.height = 128;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       this.texturePreviewCache.set(id, '');
       return null;
     }
-    const pattern = createTexturePattern(ctx, id, 32);
+    const pattern = createTexturePattern(ctx, id, 64);
     if (!pattern) {
       this.texturePreviewCache.set(id, '');
       return null;
     }
     ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillRect(0, 0, 128, 128);
     const data = canvas.toDataURL();
     this.texturePreviewCache.set(id, data);
     return data;
