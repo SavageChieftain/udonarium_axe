@@ -119,6 +119,80 @@ describe('MapMakerPanelComponent', () => {
     expect(layer.items[0].points.length).toBe(10);
   });
 
+  it('折れ線は3頂点で専用レイヤーへ stroke のみの polyline を作る', () => {
+    component['state'].tool.set('polyline');
+    component['state'].strokeDash.set('dashed');
+    (component as unknown as { draftPoints: number[] }).draftPoints = [0, 0, 50, 0, 50, 50];
+    (component as unknown as { commitDraftPolyline: () => void }).commitDraftPolyline();
+    const shapeLayers = component['state'].current.layers.filter((l) => l.kind === 'shape') as ShapeLayer[];
+    expect(shapeLayers.length).toBe(1);
+    const item = shapeLayers[0].items[0];
+    expect(item.shape).toBe('polyline');
+    expect(item.fill).toBeNull();
+    expect(item.stroke!.dash).toBe('dashed');
+    expect(item.points).toEqual([0, 0, 50, 0, 50, 50]);
+  });
+
+  it('画像のコーナードラッグは反対コーナー基準でリサイズし1履歴にまとまる', () => {
+    component['state'].placeImage(
+      { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 },
+      '画像 1'
+    );
+    const layer = component['state'].current.layers.find((l) => l.kind === 'image') as ImageLayer;
+    const id = layer.items[0].id;
+    component['state'].selection.set({ layerId: layer.id, itemId: id });
+
+    const c = component as unknown as {
+      imageResize: { item: unknown; anchorX: number; anchorY: number } | null;
+      resizeImageTo: (x: number, y: number) => void;
+    };
+    component['state'].beginGesture();
+    c.imageResize = { item: layer.items[0], anchorX: 60, anchorY: 70 };
+    c.resizeImageTo(200, 170);
+    c.resizeImageTo(260, 270);
+    component['state'].endGesture();
+    c.imageResize = null;
+
+    expect(layer.items[0].w).toBe(200);
+    expect(layer.items[0].h).toBe(200);
+    expect(layer.items[0].x).toBe(160);
+    expect(layer.items[0].y).toBe(170);
+
+    component['state'].undo();
+    const after = (component['state'].current.layers.find((l) => l.kind === 'image') as ImageLayer).items[0];
+    expect(after.w).toBe(80);
+    expect(after.h).toBe(60);
+  });
+
+  it('リサイズは min 8px へクランプする', () => {
+    component['state'].placeImage(
+      { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 },
+      '画像 1'
+    );
+    const layer = component['state'].current.layers.find((l) => l.kind === 'image') as ImageLayer;
+    component['state'].selection.set({ layerId: layer.id, itemId: layer.items[0].id });
+    const c = component as unknown as {
+      imageResize: { item: unknown; anchorX: number; anchorY: number } | null;
+      resizeImageTo: (x: number, y: number) => void;
+    };
+    c.imageResize = { item: layer.items[0], anchorX: 60, anchorY: 70 };
+    c.resizeImageTo(62, 71);
+    expect(layer.items[0].w).toBe(8);
+    expect(layer.items[0].h).toBe(8);
+  });
+
+  it('saveImage は常に drawGrid:false で書き出す', async () => {
+    const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
+    const exportStub = vi.fn().mockResolvedValue(blob);
+    (component as unknown as { exportFn: typeof exportSceneToBlob }).exportFn = exportStub;
+    imageStorage.addAsync.mockResolvedValue({ identifier: 'img-grid' });
+
+    await (component as unknown as { saveImage: () => Promise<void> }).saveImage();
+
+    expect(exportStub).toHaveBeenCalledOnce();
+    expect(exportStub.mock.calls[0][2]).toMatchObject({ drawGrid: false });
+  });
+
   it('画像配置フローは専用レイヤーへ画像を置きペンディングを保持する', async () => {
     imageStorage.get.mockReturnValue({ url: 'blob:test' });
     const image = { naturalWidth: 256, naturalHeight: 128, width: 256, height: 128 } as HTMLImageElement;

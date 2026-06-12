@@ -30,6 +30,7 @@ import {
   newId,
   sceneHeightPx,
   sceneWidthPx,
+  StrokeDash,
 } from '@axe/features/map-maker/model/scene';
 import { moveLayer, removeLayer } from '@axe/features/map-maker/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-maker/model/serialize';
@@ -88,6 +89,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
     { tool: 'fill', icon: 'format_paint', key: 'G' },
     { tool: 'shape', icon: 'category', key: 'R' },
     { tool: 'line', icon: 'show_chart', key: 'L' },
+    { tool: 'polyline', icon: 'timeline', key: 'N' },
     { tool: 'polygon', icon: 'polyline', key: 'P' },
     { tool: 'wall', icon: 'fence', key: 'W' },
     { tool: 'freehand', icon: 'gesture', key: 'F' },
@@ -95,6 +97,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
     { tool: 'stamp', icon: 'approval', key: 'S' },
     { tool: 'image', icon: 'image', key: 'I' },
   ];
+
+  protected readonly dashKinds: StrokeDash[] = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash'];
 
   protected readonly shapeKinds: ShapeGeneratorKind[] = [
     'rect',
@@ -136,7 +140,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected readonly notice = signal('');
   protected readonly errorNotice = signal('');
   protected readonly exportScale = signal(1);
-  protected readonly exportGrid = signal(true);
   protected readonly renamingLayerId = signal<string | null>(null);
 
   private draftPoints: number[] = [];
@@ -148,6 +151,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private lastPaintPx: { x: number; y: number } | null = null;
   private lastMove: { x: number; y: number } | null = null;
   private panLast: { x: number; y: number } | null = null;
+  private imageResize: { item: ImageItem; anchorX: number; anchorY: number } | null = null;
 
   protected readonly isGameMaster = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
@@ -341,7 +345,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.drawMeasureBox(ctx, `${(w / scene.cellPx).toFixed(1)} × ${(h / scene.cellPx).toFixed(1)}`);
     }
 
-    if ((tool === 'polygon' || tool === 'wall') && this.draftPoints.length >= 2) {
+    if ((tool === 'polygon' || tool === 'wall' || tool === 'polyline') && this.draftPoints.length >= 2) {
       if (tool === 'polygon' && this.draftPoints.length >= 4) {
         ctx.save();
         ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
@@ -410,6 +414,9 @@ export class MapMakerPanelComponent implements AfterViewInit {
     const sel = this.state.selection();
     if (sel) this.drawSelectionOutline(ctx, sel.layerId, sel.itemId);
 
+    const selImage = this.selectedImageItem();
+    if (selImage) this.drawImageHandles(ctx, selImage);
+
     ctx.restore();
   }
 
@@ -461,6 +468,45 @@ export class MapMakerPanelComponent implements AfterViewInit {
       if (stroke) this.strokePolylineBbox(ctx, stroke.points);
     }
     ctx.restore();
+  }
+
+  private selectedImageItem(): ImageItem | null {
+    if (this.state.tool() !== 'select') return null;
+    const sel = this.state.selection();
+    if (!sel) return null;
+    const layer = this.state.current.layers.find((l) => l.id === sel.layerId);
+    if (!layer || layer.kind !== 'image') return null;
+    return layer.items.find((i) => i.id === sel.itemId) ?? null;
+  }
+
+  private imageCorners(item: ImageItem): { x: number; y: number }[] {
+    const hw = item.w / 2;
+    const hh = item.h / 2;
+    return [
+      { x: item.x - hw, y: item.y - hh },
+      { x: item.x + hw, y: item.y - hh },
+      { x: item.x + hw, y: item.y + hh },
+      { x: item.x - hw, y: item.y + hh },
+    ];
+  }
+
+  private drawImageHandles(ctx: CanvasRenderingContext2D, item: ImageItem): void {
+    ctx.save();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#5b9dff';
+    const s = 8;
+    for (const c of this.imageCorners(item)) {
+      ctx.fillRect(c.x - s / 2, c.y - s / 2, s, s);
+    }
+    ctx.restore();
+  }
+
+  private imageHandleAt(item: ImageItem, x: number, y: number): number {
+    const corners = this.imageCorners(item);
+    for (let i = 0; i < corners.length; i += 1) {
+      if (Math.abs(x - corners[i].x) <= 6 && Math.abs(y - corners[i].y) <= 6) return i;
+    }
+    return -1;
   }
 
   private strokePolylineBbox(ctx: CanvasRenderingContext2D, p: number[]): void {
@@ -600,6 +646,17 @@ export class MapMakerPanelComponent implements AfterViewInit {
     this.dragging = true;
 
     if (tool === 'select') {
+      const selImage = this.selectedImageItem();
+      if (selImage) {
+        const handle = this.imageHandleAt(selImage, pos.x, pos.y);
+        if (handle !== -1) {
+          const opposite = this.imageCorners(selImage)[(handle + 2) % 4];
+          this.imageResize = { item: selImage, anchorX: opposite.x, anchorY: opposite.y };
+          this.state.beginGesture();
+          this.bumpDraft();
+          return;
+        }
+      }
       this.state.selection.set(this.state.hitTest(pos.x, pos.y));
       this.lastMoveStored = pos;
       this.selectionMoved = false;
@@ -627,7 +684,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.bumpDraft();
       return;
     }
-    if (tool === 'polygon' || tool === 'wall') {
+    if (tool === 'polygon' || tool === 'wall' || tool === 'polyline') {
       const snapped = this.state.snapPoint(pos.x, pos.y);
       this.draftPoints.push(snapped.x, snapped.y);
       this.draftCurrent = { x: pos.x, y: pos.y };
@@ -683,16 +740,28 @@ export class MapMakerPanelComponent implements AfterViewInit {
       return;
     }
     if (!this.dragging) {
-      if (tool === 'polygon' || tool === 'wall') {
+      if (tool === 'polygon' || tool === 'wall' || tool === 'polyline') {
         this.draftCurrent = { x: pos.x, y: pos.y };
       }
-      if (tool === 'cellPaint' || tool === 'cellErase' || tool === 'fill' || tool === 'polygon' || tool === 'wall') {
+      if (
+        tool === 'cellPaint' ||
+        tool === 'cellErase' ||
+        tool === 'fill' ||
+        tool === 'polygon' ||
+        tool === 'wall' ||
+        tool === 'polyline'
+      ) {
         this.bumpDraft();
       }
       return;
     }
 
     if (tool === 'select') {
+      if (this.imageResize) {
+        this.resizeImageTo(pos.x, pos.y);
+        this.bumpDraft();
+        return;
+      }
       if (this.state.selection() && this.lastMoveStored) {
         this.state.moveSelection(pos.x - this.lastMoveStored.x, pos.y - this.lastMoveStored.y);
         this.selectionMoved = true;
@@ -720,6 +789,16 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private lastMoveStored: { x: number; y: number } | null = null;
   private selectionMoved = false;
 
+  private resizeImageTo(px: number, py: number): void {
+    const anchor = this.imageResize;
+    if (!anchor) return;
+    const w = Math.max(8, Math.abs(px - anchor.anchorX));
+    const h = Math.max(8, Math.abs(py - anchor.anchorY));
+    const cx = px >= anchor.anchorX ? anchor.anchorX + w / 2 : anchor.anchorX - w / 2;
+    const cy = py >= anchor.anchorY ? anchor.anchorY + h / 2 : anchor.anchorY - h / 2;
+    this.state.updateSelectedImageLive({ x: cx, y: cy, w, h });
+  }
+
   protected onPointerUp(event: PointerEvent): void {
     const canvas = this.board()!.nativeElement;
     canvas.releasePointerCapture?.(event.pointerId);
@@ -730,7 +809,13 @@ export class MapMakerPanelComponent implements AfterViewInit {
     }
     const tool = this.state.tool();
 
-    if (tool === 'select' && this.dragging) {
+    if (tool === 'select' && this.imageResize) {
+      this.state.endGesture();
+      this.imageResize = null;
+      this.dragging = false;
+      this.bumpDraft();
+      return;
+    } else if (tool === 'select' && this.dragging) {
       if (this.selectionMoved) this.state.endGesture();
       this.lastMoveStored = null;
       this.selectionMoved = false;
@@ -805,6 +890,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
     const tool = this.state.tool();
     if (tool === 'polygon' && this.draftPoints.length >= 6) {
       this.state.addShapeItem('polygon', this.draftPoints.slice(), this.state.currentFill(), this.shapeLayerName());
+    } else if (tool === 'polyline' && this.draftPoints.length >= 4) {
+      this.state.addShapeItem('polyline', this.draftPoints.slice(), null, this.shapeLayerName());
     } else if (tool === 'wall' && this.draftPoints.length >= 4) {
       this.state.addWall(this.draftPoints.slice());
     }
@@ -830,7 +917,9 @@ export class MapMakerPanelComponent implements AfterViewInit {
     const label =
       tool === 'polygon'
         ? this.t('feature.mapMaker.tools.polygon')
-        : this.t('feature.mapMaker.props.shapeKinds.' + this.state.shapeKind());
+        : tool === 'polyline'
+          ? this.t('feature.mapMaker.tools.polyline')
+          : this.t('feature.mapMaker.props.shapeKinds.' + this.state.shapeKind());
     this.shapeLayerCounter += 1;
     return label + ' ' + this.shapeLayerCounter;
   }
@@ -1140,7 +1229,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
     try {
       const blob = await this.exportFn(this.state.current, STAMPS, {
         scale: this.exportScale(),
-        drawGrid: this.exportGrid(),
+        drawGrid: false,
         resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
       });
       await this.imageStorage.addAsync(blob);
@@ -1158,7 +1247,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
     try {
       const blob = await this.exportFn(this.state.current, STAMPS, {
         scale: this.exportScale(),
-        drawGrid: this.exportGrid(),
+        drawGrid: false,
         resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
       });
       const file = await this.imageStorage.addAsync(blob);

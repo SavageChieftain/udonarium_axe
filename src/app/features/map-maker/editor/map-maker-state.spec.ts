@@ -208,6 +208,63 @@ describe('MapMakerState', () => {
     expect(state.snapPoint(40.4, 50.6)).toEqual({ x: 40, y: 51 });
   });
 
+  it('currentStroke は strokeDash を含める', () => {
+    state.strokeDash.set('dashed');
+    expect(state.currentStroke().dash).toBe('dashed');
+    state.addShapeItem('line', [0, 0, 10, 0], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items[0].stroke!.dash).toBe('dashed');
+  });
+
+  it('currentShadow は有効時のみ影を返し committed item へ付与する', () => {
+    expect(state.currentShadow()).toBeNull();
+    state.shadowEnabled.set(true);
+    state.shadowBlur.set(10);
+    const shadow = state.currentShadow();
+    expect(shadow).not.toBeNull();
+    expect(shadow!.blur).toBe(10);
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' });
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items[0].shadow!.blur).toBe(10);
+  });
+
+  it('影が無効なら committed item の shadow は null', () => {
+    state.shadowEnabled.set(false);
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' });
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items[0].shadow).toBeNull();
+  });
+
+  it('polyline の hitTest / move / delete が動く', () => {
+    state.strokeWidth.set(4);
+    state.addShapeItem('polyline', [0, 0, 100, 0, 100, 100], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items.length).toBe(1);
+    expect(layer.items[0].shape).toBe('polyline');
+    expect(layer.items[0].fill).toBeNull();
+
+    const hit = state.hitTest(50, 1);
+    expect(hit).not.toBeNull();
+    expect(hit!.itemId).toBe(layer.items[0].id);
+    expect(state.hitTest(50, 200)).toBeNull();
+
+    state.selection.set(hit);
+    state.moveSelection(5, 7);
+    expect(layer.items[0].points).toEqual([5, 7, 105, 7, 105, 107]);
+
+    state.deleteSelection();
+    expect(layer.items.length).toBe(0);
+  });
+
+  it('updateSelectedImage で clipToCells が保持される', () => {
+    const item: ImageItem = { id: '', imageIdentifier: 'img', x: 50, y: 50, w: 40, h: 30, rotation: 0, opacity: 1 };
+    state.placeImage(item, '画像 1');
+    const layer = state.current.layers.find((l) => l.kind === 'image') as ImageLayer;
+    state.selection.set({ layerId: layer.id, itemId: layer.items[0].id });
+    state.updateSelectedImage({ clipToCells: true });
+    expect(layer.items[0].clipToCells).toBe(true);
+  });
+
   it('画像アイテムの hitTest / move / delete が動く', () => {
     const item: ImageItem = { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 };
     state.placeImage(item, '画像 1');

@@ -19,8 +19,10 @@ import {
   ShapeItem,
   ShapeKind,
   ShapeLayer,
+  ShapeShadow,
   StampItem,
   StampLayer,
+  StrokeDash,
   StrokeStyle,
   TextAlign,
   TextItem,
@@ -60,6 +62,7 @@ export type EditorTool =
   | 'fill'
   | 'shape'
   | 'line'
+  | 'polyline'
   | 'polygon'
   | 'wall'
   | 'freehand'
@@ -98,6 +101,13 @@ export class MapMakerState {
 
   readonly strokeColor = signal('#e8e8ea');
   readonly strokeWidth = signal(3);
+  readonly strokeDash = signal<StrokeDash>('solid');
+
+  readonly shadowEnabled = signal(false);
+  readonly shadowColor = signal('#00000080');
+  readonly shadowBlur = signal(6);
+  readonly shadowOffsetX = signal(2);
+  readonly shadowOffsetY = signal(2);
 
   readonly wallThickness = signal(8);
   readonly wallColor = signal('#2a2a30');
@@ -180,7 +190,17 @@ export class MapMakerState {
   }
 
   currentStroke(): StrokeStyle {
-    return { color: this.strokeColor(), width: this.strokeWidth() };
+    return { color: this.strokeColor(), width: this.strokeWidth(), dash: this.strokeDash() };
+  }
+
+  currentShadow(): ShapeShadow | null {
+    if (!this.shadowEnabled()) return null;
+    return {
+      color: this.shadowColor(),
+      blur: this.shadowBlur(),
+      offsetX: this.shadowOffsetX(),
+      offsetY: this.shadowOffsetY(),
+    };
   }
 
   layersTopFirst(): MapLayer[] {
@@ -259,6 +279,7 @@ export class MapMakerState {
       fill,
       stroke: this.currentStroke(),
       rotation: 0,
+      shadow: this.currentShadow(),
     };
     this.applyCommitted(() => addShape(layer, item));
   }
@@ -486,6 +507,15 @@ export class MapMakerState {
     this.applyCommitted(() => updateImage(layer, sel.itemId, patch));
   }
 
+  updateSelectedImageLive(patch: Partial<ImageItem>): void {
+    const sel = this.selection();
+    if (!sel) return;
+    const layer = this.findLayerById(sel.layerId);
+    if (!layer || layer.kind !== 'image') return;
+    updateImage(layer, sel.itemId, patch);
+    this.bump();
+  }
+
   private shapeBbox(item: ShapeItem): { minX: number; minY: number; maxX: number; maxY: number } {
     const p = item.points;
     if (item.shape === 'rect' || item.shape === 'ellipse') {
@@ -593,6 +623,11 @@ export class MapMakerState {
             const p = item.points;
             const width = item.stroke ? item.stroke.width : 1;
             if (p.length >= 4 && this.pointToSegmentDistance(x, y, p[0], p[1], p[2], p[3]) <= Math.max(6, width)) {
+              return { layerId: layer.id, itemId: item.id };
+            }
+          } else if (item.shape === 'polyline') {
+            const width = item.stroke ? item.stroke.width : 1;
+            if (this.pointToPolylineDistance(x, y, item.points) <= Math.max(6, width)) {
               return { layerId: layer.id, itemId: item.id };
             }
           } else {
