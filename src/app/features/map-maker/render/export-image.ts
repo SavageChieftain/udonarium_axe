@@ -1,5 +1,6 @@
 import { StampDef } from '@axe/features/map-maker/assets/stamp-types';
 import {
+  FillStyle,
   ImageItem,
   ImageLayer,
   MapScene,
@@ -8,11 +9,11 @@ import {
   StampItem,
   StampLayer,
 } from '@axe/features/map-maker/model/scene';
-import { isTextureId } from '@axe/features/map-maker/model/textures';
+import { imageTextureIdentifier, isImageTextureId, isTextureId } from '@axe/features/map-maker/model/textures';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-maker/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, warmStampImages } from '@axe/features/map-maker/render/stamp-image';
-import { createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+import { createImageTexturePattern, createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
 
 const MAX_SIDE = 8192;
 
@@ -38,6 +39,26 @@ function collectImageItems(scene: MapScene): ImageItem[] {
     if (layer.kind === 'image') items.push(...(layer as ImageLayer).items);
   }
   return items;
+}
+
+function fillTextureIdentifier(fill: FillStyle | null | undefined, out: Set<string>): void {
+  if (fill && fill.type === 'texture' && isImageTextureId(fill.textureId)) {
+    out.add(imageTextureIdentifier(fill.textureId));
+  }
+}
+
+function collectImageTextureIdentifiers(scene: MapScene): string[] {
+  const ids = new Set<string>();
+  for (const layer of scene.layers) {
+    if (layer.kind === 'cell') {
+      for (const fill of Object.values(layer.cells)) fillTextureIdentifier(fill, ids);
+    } else if (layer.kind === 'shape') {
+      for (const item of layer.items) fillTextureIdentifier(item.fill, ids);
+    } else if (layer.kind === 'wall') {
+      for (const segment of layer.segments) fillTextureIdentifier(segment.fill, ids);
+    }
+  }
+  return [...ids];
 }
 
 function clampScale(scene: MapScene, requested: number): number {
@@ -103,16 +124,27 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
 
   const resolveImageUrl = opts.resolveImageUrl;
   if (resolveImageUrl) {
-    const urls = collectImageItems(scene)
-      .map((item) => resolveImageUrl(item.imageIdentifier))
+    const identifiers = [
+      ...collectImageItems(scene).map((item) => item.imageIdentifier),
+      ...collectImageTextureIdentifiers(scene),
+    ];
+    const urls = identifiers
+      .map((identifier) => resolveImageUrl(identifier))
       .filter((url): url is string => typeof url === 'string' && url.length > 0);
     await warmRasterImages(urls);
   }
 
   const defById = new Map(defs.map((def) => [def.id, def]));
   const helpers: RenderHelpers = {
-    texturePattern: (fill, cellPx) =>
-      isTextureId(fill.textureId) ? createTexturePattern(target.ctx, fill.textureId, cellPx) : null,
+    texturePattern: (fill, cellPx) => {
+      if (isImageTextureId(fill.textureId)) {
+        if (!resolveImageUrl) return null;
+        const url = resolveImageUrl(imageTextureIdentifier(fill.textureId));
+        const image = url ? getRasterImage(url) : null;
+        return image ? createImageTexturePattern(target.ctx, image, cellPx) : null;
+      }
+      return isTextureId(fill.textureId) ? createTexturePattern(target.ctx, fill.textureId, cellPx) : null;
+    },
     stampImage: (item) => {
       const def = defById.get(item.stampId);
       return def ? getStampImage(def, item.size, item.color) : null;

@@ -64,6 +64,7 @@ export interface WallSegment {
   points: number[];
   thickness: number;
   color: string;
+  fill?: FillStyle | null;
 }
 
 export interface WallLayer extends BaseLayer {

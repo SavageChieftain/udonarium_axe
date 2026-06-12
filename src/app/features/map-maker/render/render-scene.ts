@@ -17,6 +17,7 @@ import {
   TextItem,
   WallSegment,
 } from '@axe/features/map-maker/model/scene';
+import { isImageTextureId } from '@axe/features/map-maker/model/textures';
 
 export interface RenderHelpers {
   texturePattern(
@@ -44,7 +45,7 @@ function resolveFill(fill: FillStyle, helpers: RenderHelpers, cellPx: number): s
     { textureId: fill.textureId, scale: fill.scale, rotation: fill.rotation },
     cellPx
   );
-  if (resolved && typeof resolved !== 'string') {
+  if (resolved && typeof resolved !== 'string' && !isImageTextureId(fill.textureId)) {
     applyPatternTransform(resolved, fill.scale, fill.rotation);
   }
   return resolved;
@@ -168,11 +169,17 @@ function drawShapeItem(ctx: CanvasRenderingContext2D, item: ShapeItem, helpers: 
   ctx.restore();
 }
 
-function drawWallSegment(ctx: CanvasRenderingContext2D, segment: WallSegment): void {
+function drawWallSegment(
+  ctx: CanvasRenderingContext2D,
+  segment: WallSegment,
+  helpers: RenderHelpers,
+  cellPx: number
+): void {
   const p = segment.points;
   if (p.length < 4) return;
   ctx.save();
-  ctx.strokeStyle = segment.color;
+  const fill = segment.fill ? resolveFill(segment.fill, helpers, cellPx) : null;
+  ctx.strokeStyle = fill ?? segment.color;
   ctx.lineWidth = segment.thickness;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
@@ -409,7 +416,7 @@ export function renderScene(
         for (const item of layer.items) drawShapeItem(ctx, item, helpers, scene.cellPx);
         break;
       case 'wall':
-        for (const segment of layer.segments) drawWallSegment(ctx, segment);
+        for (const segment of layer.segments) drawWallSegment(ctx, segment, helpers, scene.cellPx);
         break;
       case 'stamp':
         for (const item of layer.items) drawStamp(ctx, item, helpers);

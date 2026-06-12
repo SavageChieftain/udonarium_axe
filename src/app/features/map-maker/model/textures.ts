@@ -29,3 +29,13 @@ export const TEXTURE_BASE_COLOR: Record<TextureId, string> = {
 export function isTextureId(value: string): value is TextureId {
   return (TEXTURE_IDS as readonly string[]).includes(value);
 }
+
+export const IMAGE_TEXTURE_PREFIX = 'image:';
+
+export function isImageTextureId(id: string): boolean {
+  return typeof id === 'string' && id.startsWith(IMAGE_TEXTURE_PREFIX);
+}
+
+export function imageTextureIdentifier(id: string): string {
+  return isImageTextureId(id) ? id.slice(IMAGE_TEXTURE_PREFIX.length) : '';
+}

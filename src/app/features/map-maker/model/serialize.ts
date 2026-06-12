@@ -2,6 +2,7 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import {
   DEFAULT_SCENE_BACKGROUND,
   DEFAULT_SCENE_GRID_COLOR,
+  FillStyle,
   ImageItem,
   MAP_SCENE_VERSION,
   MapLayer,
@@ -10,6 +11,7 @@ import {
   ShapeShadow,
   StrokeDash,
   StrokeStyle,
+  WallSegment,
 } from '@axe/features/map-maker/model/scene';
 
 export function serializeScene(scene: MapScene): string {
@@ -43,6 +45,34 @@ function sanitizeShadow(value: unknown): ShapeShadow | null {
     offsetX: isFiniteNumber(v['offsetX']) ? (v['offsetX'] as number) : 0,
     offsetY: isFiniteNumber(v['offsetY']) ? (v['offsetY'] as number) : 0,
   };
+}
+
+function sanitizeFill(value: unknown): FillStyle | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const v = value as Record<string, unknown>;
+  if (v['type'] === 'solid') {
+    return { type: 'solid', color: typeof v['color'] === 'string' ? v['color'] : '#000000' };
+  }
+  if (v['type'] === 'texture' && typeof v['textureId'] === 'string') {
+    return {
+      type: 'texture',
+      textureId: v['textureId'],
+      scale: isFiniteNumber(v['scale']) ? (v['scale'] as number) : 1,
+      rotation: isFiniteNumber(v['rotation']) ? (v['rotation'] as number) : 0,
+    };
+  }
+  return null;
+}
+
+function sanitizeWallSegment(raw: unknown): WallSegment | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  if (!Array.isArray(r['points'])) return null;
+  const segment = { ...r } as unknown as WallSegment;
+  if ('fill' in r) {
+    segment.fill = r['fill'] == null ? null : sanitizeFill(r['fill']);
+  }
+  return segment;
 }
 
 function sanitizeShapeItem(raw: unknown): ShapeItem | null {
@@ -133,7 +163,13 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
           : [],
       };
     case 'wall':
-      return { ...base, kind: 'wall', segments: Array.isArray(raw['segments']) ? raw['segments'] : [] };
+      return {
+        ...base,
+        kind: 'wall',
+        segments: Array.isArray(raw['segments'])
+          ? (raw['segments'].map(sanitizeWallSegment).filter((s): s is WallSegment => s !== null) as WallSegment[])
+          : [],
+      };
     case 'stamp':
       return { ...base, kind: 'stamp', items: Array.isArray(raw['items']) ? raw['items'] : [] };
     case 'freehand':

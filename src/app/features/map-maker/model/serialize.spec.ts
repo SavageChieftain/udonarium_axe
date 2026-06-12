@@ -1,5 +1,13 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { createScene, ImageLayer, MAP_SCENE_VERSION, MapScene } from '@axe/features/map-maker/model/scene';
+import {
+  CellLayer,
+  createScene,
+  ImageLayer,
+  MAP_SCENE_VERSION,
+  MapScene,
+  ShapeLayer,
+  WallLayer,
+} from '@axe/features/map-maker/model/scene';
 import { deserializeScene, isMapScene, serializeScene } from '@axe/features/map-maker/model/serialize';
 
 function makeScene(): MapScene {
@@ -353,6 +361,99 @@ describe('deserializeScene round-trip', () => {
     if (out.kind === 'image') {
       expect(out.items[0].clipToCells).toBe(false);
       expect(out.items[1].clipToCells).toBe(true);
+    }
+  });
+
+  it('round-trips image: texture ids on cell and shape fills without stripping the prefix', () => {
+    const scene = createScene(5, 5, 64);
+    const cellLayer: CellLayer = {
+      id: 'c',
+      kind: 'cell',
+      name: 'cells',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      cells: { '0,0': { type: 'texture', textureId: 'image:storage-id-1', scale: 2, rotation: 30 } },
+    };
+    const shapeLayer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: 's1',
+          shape: 'rect',
+          points: [0, 0, 5, 5],
+          fill: { type: 'texture', textureId: 'image:storage-id-2', scale: 1, rotation: 0 },
+          stroke: null,
+          rotation: 0,
+        },
+      ],
+    };
+    scene.layers = [cellLayer, shapeLayer];
+    const result = deserializeScene(serializeScene(scene));
+    const cells = result!.layers[0];
+    const shapes = result!.layers[1];
+    if (cells.kind === 'cell') {
+      expect(cells.cells['0,0']).toEqual({ type: 'texture', textureId: 'image:storage-id-1', scale: 2, rotation: 30 });
+    }
+    if (shapes.kind === 'shape') {
+      expect(shapes.items[0].fill).toEqual({ type: 'texture', textureId: 'image:storage-id-2', scale: 1, rotation: 0 });
+    }
+  });
+
+  it('round-trips a textured wall segment fill including image: ids', () => {
+    const scene = createScene(5, 5, 64);
+    const layer: WallLayer = {
+      id: 'w',
+      kind: 'wall',
+      name: 'walls',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      segments: [
+        {
+          id: 'w1',
+          points: [0, 0, 10, 10],
+          thickness: 4,
+          color: '#333',
+          fill: { type: 'texture', textureId: 'image:wall-tex', scale: 1.5, rotation: 90 },
+        },
+        { id: 'w2', points: [0, 0, 5, 5], thickness: 2, color: '#666' },
+      ],
+    };
+    scene.layers = [layer];
+    const result = deserializeScene(serializeScene(scene));
+    const out = result!.layers[0];
+    expect(out.kind).toBe('wall');
+    if (out.kind === 'wall') {
+      expect(out.segments).toHaveLength(2);
+      expect(out.segments[0].fill).toEqual({ type: 'texture', textureId: 'image:wall-tex', scale: 1.5, rotation: 90 });
+      expect(out.segments[1].fill).toBeUndefined();
+    }
+  });
+
+  it('coerces an invalid wall fill to null', () => {
+    const scene = createScene(5, 5, 64);
+    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
+    raw['layers'] = [
+      {
+        id: 'w',
+        kind: 'wall',
+        name: 'walls',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        segments: [{ id: 'w1', points: [0, 0, 5, 5], thickness: 2, color: '#000', fill: 'bad' }],
+      },
+    ];
+    const result = deserializeScene(JSON.stringify(raw));
+    const out = result!.layers[0];
+    if (out.kind === 'wall') {
+      expect(out.segments[0].fill).toBeNull();
     }
   });
 
