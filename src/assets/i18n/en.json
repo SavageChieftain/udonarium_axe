@@ -841,7 +841,11 @@
           "loading": "Loading...",
           "loadError": "Failed to load image",
           "processing": "Processing...",
-          "hint": "Drag the image to move / wheel to zoom (Shift = fine) / arrow keys to nudge 1px"
+          "hint": "Drag the image to move / wheel to zoom (Shift = fine) / arrow keys to nudge 1px",
+          "gridTypeLabel": "Grid type",
+          "gridSquare": "Square",
+          "gridHexV": "Hex (vertical)",
+          "gridHexH": "Hex (horizontal)"
         },
         "sectionBasic": "Basic",
         "tableName": "Table name",

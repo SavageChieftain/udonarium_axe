@@ -13,7 +13,16 @@ import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { computeCoveredCells, cropAlignedRegion } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-crop';
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
+import {
+  computeCoveredRegion,
+  cropImageRegion,
+  scaleForCols,
+  scaleForRows,
+  snapAnchor,
+} from '@axe/features/tabletop/map-image-grid-adjuster/map-image-grid-region';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export interface MapImageGridAdjusterOption {
@@ -21,12 +30,14 @@ export interface MapImageGridAdjusterOption {
   gridSize: number;
   gridColor?: string;
   fitWidth?: boolean;
+  gridType?: GridType;
 }
 
 export interface MapImageGridAdjusterResult {
   imageIdentifier: string;
   width: number;
   height: number;
+  gridType: GridType;
 }
 
 const DISPLAY_CELL = 48;
@@ -49,6 +60,7 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   private readonly option = this.readOption();
 
   readonly stageRef = viewChild<ElementRef<HTMLElement>>('stage');
+  readonly hexCanvasRef = viewChild<ElementRef<HTMLCanvasElement>>('hexGrid');
 
   readonly imageUrl = signal('');
   readonly imageWidth = signal(0);
@@ -64,11 +76,12 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   readonly tx = signal(0);
   readonly ty = signal(0);
   readonly scale = signal(1);
+  readonly gridType = signal<GridType>(this.option.gridType ?? GridType.SQUARE);
 
   private loadedImage: HTMLImageElement | null = null;
   private dragLast: { x: number; y: number } | null = null;
   private resizeObserver: ResizeObserver | null = null;
-  private readonly cropFn = cropAlignedRegion;
+  private readonly cropFn = cropImageRegion;
 
   readonly minScale = computed(() => {
     const w = this.imageWidth();
@@ -81,14 +94,22 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   readonly imageScreenHeight = computed(() => this.imageHeight() * this.scale());
 
   readonly covered = computed(() =>
-    computeCoveredCells(this.tx(), this.ty(), this.scale(), this.imageWidth(), this.imageHeight(), DISPLAY_CELL)
+    computeCoveredRegion(
+      this.gridType(),
+      this.tx(),
+      this.ty(),
+      this.scale(),
+      this.imageWidth(),
+      this.imageHeight(),
+      DISPLAY_CELL
+    )
   );
 
   private readonly regionVisible = computed(() => {
     const c = this.covered();
     if (c.cols < 1 || c.rows < 1) return false;
-    const right = c.screenX + c.cols * DISPLAY_CELL;
-    const bottom = c.screenY + c.rows * DISPLAY_CELL;
+    const right = c.screenX + c.screenW;
+    const bottom = c.screenY + c.screenH;
     return c.screenX < this.stageW() && c.screenY < this.stageH() && right > 0 && bottom > 0;
   });
 
@@ -96,8 +117,8 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   readonly rows = computed(() => this.covered().rows);
   readonly hasWholeCell = computed(() => this.cols() >= 1 && this.rows() >= 1 && this.regionVisible());
 
-  readonly outputWidth = computed(() => Math.round(this.cols() * this.covered().cellImagePx));
-  readonly outputHeight = computed(() => Math.round(this.rows() * this.covered().cellImagePx));
+  readonly outputWidth = computed(() => Math.round(this.covered().imageW));
+  readonly outputHeight = computed(() => Math.round(this.covered().imageH));
 
   readonly zoomPercent = computed(() => Math.round(this.scale() * 100));
   readonly minZoomPercent = computed(() => Math.round(this.minScale() * 100));
@@ -108,8 +129,8 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     return {
       left: `${c.screenX}px`,
       top: `${c.screenY}px`,
-      width: `${c.cols * DISPLAY_CELL}px`,
-      height: `${c.rows * DISPLAY_CELL}px`,
+      width: `${c.screenW}px`,
+      height: `${c.screenH}px`,
     };
   });
 
@@ -146,11 +167,23 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
         this.resizeObserver = null;
       });
     });
+    effect(() => this.renderHexOverlay());
   }
 
   ngOnDestroy() {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+  }
+
+  private renderHexOverlay() {
+    const type = this.gridType();
+    const w = this.stageW();
+    const h = this.stageH();
+    if (this.loadState() !== 'ready' || !isHexGrid(type)) return;
+    const canvas = this.hexCanvasRef()?.nativeElement;
+    if (!canvas || typeof canvas.getContext !== 'function') return;
+    if (!canvas.getContext('2d')) return;
+    new GridLineRender(canvas).renderViewport(w, h, DISPLAY_CELL, type, this.gridColor, 'transparent', 0, 0);
   }
 
   private measureStage(stage: HTMLElement) {
@@ -162,11 +195,15 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
 
   private readOption(): MapImageGridAdjusterOption {
     const option = this.modalService.option as Partial<MapImageGridAdjusterOption> | undefined;
+    const rawType = option?.gridType;
+    const gridType =
+      rawType === GridType.HEX_VERTICAL || rawType === GridType.HEX_HORIZONTAL ? rawType : GridType.SQUARE;
     return {
       imageIdentifier: option?.imageIdentifier ?? '',
       gridSize: Number(option?.gridSize) > 0 ? Number(option?.gridSize) : 50,
       gridColor: option?.gridColor,
       fitWidth: option?.fitWidth,
+      gridType,
     };
   }
 
@@ -208,30 +245,37 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   private initTransform() {
     const s = this.clampScale(DISPLAY_CELL / this.option.gridSize);
     this.scale.set(s);
-    this.centerImage();
+    this.centerAndSnap();
   }
 
   private centerImage() {
     const s = this.scale();
-    this.tx.set(Math.round((this.stageW() - this.imageWidth() * s) / 2));
-    this.ty.set(Math.round((this.stageH() - this.imageHeight() * s) / 2));
+    this.tx.set((this.stageW() - this.imageWidth() * s) / 2);
+    this.ty.set((this.stageH() - this.imageHeight() * s) / 2);
   }
 
   private centerAndSnap() {
-    const s = this.scale();
-    const cx = (this.stageW() - this.imageWidth() * s) / 2;
-    const cy = (this.stageH() - this.imageHeight() * s) / 2;
-    this.tx.set(Math.round(cx / DISPLAY_CELL) * DISPLAY_CELL);
-    this.ty.set(Math.round(cy / DISPLAY_CELL) * DISPLAY_CELL);
+    this.centerImage();
+    const a = snapAnchor(this.gridType(), this.tx(), this.ty(), DISPLAY_CELL);
+    this.tx.set(a.tx);
+    this.ty.set(a.ty);
   }
 
   protected zoomAt(px: number, py: number, factor: number) {
     const s = this.scale();
     const next = this.clampScale(s * factor);
     if (next === s) return;
-    this.tx.set(Math.round(px - (px - this.tx()) * (next / s)));
-    this.ty.set(Math.round(py - (py - this.ty()) * (next / s)));
+    this.tx.set(px - (px - this.tx()) * (next / s));
+    this.ty.set(py - (py - this.ty()) * (next / s));
     this.scale.set(next);
+  }
+
+  setGridType(type: GridType) {
+    if (type === this.gridType()) return;
+    this.gridType.set(type);
+    const a = snapAnchor(type, this.tx(), this.ty(), DISPLAY_CELL);
+    this.tx.set(a.tx);
+    this.ty.set(a.ty);
   }
 
   setCols(value: number | string) {
@@ -239,7 +283,7 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     if (!Number.isFinite(num) || num < 1) return;
     const w = this.imageWidth();
     if (w <= 0) return;
-    this.scale.set(this.clampScale((num * DISPLAY_CELL) / w));
+    this.scale.set(this.clampScale(scaleForCols(this.gridType(), num, w, DISPLAY_CELL)));
     this.centerAndSnap();
   }
 
@@ -248,7 +292,7 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     if (!Number.isFinite(num) || num < 1) return;
     const h = this.imageHeight();
     if (h <= 0) return;
-    this.scale.set(this.clampScale((num * DISPLAY_CELL) / h));
+    this.scale.set(this.clampScale(scaleForRows(this.gridType(), num, h, DISPLAY_CELL)));
     this.centerAndSnap();
   }
 
@@ -275,8 +319,8 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     const dx = event.clientX - this.dragLast.x;
     const dy = event.clientY - this.dragLast.y;
     this.dragLast = { x: event.clientX, y: event.clientY };
-    this.tx.set(Math.round(this.tx() + dx));
-    this.ty.set(Math.round(this.ty() + dy));
+    this.tx.set(this.tx() + dx);
+    this.ty.set(this.ty() + dy);
   }
 
   onPointerUp(event: PointerEvent) {
@@ -327,21 +371,13 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     this.processing.set(true);
     try {
       const c = this.covered();
-      const imgW = this.imageWidth();
-      const imgH = this.imageHeight();
-      const cellImagePx = Math.min(c.cellImagePx, (imgW - c.imageX) / c.cols, (imgH - c.imageY) / c.rows);
-      const blob = await this.cropFn(this.loadedImage, imgW, imgH, {
-        cellPx: cellImagePx,
-        offsetX: c.imageX,
-        offsetY: c.imageY,
-        cols: c.cols,
-        rows: c.rows,
-      });
+      const blob = await this.cropFn(this.loadedImage, c.imageX, c.imageY, c.imageW, c.imageH);
       const image = await this.imageStorage.addAsync(blob);
       const result: MapImageGridAdjusterResult = {
         imageIdentifier: image.identifier,
         width: c.cols,
         height: c.rows,
+        gridType: this.gridType(),
       };
       this.modalService.resolve(result);
     } catch {

@@ -30,12 +30,20 @@
           alt=""
           draggable="false"
         />
-        <div
-          class="pointer-events-none absolute inset-0"
-          [style.background-image]="gridBackgroundImage()"
-          [style.background-size]="gridBackgroundSize"
-          [style.background-position]="gridBackgroundPosition"
-        ></div>
+        @if (gridType() === 0) {
+          <div
+            class="pointer-events-none absolute inset-0"
+            [style.background-image]="gridBackgroundImage()"
+            [style.background-size]="gridBackgroundSize"
+            [style.background-position]="gridBackgroundPosition"
+          ></div>
+        } @else {
+          <canvas
+            #hexGrid
+            class="pointer-events-none absolute inset-0 size-full"
+            [style.filter]="'drop-shadow(0 0 1px rgba(255,255,255,0.6))'"
+          ></canvas>
+        }
         <div
           class="border-ui-accent pointer-events-none absolute border-2 border-solid [box-shadow:0_0_0_9999px_rgba(0,0,0,0.5)]"
           [style.left]="regionStyle().left"
@@ -46,6 +54,41 @@
       </div>
 
       <div class="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto">
+        <div class="flex flex-col gap-1">
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.gridTypeLabel' | transloco
+          }}</span>
+          <div class="flex gap-1">
+            <button
+              class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover flex-1 border border-solid px-1.5 py-1 text-[11px] whitespace-nowrap"
+              type="button"
+              [class.bg-ui-accent-bg]="gridType() === 0"
+              [attr.aria-pressed]="gridType() === 0"
+              (click)="setGridType(0)"
+            >
+              {{ 'feature.tabletop.tableSetting.gridAdjuster.gridSquare' | transloco }}
+            </button>
+            <button
+              class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover flex-1 border border-solid px-1.5 py-1 text-[11px] whitespace-nowrap"
+              type="button"
+              [class.bg-ui-accent-bg]="gridType() === 1"
+              [attr.aria-pressed]="gridType() === 1"
+              (click)="setGridType(1)"
+            >
+              {{ 'feature.tabletop.tableSetting.gridAdjuster.gridHexV' | transloco }}
+            </button>
+            <button
+              class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover flex-1 border border-solid px-1.5 py-1 text-[11px] whitespace-nowrap"
+              type="button"
+              [class.bg-ui-accent-bg]="gridType() === 2"
+              [attr.aria-pressed]="gridType() === 2"
+              (click)="setGridType(2)"
+            >
+              {{ 'feature.tabletop.tableSetting.gridAdjuster.gridHexH' | transloco }}
+            </button>
+          </div>
+        </div>
+
         <div class="border-ui-border-panel bg-ui-elevated rounded-ui-sm flex flex-col gap-2 border border-solid p-2.5">
           <span class="text-ui-accent text-[12px] font-medium">{{
             'feature.tabletop.tableSetting.gridAdjuster.byCount' | transloco

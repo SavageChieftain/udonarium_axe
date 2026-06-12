@@ -841,7 +841,11 @@
           "loading": "読み込み中...",
           "loadError": "画像を読み込めませんでした",
           "processing": "処理中...",
-          "hint": "画像をドラッグして移動 / ホイールで拡大縮小（Shiftで微調整）/ 矢印キーで1pxずつ"
+          "hint": "画像をドラッグして移動 / ホイールで拡大縮小（Shiftで微調整）/ 矢印キーで1pxずつ",
+          "gridTypeLabel": "グリッドタイプ",
+          "gridSquare": "スクエア",
+          "gridHexV": "ヘクス（縦）",
+          "gridHexH": "ヘクス（横）"
         },
         "sectionBasic": "基本情報",
         "tableName": "テーブル名",

@@ -454,6 +454,7 @@ export class GameTableSettingComponent {
           gridSize,
           gridColor,
           fitWidth: true,
+          gridType: this.selectedTable.gridType,
         })
         .then((res) => {
           const table = this.selectedTable;
@@ -461,6 +462,7 @@ export class GameTableSettingComponent {
           table.imageIdentifier = res.imageIdentifier;
           table.width = res.width;
           table.height = res.height;
+          table.gridType = res.gridType;
         });
     });
   }
