@@ -1234,6 +1234,9 @@
     "mapMaker": {
       "title": "Map editor",
       "gmOnly": "This tool is for the game master only",
+      "settings": {
+        "transparent": "Transparent"
+      },
       "tools": {
         "select": "Select",
         "cellPaint": "Pen",

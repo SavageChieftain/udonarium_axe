@@ -106,6 +106,29 @@ describe('MapMakerPanelComponent', () => {
     expect(component['state'].tool()).toBe('select');
   });
 
+  it('新規シーンの既定背景は transparent', () => {
+    expect(component['state'].current.background).toBe('transparent');
+  });
+
+  it('透明トグルは背景と直前の色を往復させる', () => {
+    const c = component as unknown as {
+      toggleBackgroundTransparent: (transparent: boolean) => void;
+      backgroundTransparent: () => boolean;
+      backgroundColorValue: () => string;
+    };
+    component['state'].setBackground('#445566');
+    expect(c.backgroundTransparent()).toBe(false);
+
+    c.toggleBackgroundTransparent(true);
+    expect(component['state'].current.background).toBe('transparent');
+    expect(c.backgroundTransparent()).toBe(true);
+    expect(c.backgroundColorValue()).toBe('#445566');
+
+    c.toggleBackgroundTransparent(false);
+    expect(component['state'].current.background).toBe('#445566');
+    expect(c.backgroundTransparent()).toBe(false);
+  });
+
   it('setAsTable は scene.gridType をテーブルへ書き込む', async () => {
     const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
     (component as unknown as { exportFn: typeof exportSceneToBlob }).exportFn = vi.fn().mockResolvedValue(blob);

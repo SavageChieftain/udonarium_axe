@@ -383,8 +383,10 @@ export function renderScene(
   const height = sceneHeightPx(scene);
 
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = scene.background;
-  ctx.fillRect(0, 0, width, height);
+  if (scene.background !== 'transparent') {
+    ctx.fillStyle = scene.background;
+    ctx.fillRect(0, 0, width, height);
+  }
 
   for (const layer of scene.layers) {
     if (!layer.visible) continue;

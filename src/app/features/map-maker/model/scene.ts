@@ -4,7 +4,7 @@ import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/g
 
 export const MAP_SCENE_VERSION = 1;
 
-export const DEFAULT_SCENE_BACKGROUND = '#ece6d9';
+export const DEFAULT_SCENE_BACKGROUND = 'transparent';
 export const DEFAULT_SCENE_GRID_COLOR = '#00000059';
 
 export type LayerKind = 'cell' | 'shape' | 'wall' | 'stamp' | 'freehand' | 'text' | 'image';

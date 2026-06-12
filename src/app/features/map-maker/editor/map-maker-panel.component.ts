@@ -92,6 +92,18 @@ const ERASER_SVG =
   '<path d="M6.0 20l4-4"/>' +
   '</svg>';
 
+const SELECT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' +
+  '<path d="M7 2 L7 19 L11.3 15.4 L13.9 21.3 L16.6 20.1 L14 14.3 L19.5 13.8 Z"/>' +
+  '</svg>';
+
+const FILL_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M10 4 L4 10 L11 17 L18 10 L12 4 Z"/>' +
+  '<path d="M10 4 L8 2 A 1.8 1.8 0 1 0 5.5 4.5"/>' +
+  '<path d="M20.5 13 C 22 15 22.5 16 22.5 17 A 2 2 0 0 1 18.5 17 C 18.5 16 19 15 20.5 13 Z" fill="currentColor" stroke="none"/>' +
+  '</svg>';
+
 interface ToolDef {
   tool: EditorTool;
   icon: string;
@@ -136,7 +148,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected readonly settingsTool: ToolDef = { tool: 'settings', icon: 'settings', key: '' };
 
   protected readonly tools: ToolDef[] = [
-    { tool: 'select', icon: 'pan_tool_alt', key: 'V' },
+    { tool: 'select', icon: '', key: 'V', svg: this.sanitizer.bypassSecurityTrustHtml(SELECT_SVG) },
     { tool: 'cellPaint', icon: 'edit', key: 'B' },
     {
       tool: 'cellErase',
@@ -144,12 +156,12 @@ export class MapMakerPanelComponent implements AfterViewInit {
       key: 'E',
       svg: this.sanitizer.bypassSecurityTrustHtml(ERASER_SVG),
     },
-    { tool: 'fill', icon: 'format_paint', key: 'G' },
-    { tool: 'shape', icon: 'category', key: 'R' },
+    { tool: 'fill', icon: '', key: 'G', svg: this.sanitizer.bypassSecurityTrustHtml(FILL_SVG) },
+    { tool: 'freehand', icon: 'gesture', key: 'F' },
     { tool: 'line', icon: 'show_chart', key: 'L' },
+    { tool: 'shape', icon: 'category', key: 'R' },
     { tool: 'polygon', icon: 'polyline', key: 'P' },
     { tool: 'wall', icon: 'fence', key: 'W' },
-    { tool: 'freehand', icon: 'gesture', key: 'F' },
     { tool: 'text', icon: 'title', key: 'T' },
     { tool: 'stamp', icon: 'approval', key: 'S' },
     { tool: 'image', icon: 'image', key: 'I' },
@@ -305,7 +317,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
         '<path d="M3 18 C 7 4 13 22 21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
     } else if (kind === 'closedCurve') {
       inner =
-        '<path d="M12 4 C 18 4 21 9 19 14 C 17 19 9 20 6 16 C 3 12 6 4 12 4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>';
+        '<path d="M12 4 C 17 2 21 6 19 10 C 18 12 21 14 18 17 C 15 20 9 21 6 17 C 3 13 7 12 5 9 C 3 6 8 5 12 4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>';
     } else {
       inner =
         '<polyline points="3,18 9,8 15,14 21,5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
@@ -1250,6 +1262,39 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (pending && text) this.state.addTextItem(pending.x, pending.y, text);
     this.pendingText.set(null);
     this.textDraft.set('');
+  }
+
+  protected readonly lastBackgroundColor = signal('#ece6d9');
+
+  protected readonly canvasBackground = computed(() => {
+    this.state.sceneTick();
+    return this.state.current.background === 'transparent'
+      ? 'repeating-conic-gradient(#e5e7eb 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px'
+      : null;
+  });
+
+  protected backgroundTransparent(): boolean {
+    return this.state.current.background === 'transparent';
+  }
+
+  protected backgroundColorValue(): string {
+    const bg = this.state.current.background;
+    return bg === 'transparent' ? this.lastBackgroundColor() : bg;
+  }
+
+  protected setBackgroundColor(color: string): void {
+    this.lastBackgroundColor.set(color);
+    this.state.setBackground(color);
+  }
+
+  protected toggleBackgroundTransparent(transparent: boolean): void {
+    if (transparent) {
+      const bg = this.state.current.background;
+      if (bg !== 'transparent') this.lastBackgroundColor.set(bg);
+      this.state.setBackground('transparent');
+    } else {
+      this.state.setBackground(this.lastBackgroundColor());
+    }
   }
 
   protected setFillMode(mode: 'solid' | 'texture'): void {

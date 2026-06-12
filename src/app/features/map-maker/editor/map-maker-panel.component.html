@@ -92,11 +92,22 @@
           </div>
           <label class="flex items-center justify-between gap-2">
             <span class="text-ui-muted">{{ 'feature.mapMaker.props.background' | transloco }}</span>
-            <input
-              type="color"
-              [ngModel]="state.current.background"
-              (change)="state.setBackground($any($event.target).value)"
-            />
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  [ngModel]="backgroundTransparent()"
+                  (ngModelChange)="toggleBackgroundTransparent($event)"
+                />
+                <span class="text-ui-muted text-[10px]">{{ 'feature.mapMaker.settings.transparent' | transloco }}</span>
+              </label>
+              <input
+                type="color"
+                [ngModel]="backgroundColorValue()"
+                [disabled]="backgroundTransparent()"
+                (change)="setBackgroundColor($any($event.target).value)"
+              />
+            </div>
           </label>
           <label class="flex items-center justify-between gap-2">
             <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridColor' | transloco }}</span>
@@ -649,6 +660,7 @@
           class="border-ui-border-panel shadow-ui-md block touch-none border border-solid"
           [style.width.px]="widthPx() * state.zoom()"
           [style.height.px]="heightPx() * state.zoom()"
+          [style.background]="canvasBackground()"
           [style.cursor]="canvasCursor()"
           (pointerdown)="onPointerDown($event)"
           (pointermove)="onPointerMove($event)"

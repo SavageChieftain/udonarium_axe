@@ -93,9 +93,30 @@ function sceneWith(...layers: MapScene['layers']): MapScene {
 describe('renderScene', () => {
   it('does not throw on an empty scene and clears + fills background', () => {
     const ctx = createMockCtx();
-    expect(() => renderScene(ctx, createScene(2, 2, 10), helpers)).not.toThrow();
+    const scene = createScene(2, 2, 10);
+    scene.background = '#123456';
+    expect(() => renderScene(ctx, scene, helpers)).not.toThrow();
     expect(ctx.counts('clearRect')).toBe(1);
     expect(ctx.counts('fillRect')).toBeGreaterThanOrEqual(1);
+  });
+
+  it('clears but performs no full-canvas background fillRect when background is transparent', () => {
+    const ctx = createMockCtx();
+    const scene = createScene(2, 2, 10);
+    scene.background = 'transparent';
+    renderScene(ctx, scene, helpers, { drawGrid: false });
+    expect(ctx.counts('clearRect')).toBe(1);
+    const bgFills = ctx.calls.filter((c) => c.method === 'fillRect' && c.args[2] === 20 && c.args[3] === 20);
+    expect(bgFills.length).toBe(0);
+  });
+
+  it('fills the full canvas when background is a color', () => {
+    const ctx = createMockCtx();
+    const scene = createScene(2, 2, 10);
+    scene.background = '#abcdef';
+    renderScene(ctx, scene, helpers, { drawGrid: false });
+    const bgFills = ctx.calls.filter((c) => c.method === 'fillRect' && c.args[2] === 20 && c.args[3] === 20);
+    expect(bgFills.length).toBe(1);
   });
 
   it('is a graceful no-op when ctx is null-ish', () => {

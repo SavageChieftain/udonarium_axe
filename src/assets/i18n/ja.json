@@ -1234,6 +1234,9 @@
     "mapMaker": {
       "title": "マップエディター",
       "gmOnly": "このツールはゲームマスター専用です",
+      "settings": {
+        "transparent": "透明"
+      },
       "tools": {
         "select": "選択",
         "cellPaint": "ペン",
