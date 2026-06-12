@@ -1,0 +1,30 @@
+<div class="box-border flex w-96 max-w-full flex-col gap-3 p-3">
+  <p class="m-0 text-[13px] whitespace-pre-line">{{ option.message }}</p>
+  <div class="flex justify-end gap-2">
+    <button
+      type="button"
+      class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+      (click)="cancel()"
+    >
+      {{ option.cancelLabel ?? ('common.button.cancel' | transloco) }}
+    </button>
+    @if (!option.danger) {
+      <button
+        type="button"
+        class="rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-2.5 py-1.25 text-[12px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40"
+        (click)="ok()"
+      >
+        {{ option.okLabel ?? ('common.button.ok' | transloco) }}
+      </button>
+    }
+    @if (option.danger) {
+      <button
+        type="button"
+        class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35]"
+        (click)="ok()"
+      >
+        {{ option.okLabel ?? ('common.button.ok' | transloco) }}
+      </button>
+    }
+  </div>
+</div>

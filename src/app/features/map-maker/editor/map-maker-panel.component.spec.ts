@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -10,6 +11,7 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import { MapMakerPanelComponent } from '@axe/features/map-maker/editor/map-maker-panel.component';
 import { pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import { cellKey, ImageLayer, ShapeLayer } from '@axe/features/map-maker/model/scene';
+import { addLayer } from '@axe/features/map-maker/model/scene-ops';
 import { exportSceneToBlob } from '@axe/features/map-maker/render/export-image';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -18,10 +20,17 @@ describe('MapMakerPanelComponent', () => {
   let component: MapMakerPanelComponent;
   let imageStorage: { addAsync: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
   let table: { imageIdentifier: string; width: number; height: number; gridSize: number; gridType: GridType };
+  let modalService: {
+    option: unknown;
+    title: string;
+    resolve: ReturnType<typeof vi.fn>;
+    open: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     imageStorage = { addAsync: vi.fn(), get: vi.fn() };
     table = { imageIdentifier: '', width: 0, height: 0, gridSize: 0, gridType: GridType.SQUARE };
+    modalService = { option: undefined, title: '', resolve: vi.fn(), open: vi.fn().mockResolvedValue(null) };
     await TestBed.configureTestingModule({
       imports: [MapMakerPanelComponent],
       providers: [...TEST_PROVIDERS],
@@ -29,6 +38,7 @@ describe('MapMakerPanelComponent', () => {
     TestBed.overrideProvider(PanelService, { useValue: { title: '' } });
     TestBed.overrideProvider(ImageStorage, { useValue: imageStorage });
     TestBed.overrideProvider(TabletopService, { useValue: { currentTable: table } });
+    TestBed.overrideProvider(ModalService, { useValue: modalService });
     fixture = TestBed.createComponent(MapMakerPanelComponent);
     component = fixture.componentInstance;
   });
@@ -234,5 +244,69 @@ describe('MapMakerPanelComponent', () => {
       cells: Record<string, unknown>;
     };
     expect(Object.keys(layer.cells)).toEqual([cellKey(cell.col, cell.row)]);
+  });
+
+  it('deleteLayer: モーダルが true を返すとレイヤーが削除される', async () => {
+    modalService.open.mockResolvedValue(true);
+    component['state'].applyCommitted(() =>
+      addLayer(component['state'].current, {
+        id: 'layer-1',
+        kind: 'shape',
+        name: 'S',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [],
+      })
+    );
+    const before = component['state'].current.layers.length;
+
+    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-1' });
+    await Promise.resolve();
+
+    expect(component['state'].current.layers.length).toBe(before - 1);
+    expect(component['state'].current.layers.find((l) => l.id === 'layer-1')).toBeUndefined();
+  });
+
+  it('deleteLayer: モーダルが false を返すとレイヤーが保持される', async () => {
+    modalService.open.mockResolvedValue(false);
+    component['state'].applyCommitted(() =>
+      addLayer(component['state'].current, {
+        id: 'layer-2',
+        kind: 'shape',
+        name: 'S',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [],
+      })
+    );
+    const before = component['state'].current.layers.length;
+
+    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-2' });
+    await Promise.resolve();
+
+    expect(component['state'].current.layers.length).toBe(before);
+  });
+
+  it('deleteLayer: モーダルが null を返すとレイヤーが保持される', async () => {
+    modalService.open.mockResolvedValue(null);
+    component['state'].applyCommitted(() =>
+      addLayer(component['state'].current, {
+        id: 'layer-3',
+        kind: 'shape',
+        name: 'S',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [],
+      })
+    );
+    const before = component['state'].current.layers.length;
+
+    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-3' });
+    await Promise.resolve();
+
+    expect(component['state'].current.layers.length).toBe(before);
   });
 });

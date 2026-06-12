@@ -46,6 +46,7 @@ import { getRasterImage, loadRasterImage } from '@axe/features/map-maker/render/
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-maker/render/stamp-image';
 import { createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -1176,9 +1177,17 @@ export class MapMakerPanelComponent implements AfterViewInit {
   }
 
   protected deleteLayer(layer: MapLayer): void {
-    if (!confirm(this.t('feature.mapMaker.layers.deleteConfirm'))) return;
-    this.state.applyCommitted(() => removeLayer(this.state.current, layer.id));
-    if (this.state.activeLayerId() === layer.id) this.state.activeLayerId.set(null);
+    this.modalService
+      .open<boolean>(ConfirmDialogComponent, {
+        message: this.t('feature.mapMaker.layers.deleteConfirm'),
+        okLabel: this.t('common.button.delete'),
+        danger: true,
+      })
+      .then((ok) => {
+        if (ok !== true) return;
+        this.state.applyCommitted(() => removeLayer(this.state.current, layer.id));
+        if (this.state.activeLayerId() === layer.id) this.state.activeLayerId.set(null);
+      });
   }
 
   protected startRename(layer: MapLayer): void {

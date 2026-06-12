@@ -11,7 +11,9 @@
       "yes": "はい",
       "no": "いいえ"
     },
-    "dialog": {},
+    "dialog": {
+      "confirmTitle": "確認"
+    },
     "language": {
       "ja": "日本語",
       "en": "English",
