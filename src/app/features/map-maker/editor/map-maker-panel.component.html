@@ -885,8 +885,8 @@
         class="rounded-ui-sm relative size-16 overflow-hidden border-2 border-solid bg-cover bg-center"
         [class.border-ui-accent]="state.textureId() === id"
         [class.border-ui-border-panel]="state.textureId() !== id"
-        [style.background-image]="texturePreview(id) ? 'url(' + texturePreview(id) + ')' : null"
-        [style.background-color]="texturePreview(id) ? null : textureBaseColor[id]"
+        [style.background-image]="'url(' + textureAssetUrls[id] + ')'"
+        [style.background-color]="textureBaseColor[id]"
         [title]="'feature.mapMaker.textures.' + id | transloco"
         (click)="selectTexture(id)"
       >

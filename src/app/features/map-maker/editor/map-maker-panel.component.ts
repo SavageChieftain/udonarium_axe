@@ -52,6 +52,8 @@ import {
   imageTextureIdentifier,
   isImageTextureId,
   isTextureId,
+  normalizeTextureId,
+  TEXTURE_ASSET_URLS,
   TEXTURE_BASE_COLOR,
   TEXTURE_IDS,
   TextureId,
@@ -60,7 +62,7 @@ import { exportSceneToBlob } from '@axe/features/map-maker/render/export-image';
 import { getRasterImage, loadRasterImage } from '@axe/features/map-maker/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-maker/render/stamp-image';
-import { createImageTexturePattern, createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+import { createImageTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
 import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -177,13 +179,13 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   protected readonly textureIds = TEXTURE_IDS;
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
+  protected readonly textureAssetUrls = TEXTURE_ASSET_URLS;
   protected readonly stampCategories = STAMP_CATEGORIES;
   protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'wall', 'stamp', 'freehand', 'text', 'image'];
 
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
   private readonly pendingImages = new Set<string>();
-  private readonly texturePreviewCache = new Map<string, string>();
 
   protected readonly cursorCell = signal<{ col: number; row: number } | null>(null);
   protected readonly spacePan = signal(false);
@@ -323,9 +325,17 @@ export class MapMakerPanelComponent implements AfterViewInit {
             this.schedulePendingImage(url);
             return null;
           }
-          return createImageTexturePattern(ctx, image, cellPx);
+          return createImageTexturePattern(ctx, image, cellPx, fill.scale, fill.rotation);
         }
-        return isTextureId(fill.textureId) ? createTexturePattern(ctx, fill.textureId, cellPx) : null;
+        const id = normalizeTextureId(fill.textureId);
+        if (!isTextureId(id)) return null;
+        const url = TEXTURE_ASSET_URLS[id];
+        const image = getRasterImage(url);
+        if (!image) {
+          this.schedulePendingImage(url);
+          return null;
+        }
+        return createImageTexturePattern(ctx, image, cellPx, fill.scale, fill.rotation);
       },
       stampImage: (item) => {
         const def = defById.get(item.stampId);
@@ -1213,33 +1223,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   protected isActiveImageTexture(file: ImageFile): boolean {
     return this.state.textureId() === 'image:' + file.identifier;
-  }
-
-  protected texturePreview(id: TextureId): string | null {
-    const cached = this.texturePreviewCache.get(id);
-    if (cached !== undefined) return cached || null;
-    const canvas = document.createElement?.('canvas');
-    if (!canvas) {
-      this.texturePreviewCache.set(id, '');
-      return null;
-    }
-    canvas.width = 128;
-    canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      this.texturePreviewCache.set(id, '');
-      return null;
-    }
-    const pattern = createTexturePattern(ctx, id, 64);
-    if (!pattern) {
-      this.texturePreviewCache.set(id, '');
-      return null;
-    }
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, 128, 128);
-    const data = canvas.toDataURL();
-    this.texturePreviewCache.set(id, data);
-    return data;
   }
 
   protected triggerTextureUpload(): void {

@@ -1250,16 +1250,22 @@
         "image": "Image"
       },
       "textures": {
-        "grass": "Grass",
-        "water": "Water",
-        "stone": "Stone",
-        "wood": "Wood",
-        "sand": "Sand",
-        "dirt": "Dirt",
+        "black_soil": "Black soil",
         "brick": "Brick",
-        "tile": "Tile",
+        "desert": "Desert",
+        "floor": "Wood floor",
+        "forest": "Forest",
+        "gravel": "Gravel",
         "lava": "Lava",
-        "snow": "Snow"
+        "rock": "Rock",
+        "rock_moss": "Mossy rock",
+        "sand": "Sand",
+        "sea": "Sea",
+        "shallows": "Shallows",
+        "steppe": "Steppe",
+        "stone_paving_big": "Large paving",
+        "stone_paving_small": "Small paving",
+        "stone_tile": "Stone tile"
       },
       "stampCategories": {
         "door": "Doors",

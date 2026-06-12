@@ -9,11 +9,17 @@ import {
   StampItem,
   StampLayer,
 } from '@axe/features/map-maker/model/scene';
-import { imageTextureIdentifier, isImageTextureId, isTextureId } from '@axe/features/map-maker/model/textures';
+import {
+  imageTextureIdentifier,
+  isImageTextureId,
+  isTextureId,
+  normalizeTextureId,
+  TEXTURE_ASSET_URLS,
+} from '@axe/features/map-maker/model/textures';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-maker/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, warmStampImages } from '@axe/features/map-maker/render/stamp-image';
-import { createImageTexturePattern, createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+import { createImageTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
 
 const MAX_SIDE = 8192;
 
@@ -59,6 +65,26 @@ function collectImageTextureIdentifiers(scene: MapScene): string[] {
     }
   }
   return [...ids];
+}
+
+function fillBuiltinTextureUrl(fill: FillStyle | null | undefined, out: Set<string>): void {
+  if (!fill || fill.type !== 'texture') return;
+  const id = normalizeTextureId(fill.textureId);
+  if (isTextureId(id)) out.add(TEXTURE_ASSET_URLS[id]);
+}
+
+function collectBuiltinTextureUrls(scene: MapScene): string[] {
+  const urls = new Set<string>();
+  for (const layer of scene.layers) {
+    if (layer.kind === 'cell') {
+      for (const fill of Object.values(layer.cells)) fillBuiltinTextureUrl(fill, urls);
+    } else if (layer.kind === 'shape') {
+      for (const item of layer.items) fillBuiltinTextureUrl(item.fill, urls);
+    } else if (layer.kind === 'wall') {
+      for (const segment of layer.segments) fillBuiltinTextureUrl(segment.fill, urls);
+    }
+  }
+  return [...urls];
 }
 
 function clampScale(scene: MapScene, requested: number): number {
@@ -123,6 +149,7 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
   );
 
   const resolveImageUrl = opts.resolveImageUrl;
+  const builtinUrls = collectBuiltinTextureUrls(scene);
   if (resolveImageUrl) {
     const identifiers = [
       ...collectImageItems(scene).map((item) => item.imageIdentifier),
@@ -131,7 +158,9 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
     const urls = identifiers
       .map((identifier) => resolveImageUrl(identifier))
       .filter((url): url is string => typeof url === 'string' && url.length > 0);
-    await warmRasterImages(urls);
+    await warmRasterImages([...urls, ...builtinUrls]);
+  } else if (builtinUrls.length > 0) {
+    await warmRasterImages(builtinUrls);
   }
 
   const defById = new Map(defs.map((def) => [def.id, def]));
@@ -141,9 +170,12 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
         if (!resolveImageUrl) return null;
         const url = resolveImageUrl(imageTextureIdentifier(fill.textureId));
         const image = url ? getRasterImage(url) : null;
-        return image ? createImageTexturePattern(target.ctx, image, cellPx) : null;
+        return image ? createImageTexturePattern(target.ctx, image, cellPx, fill.scale, fill.rotation) : null;
       }
-      return isTextureId(fill.textureId) ? createTexturePattern(target.ctx, fill.textureId, cellPx) : null;
+      const id = normalizeTextureId(fill.textureId);
+      if (!isTextureId(id)) return null;
+      const image = getRasterImage(TEXTURE_ASSET_URLS[id]);
+      return image ? createImageTexturePattern(target.ctx, image, cellPx, fill.scale, fill.rotation) : null;
     },
     stampImage: (item) => {
       const def = defById.get(item.stampId);

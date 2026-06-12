@@ -13,6 +13,7 @@ import {
   StrokeStyle,
   WallSegment,
 } from '@axe/features/map-maker/model/scene';
+import { normalizeTextureId } from '@axe/features/map-maker/model/textures';
 
 export function serializeScene(scene: MapScene): string {
   return JSON.stringify({ ...scene, version: MAP_SCENE_VERSION });
@@ -56,7 +57,7 @@ function sanitizeFill(value: unknown): FillStyle | null {
   if (v['type'] === 'texture' && typeof v['textureId'] === 'string') {
     return {
       type: 'texture',
-      textureId: v['textureId'],
+      textureId: normalizeTextureId(v['textureId']),
       scale: isFiniteNumber(v['scale']) ? (v['scale'] as number) : 1,
       rotation: isFiniteNumber(v['rotation']) ? (v['rotation'] as number) : 0,
     };

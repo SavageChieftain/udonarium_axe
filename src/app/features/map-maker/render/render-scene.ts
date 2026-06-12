@@ -17,8 +17,6 @@ import {
   TextItem,
   WallSegment,
 } from '@axe/features/map-maker/model/scene';
-import { isImageTextureId } from '@axe/features/map-maker/model/textures';
-
 export interface RenderHelpers {
   texturePattern(
     fill: { textureId: string; scale: number; rotation: number },
@@ -32,23 +30,9 @@ export interface RenderOptions {
   drawGrid?: boolean;
 }
 
-function applyPatternTransform(pattern: CanvasPattern, scale: number, rotation: number): void {
-  if (typeof DOMMatrix === 'undefined' || typeof pattern.setTransform !== 'function') return;
-  const safeScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
-  const safeRotation = Number.isFinite(rotation) ? rotation : 0;
-  pattern.setTransform(new DOMMatrix().rotate(safeRotation).scale(safeScale));
-}
-
 function resolveFill(fill: FillStyle, helpers: RenderHelpers, cellPx: number): string | CanvasPattern | null {
   if (fill.type === 'solid') return fill.color;
-  const resolved = helpers.texturePattern(
-    { textureId: fill.textureId, scale: fill.scale, rotation: fill.rotation },
-    cellPx
-  );
-  if (resolved && typeof resolved !== 'string' && !isImageTextureId(fill.textureId)) {
-    applyPatternTransform(resolved, fill.scale, fill.rotation);
-  }
-  return resolved;
+  return helpers.texturePattern({ textureId: fill.textureId, scale: fill.scale, rotation: fill.rotation }, cellPx);
 }
 
 function dashPattern(dash: StrokeDash, width: number): number[] {

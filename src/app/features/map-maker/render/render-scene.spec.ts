@@ -111,7 +111,7 @@ describe('renderScene', () => {
       opacity: 1,
       cells: {
         '0,0': { type: 'solid', color: '#f00' },
-        '1,1': { type: 'texture', textureId: 'grass', scale: 1, rotation: 0 },
+        '1,1': { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 },
       },
     };
     const ctx = createMockCtx();
@@ -150,7 +150,7 @@ describe('renderScene', () => {
           id: '4',
           shape: 'polygon',
           points: [0, 0, 9, 0, 5, 9],
-          fill: { type: 'texture', textureId: 'water', scale: 1, rotation: 0 },
+          fill: { type: 'texture', textureId: 'sea', scale: 1, rotation: 0 },
           stroke: null,
           rotation: 0,
         },
@@ -196,7 +196,7 @@ describe('renderScene', () => {
           points: [0, 0, 5, 5, 9, 0],
           thickness: 3,
           color: '#333',
-          fill: { type: 'texture', textureId: 'grass', scale: 1, rotation: 0 },
+          fill: { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 },
         },
       ],
     };
@@ -229,7 +229,7 @@ describe('renderScene', () => {
           points: [0, 0, 5, 5],
           thickness: 3,
           color: '#abc',
-          fill: { type: 'texture', textureId: 'grass', scale: 1, rotation: 0 },
+          fill: { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 },
         },
       ],
     };
@@ -561,7 +561,7 @@ describe('renderScene', () => {
     expect(Math.abs(cy - 6)).toBeLessThan(1e-6);
   });
 
-  it('calls pattern.setTransform when a texture fill has scale/rotation', () => {
+  it('passes scale/rotation to the helper and uses the returned pattern untouched', () => {
     const transforms: unknown[] = [];
     const pattern = {
       setTransform(matrix: unknown) {
@@ -575,14 +575,19 @@ describe('renderScene', () => {
       visible: true,
       locked: false,
       opacity: 1,
-      cells: { '0,0': { type: 'texture', textureId: 'grass', scale: 2, rotation: 45 } },
+      cells: { '0,0': { type: 'texture', textureId: 'steppe', scale: 2, rotation: 45 } },
     };
+    const fills: { textureId: string; scale: number; rotation: number }[] = [];
     const localHelpers: RenderHelpers = {
-      texturePattern: () => pattern,
+      texturePattern: (fill) => {
+        fills.push({ textureId: fill.textureId, scale: fill.scale, rotation: fill.rotation });
+        return pattern;
+      },
       stampImage: () => null,
     };
     const ctx = createMockCtx();
     renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
-    expect(transforms.length).toBe(1);
+    expect(fills).toEqual([{ textureId: 'steppe', scale: 2, rotation: 45 }]);
+    expect(transforms.length).toBe(0);
   });
 });

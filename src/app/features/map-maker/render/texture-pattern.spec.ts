@@ -1,113 +1,11 @@
-import { TEXTURE_IDS } from '@axe/features/map-maker/model/textures';
-import {
-  clearTextureTileCache,
-  createImageTexturePattern,
-  createTexturePattern,
-  drawWrapped,
-  tileableValueNoise,
-} from '@axe/features/map-maker/render/texture-pattern';
+import { createImageTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
 import { describe, expect, it } from 'vitest';
 
-function fakeCtx(pattern: unknown): CanvasRenderingContext2D {
-  return {
-    createPattern: () => pattern,
-  } as unknown as CanvasRenderingContext2D;
+function patternCtx(pattern: unknown): CanvasRenderingContext2D {
+  return { createPattern: () => pattern } as unknown as CanvasRenderingContext2D;
 }
 
-describe('createTexturePattern', () => {
-  it('returns null when ctx lacks createPattern', () => {
-    clearTextureTileCache();
-    const ctx = {} as unknown as CanvasRenderingContext2D;
-    expect(createTexturePattern(ctx, 'grass', 64)).toBeNull();
-  });
-
-  it('returns null when ctx is null-ish', () => {
-    expect(createTexturePattern(null as unknown as CanvasRenderingContext2D, 'grass', 64)).toBeNull();
-  });
-
-  it('does not throw for any texture id', () => {
-    const ctx = fakeCtx({});
-    for (const id of TEXTURE_IDS) {
-      expect(() => createTexturePattern(ctx, id, 48)).not.toThrow();
-    }
-  });
-
-  it('returns null gracefully when offscreen canvas unavailable', () => {
-    clearTextureTileCache();
-    const ctx = fakeCtx({});
-    const result = createTexturePattern(ctx, 'water', 32);
-    expect(result === null || typeof result === 'object').toBe(true);
-  });
-
-  it('swallows createPattern throwing', () => {
-    const ctx = {
-      createPattern: () => {
-        throw new Error('boom');
-      },
-    } as unknown as CanvasRenderingContext2D;
-    expect(createTexturePattern(ctx, 'stone', 40)).toBeNull();
-  });
-});
-
-describe('drawWrapped', () => {
-  const noop = {} as unknown as CanvasRenderingContext2D;
-
-  it('invokes the draw callback at the 9 wrapped offsets', () => {
-    const offsets: { x: number; y: number }[] = [];
-    drawWrapped(noop, 100, 10, 20, (dx, dy) => offsets.push({ x: dx, y: dy }));
-    expect(offsets).toHaveLength(9);
-  });
-
-  it('places offsets one tile apart in each axis', () => {
-    const offsets: { x: number; y: number }[] = [];
-    drawWrapped(noop, 50, 5, 5, (dx, dy) => offsets.push({ x: dx, y: dy }));
-    const xs = [...new Set(offsets.map((o) => o.x))].sort((a, b) => a - b);
-    const ys = [...new Set(offsets.map((o) => o.y))].sort((a, b) => a - b);
-    expect(xs).toEqual([-45, 5, 55]);
-    expect(ys).toEqual([-45, 5, 55]);
-  });
-});
-
-describe('tileableValueNoise', () => {
-  const SEED = 0x1234abcd;
-  const N = 8;
-
-  it('wraps seamlessly: noise(x,y) == noise(x+N,y) == noise(x,y+N)', () => {
-    for (const octaves of [1, 2, 3]) {
-      for (let i = 0; i < 12; i += 1) {
-        const x = i * 0.37;
-        const y = 7 - i * 0.53;
-        const base = tileableValueNoise(x, y, SEED, N, octaves);
-        expect(tileableValueNoise(x + N, y, SEED, N, octaves)).toBeCloseTo(base, 10);
-        expect(tileableValueNoise(x, y + N, SEED, N, octaves)).toBeCloseTo(base, 10);
-        expect(tileableValueNoise(x + N, y + N, SEED, N, octaves)).toBeCloseTo(base, 10);
-        expect(tileableValueNoise(x + 2 * N, y, SEED, N, octaves)).toBeCloseTo(base, 10);
-      }
-    }
-  });
-
-  it('is deterministic for a given seed and varies across seeds', () => {
-    const a = tileableValueNoise(1.5, 2.5, SEED, N, 3);
-    const b = tileableValueNoise(1.5, 2.5, SEED, N, 3);
-    expect(a).toBe(b);
-    const c = tileableValueNoise(1.5, 2.5, SEED ^ 0xffff, N, 3);
-    expect(c).not.toBe(a);
-  });
-
-  it('stays within [0, 1]', () => {
-    for (let i = 0; i < 50; i += 1) {
-      const v = tileableValueNoise(i * 1.31, i * 0.71, SEED, N, 3);
-      expect(v).toBeGreaterThanOrEqual(0);
-      expect(v).toBeLessThanOrEqual(1);
-    }
-  });
-});
-
 describe('createImageTexturePattern', () => {
-  function patternCtx(pattern: unknown): CanvasRenderingContext2D {
-    return { createPattern: () => pattern } as unknown as CanvasRenderingContext2D;
-  }
-
   it('returns null without ctx, createPattern, or image', () => {
     const img = { width: 100, height: 100 } as unknown as CanvasImageSource;
     expect(createImageTexturePattern(null as unknown as CanvasRenderingContext2D, img, 32)).toBeNull();
@@ -142,6 +40,34 @@ describe('createImageTexturePattern', () => {
       expect(transforms).toHaveLength(1);
       expect(transforms[0].a).toBeCloseTo((2 * 32) / 50, 6);
       expect(transforms[0].d).toBeCloseTo((2 * 32) / 50, 6);
+    }
+  });
+
+  it('folds the scale factor into the transform', () => {
+    const transforms: { a: number; d: number }[] = [];
+    const pattern = {
+      setTransform: (m: { a: number; d: number }) => transforms.push({ a: m.a, d: m.d }),
+    } as unknown as CanvasPattern;
+    const img = { width: 50, height: 50 } as unknown as CanvasImageSource;
+    createImageTexturePattern(patternCtx(pattern), img, 32, 2);
+    if (typeof DOMMatrix !== 'undefined') {
+      expect(transforms).toHaveLength(1);
+      expect(transforms[0].a).toBeCloseTo((2 * 2 * 32) / 50, 6);
+      expect(transforms[0].d).toBeCloseTo((2 * 2 * 32) / 50, 6);
+    }
+  });
+
+  it('applies rotation into the transform', () => {
+    const transforms: { a: number; b: number }[] = [];
+    const pattern = {
+      setTransform: (m: { a: number; b: number }) => transforms.push({ a: m.a, b: m.b }),
+    } as unknown as CanvasPattern;
+    const img = { width: 50, height: 50 } as unknown as CanvasImageSource;
+    createImageTexturePattern(patternCtx(pattern), img, 32, 1, 90);
+    if (typeof DOMMatrix !== 'undefined') {
+      expect(transforms).toHaveLength(1);
+      expect(transforms[0].a).toBeCloseTo(0, 6);
+      expect(transforms[0].b).toBeCloseTo((2 * 32) / 50, 6);
     }
   });
 });

@@ -1250,16 +1250,22 @@
         "image": "画像"
       },
       "textures": {
-        "grass": "草地",
-        "water": "水面",
-        "stone": "石畳",
-        "wood": "木材",
-        "sand": "砂地",
-        "dirt": "土",
+        "black_soil": "黒土",
         "brick": "レンガ",
-        "tile": "タイル",
+        "desert": "砂漠",
+        "floor": "床板",
+        "forest": "森林",
+        "gravel": "砂利",
         "lava": "溶岩",
-        "snow": "雪"
+        "rock": "岩",
+        "rock_moss": "岩（苔）",
+        "sand": "砂地",
+        "sea": "海",
+        "shallows": "浅瀬",
+        "steppe": "草原",
+        "stone_paving_big": "石畳（大）",
+        "stone_paving_small": "石畳（小）",
+        "stone_tile": "石タイル"
       },
       "stampCategories": {
         "door": "扉",

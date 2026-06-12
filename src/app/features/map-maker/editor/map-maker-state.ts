@@ -93,7 +93,7 @@ export class MapMakerState {
 
   readonly fillMode = signal<'solid' | 'texture'>('solid');
   readonly solidColor = signal('#88aa66');
-  readonly textureId = signal<string>('grass');
+  readonly textureId = signal<string>('steppe');
   readonly textureScale = signal(1);
   readonly textureRotation = signal(0);
 
