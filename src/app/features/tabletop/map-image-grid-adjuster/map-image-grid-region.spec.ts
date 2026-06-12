@@ -1,7 +1,11 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCircumradius, hexSpacing } from '@axe/domain/tabletop/hex-geometry';
 import {
+  colsForWidth,
   computeCoveredRegion,
+  coversFrame,
+  footprintSize,
+  rowsForHeight,
   scaleForCols,
   scaleForRows,
   snapAnchor,
@@ -120,6 +124,48 @@ describe('scaleForCols / scaleForRows', () => {
         expect(r.cols).toBe(n);
       }
     }
+  });
+});
+
+describe('footprintSize / colsForWidth / rowsForHeight', () => {
+  it('全タイプでフットプリント往復が一致すること', () => {
+    for (const type of [GridType.SQUARE, GridType.HEX_VERTICAL, GridType.HEX_HORIZONTAL]) {
+      for (const cols of [2, 7, 16]) {
+        for (const rows of [2, 5, 12]) {
+          const f = footprintSize(type, cols, rows, DC);
+          expect(colsForWidth(type, f.w, DC)).toBe(cols);
+          expect(rowsForHeight(type, f.h, DC)).toBe(rows);
+        }
+      }
+    }
+  });
+
+  it('スケール逆算とフットプリントが一致すること', () => {
+    for (const type of [GridType.SQUARE, GridType.HEX_VERTICAL, GridType.HEX_HORIZONTAL]) {
+      const f = footprintSize(type, 6, 4, DC);
+      expect(scaleForCols(type, 6, 800, DC)).toBeCloseTo(f.w / 800, 10);
+    }
+  });
+
+  it('不正値は最小値へフォールバックすること', () => {
+    expect(footprintSize(GridType.SQUARE, 0, 5, DC)).toEqual({ w: 0, h: 0 });
+    expect(colsForWidth(GridType.SQUARE, -10, DC)).toBe(1);
+    expect(rowsForHeight(GridType.HEX_VERTICAL, 0, DC)).toBe(1);
+  });
+});
+
+describe('coversFrame', () => {
+  it('画像が枠を完全に覆うときtrueを返すこと', () => {
+    expect(coversFrame(0, 0, 480, 240, 48, 48, 96, 96)).toBe(true);
+  });
+
+  it('許容誤差内の不足はtrueを返すこと', () => {
+    expect(coversFrame(48.5, 48.5, 96, 96, 48, 48, 96.4, 96.4)).toBe(true);
+  });
+
+  it('枠が画像からはみ出すときfalseを返すこと', () => {
+    expect(coversFrame(100, 0, 480, 240, 48, 48, 96, 96)).toBe(false);
+    expect(coversFrame(0, 0, 100, 240, 48, 48, 96, 96)).toBe(false);
   });
 });
 

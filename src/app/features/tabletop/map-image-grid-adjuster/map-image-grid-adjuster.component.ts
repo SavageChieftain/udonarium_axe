@@ -7,6 +7,7 @@ import {
   inject,
   OnDestroy,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,10 +18,11 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
-  computeCoveredRegion,
+  colsForWidth,
+  coversFrame,
   cropImageRegion,
-  scaleForCols,
-  scaleForRows,
+  footprintSize,
+  rowsForHeight,
   snapAnchor,
 } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-grid-region';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -43,7 +45,18 @@ export interface MapImageGridAdjusterResult {
 const DISPLAY_CELL = 48;
 const STAGE_FALLBACK_W = 720;
 const STAGE_FALLBACK_H = 520;
-const MAX_SCALE = 8;
+const MIN_SCALE = 0.02;
+const MAX_SCALE = 16;
+const MAX_CELLS = 100;
+const MIN_IMAGE_PX = 8;
+
+type ImageHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w';
+type FrameHandle = 'fr' | 'fb';
+type DragMode = { kind: 'move' } | { kind: 'image'; handle: ImageHandle } | { kind: 'frame'; handle: FrameHandle };
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
 
 @Component({
   selector: 'app-map-image-grid-adjuster',
@@ -75,63 +88,48 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
 
   readonly tx = signal(0);
   readonly ty = signal(0);
-  readonly scale = signal(1);
+  readonly scaleX = signal(1);
+  readonly scaleY = signal(1);
+  readonly linked = signal(true);
+  readonly cols = signal(1);
+  readonly rows = signal(1);
   readonly gridType = signal<GridType>(this.option.gridType ?? GridType.SQUARE);
 
   private loadedImage: HTMLImageElement | null = null;
-  private dragLast: { x: number; y: number } | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private readonly cropFn = cropImageRegion;
 
-  readonly minScale = computed(() => {
-    const w = this.imageWidth();
-    const h = this.imageHeight();
-    if (w <= 0 || h <= 0) return 0.05;
-    return Math.max(0.05, DISPLAY_CELL / Math.min(w, h));
+  private dragMode: DragMode | null = null;
+  private dragStart: {
+    clientX: number;
+    clientY: number;
+    tx: number;
+    ty: number;
+    scaleX: number;
+    scaleY: number;
+    cols: number;
+    rows: number;
+  } | null = null;
+  private prevFrame: { fx: number; fy: number } | null = null;
+
+  readonly imageScreenWidth = computed(() => this.imageWidth() * this.scaleX());
+  readonly imageScreenHeight = computed(() => this.imageHeight() * this.scaleY());
+
+  readonly frame = computed(() => {
+    const { w, h } = footprintSize(this.gridType(), this.cols(), this.rows(), DISPLAY_CELL);
+    const centeredX = (this.stageW() - w) / 2;
+    const centeredY = (this.stageH() - h) / 2;
+    const a = snapAnchor(this.gridType(), centeredX, centeredY, DISPLAY_CELL);
+    return { fx: a.tx, fy: a.ty, fw: w, fh: h };
   });
 
-  readonly imageScreenWidth = computed(() => this.imageWidth() * this.scale());
-  readonly imageScreenHeight = computed(() => this.imageHeight() * this.scale());
-
-  readonly covered = computed(() =>
-    computeCoveredRegion(
-      this.gridType(),
-      this.tx(),
-      this.ty(),
-      this.scale(),
-      this.imageWidth(),
-      this.imageHeight(),
-      DISPLAY_CELL
-    )
-  );
-
-  private readonly regionVisible = computed(() => {
-    const c = this.covered();
-    if (c.cols < 1 || c.rows < 1) return false;
-    const right = c.screenX + c.screenW;
-    const bottom = c.screenY + c.screenH;
-    return c.screenX < this.stageW() && c.screenY < this.stageH() && right > 0 && bottom > 0;
+  readonly outputWidth = computed(() => {
+    const sx = this.scaleX();
+    return sx > 0 ? Math.round(this.frame().fw / sx) : 0;
   });
-
-  readonly cols = computed(() => this.covered().cols);
-  readonly rows = computed(() => this.covered().rows);
-  readonly hasWholeCell = computed(() => this.cols() >= 1 && this.rows() >= 1 && this.regionVisible());
-
-  readonly outputWidth = computed(() => Math.round(this.covered().imageW));
-  readonly outputHeight = computed(() => Math.round(this.covered().imageH));
-
-  readonly zoomPercent = computed(() => Math.round(this.scale() * 100));
-  readonly minZoomPercent = computed(() => Math.round(this.minScale() * 100));
-  readonly maxZoomPercent = MAX_SCALE * 100;
-
-  readonly regionStyle = computed(() => {
-    const c = this.covered();
-    return {
-      left: `${c.screenX}px`,
-      top: `${c.screenY}px`,
-      width: `${c.screenW}px`,
-      height: `${c.screenH}px`,
-    };
+  readonly outputHeight = computed(() => {
+    const sy = this.scaleY();
+    return sy > 0 ? Math.round(this.frame().fh / sy) : 0;
   });
 
   readonly gridBackgroundSize = `${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px`;
@@ -148,7 +146,11 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     );
   });
 
-  readonly canApply = computed(() => this.loadState() === 'ready' && this.hasWholeCell() && !this.processing());
+  readonly canApply = computed(() => {
+    if (this.loadState() !== 'ready' || this.processing()) return false;
+    const f = this.frame();
+    return coversFrame(this.tx(), this.ty(), this.imageScreenWidth(), this.imageScreenHeight(), f.fx, f.fy, f.fw, f.fh);
+  });
 
   constructor() {
     queueMicrotask(() => (this.modalService.title = this.t('feature.tabletop.tableSetting.gridAdjuster.title')));
@@ -167,8 +169,21 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
         this.resizeObserver = null;
       });
     });
+    effect(() => {
+      const f = this.frame();
+      const prev = untracked(this.prevFrameOf);
+      if (prev) {
+        untracked(() => {
+          this.tx.set(this.tx() + (f.fx - prev.fx));
+          this.ty.set(this.ty() + (f.fy - prev.fy));
+        });
+      }
+      this.prevFrame = { fx: f.fx, fy: f.fy };
+    });
     effect(() => this.renderHexOverlay());
   }
+
+  private readonly prevFrameOf = () => this.prevFrame;
 
   ngOnDestroy() {
     this.resizeObserver?.disconnect();
@@ -238,106 +253,250 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     image.src = url;
   }
 
-  private clampScale(value: number): number {
-    return Math.min(MAX_SCALE, Math.max(this.minScale(), value));
-  }
-
   private initTransform() {
-    const s = this.clampScale(DISPLAY_CELL / this.option.gridSize);
-    this.scale.set(s);
-    this.centerAndSnap();
+    const gridSize = this.option.gridSize;
+    this.cols.set(clamp(Math.round(this.imageWidth() / gridSize), 1, MAX_CELLS));
+    this.rows.set(clamp(Math.round(this.imageHeight() / gridSize), 1, MAX_CELLS));
+    this.stretchFit();
   }
 
-  private centerImage() {
-    const s = this.scale();
-    this.tx.set((this.stageW() - this.imageWidth() * s) / 2);
-    this.ty.set((this.stageH() - this.imageHeight() * s) / 2);
-  }
-
-  private centerAndSnap() {
-    this.centerImage();
-    const a = snapAnchor(this.gridType(), this.tx(), this.ty(), DISPLAY_CELL);
-    this.tx.set(a.tx);
-    this.ty.set(a.ty);
+  private stretchFit() {
+    const f = this.frame();
+    const imgW = this.imageWidth();
+    const imgH = this.imageHeight();
+    if (imgW <= 0 || imgH <= 0) return;
+    this.scaleX.set(clamp(f.fw / imgW, MIN_SCALE, MAX_SCALE));
+    this.scaleY.set(clamp(f.fh / imgH, MIN_SCALE, MAX_SCALE));
+    this.tx.set(f.fx);
+    this.ty.set(f.fy);
+    this.prevFrame = { fx: f.fx, fy: f.fy };
   }
 
   protected zoomAt(px: number, py: number, factor: number) {
-    const s = this.scale();
-    const next = this.clampScale(s * factor);
-    if (next === s) return;
-    this.tx.set(px - (px - this.tx()) * (next / s));
-    this.ty.set(py - (py - this.ty()) * (next / s));
-    this.scale.set(next);
+    const nextX = clamp(this.scaleX() * factor, MIN_SCALE, MAX_SCALE);
+    const nextY = clamp(this.scaleY() * factor, MIN_SCALE, MAX_SCALE);
+    const rx = nextX / this.scaleX();
+    const ry = nextY / this.scaleY();
+    this.tx.set(px - (px - this.tx()) * rx);
+    this.ty.set(py - (py - this.ty()) * ry);
+    this.scaleX.set(nextX);
+    this.scaleY.set(nextY);
   }
 
   setGridType(type: GridType) {
     if (type === this.gridType()) return;
     this.gridType.set(type);
-    const a = snapAnchor(type, this.tx(), this.ty(), DISPLAY_CELL);
-    this.tx.set(a.tx);
-    this.ty.set(a.ty);
   }
 
   setCols(value: number | string) {
     const num = Math.round(Number(value));
     if (!Number.isFinite(num) || num < 1) return;
-    const w = this.imageWidth();
-    if (w <= 0) return;
-    this.scale.set(this.clampScale(scaleForCols(this.gridType(), num, w, DISPLAY_CELL)));
-    this.centerAndSnap();
+    this.cols.set(clamp(num, 1, MAX_CELLS));
   }
 
   setRows(value: number | string) {
     const num = Math.round(Number(value));
     if (!Number.isFinite(num) || num < 1) return;
-    const h = this.imageHeight();
-    if (h <= 0) return;
-    this.scale.set(this.clampScale(scaleForRows(this.gridType(), num, h, DISPLAY_CELL)));
-    this.centerAndSnap();
+    this.rows.set(clamp(num, 1, MAX_CELLS));
   }
 
-  setZoom(value: number | string) {
-    const num = Number(value);
-    if (!Number.isFinite(num)) return;
-    this.zoomAt(this.stageW() / 2, this.stageH() / 2, this.clampScale(num / 100) / this.scale());
+  toggleLinked() {
+    this.linked.set(!this.linked());
+  }
+
+  fit() {
+    const f = this.frame();
+    const imgW = this.imageWidth();
+    const imgH = this.imageHeight();
+    if (imgW <= 0 || imgH <= 0) return;
+    if (this.linked()) {
+      const s = clamp(Math.max(f.fw / imgW, f.fh / imgH), MIN_SCALE, MAX_SCALE);
+      this.scaleX.set(s);
+      this.scaleY.set(s);
+      this.tx.set(f.fx + (f.fw - imgW * s) / 2);
+      this.ty.set(f.fy + (f.fh - imgH * s) / 2);
+      this.prevFrame = { fx: f.fx, fy: f.fy };
+      return;
+    }
+    this.stretchFit();
   }
 
   reset() {
-    this.scale.set(this.clampScale(DISPLAY_CELL / this.option.gridSize));
-    this.centerAndSnap();
+    this.cols.set(clamp(Math.round(this.imageWidth() / this.option.gridSize), 1, MAX_CELLS));
+    this.rows.set(clamp(Math.round(this.imageHeight() / this.option.gridSize), 1, MAX_CELLS));
+    this.stretchFit();
+  }
+
+  protected stagePoint(event: PointerEvent): { x: number; y: number } {
+    const rect = this.stageRef()?.nativeElement.getBoundingClientRect();
+    return {
+      x: rect ? event.clientX - rect.left : event.clientX,
+      y: rect ? event.clientY - rect.top : event.clientY,
+    };
+  }
+
+  protected hitTest(x: number, y: number): DragMode {
+    const imageHandle = this.hitImageHandle(x, y);
+    if (imageHandle) return { kind: 'image', handle: imageHandle };
+    const frameHandle = this.hitFrameHandle(x, y);
+    if (frameHandle) return { kind: 'frame', handle: frameHandle };
+    return { kind: 'move' };
+  }
+
+  private hitImageHandle(x: number, y: number): ImageHandle | null {
+    const r = 7;
+    const left = this.tx();
+    const top = this.ty();
+    const right = left + this.imageScreenWidth();
+    const bottom = top + this.imageScreenHeight();
+    const cx = (left + right) / 2;
+    const cy = (top + bottom) / 2;
+    const near = (hx: number, hy: number) => Math.abs(x - hx) <= r && Math.abs(y - hy) <= r;
+    if (near(left, top)) return 'nw';
+    if (near(right, top)) return 'ne';
+    if (near(left, bottom)) return 'sw';
+    if (near(right, bottom)) return 'se';
+    if (!this.linked()) {
+      if (near(cx, top)) return 'n';
+      if (near(cx, bottom)) return 's';
+      if (near(right, cy)) return 'e';
+      if (near(left, cy)) return 'w';
+    }
+    return null;
+  }
+
+  private hitFrameHandle(x: number, y: number): FrameHandle | null {
+    const r = 7;
+    const f = this.frame();
+    const near = (hx: number, hy: number) => Math.abs(x - hx) <= r && Math.abs(y - hy) <= r;
+    if (near(f.fx + f.fw, f.fy + f.fh / 2)) return 'fr';
+    if (near(f.fx + f.fw / 2, f.fy + f.fh)) return 'fb';
+    return null;
   }
 
   onPointerDown(event: PointerEvent) {
     if (this.loadState() !== 'ready') return;
-    this.dragLast = { x: event.clientX, y: event.clientY };
-    (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+    const p = this.stagePoint(event);
+    this.dragMode = this.hitTest(p.x, p.y);
+    this.dragStart = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      tx: this.tx(),
+      ty: this.ty(),
+      scaleX: this.scaleX(),
+      scaleY: this.scaleY(),
+      cols: this.cols(),
+      rows: this.rows(),
+    };
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
     (event.currentTarget as HTMLElement).focus();
   }
 
   onPointerMove(event: PointerEvent) {
-    if (!this.dragLast) return;
-    const dx = event.clientX - this.dragLast.x;
-    const dy = event.clientY - this.dragLast.y;
-    this.dragLast = { x: event.clientX, y: event.clientY };
-    this.tx.set(this.tx() + dx);
-    this.ty.set(this.ty() + dy);
+    if (!this.dragMode || !this.dragStart) return;
+    const dx = event.clientX - this.dragStart.clientX;
+    const dy = event.clientY - this.dragStart.clientY;
+    switch (this.dragMode.kind) {
+      case 'move':
+        this.tx.set(this.dragStart.tx + dx);
+        this.ty.set(this.dragStart.ty + dy);
+        break;
+      case 'image':
+        this.resizeImage(this.dragMode.handle, dx, dy);
+        break;
+      case 'frame':
+        this.resizeFrame(this.dragMode.handle, dx, dy);
+        break;
+    }
   }
 
   onPointerUp(event: PointerEvent) {
-    this.dragLast = null;
-    (event.target as HTMLElement).releasePointerCapture?.(event.pointerId);
+    this.dragMode = null;
+    this.dragStart = null;
+    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+  }
+
+  private resizeImage(handle: ImageHandle, dx: number, dy: number) {
+    const start = this.dragStart;
+    if (!start) return;
+    const imgW = this.imageWidth();
+    const imgH = this.imageHeight();
+    if (imgW <= 0 || imgH <= 0) return;
+    const startW = imgW * start.scaleX;
+    const startH = imgH * start.scaleY;
+    const startRight = start.tx + startW;
+    const startBottom = start.ty + startH;
+
+    if (handle === 'n' || handle === 's') {
+      let newH: number;
+      let newTop: number;
+      if (handle === 's') {
+        newH = Math.max(MIN_IMAGE_PX, startH + dy);
+        newTop = start.ty;
+      } else {
+        newH = Math.max(MIN_IMAGE_PX, startH - dy);
+        newTop = startBottom - newH;
+      }
+      this.scaleY.set(clamp(newH / imgH, MIN_SCALE, MAX_SCALE));
+      this.ty.set(newTop);
+      return;
+    }
+    if (handle === 'e' || handle === 'w') {
+      let newW: number;
+      let newLeft: number;
+      if (handle === 'e') {
+        newW = Math.max(MIN_IMAGE_PX, startW + dx);
+        newLeft = start.tx;
+      } else {
+        newW = Math.max(MIN_IMAGE_PX, startW - dx);
+        newLeft = startRight - newW;
+      }
+      this.scaleX.set(clamp(newW / imgW, MIN_SCALE, MAX_SCALE));
+      this.tx.set(newLeft);
+      return;
+    }
+
+    const signX = handle === 'ne' || handle === 'se' ? 1 : -1;
+    const signY = handle === 'sw' || handle === 'se' ? 1 : -1;
+    const anchorX = signX > 0 ? start.tx : startRight;
+    const anchorY = signY > 0 ? start.ty : startBottom;
+    let newW = Math.max(MIN_IMAGE_PX, startW + signX * dx);
+    let newH = Math.max(MIN_IMAGE_PX, startH + signY * dy);
+
+    if (this.linked()) {
+      const factor = Math.abs(newW / startW - 1) >= Math.abs(newH / startH - 1) ? newW / startW : newH / startH;
+      newW = Math.max(MIN_IMAGE_PX, startW * factor);
+      newH = Math.max(MIN_IMAGE_PX, startH * factor);
+    }
+
+    const sx = clamp(newW / imgW, MIN_SCALE, MAX_SCALE);
+    const sy = clamp(newH / imgH, MIN_SCALE, MAX_SCALE);
+    this.scaleX.set(sx);
+    this.scaleY.set(sy);
+    this.tx.set(signX > 0 ? anchorX : anchorX - imgW * sx);
+    this.ty.set(signY > 0 ? anchorY : anchorY - imgH * sy);
+  }
+
+  private resizeFrame(handle: FrameHandle, dx: number, dy: number) {
+    const start = this.dragStart;
+    if (!start) return;
+    const f = footprintSize(this.gridType(), start.cols, start.rows, DISPLAY_CELL);
+    if (handle === 'fr') {
+      const next = clamp(colsForWidth(this.gridType(), Math.max(1, f.w + dx), DISPLAY_CELL), 1, MAX_CELLS);
+      if (next !== this.cols()) this.cols.set(next);
+    } else {
+      const next = clamp(rowsForHeight(this.gridType(), Math.max(1, f.h + dy), DISPLAY_CELL), 1, MAX_CELLS);
+      if (next !== this.rows()) this.rows.set(next);
+    }
   }
 
   onWheel(event: WheelEvent) {
     if (this.loadState() !== 'ready') return;
     event.preventDefault();
-    const stage = this.stageRef()?.nativeElement;
-    const rect = stage?.getBoundingClientRect();
-    const px = rect ? event.clientX - rect.left : this.stageW() / 2;
-    const py = rect ? event.clientY - rect.top : this.stageH() / 2;
+    const p = this.stagePoint(event as unknown as PointerEvent);
     const base = event.shiftKey ? 1.01 : 1.05;
     const factor = event.deltaY < 0 ? base : 1 / base;
-    this.zoomAt(px, py, factor);
+    this.zoomAt(p.x, p.y, factor);
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -370,13 +529,21 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     if (!this.canApply() || !this.loadedImage) return;
     this.processing.set(true);
     try {
-      const c = this.covered();
-      const blob = await this.cropFn(this.loadedImage, c.imageX, c.imageY, c.imageW, c.imageH);
+      const f = this.frame();
+      const sx = this.scaleX();
+      const sy = this.scaleY();
+      const imgW = this.imageWidth();
+      const imgH = this.imageHeight();
+      const cropX = clamp((f.fx - this.tx()) / sx, 0, imgW);
+      const cropY = clamp((f.fy - this.ty()) / sy, 0, imgH);
+      const cropW = Math.min(f.fw / sx, imgW - cropX);
+      const cropH = Math.min(f.fh / sy, imgH - cropY);
+      const blob = await this.cropFn(this.loadedImage, cropX, cropY, cropW, cropH);
       const image = await this.imageStorage.addAsync(blob);
       const result: MapImageGridAdjusterResult = {
         imageIdentifier: image.identifier,
-        width: c.cols,
-        height: c.rows,
+        width: this.cols(),
+        height: this.rows(),
         gridType: this.gridType(),
       };
       this.modalService.resolve(result);

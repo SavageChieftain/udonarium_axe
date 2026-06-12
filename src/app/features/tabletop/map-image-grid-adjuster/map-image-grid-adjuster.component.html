@@ -46,11 +46,65 @@
         }
         <div
           class="border-ui-accent pointer-events-none absolute border-2 border-solid [box-shadow:0_0_0_9999px_rgba(0,0,0,0.5)]"
-          [style.left]="regionStyle().left"
-          [style.top]="regionStyle().top"
-          [style.width]="regionStyle().width"
-          [style.height]="regionStyle().height"
+          [style.left.px]="frame().fx"
+          [style.top.px]="frame().fy"
+          [style.width.px]="frame().fw"
+          [style.height.px]="frame().fh"
         ></div>
+
+        <div
+          class="bg-ui-accent pointer-events-none absolute size-2.5 -translate-1/2 cursor-ew-resize border border-solid border-white"
+          [style.left.px]="frame().fx + frame().fw"
+          [style.top.px]="frame().fy + frame().fh / 2"
+        ></div>
+        <div
+          class="bg-ui-accent pointer-events-none absolute size-2.5 -translate-1/2 cursor-ns-resize border border-solid border-white"
+          [style.left.px]="frame().fx + frame().fw / 2"
+          [style.top.px]="frame().fy + frame().fh"
+        ></div>
+
+        <div
+          class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-nwse-resize border border-solid bg-white"
+          [style.left.px]="tx()"
+          [style.top.px]="ty()"
+        ></div>
+        <div
+          class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-nesw-resize border border-solid bg-white"
+          [style.left.px]="tx() + imageScreenWidth()"
+          [style.top.px]="ty()"
+        ></div>
+        <div
+          class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-nesw-resize border border-solid bg-white"
+          [style.left.px]="tx()"
+          [style.top.px]="ty() + imageScreenHeight()"
+        ></div>
+        <div
+          class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-nwse-resize border border-solid bg-white"
+          [style.left.px]="tx() + imageScreenWidth()"
+          [style.top.px]="ty() + imageScreenHeight()"
+        ></div>
+        @if (!linked()) {
+          <div
+            class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-ns-resize border border-solid bg-white"
+            [style.left.px]="tx() + imageScreenWidth() / 2"
+            [style.top.px]="ty()"
+          ></div>
+          <div
+            class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-ns-resize border border-solid bg-white"
+            [style.left.px]="tx() + imageScreenWidth() / 2"
+            [style.top.px]="ty() + imageScreenHeight()"
+          ></div>
+          <div
+            class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-ew-resize border border-solid bg-white"
+            [style.left.px]="tx() + imageScreenWidth()"
+            [style.top.px]="ty() + imageScreenHeight() / 2"
+          ></div>
+          <div
+            class="border-ui-border pointer-events-none absolute size-2.5 -translate-1/2 cursor-ew-resize border border-solid bg-white"
+            [style.left.px]="tx()"
+            [style.top.px]="ty() + imageScreenHeight() / 2"
+          ></div>
+        }
       </div>
 
       <div class="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto">
@@ -127,37 +181,27 @@
           </div>
         </div>
 
-        <div class="flex flex-col gap-1">
-          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-            'feature.tabletop.tableSetting.gridAdjuster.zoom' | transloco
-          }}</span>
-          <div class="flex items-center gap-2">
-            <input
-              type="range"
-              class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-              [min]="minZoomPercent()"
-              [max]="maxZoomPercent"
-              step="1"
-              [ngModel]="zoomPercent()"
-              (ngModelChange)="setZoom($event)"
-              name="zoom"
-            />
-            <input
-              type="number"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
-              [min]="minZoomPercent()"
-              [max]="maxZoomPercent"
-              step="1"
-              [ngModel]="zoomPercent()"
-              (ngModelChange)="setZoom($event)"
-              name="zoomNum"
-            />
-          </div>
-        </div>
+        <button
+          class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover flex items-center justify-center gap-1.5 border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
+          type="button"
+          [class.bg-ui-accent-bg]="linked()"
+          [attr.aria-pressed]="linked()"
+          (click)="toggleLinked()"
+        >
+          <span class="material-icons text-[16px] leading-none">{{ linked() ? 'link' : 'link_off' }}</span>
+          {{ 'feature.tabletop.tableSetting.gridAdjuster.linkAspect' | transloco }}
+        </button>
 
-        <div class="flex">
+        <div class="flex gap-2">
           <button
-            class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
+            class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover flex-1 border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
+            type="button"
+            (click)="fit()"
+          >
+            {{ 'feature.tabletop.tableSetting.gridAdjuster.fit' | transloco }}
+          </button>
+          <button
+            class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover flex-1 border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
             type="button"
             (click)="reset()"
           >

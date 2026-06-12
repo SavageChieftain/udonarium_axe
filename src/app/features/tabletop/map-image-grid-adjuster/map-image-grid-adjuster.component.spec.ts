@@ -3,7 +3,6 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { hexSpacing } from '@axe/domain/tabletop/hex-geometry';
 import {
   MapImageGridAdjusterComponent,
   MapImageGridAdjusterOption,
@@ -38,6 +37,11 @@ describe('MapImageGridAdjusterComponent', () => {
     (component as unknown as { initTransform: () => void }).initTransform();
     component.loadState.set('ready');
     (component as unknown as { loadedImage: unknown }).loadedImage = {} as HTMLImageElement;
+    fixture.detectChanges();
+  }
+
+  function frame() {
+    return (component as unknown as { frame: () => { fx: number; fy: number; fw: number; fh: number } }).frame();
   }
 
   it('画像が見つからないときはエラー状態にすること', async () => {
@@ -46,13 +50,31 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.loadState()).toBe('error');
   });
 
-  it('読み込み時にgridSizeから初期スケールを決め中央へスナップ配置すること', async () => {
+  it('読み込み時にgridSizeから初期マス数を決めること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
-    makeReady(400, 300);
+    makeReady(480, 240);
 
-    expect(component.scale()).toBeCloseTo(1, 5);
-    expect(component.tx() % DISPLAY_CELL).toBe(0);
-    expect(component.ty() % DISPLAY_CELL).toBe(0);
+    expect(component.cols()).toBe(10);
+    expect(component.rows()).toBe(5);
+  });
+
+  it('初期マス数は1〜100にクランプされること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 1 });
+    makeReady(8000, 20);
+
+    expect(component.cols()).toBe(100);
+    expect(component.rows()).toBe(20);
+  });
+
+  it('フレームは中央配置後にスナップされること（スクエア）', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+
+    const f = frame();
+    expect(f.fx % DISPLAY_CELL).toBe(0);
+    expect(f.fy % DISPLAY_CELL).toBe(0);
+    expect(f.fw).toBe(component.cols() * DISPLAY_CELL);
+    expect(f.fh).toBe(component.rows() * DISPLAY_CELL);
   });
 
   it('既定のグリッドタイプはオプションから取ること', async () => {
@@ -70,107 +92,103 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.gridType()).toBe(GridType.SQUARE);
   });
 
-  it('グリッドタイプ変更で有効なアンカーへ再スナップすること', async () => {
+  it('マス数変更でフレームが動いても画像とフレームの相対位置が保たれること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
-    makeReady(2000, 2000);
+    makeReady(480, 240);
 
-    component.setGridType(GridType.HEX_VERTICAL);
-
-    expect(component.gridType()).toBe(GridType.HEX_VERTICAL);
-    const { colSpacing } = hexSpacing(DISPLAY_CELL, true);
-    const s3 = DISPLAY_CELL / Math.sqrt(3);
-    const i = (component.tx() + s3) / colSpacing;
-    expect(i).toBeCloseTo(Math.round(i), 6);
-    expect(Math.abs(Math.round(i) % 2)).toBe(0);
-  });
-
-  it('横マス数指定でスケールが算出されスナップ後に指定マス数になること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(800, 600);
-
-    component.setCols(16);
-
-    expect(component.scale()).toBeCloseTo(0.96, 5);
-    expect(component.cols()).toBe(16);
-  });
-
-  it('ヘクス縦でも横マス数指定で指定マス数になること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50, gridType: GridType.HEX_VERTICAL });
-    makeReady(800, 4000);
-
+    const before = component.tx() - frame().fx;
     component.setCols(7);
+    fixture.detectChanges();
+    const after = component.tx() - frame().fx;
 
-    expect(component.cols()).toBe(7);
+    expect(after).toBeCloseTo(before, 5);
   });
 
-  it('縦マス数指定でスケールが算出されること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(600, 800);
-
-    component.setRows(16);
-
-    expect(component.scale()).toBeCloseTo(0.96, 5);
-    expect(component.rows()).toBe(16);
-  });
-
-  it('ドラッグ相当のtx/ty変更でcols/rowsが再計算されること', async () => {
+  it('リンク時のフィットはカバーフィットで両軸スケールが等しくなること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
-    component.scale.set(1);
+    component.linked.set(true);
+
+    component.fit();
+
+    const f = frame();
+    const expected = Math.max(f.fw / 480, f.fh / 240);
+    expect(component.scaleX()).toBeCloseTo(expected, 5);
+    expect(component.scaleY()).toBeCloseTo(expected, 5);
+    expect(component.scaleX()).toBeCloseTo(component.scaleY(), 5);
+  });
+
+  it('非リンク時のフィットは厳密ストレッチで枠ぴったりになること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.linked.set(false);
+
+    component.fit();
+
+    const f = frame();
+    expect(component.scaleX()).toBeCloseTo(f.fw / 480, 5);
+    expect(component.scaleY()).toBeCloseTo(f.fh / 240, 5);
+    expect(component.tx()).toBeCloseTo(f.fx, 5);
+    expect(component.ty()).toBeCloseTo(f.fy, 5);
+  });
+
+  it('リンク時の角ハンドルリサイズはscaleXとscaleYが等しいまま保たれること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.linked.set(true);
+    component.scaleX.set(1);
+    component.scaleY.set(1);
     component.tx.set(0);
     component.ty.set(0);
 
-    expect(component.cols()).toBe(10);
-    expect(component.rows()).toBe(5);
+    const c = component as unknown as {
+      onPointerDown: (e: PointerEvent) => void;
+      onPointerMove: (e: PointerEvent) => void;
+      onPointerUp: (e: PointerEvent) => void;
+      stagePoint: (e: PointerEvent) => { x: number; y: number };
+    };
+    const target = { setPointerCapture() {}, releasePointerCapture() {}, focus() {} };
+    vi.spyOn(c, 'stagePoint').mockReturnValue({ x: 480, y: 240 });
+    c.onPointerDown({ clientX: 480, clientY: 240, pointerId: 1, currentTarget: target } as unknown as PointerEvent);
+    c.onPointerMove({ clientX: 600, clientY: 280, pointerId: 1 } as unknown as PointerEvent);
+    c.onPointerUp({ pointerId: 1, currentTarget: target } as unknown as PointerEvent);
 
-    component.tx.set(24);
-    expect(component.cols()).toBe(9);
+    expect(component.scaleX()).toBeCloseTo(component.scaleY(), 5);
+    expect(component.scaleX()).toBeGreaterThan(1);
   });
 
-  it('カーソル位置を固定したままズームすること', async () => {
+  it('辺ハンドルは非リンク時のみ有効であること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
-    component.scale.set(1);
     component.tx.set(0);
     component.ty.set(0);
+    component.scaleX.set(1);
+    component.scaleY.set(1);
 
-    (component as unknown as { zoomAt: (px: number, py: number, factor: number) => void }).zoomAt(100, 100, 2);
-
-    expect(component.scale()).toBeCloseTo(2, 5);
-    expect(component.tx()).toBeCloseTo(-100, 5);
-    expect(component.ty()).toBeCloseTo(-100, 5);
+    const c = component as unknown as { hitTest: (x: number, y: number) => { kind: string; handle?: string } };
+    component.linked.set(true);
+    expect(c.hitTest(240, 0).handle).not.toBe('n');
+    component.linked.set(false);
+    expect(c.hitTest(240, 0)).toEqual({ kind: 'image', handle: 'n' });
   });
 
-  it('リセットで初期スケールに戻し中央へスナップ配置すること', async () => {
+  it('画像をフレーム外へ完全に出すと確定不可にすること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
-    component.scale.set(3);
-    component.tx.set(500);
-    component.ty.set(400);
 
-    component.reset();
+    expect(component.canApply()).toBe(true);
+    component.tx.set(component.stageW() + 1000);
+    fixture.detectChanges();
 
-    expect(component.scale()).toBeCloseTo(1, 5);
-    expect(component.tx() % DISPLAY_CELL).toBe(0);
-    expect(component.ty() % DISPLAY_CELL).toBe(0);
-  });
-
-  it('画像をグリッド外へ完全に出すと確定不可にすること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 48 });
-    makeReady(480, 240);
-    component.scale.set(1);
-    component.tx.set(component.stageW() + 100);
-
-    expect(component.hasWholeCell()).toBe(false);
     expect(component.canApply()).toBe(false);
   });
 
-  it('確定時は矩形クロップ指定で保存し行列数とグリッドタイプで解決すること', async () => {
+  it('確定時は逆写像した矩形でクロップし行列数とグリッドタイプで解決すること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
-    component.scale.set(1);
-    component.tx.set(0);
-    component.ty.set(0);
+    component.linked.set(false);
+    component.fit();
+    fixture.detectChanges();
 
     const fakeBlob = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' });
     const cropFn = vi.fn().mockResolvedValue(fakeBlob);
@@ -178,20 +196,27 @@ describe('MapImageGridAdjusterComponent', () => {
     const fakeImage = ImageFile.createEmpty('new-id');
     imageStorage.addAsync.mockResolvedValue(fakeImage);
 
-    const c = component.covered();
+    const f = frame();
+    const sx = component.scaleX();
+    const sy = component.scaleY();
+    const expectX = (f.fx - component.tx()) / sx;
+    const expectY = (f.fy - component.ty()) / sy;
+    const expectW = f.fw / sx;
+    const expectH = f.fh / sy;
+
     await component.apply();
 
     expect(cropFn).toHaveBeenCalledOnce();
     const args = cropFn.mock.calls[0];
-    expect(args[1]).toBe(c.imageX);
-    expect(args[2]).toBe(c.imageY);
-    expect(args[3]).toBe(c.imageW);
-    expect(args[4]).toBe(c.imageH);
+    expect(args[1]).toBeCloseTo(expectX, 5);
+    expect(args[2]).toBeCloseTo(expectY, 5);
+    expect(args[3]).toBeCloseTo(expectW, 5);
+    expect(args[4]).toBeCloseTo(expectH, 5);
     expect(imageStorage.addAsync).toHaveBeenCalledWith(fakeBlob);
     expect(modalService.resolve).toHaveBeenCalledWith({
       imageIdentifier: 'new-id',
-      width: 10,
-      height: 5,
+      width: component.cols(),
+      height: component.rows(),
       gridType: GridType.SQUARE,
     });
   });

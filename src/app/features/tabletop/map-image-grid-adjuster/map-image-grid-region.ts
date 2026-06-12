@@ -159,6 +159,68 @@ export function snapAnchor(
   return { tx: i * colSpacing - displayCell / 2, ty: j * rowSpacing - s3 };
 }
 
+export function footprintSize(
+  gridType: GridType,
+  cols: number,
+  rows: number,
+  displayCell: number
+): { w: number; h: number } {
+  if (!(cols >= 1) || !(rows >= 1) || !(displayCell > 0)) return { w: 0, h: 0 };
+  if (!isHexGrid(gridType)) return { w: cols * displayCell, h: rows * displayCell };
+  const flat = isFlatTopGrid(gridType);
+  const s3 = hexCircumradius(displayCell);
+  const { colSpacing, rowSpacing } = hexSpacing(displayCell, flat);
+  if (flat) {
+    return {
+      w: 2 * s3 + (cols - 1) * colSpacing,
+      h: rows * displayCell + (cols >= 2 ? displayCell / 2 : 0),
+    };
+  }
+  return {
+    w: cols * displayCell + (rows >= 2 ? displayCell / 2 : 0),
+    h: 2 * s3 + (rows - 1) * rowSpacing,
+  };
+}
+
+export function colsForWidth(gridType: GridType, width: number, displayCell: number): number {
+  if (!(width > 0) || !(displayCell > 0)) return 1;
+  if (!isHexGrid(gridType)) return Math.max(1, Math.round(width / displayCell));
+  const flat = isFlatTopGrid(gridType);
+  const s3 = hexCircumradius(displayCell);
+  const { colSpacing } = hexSpacing(displayCell, flat);
+  if (flat) return Math.max(1, Math.round((width - 2 * s3) / colSpacing) + 1);
+  return Math.max(1, Math.round((width - displayCell / 2) / displayCell));
+}
+
+export function rowsForHeight(gridType: GridType, height: number, displayCell: number): number {
+  if (!(height > 0) || !(displayCell > 0)) return 1;
+  if (!isHexGrid(gridType)) return Math.max(1, Math.round(height / displayCell));
+  const flat = isFlatTopGrid(gridType);
+  const s3 = hexCircumradius(displayCell);
+  const { rowSpacing } = hexSpacing(displayCell, flat);
+  if (flat) return Math.max(1, Math.round((height - displayCell / 2) / displayCell));
+  return Math.max(1, Math.round((height - 2 * s3) / rowSpacing) + 1);
+}
+
+export function coversFrame(
+  tx: number,
+  ty: number,
+  imageScreenW: number,
+  imageScreenH: number,
+  frameX: number,
+  frameY: number,
+  frameW: number,
+  frameH: number,
+  tolerancePx = 0.75
+): boolean {
+  return (
+    tx <= frameX + tolerancePx &&
+    ty <= frameY + tolerancePx &&
+    tx + imageScreenW >= frameX + frameW - tolerancePx &&
+    ty + imageScreenH >= frameY + frameH - tolerancePx
+  );
+}
+
 export function scaleForCols(gridType: GridType, cols: number, imgW: number, displayCell: number): number {
   if (!(cols >= 1) || !(imgW > 0) || !(displayCell > 0)) return 0;
   if (!isHexGrid(gridType)) return (cols * displayCell) / imgW;
