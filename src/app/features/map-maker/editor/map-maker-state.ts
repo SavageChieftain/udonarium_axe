@@ -1,5 +1,7 @@
 import { Injectable, signal } from '@angular/core';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { StampCategory } from '@axe/features/map-maker/assets/stamp-types';
+import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import { SceneHistory } from '@axe/features/map-maker/model/history';
 import {
   CellLayer,
@@ -8,9 +10,12 @@ import {
   FillStyle,
   FreehandLayer,
   FreehandStroke,
+  ImageItem,
+  ImageLayer,
   LayerKind,
   MapLayer,
   MapScene,
+  newId,
   ShapeItem,
   ShapeKind,
   ShapeLayer,
@@ -24,6 +29,7 @@ import {
   WallSegment,
 } from '@axe/features/map-maker/model/scene';
 import {
+  addImage,
   addLayer,
   addShape,
   addStamp,
@@ -32,6 +38,7 @@ import {
   addWallSegment,
   eraseCell,
   floodFill,
+  removeImage,
   removeShape,
   removeStamp,
   removeStroke,
@@ -39,24 +46,28 @@ import {
   removeWallSegment,
   resizeScene,
   setCell,
+  updateImage,
   updateStamp,
   updateText,
 } from '@axe/features/map-maker/model/scene-ops';
 import { TextureId } from '@axe/features/map-maker/model/textures';
 
 export type EditorTool =
+  | 'settings'
   | 'select'
   | 'cellPaint'
   | 'cellErase'
   | 'fill'
-  | 'rect'
-  | 'ellipse'
+  | 'shape'
   | 'line'
   | 'polygon'
   | 'wall'
-  | 'stamp'
   | 'freehand'
-  | 'text';
+  | 'text'
+  | 'stamp'
+  | 'image';
+
+export type ShapeGeneratorKind = 'rect' | 'ellipse' | 'triangle' | 'pentagon' | 'hexagon' | 'star5' | 'star6';
 
 export interface Selection {
   layerId: string;
@@ -83,6 +94,8 @@ export class MapMakerState {
   readonly textureScale = signal(1);
   readonly textureRotation = signal(0);
 
+  readonly shapeKind = signal<ShapeGeneratorKind>('rect');
+
   readonly strokeColor = signal('#e8e8ea');
   readonly strokeWidth = signal(3);
 
@@ -104,6 +117,8 @@ export class MapMakerState {
   readonly textColor = signal('#e8e8ea');
   readonly textBold = signal(false);
   readonly textItalic = signal(false);
+
+  readonly pendingImageId = signal<string | null>(null);
 
   readonly snapEnabled = signal(true);
   readonly zoom = signal(1);
@@ -232,8 +247,11 @@ export class MapMakerState {
     this.applyCommitted(() => floodFill(this.scene, layer, col, row, this.currentFill()));
   }
 
-  addShapeItem(shape: ShapeKind, points: number[], fill: FillStyle | null): void {
-    const layer = this.ensureLayerFor('shape') as ShapeLayer;
+  addShapeItem(shape: ShapeKind, points: number[], fill: FillStyle | null, layerName?: string): void {
+    const layer =
+      layerName !== undefined
+        ? (this.createNamedLayer('shape', layerName) as ShapeLayer)
+        : (this.ensureLayerFor('shape') as ShapeLayer);
     const item: ShapeItem = {
       id: '',
       shape,
@@ -243,6 +261,13 @@ export class MapMakerState {
       rotation: 0,
     };
     this.applyCommitted(() => addShape(layer, item));
+  }
+
+  private createNamedLayer(kind: LayerKind, name: string): MapLayer {
+    const created = createLayer(kind, name);
+    addLayer(this.scene, created);
+    this.activeLayerId.set(created.id);
+    return created;
   }
 
   addWall(points: number[]): void {
@@ -267,6 +292,11 @@ export class MapMakerState {
       color: this.stampColor(),
     };
     this.applyCommitted(() => addStamp(layer, item));
+  }
+
+  placeImage(item: ImageItem, layerName: string): void {
+    const layer = this.createNamedLayer('image', layerName) as ImageLayer;
+    this.applyCommitted(() => addImage(layer, { ...item, id: item.id || newId() }));
   }
 
   addFreehand(points: number[]): void {
@@ -344,6 +374,12 @@ export class MapMakerState {
     });
   }
 
+  setGridType(gridType: GridType): void {
+    this.applyCommitted(() => {
+      this.scene.gridType = gridType;
+    });
+  }
+
   private findLayerById(id: string): MapLayer | undefined {
     return this.scene.layers.find((l) => l.id === id);
   }
@@ -362,6 +398,7 @@ export class MapMakerState {
       else if (layer.kind === 'shape') removeShape(layer, sel.itemId);
       else if (layer.kind === 'wall') removeWallSegment(layer, sel.itemId);
       else if (layer.kind === 'freehand') removeStroke(layer, sel.itemId);
+      else if (layer.kind === 'image') removeImage(layer, sel.itemId);
     });
     this.selection.set(null);
   }
@@ -377,10 +414,16 @@ export class MapMakerState {
     } else if (layer.kind === 'text') {
       const item = layer.items.find((i) => i.id === sel.itemId);
       if (item) updateText(layer, sel.itemId, { x: item.x + dxPx, y: item.y + dyPx });
+    } else if (layer.kind === 'image') {
+      const item = layer.items.find((i) => i.id === sel.itemId);
+      if (item) updateImage(layer, sel.itemId, { x: item.x + dxPx, y: item.y + dyPx });
     } else if (layer.kind === 'shape') {
       const item = layer.items.find((i) => i.id === sel.itemId);
       if (item) {
-        const moved = item.points.map((v, idx) => (idx % 2 === 0 ? v + dxPx : v + dyPx));
+        const moved =
+          item.shape === 'rect' || item.shape === 'ellipse'
+            ? [item.points[0] + dxPx, item.points[1] + dyPx, ...item.points.slice(2)]
+            : item.points.map((v, idx) => (idx % 2 === 0 ? v + dxPx : v + dyPx));
         const shapeLayer = layer;
         const idx = shapeLayer.items.findIndex((i) => i.id === sel.itemId);
         if (idx !== -1) shapeLayer.items[idx] = { ...item, points: moved };
@@ -411,7 +454,7 @@ export class MapMakerState {
     this.applyCommitted(() => updateStamp(layer, sel.itemId, patch));
   }
 
-  selectedItem(): { layer: MapLayer; item: ShapeItem | StampItem | TextItem } | null {
+  selectedItem(): { layer: MapLayer; item: ShapeItem | StampItem | TextItem | ImageItem } | null {
     const sel = this.selection();
     if (!sel) return null;
     const layer = this.findLayerById(sel.layerId);
@@ -428,7 +471,19 @@ export class MapMakerState {
       const item = layer.items.find((i) => i.id === sel.itemId);
       return item ? { layer, item } : null;
     }
+    if (layer.kind === 'image') {
+      const item = layer.items.find((i) => i.id === sel.itemId);
+      return item ? { layer, item } : null;
+    }
     return null;
+  }
+
+  updateSelectedImage(patch: Partial<ImageItem>): void {
+    const sel = this.selection();
+    if (!sel) return;
+    const layer = this.findLayerById(sel.layerId);
+    if (!layer || layer.kind !== 'image') return;
+    this.applyCommitted(() => updateImage(layer, sel.itemId, patch));
   }
 
   private shapeBbox(item: ShapeItem): { minX: number; minY: number; maxX: number; maxY: number } {
@@ -519,6 +574,18 @@ export class MapMakerState {
             return { layerId: layer.id, itemId: stroke.id };
           }
         }
+      } else if (layer.kind === 'image') {
+        for (let j = layer.items.length - 1; j >= 0; j -= 1) {
+          const item = layer.items[j];
+          if (
+            x >= item.x - item.w / 2 &&
+            x <= item.x + item.w / 2 &&
+            y >= item.y - item.h / 2 &&
+            y <= item.y + item.h / 2
+          ) {
+            return { layerId: layer.id, itemId: item.id };
+          }
+        }
       } else if (layer.kind === 'shape') {
         for (let j = layer.items.length - 1; j >= 0; j -= 1) {
           const item = layer.items[j];
@@ -546,5 +613,14 @@ export class MapMakerState {
       return Math.round(v / step) * step;
     }
     return Math.round(v);
+  }
+
+  snapPoint(x: number, y: number): { x: number; y: number } {
+    if (!this.snapEnabled()) return { x: Math.round(x), y: Math.round(y) };
+    if (this.scene.gridType === GridType.SQUARE) {
+      return { x: this.snap(x), y: this.snap(y) };
+    }
+    const cell = pointToCell(this.scene.gridType, x, y, this.scene.cellPx);
+    return cellCenter(this.scene.gridType, cell.col, cell.row, this.scene.cellPx);
   }
 }

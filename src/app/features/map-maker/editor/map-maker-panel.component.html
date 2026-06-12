@@ -3,11 +3,24 @@
     {{ 'feature.mapMaker.gmOnly' | transloco }}
   </div>
 } @else {
-  <div class="text-ui-text grid h-full grid-cols-[44px_230px_1fr_210px] grid-rows-[1fr_auto] text-[12px]">
+  <div class="text-ui-text grid h-full grid-cols-[56px_230px_1fr_210px] grid-rows-[1fr_auto] text-[12px]">
     <div class="bg-ui-panel border-ui-border-panel row-span-2 flex flex-col gap-1 border-r border-solid p-1">
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm flex w-full flex-col items-center gap-0.5 border border-solid py-1"
+        [class.bg-ui-accent-bg]="state.tool() === settingsTool.tool"
+        [class.text-ui-accent]="state.tool() === settingsTool.tool"
+        [class.border-ui-accent]="state.tool() === settingsTool.tool"
+        [class.border-transparent]="state.tool() !== settingsTool.tool"
+        [title]="'feature.mapMaker.tools.settings' | transloco"
+        (click)="setTool(settingsTool.tool)"
+      >
+        <i class="material-icons text-[18px]!">{{ settingsTool.icon }}</i>
+        <span class="text-[9px] leading-tight">{{ 'feature.mapMaker.tools.settings' | transloco }}</span>
+      </button>
+      <div class="bg-ui-border-panel mx-1 my-0.5 h-px"></div>
       @for (def of tools; track def.tool) {
         <button
-          class="hover:bg-ui-hover rounded-ui-sm inline-flex size-9 items-center justify-center border border-solid"
+          class="hover:bg-ui-hover rounded-ui-sm flex w-full flex-col items-center gap-0.5 border border-solid py-1"
           [class.bg-ui-accent-bg]="state.tool() === def.tool"
           [class.text-ui-accent]="state.tool() === def.tool"
           [class.border-ui-accent]="state.tool() === def.tool"
@@ -16,89 +29,110 @@
           (click)="setTool(def.tool)"
         >
           <i class="material-icons text-[18px]!">{{ def.icon }}</i>
+          <span class="text-[9px] leading-tight">{{ 'feature.mapMaker.tools.' + def.tool | transloco }}</span>
         </button>
       }
     </div>
 
     <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-3 overflow-auto border-r border-solid p-2">
-      <div class="border-ui-border-panel rounded-ui border border-solid">
-        <button
-          class="hover:bg-ui-hover flex w-full items-center justify-between px-2 py-1.5 font-semibold"
-          (click)="mapSettingsOpen.set(!mapSettingsOpen())"
-        >
-          <span>{{ 'feature.mapMaker.props.mapSettings' | transloco }}</span>
-          <i class="material-icons text-[16px]!">{{ mapSettingsOpen() ? 'expand_less' : 'expand_more' }}</i>
-        </button>
-        @if (mapSettingsOpen()) {
-          <div class="flex flex-col gap-1.5 px-2 pb-2">
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.cols' | transloco }}</span>
-              <input
-                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
-                type="number"
-                min="1"
-                max="100"
-                [ngModel]="sceneInfo().cols"
-                (change)="onResizeCols($any($event.target).valueAsNumber)"
-              />
-            </label>
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.rows' | transloco }}</span>
-              <input
-                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
-                type="number"
-                min="1"
-                max="100"
-                [ngModel]="sceneInfo().rows"
-                (change)="onResizeRows($any($event.target).valueAsNumber)"
-              />
-            </label>
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.cellPx' | transloco }}</span>
-              <input
-                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
-                type="number"
-                min="16"
-                max="256"
-                [ngModel]="sceneInfo().cellPx"
-                (change)="onCellPx($any($event.target).valueAsNumber)"
-              />
-            </label>
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.background' | transloco }}</span>
-              <input
-                type="color"
-                [ngModel]="state.current.background"
-                (change)="state.setBackground($any($event.target).value)"
-              />
-            </label>
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridColor' | transloco }}</span>
-              <input
-                type="color"
-                [ngModel]="state.current.gridColor.slice(0, 7)"
-                (change)="state.setGridColor($any($event.target).value)"
-              />
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="checkbox" [ngModel]="state.current.gridVisible" (change)="state.toggleGrid()" />
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridShow' | transloco }}</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="checkbox" [ngModel]="state.snapEnabled()" (ngModelChange)="state.snapEnabled.set($event)" />
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.snap' | transloco }}</span>
-            </label>
+      @if (state.tool() === 'settings') {
+        <div class="flex flex-col gap-1.5">
+          <div class="font-semibold">{{ 'feature.mapMaker.props.mapSettings' | transloco }}</div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.cols' | transloco }}</span>
+            <input
+              class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+              type="number"
+              min="1"
+              max="100"
+              [ngModel]="sceneInfo().cols"
+              (change)="onResizeCols($any($event.target).valueAsNumber)"
+            />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.rows' | transloco }}</span>
+            <input
+              class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+              type="number"
+              min="1"
+              max="100"
+              [ngModel]="sceneInfo().rows"
+              (change)="onResizeRows($any($event.target).valueAsNumber)"
+            />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.cellPx' | transloco }}</span>
+            <input
+              class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+              type="number"
+              min="16"
+              max="256"
+              [ngModel]="sceneInfo().cellPx"
+              (change)="onCellPx($any($event.target).valueAsNumber)"
+            />
+          </label>
+          <div class="flex flex-col gap-1">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridType' | transloco }}</span>
+            <div class="flex gap-1">
+              @for (opt of gridTypeOptions; track opt.type) {
+                <button
+                  class="rounded-ui-sm flex-1 p-1 text-[11px]"
+                  [class.bg-ui-accent-bg]="state.current.gridType === opt.type"
+                  [class.bg-ui-input]="state.current.gridType !== opt.type"
+                  (click)="state.setGridType(opt.type)"
+                >
+                  {{ 'feature.mapMaker.props.' + opt.label | transloco }}
+                </button>
+              }
+            </div>
           </div>
-        }
-      </div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.background' | transloco }}</span>
+            <input
+              type="color"
+              [ngModel]="state.current.background"
+              (change)="state.setBackground($any($event.target).value)"
+            />
+          </label>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridColor' | transloco }}</span>
+            <input
+              type="color"
+              [ngModel]="state.current.gridColor.slice(0, 7)"
+              (change)="state.setGridColor($any($event.target).value)"
+            />
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" [ngModel]="state.current.gridVisible" (change)="state.toggleGrid()" />
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.gridShow' | transloco }}</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" [ngModel]="state.snapEnabled()" (ngModelChange)="state.snapEnabled.set($event)" />
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.snap' | transloco }}</span>
+          </label>
+        </div>
+      }
 
-      @if (
-        state.tool() === 'cellPaint' ||
-        state.tool() === 'fill' ||
-        state.tool() === 'rect' ||
-        state.tool() === 'ellipse' ||
-        state.tool() === 'polygon'
-      ) {
+      @if (state.tool() === 'shape') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.tools.shape' | transloco }}</div>
+          <div class="grid grid-cols-4 gap-1">
+            @for (kind of shapeKinds; track kind) {
+              <button
+                class="rounded-ui-sm border border-solid p-1 text-[10px] leading-tight"
+                [class.border-ui-accent]="state.shapeKind() === kind"
+                [class.bg-ui-accent-bg]="state.shapeKind() === kind"
+                [class.border-ui-border-panel]="state.shapeKind() !== kind"
+                (click)="state.shapeKind.set(kind)"
+              >
+                {{ 'feature.mapMaker.props.shapeKinds.' + kind | transloco }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (state.tool() === 'cellPaint' || state.tool() === 'fill' || state.tool() === 'shape') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.props.fill' | transloco }}</div>
           <div class="flex gap-1">
@@ -164,9 +198,7 @@
         </div>
       }
 
-      @if (
-        state.tool() === 'rect' || state.tool() === 'ellipse' || state.tool() === 'line' || state.tool() === 'polygon'
-      ) {
+      @if (state.tool() === 'shape' || state.tool() === 'line' || state.tool() === 'polygon') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.props.stroke' | transloco }}</div>
           <label class="flex items-center justify-between gap-2">
@@ -205,6 +237,26 @@
             <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
             <input type="color" [ngModel]="state.wallColor()" (ngModelChange)="state.wallColor.set($event)" />
           </label>
+        </div>
+      }
+
+      @if (state.tool() === 'image') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapMaker.tools.image' | transloco }}</div>
+          <button
+            class="bg-ui-input hover:bg-ui-hover rounded-ui-sm flex items-center justify-center gap-1 px-2 py-1"
+            (click)="chooseImage()"
+          >
+            <i class="material-icons text-[16px]!">add_photo_alternate</i>
+            {{ 'feature.mapMaker.props.imageChoose' | transloco }}
+          </button>
+          @if (pendingImageUrl(); as url) {
+            <img
+              class="rounded-ui-sm border-ui-border-panel max-h-32 w-full border border-solid object-contain"
+              [src]="url"
+              alt=""
+            />
+          }
         </div>
       }
 
@@ -390,6 +442,50 @@
                 <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} Y</span>
               </label>
             </div>
+          }
+          @if (sel.layer.kind === 'image') {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.imageWidth' | transloco }}</span>
+              <input
+                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+                type="number"
+                min="1"
+                [ngModel]="$any(sel.item).w"
+                (ngModelChange)="state.updateSelectedImage({ w: $event })"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.imageHeight' | transloco }}</span>
+              <input
+                class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+                type="number"
+                min="1"
+                [ngModel]="$any(sel.item).h"
+                (ngModelChange)="state.updateSelectedImage({ h: $event })"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.imageRotation' | transloco }}</span>
+              <input
+                type="range"
+                min="-180"
+                max="180"
+                step="5"
+                [ngModel]="$any(sel.item).rotation"
+                (ngModelChange)="state.updateSelectedImage({ rotation: $event })"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.imageOpacity' | transloco }}</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                [ngModel]="$any(sel.item).opacity"
+                (ngModelChange)="state.updateSelectedImage({ opacity: $event })"
+              />
+            </label>
           }
           <button
             class="rounded-ui-sm bg-ui-input hover:bg-ui-hover flex items-center justify-center gap-1 px-2 py-1"

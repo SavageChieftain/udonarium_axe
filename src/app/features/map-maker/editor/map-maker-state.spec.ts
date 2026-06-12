@@ -1,9 +1,13 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { MapMakerState } from '@axe/features/map-maker/editor/map-maker-state';
 import {
   CellLayer,
   DEFAULT_SCENE_BACKGROUND,
   DEFAULT_SCENE_GRID_COLOR,
   FreehandLayer,
+  ImageItem,
+  ImageLayer,
+  ShapeLayer,
   StampLayer,
   WallLayer,
 } from '@axe/features/map-maker/model/scene';
@@ -170,5 +174,59 @@ describe('MapMakerState', () => {
     expect(state.snap(50)).toBe(64);
     state.snapEnabled.set(false);
     expect(state.snap(40.4)).toBe(40);
+  });
+
+  it('矩形の moveSelection は位置のみ平行移動し w/h を変えない', () => {
+    state.addShapeItem('rect', [10, 20, 30, 40], { type: 'solid', color: '#fff' });
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    const item = layer.items[0];
+    state.selection.set({ layerId: layer.id, itemId: item.id });
+    state.moveSelection(5, 7);
+    expect(layer.items[0].points).toEqual([15, 27, 30, 40]);
+  });
+
+  it('図形は1つごとに専用レイヤーを作る', () => {
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'rect 1');
+    state.addShapeItem('rect', [20, 20, 10, 10], { type: 'solid', color: '#fff' }, 'rect 2');
+    const shapeLayers = state.current.layers.filter((l) => l.kind === 'shape');
+    expect(shapeLayers.length).toBe(2);
+  });
+
+  it('setGridType は確定され setGridType の値を反映する', () => {
+    state.setGridType(GridType.HEX_VERTICAL);
+    expect(state.current.gridType).toBe(GridType.HEX_VERTICAL);
+    expect(state.canUndo()).toBe(true);
+  });
+
+  it('snapPoint はヘクスでセル中心へスナップする', () => {
+    state.setGridType(GridType.HEX_VERTICAL);
+    state.snapEnabled.set(true);
+    const p = state.snapPoint(100, 100);
+    expect(Number.isFinite(p.x)).toBe(true);
+    expect(Number.isFinite(p.y)).toBe(true);
+    state.snapEnabled.set(false);
+    expect(state.snapPoint(40.4, 50.6)).toEqual({ x: 40, y: 51 });
+  });
+
+  it('画像アイテムの hitTest / move / delete が動く', () => {
+    const item: ImageItem = { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 };
+    state.placeImage(item, '画像 1');
+    const layer = state.current.layers.find((l) => l.kind === 'image') as ImageLayer;
+    expect(layer.items.length).toBe(1);
+
+    const hit = state.hitTest(100, 100);
+    expect(hit).not.toBeNull();
+    expect(hit!.itemId).toBe(layer.items[0].id);
+    expect(state.hitTest(500, 500)).toBeNull();
+
+    state.selection.set(hit);
+    state.moveSelection(10, 20);
+    expect(layer.items[0].x).toBe(110);
+    expect(layer.items[0].y).toBe(120);
+    expect(layer.items[0].w).toBe(80);
+
+    state.deleteSelection();
+    expect(layer.items.length).toBe(0);
+    expect(state.selection()).toBeNull();
   });
 });

@@ -13,28 +13,34 @@ import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-maker/assets/stamp-types';
 import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-maker/assets/stamps';
-import { EditorTool, MapMakerState } from '@axe/features/map-maker/editor/map-maker-state';
+import { EditorTool, MapMakerState, ShapeGeneratorKind } from '@axe/features/map-maker/editor/map-maker-state';
+import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import {
   cellKey,
-  FillStyle,
+  ImageItem,
   LayerKind,
   MapLayer,
+  newId,
   sceneHeightPx,
   sceneWidthPx,
-  ShapeKind,
 } from '@axe/features/map-maker/model/scene';
 import { moveLayer, removeLayer } from '@axe/features/map-maker/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-maker/model/serialize';
+import { regularPolygonPoints, starPoints } from '@axe/features/map-maker/model/shape-points';
 import { isTextureId, TEXTURE_BASE_COLOR, TEXTURE_IDS, TextureId } from '@axe/features/map-maker/model/textures';
 import { exportSceneToBlob } from '@axe/features/map-maker/render/export-image';
+import { getRasterImage, loadRasterImage } from '@axe/features/map-maker/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-maker/render/stamp-image';
 import { createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
 interface ToolDef {
@@ -62,39 +68,62 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private readonly imageStorage = inject(ImageStorage);
   private readonly tabletopService = inject(TabletopService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly modalService = inject(ModalService);
   protected readonly t = inject(TRANSLATE_FN);
 
   private readonly exportFn = exportSceneToBlob;
+  private readonly loadImageFn = loadRasterImage;
 
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
   private readonly textInputRef = viewChild<ElementRef<HTMLInputElement>>('textInput');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
+  protected readonly settingsTool: ToolDef = { tool: 'settings', icon: 'settings', key: '' };
+
   protected readonly tools: ToolDef[] = [
     { tool: 'select', icon: 'pan_tool_alt', key: 'V' },
     { tool: 'cellPaint', icon: 'format_color_fill', key: 'B' },
     { tool: 'cellErase', icon: 'auto_fix_normal', key: 'E' },
     { tool: 'fill', icon: 'format_paint', key: 'G' },
-    { tool: 'rect', icon: 'crop_square', key: 'R' },
-    { tool: 'ellipse', icon: 'circle', key: 'O' },
+    { tool: 'shape', icon: 'category', key: 'R' },
     { tool: 'line', icon: 'show_chart', key: 'L' },
     { tool: 'polygon', icon: 'polyline', key: 'P' },
     { tool: 'wall', icon: 'fence', key: 'W' },
-    { tool: 'stamp', icon: 'approval', key: 'S' },
     { tool: 'freehand', icon: 'gesture', key: 'F' },
     { tool: 'text', icon: 'title', key: 'T' },
+    { tool: 'stamp', icon: 'approval', key: 'S' },
+    { tool: 'image', icon: 'image', key: 'I' },
   ];
+
+  protected readonly shapeKinds: ShapeGeneratorKind[] = [
+    'rect',
+    'ellipse',
+    'triangle',
+    'pentagon',
+    'hexagon',
+    'star5',
+    'star6',
+  ];
+
+  protected readonly gridTypeOptions: { type: GridType; label: string }[] = [
+    { type: GridType.SQUARE, label: 'gridSquare' },
+    { type: GridType.HEX_VERTICAL, label: 'gridHexV' },
+    { type: GridType.HEX_HORIZONTAL, label: 'gridHexH' },
+  ];
+
+  protected readonly GridType = GridType;
 
   private readonly shortcutToTool = new Map<string, EditorTool>(this.tools.map((d) => [d.key, d.tool]));
 
   protected readonly textureIds = TEXTURE_IDS;
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
   protected readonly stampCategories = STAMP_CATEGORIES;
-  protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'wall', 'stamp', 'freehand', 'text'];
+  protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'wall', 'stamp', 'freehand', 'text', 'image'];
 
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
+  private readonly pendingImages = new Set<string>();
 
   protected readonly cursorCell = signal<{ col: number; row: number } | null>(null);
   protected readonly spacePan = signal(false);
@@ -103,7 +132,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected readonly pendingText = signal<{ x: number; y: number } | null>(null);
   protected readonly textDraft = signal('');
   protected readonly addLayerMenuOpen = signal(false);
-  protected readonly mapSettingsOpen = signal(true);
   protected readonly busy = signal(false);
   protected readonly notice = signal('');
   protected readonly errorNotice = signal('');
@@ -117,8 +145,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private freehandPoints: number[] = [];
   private dragging = false;
   private lastPaintedCell: string | null = null;
-  private lastPaintedCol = NaN;
-  private lastPaintedRow = NaN;
+  private lastPaintPx: { x: number; y: number } | null = null;
   private lastMove: { x: number; y: number } | null = null;
   private panLast: { x: number; y: number } | null = null;
 
@@ -200,6 +227,13 @@ export class MapMakerPanelComponent implements AfterViewInit {
         if (!image) this.schedulePending(def, item.size, item.color);
         return image;
       },
+      rasterImage: (item) => {
+        const url = this.imageStorage.get(item.imageIdentifier)?.url;
+        if (!url) return null;
+        const image = getRasterImage(url);
+        if (!image) this.schedulePendingImage(url);
+        return image;
+      },
     };
   }
 
@@ -213,6 +247,17 @@ export class MapMakerPanelComponent implements AfterViewInit {
         this.renderTick.update((v) => v + 1);
       })
       .catch(() => this.pendingStamps.delete(key));
+  }
+
+  private schedulePendingImage(url: string): void {
+    if (this.pendingImages.has(url)) return;
+    this.pendingImages.add(url);
+    this.loadImageFn(url)
+      .then(() => {
+        this.pendingImages.delete(url);
+        this.renderTick.update((v) => v + 1);
+      })
+      .catch(() => this.pendingImages.delete(url));
   }
 
   private draw(): void {
@@ -232,6 +277,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   private drawOverlay(ctx: CanvasRenderingContext2D): void {
     const tool = this.state.tool();
+    const scene = this.state.current;
     ctx.save();
     ctx.strokeStyle = '#5b9dff';
     ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
@@ -239,41 +285,85 @@ export class MapMakerPanelComponent implements AfterViewInit {
     ctx.setLineDash([6, 4]);
 
     if ((tool === 'cellPaint' || tool === 'cellErase' || tool === 'fill') && this.lastMove && !this.panning()) {
-      const cellPx = this.state.current.cellPx;
-      const col = Math.floor(this.lastMove.x / cellPx);
-      const row = Math.floor(this.lastMove.y / cellPx);
-      if (col >= 0 && row >= 0 && col < this.state.current.cols && row < this.state.current.rows) {
+      const cellPx = scene.cellPx;
+      const cell = pointToCell(scene.gridType, this.lastMove.x, this.lastMove.y, cellPx);
+      if (cell.col >= 0 && cell.row >= 0 && cell.col < scene.cols && cell.row < scene.rows) {
         ctx.save();
         ctx.setLineDash([]);
         ctx.fillStyle = 'rgba(91, 157, 255, 0.25)';
         ctx.strokeStyle = '#5b9dff';
         ctx.lineWidth = 1;
-        ctx.fillRect(col * cellPx, row * cellPx, cellPx, cellPx);
-        ctx.strokeRect(col * cellPx + 0.5, row * cellPx + 0.5, cellPx - 1, cellPx - 1);
+        if (scene.gridType === GridType.SQUARE) {
+          ctx.fillRect(cell.col * cellPx, cell.row * cellPx, cellPx, cellPx);
+          ctx.strokeRect(cell.col * cellPx + 0.5, cell.row * cellPx + 0.5, cellPx - 1, cellPx - 1);
+        } else {
+          const center = cellCenter(scene.gridType, cell.col, cell.row, cellPx);
+          ctx.beginPath();
+          ctx.arc(center.x, center.y, cellPx * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
         ctx.restore();
       }
     }
 
-    if (this.draftStart && this.draftCurrent && (tool === 'rect' || tool === 'ellipse' || tool === 'line')) {
+    if (this.draftStart && this.draftCurrent && (tool === 'shape' || tool === 'line')) {
       const x = Math.min(this.draftStart.x, this.draftCurrent.x);
       const y = Math.min(this.draftStart.y, this.draftCurrent.y);
       const w = Math.abs(this.draftCurrent.x - this.draftStart.x);
       const h = Math.abs(this.draftCurrent.y - this.draftStart.y);
-      ctx.beginPath();
-      if (tool === 'ellipse') ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-      else if (tool === 'line') {
+      if (tool === 'line') {
+        ctx.beginPath();
         ctx.moveTo(this.draftStart.x, this.draftStart.y);
         ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
-      } else ctx.rect(x, y, w, h);
-      ctx.stroke();
+        ctx.stroke();
+      } else {
+        const kind = this.state.shapeKind();
+        ctx.save();
+        ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
+        ctx.beginPath();
+        if (kind === 'ellipse') {
+          ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+        } else if (kind === 'rect') {
+          ctx.rect(x, y, w, h);
+        } else {
+          const pts = this.generateShapePoints(kind, x, y, w, h);
+          if (pts.length >= 2) {
+            ctx.moveTo(pts[0], pts[1]);
+            for (let i = 2; i + 1 < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]);
+            ctx.closePath();
+          }
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+      this.drawMeasureBox(ctx, `${(w / scene.cellPx).toFixed(1)} × ${(h / scene.cellPx).toFixed(1)}`);
     }
 
     if ((tool === 'polygon' || tool === 'wall') && this.draftPoints.length >= 2) {
+      if (tool === 'polygon' && this.draftPoints.length >= 4) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
+        ctx.beginPath();
+        ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
+        for (let i = 2; i + 1 < this.draftPoints.length; i += 2)
+          ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
+        if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
       ctx.beginPath();
       ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
       for (let i = 2; i + 1 < this.draftPoints.length; i += 2) ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
       if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
       ctx.stroke();
+      this.drawSegmentMeasure(ctx);
+    }
+
+    if (tool === 'line' && this.draftStart && this.draftCurrent) {
+      this.drawSegmentMeasure(ctx);
     }
 
     if (tool === 'freehand' && this.freehandPoints.length >= 4) {
@@ -303,10 +393,34 @@ export class MapMakerPanelComponent implements AfterViewInit {
       }
     }
 
+    if (tool === 'image' && this.lastMove && this.state.pendingImageId()) {
+      const url = this.imageStorage.get(this.state.pendingImageId()!)?.url;
+      const image = url ? getRasterImage(url) : null;
+      if (image) {
+        const fit = this.fitImageSize(image.naturalWidth || image.width, image.naturalHeight || image.height);
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(image, this.lastMove.x - fit.w / 2, this.lastMove.y - fit.h / 2, fit.w, fit.h);
+        ctx.restore();
+      } else if (url) {
+        this.schedulePendingImage(url);
+      }
+    }
+
     const sel = this.state.selection();
     if (sel) this.drawSelectionOutline(ctx, sel.layerId, sel.itemId);
 
     ctx.restore();
+  }
+
+  private fitImageSize(naturalW: number, naturalH: number): { w: number; h: number } {
+    const cellPx = this.state.current.cellPx;
+    const w = naturalW > 0 ? naturalW : 4 * cellPx;
+    const h = naturalH > 0 ? naturalH : 4 * cellPx;
+    const max = 8 * cellPx;
+    const longest = Math.max(w, h);
+    const ratio = longest > max ? max / longest : 1;
+    return { w: w * ratio, h: h * ratio };
   }
 
   private drawSelectionOutline(ctx: CanvasRenderingContext2D, layerId: string, itemId: string): void {
@@ -320,6 +434,9 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (layer.kind === 'stamp') {
       const item = layer.items.find((i) => i.id === itemId);
       if (item) ctx.strokeRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size);
+    } else if (layer.kind === 'image') {
+      const item = layer.items.find((i) => i.id === itemId);
+      if (item) ctx.strokeRect(item.x - item.w / 2, item.y - item.h / 2, item.w, item.h);
     } else if (layer.kind === 'text') {
       const item = layer.items.find((i) => i.id === itemId);
       if (item) {
@@ -360,6 +477,92 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (Number.isFinite(minX)) ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
   }
 
+  private generateShapePoints(kind: ShapeGeneratorKind, x: number, y: number, w: number, h: number): number[] {
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    const rx = w / 2;
+    const ry = h / 2;
+    let unit: number[];
+    if (kind === 'triangle') unit = regularPolygonPoints(0, 0, 1, 3, -Math.PI / 2);
+    else if (kind === 'pentagon') unit = regularPolygonPoints(0, 0, 1, 5, -Math.PI / 2);
+    else if (kind === 'hexagon') unit = regularPolygonPoints(0, 0, 1, 6, 0);
+    else if (kind === 'star5') unit = starPoints(0, 0, 1, 0.382, 5, -Math.PI / 2);
+    else if (kind === 'star6') unit = starPoints(0, 0, 1, 0.577, 6, -Math.PI / 2);
+    else return [];
+    const scaled: number[] = [];
+    for (let i = 0; i + 1 < unit.length; i += 2) {
+      scaled.push(cx + unit[i] * rx, cy + unit[i + 1] * ry);
+    }
+    return scaled;
+  }
+
+  private drawMeasureBox(ctx: CanvasRenderingContext2D, text: string): void {
+    if (!this.lastMove) return;
+    this.drawMeasureAt(ctx, text, this.lastMove.x + 12, this.lastMove.y - 12);
+  }
+
+  private drawMeasureAt(ctx: CanvasRenderingContext2D, text: string, x: number, y: number): void {
+    ctx.save();
+    ctx.setLineDash([]);
+    ctx.font = '12px sans-serif';
+    ctx.textBaseline = 'middle';
+    const metrics = ctx.measureText(text);
+    const padX = 6;
+    const w = metrics.width + padX * 2;
+    const h = 18;
+    const r = 4;
+    const bx = x;
+    const by = y - h / 2;
+    ctx.fillStyle = 'rgba(20, 22, 28, 0.85)';
+    ctx.beginPath();
+    ctx.moveTo(bx + r, by);
+    ctx.arcTo(bx + w, by, bx + w, by + h, r);
+    ctx.arcTo(bx + w, by + h, bx, by + h, r);
+    ctx.arcTo(bx, by + h, bx, by, r);
+    ctx.arcTo(bx, by, bx + w, by, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#e8e8ea';
+    ctx.fillText(text, bx + padX, y);
+    ctx.restore();
+  }
+
+  private drawSegmentMeasure(ctx: CanvasRenderingContext2D): void {
+    const cellPx = this.state.current.cellPx;
+    const tool = this.state.tool();
+    let ax: number;
+    let ay: number;
+    let bx: number;
+    let by: number;
+    let prevAngle: number | null = null;
+    if (tool === 'line') {
+      if (!this.draftStart || !this.draftCurrent) return;
+      ax = this.draftStart.x;
+      ay = this.draftStart.y;
+      bx = this.draftCurrent.x;
+      by = this.draftCurrent.y;
+    } else {
+      const n = this.draftPoints.length;
+      if (n < 2 || !this.draftCurrent) return;
+      ax = this.draftPoints[n - 2];
+      ay = this.draftPoints[n - 1];
+      bx = this.draftCurrent.x;
+      by = this.draftCurrent.y;
+      if (n >= 4) {
+        prevAngle = Math.atan2(ay - this.draftPoints[n - 3], ax - this.draftPoints[n - 4]);
+      }
+    }
+    const len = Math.hypot(bx - ax, by - ay);
+    const cells = this.t('feature.mapMaker.measure.cells', { n: (len / cellPx).toFixed(1) });
+    let angleRad = Math.atan2(by - ay, bx - ax);
+    if (prevAngle !== null) angleRad = angleRad - prevAngle;
+    let deg = Math.round((angleRad * 180) / Math.PI);
+    deg = ((deg % 360) + 360) % 360;
+    if (deg > 180) deg -= 360;
+    const angle = this.t('feature.mapMaker.measure.angle', { deg });
+    this.drawMeasureAt(ctx, `${cells} ${angle}`, bx + 12, by - 12);
+  }
+
   protected setTool(tool: EditorTool): void {
     this.cancelDraft();
     this.state.tool.set(tool);
@@ -374,10 +577,9 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   private stampCenter(x: number, y: number): { x: number; y: number } {
     if (this.state.snapEnabled()) {
-      const cellPx = this.state.current.cellPx;
-      const col = Math.floor(x / cellPx);
-      const row = Math.floor(y / cellPx);
-      return { x: (col + 0.5) * cellPx, y: (row + 0.5) * cellPx };
+      const scene = this.state.current;
+      const cell = pointToCell(scene.gridType, x, y, scene.cellPx);
+      return cellCenter(scene.gridType, cell.col, cell.row, scene.cellPx);
     }
     return { x, y };
   }
@@ -407,27 +609,27 @@ export class MapMakerPanelComponent implements AfterViewInit {
     if (tool === 'cellPaint' || tool === 'cellErase') {
       this.state.beginGesture();
       this.lastPaintedCell = null;
-      this.lastPaintedCol = NaN;
-      this.lastPaintedRow = NaN;
+      this.lastPaintPx = null;
       this.paintAt(pos, tool);
       return;
     }
     if (tool === 'fill') {
-      const cellPx = this.state.current.cellPx;
-      this.state.floodFillAt(Math.floor(pos.x / cellPx), Math.floor(pos.y / cellPx));
+      const scene = this.state.current;
+      const cell = pointToCell(scene.gridType, pos.x, pos.y, scene.cellPx);
+      this.state.floodFillAt(cell.col, cell.row);
       this.dragging = false;
       return;
     }
-    if (tool === 'rect' || tool === 'ellipse' || tool === 'line') {
-      const sx = this.state.snap(pos.x);
-      const sy = this.state.snap(pos.y);
-      this.draftStart = { x: sx, y: sy };
-      this.draftCurrent = { x: sx, y: sy };
+    if (tool === 'shape' || tool === 'line') {
+      const snapped = this.state.snapPoint(pos.x, pos.y);
+      this.draftStart = { x: snapped.x, y: snapped.y };
+      this.draftCurrent = { x: snapped.x, y: snapped.y };
       this.bumpDraft();
       return;
     }
     if (tool === 'polygon' || tool === 'wall') {
-      this.draftPoints.push(this.state.snap(pos.x), this.state.snap(pos.y));
+      const snapped = this.state.snapPoint(pos.x, pos.y);
+      this.draftPoints.push(snapped.x, snapped.y);
       this.draftCurrent = { x: pos.x, y: pos.y };
       this.bumpDraft();
       return;
@@ -438,6 +640,11 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.dragging = false;
       return;
     }
+    if (tool === 'image') {
+      this.dragging = false;
+      void this.placeImageAt(pos.x, pos.y);
+      return;
+    }
     if (tool === 'freehand') {
       this.state.beginGesture();
       this.freehandPoints = [pos.x, pos.y];
@@ -445,7 +652,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
       return;
     }
     if (tool === 'text') {
-      this.pendingText.set({ x: this.state.snap(pos.x), y: this.state.snap(pos.y) });
+      const snapped = this.state.snapPoint(pos.x, pos.y);
+      this.pendingText.set({ x: snapped.x, y: snapped.y });
       this.textDraft.set('');
       this.dragging = false;
       queueMicrotask(() => this.textInputRef()?.nativeElement.focus());
@@ -465,12 +673,12 @@ export class MapMakerPanelComponent implements AfterViewInit {
       return;
     }
     const pos = this.toScene(event);
-    const cellPx = this.state.current.cellPx;
-    this.cursorCell.set({ col: Math.floor(pos.x / cellPx), row: Math.floor(pos.y / cellPx) });
+    const scene = this.state.current;
+    this.cursorCell.set(pointToCell(scene.gridType, pos.x, pos.y, scene.cellPx));
     const tool = this.state.tool();
     this.lastMove = pos;
 
-    if (tool === 'stamp') {
+    if (tool === 'stamp' || tool === 'image') {
       this.bumpDraft();
       return;
     }
@@ -497,8 +705,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.paintAt(pos, tool);
       return;
     }
-    if (tool === 'rect' || tool === 'ellipse' || tool === 'line') {
-      this.draftCurrent = { x: this.state.snap(pos.x), y: this.state.snap(pos.y) };
+    if (tool === 'shape' || tool === 'line') {
+      this.draftCurrent = this.state.snapPoint(pos.x, pos.y);
       this.bumpDraft();
       return;
     }
@@ -529,20 +737,22 @@ export class MapMakerPanelComponent implements AfterViewInit {
     } else if ((tool === 'cellPaint' || tool === 'cellErase') && this.dragging) {
       this.state.endGesture();
       this.lastPaintedCell = null;
-      this.lastPaintedCol = NaN;
-      this.lastPaintedRow = NaN;
-    } else if ((tool === 'rect' || tool === 'ellipse' || tool === 'line') && this.draftStart && this.draftCurrent) {
+      this.lastPaintPx = null;
+    } else if ((tool === 'shape' || tool === 'line') && this.draftStart && this.draftCurrent) {
       const w = Math.abs(this.draftCurrent.x - this.draftStart.x);
       const h = Math.abs(this.draftCurrent.y - this.draftStart.y);
       if (w > 2 || h > 2) {
         const x = Math.min(this.draftStart.x, this.draftCurrent.x);
         const y = Math.min(this.draftStart.y, this.draftCurrent.y);
-        const fill: FillStyle | null = tool === 'line' ? null : this.state.currentFill();
-        const points =
-          tool === 'line'
-            ? [this.draftStart.x, this.draftStart.y, this.draftCurrent.x, this.draftCurrent.y]
-            : [x, y, w, h];
-        this.state.addShapeItem(tool as ShapeKind, points, fill);
+        if (tool === 'line') {
+          this.state.addShapeItem(
+            'line',
+            [this.draftStart.x, this.draftStart.y, this.draftCurrent.x, this.draftCurrent.y],
+            null
+          );
+        } else {
+          this.commitShape(x, y, w, h);
+        }
       }
       this.draftStart = null;
       this.draftCurrent = null;
@@ -569,42 +779,21 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   private paintAt(pos: { x: number; y: number }, tool: EditorTool): void {
     const cellPx = this.state.current.cellPx;
-    const col = Math.floor(pos.x / cellPx);
-    const row = Math.floor(pos.y / cellPx);
-    if (Number.isNaN(this.lastPaintedCol)) {
-      this.paintCellAt(col, row, tool);
-    } else {
-      this.walkCells(this.lastPaintedCol, this.lastPaintedRow, col, row, tool);
+    const from = this.lastPaintPx ?? pos;
+    const dist = Math.hypot(pos.x - from.x, pos.y - from.y);
+    const step = Math.max(1, cellPx / 3);
+    const samples = Math.max(1, Math.ceil(dist / step));
+    for (let i = 1; i <= samples; i += 1) {
+      const t = i / samples;
+      this.paintSampleAt(from.x + (pos.x - from.x) * t, from.y + (pos.y - from.y) * t, tool);
     }
-    this.lastPaintedCol = col;
-    this.lastPaintedRow = row;
+    this.lastPaintPx = pos;
   }
 
-  private walkCells(x0: number, y0: number, x1: number, y1: number, tool: EditorTool): void {
-    const dx = Math.abs(x1 - x0);
-    const dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
-    let cx = x0;
-    let cy = y0;
-    for (;;) {
-      this.paintCellAt(cx, cy, tool);
-      if (cx === x1 && cy === y1) break;
-      const e2 = 2 * err;
-      if (e2 > -dy) {
-        err -= dy;
-        cx += sx;
-      }
-      if (e2 < dx) {
-        err += dx;
-        cy += sy;
-      }
-    }
-  }
-
-  private paintCellAt(col: number, row: number, tool: EditorTool): void {
-    if (col < 0 || row < 0 || col >= this.state.current.cols || row >= this.state.current.rows) return;
+  private paintSampleAt(x: number, y: number, tool: EditorTool): void {
+    const scene = this.state.current;
+    const { col, row } = pointToCell(scene.gridType, x, y, scene.cellPx);
+    if (col < 0 || row < 0 || col >= scene.cols || row >= scene.rows) return;
     const key = cellKey(col, row);
     if (key === this.lastPaintedCell) return;
     this.lastPaintedCell = key;
@@ -615,13 +804,84 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private commitDraftPolyline(): void {
     const tool = this.state.tool();
     if (tool === 'polygon' && this.draftPoints.length >= 6) {
-      this.state.addShapeItem('polygon', this.draftPoints.slice(), this.state.currentFill());
+      this.state.addShapeItem('polygon', this.draftPoints.slice(), this.state.currentFill(), this.shapeLayerName());
     } else if (tool === 'wall' && this.draftPoints.length >= 4) {
       this.state.addWall(this.draftPoints.slice());
     }
     this.draftPoints = [];
     this.draftCurrent = null;
     this.bumpDraft();
+  }
+
+  private commitShape(x: number, y: number, w: number, h: number): void {
+    const kind = this.state.shapeKind();
+    const fill = this.state.currentFill();
+    const name = this.shapeLayerName();
+    if (kind === 'rect' || kind === 'ellipse') {
+      this.state.addShapeItem(kind, [x, y, w, h], fill, name);
+      return;
+    }
+    const points = this.generateShapePoints(kind, x, y, w, h);
+    if (points.length >= 6) this.state.addShapeItem('polygon', points, fill, name);
+  }
+
+  private shapeLayerName(): string {
+    const tool = this.state.tool();
+    const label =
+      tool === 'polygon'
+        ? this.t('feature.mapMaker.tools.polygon')
+        : this.t('feature.mapMaker.props.shapeKinds.' + this.state.shapeKind());
+    this.shapeLayerCounter += 1;
+    return label + ' ' + this.shapeLayerCounter;
+  }
+
+  private imageLayerName(): string {
+    this.imageLayerCounter += 1;
+    return this.t('feature.mapMaker.layers.kinds.image') + ' ' + this.imageLayerCounter;
+  }
+
+  private shapeLayerCounter = 0;
+  private imageLayerCounter = 0;
+
+  protected async chooseImage(): Promise<void> {
+    const id = await this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).catch(() => null);
+    if (id) this.state.pendingImageId.set(id);
+  }
+
+  protected pendingImageUrl(): string | null {
+    const id = this.state.pendingImageId();
+    return id ? (this.imageStorage.get(id)?.url ?? null) : null;
+  }
+
+  private async placeImageAt(x: number, y: number): Promise<void> {
+    const id = this.state.pendingImageId();
+    if (!id) return;
+    const url = this.imageStorage.get(id)?.url;
+    const cellPx = this.state.current.cellPx;
+    let naturalW = 4 * cellPx;
+    let naturalH = 4 * cellPx;
+    if (url) {
+      try {
+        const image = await this.loadImageFn(url);
+        naturalW = image.naturalWidth || image.width || naturalW;
+        naturalH = image.naturalHeight || image.height || naturalH;
+      } catch {
+        naturalW = 4 * cellPx;
+        naturalH = 4 * cellPx;
+      }
+    }
+    const fit = this.fitImageSize(naturalW, naturalH);
+    const item: ImageItem = {
+      id: newId(),
+      imageIdentifier: id,
+      x,
+      y,
+      w: fit.w,
+      h: fit.h,
+      rotation: 0,
+      opacity: 1,
+    };
+    this.state.placeImage(item, this.imageLayerName());
   }
 
   private cancelDraft(): void {
@@ -881,6 +1141,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       const blob = await this.exportFn(this.state.current, STAMPS, {
         scale: this.exportScale(),
         drawGrid: this.exportGrid(),
+        resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
       });
       await this.imageStorage.addAsync(blob);
       this.flashNotice(this.t('feature.mapMaker.actions.savedImage'));
@@ -898,6 +1159,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       const blob = await this.exportFn(this.state.current, STAMPS, {
         scale: this.exportScale(),
         drawGrid: this.exportGrid(),
+        resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
       });
       const file = await this.imageStorage.addAsync(blob);
       const table = this.tabletopService.currentTable;
@@ -906,6 +1168,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       table.width = scene.cols;
       table.height = scene.rows;
       table.gridSize = scene.cellPx;
+      table.gridType = scene.gridType;
       this.flashNotice(this.t('feature.mapMaker.actions.setTableDone'));
     } catch {
       this.flashError(this.t('feature.mapMaker.actions.exportError'));

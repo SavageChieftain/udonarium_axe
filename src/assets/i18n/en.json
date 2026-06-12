@@ -1237,14 +1237,15 @@
         "cellPaint": "Paint cells",
         "cellErase": "Erase cells",
         "fill": "Fill",
-        "rect": "Rectangle",
-        "ellipse": "Ellipse",
         "line": "Line",
         "polygon": "Polygon",
         "wall": "Wall",
         "stamp": "Stamp",
         "freehand": "Freehand",
-        "text": "Text"
+        "text": "Text",
+        "settings": "Settings",
+        "shape": "Shape",
+        "image": "Image"
       },
       "textures": {
         "grass": "Grass",
@@ -1295,7 +1296,25 @@
         "background": "Background",
         "gridColor": "Grid color",
         "gridShow": "Show grid",
-        "snap": "Snap"
+        "snap": "Snap",
+        "gridType": "Grid type",
+        "gridSquare": "Square",
+        "gridHexV": "Hex (vertical)",
+        "gridHexH": "Hex (horizontal)",
+        "imageChoose": "Choose image",
+        "imageWidth": "Width",
+        "imageHeight": "Height",
+        "imageRotation": "Rotation",
+        "imageOpacity": "Opacity",
+        "shapeKinds": {
+          "rect": "Rectangle",
+          "ellipse": "Ellipse",
+          "triangle": "Triangle",
+          "pentagon": "Pentagon",
+          "hexagon": "Hexagon",
+          "star5": "5-point star",
+          "star6": "6-point star"
+        }
       },
       "layers": {
         "title": "Layers",
@@ -1312,7 +1331,8 @@
           "wall": "Walls",
           "stamp": "Stamps",
           "freehand": "Freehand",
-          "text": "Text"
+          "text": "Text",
+          "image": "Image"
         }
       },
       "actions": {
@@ -1341,6 +1361,10 @@
         "hint": "Click to add points",
         "finish": "Finish",
         "cancel": "Cancel"
+      },
+      "measure": {
+        "cells": "{{n}} cells",
+        "angle": "∠{{deg}}°"
       }
     }
   },

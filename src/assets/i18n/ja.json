@@ -1237,14 +1237,15 @@
         "cellPaint": "セル塗り",
         "cellErase": "セル消去",
         "fill": "塗りつぶし",
-        "rect": "矩形",
-        "ellipse": "楕円",
         "line": "直線",
         "polygon": "多角形",
         "wall": "壁",
         "stamp": "スタンプ",
         "freehand": "フリーハンド",
-        "text": "テキスト"
+        "text": "テキスト",
+        "settings": "設定",
+        "shape": "図形",
+        "image": "画像"
       },
       "textures": {
         "grass": "草地",
@@ -1295,7 +1296,25 @@
         "background": "背景色",
         "gridColor": "グリッド色",
         "gridShow": "グリッド表示",
-        "snap": "スナップ"
+        "snap": "スナップ",
+        "gridType": "グリッドタイプ",
+        "gridSquare": "スクエア",
+        "gridHexV": "ヘクス（縦）",
+        "gridHexH": "ヘクス（横）",
+        "imageChoose": "画像を選択",
+        "imageWidth": "幅",
+        "imageHeight": "高さ",
+        "imageRotation": "回転",
+        "imageOpacity": "不透明度",
+        "shapeKinds": {
+          "rect": "矩形",
+          "ellipse": "楕円",
+          "triangle": "三角形",
+          "pentagon": "五角形",
+          "hexagon": "六角形",
+          "star5": "五芒星",
+          "star6": "六芒星"
+        }
       },
       "layers": {
         "title": "レイヤー",
@@ -1312,7 +1331,8 @@
           "wall": "壁",
           "stamp": "スタンプ",
           "freehand": "フリーハンド",
-          "text": "テキスト"
+          "text": "テキスト",
+          "image": "画像"
         }
       },
       "actions": {
@@ -1341,6 +1361,10 @@
         "hint": "クリックで頂点を追加",
         "finish": "完了",
         "cancel": "キャンセル"
+      },
+      "measure": {
+        "cells": "{{n}}マス",
+        "angle": "∠{{deg}}°"
       }
     }
   },
