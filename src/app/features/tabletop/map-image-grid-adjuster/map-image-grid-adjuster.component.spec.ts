@@ -50,6 +50,15 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.loadState()).toBe('error');
   });
 
+  it('画像要素はpreflightのmax-widthを打ち消すこと', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 50 });
+    makeReady(800, 600);
+
+    const img = fixture.nativeElement.querySelector('img') as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.classList.contains('max-w-none')).toBe(true);
+  });
+
   it('読み込み時にgridSizeから初期マス数を決めること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
