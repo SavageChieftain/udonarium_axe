@@ -167,7 +167,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
     { tool: 'line', icon: 'show_chart', key: 'L' },
     { tool: 'shape', icon: 'category', key: 'R' },
     { tool: 'polygon', icon: 'polyline', key: 'P' },
-    { tool: 'wall', icon: 'fence', key: 'W' },
     { tool: 'text', icon: 'title', key: 'T' },
     { tool: 'stamp', icon: 'approval', key: 'S' },
     { tool: 'image', icon: 'image', key: 'I' },
@@ -200,7 +199,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
   protected readonly textureAssetUrls = TEXTURE_ASSET_URLS;
   protected readonly stampCategories = STAMP_CATEGORIES;
-  protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'wall', 'stamp', 'freehand', 'text', 'image'];
+  protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'stamp', 'freehand', 'text', 'image'];
 
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
@@ -487,10 +486,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.drawMeasureBox(ctx, `${(w / scene.cellPx).toFixed(1)} × ${(h / scene.cellPx).toFixed(1)}`);
     }
 
-    if (
-      (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.multiClickLine())) &&
-      this.draftPoints.length >= 2
-    ) {
+    if ((tool === 'polygon' || (tool === 'line' && this.multiClickLine())) && this.draftPoints.length >= 2) {
       const lineKind = this.state.lineKind();
       const smooth = tool === 'line' && (lineKind === 'curve' || lineKind === 'closedCurve');
       if (smooth) {
@@ -624,9 +620,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
           this.strokePolylineBbox(ctx, p);
         }
       }
-    } else if (layer.kind === 'wall') {
-      const seg = layer.segments.find((s) => s.id === itemId);
-      if (seg) this.strokePolylineBbox(ctx, seg.points);
     } else if (layer.kind === 'freehand') {
       const stroke = layer.strokes.find((s) => s.id === itemId);
       if (stroke) this.strokePolylineBbox(ctx, stroke.points);
@@ -868,7 +861,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.bumpDraft();
       return;
     }
-    if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.multiClickLine())) {
+    if (tool === 'polygon' || (tool === 'line' && this.multiClickLine())) {
       const snapped = this.state.snapPoint(pos.x, pos.y);
       this.draftPoints.push(snapped.x, snapped.y);
       this.draftCurrent = { x: pos.x, y: pos.y };
@@ -924,7 +917,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
       return;
     }
     if (!this.dragging) {
-      if (tool === 'polygon' || tool === 'wall' || (tool === 'line' && this.multiClickLine())) {
+      if (tool === 'polygon' || (tool === 'line' && this.multiClickLine())) {
         this.draftCurrent = { x: pos.x, y: pos.y };
       }
       if (
@@ -932,7 +925,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
         tool === 'cellErase' ||
         tool === 'fill' ||
         tool === 'polygon' ||
-        tool === 'wall' ||
         (tool === 'line' && this.multiClickLine())
       ) {
         this.bumpDraft();
@@ -1084,8 +1076,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
       this.state.addShapeItem('curve', this.draftPoints.slice(), null, this.shapeLayerName());
     } else if (tool === 'line' && this.state.lineKind() === 'closedCurve' && this.draftPoints.length >= 6) {
       this.state.addShapeItem('closedCurve', this.draftPoints.slice(), this.state.currentFill(), this.shapeLayerName());
-    } else if (tool === 'wall' && this.draftPoints.length >= 4) {
-      this.state.addWall(this.draftPoints.slice());
     }
     this.draftPoints = [];
     this.draftCurrent = null;
@@ -1449,8 +1439,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
         return 'grid_on';
       case 'shape':
         return 'category';
-      case 'wall':
-        return 'fence';
       case 'stamp':
         return 'approval';
       case 'freehand':
@@ -1478,8 +1466,6 @@ export class MapMakerPanelComponent implements AfterViewInit {
           addFill(item.fill);
           addFill(item.stroke?.fill);
         }
-      } else if (layer.kind === 'wall') {
-        for (const segment of layer.segments) addFill(segment.fill);
       } else if (layer.kind === 'image') {
         for (const item of layer.items) imageIds.add(item.imageIdentifier);
       }

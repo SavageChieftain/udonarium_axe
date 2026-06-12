@@ -28,8 +28,6 @@ import {
   TextAlign,
   TextItem,
   TextLayer,
-  WallLayer,
-  WallSegment,
 } from '@axe/features/map-maker/model/scene';
 import {
   addImage,
@@ -38,7 +36,6 @@ import {
   addStamp,
   addStroke,
   addText,
-  addWallSegment,
   eraseCell,
   floodFill,
   removeImage,
@@ -46,7 +43,6 @@ import {
   removeStamp,
   removeStroke,
   removeText,
-  removeWallSegment,
   resizeScene,
   setCell,
   updateImage,
@@ -63,7 +59,6 @@ export type EditorTool =
   | 'shape'
   | 'line'
   | 'polygon'
-  | 'wall'
   | 'freehand'
   | 'text'
   | 'stamp'
@@ -111,9 +106,6 @@ export class MapMakerState {
   readonly shadowBlur = signal(6);
   readonly shadowOffsetX = signal(2);
   readonly shadowOffsetY = signal(2);
-
-  readonly wallThickness = signal(8);
-  readonly wallColor = signal('#2a2a30');
 
   readonly stampCategory = signal<StampCategory>('door');
   readonly stampId = signal<string | null>(null);
@@ -307,18 +299,6 @@ export class MapMakerState {
     return created;
   }
 
-  addWall(points: number[]): void {
-    const layer = this.ensureLayerFor('wall') as WallLayer;
-    const seg: WallSegment = {
-      id: '',
-      points,
-      thickness: this.wallThickness(),
-      color: this.wallColor(),
-      fill: this.fillMode() === 'texture' ? this.currentFill() : null,
-    };
-    this.applyCommitted(() => addWallSegment(layer, seg));
-  }
-
   placeStamp(x: number, y: number): void {
     const stampId = this.stampId();
     if (!stampId) return;
@@ -439,7 +419,6 @@ export class MapMakerState {
       if (layer.kind === 'stamp') removeStamp(layer, sel.itemId);
       else if (layer.kind === 'text') removeText(layer, sel.itemId);
       else if (layer.kind === 'shape') removeShape(layer, sel.itemId);
-      else if (layer.kind === 'wall') removeWallSegment(layer, sel.itemId);
       else if (layer.kind === 'freehand') removeStroke(layer, sel.itemId);
       else if (layer.kind === 'image') removeImage(layer, sel.itemId);
     });
@@ -470,13 +449,6 @@ export class MapMakerState {
         const shapeLayer = layer;
         const idx = shapeLayer.items.findIndex((i) => i.id === sel.itemId);
         if (idx !== -1) shapeLayer.items[idx] = { ...item, points: moved };
-      }
-    } else if (layer.kind === 'wall') {
-      const idx = layer.segments.findIndex((s) => s.id === sel.itemId);
-      if (idx !== -1) {
-        const seg = layer.segments[idx];
-        const moved = seg.points.map((v, i) => (i % 2 === 0 ? v + dxPx : v + dyPx));
-        layer.segments[idx] = { ...seg, points: moved };
       }
     } else if (layer.kind === 'freehand') {
       const idx = layer.strokes.findIndex((s) => s.id === sel.itemId);
@@ -610,13 +582,6 @@ export class MapMakerState {
           const b = this.textBbox(item);
           if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) {
             return { layerId: layer.id, itemId: item.id };
-          }
-        }
-      } else if (layer.kind === 'wall') {
-        for (let j = layer.segments.length - 1; j >= 0; j -= 1) {
-          const seg = layer.segments[j];
-          if (this.pointToPolylineDistance(x, y, seg.points) <= Math.max(6, seg.thickness / 2 + 2)) {
-            return { layerId: layer.id, itemId: seg.id };
           }
         }
       } else if (layer.kind === 'freehand') {

@@ -362,49 +362,6 @@
         </div>
       }
 
-      @if (state.tool() === 'wall') {
-        <div class="flex flex-col gap-2">
-          <div class="font-semibold">{{ 'feature.mapMaker.props.wall' | transloco }}</div>
-          <label class="flex items-center justify-between gap-2">
-            <span class="text-ui-muted">{{ 'feature.mapMaker.props.wallThickness' | transloco }}</span>
-            <input
-              type="range"
-              min="1"
-              max="40"
-              step="1"
-              [ngModel]="state.wallThickness()"
-              (ngModelChange)="state.wallThickness.set($event)"
-            />
-          </label>
-          <div class="flex gap-1">
-            <button
-              class="rounded-ui-sm flex-1 px-2 py-1"
-              [class.bg-ui-accent-bg]="state.fillMode() === 'solid'"
-              [class.bg-ui-input]="state.fillMode() !== 'solid'"
-              (click)="setFillMode('solid')"
-            >
-              {{ 'feature.mapMaker.props.fillSolid' | transloco }}
-            </button>
-            <button
-              class="rounded-ui-sm flex-1 px-2 py-1"
-              [class.bg-ui-accent-bg]="state.fillMode() === 'texture'"
-              [class.bg-ui-input]="state.fillMode() !== 'texture'"
-              (click)="setFillMode('texture')"
-            >
-              {{ 'feature.mapMaker.props.fillTexture' | transloco }}
-            </button>
-          </div>
-          @if (state.fillMode() === 'solid') {
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
-              <input type="color" [ngModel]="state.wallColor()" (ngModelChange)="state.wallColor.set($event)" />
-            </label>
-          } @else {
-            <ng-container [ngTemplateOutlet]="texturePalette"></ng-container>
-          }
-        </div>
-      }
-
       @if (state.tool() === 'image') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.tools.image' | transloco }}</div>
@@ -713,10 +670,7 @@
         ></canvas>
       </div>
       @if (
-        draftCount() > 0 &&
-        (state.tool() === 'polygon' ||
-          state.tool() === 'wall' ||
-          (state.tool() === 'line' && state.lineKind() === 'polyline'))
+        draftCount() > 0 && (state.tool() === 'polygon' || (state.tool() === 'line' && state.lineKind() === 'polyline'))
       ) {
         <div
           class="bg-ui-panel border-ui-border-panel rounded-ui shadow-ui-md absolute top-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 border border-solid px-2 py-1"

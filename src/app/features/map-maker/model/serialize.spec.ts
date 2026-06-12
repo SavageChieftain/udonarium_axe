@@ -6,7 +6,6 @@ import {
   MAP_SCENE_VERSION,
   MapScene,
   ShapeLayer,
-  WallLayer,
 } from '@axe/features/map-maker/model/scene';
 import { deserializeScene, isMapScene, serializeScene } from '@axe/features/map-maker/model/serialize';
 
@@ -442,58 +441,6 @@ describe('deserializeScene round-trip', () => {
     }
     if (shapes.kind === 'shape') {
       expect(shapes.items[0].fill).toEqual({ type: 'texture', textureId: 'image:storage-id-2', scale: 1, rotation: 0 });
-    }
-  });
-
-  it('round-trips a textured wall segment fill including image: ids', () => {
-    const scene = createScene(5, 5, 64);
-    const layer: WallLayer = {
-      id: 'w',
-      kind: 'wall',
-      name: 'walls',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      segments: [
-        {
-          id: 'w1',
-          points: [0, 0, 10, 10],
-          thickness: 4,
-          color: '#333',
-          fill: { type: 'texture', textureId: 'image:wall-tex', scale: 1.5, rotation: 90 },
-        },
-        { id: 'w2', points: [0, 0, 5, 5], thickness: 2, color: '#666' },
-      ],
-    };
-    scene.layers = [layer];
-    const result = deserializeScene(serializeScene(scene));
-    const out = result!.layers[0];
-    expect(out.kind).toBe('wall');
-    if (out.kind === 'wall') {
-      expect(out.segments).toHaveLength(2);
-      expect(out.segments[0].fill).toEqual({ type: 'texture', textureId: 'image:wall-tex', scale: 1.5, rotation: 90 });
-      expect(out.segments[1].fill).toBeUndefined();
-    }
-  });
-
-  it('coerces an invalid wall fill to null', () => {
-    const scene = createScene(5, 5, 64);
-    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
-    raw['layers'] = [
-      {
-        id: 'w',
-        kind: 'wall',
-        name: 'walls',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        segments: [{ id: 'w1', points: [0, 0, 5, 5], thickness: 2, color: '#000', fill: 'bad' }],
-      },
-    ];
-    const result = deserializeScene(JSON.stringify(raw));
-    const out = result!.layers[0];
-    if (out.kind === 'wall') {
-      expect(out.segments[0].fill).toBeNull();
     }
   });
 

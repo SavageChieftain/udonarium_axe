@@ -63,8 +63,6 @@ export function remapSceneImageIdentifiers(scene: MapScene, map: Map<string, str
         remapFill(item.fill, map);
         remapFill(item.stroke?.fill, map);
       }
-    } else if (layer.kind === 'wall') {
-      for (const segment of layer.segments) remapFill(segment.fill, map);
     } else if (layer.kind === 'image') {
       for (const item of layer.items) {
         const next = map.get(item.imageIdentifier);

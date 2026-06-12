@@ -7,7 +7,7 @@ export const MAP_SCENE_VERSION = 1;
 export const DEFAULT_SCENE_BACKGROUND = 'transparent';
 export const DEFAULT_SCENE_GRID_COLOR = '#00000059';
 
-export type LayerKind = 'cell' | 'shape' | 'wall' | 'stamp' | 'freehand' | 'text' | 'image';
+export type LayerKind = 'cell' | 'shape' | 'stamp' | 'freehand' | 'text' | 'image';
 
 export type FillStyle =
   | { type: 'solid'; color: string }
@@ -58,19 +58,6 @@ export interface ShapeItem {
 export interface ShapeLayer extends BaseLayer {
   kind: 'shape';
   items: ShapeItem[];
-}
-
-export interface WallSegment {
-  id: string;
-  points: number[];
-  thickness: number;
-  color: string;
-  fill?: FillStyle | null;
-}
-
-export interface WallLayer extends BaseLayer {
-  kind: 'wall';
-  segments: WallSegment[];
 }
 
 export interface StampItem {
@@ -138,7 +125,7 @@ export interface ImageLayer extends BaseLayer {
   items: ImageItem[];
 }
 
-export type MapLayer = CellLayer | ShapeLayer | WallLayer | StampLayer | FreehandLayer | TextLayer | ImageLayer;
+export type MapLayer = CellLayer | ShapeLayer | StampLayer | FreehandLayer | TextLayer | ImageLayer;
 
 export interface MapScene {
   version: number;
@@ -186,8 +173,6 @@ export function createLayer(kind: LayerKind, name: string): MapLayer {
       return { ...base, kind: 'cell', cells: {} };
     case 'shape':
       return { ...base, kind: 'shape', items: [] };
-    case 'wall':
-      return { ...base, kind: 'wall', segments: [] };
     case 'stamp':
       return { ...base, kind: 'stamp', items: [] };
     case 'freehand':

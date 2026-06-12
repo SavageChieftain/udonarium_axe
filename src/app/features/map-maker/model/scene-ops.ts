@@ -17,8 +17,6 @@ import {
   StampLayer,
   TextItem,
   TextLayer,
-  WallLayer,
-  WallSegment,
 } from '@axe/features/map-maker/model/scene';
 
 function fillStyleEquals(a: FillStyle | null, b: FillStyle | null): boolean {
@@ -142,16 +140,6 @@ export function updateImage(layer: ImageLayer, id: string, patch: Partial<ImageI
 export function removeImage(layer: ImageLayer, id: string): void {
   const idx = layer.items.findIndex((i) => i.id === id);
   if (idx !== -1) layer.items.splice(idx, 1);
-}
-
-export function addWallSegment(layer: WallLayer, seg: WallSegment): void {
-  if (!seg.id) seg.id = newId();
-  layer.segments.push(seg);
-}
-
-export function removeWallSegment(layer: WallLayer, id: string): void {
-  const idx = layer.segments.findIndex((s) => s.id === id);
-  if (idx !== -1) layer.segments.splice(idx, 1);
 }
 
 export function addStroke(layer: FreehandLayer, stroke: FreehandStroke): void {

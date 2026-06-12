@@ -16,7 +16,6 @@ import {
   StrokeDash,
   StrokeStyle,
   TextItem,
-  WallSegment,
 } from '@axe/features/map-maker/model/scene';
 export interface RenderHelpers {
   texturePattern(
@@ -166,29 +165,6 @@ function drawShapeItem(ctx: CanvasRenderingContext2D, item: ShapeItem, helpers: 
     resetLineDash(ctx);
   }
   if (item.shadow) clearShadow(ctx);
-  ctx.restore();
-}
-
-function drawWallSegment(
-  ctx: CanvasRenderingContext2D,
-  segment: WallSegment,
-  helpers: RenderHelpers,
-  cellPx: number
-): void {
-  const p = segment.points;
-  if (p.length < 4) return;
-  ctx.save();
-  const fill = segment.fill ? resolveFill(segment.fill, helpers, cellPx) : null;
-  ctx.strokeStyle = fill ?? segment.color;
-  ctx.lineWidth = segment.thickness;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(p[0], p[1]);
-  for (let i = 2; i + 1 < p.length; i += 2) {
-    ctx.lineTo(p[i], p[i + 1]);
-  }
-  ctx.stroke();
   ctx.restore();
 }
 
@@ -416,9 +392,6 @@ export function renderScene(
       }
       case 'shape':
         for (const item of layer.items) drawShapeItem(ctx, item, helpers, scene.cellPx);
-        break;
-      case 'wall':
-        for (const segment of layer.segments) drawWallSegment(ctx, segment, helpers, scene.cellPx);
         break;
       case 'stamp':
         for (const item of layer.items) drawStamp(ctx, item, helpers);

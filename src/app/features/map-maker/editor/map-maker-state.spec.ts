@@ -10,7 +10,6 @@ import {
   ImageLayer,
   ShapeLayer,
   StampLayer,
-  WallLayer,
 } from '@axe/features/map-maker/model/scene';
 
 describe('MapMakerState', () => {
@@ -127,26 +126,6 @@ describe('MapMakerState', () => {
   it('新規シーンは視認できる紙色の既定値を持つ', () => {
     expect(state.current.background).toBe(DEFAULT_SCENE_BACKGROUND);
     expect(state.current.gridColor).toBe(DEFAULT_SCENE_GRID_COLOR);
-  });
-
-  it('壁セグメントの hitTest / move / delete が動く', () => {
-    state.wallThickness.set(8);
-    state.addWall([0, 0, 100, 0]);
-    const layer = state.current.layers.find((l) => l.kind === 'wall') as WallLayer;
-    expect(layer.segments.length).toBe(1);
-
-    const hit = state.hitTest(50, 2);
-    expect(hit).not.toBeNull();
-    expect(hit!.itemId).toBe(layer.segments[0].id);
-    expect(state.hitTest(50, 200)).toBeNull();
-
-    state.selection.set(hit);
-    state.moveSelection(10, 20);
-    expect(layer.segments[0].points).toEqual([10, 20, 110, 20]);
-
-    state.deleteSelection();
-    expect(layer.segments.length).toBe(0);
-    expect(state.selection()).toBeNull();
   });
 
   it('フリーハンドの hitTest / move / delete が動く', () => {
@@ -321,20 +300,5 @@ describe('MapMakerState', () => {
     state.textureRotation.set(45);
     const fill = state.currentFill();
     expect(fill).toEqual({ type: 'texture', textureId: 'image:abc123', scale: 2, rotation: 45 });
-  });
-
-  it('テクスチャモードの addWall はセグメントへ fill を付与する', () => {
-    state.fillMode.set('texture');
-    state.textureId.set('image:tex1');
-    state.addWall([0, 0, 100, 0]);
-    const layer = state.current.layers.find((l) => l.kind === 'wall') as WallLayer;
-    expect(layer.segments[0].fill).toEqual({ type: 'texture', textureId: 'image:tex1', scale: 1, rotation: 0 });
-  });
-
-  it('単色モードの addWall は fill を null にする', () => {
-    state.fillMode.set('solid');
-    state.addWall([0, 0, 100, 0]);
-    const layer = state.current.layers.find((l) => l.kind === 'wall') as WallLayer;
-    expect(layer.segments[0].fill).toBeNull();
   });
 });

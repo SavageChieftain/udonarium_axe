@@ -1,4 +1,4 @@
-import { createScene, ShapeLayer, WallLayer } from '@axe/features/map-maker/model/scene';
+import { createScene, ShapeLayer } from '@axe/features/map-maker/model/scene';
 import {
   isZipArchive,
   packSceneArchive,
@@ -46,7 +46,7 @@ describe('isZipArchive', () => {
 });
 
 describe('remapSceneImageIdentifiers', () => {
-  it('rewrites image: texture ids across cell, shape fill, shape stroke fill and wall fill', () => {
+  it('rewrites image: texture ids across cell, shape fill and shape stroke fill', () => {
     const scene = createScene(5, 5, 64);
     const shape: ShapeLayer = {
       id: 's',
@@ -70,23 +70,6 @@ describe('remapSceneImageIdentifiers', () => {
         },
       ],
     };
-    const wall: WallLayer = {
-      id: 'w',
-      kind: 'wall',
-      name: 'walls',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      segments: [
-        {
-          id: 'w1',
-          points: [0, 0, 5, 5],
-          thickness: 2,
-          color: '#000',
-          fill: { type: 'texture', textureId: 'image:old-wall', scale: 1, rotation: 0 },
-        },
-      ],
-    };
     scene.layers = [
       {
         id: 'c',
@@ -98,14 +81,12 @@ describe('remapSceneImageIdentifiers', () => {
         cells: { '0,0': { type: 'texture', textureId: 'image:old-cell', scale: 1, rotation: 0 } },
       },
       shape,
-      wall,
     ];
 
     const map = new Map<string, string>([
       ['old-cell', 'new-cell'],
       ['old-fill', 'new-fill'],
       ['old-stroke', 'new-stroke'],
-      ['old-wall', 'new-wall'],
     ]);
     remapSceneImageIdentifiers(scene, map);
 
@@ -115,7 +96,6 @@ describe('remapSceneImageIdentifiers', () => {
     }
     expect((shape.items[0].fill as { textureId: string }).textureId).toBe('image:new-fill');
     expect((shape.items[0].stroke!.fill as { textureId: string }).textureId).toBe('image:new-stroke');
-    expect((wall.segments[0].fill as { textureId: string }).textureId).toBe('image:new-wall');
   });
 
   it('rewrites image item identifiers and leaves unmapped identifiers unchanged', () => {

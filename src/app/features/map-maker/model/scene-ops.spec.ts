@@ -10,7 +10,6 @@ import {
   ShapeLayer,
   StampLayer,
   TextLayer,
-  WallLayer,
 } from '@axe/features/map-maker/model/scene';
 import {
   addImage,
@@ -19,7 +18,6 @@ import {
   addStamp,
   addStroke,
   addText,
-  addWallSegment,
   eraseCell,
   findLayer,
   floodFill,
@@ -32,7 +30,6 @@ import {
   removeStamp,
   removeStroke,
   removeText,
-  removeWallSegment,
   reorderLayer,
   resizeScene,
   setCell,
@@ -389,25 +386,6 @@ describe('floodFill hex grids', () => {
     floodFill(scene, layer, 0, 0, solidRed);
     expect(getCell(layer, 0, 0)).toEqual(solidRed);
     expect(Object.keys(layer.cells)).toHaveLength(1);
-  });
-});
-
-describe('wall segment ops', () => {
-  function makeWallLayer(): WallLayer {
-    return createLayer('wall', 'walls') as WallLayer;
-  }
-
-  it('addWallSegment appends segment', () => {
-    const layer = makeWallLayer();
-    addWallSegment(layer, { id: 'w1', points: [0, 0, 100, 100], thickness: 2, color: '#000' });
-    expect(layer.segments).toHaveLength(1);
-  });
-
-  it('removeWallSegment removes by id', () => {
-    const layer = makeWallLayer();
-    addWallSegment(layer, { id: 'w1', points: [0, 0, 100, 100], thickness: 2, color: '#000' });
-    removeWallSegment(layer, 'w1');
-    expect(layer.segments).toHaveLength(0);
   });
 });
 

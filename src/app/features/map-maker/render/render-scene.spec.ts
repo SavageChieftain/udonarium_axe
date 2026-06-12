@@ -8,7 +8,6 @@ import {
   ShapeLayer,
   StampLayer,
   TextLayer,
-  WallLayer,
 } from '@axe/features/map-maker/model/scene';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { describe, expect, it } from 'vitest';
@@ -184,89 +183,6 @@ describe('renderScene', () => {
     expect(ctx.counts('ellipse')).toBe(1);
     expect(ctx.counts('stroke')).toBeGreaterThanOrEqual(3);
     expect(ctx.counts('fill')).toBeGreaterThanOrEqual(2);
-  });
-
-  it('draws walls as stroked polylines', () => {
-    const layer: WallLayer = {
-      id: 'w',
-      kind: 'wall',
-      name: 'walls',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      segments: [{ id: '1', points: [0, 0, 5, 5, 9, 0], thickness: 3, color: '#333' }],
-    };
-    const ctx = createMockCtx();
-    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
-    expect(ctx.counts('stroke')).toBe(1);
-    expect(ctx.counts('lineTo')).toBe(2);
-  });
-
-  it('strokes a textured wall with the resolved pattern as strokeStyle', () => {
-    const pattern = { setTransform() {} } as unknown as CanvasPattern;
-    const strokeStyles: unknown[] = [];
-    const layer: WallLayer = {
-      id: 'w',
-      kind: 'wall',
-      name: 'walls',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      segments: [
-        {
-          id: '1',
-          points: [0, 0, 5, 5, 9, 0],
-          thickness: 3,
-          color: '#333',
-          fill: { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 },
-        },
-      ],
-    };
-    const localHelpers: RenderHelpers = {
-      texturePattern: () => pattern,
-      stampImage: () => null,
-    };
-    const ctx = createMockCtx();
-    const orig = (ctx as unknown as { stroke: () => void }).stroke;
-    (ctx as unknown as { stroke: () => void }).stroke = function (this: CanvasRenderingContext2D) {
-      strokeStyles.push(this.strokeStyle);
-      orig.call(this);
-    };
-    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
-    expect(strokeStyles[0]).toBe(pattern);
-  });
-
-  it('falls back to segment.color when wall fill resolves to null', () => {
-    const strokeStyles: unknown[] = [];
-    const layer: WallLayer = {
-      id: 'w',
-      kind: 'wall',
-      name: 'walls',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      segments: [
-        {
-          id: '1',
-          points: [0, 0, 5, 5],
-          thickness: 3,
-          color: '#abc',
-          fill: { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 },
-        },
-      ],
-    };
-    const localHelpers: RenderHelpers = {
-      texturePattern: () => null,
-      stampImage: () => null,
-    };
-    const ctx = createMockCtx();
-    const orig = (ctx as unknown as { stroke: () => void }).stroke;
-    (ctx as unknown as { stroke: () => void }).stroke = function (this: CanvasRenderingContext2D) {
-      strokeStyles.push(this.strokeStyle);
-      orig.call(this);
-    };
-    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
-    expect(strokeStyles[0]).toBe('#abc');
   });
 
   it('strokes a textured shape stroke with the resolved pattern as strokeStyle', () => {

@@ -11,7 +11,6 @@ import {
   ShapeShadow,
   StrokeDash,
   StrokeStyle,
-  WallSegment,
 } from '@axe/features/map-maker/model/scene';
 import { normalizeTextureId } from '@axe/features/map-maker/model/textures';
 
@@ -27,7 +26,7 @@ function isPositiveFiniteNumber(v: unknown): v is number {
   return isFiniteNumber(v) && (v as number) > 0;
 }
 
-const VALID_KINDS = new Set(['cell', 'shape', 'wall', 'stamp', 'freehand', 'text', 'image']);
+const VALID_KINDS = new Set(['cell', 'shape', 'stamp', 'freehand', 'text', 'image']);
 
 const VALID_DASHES = new Set<StrokeDash>(['solid', 'dashed', 'dotted', 'dashdot', 'longdash']);
 
@@ -71,17 +70,6 @@ function sanitizeFill(value: unknown): FillStyle | null {
     };
   }
   return null;
-}
-
-function sanitizeWallSegment(raw: unknown): WallSegment | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
-  if (!Array.isArray(r['points'])) return null;
-  const segment = { ...r } as unknown as WallSegment;
-  if ('fill' in r) {
-    segment.fill = r['fill'] == null ? null : sanitizeFill(r['fill']);
-  }
-  return segment;
 }
 
 function sanitizeShapeItem(raw: unknown): ShapeItem | null {
@@ -173,14 +161,6 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
         kind: 'shape',
         items: Array.isArray(raw['items'])
           ? (raw['items'].map(sanitizeShapeItem).filter((i): i is ShapeItem => i !== null) as ShapeItem[])
-          : [],
-      };
-    case 'wall':
-      return {
-        ...base,
-        kind: 'wall',
-        segments: Array.isArray(raw['segments'])
-          ? (raw['segments'].map(sanitizeWallSegment).filter((s): s is WallSegment => s !== null) as WallSegment[])
           : [],
       };
     case 'stamp':
