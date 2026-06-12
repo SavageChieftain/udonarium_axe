@@ -156,6 +156,10 @@ function drawShapeItem(ctx: CanvasRenderingContext2D, item: ShapeItem, helpers: 
   }
   if (item.stroke) {
     applyStroke(ctx, item.stroke);
+    if (item.stroke.fill) {
+      const strokeFill = resolveFill(item.stroke.fill, helpers, cellPx);
+      ctx.strokeStyle = strokeFill ?? item.stroke.color;
+    }
     ctx.lineJoin = 'round';
     if (!item.stroke.dash) ctx.lineCap = 'round';
     ctx.stroke();

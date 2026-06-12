@@ -19,6 +19,7 @@ export interface StrokeStyle {
   color: string;
   width: number;
   dash?: StrokeDash;
+  fill?: FillStyle | null;
 }
 
 export interface ShapeShadow {

@@ -230,10 +230,54 @@
       @if (state.tool() === 'shape' || state.tool() === 'line' || state.tool() === 'polygon') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.props.stroke' | transloco }}</div>
-          <label class="flex items-center justify-between gap-2">
-            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
-            <input type="color" [ngModel]="state.strokeColor()" (ngModelChange)="state.strokeColor.set($event)" />
-          </label>
+          <div class="flex gap-1">
+            <button
+              class="rounded-ui-sm flex-1 px-2 py-1"
+              [class.bg-ui-accent-bg]="state.strokeFillMode() === 'color'"
+              [class.bg-ui-input]="state.strokeFillMode() !== 'color'"
+              (click)="state.strokeFillMode.set('color')"
+            >
+              {{ 'feature.mapMaker.props.fillSolid' | transloco }}
+            </button>
+            <button
+              class="rounded-ui-sm flex-1 px-2 py-1"
+              [class.bg-ui-accent-bg]="state.strokeFillMode() === 'texture'"
+              [class.bg-ui-input]="state.strokeFillMode() !== 'texture'"
+              (click)="state.strokeFillMode.set('texture')"
+            >
+              {{ 'feature.mapMaker.props.fillTexture' | transloco }}
+            </button>
+          </div>
+          @if (state.strokeFillMode() === 'color') {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+              <input type="color" [ngModel]="state.strokeColor()" (ngModelChange)="state.strokeColor.set($event)" />
+            </label>
+          } @else {
+            <ng-container [ngTemplateOutlet]="texturePalette"></ng-container>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.textureScale' | transloco }}</span>
+              <input
+                type="range"
+                min="0.25"
+                max="3"
+                step="0.25"
+                [ngModel]="state.textureScale()"
+                (ngModelChange)="state.textureScale.set($event)"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.textureRotation' | transloco }}</span>
+              <input
+                type="range"
+                min="0"
+                max="360"
+                step="15"
+                [ngModel]="state.textureRotation()"
+                (ngModelChange)="state.textureRotation.set($event)"
+              />
+            </label>
+          }
           <label class="flex items-center justify-between gap-2">
             <span class="text-ui-muted">{{ 'feature.mapMaker.props.strokeWidth' | transloco }}</span>
             <input
@@ -846,19 +890,13 @@
       }
 
       <div class="ml-auto flex items-center gap-2">
-        <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-1" (click)="saveJson()">
-          {{ 'feature.mapMaker.actions.saveJson' | transloco }}
+        <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-1" (click)="save()">
+          {{ 'feature.mapMaker.actions.save' | transloco }}
         </button>
         <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-1" (click)="triggerLoad()">
-          {{ 'feature.mapMaker.actions.loadJson' | transloco }}
+          {{ 'feature.mapMaker.actions.load' | transloco }}
         </button>
-        <input
-          #fileInput
-          class="hidden"
-          type="file"
-          accept="application/json,.json"
-          (change)="onFileSelected($event)"
-        />
+        <input #fileInput class="hidden" type="file" accept=".json,.zip" (change)="onFileSelected($event)" />
         <input #textureFileInput class="hidden" type="file" accept="image/*" (change)="onTextureFileSelected($event)" />
 
         <div class="bg-ui-border-panel h-5 w-px"></div>

@@ -59,7 +59,10 @@ function collectImageTextureIdentifiers(scene: MapScene): string[] {
     if (layer.kind === 'cell') {
       for (const fill of Object.values(layer.cells)) fillTextureIdentifier(fill, ids);
     } else if (layer.kind === 'shape') {
-      for (const item of layer.items) fillTextureIdentifier(item.fill, ids);
+      for (const item of layer.items) {
+        fillTextureIdentifier(item.fill, ids);
+        fillTextureIdentifier(item.stroke?.fill, ids);
+      }
     } else if (layer.kind === 'wall') {
       for (const segment of layer.segments) fillTextureIdentifier(segment.fill, ids);
     }
@@ -79,7 +82,10 @@ function collectBuiltinTextureUrls(scene: MapScene): string[] {
     if (layer.kind === 'cell') {
       for (const fill of Object.values(layer.cells)) fillBuiltinTextureUrl(fill, urls);
     } else if (layer.kind === 'shape') {
-      for (const item of layer.items) fillBuiltinTextureUrl(item.fill, urls);
+      for (const item of layer.items) {
+        fillBuiltinTextureUrl(item.fill, urls);
+        fillBuiltinTextureUrl(item.stroke?.fill, urls);
+      }
     } else if (layer.kind === 'wall') {
       for (const segment of layer.segments) fillBuiltinTextureUrl(segment.fill, urls);
     }

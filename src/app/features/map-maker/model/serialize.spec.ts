@@ -497,6 +497,71 @@ describe('deserializeScene round-trip', () => {
     }
   });
 
+  it('round-trips a textured shape stroke fill including image: ids', () => {
+    const scene = createScene(5, 5, 64);
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: 's1',
+          shape: 'line',
+          points: [0, 0, 10, 10],
+          fill: null,
+          stroke: {
+            color: '#000',
+            width: 3,
+            fill: { type: 'texture', textureId: 'image:stroke-tex', scale: 2, rotation: 45 },
+          },
+          rotation: 0,
+        },
+      ],
+    };
+    scene.layers = [layer];
+    const out = deserializeScene(serializeScene(scene))!.layers[0];
+    if (out.kind === 'shape') {
+      expect(out.items[0].stroke?.fill).toEqual({
+        type: 'texture',
+        textureId: 'image:stroke-tex',
+        scale: 2,
+        rotation: 45,
+      });
+    }
+  });
+
+  it('coerces an invalid shape stroke fill to null', () => {
+    const scene = createScene(5, 5, 64);
+    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
+    raw['layers'] = [
+      {
+        id: 's',
+        kind: 'shape',
+        name: 'shapes',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          {
+            id: 's1',
+            shape: 'line',
+            points: [0, 0, 5, 5],
+            fill: null,
+            stroke: { color: '#000', width: 2, fill: 'bad' },
+            rotation: 0,
+          },
+        ],
+      },
+    ];
+    const out = deserializeScene(JSON.stringify(raw))!.layers[0];
+    if (out.kind === 'shape') {
+      expect(out.items[0].stroke?.fill).toBeNull();
+    }
+  });
+
   it('drops unknown layer kinds', () => {
     const raw = {
       version: MAP_SCENE_VERSION,

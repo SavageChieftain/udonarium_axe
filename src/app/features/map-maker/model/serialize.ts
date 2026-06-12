@@ -90,10 +90,14 @@ function sanitizeShapeItem(raw: unknown): ShapeItem | null {
   if (!VALID_SHAPE_KINDS.has(r['shape'] as ShapeItem['shape'])) return null;
   const item = { ...r } as unknown as ShapeItem;
   if (r['stroke'] && typeof r['stroke'] === 'object') {
-    const stroke = { ...(r['stroke'] as Record<string, unknown>) } as unknown as StrokeStyle;
-    const dash = sanitizeDash((r['stroke'] as Record<string, unknown>)['dash']);
+    const rawStroke = r['stroke'] as Record<string, unknown>;
+    const stroke = { ...rawStroke } as unknown as StrokeStyle;
+    const dash = sanitizeDash(rawStroke['dash']);
     if (dash) stroke.dash = dash;
     else delete stroke.dash;
+    if ('fill' in rawStroke) {
+      stroke.fill = rawStroke['fill'] == null ? null : sanitizeFill(rawStroke['fill']);
+    }
     item.stroke = stroke;
   }
   if ('shadow' in r) {

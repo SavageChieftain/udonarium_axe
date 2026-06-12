@@ -269,6 +269,75 @@ describe('renderScene', () => {
     expect(strokeStyles[0]).toBe('#abc');
   });
 
+  it('strokes a textured shape stroke with the resolved pattern as strokeStyle', () => {
+    const pattern = { setTransform() {} } as unknown as CanvasPattern;
+    const strokeStyles: unknown[] = [];
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'line',
+          points: [0, 0, 9, 9],
+          fill: null,
+          stroke: { color: '#000', width: 3, fill: { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 } },
+          rotation: 0,
+        },
+      ],
+    };
+    const localHelpers: RenderHelpers = {
+      texturePattern: () => pattern,
+      stampImage: () => null,
+    };
+    const ctx = createMockCtx();
+    const orig = (ctx as unknown as { stroke: () => void }).stroke;
+    (ctx as unknown as { stroke: () => void }).stroke = function (this: CanvasRenderingContext2D) {
+      strokeStyles.push(this.strokeStyle);
+      orig.call(this);
+    };
+    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
+    expect(strokeStyles[0]).toBe(pattern);
+  });
+
+  it('falls back to stroke.color when shape stroke fill resolves to null', () => {
+    const strokeStyles: unknown[] = [];
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'line',
+          points: [0, 0, 9, 9],
+          fill: null,
+          stroke: { color: '#abc', width: 3, fill: { type: 'texture', textureId: 'steppe', scale: 1, rotation: 0 } },
+          rotation: 0,
+        },
+      ],
+    };
+    const localHelpers: RenderHelpers = {
+      texturePattern: () => null,
+      stampImage: () => null,
+    };
+    const ctx = createMockCtx();
+    const orig = (ctx as unknown as { stroke: () => void }).stroke;
+    (ctx as unknown as { stroke: () => void }).stroke = function (this: CanvasRenderingContext2D) {
+      strokeStyles.push(this.strokeStyle);
+      orig.call(this);
+    };
+    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
+    expect(strokeStyles[0]).toBe('#abc');
+  });
+
   it('draws stamps via drawImage when image present and skips when null', () => {
     const items = [
       { id: '1', stampId: 'a', x: 5, y: 5, size: 4, rotation: 45, flipX: true, flipY: false, color: '#fff' },

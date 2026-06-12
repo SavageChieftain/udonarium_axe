@@ -46,6 +46,12 @@ import {
   sceneWidthPx,
   StrokeDash,
 } from '@axe/features/map-maker/model/scene';
+import {
+  isZipArchive,
+  packSceneArchive,
+  remapSceneImageIdentifiers,
+  unpackSceneArchive,
+} from '@axe/features/map-maker/model/scene-archive';
 import { moveLayer, removeLayer } from '@axe/features/map-maker/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-maker/model/serialize';
 import { regularPolygonPoints, starPoints } from '@axe/features/map-maker/model/shape-points';
@@ -1456,13 +1462,52 @@ export class MapMakerPanelComponent implements AfterViewInit {
     }
   }
 
-  protected saveJson(): void {
+  private collectArchiveIdentifiers(): { textureIds: Set<string>; imageIds: Set<string> } {
+    const textureIds = new Set<string>();
+    const imageIds = new Set<string>();
+    const addFill = (fill: { type: string; textureId?: string } | null | undefined): void => {
+      if (fill && fill.type === 'texture' && fill.textureId && isImageTextureId(fill.textureId)) {
+        textureIds.add(imageTextureIdentifier(fill.textureId));
+      }
+    };
+    for (const layer of this.state.current.layers) {
+      if (layer.kind === 'cell') {
+        for (const fill of Object.values(layer.cells)) addFill(fill);
+      } else if (layer.kind === 'shape') {
+        for (const item of layer.items) {
+          addFill(item.fill);
+          addFill(item.stroke?.fill);
+        }
+      } else if (layer.kind === 'wall') {
+        for (const segment of layer.segments) addFill(segment.fill);
+      } else if (layer.kind === 'image') {
+        for (const item of layer.items) imageIds.add(item.imageIdentifier);
+      }
+    }
+    return { textureIds, imageIds };
+  }
+
+  private async collectArchiveBytes(ids: Set<string>): Promise<Record<string, Uint8Array>> {
+    const out: Record<string, Uint8Array> = {};
+    for (const id of ids) {
+      const blob = this.imageStorage.get(id)?.blob;
+      if (!blob) continue;
+      out[id] = new Uint8Array(await blob.arrayBuffer());
+    }
+    return out;
+  }
+
+  protected async save(): Promise<void> {
     const json = serializeScene(this.state.current);
-    const blob = new Blob([json], { type: 'application/json' });
+    const { textureIds, imageIds } = this.collectArchiveIdentifiers();
+    const textures = await this.collectArchiveBytes(textureIds);
+    const images = await this.collectArchiveBytes(imageIds);
+    const archive = packSceneArchive(json, textures, images);
+    const blob = new Blob([archive.slice()], { type: 'application/zip' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'map.json';
+    anchor.download = 'map.zip';
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -1471,17 +1516,57 @@ export class MapMakerPanelComponent implements AfterViewInit {
     this.fileInput()?.nativeElement.click();
   }
 
+  private async registerArchiveImages(
+    bytes: Record<string, Uint8Array>,
+    asTexture: boolean
+  ): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    for (const [oldId, data] of Object.entries(bytes)) {
+      const blob = new Blob([data.slice()], { type: 'image/webp' });
+      const imageFile = await this.imageStorage.addAsync(blob);
+      map.set(oldId, imageFile.identifier);
+      if (asTexture && !ImageTag.get(imageFile.identifier)) {
+        const tag = ImageTag.create(imageFile.identifier);
+        tag.tag = TEXTURE_IMAGE_TAG;
+      }
+    }
+    if (asTexture && map.size > 0) this.objectChange.notifyCollectionChanged('image-tag');
+    return map;
+  }
+
   protected async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    const text = await file.text();
-    const scene = deserializeScene(text);
-    if (!scene) {
-      this.flashError(this.t('feature.mapMaker.actions.loadJsonError'));
+    const buffer = new Uint8Array(await file.arrayBuffer());
+    if (isZipArchive(buffer)) {
+      await this.loadArchive(buffer);
       return;
     }
+    const scene = deserializeScene(new TextDecoder().decode(buffer));
+    if (!scene) {
+      this.flashError(this.t('feature.mapMaker.actions.loadError'));
+      return;
+    }
+    this.state.loadScene(scene);
+  }
+
+  private async loadArchive(buffer: Uint8Array): Promise<void> {
+    const unpacked = unpackSceneArchive(buffer);
+    if (!unpacked) {
+      this.flashError(this.t('feature.mapMaker.actions.loadError'));
+      return;
+    }
+    const scene = deserializeScene(unpacked.json);
+    if (!scene) {
+      this.flashError(this.t('feature.mapMaker.actions.loadError'));
+      return;
+    }
+    const textureMap = await this.registerArchiveImages(unpacked.textures, true);
+    const imageMap = await this.registerArchiveImages(unpacked.images, false);
+    const remap = new Map<string, string>([...textureMap, ...imageMap]);
+    remapSceneImageIdentifiers(scene, remap);
     this.state.loadScene(scene);
   }
 

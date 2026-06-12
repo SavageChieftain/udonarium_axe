@@ -104,6 +104,7 @@ export class MapMakerState {
   readonly strokeColor = signal('#e8e8ea');
   readonly strokeWidth = signal(3);
   readonly strokeDash = signal<StrokeDash>('solid');
+  readonly strokeFillMode = signal<'color' | 'texture'>('color');
 
   readonly shadowEnabled = signal(false);
   readonly shadowColor = signal('#00000080');
@@ -192,7 +193,20 @@ export class MapMakerState {
   }
 
   currentStroke(): StrokeStyle {
-    return { color: this.strokeColor(), width: this.strokeWidth(), dash: this.strokeDash() };
+    return {
+      color: this.strokeColor(),
+      width: this.strokeWidth(),
+      dash: this.strokeDash(),
+      fill:
+        this.strokeFillMode() === 'texture'
+          ? {
+              type: 'texture',
+              textureId: this.textureId(),
+              scale: this.textureScale(),
+              rotation: this.textureRotation(),
+            }
+          : null,
+    };
   }
 
   currentShadow(): ShapeShadow | null {

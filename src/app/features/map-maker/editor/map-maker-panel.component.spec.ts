@@ -12,8 +12,9 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { buildShapeKindPoints, MapMakerPanelComponent } from '@axe/features/map-maker/editor/map-maker-panel.component';
 import { pointToCell } from '@axe/features/map-maker/model/grid-cells';
-import { cellKey, ImageLayer, ShapeLayer, StampLayer } from '@axe/features/map-maker/model/scene';
+import { cellKey, createScene, ImageLayer, ShapeLayer, StampLayer } from '@axe/features/map-maker/model/scene';
 import { addLayer } from '@axe/features/map-maker/model/scene-ops';
+import { serializeScene } from '@axe/features/map-maker/model/serialize';
 import { exportSceneToBlob } from '@axe/features/map-maker/render/export-image';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -474,6 +475,38 @@ describe('MapMakerPanelComponent', () => {
     await (component as unknown as { onTextureFileSelected: (e: Event) => Promise<void> }).onTextureFileSelected(event);
 
     expect(imageStorage.addAsync).not.toHaveBeenCalled();
+  });
+
+  it('strokeFillMode texture で線をコミットすると stroke.fill に現在の textureId が入る', () => {
+    component['state'].strokeFillMode.set('texture');
+    component['state'].textureId.set('image:stroke-tex');
+    component['state'].addShapeItem('line', [0, 0, 40, 40], null);
+    const layer = component['state'].current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items[0].stroke?.fill).toEqual({
+      type: 'texture',
+      textureId: 'image:stroke-tex',
+      scale: component['state'].textureScale(),
+      rotation: component['state'].textureRotation(),
+    });
+  });
+
+  it('strokeFillMode color で線をコミットすると stroke.fill は null', () => {
+    component['state'].strokeFillMode.set('color');
+    component['state'].addShapeItem('line', [0, 0, 40, 40], null);
+    const layer = component['state'].current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    expect(layer.items[0].stroke?.fill).toBeNull();
+  });
+
+  it('レガシー JSON ファイルを読み込める', async () => {
+    const json = serializeScene(createScene(7, 6, 48));
+    const file = { arrayBuffer: () => Promise.resolve(new TextEncoder().encode(json).buffer) };
+    const input = { files: [file], value: 'x' };
+    const event = { target: input } as unknown as Event;
+
+    await (component as unknown as { onFileSelected: (e: Event) => Promise<void> }).onFileSelected(event);
+
+    expect(component['state'].current.cols).toBe(7);
+    expect(component['state'].current.rows).toBe(6);
   });
 });
 
