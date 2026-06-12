@@ -19,8 +19,8 @@ export interface MapImageGridAdjusterResult {
 }
 
 const MIN_CELL_PX = 4;
-const STAGE_MAX_W = 640;
-const STAGE_MAX_H = 480;
+const STAGE_MAX_W = 720;
+const STAGE_MAX_H = 520;
 
 @Component({
   selector: 'app-map-image-grid-adjuster',

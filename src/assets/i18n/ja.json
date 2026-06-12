@@ -840,7 +840,8 @@
           "size": "{{cols}} × {{rows}} マス",
           "loading": "読み込み中...",
           "loadError": "画像を読み込めませんでした",
-          "processing": "処理中..."
+          "processing": "処理中...",
+          "hint": "ドラッグで位置調整 / ホイールでマスサイズ / 矢印キーで微調整（Shiftで10px）"
         },
         "sectionBasic": "基本情報",
         "tableName": "テーブル名",

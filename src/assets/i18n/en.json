@@ -840,7 +840,8 @@
           "size": "{{cols}} × {{rows}} cells",
           "loading": "Loading...",
           "loadError": "Failed to load image",
-          "processing": "Processing..."
+          "processing": "Processing...",
+          "hint": "Drag to adjust position / wheel for cell size / arrow keys to nudge (Shift = 10px)"
         },
         "sectionBasic": "Basic",
         "tableName": "Table name",
