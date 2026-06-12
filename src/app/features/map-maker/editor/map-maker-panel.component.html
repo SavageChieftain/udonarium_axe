@@ -725,13 +725,15 @@
             >
               <i class="material-icons text-[14px]!">arrow_downward</i>
             </button>
-            <button
-              class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
-              [title]="'feature.mapMaker.layers.delete' | transloco"
-              (click)="$event.stopPropagation(); deleteLayer(layer)"
-            >
-              <i class="material-icons text-[14px]!">delete</i>
-            </button>
+            @if (!layer.locked) {
+              <button
+                class="hover:bg-ui-hover rounded-ui-sm inline-flex size-5 items-center justify-center"
+                [title]="'feature.mapMaker.layers.delete' | transloco"
+                (click)="$event.stopPropagation(); deleteLayer(layer)"
+              >
+                <i class="material-icons text-[14px]!">delete</i>
+              </button>
+            }
           </div>
         </div>
       }

@@ -1177,6 +1177,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   }
 
   protected deleteLayer(layer: MapLayer): void {
+    if (layer.locked) return;
     this.modalService
       .open<boolean>(ConfirmDialogComponent, {
         message: this.t('feature.mapMaker.layers.deleteConfirm'),

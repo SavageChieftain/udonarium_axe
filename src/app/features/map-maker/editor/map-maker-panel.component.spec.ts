@@ -309,4 +309,28 @@ describe('MapMakerPanelComponent', () => {
 
     expect(component['state'].current.layers.length).toBe(before);
   });
+
+  it('deleteLayer: ロック中のレイヤーは確認モーダルも開かず削除されない', async () => {
+    component['state'].applyCommitted(() =>
+      addLayer(component['state'].current, {
+        id: 'layer-4',
+        kind: 'shape',
+        name: 'S',
+        visible: true,
+        locked: true,
+        opacity: 1,
+        items: [],
+      })
+    );
+    const before = component['state'].current.layers.length;
+
+    (component as unknown as { deleteLayer: (layer: { id: string; locked: boolean }) => void }).deleteLayer({
+      id: 'layer-4',
+      locked: true,
+    });
+    await Promise.resolve();
+
+    expect(modalService.open).not.toHaveBeenCalled();
+    expect(component['state'].current.layers.length).toBe(before);
+  });
 });
