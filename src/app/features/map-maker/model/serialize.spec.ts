@@ -220,6 +220,142 @@ describe('deserializeScene round-trip', () => {
     }
   });
 
+  it('round-trips stroke dash, shadow, and polyline shapes', () => {
+    const scene = createScene(5, 5, 64);
+    scene.layers = [
+      {
+        id: 'sh',
+        kind: 'shape',
+        name: 'shapes',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          {
+            id: 's1',
+            shape: 'polyline',
+            points: [0, 0, 5, 5, 10, 0],
+            fill: { type: 'solid', color: '#f00' },
+            stroke: { color: '#000', width: 2, dash: 'dashdot' },
+            rotation: 0,
+            shadow: { color: '#123', blur: 4, offsetX: 1, offsetY: 2 },
+          },
+        ],
+      },
+    ];
+    const result = deserializeScene(serializeScene(scene));
+    const out = result!.layers[0];
+    expect(out.kind).toBe('shape');
+    if (out.kind === 'shape') {
+      expect(out.items[0].shape).toBe('polyline');
+      expect(out.items[0].stroke?.dash).toBe('dashdot');
+      expect(out.items[0].shadow).toEqual({ color: '#123', blur: 4, offsetX: 1, offsetY: 2 });
+    }
+  });
+
+  it('drops an invalid dash to undefined', () => {
+    const scene = createScene(5, 5, 64);
+    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
+    raw['layers'] = [
+      {
+        id: 'sh',
+        kind: 'shape',
+        name: 'shapes',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          {
+            id: 's1',
+            shape: 'rect',
+            points: [0, 0, 5, 5],
+            fill: null,
+            stroke: { color: '#000', width: 2, dash: 'zigzag' },
+            rotation: 0,
+          },
+        ],
+      },
+    ];
+    const result = deserializeScene(JSON.stringify(raw));
+    const out = result!.layers[0];
+    if (out.kind === 'shape') {
+      expect(out.items[0].stroke?.dash).toBeUndefined();
+    }
+  });
+
+  it('coerces a non-object shadow to null', () => {
+    const scene = createScene(5, 5, 64);
+    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
+    raw['layers'] = [
+      {
+        id: 'sh',
+        kind: 'shape',
+        name: 'shapes',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          { id: 's1', shape: 'ellipse', points: [0, 0, 5, 5], fill: null, stroke: null, rotation: 0, shadow: 'bad' },
+        ],
+      },
+    ];
+    const result = deserializeScene(JSON.stringify(raw));
+    const out = result!.layers[0];
+    if (out.kind === 'shape') {
+      expect(out.items[0].shadow).toBeNull();
+    }
+  });
+
+  it('drops shape items with an invalid shape kind', () => {
+    const scene = createScene(5, 5, 64);
+    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
+    raw['layers'] = [
+      {
+        id: 'sh',
+        kind: 'shape',
+        name: 'shapes',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          { id: 'bad', shape: 'spiral', points: [0, 0], fill: null, stroke: null, rotation: 0 },
+          { id: 'ok', shape: 'rect', points: [0, 0, 5, 5], fill: null, stroke: null, rotation: 0 },
+        ],
+      },
+    ];
+    const result = deserializeScene(JSON.stringify(raw));
+    const out = result!.layers[0];
+    if (out.kind === 'shape') {
+      expect(out.items).toHaveLength(1);
+      expect(out.items[0].id).toBe('ok');
+    }
+  });
+
+  it('coerces clipToCells to a boolean on image items', () => {
+    const scene = createScene(5, 5, 64);
+    const raw = JSON.parse(serializeScene(scene)) as Record<string, unknown>;
+    raw['layers'] = [
+      {
+        id: 'img',
+        kind: 'image',
+        name: 'images',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        items: [
+          { id: 'i1', imageIdentifier: 'a', x: 0, y: 0, w: 4, h: 4, rotation: 0, opacity: 1, clipToCells: 'yes' },
+          { id: 'i2', imageIdentifier: 'b', x: 0, y: 0, w: 4, h: 4, rotation: 0, opacity: 1, clipToCells: true },
+        ],
+      },
+    ];
+    const result = deserializeScene(JSON.stringify(raw));
+    const out = result!.layers[0];
+    if (out.kind === 'image') {
+      expect(out.items[0].clipToCells).toBe(false);
+      expect(out.items[1].clipToCells).toBe(true);
+    }
+  });
+
   it('drops unknown layer kinds', () => {
     const raw = {
       version: MAP_SCENE_VERSION,

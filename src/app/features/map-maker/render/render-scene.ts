@@ -1,6 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCircumradius, hexStartAngle, isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
-import { cellCenter } from '@axe/features/map-maker/model/grid-cells';
+import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import {
   FillStyle,
   FreehandStroke,
@@ -10,7 +10,9 @@ import {
   sceneHeightPx,
   sceneWidthPx,
   ShapeItem,
+  ShapeShadow,
   StampItem,
+  StrokeDash,
   StrokeStyle,
   TextItem,
   WallSegment,
@@ -48,9 +50,48 @@ function resolveFill(fill: FillStyle, helpers: RenderHelpers, cellPx: number): s
   return resolved;
 }
 
+function dashPattern(dash: StrokeDash, width: number): number[] {
+  const w = width > 0 ? width : 1;
+  switch (dash) {
+    case 'dashed':
+      return [w * 3, w * 2];
+    case 'dotted':
+      return [w, w * 2];
+    case 'dashdot':
+      return [w * 4, w * 2, w, w * 2];
+    case 'longdash':
+      return [w * 6, w * 3];
+    default:
+      return [];
+  }
+}
+
 function applyStroke(ctx: CanvasRenderingContext2D, stroke: StrokeStyle): void {
   ctx.strokeStyle = stroke.color;
   ctx.lineWidth = stroke.width;
+  const dash = stroke.dash;
+  if (typeof ctx.setLineDash === 'function') {
+    ctx.setLineDash(dash ? dashPattern(dash, stroke.width) : []);
+  }
+  ctx.lineCap = stroke.dash === 'dotted' ? 'round' : 'butt';
+}
+
+function resetLineDash(ctx: CanvasRenderingContext2D): void {
+  if (typeof ctx.setLineDash === 'function') ctx.setLineDash([]);
+}
+
+function applyShadow(ctx: CanvasRenderingContext2D, shadow: ShapeShadow): void {
+  ctx.shadowColor = shadow.color;
+  ctx.shadowBlur = shadow.blur;
+  ctx.shadowOffsetX = shadow.offsetX;
+  ctx.shadowOffsetY = shadow.offsetY;
+}
+
+function clearShadow(ctx: CanvasRenderingContext2D): void {
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
 }
 
 function bboxCenter(item: ShapeItem): { cx: number; cy: number } {
@@ -106,8 +147,10 @@ function drawShapeItem(ctx: CanvasRenderingContext2D, item: ShapeItem, helpers: 
     ctx.rotate((item.rotation * Math.PI) / 180);
     ctx.translate(-cx, -cy);
   }
+  if (item.shadow) applyShadow(ctx, item.shadow);
   pathShape(ctx, item);
-  if (item.fill && item.shape !== 'line') {
+  const fillable = item.shape !== 'line' && item.shape !== 'polyline';
+  if (item.fill && fillable) {
     const fill = resolveFill(item.fill, helpers, cellPx);
     if (fill) {
       ctx.fillStyle = fill;
@@ -117,9 +160,11 @@ function drawShapeItem(ctx: CanvasRenderingContext2D, item: ShapeItem, helpers: 
   if (item.stroke) {
     applyStroke(ctx, item.stroke);
     ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
+    if (!item.stroke.dash) ctx.lineCap = 'round';
     ctx.stroke();
+    resetLineDash(ctx);
   }
+  if (item.shadow) clearShadow(ctx);
   ctx.restore();
 }
 
@@ -152,16 +197,64 @@ function drawStamp(ctx: CanvasRenderingContext2D, item: StampItem, helpers: Rend
   ctx.restore();
 }
 
+function clipCellPath(
+  ctx: CanvasRenderingContext2D,
+  scene: MapScene,
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number
+): void {
+  const hex = isHexGrid(scene.gridType);
+  const s = hex ? hexCircumradius(scene.cellPx) : 0;
+  const startAngle = hex ? hexStartAngle(isFlatTopGrid(scene.gridType)) : 0;
+  const a = pointToCell(scene.gridType, minX, minY, scene.cellPx);
+  const b = pointToCell(scene.gridType, maxX, maxY, scene.cellPx);
+  const c0 = Math.min(a.col, b.col) - 1;
+  const c1 = Math.max(a.col, b.col) + 1;
+  const r0 = Math.min(a.row, b.row) - 1;
+  const r1 = Math.max(a.row, b.row) + 1;
+  ctx.beginPath();
+  for (let col = c0; col <= c1; col += 1) {
+    for (let row = r0; row <= r1; row += 1) {
+      const { x, y } = cellCenter(scene.gridType, col, row, scene.cellPx);
+      if (x < minX || x > maxX || y < minY || y > maxY) continue;
+      if (hex) {
+        for (let i = 0; i < 6; i += 1) {
+          const angle = startAngle + (i * Math.PI) / 3;
+          const px = x + s * Math.cos(angle);
+          const py = y + s * Math.sin(angle);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+      } else {
+        ctx.rect(col * scene.cellPx, row * scene.cellPx, scene.cellPx, scene.cellPx);
+      }
+    }
+  }
+  ctx.clip();
+}
+
 function drawImageItem(
   ctx: CanvasRenderingContext2D,
   item: ImageItem,
   helpers: RenderHelpers,
-  layerAlpha: number
+  layerAlpha: number,
+  scene: MapScene
 ): void {
   const image = helpers.rasterImage?.(item);
   if (!image) return;
   ctx.save();
   ctx.globalAlpha = layerAlpha * (Number.isFinite(item.opacity) ? Math.max(0, Math.min(1, item.opacity)) : 1);
+  if (item.clipToCells) {
+    const minX = item.x - item.w / 2;
+    const minY = item.y - item.h / 2;
+    clipCellPath(ctx, scene, minX, minY, minX + item.w, minY + item.h);
+    ctx.drawImage(image, minX, minY, item.w, item.h);
+    ctx.restore();
+    return;
+  }
   ctx.translate(item.x, item.y);
   if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
   ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
@@ -328,7 +421,7 @@ export function renderScene(
         for (const item of layer.items) drawText(ctx, item);
         break;
       case 'image':
-        for (const item of layer.items) drawImageItem(ctx, item, helpers, layer.opacity);
+        for (const item of layer.items) drawImageItem(ctx, item, helpers, layer.opacity, scene);
         break;
     }
   }

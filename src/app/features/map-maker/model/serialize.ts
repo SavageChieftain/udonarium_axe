@@ -2,9 +2,14 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import {
   DEFAULT_SCENE_BACKGROUND,
   DEFAULT_SCENE_GRID_COLOR,
+  ImageItem,
   MAP_SCENE_VERSION,
   MapLayer,
   MapScene,
+  ShapeItem,
+  ShapeShadow,
+  StrokeDash,
+  StrokeStyle,
 } from '@axe/features/map-maker/model/scene';
 
 export function serializeScene(scene: MapScene): string {
@@ -20,6 +25,51 @@ function isPositiveFiniteNumber(v: unknown): v is number {
 }
 
 const VALID_KINDS = new Set(['cell', 'shape', 'wall', 'stamp', 'freehand', 'text', 'image']);
+
+const VALID_DASHES = new Set<StrokeDash>(['solid', 'dashed', 'dotted', 'dashdot', 'longdash']);
+
+const VALID_SHAPE_KINDS = new Set<ShapeItem['shape']>(['rect', 'ellipse', 'line', 'polygon', 'polyline']);
+
+function sanitizeDash(value: unknown): StrokeDash | undefined {
+  return typeof value === 'string' && VALID_DASHES.has(value as StrokeDash) ? (value as StrokeDash) : undefined;
+}
+
+function sanitizeShadow(value: unknown): ShapeShadow | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const v = value as Record<string, unknown>;
+  return {
+    color: typeof v['color'] === 'string' ? v['color'] : '#000000',
+    blur: isFiniteNumber(v['blur']) ? (v['blur'] as number) : 0,
+    offsetX: isFiniteNumber(v['offsetX']) ? (v['offsetX'] as number) : 0,
+    offsetY: isFiniteNumber(v['offsetY']) ? (v['offsetY'] as number) : 0,
+  };
+}
+
+function sanitizeShapeItem(raw: unknown): ShapeItem | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  if (!VALID_SHAPE_KINDS.has(r['shape'] as ShapeItem['shape'])) return null;
+  const item = { ...r } as unknown as ShapeItem;
+  if (r['stroke'] && typeof r['stroke'] === 'object') {
+    const stroke = { ...(r['stroke'] as Record<string, unknown>) } as unknown as StrokeStyle;
+    const dash = sanitizeDash((r['stroke'] as Record<string, unknown>)['dash']);
+    if (dash) stroke.dash = dash;
+    else delete stroke.dash;
+    item.stroke = stroke;
+  }
+  if ('shadow' in r) {
+    item.shadow = r['shadow'] == null ? null : sanitizeShadow(r['shadow']);
+  }
+  return item;
+}
+
+function sanitizeImageItem(raw: unknown): ImageItem | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  const item = { ...r } as unknown as ImageItem;
+  if ('clipToCells' in r) item.clipToCells = r['clipToCells'] === true;
+  return item;
+}
 
 const VALID_GRID_TYPES = new Set<number>([
   GridType.NONE,
@@ -75,7 +125,13 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
           : {}) as Record<string, never>,
       };
     case 'shape':
-      return { ...base, kind: 'shape', items: Array.isArray(raw['items']) ? raw['items'] : [] };
+      return {
+        ...base,
+        kind: 'shape',
+        items: Array.isArray(raw['items'])
+          ? (raw['items'].map(sanitizeShapeItem).filter((i): i is ShapeItem => i !== null) as ShapeItem[])
+          : [],
+      };
     case 'wall':
       return { ...base, kind: 'wall', segments: Array.isArray(raw['segments']) ? raw['segments'] : [] };
     case 'stamp':
@@ -85,7 +141,13 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
     case 'text':
       return { ...base, kind: 'text', items: Array.isArray(raw['items']) ? raw['items'] : [] };
     case 'image':
-      return { ...base, kind: 'image', items: Array.isArray(raw['items']) ? raw['items'] : [] };
+      return {
+        ...base,
+        kind: 'image',
+        items: Array.isArray(raw['items'])
+          ? (raw['items'].map(sanitizeImageItem).filter((i): i is ImageItem => i !== null) as ImageItem[])
+          : [],
+      };
     default:
       return { ...base, kind: 'cell', cells: {} };
   }

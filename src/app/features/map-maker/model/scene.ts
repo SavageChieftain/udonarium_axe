@@ -1,4 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 
 export const MAP_SCENE_VERSION = 1;
 
@@ -11,9 +13,19 @@ export type FillStyle =
   | { type: 'solid'; color: string }
   | { type: 'texture'; textureId: string; scale: number; rotation: number };
 
+export type StrokeDash = 'solid' | 'dashed' | 'dotted' | 'dashdot' | 'longdash';
+
 export interface StrokeStyle {
   color: string;
   width: number;
+  dash?: StrokeDash;
+}
+
+export interface ShapeShadow {
+  color: string;
+  blur: number;
+  offsetX: number;
+  offsetY: number;
 }
 
 export interface BaseLayer {
@@ -30,7 +42,7 @@ export interface CellLayer extends BaseLayer {
   cells: Record<string, FillStyle>;
 }
 
-export type ShapeKind = 'rect' | 'ellipse' | 'line' | 'polygon';
+export type ShapeKind = 'rect' | 'ellipse' | 'line' | 'polygon' | 'polyline';
 
 export interface ShapeItem {
   id: string;
@@ -39,6 +51,7 @@ export interface ShapeItem {
   fill: FillStyle | null;
   stroke: StrokeStyle | null;
   rotation: number;
+  shadow?: ShapeShadow | null;
 }
 
 export interface ShapeLayer extends BaseLayer {
@@ -115,6 +128,7 @@ export interface ImageItem {
   h: number;
   rotation: number;
   opacity: number;
+  clipToCells?: boolean;
 }
 
 export interface ImageLayer extends BaseLayer {
@@ -188,9 +202,17 @@ export function cloneScene(scene: MapScene): MapScene {
 }
 
 export function sceneWidthPx(scene: MapScene): number {
+  if (isHexGrid(scene.gridType)) {
+    const geo = computeHexMaskGeometry(scene.cols, scene.rows, scene.cellPx, scene.gridType);
+    if (geo) return geo.pixelW;
+  }
   return scene.cols * scene.cellPx;
 }
 
 export function sceneHeightPx(scene: MapScene): number {
+  if (isHexGrid(scene.gridType)) {
+    const geo = computeHexMaskGeometry(scene.cols, scene.rows, scene.cellPx, scene.gridType);
+    if (geo) return geo.pixelH;
+  }
   return scene.rows * scene.cellPx;
 }

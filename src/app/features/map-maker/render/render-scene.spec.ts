@@ -44,6 +44,10 @@ function createMockCtx(): CanvasRenderingContext2D & MockCtx {
     font: '10px sans-serif',
     textAlign: 'left',
     textBaseline: 'alphabetic',
+    shadowColor: 'transparent',
+    shadowBlur: 0,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
   };
   for (const method of [
     'clearRect',
@@ -66,6 +70,8 @@ function createMockCtx(): CanvasRenderingContext2D & MockCtx {
     'stroke',
     'fillText',
     'drawImage',
+    'setLineDash',
+    'clip',
   ]) {
     ctx[method] = record(method);
   }
@@ -323,6 +329,169 @@ describe('renderScene', () => {
     expect(ctx.counts('rotate')).toBe(1);
     const draw = ctx.calls.find((c) => c.method === 'drawImage');
     expect(draw!.args.slice(1)).toEqual([-4, -3, 8, 6]);
+  });
+
+  it('sets a scaled line dash pattern for dashed strokes and resets afterwards', () => {
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'line',
+          points: [0, 0, 9, 9],
+          fill: null,
+          stroke: { color: '#000', width: 2, dash: 'dashed' },
+          rotation: 0,
+        },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    const dashCalls = ctx.calls.filter((c) => c.method === 'setLineDash');
+    expect(dashCalls.some((c) => JSON.stringify(c.args[0]) === JSON.stringify([6, 4]))).toBe(true);
+    expect(JSON.stringify(dashCalls[dashCalls.length - 1].args[0])).toBe(JSON.stringify([]));
+  });
+
+  it('uses dotted pattern with round cap', () => {
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'rect',
+          points: [0, 0, 5, 5],
+          fill: null,
+          stroke: { color: '#000', width: 3, dash: 'dotted' },
+          rotation: 0,
+        },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    const dashCalls = ctx.calls.filter((c) => c.method === 'setLineDash');
+    expect(dashCalls.some((c) => JSON.stringify(c.args[0]) === JSON.stringify([3, 6]))).toBe(true);
+  });
+
+  it('sets and clears shadow ctx props around a shape with a shadow', () => {
+    const states: { color: unknown; blur: unknown }[] = [];
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'rect',
+          points: [0, 0, 5, 5],
+          fill: { type: 'solid', color: '#0f0' },
+          stroke: null,
+          rotation: 0,
+          shadow: { color: '#123', blur: 4, offsetX: 2, offsetY: 3 },
+        },
+      ],
+    };
+    const ctx = createMockCtx();
+    const origFill = (ctx as unknown as { fill: () => void }).fill;
+    (ctx as unknown as { fill: () => void }).fill = function (this: CanvasRenderingContext2D) {
+      states.push({ color: this.shadowColor, blur: this.shadowBlur });
+      origFill.call(this);
+    };
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    expect(states[0]).toEqual({ color: '#123', blur: 4 });
+    expect(ctx.shadowColor).toBe('transparent');
+    expect(ctx.shadowBlur).toBe(0);
+    expect(ctx.shadowOffsetX).toBe(0);
+    expect(ctx.shadowOffsetY).toBe(0);
+  });
+
+  it('strokes a polyline without filling or closing the path', () => {
+    const layer: ShapeLayer = {
+      id: 's',
+      kind: 'shape',
+      name: 'shapes',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: '1',
+          shape: 'polyline',
+          points: [0, 0, 4, 4, 8, 0],
+          fill: { type: 'solid', color: '#f00' },
+          stroke: { color: '#000', width: 1 },
+          rotation: 0,
+        },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    expect(ctx.counts('stroke')).toBe(1);
+    expect(ctx.counts('fill')).toBe(0);
+    expect(ctx.counts('closePath')).toBe(0);
+    expect(ctx.counts('lineTo')).toBe(2);
+  });
+
+  it('clips an image to grid cells and draws it unrotated when clipToCells is set', () => {
+    const layer: ImageLayer = {
+      id: 'i',
+      kind: 'image',
+      name: 'images',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        { id: 'i1', imageIdentifier: 'a', x: 10, y: 10, w: 20, h: 20, rotation: 45, opacity: 1, clipToCells: true },
+      ],
+    };
+    const localHelpers: RenderHelpers = {
+      texturePattern: () => null,
+      stampImage: () => null,
+      rasterImage: () => ({}) as CanvasImageSource,
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
+    expect(ctx.counts('clip')).toBe(1);
+    expect(ctx.counts('drawImage')).toBe(1);
+    expect(ctx.counts('rotate')).toBe(0);
+    const draw = ctx.calls.find((c) => c.method === 'drawImage');
+    expect(draw!.args.slice(1)).toEqual([0, 0, 20, 20]);
+  });
+
+  it('places the first flat-top hex cell fill at the footprint offset', () => {
+    const layer: CellLayer = {
+      id: 'c',
+      kind: 'cell',
+      name: 'cells',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      cells: { '0,0': { type: 'solid', color: '#f00' } },
+    };
+    const scene = createScene(3, 3, 12, GridType.HEX_VERTICAL);
+    scene.layers = [layer];
+    const ctx = createMockCtx();
+    renderScene(ctx, scene, helpers, { drawGrid: false });
+    const s = 12 / Math.sqrt(3);
+    const verts = ctx.calls.filter((c) => c.method === 'moveTo' || c.method === 'lineTo');
+    const xs = verts.map((c) => c.args[0] as number);
+    const ys = verts.map((c) => c.args[1] as number);
+    const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+    const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+    expect(Math.abs(cx - s)).toBeLessThan(1e-6);
+    expect(Math.abs(cy - 6)).toBeLessThan(1e-6);
   });
 
   it('calls pattern.setTransform when a texture fill has scale/rotation', () => {

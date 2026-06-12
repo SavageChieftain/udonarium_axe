@@ -1,5 +1,12 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { hexCellCenter, hexSpacing, isFlatTopGrid, isHexGrid, pixelToHexCell } from '@axe/domain/tabletop/hex-geometry';
+import {
+  hexCellCenter,
+  hexCircumradius,
+  hexSpacing,
+  isFlatTopGrid,
+  isHexGrid,
+  pixelToHexCell,
+} from '@axe/domain/tabletop/hex-geometry';
 
 function flatTopNeighbors(col: number, row: number): [number, number][] {
   const odd = Math.abs(col % 2) === 1;
@@ -38,9 +45,16 @@ export function cellNeighbors(gridType: GridType, col: number, row: number): [nu
   ];
 }
 
+export function cellOriginOffset(gridType: GridType, cellPx: number): { x: number; y: number } {
+  if (!isHexGrid(gridType)) return { x: 0, y: 0 };
+  const s = hexCircumradius(cellPx);
+  return isFlatTopGrid(gridType) ? { x: s, y: cellPx / 2 } : { x: cellPx / 2, y: s };
+}
+
 export function pointToCell(gridType: GridType, x: number, y: number, cellPx: number): { col: number; row: number } {
   if (isHexGrid(gridType)) {
-    return pixelToHexCell(x, y, cellPx, isFlatTopGrid(gridType));
+    const offset = cellOriginOffset(gridType, cellPx);
+    return pixelToHexCell(x - offset.x, y - offset.y, cellPx, isFlatTopGrid(gridType));
   }
   return { col: Math.floor(x / cellPx), row: Math.floor(y / cellPx) };
 }
@@ -49,7 +63,9 @@ export function cellCenter(gridType: GridType, col: number, row: number, cellPx:
   if (isHexGrid(gridType)) {
     const flatTop = isFlatTopGrid(gridType);
     const { colSpacing, rowSpacing } = hexSpacing(cellPx, flatTop);
-    return hexCellCenter(col, row, colSpacing, rowSpacing, flatTop);
+    const offset = cellOriginOffset(gridType, cellPx);
+    const center = hexCellCenter(col, row, colSpacing, rowSpacing, flatTop);
+    return { x: center.x + offset.x, y: center.y + offset.y };
   }
   return { x: (col + 0.5) * cellPx, y: (row + 0.5) * cellPx };
 }
