@@ -16,6 +16,49 @@ export const DEFAULT_MAX_OUTPUT_PX = 4096;
 
 const COUNT_EPSILON = 1e-7;
 
+export interface CoveredCells {
+  cols: number;
+  rows: number;
+  screenX: number;
+  screenY: number;
+  imageX: number;
+  imageY: number;
+  cellImagePx: number;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function computeCoveredCells(
+  tx: number,
+  ty: number,
+  scale: number,
+  imgW: number,
+  imgH: number,
+  displayCell: number,
+  tolerancePx = 0.75
+): CoveredCells {
+  if (!(scale > 0) || !(displayCell > 0)) {
+    return { cols: 0, rows: 0, screenX: 0, screenY: 0, imageX: 0, imageY: 0, cellImagePx: 0 };
+  }
+  const cellImagePx = displayCell / scale;
+  const iMin = Math.ceil((tx - tolerancePx) / displayCell);
+  const iMax = Math.floor((tx + imgW * scale + tolerancePx) / displayCell) - 1;
+  const jMin = Math.ceil((ty - tolerancePx) / displayCell);
+  const jMax = Math.floor((ty + imgH * scale + tolerancePx) / displayCell) - 1;
+  const cols = Math.max(0, iMax - iMin + 1);
+  const rows = Math.max(0, jMax - jMin + 1);
+  if (cols <= 0 || rows <= 0) {
+    return { cols: 0, rows: 0, screenX: 0, screenY: 0, imageX: 0, imageY: 0, cellImagePx };
+  }
+  const screenX = iMin * displayCell + 0;
+  const screenY = jMin * displayCell + 0;
+  const imageX = clamp((screenX - tx) / scale, 0, imgW) + 0;
+  const imageY = clamp((screenY - ty) / scale, 0, imgH) + 0;
+  return { cols, rows, screenX, screenY, imageX, imageY, cellImagePx };
+}
+
 export function effectiveOrigin(offset: number, cellPx: number): number {
   if (!(cellPx > 0)) return 0;
   if (offset >= 0) return offset;

@@ -833,9 +833,7 @@
           "byCount": "Match by cell count",
           "cols": "Columns",
           "rows": "Rows",
-          "cellSize": "Cell size",
-          "offsetX": "Offset X",
-          "offsetY": "Offset Y",
+          "zoom": "Zoom",
           "reset": "Reset",
           "cancel": "Cancel",
           "apply": "Apply",
@@ -843,7 +841,7 @@
           "loading": "Loading...",
           "loadError": "Failed to load image",
           "processing": "Processing...",
-          "hint": "Drag to adjust position / wheel for cell size (Shift+wheel to fine-tune) / arrow keys to nudge (Shift = 10px)"
+          "hint": "Drag the image to move / wheel to zoom (Shift = fine) / arrow keys to nudge 1px"
         },
         "sectionBasic": "Basic",
         "tableName": "Table name",

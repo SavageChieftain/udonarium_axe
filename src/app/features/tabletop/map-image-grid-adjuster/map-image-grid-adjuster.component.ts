@@ -13,17 +13,14 @@ import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import {
-  computeGridCounts,
-  cropAlignedRegion,
-  effectiveOrigin,
-} from '@axe/features/tabletop/map-image-grid-adjuster/map-image-crop';
+import { computeCoveredCells, cropAlignedRegion } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-crop';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export interface MapImageGridAdjusterOption {
   imageIdentifier: string;
   gridSize: number;
   gridColor?: string;
+  fitWidth?: boolean;
 }
 
 export interface MapImageGridAdjusterResult {
@@ -32,10 +29,10 @@ export interface MapImageGridAdjusterResult {
   height: number;
 }
 
-const MIN_CELL_PX = 8;
+const DISPLAY_CELL = 48;
 const STAGE_FALLBACK_W = 720;
 const STAGE_FALLBACK_H = 520;
-const MAX_DISPLAY_SCALE = 2;
+const MAX_SCALE = 8;
 
 @Component({
   selector: 'app-map-image-grid-adjuster',
@@ -52,7 +49,6 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   private readonly option = this.readOption();
 
   readonly stageRef = viewChild<ElementRef<HTMLElement>>('stage');
-  readonly imageBoxRef = viewChild<ElementRef<HTMLElement>>('imageBox');
 
   readonly imageUrl = signal('');
   readonly imageWidth = signal(0);
@@ -65,61 +61,60 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   readonly stageW = signal(STAGE_FALLBACK_W);
   readonly stageH = signal(STAGE_FALLBACK_H);
 
-  readonly cellPx = signal(50);
-  readonly offsetX = signal(0);
-  readonly offsetY = signal(0);
+  readonly tx = signal(0);
+  readonly ty = signal(0);
+  readonly scale = signal(1);
 
   private loadedImage: HTMLImageElement | null = null;
   private dragLast: { x: number; y: number } | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private readonly cropFn = cropAlignedRegion;
 
-  readonly maxCellPx = computed(() => {
+  readonly minScale = computed(() => {
     const w = this.imageWidth();
     const h = this.imageHeight();
-    if (w <= 0 || h <= 0) return MIN_CELL_PX;
-    return Math.max(MIN_CELL_PX, Math.min(w, h));
+    if (w <= 0 || h <= 0) return 0.05;
+    return Math.max(0.05, DISPLAY_CELL / Math.min(w, h));
   });
 
-  readonly counts = computed(() =>
-    computeGridCounts(this.imageWidth(), this.imageHeight(), this.cellPx(), this.offsetX(), this.offsetY())
+  readonly imageScreenWidth = computed(() => this.imageWidth() * this.scale());
+  readonly imageScreenHeight = computed(() => this.imageHeight() * this.scale());
+
+  readonly covered = computed(() =>
+    computeCoveredCells(this.tx(), this.ty(), this.scale(), this.imageWidth(), this.imageHeight(), DISPLAY_CELL)
   );
 
-  readonly cols = computed(() => this.counts().cols);
-  readonly rows = computed(() => this.counts().rows);
-  readonly hasWholeCell = computed(() => this.cols() >= 1 && this.rows() >= 1);
-
-  readonly startX = computed(() => effectiveOrigin(this.offsetX(), this.cellPx()));
-  readonly startY = computed(() => effectiveOrigin(this.offsetY(), this.cellPx()));
-
-  readonly outputWidth = computed(() => Math.round(this.cols() * this.cellPx()));
-  readonly outputHeight = computed(() => Math.round(this.rows() * this.cellPx()));
-
-  readonly cellPxDisplay = computed(() => {
-    const v = this.cellPx();
-    return Number.isInteger(v) ? v : Math.round(v * 10) / 10;
+  private readonly regionVisible = computed(() => {
+    const c = this.covered();
+    if (c.cols < 1 || c.rows < 1) return false;
+    const right = c.screenX + c.cols * DISPLAY_CELL;
+    const bottom = c.screenY + c.rows * DISPLAY_CELL;
+    return c.screenX < this.stageW() && c.screenY < this.stageH() && right > 0 && bottom > 0;
   });
 
-  readonly displayScale = computed(() => {
-    const w = this.imageWidth();
-    const h = this.imageHeight();
-    if (w <= 0 || h <= 0) return 1;
-    return Math.min(this.stageW() / w, this.stageH() / h, MAX_DISPLAY_SCALE);
+  readonly cols = computed(() => this.covered().cols);
+  readonly rows = computed(() => this.covered().rows);
+  readonly hasWholeCell = computed(() => this.cols() >= 1 && this.rows() >= 1 && this.regionVisible());
+
+  readonly outputWidth = computed(() => Math.round(this.cols() * this.covered().cellImagePx));
+  readonly outputHeight = computed(() => Math.round(this.rows() * this.covered().cellImagePx));
+
+  readonly zoomPercent = computed(() => Math.round(this.scale() * 100));
+  readonly minZoomPercent = computed(() => Math.round(this.minScale() * 100));
+  readonly maxZoomPercent = MAX_SCALE * 100;
+
+  readonly regionStyle = computed(() => {
+    const c = this.covered();
+    return {
+      left: `${c.screenX}px`,
+      top: `${c.screenY}px`,
+      width: `${c.cols * DISPLAY_CELL}px`,
+      height: `${c.rows * DISPLAY_CELL}px`,
+    };
   });
 
-  readonly displayWidth = computed(() => this.imageWidth() * this.displayScale());
-  readonly displayHeight = computed(() => this.imageHeight() * this.displayScale());
-
-  readonly gridBackgroundSize = computed(() => {
-    const size = this.cellPx() * this.displayScale();
-    return `${size}px ${size}px, ${size}px ${size}px, ${size}px ${size}px, ${size}px ${size}px`;
-  });
-
-  readonly gridBackgroundPosition = computed(() => {
-    const x = this.offsetX() * this.displayScale();
-    const y = this.offsetY() * this.displayScale();
-    return `${x}px ${y}px, ${x}px ${y}px, ${x + 1}px ${y + 1}px, ${x + 1}px ${y + 1}px`;
-  });
+  readonly gridBackgroundSize = `${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px`;
+  readonly gridBackgroundPosition = '0px 0px, 0px 0px, 1px 1px, 1px 1px';
 
   readonly gridBackgroundImage = computed(() => {
     const c = this.gridColor;
@@ -130,16 +125,6 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
       `repeating-linear-gradient(to right, ${w} 0, ${w} 1px, transparent 1px, transparent 100%),` +
       `repeating-linear-gradient(to bottom, ${w} 0, ${w} 1px, transparent 1px, transparent 100%)`
     );
-  });
-
-  readonly regionStyle = computed(() => {
-    const scale = this.displayScale();
-    return {
-      left: `${this.startX() * scale}px`,
-      top: `${this.startY() * scale}px`,
-      width: `${this.outputWidth() * scale}px`,
-      height: `${this.outputHeight() * scale}px`,
-    };
   });
 
   readonly canApply = computed(() => this.loadState() === 'ready' && this.hasWholeCell() && !this.processing());
@@ -181,6 +166,7 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
       imageIdentifier: option?.imageIdentifier ?? '',
       gridSize: Number(option?.gridSize) > 0 ? Number(option?.gridSize) : 50,
       gridColor: option?.gridColor,
+      fitWidth: option?.fitWidth,
     };
   }
 
@@ -208,15 +194,44 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
       this.loadedImage = image;
       this.imageWidth.set(w);
       this.imageHeight.set(h);
-      this.cellPx.set(this.clampCell(this.option.gridSize));
+      this.initTransform();
       this.loadState.set('ready');
     };
     image.onabort = image.onerror = () => this.loadState.set('error');
     image.src = url;
   }
 
-  private clampCell(value: number): number {
-    return Math.min(this.maxCellPx(), Math.max(MIN_CELL_PX, value));
+  private clampScale(value: number): number {
+    return Math.min(MAX_SCALE, Math.max(this.minScale(), value));
+  }
+
+  private initTransform() {
+    const s = this.clampScale(DISPLAY_CELL / this.option.gridSize);
+    this.scale.set(s);
+    this.centerImage();
+  }
+
+  private centerImage() {
+    const s = this.scale();
+    this.tx.set(Math.round((this.stageW() - this.imageWidth() * s) / 2));
+    this.ty.set(Math.round((this.stageH() - this.imageHeight() * s) / 2));
+  }
+
+  private centerAndSnap() {
+    const s = this.scale();
+    const cx = (this.stageW() - this.imageWidth() * s) / 2;
+    const cy = (this.stageH() - this.imageHeight() * s) / 2;
+    this.tx.set(Math.round(cx / DISPLAY_CELL) * DISPLAY_CELL);
+    this.ty.set(Math.round(cy / DISPLAY_CELL) * DISPLAY_CELL);
+  }
+
+  protected zoomAt(px: number, py: number, factor: number) {
+    const s = this.scale();
+    const next = this.clampScale(s * factor);
+    if (next === s) return;
+    this.tx.set(Math.round(px - (px - this.tx()) * (next / s)));
+    this.ty.set(Math.round(py - (py - this.ty()) * (next / s)));
+    this.scale.set(next);
   }
 
   setCols(value: number | string) {
@@ -224,9 +239,8 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     if (!Number.isFinite(num) || num < 1) return;
     const w = this.imageWidth();
     if (w <= 0) return;
-    this.cellPx.set(this.clampCell(w / num));
-    this.offsetX.set(0);
-    this.offsetY.set(0);
+    this.scale.set(this.clampScale((num * DISPLAY_CELL) / w));
+    this.centerAndSnap();
   }
 
   setRows(value: number | string) {
@@ -234,51 +248,35 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     if (!Number.isFinite(num) || num < 1) return;
     const h = this.imageHeight();
     if (h <= 0) return;
-    this.cellPx.set(this.clampCell(h / num));
-    this.offsetX.set(0);
-    this.offsetY.set(0);
+    this.scale.set(this.clampScale((num * DISPLAY_CELL) / h));
+    this.centerAndSnap();
   }
 
-  setCellPx(value: number | string) {
+  setZoom(value: number | string) {
     const num = Number(value);
     if (!Number.isFinite(num)) return;
-    this.cellPx.set(this.clampCell(num));
-  }
-
-  setOffsetX(value: number | string) {
-    const num = Math.round(Number(value));
-    if (!Number.isFinite(num)) return;
-    this.offsetX.set(num);
-  }
-
-  setOffsetY(value: number | string) {
-    const num = Math.round(Number(value));
-    if (!Number.isFinite(num)) return;
-    this.offsetY.set(num);
+    this.zoomAt(this.stageW() / 2, this.stageH() / 2, this.clampScale(num / 100) / this.scale());
   }
 
   reset() {
-    this.cellPx.set(this.clampCell(this.option.gridSize));
-    this.offsetX.set(0);
-    this.offsetY.set(0);
+    this.scale.set(this.clampScale(DISPLAY_CELL / this.option.gridSize));
+    this.centerAndSnap();
   }
 
   onPointerDown(event: PointerEvent) {
     if (this.loadState() !== 'ready') return;
     this.dragLast = { x: event.clientX, y: event.clientY };
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
-    this.imageBoxRef()?.nativeElement.focus();
+    (event.currentTarget as HTMLElement).focus();
   }
 
   onPointerMove(event: PointerEvent) {
     if (!this.dragLast) return;
-    const scale = this.displayScale();
-    if (scale <= 0) return;
-    const dx = (event.clientX - this.dragLast.x) / scale;
-    const dy = (event.clientY - this.dragLast.y) / scale;
+    const dx = event.clientX - this.dragLast.x;
+    const dy = event.clientY - this.dragLast.y;
     this.dragLast = { x: event.clientX, y: event.clientY };
-    this.offsetX.set(Math.round(this.offsetX() + dx));
-    this.offsetY.set(Math.round(this.offsetY() + dy));
+    this.tx.set(Math.round(this.tx() + dx));
+    this.ty.set(Math.round(this.ty() + dy));
   }
 
   onPointerUp(event: PointerEvent) {
@@ -289,9 +287,13 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   onWheel(event: WheelEvent) {
     if (this.loadState() !== 'ready') return;
     event.preventDefault();
-    const dir = event.deltaY < 0 ? 1 : -1;
-    const step = event.shiftKey ? 1 : Math.max(1, this.cellPx() * 0.02);
-    this.setCellPx(this.cellPx() + dir * step);
+    const stage = this.stageRef()?.nativeElement;
+    const rect = stage?.getBoundingClientRect();
+    const px = rect ? event.clientX - rect.left : this.stageW() / 2;
+    const py = rect ? event.clientY - rect.top : this.stageH() / 2;
+    const base = event.shiftKey ? 1.01 : 1.05;
+    const factor = event.deltaY < 0 ? base : 1 / base;
+    this.zoomAt(px, py, factor);
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -299,16 +301,16 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     const step = event.shiftKey ? 10 : 1;
     switch (event.key) {
       case 'ArrowLeft':
-        this.offsetX.set(this.offsetX() - step);
+        this.tx.set(this.tx() - step);
         break;
       case 'ArrowRight':
-        this.offsetX.set(this.offsetX() + step);
+        this.tx.set(this.tx() + step);
         break;
       case 'ArrowUp':
-        this.offsetY.set(this.offsetY() - step);
+        this.ty.set(this.ty() - step);
         break;
       case 'ArrowDown':
-        this.offsetY.set(this.offsetY() + step);
+        this.ty.set(this.ty() + step);
         break;
       default:
         return;
@@ -324,18 +326,22 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     if (!this.canApply() || !this.loadedImage) return;
     this.processing.set(true);
     try {
-      const blob = await this.cropFn(this.loadedImage, this.imageWidth(), this.imageHeight(), {
-        cellPx: this.cellPx(),
-        offsetX: this.startX(),
-        offsetY: this.startY(),
-        cols: this.cols(),
-        rows: this.rows(),
+      const c = this.covered();
+      const imgW = this.imageWidth();
+      const imgH = this.imageHeight();
+      const cellImagePx = Math.min(c.cellImagePx, (imgW - c.imageX) / c.cols, (imgH - c.imageY) / c.rows);
+      const blob = await this.cropFn(this.loadedImage, imgW, imgH, {
+        cellPx: cellImagePx,
+        offsetX: c.imageX,
+        offsetY: c.imageY,
+        cols: c.cols,
+        rows: c.rows,
       });
       const image = await this.imageStorage.addAsync(blob);
       const result: MapImageGridAdjusterResult = {
         imageIdentifier: image.identifier,
-        width: this.cols(),
-        height: this.rows(),
+        width: c.cols,
+        height: c.rows,
       };
       this.modalService.resolve(result);
     } catch {

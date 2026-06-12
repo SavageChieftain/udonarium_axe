@@ -31,6 +31,7 @@ describe('MapImageGridAdjusterComponent', () => {
   function makeReady(imageW: number, imageH: number) {
     component.imageWidth.set(imageW);
     component.imageHeight.set(imageH);
+    (component as unknown as { initTransform: () => void }).initTransform();
     component.loadState.set('ready');
     (component as unknown as { loadedImage: unknown }).loadedImage = {} as HTMLImageElement;
   }
@@ -41,79 +42,93 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.loadState()).toBe('error');
   });
 
-  it('cellPxとoffsetの変更でcols/rowsが再計算されること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(500, 300);
+  it('読み込み時にgridSizeから初期スケールを決め画像を中央に配置すること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(400, 300);
 
-    component.cellPx.set(50);
-    component.offsetX.set(0);
-    component.offsetY.set(0);
-    expect(component.cols()).toBe(10);
-    expect(component.rows()).toBe(6);
-
-    component.offsetX.set(60);
-    expect(component.cols()).toBe(8);
-
-    component.cellPx.set(100);
-    expect(component.cols()).toBe(4);
-    expect(component.rows()).toBe(3);
+    expect(component.scale()).toBeCloseTo(1, 5);
+    expect(component.tx()).toBe(Math.round((720 - 400) / 2));
+    expect(component.ty()).toBe(Math.round((520 - 300) / 2));
   });
 
-  it('横マス数指定でcellPxが算出されオフセットがリセットされること', async () => {
+  it('横マス数指定でスケールが算出されスナップ後に指定マス数になること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50 });
     makeReady(800, 600);
-    component.offsetX.set(30);
-    component.offsetY.set(20);
 
     component.setCols(16);
 
-    expect(component.cellPx()).toBe(50);
-    expect(component.offsetX()).toBe(0);
-    expect(component.offsetY()).toBe(0);
+    expect(component.scale()).toBeCloseTo(0.96, 5);
     expect(component.cols()).toBe(16);
-    expect(component.rows()).toBe(12);
   });
 
-  it('縦マス数指定でcellPxが算出されること', async () => {
+  it('縦マス数指定でスケールが算出されること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(800, 600);
+    makeReady(600, 800);
 
-    component.setRows(12);
+    component.setRows(16);
 
-    expect(component.cellPx()).toBe(50);
-    expect(component.cols()).toBe(16);
-    expect(component.rows()).toBe(12);
+    expect(component.scale()).toBeCloseTo(0.96, 5);
+    expect(component.rows()).toBe(16);
   });
 
-  it('リセットでcellPxを初期値に戻しオフセットを0にすること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(800, 600);
-    component.cellPx.set(80);
-    component.offsetX.set(15);
-    component.offsetY.set(25);
+  it('ドラッグ相当のtx/ty変更でcols/rowsが再計算されること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.scale.set(1);
+    component.tx.set(0);
+    component.ty.set(0);
+
+    expect(component.cols()).toBe(10);
+    expect(component.rows()).toBe(5);
+
+    component.tx.set(24);
+    expect(component.cols()).toBe(9);
+  });
+
+  it('カーソル位置を固定したままズームすること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.scale.set(1);
+    component.tx.set(0);
+    component.ty.set(0);
+
+    (component as unknown as { zoomAt: (px: number, py: number, factor: number) => void }).zoomAt(100, 100, 2);
+
+    expect(component.scale()).toBeCloseTo(2, 5);
+    expect(component.tx()).toBe(-100);
+    expect(component.ty()).toBe(-100);
+  });
+
+  it('リセットで初期スケールに戻し中央へスナップ配置すること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.scale.set(3);
+    component.tx.set(500);
+    component.ty.set(400);
 
     component.reset();
 
-    expect(component.cellPx()).toBe(50);
-    expect(component.offsetX()).toBe(0);
-    expect(component.offsetY()).toBe(0);
+    expect(component.scale()).toBeCloseTo(1, 5);
+    expect(component.tx() % 48).toBe(0);
+    expect(component.ty() % 48).toBe(0);
   });
 
-  it('1マスも入らないときは確定不可にすること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(40, 40);
-    component.cellPx.set(50);
+  it('画像をグリッド外へ完全に出すと確定不可にすること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.scale.set(1);
+    component.tx.set(component.stageW() + 100);
 
     expect(component.hasWholeCell()).toBe(false);
     expect(component.canApply()).toBe(false);
   });
 
-  it('確定時はクロップ画像を保存し正しい幅・高さで解決すること', async () => {
-    await setup({ imageIdentifier: 'x', gridSize: 50 });
-    makeReady(500, 300);
-    component.cellPx.set(50);
-    component.offsetX.set(0);
-    component.offsetY.set(0);
+  it('確定時はクランプしたクロップ指定で保存し行列数で解決すること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.scale.set(1);
+    component.tx.set(0);
+    component.ty.set(0);
 
     const fakeBlob = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' });
     const cropFn = vi.fn().mockResolvedValue(fakeBlob);
@@ -124,11 +139,23 @@ describe('MapImageGridAdjusterComponent', () => {
     await component.apply();
 
     expect(cropFn).toHaveBeenCalledOnce();
+    const opts = cropFn.mock.calls[0][3] as {
+      cellPx: number;
+      offsetX: number;
+      offsetY: number;
+      cols: number;
+      rows: number;
+    };
+    expect(opts.cols).toBe(10);
+    expect(opts.rows).toBe(5);
+    expect(opts.offsetX).toBe(0);
+    expect(opts.offsetY).toBe(0);
+    expect(opts.cellPx).toBeLessThanOrEqual(48);
     expect(imageStorage.addAsync).toHaveBeenCalledWith(fakeBlob);
     expect(modalService.resolve).toHaveBeenCalledWith({
       imageIdentifier: 'new-id',
       width: 10,
-      height: 6,
+      height: 5,
     });
   });
 

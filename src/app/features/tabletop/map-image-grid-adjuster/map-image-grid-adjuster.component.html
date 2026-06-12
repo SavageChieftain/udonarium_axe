@@ -11,45 +11,38 @@
     <div class="flex min-h-0 flex-1 gap-3">
       <div
         #stage
-        class="border-ui-border-panel bg-ui-input relative flex min-w-0 flex-1 items-center justify-center overflow-hidden border border-solid"
+        tabindex="0"
+        class="border-ui-border-panel bg-ui-input focus:ring-ui-accent relative min-w-0 flex-1 cursor-grab touch-none overflow-hidden border border-solid outline-none focus:ring-2 active:cursor-grabbing"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+        (wheel)="onWheel($event)"
+        (keydown)="onKeyDown($event)"
       >
+        <img
+          class="pointer-events-none absolute select-none"
+          [src]="imageUrl()"
+          [style.left.px]="tx()"
+          [style.top.px]="ty()"
+          [style.width.px]="imageScreenWidth()"
+          [style.height.px]="imageScreenHeight()"
+          alt=""
+          draggable="false"
+        />
         <div
-          #imageBox
-          tabindex="0"
-          class="focus:ring-ui-accent relative touch-none overflow-hidden outline-none focus:ring-2"
-          [style.width.px]="displayWidth()"
-          [style.height.px]="displayHeight()"
-          (pointerdown)="onPointerDown($event)"
-          (pointermove)="onPointerMove($event)"
-          (pointerup)="onPointerUp($event)"
-          (pointercancel)="onPointerUp($event)"
-          (wheel)="onWheel($event)"
-          (keydown)="onKeyDown($event)"
-        >
-          <img
-            class="pointer-events-none absolute top-0 left-0 select-none"
-            [src]="imageUrl()"
-            [style.width.px]="displayWidth()"
-            [style.height.px]="displayHeight()"
-            alt=""
-            draggable="false"
-          />
-          <div
-            class="pointer-events-none absolute top-0 left-0"
-            [style.width.px]="displayWidth()"
-            [style.height.px]="displayHeight()"
-            [style.background-image]="gridBackgroundImage()"
-            [style.background-size]="gridBackgroundSize()"
-            [style.background-position]="gridBackgroundPosition()"
-          ></div>
-          <div
-            class="border-ui-accent pointer-events-none absolute border-2 border-solid [box-shadow:0_0_0_9999px_rgba(0,0,0,0.5)]"
-            [style.left]="regionStyle().left"
-            [style.top]="regionStyle().top"
-            [style.width]="regionStyle().width"
-            [style.height]="regionStyle().height"
-          ></div>
-        </div>
+          class="pointer-events-none absolute inset-0"
+          [style.background-image]="gridBackgroundImage()"
+          [style.background-size]="gridBackgroundSize"
+          [style.background-position]="gridBackgroundPosition"
+        ></div>
+        <div
+          class="border-ui-accent pointer-events-none absolute border-2 border-solid [box-shadow:0_0_0_9999px_rgba(0,0,0,0.5)]"
+          [style.left]="regionStyle().left"
+          [style.top]="regionStyle().top"
+          [style.width]="regionStyle().width"
+          [style.height]="regionStyle().height"
+        ></div>
       </div>
 
       <div class="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto">
@@ -93,80 +86,28 @@
 
         <div class="flex flex-col gap-1">
           <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-            'feature.tabletop.tableSetting.gridAdjuster.cellSize' | transloco
+            'feature.tabletop.tableSetting.gridAdjuster.zoom' | transloco
           }}</span>
           <div class="flex items-center gap-2">
             <input
               type="range"
               class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-              [min]="16"
-              [max]="maxCellPx()"
+              [min]="minZoomPercent()"
+              [max]="maxZoomPercent"
               step="1"
-              [ngModel]="cellPx()"
-              (ngModelChange)="setCellPx($event)"
-              name="cellPx"
+              [ngModel]="zoomPercent()"
+              (ngModelChange)="setZoom($event)"
+              name="zoom"
             />
             <input
               type="number"
               class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
-              [min]="16"
-              [max]="maxCellPx()"
+              [min]="minZoomPercent()"
+              [max]="maxZoomPercent"
               step="1"
-              [ngModel]="cellPxDisplay()"
-              (ngModelChange)="setCellPx($event)"
-              name="cellPxNum"
-            />
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-            'feature.tabletop.tableSetting.gridAdjuster.offsetX' | transloco
-          }}</span>
-          <div class="flex items-center gap-2">
-            <input
-              type="range"
-              class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-              [min]="-cellPx()"
-              [max]="cellPx()"
-              step="1"
-              [ngModel]="offsetX()"
-              (ngModelChange)="setOffsetX($event)"
-              name="offsetX"
-            />
-            <input
-              type="number"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
-              step="1"
-              [ngModel]="offsetX()"
-              (ngModelChange)="setOffsetX($event)"
-              name="offsetXNum"
-            />
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-            'feature.tabletop.tableSetting.gridAdjuster.offsetY' | transloco
-          }}</span>
-          <div class="flex items-center gap-2">
-            <input
-              type="range"
-              class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-              [min]="-cellPx()"
-              [max]="cellPx()"
-              step="1"
-              [ngModel]="offsetY()"
-              (ngModelChange)="setOffsetY($event)"
-              name="offsetY"
-            />
-            <input
-              type="number"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
-              step="1"
-              [ngModel]="offsetY()"
-              (ngModelChange)="setOffsetY($event)"
-              name="offsetYNum"
+              [ngModel]="zoomPercent()"
+              (ngModelChange)="setZoom($event)"
+              name="zoomNum"
             />
           </div>
         </div>

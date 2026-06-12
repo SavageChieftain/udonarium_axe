@@ -1,5 +1,6 @@
 import {
   clampOffset,
+  computeCoveredCells,
   computeGridCounts,
   effectiveOrigin,
 } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-crop';
@@ -63,6 +64,56 @@ describe('effectiveOrigin', () => {
 
   it('cellPxが0以下のときは0を返すこと', () => {
     expect(effectiveOrigin(-10, 0)).toBe(0);
+  });
+});
+
+describe('computeCoveredCells', () => {
+  it('ぴったり一致するとき行列数とクロップ原点を返すこと', () => {
+    const r = computeCoveredCells(0, 0, 1, 480, 240, 48);
+    expect(r.cols).toBe(10);
+    expect(r.rows).toBe(5);
+    expect(r.screenX).toBe(0);
+    expect(r.screenY).toBe(0);
+    expect(r.imageX).toBe(0);
+    expect(r.imageY).toBe(0);
+    expect(r.cellImagePx).toBe(48);
+  });
+
+  it('許容範囲内の0.5pxのはみ出しはマス数を欠かさないこと', () => {
+    const r = computeCoveredCells(0, 0, 1, 480 - 0.5, 240 - 0.5, 48);
+    expect(r.cols).toBe(10);
+    expect(r.rows).toBe(5);
+  });
+
+  it('部分的にしか覆っていないマスは数えないこと', () => {
+    const r = computeCoveredCells(24, 0, 1, 480, 48, 48);
+    expect(r.cols).toBe(9);
+    expect(r.rows).toBe(1);
+    expect(r.screenX).toBe(48);
+  });
+
+  it('1マスも完全に覆えないほど画像が小さいときは0マスを返すこと', () => {
+    const r = computeCoveredCells(10, 10, 1, 30, 30, 48);
+    expect(r.cols).toBe(0);
+    expect(r.rows).toBe(0);
+    expect(r.cellImagePx).toBe(48);
+  });
+
+  it('許容範囲のはみ出し時もimageXを画像内にクランプすること', () => {
+    const r = computeCoveredCells(-0.5, -0.5, 1, 480, 240, 48);
+    expect(r.imageX).toBeGreaterThanOrEqual(0);
+    expect(r.imageY).toBeGreaterThanOrEqual(0);
+    expect(r.imageX).toBeLessThanOrEqual(480);
+  });
+
+  it('scaleやdisplayCellが0以下のときは0を返すこと', () => {
+    expect(computeCoveredCells(0, 0, 0, 480, 240, 48).cols).toBe(0);
+    expect(computeCoveredCells(0, 0, 1, 480, 240, 0).cols).toBe(0);
+  });
+
+  it('拡大時はcellImagePxが画像pxに換算されること', () => {
+    const r = computeCoveredCells(0, 0, 2, 480, 240, 48);
+    expect(r.cellImagePx).toBe(24);
   });
 });
 
