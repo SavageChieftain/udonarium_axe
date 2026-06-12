@@ -14,6 +14,14 @@ export interface CropAlignedRegionOptions {
 
 export const DEFAULT_MAX_OUTPUT_PX = 4096;
 
+const COUNT_EPSILON = 1e-7;
+
+export function effectiveOrigin(offset: number, cellPx: number): number {
+  if (!(cellPx > 0)) return 0;
+  if (offset >= 0) return offset;
+  return ((offset % cellPx) + cellPx) % cellPx;
+}
+
 export function computeGridCounts(
   imageW: number,
   imageH: number,
@@ -22,8 +30,10 @@ export function computeGridCounts(
   offsetY: number
 ): GridCounts {
   if (!(cellPx > 0)) return { cols: 0, rows: 0 };
-  const cols = Math.max(0, Math.floor((imageW - offsetX) / cellPx));
-  const rows = Math.max(0, Math.floor((imageH - offsetY) / cellPx));
+  const startX = effectiveOrigin(offsetX, cellPx);
+  const startY = effectiveOrigin(offsetY, cellPx);
+  const cols = Math.max(0, Math.floor((imageW - startX) / cellPx + COUNT_EPSILON));
+  const rows = Math.max(0, Math.floor((imageH - startY) / cellPx + COUNT_EPSILON));
   return { cols, rows };
 }
 

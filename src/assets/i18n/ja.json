@@ -830,18 +830,20 @@
         "alignToGrid": "グリッドに合わせて設定",
         "gridAdjuster": {
           "title": "グリッドに合わせて画像を調整",
+          "byCount": "マス数で合わせる",
+          "cols": "横マス数",
+          "rows": "縦マス数",
           "cellSize": "マスサイズ",
           "offsetX": "横位置",
           "offsetY": "縦位置",
           "reset": "リセット",
-          "fit": "フィット",
           "cancel": "キャンセル",
           "apply": "設定",
           "size": "{{cols}} × {{rows}} マス",
           "loading": "読み込み中...",
           "loadError": "画像を読み込めませんでした",
           "processing": "処理中...",
-          "hint": "ドラッグで位置調整 / ホイールでマスサイズ / 矢印キーで微調整（Shiftで10px）"
+          "hint": "ドラッグで位置調整 / ホイールでマスサイズ（Shift+ホイールで微調整）/ 矢印キーで微調整（Shiftで10px）"
         },
         "sectionBasic": "基本情報",
         "tableName": "テーブル名",

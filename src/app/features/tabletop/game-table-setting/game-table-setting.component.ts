@@ -453,6 +453,7 @@ export class GameTableSettingComponent {
           imageIdentifier,
           gridSize,
           gridColor,
+          fitWidth: true,
         })
         .then((res) => {
           const table = this.selectedTable;

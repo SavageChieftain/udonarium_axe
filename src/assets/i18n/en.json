@@ -830,18 +830,20 @@
         "alignToGrid": "Align to grid",
         "gridAdjuster": {
           "title": "Align image to grid",
+          "byCount": "Match by cell count",
+          "cols": "Columns",
+          "rows": "Rows",
           "cellSize": "Cell size",
           "offsetX": "Offset X",
           "offsetY": "Offset Y",
           "reset": "Reset",
-          "fit": "Fit",
           "cancel": "Cancel",
           "apply": "Apply",
           "size": "{{cols}} × {{rows}} cells",
           "loading": "Loading...",
           "loadError": "Failed to load image",
           "processing": "Processing...",
-          "hint": "Drag to adjust position / wheel for cell size / arrow keys to nudge (Shift = 10px)"
+          "hint": "Drag to adjust position / wheel for cell size (Shift+wheel to fine-tune) / arrow keys to nudge (Shift = 10px)"
         },
         "sectionBasic": "Basic",
         "tableName": "Table name",

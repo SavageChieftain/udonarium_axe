@@ -59,6 +59,46 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.rows()).toBe(3);
   });
 
+  it('横マス数指定でcellPxが算出されオフセットがリセットされること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 50 });
+    makeReady(800, 600);
+    component.offsetX.set(30);
+    component.offsetY.set(20);
+
+    component.setCols(16);
+
+    expect(component.cellPx()).toBe(50);
+    expect(component.offsetX()).toBe(0);
+    expect(component.offsetY()).toBe(0);
+    expect(component.cols()).toBe(16);
+    expect(component.rows()).toBe(12);
+  });
+
+  it('縦マス数指定でcellPxが算出されること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 50 });
+    makeReady(800, 600);
+
+    component.setRows(12);
+
+    expect(component.cellPx()).toBe(50);
+    expect(component.cols()).toBe(16);
+    expect(component.rows()).toBe(12);
+  });
+
+  it('リセットでcellPxを初期値に戻しオフセットを0にすること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 50 });
+    makeReady(800, 600);
+    component.cellPx.set(80);
+    component.offsetX.set(15);
+    component.offsetY.set(25);
+
+    component.reset();
+
+    expect(component.cellPx()).toBe(50);
+    expect(component.offsetX()).toBe(0);
+    expect(component.offsetY()).toBe(0);
+  });
+
   it('1マスも入らないときは確定不可にすること', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50 });
     makeReady(40, 40);

@@ -1,4 +1,8 @@
-import { clampOffset, computeGridCounts } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-crop';
+import {
+  clampOffset,
+  computeGridCounts,
+  effectiveOrigin,
+} from '@axe/features/tabletop/map-image-grid-adjuster/map-image-crop';
 
 describe('computeGridCounts', () => {
   it('割り切れるときはちょうどのマス数を返すこと', () => {
@@ -24,6 +28,41 @@ describe('computeGridCounts', () => {
 
   it('オフセットが画像サイズを超えても負のマス数にはしないこと', () => {
     expect(computeGridCounts(100, 100, 50, 200, 200)).toEqual({ cols: 0, rows: 0 });
+  });
+
+  it('小数のcellPxでもマス数を正しく算出すること', () => {
+    expect(computeGridCounts(800, 600, 800 / 16, 0, 0)).toEqual({ cols: 16, rows: 12 });
+    expect(computeGridCounts(810, 600, 33.3, 0, 0)).toEqual({ cols: 24, rows: 18 });
+  });
+
+  it('割り切れない列数指定でも浮動小数点誤差で1列欠けないこと', () => {
+    for (const w of [800, 1280, 1000, 1920, 777]) {
+      for (let n = 1; n <= 60; n += 1) {
+        expect(computeGridCounts(w, w, w / n, 0, 0).cols).toBe(n);
+      }
+    }
+  });
+
+  it('負のオフセットは画像内の最初のグリッド線から数えること', () => {
+    expect(computeGridCounts(800, 600, 50, -10, -10)).toEqual({ cols: 15, rows: 11 });
+    expect(computeGridCounts(800, 600, 50, -60, 0)).toEqual({ cols: 15, rows: 12 });
+  });
+});
+
+describe('effectiveOrigin', () => {
+  it('正のオフセットはそのまま返すこと', () => {
+    expect(effectiveOrigin(60, 50)).toBe(60);
+    expect(effectiveOrigin(0, 50)).toBe(0);
+  });
+
+  it('負のオフセットを画像内の最初のグリッド線へ折り返すこと', () => {
+    expect(effectiveOrigin(-10, 50)).toBe(40);
+    expect(effectiveOrigin(-60, 50)).toBe(40);
+    expect(effectiveOrigin(-50, 50)).toBe(0);
+  });
+
+  it('cellPxが0以下のときは0を返すこと', () => {
+    expect(effectiveOrigin(-10, 0)).toBe(0);
   });
 });
 

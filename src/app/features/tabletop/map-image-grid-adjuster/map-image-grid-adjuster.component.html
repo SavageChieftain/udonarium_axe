@@ -1,157 +1,191 @@
-<div class="bg-ui-panel box-border flex w-[min(94vw,72rem)] flex-col gap-3 p-3">
+<div class="bg-ui-panel box-border flex h-[min(88vh,780px)] w-[min(96vw,1100px)] flex-col gap-3 p-3">
   @if (loadState() === 'loading') {
-    <div class="text-ui-muted flex h-40 items-center justify-center text-[13px]">
+    <div class="text-ui-muted flex flex-1 items-center justify-center text-[13px]">
       {{ 'feature.tabletop.tableSetting.gridAdjuster.loading' | transloco }}
     </div>
   } @else if (loadState() === 'error') {
-    <div class="flex h-40 items-center justify-center text-[13px] text-red-400">
+    <div class="flex flex-1 items-center justify-center text-[13px] text-red-400">
       {{ 'feature.tabletop.tableSetting.gridAdjuster.loadError' | transloco }}
     </div>
   } @else {
-    <div class="flex flex-col gap-3 lg:flex-row">
+    <div class="flex min-h-0 flex-1 gap-3">
       <div
         #stage
-        tabindex="0"
-        class="border-ui-border-panel bg-ui-input focus:border-ui-accent relative flex shrink-0 touch-none items-center justify-center overflow-hidden border border-solid outline-none"
-        [style.width.px]="displayWidth()"
-        [style.height.px]="displayHeight()"
-        (pointerdown)="onPointerDown($event)"
-        (pointermove)="onPointerMove($event)"
-        (pointerup)="onPointerUp($event)"
-        (pointercancel)="onPointerUp($event)"
-        (wheel)="onWheel($event)"
-        (keydown)="onKeyDown($event)"
+        class="border-ui-border-panel bg-ui-input relative flex min-w-0 flex-1 items-center justify-center overflow-hidden border border-solid"
       >
-        <img
-          class="pointer-events-none absolute top-0 left-0 select-none"
-          [src]="imageUrl()"
+        <div
+          #imageBox
+          tabindex="0"
+          class="focus:ring-ui-accent relative touch-none overflow-hidden outline-none focus:ring-2"
           [style.width.px]="displayWidth()"
           [style.height.px]="displayHeight()"
-          alt=""
-          draggable="false"
-        />
-        <div
-          class="pointer-events-none absolute top-0 left-0"
-          [style.width.px]="displayWidth()"
-          [style.height.px]="displayHeight()"
-          [style.background-image]="gridBackgroundImage()"
-          [style.background-size]="gridBackgroundSize()"
-          [style.background-position]="gridBackgroundPosition()"
-        ></div>
-        <div
-          class="border-ui-accent pointer-events-none absolute border-2 border-solid bg-(--ui-accent)/10"
-          [style.left]="regionStyle().left"
-          [style.top]="regionStyle().top"
-          [style.width]="regionStyle().width"
-          [style.height]="regionStyle().height"
-        ></div>
+          (pointerdown)="onPointerDown($event)"
+          (pointermove)="onPointerMove($event)"
+          (pointerup)="onPointerUp($event)"
+          (pointercancel)="onPointerUp($event)"
+          (wheel)="onWheel($event)"
+          (keydown)="onKeyDown($event)"
+        >
+          <img
+            class="pointer-events-none absolute top-0 left-0 select-none"
+            [src]="imageUrl()"
+            [style.width.px]="displayWidth()"
+            [style.height.px]="displayHeight()"
+            alt=""
+            draggable="false"
+          />
+          <div
+            class="pointer-events-none absolute top-0 left-0"
+            [style.width.px]="displayWidth()"
+            [style.height.px]="displayHeight()"
+            [style.background-image]="gridBackgroundImage()"
+            [style.background-size]="gridBackgroundSize()"
+            [style.background-position]="gridBackgroundPosition()"
+          ></div>
+          <div
+            class="border-ui-accent pointer-events-none absolute border-2 border-solid [box-shadow:0_0_0_9999px_rgba(0,0,0,0.5)]"
+            [style.left]="regionStyle().left"
+            [style.top]="regionStyle().top"
+            [style.width]="regionStyle().width"
+            [style.height]="regionStyle().height"
+          ></div>
+        </div>
       </div>
 
-      <div class="flex w-64 shrink-0 flex-col gap-3">
-        <div class="flex flex-col gap-2.5">
-          <div class="flex flex-col gap-1">
-            <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-              'feature.tabletop.tableSetting.gridAdjuster.cellSize' | transloco
-            }}</span>
-            <div class="flex items-center gap-2">
-              <input
-                type="range"
-                class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-                [min]="4"
-                [max]="maxCellPx()"
-                step="1"
-                [ngModel]="cellPx()"
-                (ngModelChange)="setCellPx($event)"
-                name="cellPx"
-              />
+      <div class="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto">
+        <div class="border-ui-border-panel bg-ui-elevated rounded-ui-sm flex flex-col gap-2 border border-solid p-2.5">
+          <span class="text-ui-accent text-[12px] font-medium">{{
+            'feature.tabletop.tableSetting.gridAdjuster.byCount' | transloco
+          }}</span>
+          <div class="flex gap-2">
+            <label class="flex min-w-0 flex-1 flex-col gap-1">
+              <span class="text-ui-muted text-[11px]">{{
+                'feature.tabletop.tableSetting.gridAdjuster.cols' | transloco
+              }}</span>
               <input
                 type="number"
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
-                [min]="4"
-                [max]="maxCellPx()"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+                min="1"
+                max="100"
                 step="1"
-                [ngModel]="cellPx()"
-                (ngModelChange)="setCellPx($event)"
-                name="cellPxNum"
+                [ngModel]="cols()"
+                (ngModelChange)="setCols($event)"
+                name="cols"
               />
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-              'feature.tabletop.tableSetting.gridAdjuster.offsetX' | transloco
-            }}</span>
-            <div class="flex items-center gap-2">
-              <input
-                type="range"
-                class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-                [min]="-cellPx()"
-                [max]="imageWidth()"
-                step="1"
-                [ngModel]="offsetX()"
-                (ngModelChange)="setOffsetX($event)"
-                name="offsetX"
-              />
+            </label>
+            <label class="flex min-w-0 flex-1 flex-col gap-1">
+              <span class="text-ui-muted text-[11px]">{{
+                'feature.tabletop.tableSetting.gridAdjuster.rows' | transloco
+              }}</span>
               <input
                 type="number"
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+                min="1"
+                max="100"
                 step="1"
-                [ngModel]="offsetX()"
-                (ngModelChange)="setOffsetX($event)"
-                name="offsetXNum"
+                [ngModel]="rows()"
+                (ngModelChange)="setRows($event)"
+                name="rows"
               />
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-              'feature.tabletop.tableSetting.gridAdjuster.offsetY' | transloco
-            }}</span>
-            <div class="flex items-center gap-2">
-              <input
-                type="range"
-                class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
-                [min]="-cellPx()"
-                [max]="imageHeight()"
-                step="1"
-                [ngModel]="offsetY()"
-                (ngModelChange)="setOffsetY($event)"
-                name="offsetY"
-              />
-              <input
-                type="number"
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
-                step="1"
-                [ngModel]="offsetY()"
-                (ngModelChange)="setOffsetY($event)"
-                name="offsetYNum"
-              />
-            </div>
+            </label>
           </div>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-col gap-1">
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.cellSize' | transloco
+          }}</span>
+          <div class="flex items-center gap-2">
+            <input
+              type="range"
+              class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
+              [min]="16"
+              [max]="maxCellPx()"
+              step="1"
+              [ngModel]="cellPx()"
+              (ngModelChange)="setCellPx($event)"
+              name="cellPx"
+            />
+            <input
+              type="number"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
+              [min]="16"
+              [max]="maxCellPx()"
+              step="1"
+              [ngModel]="cellPxDisplay()"
+              (ngModelChange)="setCellPx($event)"
+              name="cellPxNum"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.offsetX' | transloco
+          }}</span>
+          <div class="flex items-center gap-2">
+            <input
+              type="range"
+              class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
+              [min]="-cellPx()"
+              [max]="cellPx()"
+              step="1"
+              [ngModel]="offsetX()"
+              (ngModelChange)="setOffsetX($event)"
+              name="offsetX"
+            />
+            <input
+              type="number"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
+              step="1"
+              [ngModel]="offsetX()"
+              (ngModelChange)="setOffsetX($event)"
+              name="offsetXNum"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.gridAdjuster.offsetY' | transloco
+          }}</span>
+          <div class="flex items-center gap-2">
+            <input
+              type="range"
+              class="min-w-0 flex-1 [accent-color:var(--ui-accent)]"
+              [min]="-cellPx()"
+              [max]="cellPx()"
+              step="1"
+              [ngModel]="offsetY()"
+              (ngModelChange)="setOffsetY($event)"
+              name="offsetY"
+            />
+            <input
+              type="number"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-16 shrink-0 border border-solid px-2 py-1 text-[13px]"
+              step="1"
+              [ngModel]="offsetY()"
+              (ngModelChange)="setOffsetY($event)"
+              name="offsetYNum"
+            />
+          </div>
+        </div>
+
+        <div class="flex">
           <button
-            class="rounded-ui-sm border-ui-border-panel border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
+            class="rounded-ui-sm border-ui-border-panel hover:bg-ui-hover border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
             type="button"
             (click)="reset()"
           >
             {{ 'feature.tabletop.tableSetting.gridAdjuster.reset' | transloco }}
           </button>
-          <button
-            class="rounded-ui-sm border-ui-border-panel border border-solid px-2.5 py-1.25 text-[12px] whitespace-nowrap"
-            type="button"
-            (click)="fit()"
-          >
-            {{ 'feature.tabletop.tableSetting.gridAdjuster.fit' | transloco }}
-          </button>
         </div>
 
-        <div class="text-ui-muted flex flex-col gap-1 text-[12px]">
-          <span class="text-ui-text whitespace-nowrap">{{
+        <div class="text-ui-muted flex flex-col gap-1">
+          <span class="text-ui-accent text-[14px] whitespace-nowrap">{{
             'feature.tabletop.tableSetting.gridAdjuster.size' | transloco: { cols: cols(), rows: rows() }
           }}</span>
-          <span class="whitespace-nowrap">{{ outputWidth() }} × {{ outputHeight() }} px</span>
+          <span class="text-[12px] whitespace-nowrap">{{ outputWidth() }} × {{ outputHeight() }} px</span>
         </div>
 
         <p class="text-ui-dim text-[11px]">
@@ -161,7 +195,7 @@
     </div>
   }
 
-  <div class="flex items-center justify-end gap-2">
+  <div class="flex shrink-0 items-center justify-end gap-2">
     @if (processing()) {
       <span class="text-ui-muted mr-auto text-[12px]">{{
         'feature.tabletop.tableSetting.gridAdjuster.processing' | transloco
