@@ -9,7 +9,7 @@ import {
 } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-grid-adjuster.component';
 import { cropImageRegion } from '@axe/features/tabletop/map-image-grid-adjuster/map-image-grid-region';
 
-const DISPLAY_CELL = 48;
+const VIEW_CELL_BASE = 48;
 
 describe('MapImageGridAdjusterComponent', () => {
   let fixture: ComponentFixture<MapImageGridAdjusterComponent>;
@@ -71,10 +71,10 @@ describe('MapImageGridAdjusterComponent', () => {
     makeReady(480, 240);
 
     const f = frame();
-    expect(f.fx % DISPLAY_CELL).toBe(0);
-    expect(f.fy % DISPLAY_CELL).toBe(0);
-    expect(f.fw).toBe(component.cols() * DISPLAY_CELL);
-    expect(f.fh).toBe(component.rows() * DISPLAY_CELL);
+    expect(f.fx % VIEW_CELL_BASE).toBe(0);
+    expect(f.fy % VIEW_CELL_BASE).toBe(0);
+    expect(f.fw).toBe(component.cols() * VIEW_CELL_BASE);
+    expect(f.fh).toBe(component.rows() * VIEW_CELL_BASE);
   });
 
   it('既定のグリッドタイプはオプションから取ること', async () => {
@@ -219,6 +219,74 @@ describe('MapImageGridAdjusterComponent', () => {
       height: component.rows(),
       gridType: GridType.SQUARE,
     });
+  });
+
+  it('20×12でフレームがステージに収まるよう表示倍率が縮小され確定できること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.setCols(20);
+    component.setRows(12);
+    fixture.detectChanges();
+
+    expect(frame().fw).toBeLessThanOrEqual(component.stageW());
+    expect(frame().fh).toBeLessThanOrEqual(component.stageH());
+
+    component.fit();
+    fixture.detectChanges();
+    expect(component.canApply()).toBe(true);
+
+    const fakeBlob = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' });
+    const cropFn = vi.fn().mockResolvedValue(fakeBlob);
+    (component as unknown as { cropFn: typeof cropImageRegion }).cropFn = cropFn;
+    const fakeImage = ImageFile.createEmpty('grid-id');
+    imageStorage.addAsync.mockResolvedValue(fakeImage);
+
+    await component.apply();
+
+    expect(modalService.resolve).toHaveBeenCalledWith(
+      expect.objectContaining({ imageIdentifier: 'grid-id', width: 20, height: 12 })
+    );
+  });
+
+  it('表示倍率を変えてもクロップ結果（出力サイズと相対位置）が不変であること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+    component.fit();
+    fixture.detectChanges();
+
+    const ow = component.outputWidth();
+    const oh = component.outputHeight();
+    const ratioBefore = (component.tx() - frame().fx) / frame().fw;
+
+    component.setViewCell(24);
+    fixture.detectChanges();
+
+    expect(Math.abs(component.outputWidth() - ow)).toBeLessThanOrEqual(1);
+    expect(Math.abs(component.outputHeight() - oh)).toBeLessThanOrEqual(1);
+    expect((component.tx() - frame().fx) / frame().fw).toBeCloseTo(ratioBefore, 6);
+    expect(component.canApply()).toBe(true);
+  });
+
+  it('Ctrl+ホイールは画像ズームではなく表示ズームに振り分けられること', async () => {
+    await setup({ imageIdentifier: 'x', gridSize: 48 });
+    makeReady(480, 240);
+
+    const c = component as unknown as {
+      setViewCell: (n: number) => void;
+      zoomAt: (x: number, y: number, f: number) => void;
+    };
+    const setViewCell = vi.spyOn(c, 'setViewCell');
+    const zoomAt = vi.spyOn(c, 'zoomAt');
+
+    component.onWheel({
+      ctrlKey: true,
+      shiftKey: false,
+      deltaY: -1,
+      preventDefault() {},
+    } as unknown as WheelEvent);
+
+    expect(setViewCell).toHaveBeenCalledOnce();
+    expect(zoomAt).not.toHaveBeenCalled();
   });
 
   it('キャンセル時はnullで解決すること', async () => {

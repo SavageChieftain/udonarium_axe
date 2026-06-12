@@ -42,7 +42,9 @@ export interface MapImageGridAdjusterResult {
   gridType: GridType;
 }
 
-const DISPLAY_CELL = 48;
+const VIEW_CELL_BASE = 48;
+const VIEW_CELL_MIN = 12;
+const VIEW_CELL_MAX = 96;
 const STAGE_FALLBACK_W = 720;
 const STAGE_FALLBACK_H = 520;
 const MIN_SCALE = 0.02;
@@ -94,6 +96,7 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   readonly cols = signal(1);
   readonly rows = signal(1);
   readonly gridType = signal<GridType>(this.option.gridType ?? GridType.SQUARE);
+  readonly viewCell = signal(VIEW_CELL_BASE);
 
   private loadedImage: HTMLImageElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
@@ -116,10 +119,11 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   readonly imageScreenHeight = computed(() => this.imageHeight() * this.scaleY());
 
   readonly frame = computed(() => {
-    const { w, h } = footprintSize(this.gridType(), this.cols(), this.rows(), DISPLAY_CELL);
+    const cell = this.viewCell();
+    const { w, h } = footprintSize(this.gridType(), this.cols(), this.rows(), cell);
     const centeredX = (this.stageW() - w) / 2;
     const centeredY = (this.stageH() - h) / 2;
-    const a = snapAnchor(this.gridType(), centeredX, centeredY, DISPLAY_CELL);
+    const a = snapAnchor(this.gridType(), centeredX, centeredY, cell);
     return { fx: a.tx, fy: a.ty, fw: w, fh: h };
   });
 
@@ -132,8 +136,19 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     return sy > 0 ? Math.round(this.frame().fh / sy) : 0;
   });
 
-  readonly gridBackgroundSize = `${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px, ${DISPLAY_CELL}px ${DISPLAY_CELL}px`;
-  readonly gridBackgroundPosition = '0px 0px, 0px 0px, 1px 1px, 1px 1px';
+  readonly gridBackgroundSize = computed(() => {
+    const c = this.viewCell();
+    const tile = `${c}px ${c}px`;
+    return `${tile}, ${tile}, ${tile}, ${tile}`;
+  });
+  readonly gridBackgroundPosition = computed(() => {
+    const f = this.frame();
+    const a = `${f.fx}px ${f.fy}px`;
+    const b = `${f.fx + 1}px ${f.fy + 1}px`;
+    return `${a}, ${a}, ${b}, ${b}`;
+  });
+
+  readonly viewPercent = computed(() => Math.round((this.viewCell() / VIEW_CELL_BASE) * 100));
 
   readonly gridBackgroundImage = computed(() => {
     const c = this.gridColor;
@@ -181,6 +196,17 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
       this.prevFrame = { fx: f.fx, fy: f.fy };
     });
     effect(() => this.renderHexOverlay());
+    effect(() => {
+      const ready = this.loadState() === 'ready';
+      const u = footprintSize(this.gridType(), this.cols(), this.rows(), 1);
+      const sw = this.stageW();
+      const sh = this.stageH();
+      if (!ready || !(u.w > 0) || !(u.h > 0)) return;
+      const dcFit = clamp(Math.min((sw - 24) / u.w, (sh - 24) / u.h), VIEW_CELL_MIN, VIEW_CELL_BASE);
+      untracked(() => {
+        if (this.viewCell() > dcFit) this.setViewCell(dcFit);
+      });
+    });
   }
 
   private readonly prevFrameOf = () => this.prevFrame;
@@ -194,11 +220,12 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     const type = this.gridType();
     const w = this.stageW();
     const h = this.stageH();
+    const cell = this.viewCell();
     if (this.loadState() !== 'ready' || !isHexGrid(type)) return;
     const canvas = this.hexCanvasRef()?.nativeElement;
     if (!canvas || typeof canvas.getContext !== 'function') return;
     if (!canvas.getContext('2d')) return;
-    new GridLineRender(canvas).renderViewport(w, h, DISPLAY_CELL, type, this.gridColor, 'transparent', 0, 0);
+    new GridLineRender(canvas).renderViewport(w, h, cell, type, this.gridColor, 'transparent', 0, 0);
   }
 
   private measureStage(stage: HTMLElement) {
@@ -281,6 +308,32 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
     this.ty.set(py - (py - this.ty()) * ry);
     this.scaleX.set(nextX);
     this.scaleY.set(nextY);
+  }
+
+  setViewCell(next: number) {
+    const clamped = clamp(next, VIEW_CELL_MIN, VIEW_CELL_MAX);
+    const cur = this.viewCell();
+    const ratio = clamped / cur;
+    if (ratio === 1) return;
+    const before = this.frame();
+    this.viewCell.set(clamped);
+    const after = this.frame();
+    this.scaleX.set(clamp(this.scaleX() * ratio, MIN_SCALE, MAX_SCALE));
+    this.scaleY.set(clamp(this.scaleY() * ratio, MIN_SCALE, MAX_SCALE));
+    this.tx.set(after.fx + (this.tx() - before.fx) * ratio);
+    this.ty.set(after.fy + (this.ty() - before.fy) * ratio);
+    this.prevFrame = { fx: after.fx, fy: after.fy };
+  }
+
+  private fitViewCell(): number {
+    const u = footprintSize(this.gridType(), this.cols(), this.rows(), 1);
+    if (!(u.w > 0) || !(u.h > 0)) return VIEW_CELL_BASE;
+    const dc = Math.min((this.stageW() - 24) / u.w, (this.stageH() - 24) / u.h);
+    return clamp(dc, VIEW_CELL_MIN, VIEW_CELL_BASE);
+  }
+
+  resetView() {
+    this.setViewCell(this.fitViewCell());
   }
 
   setGridType(type: GridType) {
@@ -480,12 +533,13 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   private resizeFrame(handle: FrameHandle, dx: number, dy: number) {
     const start = this.dragStart;
     if (!start) return;
-    const f = footprintSize(this.gridType(), start.cols, start.rows, DISPLAY_CELL);
+    const cell = this.viewCell();
+    const f = footprintSize(this.gridType(), start.cols, start.rows, cell);
     if (handle === 'fr') {
-      const next = clamp(colsForWidth(this.gridType(), Math.max(1, f.w + dx), DISPLAY_CELL), 1, MAX_CELLS);
+      const next = clamp(colsForWidth(this.gridType(), Math.max(1, f.w + dx), cell), 1, MAX_CELLS);
       if (next !== this.cols()) this.cols.set(next);
     } else {
-      const next = clamp(rowsForHeight(this.gridType(), Math.max(1, f.h + dy), DISPLAY_CELL), 1, MAX_CELLS);
+      const next = clamp(rowsForHeight(this.gridType(), Math.max(1, f.h + dy), cell), 1, MAX_CELLS);
       if (next !== this.rows()) this.rows.set(next);
     }
   }
@@ -493,6 +547,12 @@ export class MapImageGridAdjusterComponent implements OnDestroy {
   onWheel(event: WheelEvent) {
     if (this.loadState() !== 'ready') return;
     event.preventDefault();
+    if (event.ctrlKey || event.metaKey) {
+      const step = event.shiftKey ? 1.02 : 1.1;
+      const factor = event.deltaY < 0 ? step : 1 / step;
+      this.setViewCell(this.viewCell() * factor);
+      return;
+    }
     const p = this.stagePoint(event as unknown as PointerEvent);
     const base = event.shiftKey ? 1.01 : 1.05;
     const factor = event.deltaY < 0 ? base : 1 / base;
