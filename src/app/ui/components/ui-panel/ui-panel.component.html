@@ -10,6 +10,7 @@
   [style.top.px]="top"
   [style.width.px]="width"
   [style.height]="contentMinimized ? 'auto' : height + 'px'"
+  [style.zIndex]="isFullScreen() ? '201' : null"
   [style.visibility]="panelService.invisible ? 'hidden' : ''"
   [style.pointer-events]="panelService.invisible ? 'none' : ''"
   [resizable.disable]="isMinimized() || isFullScreen()"

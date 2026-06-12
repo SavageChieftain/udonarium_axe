@@ -50,6 +50,35 @@ describe('UIPanelComponent', () => {
     expect(panel.classList.contains('pointer-events-none')).toBe(false);
   });
 
+  describe('fullscreen z-index', () => {
+    it('通常状態では draggable-panel の zIndex が 201 でないこと', () => {
+      fixture.detectChanges();
+
+      const panel = fixture.nativeElement.querySelector('.draggable-panel') as HTMLElement;
+      expect(panel.style.zIndex).not.toBe('201');
+    });
+
+    it('fullscreen 状態では draggable-panel の zIndex が 201 になること', () => {
+      fixture.detectChanges();
+      component.isFullScreen.set(true);
+      fixture.detectChanges();
+
+      const panel = fixture.nativeElement.querySelector('.draggable-panel') as HTMLElement;
+      expect(panel.style.zIndex).toBe('201');
+    });
+
+    it('fullscreen 解除後は draggable-panel の zIndex が 201 でなくなること', () => {
+      fixture.detectChanges();
+      component.isFullScreen.set(true);
+      fixture.detectChanges();
+      component.isFullScreen.set(false);
+      fixture.detectChanges();
+
+      const panel = fixture.nativeElement.querySelector('.draggable-panel') as HTMLElement;
+      expect(panel.style.zIndex).not.toBe('201');
+    });
+  });
+
   describe('timerCheckWindowSize cleanup', () => {
     it('timerCheckWindowSize が clearInterval でクリアされる', () => {
       const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
