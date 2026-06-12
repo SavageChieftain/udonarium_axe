@@ -52,7 +52,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 
 **チャット**
 
-- [チャットの基本](/manual/chat) / [ダイスボット](/manual/dicebot) / [チャットパレット](/manual/chat-palette)
+- [チャットの基本](/manual/chat) / [チャットの特殊記法](/manual/chat-syntax) / [ダイスボット](/manual/dicebot) / [チャットパレット](/manual/chat-palette)
 - [投票・点呼](/manual/vote) / [アラーム](/manual/alarm)
 
 **メディア**

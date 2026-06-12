@@ -59,6 +59,7 @@ export default defineConfig({
           text: 'チャット',
           items: [
             { text: 'チャットの基本', link: '/manual/chat' },
+            { text: 'チャットの特殊記法', link: '/manual/chat-syntax' },
             { text: 'ダイスボット', link: '/manual/dicebot' },
             { text: 'チャットパレット', link: '/manual/chat-palette' },
             { text: '投票・点呼', link: '/manual/vote' },
