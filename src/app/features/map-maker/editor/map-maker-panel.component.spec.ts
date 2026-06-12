@@ -3,8 +3,10 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ImageTag } from '@axe/domain/media/image-tag';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -47,6 +49,7 @@ describe('MapMakerPanelComponent', () => {
     const store = ObjectStore.instance;
     store.getObjects().forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
+    ImageStorage.instance.images.forEach((image) => ImageStorage.instance.delete(image.identifier));
     PeerCursor.myCursor = null!;
   });
 
@@ -358,6 +361,54 @@ describe('MapMakerPanelComponent', () => {
     component['state'].updateSelectedStamp({ color: null });
 
     expect(layer.items[0].color).toBeNull();
+  });
+
+  it('imageTextures は テクスチャ タグの ImageTag を列挙する', () => {
+    TestBed.inject(ObjectChangeService);
+    ImageStorage.instance.add('tex-1');
+    ImageStorage.instance.add('other');
+    const tag = ImageTag.create('tex-1');
+    tag.tag = 'テクスチャ';
+    ImageTag.create('other').tag = 'スタンプ';
+
+    const list = (component as unknown as { imageTextures: () => { identifier: string }[] }).imageTextures();
+
+    expect(list.map((f) => f.identifier)).toEqual(['tex-1']);
+  });
+
+  it('selectImageTexture は textureId を image: 接頭辞でセットしテクスチャモードへ', () => {
+    const file = ImageFile.create('tex-9');
+    (component as unknown as { selectImageTexture: (f: ImageFile) => void }).selectImageTexture(file);
+    expect(component['state'].textureId()).toBe('image:tex-9');
+    expect(component['state'].fillMode()).toBe('texture');
+  });
+
+  it('テクスチャ追加フローは切り抜き Blob を保存し テクスチャ タグの ImageTag を作る', async () => {
+    TestBed.inject(ObjectChangeService);
+    const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
+    modalService.open.mockResolvedValue(blob);
+    imageStorage.addAsync.mockResolvedValue({ identifier: 'cropped-1' });
+    const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
+    const event = { target: input } as unknown as Event;
+
+    await (component as unknown as { onTextureFileSelected: (e: Event) => Promise<void> }).onTextureFileSelected(event);
+
+    expect(imageStorage.addAsync).toHaveBeenCalledWith(blob);
+    const created = ImageTag.get('cropped-1');
+    expect(created).toBeTruthy();
+    expect(created.tag).toBe('テクスチャ');
+    expect(component['state'].textureId()).toBe('image:cropped-1');
+    expect(component['state'].fillMode()).toBe('texture');
+  });
+
+  it('テクスチャ追加でモーダルが null を返すと保存しない', async () => {
+    modalService.open.mockResolvedValue(null);
+    const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
+    const event = { target: input } as unknown as Event;
+
+    await (component as unknown as { onTextureFileSelected: (e: Event) => Promise<void> }).onTextureFileSelected(event);
+
+    expect(imageStorage.addAsync).not.toHaveBeenCalled();
   });
 });
 

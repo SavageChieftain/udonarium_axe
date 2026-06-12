@@ -164,19 +164,7 @@
               <input type="color" [ngModel]="state.solidColor()" (ngModelChange)="state.solidColor.set($event)" />
             </label>
           } @else {
-            <div class="grid grid-cols-2 gap-1">
-              @for (id of textureIds; track id) {
-                <button
-                  class="rounded-ui-sm flex items-center gap-1 border border-solid p-1"
-                  [class.border-ui-accent]="state.textureId() === id"
-                  [class.border-ui-border-panel]="state.textureId() !== id"
-                  (click)="selectTexture(id)"
-                >
-                  <span class="inline-block size-4 rounded-sm" [style.background]="textureBaseColor[id]"></span>
-                  <span class="truncate text-[11px]">{{ 'feature.mapMaker.textures.' + id | transloco }}</span>
-                </button>
-              }
-            </div>
+            <ng-container [ngTemplateOutlet]="texturePalette"></ng-container>
             <label class="flex items-center justify-between gap-2">
               <span class="text-ui-muted">{{ 'feature.mapMaker.props.textureScale' | transloco }}</span>
               <input
@@ -328,10 +316,32 @@
               (ngModelChange)="state.wallThickness.set($event)"
             />
           </label>
-          <label class="flex items-center justify-between gap-2">
-            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
-            <input type="color" [ngModel]="state.wallColor()" (ngModelChange)="state.wallColor.set($event)" />
-          </label>
+          <div class="flex gap-1">
+            <button
+              class="rounded-ui-sm flex-1 px-2 py-1"
+              [class.bg-ui-accent-bg]="state.fillMode() === 'solid'"
+              [class.bg-ui-input]="state.fillMode() !== 'solid'"
+              (click)="setFillMode('solid')"
+            >
+              {{ 'feature.mapMaker.props.fillSolid' | transloco }}
+            </button>
+            <button
+              class="rounded-ui-sm flex-1 px-2 py-1"
+              [class.bg-ui-accent-bg]="state.fillMode() === 'texture'"
+              [class.bg-ui-input]="state.fillMode() !== 'texture'"
+              (click)="setFillMode('texture')"
+            >
+              {{ 'feature.mapMaker.props.fillTexture' | transloco }}
+            </button>
+          </div>
+          @if (state.fillMode() === 'solid') {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+              <input type="color" [ngModel]="state.wallColor()" (ngModelChange)="state.wallColor.set($event)" />
+            </label>
+          } @else {
+            <ng-container [ngTemplateOutlet]="texturePalette"></ng-container>
+          }
         </div>
       }
 
@@ -832,6 +842,7 @@
           accept="application/json,.json"
           (change)="onFileSelected($event)"
         />
+        <input #textureFileInput class="hidden" type="file" accept="image/*" (change)="onTextureFileSelected($event)" />
 
         <div class="bg-ui-border-panel h-5 w-px"></div>
 
@@ -866,3 +877,45 @@
     </div>
   </div>
 }
+
+<ng-template #texturePalette>
+  <div class="grid grid-cols-3 gap-1.5">
+    @for (id of textureIds; track id) {
+      <button
+        class="rounded-ui-sm relative size-16 overflow-hidden border-2 border-solid bg-cover bg-center"
+        [class.border-ui-accent]="state.textureId() === id"
+        [class.border-ui-border-panel]="state.textureId() !== id"
+        [style.background-image]="texturePreview(id) ? 'url(' + texturePreview(id) + ')' : null"
+        [style.background-color]="texturePreview(id) ? null : textureBaseColor[id]"
+        [title]="'feature.mapMaker.textures.' + id | transloco"
+        (click)="selectTexture(id)"
+      >
+        <span class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-0.5 text-center text-[10px] text-white">
+          {{ 'feature.mapMaker.textures.' + id | transloco }}
+        </span>
+      </button>
+    }
+    @for (file of imageTextures(); track file.identifier) {
+      <button
+        class="rounded-ui-sm relative size-16 overflow-hidden border-2 border-solid bg-cover bg-center"
+        [class.border-ui-accent]="isActiveImageTexture(file)"
+        [class.border-ui-border-panel]="!isActiveImageTexture(file)"
+        [style.background-image]="'url(' + file.url + ')'"
+        [title]="file.name"
+        (click)="selectImageTexture(file)"
+      >
+        <span class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-0.5 text-center text-[10px] text-white">
+          {{ file.name }}
+        </span>
+      </button>
+    }
+    <button
+      class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:text-ui-accent flex size-16 flex-col items-center justify-center border-2 border-dashed"
+      [title]="'feature.mapMaker.props.textureAdd' | transloco"
+      (click)="triggerTextureUpload()"
+    >
+      <i class="material-icons text-[28px]!">add</i>
+      <span class="text-[10px]">{{ 'feature.mapMaker.props.textureAdd' | transloco }}</span>
+    </button>
+  </div>
+</ng-template>

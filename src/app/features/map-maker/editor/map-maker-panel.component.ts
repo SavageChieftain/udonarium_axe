@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -16,7 +17,9 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { ImageTag } from '@axe/domain/media/image-tag';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-maker/assets/stamp-types';
@@ -27,6 +30,10 @@ import {
   MapMakerState,
   ShapeGeneratorKind,
 } from '@axe/features/map-maker/editor/map-maker-state';
+import {
+  TextureCropDialogComponent,
+  TextureCropDialogOption,
+} from '@axe/features/map-maker/editor/texture-crop-dialog.component';
 import { cellCenter, pointToCell } from '@axe/features/map-maker/model/grid-cells';
 import {
   cellKey,
@@ -41,12 +48,19 @@ import {
 import { moveLayer, removeLayer } from '@axe/features/map-maker/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-maker/model/serialize';
 import { regularPolygonPoints, starPoints } from '@axe/features/map-maker/model/shape-points';
-import { isTextureId, TEXTURE_BASE_COLOR, TEXTURE_IDS, TextureId } from '@axe/features/map-maker/model/textures';
+import {
+  imageTextureIdentifier,
+  isImageTextureId,
+  isTextureId,
+  TEXTURE_BASE_COLOR,
+  TEXTURE_IDS,
+  TextureId,
+} from '@axe/features/map-maker/model/textures';
 import { exportSceneToBlob } from '@axe/features/map-maker/render/export-image';
 import { getRasterImage, loadRasterImage } from '@axe/features/map-maker/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-maker/render/stamp-image';
-import { createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
+import { createImageTexturePattern, createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
 import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -82,6 +96,8 @@ interface ToolDef {
   svg?: SafeHtml;
 }
 
+export const TEXTURE_IMAGE_TAG = 'テクスチャ';
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-map-maker-panel',
@@ -93,7 +109,7 @@ interface ToolDef {
     '(keyup)': 'onKeyUp($event)',
   },
   providers: [MapMakerState],
-  imports: [FormsModule, TranslocoModule],
+  imports: [FormsModule, NgTemplateOutlet, TranslocoModule],
 })
 export class MapMakerPanelComponent implements AfterViewInit {
   protected readonly state = inject(MapMakerState);
@@ -110,6 +126,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  private readonly textureFileInput = viewChild<ElementRef<HTMLInputElement>>('textureFileInput');
   private readonly textInputRef = viewChild<ElementRef<HTMLInputElement>>('textInput');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
@@ -166,6 +183,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
   private readonly pendingImages = new Set<string>();
+  private readonly texturePreviewCache = new Map<string, string>();
 
   protected readonly cursorCell = signal<{ col: number; row: number } | null>(null);
   protected readonly spacePan = signal(false);
@@ -218,6 +236,12 @@ export class MapMakerPanelComponent implements AfterViewInit {
   });
 
   protected readonly categoryStamps = computed<StampDef[]>(() => getStampsByCategory(this.state.stampCategory()));
+
+  protected readonly imageTextures = computed<ImageFile[]>(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf('image-tag')();
+    return ImageTag.searchImages([TEXTURE_IMAGE_TAG]);
+  });
 
   protected readonly canvasCursor = computed(() => {
     if (this.spacePan()) return this.panning() ? 'grabbing' : 'grab';
@@ -290,8 +314,19 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private buildHelpers(ctx: CanvasRenderingContext2D): RenderHelpers {
     const defById = new Map(STAMPS.map((d) => [d.id, d]));
     return {
-      texturePattern: (fill, cellPx) =>
-        isTextureId(fill.textureId) ? createTexturePattern(ctx, fill.textureId, cellPx) : null,
+      texturePattern: (fill, cellPx) => {
+        if (isImageTextureId(fill.textureId)) {
+          const url = this.imageStorage.get(imageTextureIdentifier(fill.textureId))?.url;
+          if (!url) return null;
+          const image = getRasterImage(url);
+          if (!image) {
+            this.schedulePendingImage(url);
+            return null;
+          }
+          return createImageTexturePattern(ctx, image, cellPx);
+        }
+        return isTextureId(fill.textureId) ? createTexturePattern(ctx, fill.textureId, cellPx) : null;
+      },
       stampImage: (item) => {
         const def = defById.get(item.stampId);
         if (!def) return null;
@@ -1169,6 +1204,65 @@ export class MapMakerPanelComponent implements AfterViewInit {
   protected selectTexture(id: TextureId): void {
     this.state.textureId.set(id);
     this.state.fillMode.set('texture');
+  }
+
+  protected selectImageTexture(file: ImageFile): void {
+    this.state.textureId.set('image:' + file.identifier);
+    this.state.fillMode.set('texture');
+  }
+
+  protected isActiveImageTexture(file: ImageFile): boolean {
+    return this.state.textureId() === 'image:' + file.identifier;
+  }
+
+  protected texturePreview(id: TextureId): string | null {
+    const cached = this.texturePreviewCache.get(id);
+    if (cached !== undefined) return cached || null;
+    const canvas = document.createElement?.('canvas');
+    if (!canvas) {
+      this.texturePreviewCache.set(id, '');
+      return null;
+    }
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      this.texturePreviewCache.set(id, '');
+      return null;
+    }
+    const pattern = createTexturePattern(ctx, id, 32);
+    if (!pattern) {
+      this.texturePreviewCache.set(id, '');
+      return null;
+    }
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, 64, 64);
+    const data = canvas.toDataURL();
+    this.texturePreviewCache.set(id, data);
+    return data;
+  }
+
+  protected triggerTextureUpload(): void {
+    this.textureFileInput()?.nativeElement.click();
+  }
+
+  protected async onTextureFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    const blob = await this.modalService
+      .open<Blob | null>(TextureCropDialogComponent, { objectUrl } as TextureCropDialogOption)
+      .catch(() => null);
+    URL.revokeObjectURL(objectUrl);
+    if (!blob) return;
+    const imageFile = await this.imageStorage.addAsync(blob);
+    const tag = ImageTag.create(imageFile.identifier);
+    tag.tag = TEXTURE_IMAGE_TAG;
+    this.objectChange.notifyCollectionChanged('image-tag');
+    this.state.fillMode.set('texture');
+    this.state.textureId.set('image:' + imageFile.identifier);
   }
 
   protected setStampCategory(cat: StampCategory): void {

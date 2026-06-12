@@ -286,4 +286,28 @@ describe('MapMakerState', () => {
     expect(layer.items.length).toBe(0);
     expect(state.selection()).toBeNull();
   });
+
+  it('textureId は image: 接頭辞の ID を受け入れ currentFill が透過する', () => {
+    state.fillMode.set('texture');
+    state.textureId.set('image:abc123');
+    state.textureScale.set(2);
+    state.textureRotation.set(45);
+    const fill = state.currentFill();
+    expect(fill).toEqual({ type: 'texture', textureId: 'image:abc123', scale: 2, rotation: 45 });
+  });
+
+  it('テクスチャモードの addWall はセグメントへ fill を付与する', () => {
+    state.fillMode.set('texture');
+    state.textureId.set('image:tex1');
+    state.addWall([0, 0, 100, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'wall') as WallLayer;
+    expect(layer.segments[0].fill).toEqual({ type: 'texture', textureId: 'image:tex1', scale: 1, rotation: 0 });
+  });
+
+  it('単色モードの addWall は fill を null にする', () => {
+    state.fillMode.set('solid');
+    state.addWall([0, 0, 100, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'wall') as WallLayer;
+    expect(layer.segments[0].fill).toBeNull();
+  });
 });

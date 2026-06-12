@@ -52,7 +52,6 @@ import {
   updateStamp,
   updateText,
 } from '@axe/features/map-maker/model/scene-ops';
-import { TextureId } from '@axe/features/map-maker/model/textures';
 
 export type EditorTool =
   | 'settings'
@@ -94,7 +93,7 @@ export class MapMakerState {
 
   readonly fillMode = signal<'solid' | 'texture'>('solid');
   readonly solidColor = signal('#88aa66');
-  readonly textureId = signal<TextureId>('grass');
+  readonly textureId = signal<string>('grass');
   readonly textureScale = signal(1);
   readonly textureRotation = signal(0);
 
@@ -295,7 +294,13 @@ export class MapMakerState {
 
   addWall(points: number[]): void {
     const layer = this.ensureLayerFor('wall') as WallLayer;
-    const seg: WallSegment = { id: '', points, thickness: this.wallThickness(), color: this.wallColor() };
+    const seg: WallSegment = {
+      id: '',
+      points,
+      thickness: this.wallThickness(),
+      color: this.wallColor(),
+      fill: this.fillMode() === 'texture' ? this.currentFill() : null,
+    };
     this.applyCommitted(() => addWallSegment(layer, seg));
   }
 
