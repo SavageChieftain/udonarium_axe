@@ -29,7 +29,7 @@ export default defineConfig({
             { text: 'ロール（GM / PL / 見学）', link: '/manual/roles' },
             { text: '情報の公開範囲', link: '/manual/disclosure' },
             { text: 'オブジェクト一覧（GM）', link: '/manual/gm-object-list' },
-            { text: 'マップメーカー', link: '/manual/map-maker' },
+            { text: 'マップエディター', link: '/manual/map-maker' },
           ],
         },
         {

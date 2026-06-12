@@ -1230,7 +1230,7 @@
       "sheet": "Open character sheet"
     },
     "mapMaker": {
-      "title": "Map maker",
+      "title": "Map editor",
       "gmOnly": "This tool is for the game master only",
       "tools": {
         "select": "Select",
