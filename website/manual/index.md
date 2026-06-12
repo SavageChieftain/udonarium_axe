@@ -36,6 +36,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 - [ロール（GM / PL / 見学）](/manual/roles) — 役割の設定と権限
 - [情報の公開範囲](/manual/disclosure) — 全員 / 特定PL / GMのみ・オーナー
 - [オブジェクト一覧（GM）](/manual/gm-object-list) — 全オブジェクトの俯瞰・管理・復旧
+- [マップメーカー](/manual/map-maker) — セル・図形・スタンプでマップを作成（GM 専用）
 
 **テーブル**
 
