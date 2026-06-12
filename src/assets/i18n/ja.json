@@ -1236,8 +1236,8 @@
       "gmOnly": "このツールはゲームマスター専用です",
       "tools": {
         "select": "選択",
-        "cellPaint": "セル塗り",
-        "cellErase": "セル消去",
+        "cellPaint": "ペン",
+        "cellErase": "消しゴム",
         "fill": "塗りつぶし",
         "line": "線",
         "polygon": "多角形",

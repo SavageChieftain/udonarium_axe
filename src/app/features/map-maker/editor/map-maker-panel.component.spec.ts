@@ -8,9 +8,9 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { MapMakerPanelComponent } from '@axe/features/map-maker/editor/map-maker-panel.component';
+import { buildShapeKindPoints, MapMakerPanelComponent } from '@axe/features/map-maker/editor/map-maker-panel.component';
 import { pointToCell } from '@axe/features/map-maker/model/grid-cells';
-import { cellKey, ImageLayer, ShapeLayer } from '@axe/features/map-maker/model/scene';
+import { cellKey, ImageLayer, ShapeLayer, StampLayer } from '@axe/features/map-maker/model/scene';
 import { addLayer } from '@axe/features/map-maker/model/scene-ops';
 import { exportSceneToBlob } from '@axe/features/map-maker/render/export-image';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -332,5 +332,83 @@ describe('MapMakerPanelComponent', () => {
 
     expect(modalService.open).not.toHaveBeenCalled();
     expect(component['state'].current.layers.length).toBe(before);
+  });
+
+  it('updateSelectedStamp で色を変更できる', () => {
+    component['state'].stampId.set('door-single');
+    component['state'].stampColor.set(null);
+    component['state'].placeStamp(100, 100);
+    const layer = component['state'].current.layers.find((l) => l.kind === 'stamp') as StampLayer;
+    const id = layer.items[0].id;
+    component['state'].selection.set({ layerId: layer.id, itemId: id });
+
+    component['state'].updateSelectedStamp({ color: '#ff0000' });
+
+    expect(layer.items[0].color).toBe('#ff0000');
+  });
+
+  it('updateSelectedStamp で色を null（自動）に戻せる', () => {
+    component['state'].stampId.set('door-single');
+    component['state'].stampColor.set('#ff0000');
+    component['state'].placeStamp(100, 100);
+    const layer = component['state'].current.layers.find((l) => l.kind === 'stamp') as StampLayer;
+    const id = layer.items[0].id;
+    component['state'].selection.set({ layerId: layer.id, itemId: id });
+
+    component['state'].updateSelectedStamp({ color: null });
+
+    expect(layer.items[0].color).toBeNull();
+  });
+});
+
+describe('buildShapeKindPoints', () => {
+  function vertexCount(pts: string): number {
+    return pts.trim() === '' ? 0 : pts.trim().split(' ').length;
+  }
+
+  it('7 種すべてに対して点列文字列を返す', () => {
+    const kinds = ['rect', 'ellipse', 'triangle', 'pentagon', 'hexagon', 'star5', 'star6'] as const;
+    for (const kind of kinds) {
+      if (kind === 'rect' || kind === 'ellipse') {
+        expect(buildShapeKindPoints(kind as never)).toBe('');
+      } else {
+        expect(buildShapeKindPoints(kind)).not.toBe('');
+      }
+    }
+  });
+
+  it('triangle は 3 頂点を返す', () => {
+    expect(vertexCount(buildShapeKindPoints('triangle'))).toBe(3);
+  });
+
+  it('pentagon は 5 頂点を返す', () => {
+    expect(vertexCount(buildShapeKindPoints('pentagon'))).toBe(5);
+  });
+
+  it('hexagon は 6 頂点を返す', () => {
+    expect(vertexCount(buildShapeKindPoints('hexagon'))).toBe(6);
+  });
+
+  it('star5 は 10 頂点（5点星）を返す', () => {
+    expect(vertexCount(buildShapeKindPoints('star5'))).toBe(10);
+  });
+
+  it('star6 は 12 頂点（6点星）を返す', () => {
+    expect(vertexCount(buildShapeKindPoints('star6'))).toBe(12);
+  });
+
+  it('star5 の点列は中心 12,12・半径 9 の外周と内周を交互に含む', () => {
+    const pts = buildShapeKindPoints('star5')
+      .trim()
+      .split(' ')
+      .map((p) => p.split(',').map(Number));
+    for (let i = 0; i < pts.length; i += 1) {
+      const d = Math.hypot(pts[i][0] - 12, pts[i][1] - 12);
+      if (i % 2 === 0) {
+        expect(d).toBeCloseTo(9, 1);
+      } else {
+        expect(d).toBeCloseTo(9 * 0.382, 1);
+      }
+    }
   });
 });

@@ -1236,8 +1236,8 @@
       "gmOnly": "This tool is for the game master only",
       "tools": {
         "select": "Select",
-        "cellPaint": "Paint cells",
-        "cellErase": "Erase cells",
+        "cellPaint": "Pen",
+        "cellErase": "Eraser",
         "fill": "Fill",
         "line": "Line",
         "polygon": "Polygon",

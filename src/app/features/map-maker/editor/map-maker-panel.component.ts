@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -50,10 +51,35 @@ import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confir
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
+export function buildShapeKindPoints(kind: ShapeGeneratorKind): string {
+  const cx = 12;
+  const cy = 12;
+  const r = 9;
+  let flat: number[];
+  if (kind === 'triangle') flat = regularPolygonPoints(cx, cy, r, 3, -Math.PI / 2);
+  else if (kind === 'pentagon') flat = regularPolygonPoints(cx, cy, r, 5, -Math.PI / 2);
+  else if (kind === 'hexagon') flat = regularPolygonPoints(cx, cy, r, 6, 0);
+  else if (kind === 'star5') flat = starPoints(cx, cy, r, r * 0.382, 5, -Math.PI / 2);
+  else if (kind === 'star6') flat = starPoints(cx, cy, r, r * 0.577, 6, -Math.PI / 2);
+  else return '';
+  const pairs: string[] = [];
+  for (let i = 0; i + 1 < flat.length; i += 2) {
+    pairs.push(`${flat[i].toFixed(2)},${flat[i + 1].toFixed(2)}`);
+  }
+  return pairs.join(' ');
+}
+
+const ERASER_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/>' +
+  '<path d="M6.0 20l4-4"/>' +
+  '</svg>';
+
 interface ToolDef {
   tool: EditorTool;
   icon: string;
   key: string;
+  svg?: SafeHtml;
 }
 
 @Component({
@@ -76,6 +102,7 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private readonly tabletopService = inject(TabletopService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly modalService = inject(ModalService);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly t = inject(TRANSLATE_FN);
 
   private readonly exportFn = exportSceneToBlob;
@@ -90,8 +117,13 @@ export class MapMakerPanelComponent implements AfterViewInit {
 
   protected readonly tools: ToolDef[] = [
     { tool: 'select', icon: 'pan_tool_alt', key: 'V' },
-    { tool: 'cellPaint', icon: 'format_color_fill', key: 'B' },
-    { tool: 'cellErase', icon: 'auto_fix_normal', key: 'E' },
+    { tool: 'cellPaint', icon: 'edit', key: 'B' },
+    {
+      tool: 'cellErase',
+      icon: '',
+      key: 'E',
+      svg: this.sanitizer.bypassSecurityTrustHtml(ERASER_SVG),
+    },
     { tool: 'fill', icon: 'format_paint', key: 'G' },
     { tool: 'shape', icon: 'category', key: 'R' },
     { tool: 'line', icon: 'show_chart', key: 'L' },
@@ -220,6 +252,34 @@ export class MapMakerPanelComponent implements AfterViewInit {
   private bumpDraft(): void {
     this.draftSignal.update((v) => v + 1);
     this.draftCount.set(this.draftPoints.length / 2);
+  }
+
+  protected shapeKindSvg(kind: ShapeGeneratorKind): SafeHtml {
+    let inner: string;
+    if (kind === 'rect') {
+      inner = '<rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2"/>';
+    } else if (kind === 'ellipse') {
+      inner = '<ellipse cx="12" cy="12" rx="8" ry="6" fill="none" stroke="currentColor" stroke-width="2"/>';
+    } else {
+      const pts = buildShapeKindPoints(kind);
+      inner = `<polygon points="${pts}" fill="none" stroke="currentColor" stroke-width="2"/>`;
+    }
+    return this.sanitizer.bypassSecurityTrustHtml(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">${inner}</svg>`
+    );
+  }
+
+  protected lineKindSvg(kind: LineKind): SafeHtml {
+    let inner: string;
+    if (kind === 'straight') {
+      inner = '<line x1="4" y1="18" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    } else {
+      inner =
+        '<polyline points="3,18 9,8 15,14 21,5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    return this.sanitizer.bypassSecurityTrustHtml(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">${inner}</svg>`
+    );
   }
 
   protected stampDataUri(def: StampDef, color: string | null): string {

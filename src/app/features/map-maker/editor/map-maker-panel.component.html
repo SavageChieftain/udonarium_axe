@@ -28,7 +28,11 @@
           [title]="('feature.mapMaker.tools.' + def.tool | transloco) + ' (' + def.key + ')'"
           (click)="setTool(def.tool)"
         >
-          <i class="material-icons text-[18px]!">{{ def.icon }}</i>
+          @if (def.svg) {
+            <span class="flex size-4.5 items-center justify-center" [innerHTML]="def.svg"></span>
+          } @else {
+            <i class="material-icons text-[18px]!">{{ def.icon }}</i>
+          }
           <span class="text-[9px] leading-tight">{{ 'feature.mapMaker.tools.' + def.tool | transloco }}</span>
         </button>
       }
@@ -119,13 +123,14 @@
           <div class="grid grid-cols-4 gap-1">
             @for (kind of shapeKinds; track kind) {
               <button
-                class="rounded-ui-sm border border-solid p-1 text-[10px] leading-tight"
+                class="rounded-ui-sm flex items-center justify-center border border-solid p-1"
                 [class.border-ui-accent]="state.shapeKind() === kind"
                 [class.bg-ui-accent-bg]="state.shapeKind() === kind"
                 [class.border-ui-border-panel]="state.shapeKind() !== kind"
+                [title]="'feature.mapMaker.props.shapeKinds.' + kind | transloco"
                 (click)="state.shapeKind.set(kind)"
               >
-                {{ 'feature.mapMaker.props.shapeKinds.' + kind | transloco }}
+                <span [innerHTML]="shapeKindSvg(kind)"></span>
               </button>
             }
           </div>
@@ -201,16 +206,17 @@
       @if (state.tool() === 'line') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapMaker.tools.line' | transloco }}</div>
-          <div class="grid grid-cols-2 gap-1">
+          <div class="flex gap-1">
             @for (kind of lineKinds; track kind) {
               <button
-                class="rounded-ui-sm border border-solid p-1 text-[10px] leading-tight"
+                class="rounded-ui-sm flex items-center justify-center border border-solid p-1"
                 [class.border-ui-accent]="state.lineKind() === kind"
                 [class.bg-ui-accent-bg]="state.lineKind() === kind"
                 [class.border-ui-border-panel]="state.lineKind() !== kind"
+                [title]="'feature.mapMaker.props.lineKinds.' + kind | transloco"
                 (click)="setLineKind(kind)"
               >
-                {{ 'feature.mapMaker.props.lineKinds.' + kind | transloco }}
+                <span [innerHTML]="lineKindSvg(kind)"></span>
               </button>
             }
           </div>
@@ -408,20 +414,25 @@
               <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} Y</span>
             </label>
           </div>
-          <label class="flex items-center gap-1">
-            <input
-              type="checkbox"
-              [ngModel]="state.stampColor() === null"
-              (ngModelChange)="state.stampColor.set($event ? null : '#e8e8ea')"
-            />
-            <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampColorAuto' | transloco }}</span>
-          </label>
-          @if (state.stampColor() !== null) {
-            <label class="flex items-center justify-between gap-2">
-              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
-              <input type="color" [ngModel]="state.stampColor()" (ngModelChange)="state.stampColor.set($event)" />
-            </label>
-          }
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  [ngModel]="state.stampColor() === null"
+                  (ngModelChange)="state.stampColor.set($event ? null : '#e8e8ea')"
+                />
+                <span class="text-ui-muted text-[10px]">{{ 'feature.mapMaker.props.stampColorAuto' | transloco }}</span>
+              </label>
+              <input
+                type="color"
+                [ngModel]="state.stampColor() ?? '#e8e8ea'"
+                [disabled]="state.stampColor() === null"
+                (ngModelChange)="state.stampColor.set($event)"
+              />
+            </div>
+          </div>
         </div>
       }
 
@@ -530,6 +541,27 @@
                 />
                 <span class="text-ui-muted">{{ 'feature.mapMaker.props.stampFlip' | transloco }} Y</span>
               </label>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapMaker.props.color' | transloco }}</span>
+              <div class="flex items-center gap-2">
+                <label class="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    [ngModel]="$any(sel.item).color === null"
+                    (ngModelChange)="state.updateSelectedStamp({ color: $event ? null : '#e8e8ea' })"
+                  />
+                  <span class="text-ui-muted text-[10px]">{{
+                    'feature.mapMaker.props.stampColorAuto' | transloco
+                  }}</span>
+                </label>
+                <input
+                  type="color"
+                  [ngModel]="$any(sel.item).color ?? '#e8e8ea'"
+                  [disabled]="$any(sel.item).color === null"
+                  (ngModelChange)="state.updateSelectedStamp({ color: $event })"
+                />
+              </div>
             </div>
           }
           @if (sel.layer.kind === 'image') {
