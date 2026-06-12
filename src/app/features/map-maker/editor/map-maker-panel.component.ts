@@ -840,6 +840,8 @@ export class MapMakerPanelComponent implements AfterViewInit {
         return 'gesture';
       case 'text':
         return 'title';
+      case 'image':
+        return 'image';
     }
   }
 

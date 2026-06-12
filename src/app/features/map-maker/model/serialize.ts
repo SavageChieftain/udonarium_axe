@@ -1,3 +1,4 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import {
   DEFAULT_SCENE_BACKGROUND,
   DEFAULT_SCENE_GRID_COLOR,
@@ -18,7 +19,18 @@ function isPositiveFiniteNumber(v: unknown): v is number {
   return isFiniteNumber(v) && (v as number) > 0;
 }
 
-const VALID_KINDS = new Set(['cell', 'shape', 'wall', 'stamp', 'freehand', 'text']);
+const VALID_KINDS = new Set(['cell', 'shape', 'wall', 'stamp', 'freehand', 'text', 'image']);
+
+const VALID_GRID_TYPES = new Set<number>([
+  GridType.NONE,
+  GridType.SQUARE,
+  GridType.HEX_VERTICAL,
+  GridType.HEX_HORIZONTAL,
+]);
+
+function sanitizeGridType(value: unknown): GridType {
+  return typeof value === 'number' && VALID_GRID_TYPES.has(value) ? (value as GridType) : GridType.SQUARE;
+}
 
 function isValidLayer(layer: unknown): boolean {
   if (typeof layer !== 'object' || layer === null) return false;
@@ -72,6 +84,8 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
       return { ...base, kind: 'freehand', strokes: Array.isArray(raw['strokes']) ? raw['strokes'] : [] };
     case 'text':
       return { ...base, kind: 'text', items: Array.isArray(raw['items']) ? raw['items'] : [] };
+    case 'image':
+      return { ...base, kind: 'image', items: Array.isArray(raw['items']) ? raw['items'] : [] };
     default:
       return { ...base, kind: 'cell', cells: {} };
   }
@@ -102,6 +116,7 @@ export function deserializeScene(json: string): MapScene | null {
     cols: raw['cols'] as number,
     rows: raw['rows'] as number,
     cellPx: raw['cellPx'] as number,
+    gridType: sanitizeGridType(raw['gridType']),
     background: typeof raw['background'] === 'string' ? raw['background'] : DEFAULT_SCENE_BACKGROUND,
     gridColor: typeof raw['gridColor'] === 'string' ? raw['gridColor'] : DEFAULT_SCENE_GRID_COLOR,
     gridVisible: raw['gridVisible'] !== false,

@@ -1,4 +1,5 @@
-import { createScene, MAP_SCENE_VERSION, MapScene } from '@axe/features/map-maker/model/scene';
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { createScene, ImageLayer, MAP_SCENE_VERSION, MapScene } from '@axe/features/map-maker/model/scene';
 import { deserializeScene, isMapScene, serializeScene } from '@axe/features/map-maker/model/serialize';
 
 function makeScene(): MapScene {
@@ -153,6 +154,68 @@ describe('deserializeScene round-trip', () => {
     const result = deserializeScene(JSON.stringify(raw));
     expect(result).not.toBeNull();
     if (result!.layers[0].kind === 'shape') {
+      expect(result!.layers[0].items).toEqual([]);
+    }
+  });
+
+  it('round-trips gridType', () => {
+    for (const gridType of [GridType.NONE, GridType.SQUARE, GridType.HEX_VERTICAL, GridType.HEX_HORIZONTAL]) {
+      const scene = createScene(5, 5, 64, gridType);
+      const result = deserializeScene(serializeScene(scene));
+      expect(result!.gridType).toBe(gridType);
+    }
+  });
+
+  it('falls back to SQUARE for invalid or missing gridType', () => {
+    const base = createScene(5, 5, 64);
+    const missing = JSON.parse(serializeScene(base)) as Record<string, unknown>;
+    delete missing['gridType'];
+    expect(deserializeScene(JSON.stringify(missing))!.gridType).toBe(GridType.SQUARE);
+
+    const bad = { ...missing, gridType: 99 };
+    expect(deserializeScene(JSON.stringify(bad))!.gridType).toBe(GridType.SQUARE);
+
+    const wrongType = { ...missing, gridType: 'hex' };
+    expect(deserializeScene(JSON.stringify(wrongType))!.gridType).toBe(GridType.SQUARE);
+  });
+
+  it('round-trips an image layer', () => {
+    const scene = createScene(5, 5, 64);
+    const layer: ImageLayer = {
+      id: 'img',
+      kind: 'image',
+      name: 'images',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [{ id: 'i1', imageIdentifier: 'abc', x: 1, y: 2, w: 30, h: 40, rotation: 15, opacity: 0.5 }],
+    };
+    scene.layers = [layer];
+    const result = deserializeScene(serializeScene(scene));
+    expect(result!.layers).toHaveLength(1);
+    const out = result!.layers[0];
+    expect(out.kind).toBe('image');
+    if (out.kind === 'image') {
+      expect(out.items).toHaveLength(1);
+      expect(out.items[0]).toMatchObject({ imageIdentifier: 'abc', w: 30, h: 40, rotation: 15, opacity: 0.5 });
+    }
+  });
+
+  it('defaults missing image items array to empty', () => {
+    const raw = {
+      version: MAP_SCENE_VERSION,
+      cols: 5,
+      rows: 5,
+      cellPx: 64,
+      gridType: GridType.SQUARE,
+      background: '#fff',
+      gridColor: '#000',
+      gridVisible: true,
+      layers: [{ id: 'l1', kind: 'image', name: 'images', visible: true, locked: false, opacity: 1 }],
+    };
+    const result = deserializeScene(JSON.stringify(raw));
+    expect(result).not.toBeNull();
+    if (result!.layers[0].kind === 'image') {
       expect(result!.layers[0].items).toEqual([]);
     }
   });

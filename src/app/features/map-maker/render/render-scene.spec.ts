@@ -1,7 +1,9 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import {
   CellLayer,
   createScene,
   FreehandLayer,
+  ImageLayer,
   MapScene,
   ShapeLayer,
   StampLayer,
@@ -267,5 +269,84 @@ describe('renderScene', () => {
     const ctx = createMockCtx();
     renderScene(ctx, scene, helpers);
     expect(ctx.counts('strokeRect')).toBe(0);
+  });
+
+  it('draws hex cells as closed paths and never as cell-sized fillRect', () => {
+    const layer: CellLayer = {
+      id: 'c',
+      kind: 'cell',
+      name: 'cells',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      cells: { '0,0': { type: 'solid', color: '#f00' }, '1,0': { type: 'solid', color: '#0f0' } },
+    };
+    const scene = createScene(2, 2, 10, GridType.HEX_VERTICAL);
+    scene.layers = [layer];
+    const ctx = createMockCtx();
+    renderScene(ctx, scene, helpers, { drawGrid: false });
+    const cellRects = ctx.calls.filter((c) => c.method === 'fillRect' && c.args[2] === 10 && c.args[3] === 10);
+    expect(cellRects.length).toBe(0);
+    expect(ctx.counts('fill')).toBe(2);
+    expect(ctx.counts('closePath')).toBeGreaterThanOrEqual(2);
+  });
+
+  it('draws hex grid overlay as stroked hex outlines', () => {
+    const scene = createScene(2, 2, 10, GridType.HEX_HORIZONTAL);
+    const ctx = createMockCtx();
+    renderScene(ctx, scene, helpers, { drawGrid: true });
+    expect(ctx.counts('strokeRect')).toBe(0);
+    expect(ctx.counts('stroke')).toBe(scene.cols * scene.rows);
+  });
+
+  it('renders image-layer items via drawImage with rotation and honors opacity', () => {
+    const layer: ImageLayer = {
+      id: 'i',
+      kind: 'image',
+      name: 'images',
+      visible: true,
+      locked: false,
+      opacity: 0.5,
+      items: [
+        { id: 'i1', imageIdentifier: 'a', x: 5, y: 5, w: 8, h: 6, rotation: 90, opacity: 0.4 },
+        { id: 'i2', imageIdentifier: 'missing', x: 1, y: 1, w: 4, h: 4, rotation: 0, opacity: 1 },
+      ],
+    };
+    const localHelpers: RenderHelpers = {
+      texturePattern: () => null,
+      stampImage: () => null,
+      rasterImage: (item) => (item.imageIdentifier === 'a' ? ({} as CanvasImageSource) : null),
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
+    expect(ctx.counts('drawImage')).toBe(1);
+    expect(ctx.counts('rotate')).toBe(1);
+    const draw = ctx.calls.find((c) => c.method === 'drawImage');
+    expect(draw!.args.slice(1)).toEqual([-4, -3, 8, 6]);
+  });
+
+  it('calls pattern.setTransform when a texture fill has scale/rotation', () => {
+    const transforms: unknown[] = [];
+    const pattern = {
+      setTransform(matrix: unknown) {
+        transforms.push(matrix);
+      },
+    } as unknown as CanvasPattern;
+    const layer: CellLayer = {
+      id: 'c',
+      kind: 'cell',
+      name: 'cells',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      cells: { '0,0': { type: 'texture', textureId: 'grass', scale: 2, rotation: 45 } },
+    };
+    const localHelpers: RenderHelpers = {
+      texturePattern: () => pattern,
+      stampImage: () => null,
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), localHelpers, { drawGrid: false });
+    expect(transforms.length).toBe(1);
   });
 });

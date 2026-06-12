@@ -1,6 +1,10 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { hexCircumradius, hexStartAngle, isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { cellCenter } from '@axe/features/map-maker/model/grid-cells';
 import {
   FillStyle,
   FreehandStroke,
+  ImageItem,
   MapScene,
   parseCellKey,
   sceneHeightPx,
@@ -18,15 +22,30 @@ export interface RenderHelpers {
     cellPx: number
   ): CanvasPattern | string | null;
   stampImage(item: StampItem): CanvasImageSource | null;
+  rasterImage?(item: ImageItem): CanvasImageSource | null;
 }
 
 export interface RenderOptions {
   drawGrid?: boolean;
 }
 
+function applyPatternTransform(pattern: CanvasPattern, scale: number, rotation: number): void {
+  if (typeof DOMMatrix === 'undefined' || typeof pattern.setTransform !== 'function') return;
+  const safeScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  const safeRotation = Number.isFinite(rotation) ? rotation : 0;
+  pattern.setTransform(new DOMMatrix().rotate(safeRotation).scale(safeScale));
+}
+
 function resolveFill(fill: FillStyle, helpers: RenderHelpers, cellPx: number): string | CanvasPattern | null {
   if (fill.type === 'solid') return fill.color;
-  return helpers.texturePattern({ textureId: fill.textureId, scale: fill.scale, rotation: fill.rotation }, cellPx);
+  const resolved = helpers.texturePattern(
+    { textureId: fill.textureId, scale: fill.scale, rotation: fill.rotation },
+    cellPx
+  );
+  if (resolved && typeof resolved !== 'string') {
+    applyPatternTransform(resolved, fill.scale, fill.rotation);
+  }
+  return resolved;
 }
 
 function applyStroke(ctx: CanvasRenderingContext2D, stroke: StrokeStyle): void {
@@ -133,6 +152,48 @@ function drawStamp(ctx: CanvasRenderingContext2D, item: StampItem, helpers: Rend
   ctx.restore();
 }
 
+function drawImageItem(
+  ctx: CanvasRenderingContext2D,
+  item: ImageItem,
+  helpers: RenderHelpers,
+  layerAlpha: number
+): void {
+  const image = helpers.rasterImage?.(item);
+  if (!image) return;
+  ctx.save();
+  ctx.globalAlpha = layerAlpha * (Number.isFinite(item.opacity) ? Math.max(0, Math.min(1, item.opacity)) : 1);
+  ctx.translate(item.x, item.y);
+  if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
+  ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
+  ctx.restore();
+}
+
+function fillHexCell(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, startAngle: number): void {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i += 1) {
+    const angle = startAngle + (i * Math.PI) / 3;
+    const x = cx + s * Math.cos(angle);
+    const y = cy + s * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function strokeHexCell(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, startAngle: number): void {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i += 1) {
+    const angle = startAngle + (i * Math.PI) / 3;
+    const x = cx + s * Math.cos(angle);
+    const y = cy + s * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
 function drawFreehandStroke(ctx: CanvasRenderingContext2D, stroke: FreehandStroke): void {
   const p = stroke.points;
   if (p.length < 2) return;
@@ -175,7 +236,27 @@ function drawText(ctx: CanvasRenderingContext2D, item: TextItem): void {
   ctx.restore();
 }
 
+function drawHexGridLines(ctx: CanvasRenderingContext2D, scene: MapScene): void {
+  ctx.save();
+  ctx.strokeStyle = scene.gridColor;
+  ctx.lineWidth = 1;
+  const s = hexCircumradius(scene.cellPx);
+  const startAngle = hexStartAngle(isFlatTopGrid(scene.gridType));
+  for (let col = 0; col < scene.cols; col += 1) {
+    for (let row = 0; row < scene.rows; row += 1) {
+      const { x, y } = cellCenter(scene.gridType, col, row, scene.cellPx);
+      strokeHexCell(ctx, x, y, s, startAngle);
+    }
+  }
+  ctx.restore();
+}
+
 function drawGridLines(ctx: CanvasRenderingContext2D, scene: MapScene, width: number, height: number): void {
+  if (isHexGrid(scene.gridType)) {
+    drawHexGridLines(ctx, scene);
+    return;
+  }
+  if (scene.gridType === GridType.NONE) return;
   ctx.save();
   ctx.strokeStyle = scene.gridColor;
   ctx.lineWidth = 1;
@@ -214,12 +295,20 @@ export function renderScene(
     ctx.globalAlpha = layer.opacity;
     switch (layer.kind) {
       case 'cell': {
+        const hex = isHexGrid(scene.gridType);
+        const s = hex ? hexCircumradius(scene.cellPx) : 0;
+        const startAngle = hex ? hexStartAngle(isFlatTopGrid(scene.gridType)) : 0;
         for (const [key, fill] of Object.entries(layer.cells)) {
           const resolved = resolveFill(fill, helpers, scene.cellPx);
           if (!resolved) continue;
           const { col, row } = parseCellKey(key);
           ctx.fillStyle = resolved;
-          ctx.fillRect(col * scene.cellPx, row * scene.cellPx, scene.cellPx, scene.cellPx);
+          if (hex) {
+            const { x, y } = cellCenter(scene.gridType, col, row, scene.cellPx);
+            fillHexCell(ctx, x, y, s, startAngle);
+          } else {
+            ctx.fillRect(col * scene.cellPx, row * scene.cellPx, scene.cellPx, scene.cellPx);
+          }
         }
         break;
       }
@@ -237,6 +326,9 @@ export function renderScene(
         break;
       case 'text':
         for (const item of layer.items) drawText(ctx, item);
+        break;
+      case 'image':
+        for (const item of layer.items) drawImageItem(ctx, item, helpers, layer.opacity);
         break;
     }
   }

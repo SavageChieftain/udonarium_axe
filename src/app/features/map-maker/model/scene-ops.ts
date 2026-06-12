@@ -1,9 +1,12 @@
+import { cellNeighbors } from '@axe/features/map-maker/model/grid-cells';
 import {
   cellKey,
   CellLayer,
   FillStyle,
   FreehandLayer,
   FreehandStroke,
+  ImageItem,
+  ImageLayer,
   MapLayer,
   MapScene,
   newId,
@@ -54,12 +57,7 @@ export function floodFill(scene: MapScene, layer: CellLayer, col: number, row: n
     if (fillStyleEquals(getCell(layer, c, r), startFill)) {
       setCell(layer, c, r, fill);
     }
-    const neighbors: [number, number][] = [
-      [c - 1, r],
-      [c + 1, r],
-      [c, r - 1],
-      [c, r + 1],
-    ];
+    const neighbors = cellNeighbors(scene.gridType, c, r);
     for (const [nc, nr] of neighbors) {
       const k = cellKey(nc, nr);
       if (!visited.has(k) && inBounds(scene, nc, nr) && fillStyleEquals(getCell(layer, nc, nr), startFill)) {
@@ -127,6 +125,21 @@ export function updateStamp(layer: StampLayer, id: string, patch: Partial<StampI
 }
 
 export function removeStamp(layer: StampLayer, id: string): void {
+  const idx = layer.items.findIndex((i) => i.id === id);
+  if (idx !== -1) layer.items.splice(idx, 1);
+}
+
+export function addImage(layer: ImageLayer, item: ImageItem): void {
+  if (!item.id) item.id = newId();
+  layer.items.push(item);
+}
+
+export function updateImage(layer: ImageLayer, id: string, patch: Partial<ImageItem>): void {
+  const idx = layer.items.findIndex((i) => i.id === id);
+  if (idx !== -1) layer.items[idx] = { ...layer.items[idx], ...patch, id };
+}
+
+export function removeImage(layer: ImageLayer, id: string): void {
   const idx = layer.items.findIndex((i) => i.id === id);
   if (idx !== -1) layer.items.splice(idx, 1);
 }

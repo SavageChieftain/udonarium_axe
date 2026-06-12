@@ -1,6 +1,15 @@
 import { StampDef } from '@axe/features/map-maker/assets/stamp-types';
-import { MapScene, sceneHeightPx, sceneWidthPx, StampItem, StampLayer } from '@axe/features/map-maker/model/scene';
+import {
+  ImageItem,
+  ImageLayer,
+  MapScene,
+  sceneHeightPx,
+  sceneWidthPx,
+  StampItem,
+  StampLayer,
+} from '@axe/features/map-maker/model/scene';
 import { isTextureId } from '@axe/features/map-maker/model/textures';
+import { getRasterImage, warmRasterImages } from '@axe/features/map-maker/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-maker/render/render-scene';
 import { getStampImage, warmStampImages } from '@axe/features/map-maker/render/stamp-image';
 import { createTexturePattern } from '@axe/features/map-maker/render/texture-pattern';
@@ -12,12 +21,21 @@ interface ExportOptions {
   drawGrid?: boolean;
   mimeType?: string;
   quality?: number;
+  resolveImageUrl?: (id: string) => string | null;
 }
 
 function collectStampItems(scene: MapScene): StampItem[] {
   const items: StampItem[] = [];
   for (const layer of scene.layers) {
     if (layer.kind === 'stamp') items.push(...(layer as StampLayer).items);
+  }
+  return items;
+}
+
+function collectImageItems(scene: MapScene): ImageItem[] {
+  const items: ImageItem[] = [];
+  for (const layer of scene.layers) {
+    if (layer.kind === 'image') items.push(...(layer as ImageLayer).items);
   }
   return items;
 }
@@ -83,6 +101,14 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
     defs
   );
 
+  const resolveImageUrl = opts.resolveImageUrl;
+  if (resolveImageUrl) {
+    const urls = collectImageItems(scene)
+      .map((item) => resolveImageUrl(item.imageIdentifier))
+      .filter((url): url is string => typeof url === 'string' && url.length > 0);
+    await warmRasterImages(urls);
+  }
+
   const defById = new Map(defs.map((def) => [def.id, def]));
   const helpers: RenderHelpers = {
     texturePattern: (fill, cellPx) =>
@@ -90,6 +116,11 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
     stampImage: (item) => {
       const def = defById.get(item.stampId);
       return def ? getStampImage(def, item.size, item.color) : null;
+    },
+    rasterImage: (item) => {
+      if (!resolveImageUrl) return null;
+      const url = resolveImageUrl(item.imageIdentifier);
+      return url ? getRasterImage(url) : null;
     },
   };
 

@@ -1,9 +1,11 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
+
 export const MAP_SCENE_VERSION = 1;
 
 export const DEFAULT_SCENE_BACKGROUND = '#ece6d9';
 export const DEFAULT_SCENE_GRID_COLOR = '#00000059';
 
-export type LayerKind = 'cell' | 'shape' | 'wall' | 'stamp' | 'freehand' | 'text';
+export type LayerKind = 'cell' | 'shape' | 'wall' | 'stamp' | 'freehand' | 'text' | 'image';
 
 export type FillStyle =
   | { type: 'solid'; color: string }
@@ -104,13 +106,30 @@ export interface TextLayer extends BaseLayer {
   items: TextItem[];
 }
 
-export type MapLayer = CellLayer | ShapeLayer | WallLayer | StampLayer | FreehandLayer | TextLayer;
+export interface ImageItem {
+  id: string;
+  imageIdentifier: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotation: number;
+  opacity: number;
+}
+
+export interface ImageLayer extends BaseLayer {
+  kind: 'image';
+  items: ImageItem[];
+}
+
+export type MapLayer = CellLayer | ShapeLayer | WallLayer | StampLayer | FreehandLayer | TextLayer | ImageLayer;
 
 export interface MapScene {
   version: number;
   cols: number;
   rows: number;
   cellPx: number;
+  gridType: GridType;
   background: string;
   gridColor: string;
   gridVisible: boolean;
@@ -130,12 +149,13 @@ export function parseCellKey(key: string): { col: number; row: number } {
   return { col: Number(key.slice(0, comma)), row: Number(key.slice(comma + 1)) };
 }
 
-export function createScene(cols = 20, rows = 15, cellPx = 64): MapScene {
+export function createScene(cols = 20, rows = 15, cellPx = 64, gridType: GridType = GridType.SQUARE): MapScene {
   return {
     version: MAP_SCENE_VERSION,
     cols,
     rows,
     cellPx,
+    gridType,
     background: DEFAULT_SCENE_BACKGROUND,
     gridColor: DEFAULT_SCENE_GRID_COLOR,
     gridVisible: true,
@@ -158,6 +178,8 @@ export function createLayer(kind: LayerKind, name: string): MapLayer {
       return { ...base, kind: 'freehand', strokes: [] };
     case 'text':
       return { ...base, kind: 'text', items: [] };
+    case 'image':
+      return { ...base, kind: 'image', items: [] };
   }
 }
 

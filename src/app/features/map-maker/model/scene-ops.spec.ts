@@ -1,9 +1,11 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
 import {
   cellKey,
   CellLayer,
   createLayer,
   createScene,
   FreehandLayer,
+  ImageLayer,
   MapScene,
   ShapeLayer,
   StampLayer,
@@ -11,6 +13,7 @@ import {
   WallLayer,
 } from '@axe/features/map-maker/model/scene';
 import {
+  addImage,
   addLayer,
   addShape,
   addStamp,
@@ -23,6 +26,7 @@ import {
   getCell,
   inBounds,
   moveLayer,
+  removeImage,
   removeLayer,
   removeShape,
   removeStamp,
@@ -32,6 +36,7 @@ import {
   reorderLayer,
   resizeScene,
   setCell,
+  updateImage,
   updateShape,
   updateStamp,
   updateText,
@@ -327,6 +332,63 @@ describe('stamp item ops', () => {
     });
     removeStamp(layer, 's1');
     expect(layer.items).toHaveLength(0);
+  });
+});
+
+describe('image item ops', () => {
+  function makeImageLayer(): ImageLayer {
+    return createLayer('image', 'images') as ImageLayer;
+  }
+
+  function makeItem(id: string) {
+    return { id, imageIdentifier: 'pic', x: 5, y: 5, w: 20, h: 20, rotation: 0, opacity: 1 };
+  }
+
+  it('addImage appends item', () => {
+    const layer = makeImageLayer();
+    addImage(layer, makeItem('i1'));
+    expect(layer.items).toHaveLength(1);
+  });
+
+  it('addImage assigns an id when missing', () => {
+    const layer = makeImageLayer();
+    addImage(layer, { ...makeItem(''), id: '' });
+    expect(layer.items[0].id).toBeTruthy();
+  });
+
+  it('updateImage patches item and preserves id', () => {
+    const layer = makeImageLayer();
+    addImage(layer, makeItem('i1'));
+    updateImage(layer, 'i1', { rotation: 90, opacity: 0.3 });
+    expect(layer.items[0]).toMatchObject({ id: 'i1', rotation: 90, opacity: 0.3 });
+  });
+
+  it('removeImage removes by id', () => {
+    const layer = makeImageLayer();
+    addImage(layer, makeItem('i1'));
+    removeImage(layer, 'i1');
+    expect(layer.items).toHaveLength(0);
+  });
+});
+
+describe('floodFill hex grids', () => {
+  it('fills connected cells through 6 hex neighbors', () => {
+    const scene = createScene(5, 5, 64, GridType.HEX_VERTICAL);
+    const layer = makeCellLayer();
+    floodFill(scene, layer, 2, 2, solidRed);
+    expect(Object.keys(layer.cells)).toHaveLength(25);
+    for (const fill of Object.values(layer.cells)) {
+      expect(fill).toEqual(solidRed);
+    }
+  });
+
+  it('respects barriers defined on hex neighbor adjacency', () => {
+    const scene = createScene(4, 4, 64, GridType.HEX_HORIZONTAL);
+    const layer = makeCellLayer();
+    setCell(layer, 0, 0, solidBlue);
+    floodFill(scene, layer, 0, 0, solidRed);
+    expect(getCell(layer, 0, 0)).toEqual(solidRed);
+    expect(Object.keys(layer.cells)).toHaveLength(1);
   });
 });
 
