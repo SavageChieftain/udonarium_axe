@@ -82,7 +82,7 @@ export class Vote extends GameObject {
 
   chkFinishVote() {
     if (this.isFinish) return;
-    if (this.chairId == PeerCursor.myCursor.peerId && this.votedTotalNum() == this.targetPeerId.length) {
+    if (this.chairId == PeerCursor.myCursor?.peerId && this.votedTotalNum() == this.targetPeerId.length) {
       this.isFinish = true;
       let text_: string;
       if (this.isRollCall) {
