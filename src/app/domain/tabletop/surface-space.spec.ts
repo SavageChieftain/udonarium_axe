@@ -15,12 +15,12 @@ describe('surface-space', () => {
     expect(surfacePointTo3D('south-wall', 120, 80, dims)).toEqual({ x: 1000 - 120, y: 800, z: 300 - 80 });
   });
 
-  it('west-wall はローカルx を table y に、x=0 に写す', () => {
-    expect(surfacePointTo3D('west-wall', 120, 80, dims)).toEqual({ x: 0, y: 120, z: 300 - 80 });
+  it('west-wall は実描画に一致: 原点(0,depth) から u=-y、x=0 平面', () => {
+    expect(surfacePointTo3D('west-wall', 120, 80, dims)).toEqual({ x: 0, y: 800 - 120, z: 300 - 80 });
   });
 
-  it('east-wall はミラーし x=width に写す', () => {
-    expect(surfacePointTo3D('east-wall', 120, 80, dims)).toEqual({ x: 1000, y: 800 - 120, z: 300 - 80 });
+  it('east-wall は実描画に一致: 原点(width,0) から u=+y、x=width 平面', () => {
+    expect(surfacePointTo3D('east-wall', 120, 80, dims)).toEqual({ x: 1000, y: 120, z: 300 - 80 });
   });
 
   it('heightAbove は法線方向(部屋側)へ押し出す', () => {
@@ -60,13 +60,13 @@ describe('surface-space', () => {
     });
 
     it('east-wall の梁: 室内(-x)へ突き出し x=width から内側へ', () => {
-      // east: origin(width,depth) u(0,-1) v(0,0,-1) normal(-1,0)
+      // east(実描画一致): origin(width,0) u(0,1,0) v(0,0,-1) normal(-1,0,0)
       // localX[0,100] localY[0,50] base0 厚み150
       expect(surfaceWorldBox('east-wall', 0, 0, 100, 50, 0, 150, dims)).toEqual({
         minX: 1000 - 150,
         maxX: 1000,
-        minY: 800 - 100,
-        maxY: 800,
+        minY: 0,
+        maxY: 100,
         minZ: 300 - 50,
         maxZ: 300,
       });

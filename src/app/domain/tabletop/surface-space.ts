@@ -38,15 +38,15 @@ export function surfaceFrame(surface: TableSurface, dims: SurfaceDims): SurfaceF
       };
     case 'west-wall':
       return {
-        origin: { x: 0, y: 0, z: wallHeightPx },
-        u: { x: 0, y: 1, z: 0 },
+        origin: { x: 0, y: depthPx, z: wallHeightPx },
+        u: { x: 0, y: -1, z: 0 },
         v: { x: 0, y: 0, z: -1 },
         normal: { x: 1, y: 0, z: 0 },
       };
     case 'east-wall':
       return {
-        origin: { x: widthPx, y: depthPx, z: wallHeightPx },
-        u: { x: 0, y: -1, z: 0 },
+        origin: { x: widthPx, y: 0, z: wallHeightPx },
+        u: { x: 0, y: 1, z: 0 },
         v: { x: 0, y: 0, z: -1 },
         normal: { x: -1, y: 0, z: 0 },
       };
