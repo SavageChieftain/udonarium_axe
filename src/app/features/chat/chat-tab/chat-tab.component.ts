@@ -241,8 +241,8 @@ export class ChatTabComponent {
   get chatTab(): ChatTab | null {
     return this.chatTabInput();
   }
-  get chatTabList(): ChatTabList {
-    return this.objectStore.get<ChatTabList>('ChatTabList')!;
+  get chatTabList(): ChatTabList | null {
+    return this.objectStore.get<ChatTabList>('ChatTabList');
   }
 
   readonly addMessage = output<void>();

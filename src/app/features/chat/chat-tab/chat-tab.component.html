@@ -9,8 +9,8 @@
         @if (chatMessage.isDisplayable) {
           <chat-message
             [chatMessage]="chatMessage"
-            [simpleDispFlagTime]="!!chatTabList.simpleDispFlagTime"
-            [simpleDispFlagUserId]="!!chatTabList.simpleDispFlagUserId"
+            [simpleDispFlagTime]="!!chatTabList?.simpleDispFlagTime"
+            [simpleDispFlagUserId]="!!chatTabList?.simpleDispFlagUserId"
             [chatSimpleDispFlag]="!!chatTab?.chatSimpleDispFlag"
           >
           </chat-message>
