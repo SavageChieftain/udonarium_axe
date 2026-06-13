@@ -1,3 +1,64 @@
+## [1.15.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.14.0...v1.15.0) (2026-06-13)
+
+### ✨ Features
+
+* **map-maker:** add curve and closed curve line kinds ([564792c](https://github.com/SavageChieftain/udonarium_axe/commit/564792c42bc6d83fd3d18d144bb8d1980ebabd86))
+* **map-maker:** add GM map editor panel with toolbar entry ([60984a5](https://github.com/SavageChieftain/udonarium_axe/commit/60984a5152fa3b2593846bb38e5f3fd85da34218))
+* **map-maker:** add hex grids, image layers and texture transforms ([4363fa3](https://github.com/SavageChieftain/udonarium_axe/commit/4363fa305ec04b31cbc7b43ce1a87d0dbbe60aeb))
+* **map-maker:** add scene model, canvas renderer and stamp library ([4677f20](https://github.com/SavageChieftain/udonarium_axe/commit/4677f204da66f82d75eff7bd047472b665a05311))
+* **map-maker:** add stroke textures and zip save/load with images ([eae3926](https://github.com/SavageChieftain/udonarium_axe/commit/eae3926874f600777de772a920a1d509d0f195c4))
+* **map-maker:** align hex scenes to the table footprint, add styles ([18d7eeb](https://github.com/SavageChieftain/udonarium_axe/commit/18d7eeb7efc7cba350fc386f8778d365fb00886a))
+* **map-maker:** confirm layer deletion with an in-app dialog ([d707d89](https://github.com/SavageChieftain/udonarium_axe/commit/d707d8928e05c85f009946d1459b254efdd66d67))
+* **map-maker:** merge line and polyline into one tool with kinds ([2603c53](https://github.com/SavageChieftain/udonarium_axe/commit/2603c53ebcaf19a62d1a43df118a8e986cb234c4))
+* **map-maker:** pen and eraser naming, iconic kind pickers ([2f86479](https://github.com/SavageChieftain/udonarium_axe/commit/2f86479d96df14ca2d66db86525fea9d0f90bc06))
+* **map-maker:** polish the editor into a proper drawing tool ([275147b](https://github.com/SavageChieftain/udonarium_axe/commit/275147bdce688d305dd93491454a9c2274251c16))
+* **map-maker:** polyline tool, line styles, shadows and image UX ([3a0a403](https://github.com/SavageChieftain/udonarium_axe/commit/3a0a403983d653fb2240be405d78d7a6fe7a1a91))
+* **map-maker:** refine tool icons, order and transparent background ([ac36a32](https://github.com/SavageChieftain/udonarium_axe/commit/ac36a329644b8307fb7c8a71667da647f941860a))
+* **map-maker:** remove wall tool superseded by stroke textures ([0608c37](https://github.com/SavageChieftain/udonarium_axe/commit/0608c379fd06ce56f1e51cf9a828eeeb5874bab4))
+* **map-maker:** rename the tool to map editor ([d898e35](https://github.com/SavageChieftain/udonarium_axe/commit/d898e3502b5727d0a5f4fda15770eead05e34850))
+* **map-maker:** repaint textures with element-based painterly art ([5d998a4](https://github.com/SavageChieftain/udonarium_axe/commit/5d998a4918c41796e10320f6145807c73354e75e))
+* **map-maker:** replace procedural textures with bundled image tiles ([8083a16](https://github.com/SavageChieftain/udonarium_axe/commit/8083a168c79902d705586aa53b80844fe19724fd))
+* **map-maker:** rework the editor into a structured map editor ([1e4a088](https://github.com/SavageChieftain/udonarium_axe/commit/1e4a0883e8238cca7bc1c7cd365ed08cdf478ed8))
+* **map-maker:** seamless RPG-grade textures, image fills, wall texture ([0792fb6](https://github.com/SavageChieftain/udonarium_axe/commit/0792fb6f731f70059815898620dbfaa91253dbd8))
+* **map-maker:** texture palette previews, uploads and wall fills ([9765446](https://github.com/SavageChieftain/udonarium_axe/commit/97654468b4dcae6f92258a79f93fb42488d06274))
+* **tabletop:** align map images to hex grids in the adjuster ([8062650](https://github.com/SavageChieftain/udonarium_axe/commit/8062650743f77745945ec500a6f0329c7c140635))
+* **tabletop:** align maps by moving the image under a fixed grid ([3111065](https://github.com/SavageChieftain/udonarium_axe/commit/3111065ca88ec90806305a9ceab11b79b5ed071f))
+* **tabletop:** align uploaded map images to the grid on selection ([c79ea04](https://github.com/SavageChieftain/udonarium_axe/commit/c79ea040f3cae7ff327ea8af017aa0eda7904238))
+* **tabletop:** fix the clip frame and manipulate the image directly ([90ec6cd](https://github.com/SavageChieftain/udonarium_axe/commit/90ec6cdd05be37434ee7f3446ca561eb42abf1ef))
+* **tabletop:** rebuild the grid adjuster around one-screen fit ([a0e0315](https://github.com/SavageChieftain/udonarium_axe/commit/a0e03151974de558a2301d068923913e1913ef6c))
+* **tabletop:** restyle the align-to-grid entry as a compact action ([9c3de6a](https://github.com/SavageChieftain/udonarium_axe/commit/9c3de6a48903b05f9d09816bc8280361c94bf125))
+* **tabletop:** zoom the adjuster workspace and auto-fit large frames ([23bd52a](https://github.com/SavageChieftain/udonarium_axe/commit/23bd52ae169b384ef9793aa378c4bffb1a720187))
+* **ui:** let modal children opt into content-driven width ([f251d38](https://github.com/SavageChieftain/udonarium_axe/commit/f251d38c00969e7475e3056f773d52a8c4e6e6e3))
+
+### 🐛 Bug Fixes
+
+* **chat:** guard against missing ChatTabList in chat tab template ([7c10234](https://github.com/SavageChieftain/udonarium_axe/commit/7c10234311d60f22826ff333890488cbc4287a00))
+* **map-maker:** locked layers can no longer be deleted ([52edb12](https://github.com/SavageChieftain/udonarium_axe/commit/52edb12e1fce76c9b66b7d0549e98127c331af3d))
+* **tabletop:** stop preflight clamping the adjuster image preview ([d4bd1ec](https://github.com/SavageChieftain/udonarium_axe/commit/d4bd1ece53286b4285a54032a1f989a76c838bda))
+* **tabletop:** unsqueeze the grid adjuster controls column ([21ee45d](https://github.com/SavageChieftain/udonarium_axe/commit/21ee45ddfea8b35201ce77fce6268115ebc88b68))
+* **ui:** raise maximized panels above the floating menu ([2dfcbf5](https://github.com/SavageChieftain/udonarium_axe/commit/2dfcbf53a04ab914482fc84043966c246b47f4db))
+* **vote:** guard finish check against a null self cursor ([d760ace](https://github.com/SavageChieftain/udonarium_axe/commit/d760aceab1cfae07e82b961ba25a770c983e1ef4))
+
+### 📝 Documentation
+
+* **website:** add chat special syntax reference page ([96885e2](https://github.com/SavageChieftain/udonarium_axe/commit/96885e2156f1501bb65031cdc5c4d6d4fc056ea6))
+* **website:** add v1.14.0 release notes ([39cbd57](https://github.com/SavageChieftain/udonarium_axe/commit/39cbd572325bd8de53b7f77b83fc21b9dd61adab))
+* **website:** describe novel mode SE jukebox sync in manual ([39f1e80](https://github.com/SavageChieftain/udonarium_axe/commit/39f1e8093991c5136447b5f6b1963ae7c2fba07e))
+* **website:** describe the image-drag model in the grid adjuster manual ([495d3e2](https://github.com/SavageChieftain/udonarium_axe/commit/495d3e2a913ec862e72caddcdfb6beff43ed3d3c))
+* **website:** document map maker and grid-aligned background setup ([1300698](https://github.com/SavageChieftain/udonarium_axe/commit/1300698197e1c0fbf01ad89967ca02c8f33c25da))
+* **website:** document polyline, line styles, shadows and image clip ([a4393f4](https://github.com/SavageChieftain/udonarium_axe/commit/a4393f413114ac9f772ac83db6d9f2dcf56a4903))
+* **website:** document texture previews, uploads and wall textures ([0c79c9b](https://github.com/SavageChieftain/udonarium_axe/commit/0c79c9bc02e24e3cde0bc673163413b124d51b14))
+* **website:** document the adjuster workspace zoom ([c36e982](https://github.com/SavageChieftain/udonarium_axe/commit/c36e9822a8c16d255adf74f43cc0693070ca04af))
+* **website:** document the fixed clip frame and image handles ([38e72b1](https://github.com/SavageChieftain/udonarium_axe/commit/38e72b133600e9659e581e75d532f9ed438238ee))
+* **website:** document the grid-type toggle in the adjuster manual ([57e520b](https://github.com/SavageChieftain/udonarium_axe/commit/57e520bca0a728416538d2aee4480441142992d3))
+* **website:** document the reworked map editor ([c2bcbc1](https://github.com/SavageChieftain/udonarium_axe/commit/c2bcbc1283310f37f80c773e2234680ac01349c8))
+* **website:** sync map editor manual with curve tools ([99b6985](https://github.com/SavageChieftain/udonarium_axe/commit/99b6985cd22820ec997c2cc08b6bc38b774126b0))
+* **website:** update grid adjuster manual for the rebuilt dialog ([ae15e36](https://github.com/SavageChieftain/udonarium_axe/commit/ae15e368ff6b24917fc3b43908e8a29cc22ea2c9))
+
+### ♻️ Refactor
+
+* **map-editor:** rename map-maker feature to map-editor ([5fb32fa](https://github.com/SavageChieftain/udonarium_axe/commit/5fb32fa4e00b177a08a4d539cd7573d67fbdb9e5))
+
 ## [1.14.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.13.0...v1.14.0) (2026-06-11)
 
 ### ✨ Features
