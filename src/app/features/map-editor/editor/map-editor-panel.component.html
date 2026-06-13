@@ -676,7 +676,13 @@
       }
     </div>
 
-    <div #stage class="bg-ui-elevated relative overflow-auto" (wheel)="onWheel($event)">
+    <div
+      #stage
+      class="bg-ui-elevated relative overflow-auto"
+      (wheel)="onWheel($event)"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+    >
       <div class="grid size-max min-h-full min-w-full place-items-center p-10">
         <div class="relative">
           <canvas
