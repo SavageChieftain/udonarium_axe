@@ -318,6 +318,45 @@ describe('renderScene', () => {
     const ctx = createMockCtx();
     renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
     expect(ctx.counts('fillText')).toBe(3);
+    expect(ctx.textBaseline).toBe('top');
+    const textCalls = ctx.calls.filter((c) => c.method === 'fillText');
+    expect(textCalls.map((c) => c.args[2])).toEqual([1, 1 + 12 * 1.2, 1 + 12 * 1.2 * 2]);
+  });
+
+  it('hideTextId で指定した text アイテムは描画されない', () => {
+    const layer: TextLayer = {
+      id: 't',
+      kind: 'text',
+      name: 'text',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        { id: 'keep', x: 1, y: 1, text: 'A', fontSize: 12, color: '#000', bold: false, italic: false, align: 'left' },
+        { id: 'hide', x: 2, y: 2, text: 'B', fontSize: 12, color: '#000', bold: false, italic: false, align: 'left' },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false, hideTextId: 'hide' });
+    expect(ctx.counts('fillText')).toBe(1);
+  });
+
+  it('hideTextId 無指定なら全 text を描画する', () => {
+    const layer: TextLayer = {
+      id: 't',
+      kind: 'text',
+      name: 'text',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        { id: 'a', x: 1, y: 1, text: 'A', fontSize: 12, color: '#000', bold: false, italic: false, align: 'left' },
+        { id: 'b', x: 2, y: 2, text: 'B', fontSize: 12, color: '#000', bold: false, italic: false, align: 'left' },
+      ],
+    };
+    const ctx = createMockCtx();
+    renderScene(ctx, sceneWith(layer), helpers, { drawGrid: false });
+    expect(ctx.counts('fillText')).toBe(2);
   });
 
   it('skips invisible layers', () => {

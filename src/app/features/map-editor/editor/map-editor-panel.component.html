@@ -491,16 +491,7 @@
       @if (state.tool() === 'text') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapEditor.props.text' | transloco }}</div>
-          <input
-            #textInput
-            class="bg-ui-input rounded-ui-sm px-2 py-1"
-            type="text"
-            [placeholder]="'feature.mapEditor.props.textPlaceholder' | transloco"
-            [ngModel]="textDraft()"
-            (ngModelChange)="textDraft.set($event)"
-            (keydown.enter)="commitText()"
-            (blur)="commitText()"
-          />
+          <p class="text-ui-muted text-[11px] leading-snug">{{ 'feature.mapEditor.props.textHint' | transloco }}</p>
           <label class="flex items-center justify-between gap-2">
             <span class="text-ui-muted">{{ 'feature.mapEditor.props.fontSize' | transloco }}</span>
             <input
@@ -660,18 +651,44 @@
 
     <div #stage class="bg-ui-elevated relative overflow-auto" (wheel)="onWheel($event)">
       <div class="grid size-max min-h-full min-w-full place-items-center p-10">
-        <canvas
-          #board
-          class="border-ui-border-panel shadow-ui-md block touch-none border border-solid"
-          [style.width.px]="widthPx() * state.zoom()"
-          [style.height.px]="heightPx() * state.zoom()"
-          [style.background]="canvasBackground()"
-          [style.cursor]="canvasCursor()"
-          (pointerdown)="onPointerDown($event)"
-          (pointermove)="onPointerMove($event)"
-          (pointerup)="onPointerUp($event)"
-          (dblclick)="onDoubleClick()"
-        ></canvas>
+        <div class="relative">
+          <canvas
+            #board
+            class="border-ui-border-panel shadow-ui-md block touch-none border border-solid"
+            [style.width.px]="widthPx() * state.zoom()"
+            [style.height.px]="heightPx() * state.zoom()"
+            [style.background]="canvasBackground()"
+            [style.cursor]="canvasCursor()"
+            (pointerdown)="onPointerDown($event)"
+            (pointermove)="onPointerMove($event)"
+            (pointerup)="onPointerUp($event)"
+            (dblclick)="onDoubleClick()"
+          ></canvas>
+          @if (editingText(); as editing) {
+            <div
+              #textEditor
+              contenteditable="true"
+              class="absolute m-0 box-border border-0 bg-[rgba(127,127,127,0.12)] p-0 outline-1 outline-(--ui-accent) outline-dashed"
+              [style.left.px]="editing.x * state.zoom()"
+              [style.top.px]="editing.y * state.zoom()"
+              [style.font-size.px]="state.fontSize() * state.zoom()"
+              [style.font-weight]="state.textBold() ? 'bold' : 'normal'"
+              [style.font-style]="state.textItalic() ? 'italic' : 'normal'"
+              [style.font-family]="'sans-serif'"
+              [style.line-height]="'1.2'"
+              [style.color]="state.textColor()"
+              [style.caret-color]="state.textColor()"
+              [style.white-space]="'pre'"
+              [style.min-width.px]="1"
+              [style.transform-origin]="'top left'"
+              [style.z-index]="20"
+              [style.cursor]="'text'"
+              (input)="onTextInput($event)"
+              (keydown)="onTextEditorKeyDown($event)"
+              (pointerdown)="$event.stopPropagation()"
+            ></div>
+          }
+        </div>
       </div>
       @if (
         draftCount() > 0 && (state.tool() === 'polygon' || (state.tool() === 'line' && state.lineKind() === 'polyline'))

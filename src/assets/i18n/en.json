@@ -1309,7 +1309,7 @@
         "stampColorAuto": "Auto color",
         "freehand": "Freehand",
         "text": "Text",
-        "textPlaceholder": "Enter text…",
+        "textHint": "Click the canvas to type. Enter = newline, Esc = cancel, Ctrl+Enter or click elsewhere to confirm",
         "fontSize": "Font size",
         "bold": "Bold",
         "italic": "Italic",

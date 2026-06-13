@@ -1309,7 +1309,7 @@
         "stampColorAuto": "色を自動",
         "freehand": "フリーハンド",
         "text": "テキスト",
-        "textPlaceholder": "文字を入力…",
+        "textHint": "キャンバスをクリックして入力。改行=Enter / 取消=Esc / 確定=Ctrl+Enter かキャンバスの別の場所をクリック",
         "fontSize": "文字サイズ",
         "bold": "太字",
         "italic": "斜体",

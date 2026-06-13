@@ -52,7 +52,7 @@ import {
   remapSceneImageIdentifiers,
   unpackSceneArchive,
 } from '@axe/features/map-editor/model/scene-archive';
-import { moveLayer, removeLayer } from '@axe/features/map-editor/model/scene-ops';
+import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
 import { regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
 import {
@@ -148,7 +148,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
   private readonly textureFileInput = viewChild<ElementRef<HTMLInputElement>>('textureFileInput');
-  private readonly textInputRef = viewChild<ElementRef<HTMLInputElement>>('textInput');
+  protected readonly textEditor = viewChild<ElementRef<HTMLElement>>('textEditor');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
   protected readonly settingsTool: ToolDef = { tool: 'settings', icon: 'settings', key: '' };
@@ -209,7 +209,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly spacePan = signal(false);
   protected readonly panning = signal(false);
   protected readonly draftCount = signal(0);
-  protected readonly pendingText = signal<{ x: number; y: number } | null>(null);
+  protected readonly editingText = signal<{
+    x: number;
+    y: number;
+    layerId: string | null;
+    itemId: string | null;
+  } | null>(null);
   protected readonly textDraft = signal('');
   protected readonly addLayerMenuOpen = signal(false);
   protected readonly busy = signal(false);
@@ -226,6 +231,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private lastPaintedCell: string | null = null;
   private lastPaintPx: { x: number; y: number } | null = null;
   private lastMove: { x: number; y: number } | null = null;
+  private lastPointerScene: { x: number; y: number } | null = null;
+  private pendingTextFocus = false;
+  private pendingTextInitial = '';
   private panLast: { x: number; y: number } | null = null;
   private imageResize: { item: ImageItem; anchorX: number; anchorY: number } | null = null;
 
@@ -282,6 +290,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
       this.renderTick();
       this.draftTick();
       this.draw();
+    });
+    effect(() => {
+      const el = this.textEditor()?.nativeElement;
+      if (!this.pendingTextFocus || !el) return;
+      this.pendingTextFocus = false;
+      this.focusTextEditor(el);
     });
   }
 
@@ -412,7 +426,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const helpers = this.buildHelpers(ctx);
-    renderScene(ctx, scene, helpers);
+    renderScene(ctx, scene, helpers, { hideTextId: this.editingText()?.itemId ?? undefined });
     this.drawOverlay(ctx);
   }
 
@@ -777,6 +791,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected setTool(tool: EditorTool): void {
+    if (this.editingText()) this.commitTextEdit();
     this.cancelDraft();
     this.state.tool.set(tool);
   }
@@ -817,8 +832,13 @@ export class MapEditorPanelComponent implements AfterViewInit {
       return;
     }
     if (event.button !== 0) return;
+    if (this.editingText()) {
+      this.commitTextEdit();
+      return;
+    }
     canvas.setPointerCapture(event.pointerId);
     const pos = this.toScene(event);
+    this.lastPointerScene = pos;
     const tool = this.state.tool();
     this.dragging = true;
 
@@ -887,10 +907,8 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
     if (tool === 'text') {
       const snapped = this.state.snapPoint(pos.x, pos.y);
-      this.pendingText.set({ x: snapped.x, y: snapped.y });
-      this.textDraft.set('');
       this.dragging = false;
-      queueMicrotask(() => this.textInputRef()?.nativeElement.focus());
+      this.startTextEdit(snapped.x, snapped.y, null, null, '');
       return;
     }
   }
@@ -1031,7 +1049,96 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected onDoubleClick(): void {
-    this.commitDraftPolyline();
+    const tool = this.state.tool();
+    const hasDraft = this.draftPoints.length > 0;
+    if ((tool === 'polygon' || (tool === 'line' && this.multiClickLine())) && hasDraft) {
+      this.commitDraftPolyline();
+      return;
+    }
+    if (tool !== 'text' && tool !== 'select') return;
+    const pos = this.lastPointerScene;
+    if (!pos) return;
+    const sel = this.state.hitTest(pos.x, pos.y);
+    if (!sel) return;
+    const layer = this.state.current.layers.find((l) => l.id === sel.layerId);
+    if (!layer || layer.kind !== 'text') return;
+    const item = layer.items.find((i) => i.id === sel.itemId);
+    if (!item) return;
+    this.state.fontSize.set(item.fontSize);
+    this.state.textColor.set(item.color);
+    this.state.textBold.set(item.bold);
+    this.state.textItalic.set(item.italic);
+    this.startTextEdit(item.x, item.y, layer.id, item.id, item.text);
+  }
+
+  private startTextEdit(x: number, y: number, layerId: string | null, itemId: string | null, text: string): void {
+    this.pendingTextFocus = true;
+    this.pendingTextInitial = text;
+    this.textDraft.set(text);
+    this.editingText.set({ x, y, layerId, itemId });
+  }
+
+  private focusTextEditor(el: HTMLElement): void {
+    el.textContent = this.pendingTextInitial;
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+
+  protected onTextInput(event: Event): void {
+    const el = event.target as HTMLElement;
+    this.textDraft.set(el.innerText);
+  }
+
+  protected onTextEditorKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.cancelTextEdit();
+      return;
+    }
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.commitTextEdit();
+    }
+  }
+
+  protected commitTextEdit(): void {
+    const editing = this.editingText();
+    if (!editing) return;
+    const text = this.textDraft().replace(/^\s+|\s+$/g, '');
+    if (editing.itemId) {
+      const layer = this.state.current.layers.find((l) => l.id === editing.layerId);
+      if (layer && layer.kind === 'text') {
+        if (!text) {
+          this.state.applyCommitted(() => removeText(layer, editing.itemId!));
+        } else {
+          this.state.applyCommitted(() =>
+            updateText(layer, editing.itemId!, {
+              text,
+              fontSize: this.state.fontSize(),
+              color: this.state.textColor(),
+              bold: this.state.textBold(),
+              italic: this.state.textItalic(),
+            })
+          );
+        }
+      }
+    } else if (text) {
+      this.state.addTextItem(editing.x, editing.y, text);
+    }
+    this.editingText.set(null);
+    this.textDraft.set('');
+  }
+
+  protected cancelTextEdit(): void {
+    this.editingText.set(null);
+    this.textDraft.set('');
   }
 
   protected finishDraft(): void {
@@ -1167,7 +1274,13 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   private isTypingTarget(event: KeyboardEvent): boolean {
     const target = event.target as HTMLElement | null;
-    return !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT');
+    return (
+      !!target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable)
+    );
   }
 
   protected onKeyUp(event: KeyboardEvent): void {
@@ -1204,7 +1317,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
     if (event.key === 'Escape') {
       this.cancelDraft();
-      this.pendingText.set(null);
+      this.cancelTextEdit();
       return;
     }
     if (event.key === 'Enter') {
@@ -1250,14 +1363,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private applyZoom(z: number): void {
     this.state.zoom.set(z);
     this.draftSignal.update((v) => v + 1);
-  }
-
-  protected commitText(): void {
-    const pending = this.pendingText();
-    const text = this.textDraft().trim();
-    if (pending && text) this.state.addTextItem(pending.x, pending.y, text);
-    this.pendingText.set(null);
-    this.textDraft.set('');
   }
 
   protected readonly lastBackgroundColor = signal('#ece6d9');

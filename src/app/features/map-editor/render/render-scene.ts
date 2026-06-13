@@ -28,6 +28,7 @@ export interface RenderHelpers {
 
 export interface RenderOptions {
   drawGrid?: boolean;
+  hideTextId?: string;
 }
 
 function resolveFill(fill: FillStyle, helpers: RenderHelpers, cellPx: number): string | CanvasPattern | null {
@@ -400,7 +401,10 @@ export function renderScene(
         for (const stroke of layer.strokes) drawFreehandStroke(ctx, stroke);
         break;
       case 'text':
-        for (const item of layer.items) drawText(ctx, item);
+        for (const item of layer.items) {
+          if (item.id === options?.hideTextId) continue;
+          drawText(ctx, item);
+        }
         break;
       case 'image':
         for (const item of layer.items) drawImageItem(ctx, item, helpers, layer.opacity, scene);

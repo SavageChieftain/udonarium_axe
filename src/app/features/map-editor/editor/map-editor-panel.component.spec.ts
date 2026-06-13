@@ -15,7 +15,14 @@ import {
   MapEditorPanelComponent,
 } from '@axe/features/map-editor/editor/map-editor-panel.component';
 import { pointToCell } from '@axe/features/map-editor/model/grid-cells';
-import { cellKey, createScene, ImageLayer, ShapeLayer, StampLayer } from '@axe/features/map-editor/model/scene';
+import {
+  cellKey,
+  createScene,
+  ImageLayer,
+  ShapeLayer,
+  StampLayer,
+  TextLayer,
+} from '@axe/features/map-editor/model/scene';
 import { addLayer } from '@axe/features/map-editor/model/scene-ops';
 import { serializeScene } from '@axe/features/map-editor/model/serialize';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
@@ -498,6 +505,123 @@ describe('MapEditorPanelComponent', () => {
     component['state'].addShapeItem('line', [0, 0, 40, 40], null);
     const layer = component['state'].current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
     expect(layer.items[0].stroke?.fill).toBeNull();
+  });
+
+  it('文字ツールの pointerdown で editingText が itemId なしで開始する', () => {
+    component['state'].tool.set('text');
+    const c = component as unknown as {
+      onPointerDown: (e: PointerEvent) => void;
+      editingText: () => { itemId: string | null } | null;
+      board: () => { nativeElement: HTMLCanvasElement } | undefined;
+    };
+    (c as unknown as { board: () => { nativeElement: HTMLCanvasElement } }).board = () => ({
+      nativeElement: { setPointerCapture: () => {}, getBoundingClientRect: () => ({ left: 0, top: 0 }) } as never,
+    });
+    c.onPointerDown({ button: 0, pointerId: 1, clientX: 64, clientY: 64 } as unknown as PointerEvent);
+    expect(c.editingText()).not.toBeNull();
+    expect(c.editingText()!.itemId).toBeNull();
+  });
+
+  it('commitTextEdit はテキストがあれば TextItem を追加する', () => {
+    const c = component as unknown as {
+      startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      commitTextEdit: () => void;
+    };
+    c.startTextEdit(40, 50, null, null, '');
+    component['textDraft'].set('hello');
+    c.commitTextEdit();
+    const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    expect(layer.items.length).toBe(1);
+    expect(layer.items[0].text).toBe('hello');
+    expect(layer.items[0].x).toBe(40);
+    expect(layer.items[0].y).toBe(50);
+  });
+
+  it('commitTextEdit は複数行の改行を保持して TextItem を追加する', () => {
+    const c = component as unknown as {
+      startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      commitTextEdit: () => void;
+    };
+    c.startTextEdit(0, 0, null, null, '');
+    component['textDraft'].set('line1\nline2\nline3');
+    c.commitTextEdit();
+    const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    expect(layer.items[0].text).toBe('line1\nline2\nline3');
+  });
+
+  it('editingText 設定中はインラインエディターを描画する', () => {
+    TestBed.inject(ObjectChangeService);
+    PeerCursor.createMyCursor();
+    PeerCursor.myCursor.role = PeerRole.GameMaster;
+    component['state'].tool.set('text');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[contenteditable]')).toBeNull();
+    (
+      component as unknown as {
+        startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      }
+    ).startTextEdit(10, 20, null, null, '');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[contenteditable]')).not.toBeNull();
+  });
+
+  it('commitTextEdit は空ドラフトなら何も追加しない', () => {
+    const c = component as unknown as {
+      startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      commitTextEdit: () => void;
+    };
+    c.startTextEdit(40, 50, null, null, '');
+    component['textDraft'].set('   ');
+    c.commitTextEdit();
+    const layer = component['state'].current.layers.find((l) => l.kind === 'text');
+    expect(layer).toBeUndefined();
+  });
+
+  it('既存テキストの編集で text を更新できる', () => {
+    component['state'].addTextItem(10, 20, 'old');
+    const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    const item = layer.items[0];
+    const c = component as unknown as {
+      startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      commitTextEdit: () => void;
+    };
+    c.startTextEdit(item.x, item.y, layer.id, item.id, item.text);
+    component['textDraft'].set('new');
+    c.commitTextEdit();
+    const after = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    expect(after.items[0].text).toBe('new');
+  });
+
+  it('既存テキストの編集で空にすると削除される', () => {
+    component['state'].addTextItem(10, 20, 'old');
+    const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    const item = layer.items[0];
+    const c = component as unknown as {
+      startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      commitTextEdit: () => void;
+    };
+    c.startTextEdit(item.x, item.y, layer.id, item.id, item.text);
+    component['textDraft'].set('');
+    c.commitTextEdit();
+    const after = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    expect(after.items.length).toBe(0);
+  });
+
+  it('cancelTextEdit は編集を破棄する', () => {
+    component['state'].addTextItem(10, 20, 'keep');
+    const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    const item = layer.items[0];
+    const c = component as unknown as {
+      startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
+      cancelTextEdit: () => void;
+      editingText: () => unknown;
+    };
+    c.startTextEdit(item.x, item.y, layer.id, item.id, item.text);
+    component['textDraft'].set('changed');
+    c.cancelTextEdit();
+    expect(c.editingText()).toBeNull();
+    const after = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
+    expect(after.items[0].text).toBe('keep');
   });
 
   it('レガシー JSON ファイルを読み込める', async () => {
