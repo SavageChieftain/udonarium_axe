@@ -1231,7 +1231,7 @@
       "playbackSpeed": "再生速度",
       "sheet": "キャラクターシート参照"
     },
-    "mapMaker": {
+    "mapEditor": {
       "title": "マップエディター",
       "gmOnly": "このツールはゲームマスター専用です",
       "settings": {

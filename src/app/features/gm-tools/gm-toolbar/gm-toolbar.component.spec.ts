@@ -9,7 +9,7 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
-import { MapMakerPanelComponent } from '@axe/features/map-maker/editor/map-maker-panel.component';
+import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GmToolbarComponent', () => {
@@ -36,10 +36,10 @@ describe('GmToolbarComponent', () => {
     );
   });
 
-  it('openMapMaker でマップメーカーパネルを開く', () => {
-    (component as unknown as { openMapMaker: () => void }).openMapMaker();
+  it('openMapEditor でマップエディターパネルを開く', () => {
+    (component as unknown as { openMapEditor: () => void }).openMapEditor();
     expect(panelStub.open).toHaveBeenCalledWith(
-      MapMakerPanelComponent,
+      MapEditorPanelComponent,
       expect.objectContaining({ width: 1100, height: 740 })
     );
   });
