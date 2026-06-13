@@ -215,6 +215,17 @@ export class MapEditorState {
     return this.scene.layers.slice().reverse();
   }
 
+  reorderLayersTopFirst(orderedIds: string[]): void {
+    const byId = new Map(this.scene.layers.map((l) => [l.id, l]));
+    const next = orderedIds
+      .slice()
+      .reverse()
+      .map((id) => byId.get(id))
+      .filter((l): l is MapLayer => l !== undefined);
+    if (next.length !== this.scene.layers.length) return;
+    this.applyCommitted((scene) => scene.layers.splice(0, scene.layers.length, ...next));
+  }
+
   activeLayer(): MapLayer | null {
     const id = this.activeLayerId();
     if (!id) return null;

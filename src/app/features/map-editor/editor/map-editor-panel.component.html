@@ -773,17 +773,31 @@
 
       @for (layer of layers(); track layer.id) {
         <div
-          class="rounded-ui border border-solid p-1.5"
-          [class.border-ui-accent]="state.activeLayerId() === layer.id"
-          [class.border-ui-border-panel]="state.activeLayerId() !== layer.id"
+          class="rounded-ui cursor-move border border-solid p-1.5"
+          [class.border-ui-accent]="state.activeLayerId() === layer.id || dragOverLayerId() === layer.id"
+          [class.border-ui-border-panel]="state.activeLayerId() !== layer.id && dragOverLayerId() !== layer.id"
+          [class.opacity-50]="draggingLayerId() === layer.id"
+          draggable="true"
+          (dragstart)="onLayerDragStart(layer, $event)"
+          (dragover)="onLayerDragOver(layer, $event)"
+          (drop)="onLayerDrop(layer, $event)"
+          (dragend)="onLayerDragEnd()"
           (click)="setActive(layer)"
         >
           <div class="flex items-center gap-1">
+            <span
+              class="bg-ui-input border-ui-border-panel block size-7 shrink-0 overflow-hidden rounded-[3px] border border-solid"
+            >
+              @if (layerThumbnails().get(layer.id)) {
+                <img class="size-full object-contain" [src]="layerThumbnails().get(layer.id)" alt="" />
+              }
+            </span>
             <i class="material-icons text-ui-dim text-[15px]!">{{ layerIcon(layer.kind) }}</i>
             @if (renamingLayerId() === layer.id) {
               <input
                 class="bg-ui-input rounded-ui-sm min-w-0 flex-1 px-1"
                 type="text"
+                draggable="false"
                 [ngModel]="layer.name"
                 (keydown.enter)="commitRename(layer, $any($event.target).value)"
                 (blur)="commitRename(layer, $any($event.target).value)"
@@ -813,9 +827,11 @@
               min="0"
               max="1"
               step="0.05"
+              draggable="false"
               [title]="'feature.mapEditor.layers.opacity' | transloco"
               [ngModel]="layer.opacity"
               (click)="$event.stopPropagation()"
+              (mousedown)="$event.stopPropagation()"
               (ngModelChange)="setOpacity(layer, $event)"
             />
             <button

@@ -47,6 +47,7 @@ import {
   ImageItem,
   LayerKind,
   MapLayer,
+  MapScene,
   newId,
   sceneHeightPx,
   sceneWidthPx,
@@ -229,6 +230,8 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly errorNotice = signal('');
   protected readonly exportScale = signal(1);
   protected readonly renamingLayerId = signal<string | null>(null);
+  protected readonly draggingLayerId = signal<string | null>(null);
+  protected readonly dragOverLayerId = signal<string | null>(null);
 
   private draftPoints: number[] = [];
   private draftStart: { x: number; y: number } | null = null;
@@ -268,6 +271,17 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly layers = computed(() => {
     this.state.sceneTick();
     return this.state.layersTopFirst();
+  });
+
+  protected readonly layerThumbnails = computed<Map<string, string>>(() => {
+    this.state.sceneTick();
+    this.renderTick();
+    const map = new Map<string, string>();
+    for (const layer of this.state.layersTopFirst()) {
+      const url = this.renderLayerThumb(layer);
+      if (url) map.set(layer.id, url);
+    }
+    return map;
   });
 
   protected readonly categoryStamps = computed<StampDef[]>(() => getStampsByCategory(this.state.stampCategory()));
@@ -1576,6 +1590,64 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
   protected moveLayerDown(layer: MapLayer): void {
     this.state.applyCommitted(() => moveLayer(this.state.current, layer.id, -1));
+  }
+
+  protected onLayerDragStart(layer: MapLayer, event: DragEvent): void {
+    this.draggingLayerId.set(layer.id);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', layer.id);
+    }
+  }
+
+  protected onLayerDragOver(layer: MapLayer, event: DragEvent): void {
+    if (!this.draggingLayerId()) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    if (this.dragOverLayerId() !== layer.id) this.dragOverLayerId.set(layer.id);
+  }
+
+  protected onLayerDrop(target: MapLayer, event: DragEvent): void {
+    event.preventDefault();
+    const draggedId = this.draggingLayerId();
+    this.draggingLayerId.set(null);
+    this.dragOverLayerId.set(null);
+    if (!draggedId || draggedId === target.id) return;
+    const order = this.layers().map((l) => l.id);
+    const from = order.indexOf(draggedId);
+    const to = order.indexOf(target.id);
+    if (from === -1 || to === -1) return;
+    order.splice(from, 1);
+    order.splice(to, 0, draggedId);
+    this.state.reorderLayersTopFirst(order);
+  }
+
+  protected onLayerDragEnd(): void {
+    this.draggingLayerId.set(null);
+    this.dragOverLayerId.set(null);
+  }
+
+  private renderLayerThumb(layer: MapLayer): string {
+    if (typeof document === 'undefined') return '';
+    const scene = this.state.current;
+    const w = sceneWidthPx(scene);
+    const h = sceneHeightPx(scene);
+    if (w <= 0 || h <= 0) return '';
+    const maxDim = 48;
+    const scale = Math.min(maxDim / w, maxDim / h);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(w * scale));
+    canvas.height = Math.max(1, Math.round(h * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+    const single: MapScene = { ...scene, gridVisible: false, background: 'transparent', layers: [layer] };
+    ctx.scale(scale, scale);
+    renderScene(ctx, single, this.buildHelpers(ctx), { drawGrid: false });
+    try {
+      return canvas.toDataURL();
+    } catch {
+      return '';
+    }
   }
 
   protected deleteLayer(layer: MapLayer): void {

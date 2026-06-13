@@ -172,6 +172,38 @@ describe('MapEditorState', () => {
     expect(shapeLayers.length).toBe(2);
   });
 
+  it('スタンプは1つごとに専用レイヤーを作る', () => {
+    state.stampId.set('door-single');
+    state.placeStamp(10, 10, 'スタンプ 1');
+    state.placeStamp(20, 20, 'スタンプ 2');
+    const stampLayers = state.current.layers.filter((l) => l.kind === 'stamp');
+    expect(stampLayers.length).toBe(2);
+  });
+
+  it('reorderLayersTopFirst は表示順の id 配列でレイヤーを並び替え undo できる', () => {
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'a');
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'b');
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'c');
+    const beforeBottomFirst = state.current.layers.map((l) => l.name);
+    expect(beforeBottomFirst).toEqual(['a', 'b', 'c']);
+
+    const topFirst = state.layersTopFirst().map((l) => l.id);
+    const moved = [topFirst[2], topFirst[0], topFirst[1]];
+    state.reorderLayersTopFirst(moved);
+
+    expect(state.layersTopFirst().map((l) => l.name)).toEqual(['a', 'c', 'b']);
+    state.undo();
+    expect(state.current.layers.map((l) => l.name)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('reorderLayersTopFirst は id 数が合わなければ何もしない', () => {
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'a');
+    state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'b');
+    const before = state.current.layers.map((l) => l.id);
+    state.reorderLayersTopFirst([before[0]]);
+    expect(state.current.layers.map((l) => l.id)).toEqual(before);
+  });
+
   it('setGridType は確定され setGridType の値を反映する', () => {
     state.setGridType(GridType.HEX_VERTICAL);
     expect(state.current.gridType).toBe(GridType.HEX_VERTICAL);
