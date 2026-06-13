@@ -1,6 +1,6 @@
 import { StampDef } from '@axe/features/map-editor/assets/stamp-types';
 
-const DEFAULT_COLOR = '#e8e8ea';
+const DEFAULT_COLOR = '#1a1a1a';
 
 interface CacheEntry {
   image: HTMLImageElement;

@@ -571,7 +571,7 @@
                   <input
                     type="checkbox"
                     [ngModel]="$any(sel.item).color === null"
-                    (ngModelChange)="state.updateSelectedStamp({ color: $event ? null : '#e8e8ea' })"
+                    (ngModelChange)="state.updateSelectedStamp({ color: $event ? null : '#1a1a1a' })"
                   />
                   <span class="text-ui-muted text-[10px]">{{
                     'feature.mapEditor.props.stampColorAuto' | transloco
@@ -579,7 +579,7 @@
                 </label>
                 <input
                   type="color"
-                  [ngModel]="$any(sel.item).color ?? '#e8e8ea'"
+                  [ngModel]="$any(sel.item).color ?? '#1a1a1a'"
                   [disabled]="$any(sel.item).color === null"
                   (ngModelChange)="state.updateSelectedStamp({ color: $event })"
                 />

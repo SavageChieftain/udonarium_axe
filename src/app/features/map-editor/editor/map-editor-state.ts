@@ -96,7 +96,7 @@ export class MapEditorState {
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
   readonly lineKind = signal<LineKind>('straight');
 
-  readonly strokeColor = signal('#e8e8ea');
+  readonly strokeColor = signal('#1a1a1a');
   readonly strokeWidth = signal(3);
   readonly strokeDash = signal<StrokeDash>('solid');
   readonly strokeFillMode = signal<'color' | 'texture'>('color');
@@ -115,11 +115,11 @@ export class MapEditorState {
   readonly stampFlipY = signal(false);
   readonly stampColor = signal<string | null>(null);
 
-  readonly freehandColor = signal('#e8e8ea');
+  readonly freehandColor = signal('#1a1a1a');
   readonly freehandWidth = signal(4);
 
   readonly fontSize = signal(20);
-  readonly textColor = signal('#e8e8ea');
+  readonly textColor = signal('#1a1a1a');
   readonly textBold = signal(false);
   readonly textItalic = signal(false);
 
