@@ -1290,6 +1290,8 @@
         "textureCropApply": "切り抜く",
         "stroke": "線",
         "strokeWidth": "線幅",
+        "eraserSize": "消しゴムサイズ",
+        "eraserHint": "セルレイヤーではマスを、それ以外の選択中レイヤーでは要素を消します。フリーハンドは線を部分的に消します。",
         "dash": "線種",
         "dashKinds": {
           "solid": "実線",

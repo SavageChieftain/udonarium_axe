@@ -515,6 +515,26 @@
         </div>
       }
 
+      @if (state.tool() === 'cellErase') {
+        <div class="flex flex-col gap-2">
+          <div class="font-semibold">{{ 'feature.mapEditor.tools.cellErase' | transloco }}</div>
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.mapEditor.props.eraserSize' | transloco }}</span>
+            <input
+              type="range"
+              min="4"
+              max="128"
+              step="2"
+              [ngModel]="state.eraserSize()"
+              (ngModelChange)="state.eraserSize.set($event)"
+            />
+          </label>
+          <p class="text-ui-muted text-[10px] leading-snug">
+            {{ 'feature.mapEditor.props.eraserHint' | transloco }}
+          </p>
+        </div>
+      }
+
       @if (state.tool() === 'text') {
         <div class="flex flex-col gap-2">
           <div class="font-semibold">{{ 'feature.mapEditor.props.text' | transloco }}</div>

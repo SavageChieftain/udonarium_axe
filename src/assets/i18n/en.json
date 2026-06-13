@@ -1290,6 +1290,8 @@
         "textureCropApply": "Crop",
         "stroke": "Stroke",
         "strokeWidth": "Width",
+        "eraserSize": "Eraser size",
+        "eraserHint": "Erases cells on a cell layer, or items on the active layer; freehand strokes are erased partially.",
         "dash": "Line style",
         "dashKinds": {
           "solid": "Solid",

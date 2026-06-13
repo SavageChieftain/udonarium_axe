@@ -37,6 +37,7 @@ import {
   addStroke,
   addText,
   eraseCell,
+  eraseStrokeAtPoint,
   floodFill,
   removeImage,
   removeShape,
@@ -118,6 +119,8 @@ export class MapEditorState {
 
   readonly freehandColor = signal('#1a1a1a');
   readonly freehandWidth = signal(4);
+
+  readonly eraserSize = signal(16);
 
   readonly fontSize = signal(20);
   readonly textColor = signal('#1a1a1a');
@@ -677,15 +680,33 @@ export class MapEditorState {
     return null;
   }
 
-  eraseHitInActiveLayer(x: number, y: number): void {
+  eraseAt(x: number, y: number, radius: number): void {
     const layer = this.activeLayer();
     if (!layer || layer.locked || layer.kind === 'cell') return;
+    if (layer.kind === 'freehand') {
+      const next: FreehandStroke[] = [];
+      let changed = false;
+      for (const stroke of layer.strokes) {
+        const parts = eraseStrokeAtPoint(stroke, x, y, radius + stroke.width / 2);
+        if (!parts) {
+          next.push(stroke);
+          continue;
+        }
+        changed = true;
+        for (const part of parts) next.push({ ...part, id: newId() });
+      }
+      if (!changed) return;
+      layer.strokes.splice(0, layer.strokes.length, ...next);
+      const sel = this.selection();
+      if (sel && !next.some((s) => s.id === sel.itemId)) this.selection.set(null);
+      this.bump();
+      return;
+    }
     const id = this.hitInLayer(layer, x, y);
     if (!id) return;
     if (layer.kind === 'stamp') removeStamp(layer, id);
     else if (layer.kind === 'text') removeText(layer, id);
     else if (layer.kind === 'shape') removeShape(layer, id);
-    else if (layer.kind === 'freehand') removeStroke(layer, id);
     else if (layer.kind === 'image') removeImage(layer, id);
     if (this.selection()?.itemId === id) this.selection.set(null);
     this.bump();

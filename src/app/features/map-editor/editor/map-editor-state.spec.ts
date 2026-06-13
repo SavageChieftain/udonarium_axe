@@ -157,20 +157,40 @@ describe('MapEditorState', () => {
     expect(layer.strokes[0].width).toBe(12);
   });
 
-  it('eraseHitInActiveLayer はアクティブなフリーハンドレイヤーのヒットしたストロークだけ消す', () => {
+  it('eraseAt はフリーハンドの線を部分的に消し、残りを分割して保持する', () => {
+    state.addFreehand([0, 0, 20, 0, 40, 0, 60, 0, 80, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
+    state.setActiveLayer(layer.id);
+    state.eraseAt(40, 0, 5);
+    const strokes = layer.strokes;
+    expect(strokes.length).toBe(2);
+    expect(strokes[0].points).toEqual([0, 0, 20, 0]);
+    expect(strokes[1].points).toEqual([60, 0, 80, 0]);
+  });
+
+  it('eraseAt は離れた位置では何も消さない', () => {
     state.addFreehand([0, 0, 100, 0]);
     const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
     state.setActiveLayer(layer.id);
-    state.eraseHitInActiveLayer(500, 500);
+    state.eraseAt(500, 500, 16);
     expect(layer.strokes.length).toBe(1);
-    state.eraseHitInActiveLayer(50, 0);
-    expect(layer.strokes.length).toBe(0);
+    expect(layer.strokes[0].points).toEqual([0, 0, 100, 0]);
   });
 
-  it('eraseHitInActiveLayer はセルレイヤーには作用しない', () => {
+  it('eraseAt はスタンプなど線以外の要素はヒットした要素ごと消す', () => {
+    state.stampId.set('door-single');
+    state.stampSize.set(64);
+    state.placeStamp(100, 100, 'スタンプ 1');
+    const layer = state.current.layers.find((l) => l.kind === 'stamp') as StampLayer;
+    state.setActiveLayer(layer.id);
+    state.eraseAt(100, 100, 8);
+    expect(layer.items.length).toBe(0);
+  });
+
+  it('eraseAt はセルレイヤーには作用しない', () => {
     const cell = state.ensureLayerFor('cell');
     state.setActiveLayer(cell.id);
-    expect(() => state.eraseHitInActiveLayer(0, 0)).not.toThrow();
+    expect(() => state.eraseAt(0, 0, 16)).not.toThrow();
   });
 
   it('snap はスナップ有効時にセル半分単位へ丸める', () => {

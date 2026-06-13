@@ -242,6 +242,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private lastPaintedCell: string | null = null;
   private lastPaintPx: { x: number; y: number } | null = null;
   private vectorErasing = false;
+  private lastErasePx: { x: number; y: number } | null = null;
   private lastMove: { x: number; y: number } | null = null;
   private lastPointerScene: { x: number; y: number } | null = null;
   private pendingTextFocus = false;
@@ -516,6 +517,19 @@ export class MapEditorPanelComponent implements AfterViewInit {
         }
         ctx.restore();
       }
+    }
+
+    if (tool === 'cellErase' && this.isVectorEraseTarget() && this.lastMove && !this.panning()) {
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(91, 157, 255, 0.15)';
+      ctx.strokeStyle = '#5b9dff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(this.lastMove.x, this.lastMove.y, this.state.eraserSize(), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
     }
 
     if (
@@ -968,8 +982,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
     if (tool === 'cellErase' && this.isVectorEraseTarget()) {
       this.vectorErasing = true;
+      this.lastErasePx = null;
       this.state.beginGesture();
-      this.state.eraseHitInActiveLayer(pos.x, pos.y);
+      this.eraseVectorAlong(pos);
       return;
     }
     if (tool === 'cellPaint' || tool === 'cellErase') {
@@ -1084,7 +1099,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
       return;
     }
     if (tool === 'cellErase' && this.vectorErasing) {
-      this.state.eraseHitInActiveLayer(pos.x, pos.y);
+      this.eraseVectorAlong(pos);
       return;
     }
     if (tool === 'cellPaint' || tool === 'cellErase') {
@@ -1276,6 +1291,19 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   protected cancelDraftPublic(): void {
     this.cancelDraft();
+  }
+
+  private eraseVectorAlong(pos: { x: number; y: number }): void {
+    const radius = this.state.eraserSize();
+    const from = this.lastErasePx ?? pos;
+    const dist = Math.hypot(pos.x - from.x, pos.y - from.y);
+    const step = Math.max(1, radius / 2);
+    const samples = Math.max(1, Math.ceil(dist / step));
+    for (let i = 1; i <= samples; i += 1) {
+      const t = i / samples;
+      this.state.eraseAt(from.x + (pos.x - from.x) * t, from.y + (pos.y - from.y) * t, radius);
+    }
+    this.lastErasePx = pos;
   }
 
   private paintAt(pos: { x: number; y: number }, tool: EditorTool): void {

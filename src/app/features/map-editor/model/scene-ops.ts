@@ -157,6 +157,31 @@ export function updateStroke(layer: FreehandLayer, id: string, patch: Partial<Fr
   if (idx !== -1) layer.strokes[idx] = { ...layer.strokes[idx], ...patch, id };
 }
 
+export function eraseStrokeAtPoint(
+  stroke: FreehandStroke,
+  ex: number,
+  ey: number,
+  radius: number
+): FreehandStroke[] | null {
+  const pts = stroke.points;
+  const runs: number[][] = [];
+  let current: number[] = [];
+  let erasedAny = false;
+  for (let i = 0; i + 1 < pts.length; i += 2) {
+    const within = Math.hypot(pts[i] - ex, pts[i + 1] - ey) <= radius;
+    if (within) {
+      erasedAny = true;
+      if (current.length >= 4) runs.push(current);
+      current = [];
+    } else {
+      current.push(pts[i], pts[i + 1]);
+    }
+  }
+  if (current.length >= 4) runs.push(current);
+  if (!erasedAny) return null;
+  return runs.map((points) => ({ ...stroke, id: '', points }));
+}
+
 export function addText(layer: TextLayer, item: TextItem): void {
   if (!item.id) item.id = newId();
   layer.items.push(item);
