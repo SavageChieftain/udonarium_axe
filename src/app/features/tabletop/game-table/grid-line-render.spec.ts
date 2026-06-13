@@ -11,6 +11,10 @@ function createCanvasMock() {
     moveTo: vi.fn(),
     stroke: vi.fn(),
     strokeRect: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    translate: vi.fn(),
+    transform: vi.fn(),
     fillStyle: '',
     font: '',
     lineWidth: 0,
@@ -48,6 +52,44 @@ describe('GridLineRender', () => {
       expect(canvas.height).toBe(130);
       expect(context.stroke).toHaveBeenCalled();
       expect(context.fillText).toHaveBeenCalled();
+    });
+
+    it('ラベルに接頭辞 (壁の向き) を付与すること', () => {
+      const { canvas, context } = createCanvasMock();
+
+      new GridLineRender(canvas).renderViewport(100, 100, 50, GridType.SQUARE, '#000', '#000', 25, 75, true, 'N');
+
+      expect(context.fillText).toHaveBeenCalledWith('N-2-1', 0, 0);
+    });
+
+    it('ラベル変換行列を各ラベルへ適用すること (壁の鏡像補正)', () => {
+      const { canvas, context } = createCanvasMock();
+
+      new GridLineRender(canvas).renderViewport(
+        50,
+        50,
+        50,
+        GridType.SQUARE,
+        '#000',
+        '#000',
+        0,
+        0,
+        true,
+        'S',
+        [-1, 0, 0, 1]
+      );
+
+      expect(context.translate).toHaveBeenCalledWith(25, 25);
+      expect(context.transform).toHaveBeenCalledWith(-1, 0, 0, 1, 0, 0);
+      expect(context.fillText).toHaveBeenCalledWith('S-1-1', 0, 0);
+    });
+
+    it('drawLabels=false ならラベルを描画しないこと', () => {
+      const { canvas, context } = createCanvasMock();
+
+      new GridLineRender(canvas).renderViewport(100, 100, 50, GridType.SQUARE, '#000', '#000', 0, 0, false);
+
+      expect(context.fillText).not.toHaveBeenCalled();
     });
   });
 });

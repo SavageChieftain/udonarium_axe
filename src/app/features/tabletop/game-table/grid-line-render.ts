@@ -65,7 +65,9 @@ export class GridLineRender {
     gridFontColor: string = gridColor,
     offsetTopPx: number = 0,
     offsetLeftPx: number = 0,
-    drawLabels: boolean = true
+    drawLabels: boolean = true,
+    labelPrefix: string = '',
+    labelMatrix: readonly [number, number, number, number] | null = null
   ) {
     this.canvasElement.width = Math.max(1, Math.ceil(widthPx));
     this.canvasElement.height = Math.max(1, Math.ceil(heightPx));
@@ -77,7 +79,17 @@ export class GridLineRender {
 
     switch (gridType) {
       case GridType.SQUARE:
-        this.renderSquareGridViewport(context, widthPx, heightPx, gridSize, offsetTopPx, offsetLeftPx, drawLabels);
+        this.renderSquareGridViewport(
+          context,
+          widthPx,
+          heightPx,
+          gridSize,
+          offsetTopPx,
+          offsetLeftPx,
+          drawLabels,
+          labelPrefix,
+          labelMatrix
+        );
         break;
       case GridType.HEX_VERTICAL:
       case GridType.HEX_HORIZONTAL:
@@ -89,10 +101,30 @@ export class GridLineRender {
           gridType,
           offsetTopPx,
           offsetLeftPx,
-          drawLabels
+          drawLabels,
+          labelPrefix,
+          labelMatrix
         );
         break;
     }
+  }
+
+  private drawCellLabel(
+    context: CanvasRenderingContext2D,
+    text: string,
+    cx: number,
+    cy: number,
+    labelMatrix: readonly [number, number, number, number] | null
+  ): void {
+    if (!labelMatrix) {
+      context.fillText(text, cx, cy);
+      return;
+    }
+    context.save();
+    context.translate(cx, cy);
+    context.transform(labelMatrix[0], labelMatrix[1], labelMatrix[2], labelMatrix[3], 0, 0);
+    context.fillText(text, 0, 0);
+    context.restore();
   }
 
   private renderSquareGrid(
@@ -163,12 +195,15 @@ export class GridLineRender {
     gridSize: number,
     offsetTopPx: number,
     offsetLeftPx: number,
-    drawLabels: boolean = true
+    drawLabels: boolean = true,
+    labelPrefix: string = '',
+    labelMatrix: readonly [number, number, number, number] | null = null
   ) {
     const firstCol = Math.floor(offsetLeftPx / gridSize);
     const lastCol = Math.ceil((offsetLeftPx + widthPx) / gridSize);
     const firstRow = Math.floor(offsetTopPx / gridSize);
     const lastRow = Math.ceil((offsetTopPx + heightPx) / gridSize);
+    const prefix = labelPrefix ? `${labelPrefix}-` : '';
 
     for (let row = firstRow; row < lastRow; row++) {
       for (let col = firstCol; col < lastCol; col++) {
@@ -176,7 +211,15 @@ export class GridLineRender {
         const gy = row * gridSize - offsetTopPx;
         context.beginPath();
         context.strokeRect(gx, gy, gridSize, gridSize);
-        if (drawLabels) context.fillText(`${col + 1}-${row + 1}`, gx + gridSize / 2, gy + gridSize / 2);
+        if (drawLabels) {
+          this.drawCellLabel(
+            context,
+            `${prefix}${col + 1}-${row + 1}`,
+            gx + gridSize / 2,
+            gy + gridSize / 2,
+            labelMatrix
+          );
+        }
       }
     }
   }
@@ -189,7 +232,9 @@ export class GridLineRender {
     gridType: GridType,
     offsetTopPx: number,
     offsetLeftPx: number,
-    drawLabels: boolean = true
+    drawLabels: boolean = true,
+    labelPrefix: string = '',
+    labelMatrix: readonly [number, number, number, number] | null = null
   ) {
     const s = hexCircumradius(gridSize);
     const isFlatTop = gridType === GridType.HEX_VERTICAL;
@@ -204,6 +249,7 @@ export class GridLineRender {
     const lastRow = Math.ceil((offsetTopPx + heightPx) / rowSpacing) + rowExtra;
 
     context.textBaseline = 'middle';
+    const prefix = labelPrefix ? `${labelPrefix}-` : '';
 
     for (let row = firstRow; row <= lastRow; row++) {
       for (let col = firstCol; col <= lastCol; col++) {
@@ -214,7 +260,7 @@ export class GridLineRender {
         if (cx < -gridSize || cx > widthPx + gridSize || cy < -gridSize || cy > heightPx + gridSize) continue;
 
         strokeHexPath(context, cx, cy, s, startAngle);
-        if (drawLabels) context.fillText(`${col + 1}-${row + 1}`, cx, cy);
+        if (drawLabels) this.drawCellLabel(context, `${prefix}${col + 1}-${row + 1}`, cx, cy, labelMatrix);
       }
     }
   }

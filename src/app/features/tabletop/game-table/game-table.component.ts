@@ -274,8 +274,12 @@ export class GameTableComponent {
   readonly activeWalls = computed<readonly ActiveWall[]>(() => {
     const state = this.wallState();
     const table = this.watchCurrentTable();
-    const widthGrid = state.gridShow ? this.wallGridDataUrl(state.widthPx, state.heightPx, table) : '';
-    const depthGrid = state.gridShow ? this.wallGridDataUrl(state.depthPx, state.heightPx, table) : '';
+    const grid = (
+      widthPx: number,
+      heightPx: number,
+      prefix: string,
+      matrix: readonly [number, number, number, number] | null
+    ) => (state.gridShow ? this.wallGridDataUrl(widthPx, heightPx, table, prefix, matrix) : '');
     const walls = [] as ActiveWall[];
     const north = this.northWallImage();
     if (state.showNorth && north.url) {
@@ -287,7 +291,7 @@ export class GameTableComponent {
         containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
-        ...this.wallBackground(north.url, widthGrid),
+        ...this.wallBackground(north.url, grid(state.widthPx, state.heightPx, 'N', null)),
       });
     }
     const south = this.southWallImage();
@@ -300,7 +304,7 @@ export class GameTableComponent {
         containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
-        ...this.wallBackground(south.url, widthGrid),
+        ...this.wallBackground(south.url, grid(state.widthPx, state.heightPx, 'S', [-1, 0, 0, 1])),
       });
     }
     const west = this.westWallImage();
@@ -313,7 +317,7 @@ export class GameTableComponent {
         containerOrigin: '0% 0%',
         widthPx: state.depthPx,
         heightPx: state.heightPx,
-        ...this.wallBackground(west.url, depthGrid),
+        ...this.wallBackground(west.url, grid(state.depthPx, state.heightPx, 'W', null)),
       });
     }
     const east = this.eastWallImage();
@@ -326,13 +330,19 @@ export class GameTableComponent {
         containerOrigin: '100% 0%',
         widthPx: state.depthPx,
         heightPx: state.heightPx,
-        ...this.wallBackground(east.url, depthGrid),
+        ...this.wallBackground(east.url, grid(state.depthPx, state.heightPx, 'E', null)),
       });
     }
     return walls;
   });
 
-  private wallGridDataUrl(widthPx: number, heightPx: number, table: GameTable): string {
+  private wallGridDataUrl(
+    widthPx: number,
+    heightPx: number,
+    table: GameTable,
+    labelPrefix: string,
+    labelMatrix: readonly [number, number, number, number] | null
+  ): string {
     if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
     try {
       const canvas = document.createElement('canvas');
@@ -345,7 +355,9 @@ export class GameTableComponent {
         table.gridFontColor,
         0,
         0,
-        false
+        true,
+        labelPrefix,
+        labelMatrix
       );
       return canvas.toDataURL();
     } catch {
