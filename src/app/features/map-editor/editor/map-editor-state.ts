@@ -541,6 +541,22 @@ export class MapEditorState {
     this.bump();
   }
 
+  updateSelectedShapePointLive(index: number, x: number, y: number): void {
+    const sel = this.selection();
+    if (!sel) return;
+    const layer = this.findLayerById(sel.layerId);
+    if (!layer || layer.kind !== 'shape') return;
+    const idx = layer.items.findIndex((i) => i.id === sel.itemId);
+    if (idx === -1) return;
+    const item = layer.items[idx];
+    if (index < 0 || index * 2 + 1 >= item.points.length) return;
+    const points = item.points.slice();
+    points[index * 2] = x;
+    points[index * 2 + 1] = y;
+    layer.items[idx] = { ...item, points };
+    this.bump();
+  }
+
   private shapeBbox(item: ShapeItem): { minX: number; minY: number; maxX: number; maxY: number } {
     const p = item.points;
     if (item.shape === 'rect' || item.shape === 'ellipse') {

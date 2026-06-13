@@ -51,6 +51,7 @@ import {
   newId,
   sceneHeightPx,
   sceneWidthPx,
+  ShapeItem,
   StrokeDash,
 } from '@axe/features/map-editor/model/scene';
 import {
@@ -247,6 +248,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private pendingTextInitial = '';
   private panLast: { x: number; y: number } | null = null;
   private imageResize: { item: ImageItem; anchorX: number; anchorY: number } | null = null;
+  private curveDrag: { index: number } | null = null;
 
   protected readonly isGameMaster = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
@@ -647,6 +649,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
     const selImage = this.selectedImageItem();
     if (selImage) this.drawImageHandles(ctx, selImage);
 
+    const selCurve = this.selectedCurveItem();
+    if (selCurve) this.drawCurveHandles(ctx, selCurve);
+
     ctx.restore();
   }
 
@@ -704,6 +709,41 @@ export class MapEditorPanelComponent implements AfterViewInit {
     const layer = this.state.current.layers.find((l) => l.id === sel.layerId);
     if (!layer || layer.kind !== 'image') return null;
     return layer.items.find((i) => i.id === sel.itemId) ?? null;
+  }
+
+  private selectedCurveItem(): ShapeItem | null {
+    if (this.state.tool() !== 'select') return null;
+    const sel = this.state.selection();
+    if (!sel) return null;
+    const layer = this.state.current.layers.find((l) => l.id === sel.layerId);
+    if (!layer || layer.kind !== 'shape') return null;
+    const item = layer.items.find((i) => i.id === sel.itemId);
+    if (!item || (item.shape !== 'curve' && item.shape !== 'closedCurve')) return null;
+    return item;
+  }
+
+  private curveAnchorAt(item: ShapeItem, x: number, y: number): number {
+    const p = item.points;
+    for (let i = 0; i * 2 + 1 < p.length; i += 1) {
+      if (Math.abs(x - p[i * 2]) <= 7 && Math.abs(y - p[i * 2 + 1]) <= 7) return i;
+    }
+    return -1;
+  }
+
+  private drawCurveHandles(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
+    ctx.save();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#5b9dff';
+    ctx.lineWidth = 1.5;
+    const p = item.points;
+    for (let i = 0; i * 2 + 1 < p.length; i += 1) {
+      ctx.beginPath();
+      ctx.arc(p[i * 2], p[i * 2 + 1], 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private imageCorners(item: ImageItem): { x: number; y: number }[] {
@@ -910,6 +950,16 @@ export class MapEditorPanelComponent implements AfterViewInit {
           return;
         }
       }
+      const selCurve = this.selectedCurveItem();
+      if (selCurve) {
+        const anchor = this.curveAnchorAt(selCurve, pos.x, pos.y);
+        if (anchor !== -1) {
+          this.curveDrag = { index: anchor };
+          this.state.beginGesture();
+          this.bumpDraft();
+          return;
+        }
+      }
       this.state.selection.set(this.state.hitTest(pos.x, pos.y));
       this.lastMoveStored = pos;
       this.selectionMoved = false;
@@ -1019,6 +1069,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
         this.bumpDraft();
         return;
       }
+      if (this.curveDrag) {
+        const snapped = this.state.snapPoint(pos.x, pos.y);
+        this.state.updateSelectedShapePointLive(this.curveDrag.index, snapped.x, snapped.y);
+        this.bumpDraft();
+        return;
+      }
       if (this.state.selection() && this.lastMoveStored) {
         this.state.moveSelection(pos.x - this.lastMoveStored.x, pos.y - this.lastMoveStored.y);
         this.selectionMoved = true;
@@ -1073,6 +1129,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
     if (tool === 'select' && this.imageResize) {
       this.state.endGesture();
       this.imageResize = null;
+      this.dragging = false;
+      this.bumpDraft();
+      return;
+    } else if (tool === 'select' && this.curveDrag) {
+      this.state.endGesture();
+      this.curveDrag = null;
       this.dragging = false;
       this.bumpDraft();
       return;

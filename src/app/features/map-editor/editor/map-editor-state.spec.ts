@@ -237,6 +237,22 @@ describe('MapEditorState', () => {
     expect(state.current.layers.map((l) => l.id)).toEqual(before);
   });
 
+  it('updateSelectedShapePointLive は選択中の曲線のアンカー点を移動する', () => {
+    state.addShapeItem('curve', [0, 0, 10, 10, 20, 0], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    state.selection.set({ layerId: layer.id, itemId: layer.items[0].id });
+    state.updateSelectedShapePointLive(1, 15, 25);
+    expect(layer.items[0].points).toEqual([0, 0, 15, 25, 20, 0]);
+  });
+
+  it('updateSelectedShapePointLive は範囲外インデックスを無視する', () => {
+    state.addShapeItem('curve', [0, 0, 10, 10], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+    state.selection.set({ layerId: layer.id, itemId: layer.items[0].id });
+    state.updateSelectedShapePointLive(5, 99, 99);
+    expect(layer.items[0].points).toEqual([0, 0, 10, 10]);
+  });
+
   it('setGridType は確定され setGridType の値を反映する', () => {
     state.setGridType(GridType.HEX_VERTICAL);
     expect(state.current.gridType).toBe(GridType.HEX_VERTICAL);
