@@ -152,6 +152,11 @@ export function removeStroke(layer: FreehandLayer, id: string): void {
   if (idx !== -1) layer.strokes.splice(idx, 1);
 }
 
+export function updateStroke(layer: FreehandLayer, id: string, patch: Partial<FreehandStroke>): void {
+  const idx = layer.strokes.findIndex((s) => s.id === id);
+  if (idx !== -1) layer.strokes[idx] = { ...layer.strokes[idx], ...patch, id };
+}
+
 export function addText(layer: TextLayer, item: TextItem): void {
   if (!item.id) item.id = newId();
   layer.items.push(item);

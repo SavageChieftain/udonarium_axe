@@ -47,6 +47,7 @@ import {
   setCell,
   updateImage,
   updateStamp,
+  updateStroke,
   updateText,
 } from '@axe/features/map-editor/model/scene-ops';
 
@@ -487,7 +488,7 @@ export class MapEditorState {
     this.applyCommitted(() => updateStamp(layer, sel.itemId, patch));
   }
 
-  selectedItem(): { layer: MapLayer; item: ShapeItem | StampItem | TextItem | ImageItem } | null {
+  selectedItem(): { layer: MapLayer; item: ShapeItem | StampItem | TextItem | ImageItem | FreehandStroke } | null {
     const sel = this.selection();
     if (!sel) return null;
     const layer = this.findLayerById(sel.layerId);
@@ -508,7 +509,19 @@ export class MapEditorState {
       const item = layer.items.find((i) => i.id === sel.itemId);
       return item ? { layer, item } : null;
     }
+    if (layer.kind === 'freehand') {
+      const item = layer.strokes.find((s) => s.id === sel.itemId);
+      return item ? { layer, item } : null;
+    }
     return null;
+  }
+
+  updateSelectedFreehand(patch: Partial<FreehandStroke>): void {
+    const sel = this.selection();
+    if (!sel) return;
+    const layer = this.findLayerById(sel.layerId);
+    if (!layer || layer.kind !== 'freehand') return;
+    this.applyCommitted(() => updateStroke(layer, sel.itemId, patch));
   }
 
   updateSelectedImage(patch: Partial<ImageItem>): void {
@@ -583,73 +596,83 @@ export class MapEditorState {
     return { minX, minY: item.y, maxX: minX + width, maxY: item.y + height };
   }
 
-  hitTest(x: number, y: number): Selection | null {
-    for (let i = this.scene.layers.length - 1; i >= 0; i -= 1) {
-      const layer = this.scene.layers[i];
-      if (!layer.visible || layer.locked) continue;
-      if (layer.kind === 'stamp') {
-        for (let j = layer.items.length - 1; j >= 0; j -= 1) {
-          const item = layer.items[j];
-          if (Math.hypot(x - item.x, y - item.y) <= item.size / 2) {
-            return { layerId: layer.id, itemId: item.id };
-          }
+  private hitInLayer(layer: MapLayer, x: number, y: number): string | null {
+    if (layer.kind === 'stamp') {
+      for (let j = layer.items.length - 1; j >= 0; j -= 1) {
+        const item = layer.items[j];
+        if (Math.hypot(x - item.x, y - item.y) <= item.size / 2) return item.id;
+      }
+    } else if (layer.kind === 'text') {
+      for (let j = layer.items.length - 1; j >= 0; j -= 1) {
+        const item = layer.items[j];
+        const b = this.textBbox(item);
+        if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) return item.id;
+      }
+    } else if (layer.kind === 'freehand') {
+      for (let j = layer.strokes.length - 1; j >= 0; j -= 1) {
+        const stroke = layer.strokes[j];
+        if (this.pointToPolylineDistance(x, y, stroke.points) <= Math.max(6, stroke.width / 2 + 2)) return stroke.id;
+      }
+    } else if (layer.kind === 'image') {
+      for (let j = layer.items.length - 1; j >= 0; j -= 1) {
+        const item = layer.items[j];
+        if (
+          x >= item.x - item.w / 2 &&
+          x <= item.x + item.w / 2 &&
+          y >= item.y - item.h / 2 &&
+          y <= item.y + item.h / 2
+        ) {
+          return item.id;
         }
-      } else if (layer.kind === 'text') {
-        for (let j = layer.items.length - 1; j >= 0; j -= 1) {
-          const item = layer.items[j];
-          const b = this.textBbox(item);
-          if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) {
-            return { layerId: layer.id, itemId: item.id };
+      }
+    } else if (layer.kind === 'shape') {
+      for (let j = layer.items.length - 1; j >= 0; j -= 1) {
+        const item = layer.items[j];
+        if (item.shape === 'line') {
+          const p = item.points;
+          const width = item.stroke ? item.stroke.width : 1;
+          if (p.length >= 4 && this.pointToSegmentDistance(x, y, p[0], p[1], p[2], p[3]) <= Math.max(6, width)) {
+            return item.id;
           }
-        }
-      } else if (layer.kind === 'freehand') {
-        for (let j = layer.strokes.length - 1; j >= 0; j -= 1) {
-          const stroke = layer.strokes[j];
-          if (this.pointToPolylineDistance(x, y, stroke.points) <= Math.max(6, stroke.width / 2 + 2)) {
-            return { layerId: layer.id, itemId: stroke.id };
+        } else if (item.shape === 'polyline') {
+          const width = item.stroke ? item.stroke.width : 1;
+          if (this.pointToPolylineDistance(x, y, item.points) <= Math.max(6, width)) return item.id;
+        } else if (item.shape === 'curve') {
+          const width = item.stroke ? item.stroke.width : 1;
+          if (this.pointToPolylineDistance(x, y, sampleCurvePoints(item.points, false)) <= Math.max(6, width)) {
+            return item.id;
           }
-        }
-      } else if (layer.kind === 'image') {
-        for (let j = layer.items.length - 1; j >= 0; j -= 1) {
-          const item = layer.items[j];
-          if (
-            x >= item.x - item.w / 2 &&
-            x <= item.x + item.w / 2 &&
-            y >= item.y - item.h / 2 &&
-            y <= item.y + item.h / 2
-          ) {
-            return { layerId: layer.id, itemId: item.id };
-          }
-        }
-      } else if (layer.kind === 'shape') {
-        for (let j = layer.items.length - 1; j >= 0; j -= 1) {
-          const item = layer.items[j];
-          if (item.shape === 'line') {
-            const p = item.points;
-            const width = item.stroke ? item.stroke.width : 1;
-            if (p.length >= 4 && this.pointToSegmentDistance(x, y, p[0], p[1], p[2], p[3]) <= Math.max(6, width)) {
-              return { layerId: layer.id, itemId: item.id };
-            }
-          } else if (item.shape === 'polyline') {
-            const width = item.stroke ? item.stroke.width : 1;
-            if (this.pointToPolylineDistance(x, y, item.points) <= Math.max(6, width)) {
-              return { layerId: layer.id, itemId: item.id };
-            }
-          } else if (item.shape === 'curve') {
-            const width = item.stroke ? item.stroke.width : 1;
-            if (this.pointToPolylineDistance(x, y, sampleCurvePoints(item.points, false)) <= Math.max(6, width)) {
-              return { layerId: layer.id, itemId: item.id };
-            }
-          } else {
-            const b = this.shapeBbox(item);
-            if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) {
-              return { layerId: layer.id, itemId: item.id };
-            }
-          }
+        } else {
+          const b = this.shapeBbox(item);
+          if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) return item.id;
         }
       }
     }
     return null;
+  }
+
+  hitTest(x: number, y: number): Selection | null {
+    for (let i = this.scene.layers.length - 1; i >= 0; i -= 1) {
+      const layer = this.scene.layers[i];
+      if (!layer.visible || layer.locked) continue;
+      const itemId = this.hitInLayer(layer, x, y);
+      if (itemId) return { layerId: layer.id, itemId };
+    }
+    return null;
+  }
+
+  eraseHitInActiveLayer(x: number, y: number): void {
+    const layer = this.activeLayer();
+    if (!layer || layer.locked || layer.kind === 'cell') return;
+    const id = this.hitInLayer(layer, x, y);
+    if (!id) return;
+    if (layer.kind === 'stamp') removeStamp(layer, id);
+    else if (layer.kind === 'text') removeText(layer, id);
+    else if (layer.kind === 'shape') removeShape(layer, id);
+    else if (layer.kind === 'freehand') removeStroke(layer, id);
+    else if (layer.kind === 'image') removeImage(layer, id);
+    if (this.selection()?.itemId === id) this.selection.set(null);
+    this.bump();
   }
 
   snap(v: number): number {

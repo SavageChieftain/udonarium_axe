@@ -240,6 +240,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private dragging = false;
   private lastPaintedCell: string | null = null;
   private lastPaintPx: { x: number; y: number } | null = null;
+  private vectorErasing = false;
   private lastMove: { x: number; y: number } | null = null;
   private lastPointerScene: { x: number; y: number } | null = null;
   private pendingTextFocus = false;
@@ -488,7 +489,11 @@ export class MapEditorPanelComponent implements AfterViewInit {
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
 
-    if ((tool === 'cellPaint' || tool === 'cellErase' || tool === 'fill') && this.lastMove && !this.panning()) {
+    if (
+      (tool === 'cellPaint' || tool === 'fill' || (tool === 'cellErase' && !this.isVectorEraseTarget())) &&
+      this.lastMove &&
+      !this.panning()
+    ) {
       const cellPx = scene.cellPx;
       const cell = pointToCell(scene.gridType, this.lastMove.x, this.lastMove.y, cellPx);
       if (cell.col >= 0 && cell.row >= 0 && cell.col < scene.cols && cell.row < scene.rows) {
@@ -911,7 +916,14 @@ export class MapEditorPanelComponent implements AfterViewInit {
       this.bumpDraft();
       return;
     }
+    if (tool === 'cellErase' && this.isVectorEraseTarget()) {
+      this.vectorErasing = true;
+      this.state.beginGesture();
+      this.state.eraseHitInActiveLayer(pos.x, pos.y);
+      return;
+    }
     if (tool === 'cellPaint' || tool === 'cellErase') {
+      this.vectorErasing = false;
       this.state.beginGesture();
       this.lastPaintedCell = null;
       this.lastPaintPx = null;
@@ -1013,6 +1025,10 @@ export class MapEditorPanelComponent implements AfterViewInit {
       }
       this.lastMoveStored = pos;
       this.bumpDraft();
+      return;
+    }
+    if (tool === 'cellErase' && this.vectorErasing) {
+      this.state.eraseHitInActiveLayer(pos.x, pos.y);
       return;
     }
     if (tool === 'cellPaint' || tool === 'cellErase') {
@@ -1675,6 +1691,11 @@ export class MapEditorPanelComponent implements AfterViewInit {
       if (found) found.name = name;
     });
     this.renamingLayerId.set(null);
+  }
+
+  private isVectorEraseTarget(): boolean {
+    const layer = this.state.activeLayer();
+    return !!layer && !layer.locked && layer.kind !== 'cell';
   }
 
   protected addLayerOfKind(kind: LayerKind): void {

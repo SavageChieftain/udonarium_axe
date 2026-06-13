@@ -148,6 +148,31 @@ describe('MapEditorState', () => {
     expect(state.selection()).toBeNull();
   });
 
+  it('updateSelectedFreehand は選択中ストロークの色と幅を更新する', () => {
+    state.addFreehand([0, 0, 100, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
+    state.selection.set({ layerId: layer.id, itemId: layer.strokes[0].id });
+    state.updateSelectedFreehand({ color: '#123456', width: 12 });
+    expect(layer.strokes[0].color).toBe('#123456');
+    expect(layer.strokes[0].width).toBe(12);
+  });
+
+  it('eraseHitInActiveLayer はアクティブなフリーハンドレイヤーのヒットしたストロークだけ消す', () => {
+    state.addFreehand([0, 0, 100, 0]);
+    const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
+    state.setActiveLayer(layer.id);
+    state.eraseHitInActiveLayer(500, 500);
+    expect(layer.strokes.length).toBe(1);
+    state.eraseHitInActiveLayer(50, 0);
+    expect(layer.strokes.length).toBe(0);
+  });
+
+  it('eraseHitInActiveLayer はセルレイヤーには作用しない', () => {
+    const cell = state.ensureLayerFor('cell');
+    state.setActiveLayer(cell.id);
+    expect(() => state.eraseHitInActiveLayer(0, 0)).not.toThrow();
+  });
+
   it('snap はスナップ有効時にセル半分単位へ丸める', () => {
     state.snapEnabled.set(true);
     expect(state.snap(40)).toBe(32);

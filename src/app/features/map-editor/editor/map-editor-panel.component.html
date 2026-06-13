@@ -665,6 +665,27 @@
               <span class="text-ui-muted">{{ 'feature.mapEditor.props.imageClipCells' | transloco }}</span>
             </label>
           }
+          @if (sel.layer.kind === 'freehand') {
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapEditor.props.color' | transloco }}</span>
+              <input
+                type="color"
+                [ngModel]="$any(sel.item).color"
+                (ngModelChange)="state.updateSelectedFreehand({ color: $event })"
+              />
+            </label>
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-ui-muted">{{ 'feature.mapEditor.props.strokeWidth' | transloco }}</span>
+              <input
+                type="range"
+                min="1"
+                max="30"
+                step="1"
+                [ngModel]="$any(sel.item).width"
+                (ngModelChange)="state.updateSelectedFreehand({ width: $event })"
+              />
+            </label>
+          }
           <button
             class="rounded-ui-sm bg-ui-input hover:bg-ui-hover flex items-center justify-center gap-1 px-2 py-1"
             (click)="state.deleteSelection()"
