@@ -1,3 +1,25 @@
+## [1.16.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.15.0...v1.16.0) (2026-06-13)
+
+### ✨ Features
+
+* **map-editor:** edit committed curves by dragging their anchor points ([0584a50](https://github.com/SavageChieftain/udonarium_axe/commit/0584a504a98d9f9e91b60f5189b56341c8f186a6))
+* **map-editor:** edit freehand strokes and make the eraser context-aware ([8c57946](https://github.com/SavageChieftain/udonarium_axe/commit/8c5794662ecf252a5dcdf7ddd54642e3879020e6))
+* **map-editor:** erase freehand strokes partially like a Photoshop eraser ([c9a1251](https://github.com/SavageChieftain/udonarium_axe/commit/c9a125144ea04c77d29fbbf8281fd1ff17b1e17b))
+* **map-editor:** inline text editing in place on the canvas ([1ef46ac](https://github.com/SavageChieftain/udonarium_axe/commit/1ef46ac8958d133c54a401d2f17de574b6321899))
+* **map-editor:** place each stamp on its own layer ([6444a80](https://github.com/SavageChieftain/udonarium_axe/commit/6444a807d0d33ba425694aa53d508b73aa030552))
+* **map-editor:** reorder layers by drag-and-drop with mini previews ([d74e47f](https://github.com/SavageChieftain/udonarium_axe/commit/d74e47f40cec4262221c6a8ac073cb25a03ff845))
+* **map-editor:** use uploaded images as stamps via the マップスタンプ tag ([88d80b9](https://github.com/SavageChieftain/udonarium_axe/commit/88d80b9a10e2792c5bdf9b929605095de35f7657))
+
+### 🐛 Bug Fixes
+
+* **map-editor:** always create a new layer from the add-layer menu ([4d151c9](https://github.com/SavageChieftain/udonarium_axe/commit/4d151c9e2fadff60687eceaac64d72bcd062caf2))
+* **map-editor:** stop canvas drags from moving the floating window ([2688c85](https://github.com/SavageChieftain/udonarium_axe/commit/2688c8561b3b4546d4a859f90a3d3ae6320a79e9))
+* **map-editor:** use dark default colors so strokes are visible ([9d59b07](https://github.com/SavageChieftain/udonarium_axe/commit/9d59b07126954f117fc9fd53b765d3c43bf6697c)), closes [#e8e8ea](https://github.com/SavageChieftain/udonarium_axe/issues/e8e8ea)
+
+### 📝 Documentation
+
+* **website:** add v1.15.0 release notes ([2af10e0](https://github.com/SavageChieftain/udonarium_axe/commit/2af10e067f98c4dc8524713d27961f57d3292d7e))
+
 ## [1.15.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.14.0...v1.15.0) (2026-06-13)
 
 ### ✨ Features
