@@ -1,13 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 beforeEach(() => {
-  TestBed.configureTestingModule({});
+  TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
   const store = ObjectStore.instance;
   for (const obj of store.getObjects()) store.delete(obj, false);
   store.clearDeleteHistory();
@@ -22,10 +25,12 @@ function makeTerrain(opts: {
   altitude?: number;
   posZ?: number;
   identifier?: string;
+  surface?: TableSurface;
 }): TabletopOverlapRegistryEntry {
   const terrain = Terrain.create('t', opts.w, opts.d, opts.h, '', '', opts.identifier ?? `terrain_${opts.x}_${opts.y}`);
   terrain.location.x = opts.x;
   terrain.location.y = opts.y;
+  if (opts.surface) terrain.location.surface = opts.surface;
   terrain.posZ = opts.posZ ?? 0;
   void terrain.altitude;
   terrain.altitude = opts.altitude ?? 0;
@@ -248,5 +253,51 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     await Promise.resolve();
 
     expect((svc as unknown as { applying: boolean }).applying).toBe(false);
+  });
+
+  function selectTable(opts: { width: number; height: number; wallHeight: number }): void {
+    const table = new GameTable();
+    table.initialize();
+    table.width = opts.width;
+    table.height = opts.height;
+    table.wallHeight = opts.wallHeight;
+    table.gridSize = 50;
+    TestBed.inject(TabletopService).tableSelecter.viewTableIdentifier = table.identifier;
+  }
+
+  it('壁から伸びた地形 (梁) の天面に床のキャラクターが着地する', () => {
+    selectTable({ width: 10, height: 10, wallHeight: 10 });
+    // 北壁の梁: 壁面 (x:100, 高さ位置 y:0) から法線方向 (室内) へ h=4 マス突き出す。
+    // ワールドでは x[100,200] y[0,200] z[450,500] のボックス、天面 z=500。
+    const beam = makeTerrain({ x: 100, y: 0, w: 2, d: 1, h: 4, identifier: 'beam', surface: 'north-wall' });
+    // 梁の真上 (中心 150,100) に浮いた床キャラ。
+    const char = makeCharacter({ x: 125, y: 75, posZ: 700 });
+    const svc = setup([beam, char]);
+
+    applyNow(svc);
+
+    expect(char.object.posZ).toBe(500);
+  });
+
+  it('梁のワールド範囲から外れた床キャラは梁に乗らない', () => {
+    selectTable({ width: 10, height: 10, wallHeight: 10 });
+    const beam = makeTerrain({ x: 100, y: 0, w: 2, d: 1, h: 4, identifier: 'beam', surface: 'north-wall' });
+    // 中心 (150, 425) は梁の footprint y[0,200] の外。
+    const char = makeCharacter({ x: 125, y: 400, posZ: 700 });
+    const svc = setup([beam, char]);
+
+    applyNow(svc);
+
+    expect(char.object.posZ).toBe(0);
+  });
+
+  it('壁の地形は重力対象でなく落下しない (床のみが落ちる)', () => {
+    selectTable({ width: 10, height: 10, wallHeight: 10 });
+    const beam = makeTerrain({ x: 100, y: 0, w: 2, d: 1, h: 4, identifier: 'beam', surface: 'north-wall', posZ: 120 });
+    const svc = setup([beam]);
+
+    applyNow(svc);
+
+    expect(beam.object.posZ).toBe(120);
   });
 });

@@ -79,3 +79,53 @@ export function surfaceInwardDirection(surface: TableSurface): number {
   const n = surfaceFrame(surface, { widthPx: 0, depthPx: 0, wallHeightPx: 0 }).normal;
   return (Math.atan2(n.y, n.x) * 180) / Math.PI;
 }
+
+export interface WorldBox {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
+}
+
+/**
+ * Project an object placed on a surface into a world-space axis-aligned box.
+ * The object occupies the surface-local rectangle [localX, localX+footW] x [localY, localY+footH]
+ * and extends along the surface normal from normalBase to normalBase+normalThickness.
+ * Every table surface is axis-aligned, so the projected box is exact.
+ */
+export function surfaceWorldBox(
+  surface: TableSurface,
+  localX: number,
+  localY: number,
+  footW: number,
+  footH: number,
+  normalBase: number,
+  normalThickness: number,
+  dims: SurfaceDims
+): WorldBox {
+  const f = surfaceFrame(surface, dims);
+  let minX = Infinity;
+  let minY = Infinity;
+  let minZ = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let maxZ = -Infinity;
+  for (const lx of [localX, localX + footW]) {
+    for (const ly of [localY, localY + footH]) {
+      for (const h of [normalBase, normalBase + normalThickness]) {
+        const x = f.origin.x + f.u.x * lx + f.v.x * ly + f.normal.x * h;
+        const y = f.origin.y + f.u.y * lx + f.v.y * ly + f.normal.y * h;
+        const z = f.origin.z + f.u.z * lx + f.v.z * ly + f.normal.z * h;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        if (z < minZ) minZ = z;
+        if (z > maxZ) maxZ = z;
+      }
+    }
+  }
+  return { minX, maxX, minY, maxY, minZ, maxZ };
+}

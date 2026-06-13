@@ -1,8 +1,10 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { SurfaceDims, surfaceWorldBox } from '@axe/domain/tabletop/surface-space';
 import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 
@@ -16,16 +18,19 @@ const GRAVITY_ALIASES = ['terrain', 'character', 'table-mask', 'table-scratch-ma
 
 interface CachedEntry {
   entry: TabletopOverlapRegistryEntry;
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
+  // world-space axis-aligned footprint (x/y) and vertical extent (z)
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
   centerX: number;
   centerY: number;
-  altitudePx: number;
-  heightPx: number;
-  posZ: number;
+  bottomZ: number;
   topZ: number;
+  altitudePx: number;
+  thicknessPx: number;
+  posZ: number;
+  surface: TableSurface;
   isGravity: boolean;
 }
 
@@ -34,6 +39,7 @@ export class GravityService {
   private readonly overlapService = inject(TabletopOverlapService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
 
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -65,26 +71,28 @@ export class GravityService {
   private apply(): void {
     this.applying = true;
     try {
-      const entries = this.overlapService.entries().filter((e) => surfaceOf(e.object) === 'floor');
+      // All surfaces participate: a floor object can rest on a wall terrain (a beam) and
+      // vice versa, so every object is projected into one shared world-space box.
+      const entries = this.overlapService.entries();
       if (entries.length === 0) return;
 
       // Footprint と Z を一度だけ読み出し、以降の inner loop で reflow を起こさないキャッシュにする
-      const cached = GravityService.buildCache(entries);
-      const hasGravityTarget = cached.some((c) => c.isGravity);
-      if (!hasGravityTarget) return;
+      const cached = GravityService.buildCache(entries, this.surfaceDims());
+      const targets = cached.filter((c) => c.isGravity);
+      if (targets.length === 0) return;
 
       // 各オブジェクトを所属セルに登録。findSupportZ は対象中心のセルだけを走査すれば足りる
       const grid = GravityService.buildSpatialIndex(cached);
 
       for (let pass = 0; pass < MAX_PASSES; pass++) {
         let changed = false;
-        for (const c of cached) {
-          if (!c.isGravity) continue;
+        for (const c of targets) {
           const support = GravityService.findSupportZAtCenter(c, grid);
           if (Math.abs(c.posZ - support) > POSZ_EPSILON) {
             c.entry.object.posZ = support;
             c.posZ = support;
-            c.topZ = c.altitudePx + support + c.heightPx;
+            c.bottomZ = c.altitudePx + support;
+            c.topZ = c.bottomZ + c.thicknessPx;
             changed = true;
           }
         }
@@ -144,29 +152,41 @@ export class GravityService {
     return x >= left && x <= right && y >= top && y <= bottom;
   }
 
-  private static buildCache(entries: TabletopOverlapRegistryEntry[]): CachedEntry[] {
+  private surfaceDims(): SurfaceDims {
+    const table = this.tabletopService.currentTable;
+    return {
+      widthPx: table.width * GRID_PX,
+      depthPx: table.height * GRID_PX,
+      wallHeightPx: table.wallHeight * GRID_PX,
+    };
+  }
+
+  private static buildCache(entries: TabletopOverlapRegistryEntry[], dims: SurfaceDims): CachedEntry[] {
     const cached: CachedEntry[] = [];
     for (const entry of entries) {
+      const obj = entry.object;
+      const surface = surfaceOf(obj);
       const w = entry.element.offsetWidth;
       const h = entry.element.offsetHeight;
-      const left = entry.object.location.x;
-      const top = entry.object.location.y;
-      const altitudePx = entry.object.altitude * GRID_PX;
-      const posZ = entry.object.posZ;
-      const heightPx = entry.object instanceof Terrain ? entry.object.height * GRID_PX : 0;
+      const altitudePx = obj.altitude * GRID_PX;
+      const posZ = obj.posZ;
+      const thicknessPx = obj instanceof Terrain ? obj.height * GRID_PX : 0;
+      const box = surfaceWorldBox(surface, obj.location.x, obj.location.y, w, h, altitudePx + posZ, thicknessPx, dims);
       cached.push({
         entry,
-        left,
-        top,
-        right: left + w,
-        bottom: top + h,
-        centerX: left + w / 2,
-        centerY: top + h / 2,
+        minX: box.minX,
+        maxX: box.maxX,
+        minY: box.minY,
+        maxY: box.maxY,
+        centerX: (box.minX + box.maxX) / 2,
+        centerY: (box.minY + box.maxY) / 2,
+        bottomZ: box.minZ,
+        topZ: box.maxZ,
         altitudePx,
-        heightPx,
+        thicknessPx,
         posZ,
-        topZ: altitudePx + posZ + heightPx,
-        isGravity: GravityService.isAffectedByGravity(entry.object),
+        surface,
+        isGravity: surface === 'floor' && GravityService.isAffectedByGravity(obj),
       });
     }
     return cached;
@@ -175,10 +195,10 @@ export class GravityService {
   private static buildSpatialIndex(cached: CachedEntry[]): Map<string, CachedEntry[]> {
     const grid = new Map<string, CachedEntry[]>();
     for (const c of cached) {
-      const minCellX = Math.floor(c.left / BUCKET_PX);
-      const maxCellX = Math.floor(c.right / BUCKET_PX);
-      const minCellY = Math.floor(c.top / BUCKET_PX);
-      const maxCellY = Math.floor(c.bottom / BUCKET_PX);
+      const minCellX = Math.floor(c.minX / BUCKET_PX);
+      const maxCellX = Math.floor(c.maxX / BUCKET_PX);
+      const minCellY = Math.floor(c.minY / BUCKET_PX);
+      const maxCellY = Math.floor(c.maxY / BUCKET_PX);
       for (let cx = minCellX; cx <= maxCellX; cx++) {
         for (let cy = minCellY; cy <= maxCellY; cy++) {
           const key = `${cx},${cy}`;
@@ -200,7 +220,7 @@ export class GravityService {
     const bucket = grid.get(`${cellX},${cellY}`);
     if (!bucket) return 0;
 
-    const targetBottom = target.altitudePx + target.posZ;
+    const targetBottom = target.bottomZ;
     const targetId = target.entry.object.identifier;
     const cx = target.centerX;
     const cy = target.centerY;
@@ -208,8 +228,8 @@ export class GravityService {
     let maxZ = 0;
     for (const c of bucket) {
       if (c.entry.object.identifier === targetId) continue;
-      if (cx < c.left || cx > c.right) continue;
-      if (cy < c.top || cy > c.bottom) continue;
+      if (cx < c.minX || cx > c.maxX) continue;
+      if (cy < c.minY || cy > c.maxY) continue;
       if (c.topZ > targetBottom + POSZ_EPSILON) continue;
       if (c.topZ > maxZ) maxZ = c.topZ;
     }

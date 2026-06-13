@@ -1,4 +1,4 @@
-import { surfaceInwardDirection, surfacePointTo3D } from '@axe/domain/tabletop/surface-space';
+import { surfaceInwardDirection, surfacePointTo3D, surfaceWorldBox } from '@axe/domain/tabletop/surface-space';
 
 const dims = { widthPx: 1000, depthPx: 800, wallHeightPx: 300 };
 
@@ -32,5 +32,44 @@ describe('surface-space', () => {
     expect(surfaceInwardDirection('south-wall')).toBeCloseTo(-90);
     expect(surfaceInwardDirection('west-wall')).toBeCloseTo(0);
     expect(surfaceInwardDirection('east-wall')).toBeCloseTo(180);
+  });
+
+  describe('surfaceWorldBox', () => {
+    it('floor の箱はローカル矩形と法線方向の厚みをそのまま使う', () => {
+      // footprint (10,20)-(60,70), 法線(=z)方向 base 100 から厚み 50
+      expect(surfaceWorldBox('floor', 10, 20, 50, 50, 100, 50, dims)).toEqual({
+        minX: 10,
+        maxX: 60,
+        minY: 20,
+        maxY: 70,
+        minZ: 100,
+        maxZ: 150,
+      });
+    });
+
+    it('north-wall の梁: 壁面の矩形が室内(+y)へ厚み分突き出し、天面 z=wallHeight-localY', () => {
+      // localX[100,200] localY[0,50], 法線(室内+y)へ base0..厚み200
+      expect(surfaceWorldBox('north-wall', 100, 0, 100, 50, 0, 200, dims)).toEqual({
+        minX: 100,
+        maxX: 200,
+        minY: 0,
+        maxY: 200,
+        minZ: 300 - 50,
+        maxZ: 300,
+      });
+    });
+
+    it('east-wall の梁: 室内(-x)へ突き出し x=width から内側へ', () => {
+      // east: origin(width,depth) u(0,-1) v(0,0,-1) normal(-1,0)
+      // localX[0,100] localY[0,50] base0 厚み150
+      expect(surfaceWorldBox('east-wall', 0, 0, 100, 50, 0, 150, dims)).toEqual({
+        minX: 1000 - 150,
+        maxX: 1000,
+        minY: 800 - 100,
+        maxY: 800,
+        minZ: 300 - 50,
+        maxZ: 300,
+      });
+    });
   });
 });
