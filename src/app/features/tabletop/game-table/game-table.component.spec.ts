@@ -67,4 +67,20 @@ describe('GameTableComponent', () => {
       expect(borderStyle?.background).toContain('data:image/svg+xml');
     });
   });
+
+  describe('wallBackground', () => {
+    it('グリッド未指定なら壁画像のみを背景にする', () => {
+      const bg = component.wallBackground('blob:wall', '');
+      expect(bg.surfaceBackground).toBe('url(blob:wall)');
+      expect(bg.surfaceBackgroundSize).toBe('100% 100%');
+      expect(bg.surfaceBackgroundRepeat).toBe('no-repeat');
+    });
+
+    it('グリッド指定時はグリッドを壁画像の上に重ねる', () => {
+      const bg = component.wallBackground('blob:wall', 'data:image/png;base64,AAA');
+      expect(bg.surfaceBackground).toBe('url(data:image/png;base64,AAA), url(blob:wall)');
+      expect(bg.surfaceBackgroundSize).toBe('100% 100%, 100% 100%');
+      expect(bg.surfaceBackgroundRepeat).toBe('no-repeat, no-repeat');
+    });
+  });
 });

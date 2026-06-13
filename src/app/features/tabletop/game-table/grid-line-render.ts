@@ -64,7 +64,8 @@ export class GridLineRender {
     gridColor: string = '#000000e6',
     gridFontColor: string = gridColor,
     offsetTopPx: number = 0,
-    offsetLeftPx: number = 0
+    offsetLeftPx: number = 0,
+    drawLabels: boolean = true
   ) {
     this.canvasElement.width = Math.max(1, Math.ceil(widthPx));
     this.canvasElement.height = Math.max(1, Math.ceil(heightPx));
@@ -76,11 +77,20 @@ export class GridLineRender {
 
     switch (gridType) {
       case GridType.SQUARE:
-        this.renderSquareGridViewport(context, widthPx, heightPx, gridSize, offsetTopPx, offsetLeftPx);
+        this.renderSquareGridViewport(context, widthPx, heightPx, gridSize, offsetTopPx, offsetLeftPx, drawLabels);
         break;
       case GridType.HEX_VERTICAL:
       case GridType.HEX_HORIZONTAL:
-        this.renderHexGridViewport(context, widthPx, heightPx, gridSize, gridType, offsetTopPx, offsetLeftPx);
+        this.renderHexGridViewport(
+          context,
+          widthPx,
+          heightPx,
+          gridSize,
+          gridType,
+          offsetTopPx,
+          offsetLeftPx,
+          drawLabels
+        );
         break;
     }
   }
@@ -152,7 +162,8 @@ export class GridLineRender {
     heightPx: number,
     gridSize: number,
     offsetTopPx: number,
-    offsetLeftPx: number
+    offsetLeftPx: number,
+    drawLabels: boolean = true
   ) {
     const firstCol = Math.floor(offsetLeftPx / gridSize);
     const lastCol = Math.ceil((offsetLeftPx + widthPx) / gridSize);
@@ -165,7 +176,7 @@ export class GridLineRender {
         const gy = row * gridSize - offsetTopPx;
         context.beginPath();
         context.strokeRect(gx, gy, gridSize, gridSize);
-        context.fillText(`${col + 1}-${row + 1}`, gx + gridSize / 2, gy + gridSize / 2);
+        if (drawLabels) context.fillText(`${col + 1}-${row + 1}`, gx + gridSize / 2, gy + gridSize / 2);
       }
     }
   }
@@ -177,7 +188,8 @@ export class GridLineRender {
     gridSize: number,
     gridType: GridType,
     offsetTopPx: number,
-    offsetLeftPx: number
+    offsetLeftPx: number,
+    drawLabels: boolean = true
   ) {
     const s = hexCircumradius(gridSize);
     const isFlatTop = gridType === GridType.HEX_VERTICAL;
@@ -202,7 +214,7 @@ export class GridLineRender {
         if (cx < -gridSize || cx > widthPx + gridSize || cy < -gridSize || cy > heightPx + gridSize) continue;
 
         strokeHexPath(context, cx, cy, s, startAngle);
-        context.fillText(`${col + 1}-${row + 1}`, cx, cy);
+        if (drawLabels) context.fillText(`${col + 1}-${row + 1}`, cx, cy);
       }
     }
   }

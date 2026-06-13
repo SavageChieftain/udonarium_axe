@@ -58,6 +58,19 @@ import {
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
+interface ActiveWall {
+  surface: TableSurface;
+  image: ImageFile;
+  containerClass: string;
+  containerTransform: string;
+  containerOrigin: string;
+  widthPx: number;
+  heightPx: number;
+  surfaceBackground: string;
+  surfaceBackgroundSize: string;
+  surfaceBackgroundRepeat: string;
+}
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'game-table',
@@ -254,30 +267,16 @@ export class GameTableComponent {
       showEast: table.showEastWall,
       showSouth: table.showSouthWall,
       showWest: table.showWestWall,
+      gridShow: table.gridShow,
     };
   });
 
-  readonly activeWalls = computed<
-    readonly {
-      surface: TableSurface;
-      image: ImageFile;
-      containerClass: string;
-      containerTransform: string;
-      containerOrigin: string;
-      widthPx: number;
-      heightPx: number;
-    }[]
-  >(() => {
+  readonly activeWalls = computed<readonly ActiveWall[]>(() => {
     const state = this.wallState();
-    const walls = [] as {
-      surface: TableSurface;
-      image: ImageFile;
-      containerClass: string;
-      containerTransform: string;
-      containerOrigin: string;
-      widthPx: number;
-      heightPx: number;
-    }[];
+    const table = this.watchCurrentTable();
+    const widthGrid = state.gridShow ? this.wallGridDataUrl(state.widthPx, state.heightPx, table) : '';
+    const depthGrid = state.gridShow ? this.wallGridDataUrl(state.depthPx, state.heightPx, table) : '';
+    const walls = [] as ActiveWall[];
     const north = this.northWallImage();
     if (state.showNorth && north.url) {
       walls.push({
@@ -288,6 +287,7 @@ export class GameTableComponent {
         containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
+        ...this.wallBackground(north.url, widthGrid),
       });
     }
     const south = this.southWallImage();
@@ -300,6 +300,7 @@ export class GameTableComponent {
         containerOrigin: '50% 100%',
         widthPx: state.widthPx,
         heightPx: state.heightPx,
+        ...this.wallBackground(south.url, widthGrid),
       });
     }
     const west = this.westWallImage();
@@ -312,6 +313,7 @@ export class GameTableComponent {
         containerOrigin: '0% 0%',
         widthPx: state.depthPx,
         heightPx: state.heightPx,
+        ...this.wallBackground(west.url, depthGrid),
       });
     }
     const east = this.eastWallImage();
@@ -324,10 +326,50 @@ export class GameTableComponent {
         containerOrigin: '100% 0%',
         widthPx: state.depthPx,
         heightPx: state.heightPx,
+        ...this.wallBackground(east.url, depthGrid),
       });
     }
     return walls;
   });
+
+  private wallGridDataUrl(widthPx: number, heightPx: number, table: GameTable): string {
+    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
+    try {
+      const canvas = document.createElement('canvas');
+      new GridLineRender(canvas).renderViewport(
+        widthPx,
+        heightPx,
+        table.gridSize,
+        table.gridType,
+        table.gridColor,
+        table.gridFontColor,
+        0,
+        0,
+        false
+      );
+      return canvas.toDataURL();
+    } catch {
+      return '';
+    }
+  }
+
+  wallBackground(
+    imageUrl: string,
+    gridUrl: string
+  ): { surfaceBackground: string; surfaceBackgroundSize: string; surfaceBackgroundRepeat: string } {
+    if (!gridUrl) {
+      return {
+        surfaceBackground: `url(${imageUrl})`,
+        surfaceBackgroundSize: '100% 100%',
+        surfaceBackgroundRepeat: 'no-repeat',
+      };
+    }
+    return {
+      surfaceBackground: `url(${gridUrl}), url(${imageUrl})`,
+      surfaceBackgroundSize: '100% 100%, 100% 100%',
+      surfaceBackgroundRepeat: 'no-repeat, no-repeat',
+    };
+  }
 
   readonly tableSurfaceStyle = computed<Record<string, string>>(() => {
     const table = this.watchCurrentTable();
