@@ -22,6 +22,12 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
+import {
+  imageStampIdentifier,
+  isImageStampId,
+  MAP_STAMP_TAG,
+  toImageStampId,
+} from '@axe/features/map-editor/assets/image-stamp';
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-editor/assets/stamp-types';
 import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-editor/assets/stamps';
 import {
@@ -148,6 +154,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
   private readonly textureFileInput = viewChild<ElementRef<HTMLInputElement>>('textureFileInput');
+  private readonly stampFileInput = viewChild<ElementRef<HTMLInputElement>>('stampFileInput');
   protected readonly textEditor = viewChild<ElementRef<HTMLElement>>('textEditor');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
@@ -271,6 +278,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return ImageTag.searchImages([TEXTURE_IMAGE_TAG]);
   });
 
+  protected readonly stampImages = computed<ImageFile[]>(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf('image-tag')();
+    return ImageTag.searchImages([MAP_STAMP_TAG]);
+  });
+
   protected readonly canvasCursor = computed(() => {
     if (this.spacePan()) return this.panning() ? 'grabbing' : 'grab';
     return this.state.tool() === 'select' ? 'default' : 'crosshair';
@@ -376,6 +389,13 @@ export class MapEditorPanelComponent implements AfterViewInit {
         return createImageTexturePattern(ctx, image, cellPx, fill.scale, fill.rotation);
       },
       stampImage: (item) => {
+        if (isImageStampId(item.stampId)) {
+          const url = this.imageStorage.get(imageStampIdentifier(item.stampId))?.url;
+          if (!url) return null;
+          const image = getRasterImage(url);
+          if (!image) this.schedulePendingImage(url);
+          return image;
+        }
         const def = defById.get(item.stampId);
         if (!def) return null;
         const image = getStampImage(def, item.size, item.color);
@@ -402,6 +422,21 @@ export class MapEditorPanelComponent implements AfterViewInit {
         this.renderTick.update((v) => v + 1);
       })
       .catch(() => this.pendingStamps.delete(key));
+  }
+
+  private previewStampImage(stampId: string, size: number): HTMLImageElement | null {
+    if (isImageStampId(stampId)) {
+      const url = this.imageStorage.get(imageStampIdentifier(stampId))?.url;
+      if (!url) return null;
+      const image = getRasterImage(url);
+      if (!image) this.schedulePendingImage(url);
+      return image;
+    }
+    const def = getStampById(stampId);
+    if (!def) return null;
+    const image = getStampImage(def, size, this.state.stampColor());
+    if (!image) this.schedulePending(def, size, this.state.stampColor());
+    return image;
   }
 
   private schedulePendingImage(url: string): void {
@@ -553,21 +588,23 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
 
     if (tool === 'stamp' && this.lastMove && this.state.stampId()) {
-      const def = getStampById(this.state.stampId()!);
-      if (def) {
-        const size = this.state.stampSize();
-        const image = getStampImage(def, size, this.state.stampColor());
-        if (image) {
-          const center = this.stampCenter(this.lastMove.x, this.lastMove.y);
-          const half = size / 2;
-          ctx.save();
-          ctx.globalAlpha = 0.5;
-          ctx.translate(center.x, center.y);
-          if (this.state.stampRotation()) ctx.rotate((this.state.stampRotation() * Math.PI) / 180);
-          ctx.scale(this.state.stampFlipX() ? -1 : 1, this.state.stampFlipY() ? -1 : 1);
-          ctx.drawImage(image, -half, -half, size, size);
-          ctx.restore();
-        }
+      const stampId = this.state.stampId()!;
+      const size = this.state.stampSize();
+      const image = this.previewStampImage(stampId, size);
+      if (image) {
+        const center = this.stampCenter(this.lastMove.x, this.lastMove.y);
+        const iw = image.naturalWidth || image.width || size;
+        const ih = image.naturalHeight || image.height || size;
+        const fitScale = iw && ih ? Math.min(size / iw, size / ih) : 1;
+        const w = iw * fitScale;
+        const h = ih * fitScale;
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.translate(center.x, center.y);
+        if (this.state.stampRotation()) ctx.rotate((this.state.stampRotation() * Math.PI) / 180);
+        ctx.scale(this.state.stampFlipX() ? -1 : 1, this.state.stampFlipY() ? -1 : 1);
+        ctx.drawImage(image, -w / 2, -h / 2, w, h);
+        ctx.restore();
       }
     }
 
@@ -1445,6 +1482,37 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   protected selectStamp(id: string): void {
     this.state.stampId.set(id);
+  }
+
+  protected selectImageStamp(file: ImageFile): void {
+    this.state.stampId.set(toImageStampId(file.identifier));
+    this.state.stampColor.set(null);
+    this.state.stampSize.set(Math.min(256, Math.max(16, this.state.current.cellPx)));
+  }
+
+  protected isActiveImageStamp(file: ImageFile): boolean {
+    return this.state.stampId() === toImageStampId(file.identifier);
+  }
+
+  protected isImageStampSelected(): boolean {
+    const id = this.state.stampId();
+    return !!id && isImageStampId(id);
+  }
+
+  protected triggerStampUpload(): void {
+    this.stampFileInput()?.nativeElement.click();
+  }
+
+  protected async onStampFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !file.type.startsWith('image/')) return;
+    const imageFile = await this.imageStorage.addAsync(file);
+    const tag = ImageTag.get(imageFile.identifier) ?? ImageTag.create(imageFile.identifier);
+    tag.tag = MAP_STAMP_TAG;
+    this.objectChange.notifyCollectionChanged('image-tag');
+    this.selectImageStamp(imageFile);
   }
 
   protected zoomIn(): void {

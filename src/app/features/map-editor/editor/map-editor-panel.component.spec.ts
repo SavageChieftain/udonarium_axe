@@ -487,6 +487,41 @@ describe('MapEditorPanelComponent', () => {
     expect(imageStorage.addAsync).not.toHaveBeenCalled();
   });
 
+  it('stampImages は マップスタンプ タグの ImageTag を列挙する', () => {
+    TestBed.inject(ObjectChangeService);
+    ImageStorage.instance.add('stamp-1');
+    ImageStorage.instance.add('other-stamp');
+    ImageTag.create('stamp-1').tag = 'マップスタンプ';
+    ImageTag.create('other-stamp').tag = 'テクスチャ';
+
+    const list = (component as unknown as { stampImages: () => { identifier: string }[] }).stampImages();
+
+    expect(list.map((f) => f.identifier)).toEqual(['stamp-1']);
+  });
+
+  it('selectImageStamp は stampId を media: 接頭辞でセットし色を自動・サイズを 1 セルにする', () => {
+    const file = ImageFile.create('stamp-9');
+    component['state'].stampColor.set('#123456');
+    (component as unknown as { selectImageStamp: (f: ImageFile) => void }).selectImageStamp(file);
+    expect(component['state'].stampId()).toBe('media:stamp-9');
+    expect(component['state'].stampColor()).toBeNull();
+    expect(component['state'].stampSize()).toBe(component['state'].current.cellPx);
+  });
+
+  it('スタンプ画像アップロードは画像を保存し マップスタンプ タグを付与して選択する', async () => {
+    TestBed.inject(ObjectChangeService);
+    imageStorage.addAsync.mockResolvedValue({ identifier: 'uploaded-stamp' });
+    const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
+    const event = { target: input } as unknown as Event;
+
+    await (component as unknown as { onStampFileSelected: (e: Event) => Promise<void> }).onStampFileSelected(event);
+
+    const created = ImageTag.get('uploaded-stamp');
+    expect(created).toBeTruthy();
+    expect(created.tag).toBe('マップスタンプ');
+    expect(component['state'].stampId()).toBe('media:uploaded-stamp');
+  });
+
   it('strokeFillMode texture で線をコミットすると stroke.fill に現在の textureId が入る', () => {
     component['state'].strokeFillMode.set('texture');
     component['state'].textureId.set('image:stroke-tex');

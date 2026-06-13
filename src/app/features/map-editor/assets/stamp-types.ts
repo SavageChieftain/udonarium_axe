@@ -1,4 +1,4 @@
-export const STAMP_CATEGORIES = ['door', 'stair', 'furniture', 'nature', 'dungeon', 'marker'] as const;
+export const STAMP_CATEGORIES = ['door', 'stair', 'furniture', 'nature', 'dungeon', 'marker', 'image'] as const;
 
 export type StampCategory = (typeof STAMP_CATEGORIES)[number];
 

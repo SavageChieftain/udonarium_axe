@@ -176,9 +176,19 @@ function drawStamp(ctx: CanvasRenderingContext2D, item: StampItem, helpers: Rend
   ctx.translate(item.x, item.y);
   if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
   ctx.scale(item.flipX ? -1 : 1, item.flipY ? -1 : 1);
-  const half = item.size / 2;
-  ctx.drawImage(image, -half, -half, item.size, item.size);
+  const { w, h } = fitStampBox(image, item.size);
+  ctx.drawImage(image, -w / 2, -h / 2, w, h);
   ctx.restore();
+}
+
+function fitStampBox(image: CanvasImageSource, size: number): { w: number; h: number } {
+  const iw =
+    (image as { naturalWidth?: number; width?: number }).naturalWidth || (image as { width?: number }).width || 0;
+  const ih =
+    (image as { naturalHeight?: number; height?: number }).naturalHeight || (image as { height?: number }).height || 0;
+  if (!iw || !ih) return { w: size, h: size };
+  const scale = Math.min(size / iw, size / ih);
+  return { w: iw * scale, h: ih * scale };
 }
 
 function clipCellPath(

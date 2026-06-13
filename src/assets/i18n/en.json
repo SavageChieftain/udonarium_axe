@@ -1275,7 +1275,8 @@
         "furniture": "Furniture",
         "nature": "Nature",
         "dungeon": "Dungeon",
-        "marker": "Markers"
+        "marker": "Markers",
+        "image": "Images"
       },
       "props": {
         "fill": "Fill",
@@ -1307,6 +1308,7 @@
         "stampRotation": "Rotation",
         "stampFlip": "Flip",
         "stampColorAuto": "Auto color",
+        "stampAdd": "Add",
         "freehand": "Freehand",
         "text": "Text",
         "textHint": "Click the canvas to type. Enter = newline, Esc = cancel, Ctrl+Enter or click elsewhere to confirm",

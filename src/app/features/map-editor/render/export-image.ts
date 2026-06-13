@@ -1,3 +1,4 @@
+import { imageStampIdentifier, isImageStampId } from '@axe/features/map-editor/assets/image-stamp';
 import { StampDef } from '@axe/features/map-editor/assets/stamp-types';
 import {
   FillStyle,
@@ -156,6 +157,9 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
     const identifiers = [
       ...collectImageItems(scene).map((item) => item.imageIdentifier),
       ...collectImageTextureIdentifiers(scene),
+      ...collectStampItems(scene)
+        .filter((item) => isImageStampId(item.stampId))
+        .map((item) => imageStampIdentifier(item.stampId)),
     ];
     const urls = identifiers
       .map((identifier) => resolveImageUrl(identifier))
@@ -180,6 +184,11 @@ export async function exportSceneToBlob(scene: MapScene, defs: StampDef[], opts:
       return image ? createImageTexturePattern(target.ctx, image, cellPx, fill.scale, fill.rotation) : null;
     },
     stampImage: (item) => {
+      if (isImageStampId(item.stampId)) {
+        if (!resolveImageUrl) return null;
+        const url = resolveImageUrl(imageStampIdentifier(item.stampId));
+        return url ? getRasterImage(url) : null;
+      }
       const def = defById.get(item.stampId);
       return def ? getStampImage(def, item.size, item.color) : null;
     },

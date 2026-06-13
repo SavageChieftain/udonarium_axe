@@ -38,7 +38,9 @@ describe('STAMPS', () => {
     });
   });
 
-  it.each(STAMP_CATEGORIES)('category %s has at least 5 stamps', (cat: StampCategory) => {
+  const builtinCategories = STAMP_CATEGORIES.filter((cat) => cat !== 'image');
+
+  it.each(builtinCategories)('category %s has at least 5 stamps', (cat: StampCategory) => {
     const count = STAMPS.filter((s) => s.category === cat).length;
     expect(count).toBeGreaterThanOrEqual(5);
   });

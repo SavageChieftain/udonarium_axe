@@ -1275,7 +1275,8 @@
         "furniture": "家具",
         "nature": "自然",
         "dungeon": "ダンジョン",
-        "marker": "マーカー"
+        "marker": "マーカー",
+        "image": "画像"
       },
       "props": {
         "fill": "塗り",
@@ -1307,6 +1308,7 @@
         "stampRotation": "回転",
         "stampFlip": "反転",
         "stampColorAuto": "色を自動",
+        "stampAdd": "追加",
         "freehand": "フリーハンド",
         "text": "テキスト",
         "textHint": "キャンバスをクリックして入力。改行=Enter / 取消=Esc / 確定=Ctrl+Enter かキャンバスの別の場所をクリック",
