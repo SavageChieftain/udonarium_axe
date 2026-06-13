@@ -299,10 +299,10 @@ export class MapEditorState {
     return created;
   }
 
-  placeStamp(x: number, y: number): void {
+  placeStamp(x: number, y: number, layerName: string): void {
     const stampId = this.stampId();
     if (!stampId) return;
-    const layer = this.ensureLayerFor('stamp') as StampLayer;
+    const layer = this.createNamedLayer('stamp', layerName) as StampLayer;
     const item: StampItem = {
       id: '',
       stampId,

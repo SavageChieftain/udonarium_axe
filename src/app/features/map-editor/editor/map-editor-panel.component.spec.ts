@@ -416,7 +416,7 @@ describe('MapEditorPanelComponent', () => {
   it('updateSelectedStamp で色を変更できる', () => {
     component['state'].stampId.set('door-single');
     component['state'].stampColor.set(null);
-    component['state'].placeStamp(100, 100);
+    component['state'].placeStamp(100, 100, 'スタンプ 1');
     const layer = component['state'].current.layers.find((l) => l.kind === 'stamp') as StampLayer;
     const id = layer.items[0].id;
     component['state'].selection.set({ layerId: layer.id, itemId: id });
@@ -429,7 +429,7 @@ describe('MapEditorPanelComponent', () => {
   it('updateSelectedStamp で色を null（自動）に戻せる', () => {
     component['state'].stampId.set('door-single');
     component['state'].stampColor.set('#ff0000');
-    component['state'].placeStamp(100, 100);
+    component['state'].placeStamp(100, 100, 'スタンプ 1');
     const layer = component['state'].current.layers.find((l) => l.kind === 'stamp') as StampLayer;
     const id = layer.items[0].id;
     component['state'].selection.set({ layerId: layer.id, itemId: id });

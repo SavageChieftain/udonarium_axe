@@ -107,7 +107,7 @@ describe('MapEditorState', () => {
   it('スタンプの hitTest と deleteSelection が動く', () => {
     state.stampId.set('door-single');
     state.stampSize.set(64);
-    state.placeStamp(100, 100);
+    state.placeStamp(100, 100, 'スタンプ 1');
     const layer = state.current.layers.find((l) => l.kind === 'stamp') as StampLayer;
     expect(layer.items.length).toBe(1);
 

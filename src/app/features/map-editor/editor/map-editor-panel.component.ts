@@ -927,7 +927,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
     if (tool === 'stamp') {
       const center = this.stampCenter(pos.x, pos.y);
-      this.state.placeStamp(center.x, center.y);
+      this.state.placeStamp(center.x, center.y, this.stampLayerName());
       this.dragging = false;
       return;
     }
@@ -1257,8 +1257,14 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return this.t('feature.mapEditor.layers.kinds.image') + ' ' + this.imageLayerCounter;
   }
 
+  private stampLayerName(): string {
+    this.stampLayerCounter += 1;
+    return this.t('feature.mapEditor.layers.kinds.stamp') + ' ' + this.stampLayerCounter;
+  }
+
   private shapeLayerCounter = 0;
   private imageLayerCounter = 0;
+  private stampLayerCounter = 0;
 
   protected async chooseImage(): Promise<void> {
     const id = await this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: false }).catch(() => null);
