@@ -1678,9 +1678,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected addLayerOfKind(kind: LayerKind): void {
-    this.state.beginGesture();
-    this.state.ensureLayerFor(kind);
-    this.state.endGesture();
+    const label = this.t('feature.mapEditor.layers.kinds.' + kind);
+    const count = this.state.current.layers.filter((l) => l.kind === kind).length + 1;
+    this.state.addEmptyLayer(kind, label + ' ' + count);
     this.addLayerMenuOpen.set(false);
   }
 

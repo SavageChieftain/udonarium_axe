@@ -172,6 +172,14 @@ describe('MapEditorState', () => {
     expect(shapeLayers.length).toBe(2);
   });
 
+  it('addEmptyLayer は同種でも常に新規レイヤーを作り複数のセルレイヤーを持てる', () => {
+    state.addEmptyLayer('cell', 'セル 1');
+    state.addEmptyLayer('cell', 'セル 2');
+    const cellLayers = state.current.layers.filter((l) => l.kind === 'cell');
+    expect(cellLayers.length).toBe(2);
+    expect(state.canUndo()).toBe(true);
+  });
+
   it('スタンプは1つごとに専用レイヤーを作る', () => {
     state.stampId.set('door-single');
     state.placeStamp(10, 10, 'スタンプ 1');

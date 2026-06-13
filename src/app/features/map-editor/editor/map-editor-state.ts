@@ -310,6 +310,13 @@ export class MapEditorState {
     return created;
   }
 
+  addEmptyLayer(kind: LayerKind, name: string): MapLayer {
+    const created = createLayer(kind, name);
+    this.applyCommitted((scene) => addLayer(scene, created));
+    this.activeLayerId.set(created.id);
+    return created;
+  }
+
   placeStamp(x: number, y: number, layerName: string): void {
     const stampId = this.stampId();
     if (!stampId) return;
