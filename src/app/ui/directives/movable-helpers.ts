@@ -1,6 +1,7 @@
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCellCenter, hexCircumradius, hexSpacing, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
+import { WorldBox } from '@axe/domain/tabletop/surface-space';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface MovableCoordinateResolver {
@@ -23,6 +24,18 @@ export function findContactSupportZ(footprints: ContactFootprint[], centerX: num
     if (footprint.topZ > maxZ) maxZ = footprint.topZ;
   }
   return maxZ;
+}
+
+export function beamRestPosition(
+  box: WorldBox,
+  worldX: number,
+  worldY: number,
+  width: number,
+  height: number
+): { x: number; y: number; z: number } {
+  const centerX = Math.min(box.maxX, Math.max(box.minX, worldX));
+  const centerY = Math.min(box.maxY, Math.max(box.minY, worldY));
+  return { x: Math.floor(centerX - width / 2), y: Math.floor(centerY - height / 2), z: box.maxZ };
 }
 
 export type MovableLayerItem = {

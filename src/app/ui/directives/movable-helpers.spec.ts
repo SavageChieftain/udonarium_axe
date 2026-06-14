@@ -2,6 +2,7 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   applyPointerEvents,
+  beamRestPosition,
   calcHexAllSnapPosition,
   calcHexBothSnapPosition,
   calcHexEdgeMidpointSnapPosition,
@@ -370,6 +371,19 @@ describe('movable-helpers', () => {
 
     it('footprint が空なら 0', () => {
       expect(findContactSupportZ([], 50, 50)).toBe(0);
+    });
+  });
+
+  describe('beamRestPosition', () => {
+    const box = { minX: 100, maxX: 200, minY: 0, maxY: 200, minZ: 450, maxZ: 500 };
+
+    it('カーソルのワールド座標が梁の範囲内なら中心をそこに置き z は天面', () => {
+      expect(beamRestPosition(box, 150, 100, 50, 50)).toEqual({ x: 125, y: 75, z: 500 });
+    });
+
+    it('範囲外のカーソルは最も近い梁の縁へクランプする', () => {
+      // 床平面投影は梁より室内側 (y 大) に落ちるため maxY 縁へ吸着する
+      expect(beamRestPosition(box, 150, 600, 50, 50)).toEqual({ x: 125, y: 175, z: 500 });
     });
   });
 

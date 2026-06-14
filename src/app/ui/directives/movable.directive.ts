@@ -5,16 +5,19 @@ import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
+import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { SurfaceDims, surfaceWorldBox, WorldBox } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { Terrain } from '@axe/domain/tabletop/terrain';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import {
   applyPointerEvents,
+  beamRestPosition,
   calcHexAllSnapPosition,
   calcHexBothSnapPosition,
   calcHexSnapPosition,
@@ -38,6 +41,7 @@ import {
 } from '@axe/ui/directives/movable-interaction';
 
 const WALL_OCCLUSION_INSET_PX = 2;
+const GRID_PX = 50;
 
 export interface MovableOption {
   readonly tabletopObject?: TabletopObject;
@@ -346,7 +350,19 @@ export class MovableDirective {
   }
 
   onInputMove(e: MouseEvent | TouchEvent) {
-    if (this.isPointerOverDifferentSurface()) {
+    const overDifferentSurface = this.isPointerOverDifferentSurface();
+    if (overDifferentSurface && this.input?.isDragging && this.input.pointer) {
+      const rest = this.computeBeamRest(this.input.pointer);
+      if (rest) {
+        this.posX = rest.x;
+        this.posY = rest.y;
+        this.posZ = rest.z;
+        this.clearDragPreview();
+        this.ondrag.emit(e as PointerEvent);
+        return;
+      }
+    }
+    if (overDifferentSurface) {
       this.updateDragPreview();
       return;
     }
@@ -453,6 +469,7 @@ export class MovableDirective {
     if (!this.tabletopObject) return;
     const pointer = this.input?.pointer;
     if (!pointer) return;
+    if (this.restOnBeamUnderPointer(pointer)) return;
     const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
     if (!target) return;
     const targetSurfaceEl = target.closest<HTMLElement>('[data-surface]');
@@ -490,6 +507,63 @@ export class MovableDirective {
     this.tabletopObject.posZ = 0;
     this.tabletopObject.location.surface = targetSurface === 'floor' ? undefined : targetSurface;
     this.updateTransformCss();
+  }
+
+  private restOnBeamUnderPointer(pointer: PointerCoordinate): boolean {
+    const rest = this.computeBeamRest(pointer);
+    if (!rest) return false;
+    if (this.updateTimer !== null) {
+      clearTimeout(this.updateTimer);
+      this.updateTimer = null;
+    }
+    this._posX = rest.x;
+    this._posY = rest.y;
+    this._posZ = rest.z;
+    this.tabletopObject.location.x = rest.x;
+    this.tabletopObject.location.y = rest.y;
+    this.tabletopObject.posZ = rest.z;
+    this.tabletopObject.location.surface = undefined;
+    this.updateTransformCss();
+    return true;
+  }
+
+  private computeBeamRest(pointer: PointerCoordinate): { x: number; y: number; z: number } | null {
+    const table = this.tableSelecter.viewTable;
+    if (!table) return null;
+    const dims: SurfaceDims = {
+      widthPx: table.width * GRID_PX,
+      depthPx: table.height * GRID_PX,
+      wallHeightPx: table.wallHeight * GRID_PX,
+    };
+    const beam = this.highestBeamUnderPointer(pointer, dims);
+    if (!beam) return null;
+    const world = this.coordinateService.convertToLocal({ x: pointer.x, y: pointer.y, z: 0 }, this.surfaceElement());
+    return beamRestPosition(beam, world.x, world.y, this.width, this.height);
+  }
+
+  private highestBeamUnderPointer(pointer: PointerCoordinate, dims: SurfaceDims): WorldBox | null {
+    const selfId = this.tabletopObject.identifier;
+    let best: WorldBox | null = null;
+    for (const obj of this.tabletopOverlap.findAt(pointer.x, pointer.y)) {
+      if (obj.identifier === selfId) continue;
+      if (!(obj instanceof Terrain)) continue;
+      const surface = surfaceOf(obj);
+      if (surface === 'floor') continue;
+      const entry: TabletopOverlapRegistryEntry | undefined = this.tabletopOverlap.get(obj.identifier);
+      if (!entry) continue;
+      const box = surfaceWorldBox(
+        surface,
+        obj.location.x,
+        obj.location.y,
+        entry.element.offsetWidth,
+        entry.element.offsetHeight,
+        obj.altitude * GRID_PX + obj.posZ,
+        obj.height * GRID_PX,
+        dims
+      );
+      if (!best || box.maxZ > best.maxZ) best = box;
+    }
+    return best;
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
