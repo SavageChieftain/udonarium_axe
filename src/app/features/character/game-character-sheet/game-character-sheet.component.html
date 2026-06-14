@@ -604,6 +604,34 @@
               >
             </button>
           </div>
+
+          <h4 class="text-ui-muted mt-3 mb-2 text-[12px] font-semibold">
+            {{ 'feature.inventory.sheet.faceImages' | transloco }}
+          </h4>
+          <div class="grid grid-cols-3 gap-2">
+            @for (face of terrainFaceImages(); track face.face) {
+              <button
+                class="bg-ui-panel border-ui-border-panel hover:border-ui-accent text-ui-muted rounded-ui-sm flex w-full min-w-0 cursor-pointer flex-col items-stretch gap-1 border-2 border-solid p-1.5 transition-[border-color,box-shadow] hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ui-accent)_20%,transparent)]"
+                type="button"
+                (click)="openTerrainFaceModal(face.face)"
+                [title]="face.label | transloco"
+              >
+                <span class="text-ui-text text-[11px]! leading-none font-bold">{{ face.label | transloco }}</span>
+                <span
+                  class="bg-ui-input border-ui-border-panel rounded-ui-sm flex h-[18] items-center justify-center overflow-hidden border border-solid [&_img]:size-full [&_img]:object-contain"
+                >
+                  @if (face.image.url) {
+                    <img [src]="face.image.url | safe: 'resourceUrl'" [alt]="face.image.name" />
+                  } @else {
+                    <span
+                      class="text-ui-dim flex size-full items-center justify-center [&_.material-icons]:text-[24px]!"
+                      ><i class="material-icons">image_not_supported</i></span
+                    >
+                  }
+                </span>
+              </button>
+            }
+          </div>
         </section>
 
         <section class="flex justify-end gap-2 border-none bg-transparent p-0">

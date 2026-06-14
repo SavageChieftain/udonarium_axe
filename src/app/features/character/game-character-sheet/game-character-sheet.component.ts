@@ -36,7 +36,7 @@ import { CharacterSheetTarget } from '@axe/domain/tabletop/character-sheet-targe
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { Terrain } from '@axe/domain/tabletop/terrain';
+import { Terrain, TERRAIN_FACES, TerrainFace } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { CardStackCardListComponent } from '@axe/features/card/card-stack-card-list/card-stack-card-list.component';
 import { cloneTabletopObject } from '@axe/features/character/game-character-sheet/character-sheet-target-helpers';
@@ -327,6 +327,27 @@ export class GameCharacterSheetComponent {
     this.objectChange.versionOf(terrain.identifier)();
     return terrain.wallImage ?? ImageFile.Empty;
   });
+
+  readonly terrainFaceImages = computed<{ face: TerrainFace; label: string; image: ImageFile }[]>(() => {
+    this.objectChange.fileVersion();
+    const terrain = this.terrain;
+    if (!terrain) return [];
+    this.objectChange.versionOf(terrain.identifier)();
+    return TERRAIN_FACES.filter((face) => face !== 'bottom').map((face) => ({
+      face,
+      label: `feature.inventory.sheet.face${face.charAt(0).toUpperCase()}${face.slice(1)}`,
+      image: terrain.faceImage(face) ?? ImageFile.Empty,
+    }));
+  });
+
+  openTerrainFaceModal(face: TerrainFace) {
+    const terrain = this.terrain;
+    if (!terrain) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
+      if (value == null) return;
+      terrain.setFaceImage(face, value);
+    });
+  }
 
   readonly portraitImages = computed(() => {
     this.objectChange.fileVersion();
