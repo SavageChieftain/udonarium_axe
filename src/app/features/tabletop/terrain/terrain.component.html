@@ -19,12 +19,12 @@
     (rotable.ondragend)="onMoved()"
     [rotable.disable]="isLocked() || tabletopService.mode2d()"
   >
-    @if (!onWall() && hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
+    @if (!onWall() && hasFloor() && isVisibleFloor() && 0 < topFaceImage().url.length) {
       @if (isDropShadow() && (terreinAltitude() !== 0 || (isSlope() && !hasWall()))) {
         <div
           class="chrome-smooth-image-trick absolute size-full transform-[translateZ(0.3px)_scale(0.98)] bg-size-[100%_100%] bg-no-repeat opacity-70 filter-[brightness(0)_blur(1px)] backface-visible transform-3d"
           [class.blinking-animation]="!isLocked()"
-          [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
+          [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
           [style.clip-path]="hexFloorClipPath()"
           [ngStyle]="hexFloorDimStyle()"
         ></div>
@@ -35,7 +35,7 @@
       [class.transition-[transform_132ms_cubic-bezier(0.21,0.97,0.75,1.25)]]="height() >= 0.5 && altitude() === 0"
       [ngStyle]="{ transform: (onWall() ? 'rotateY(180deg) ' : '') + 'translateZ(' + altitude() * gridSize + 'px)' }"
     >
-      @if (hasFloor() && isVisibleFloor() && 0 < floorImage().url.length) {
+      @if (hasFloor() && isVisibleFloor() && 0 < topFaceImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
           @for (step of hexSlopeSteps().floors; track $index) {
             <div
@@ -49,7 +49,7 @@
                 mask: step.mask,
                 ...hexFloorDimStyle(),
               }"
-              [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
+              [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
             ></div>
           }
         } @else {
@@ -62,7 +62,7 @@
               filter: 'brightness(' + floorBrightness() + ')',
               ...hexFloorDimStyle(),
             }"
-            [style.background-image]="'url(' + floorImage().url + ')' | safe: 'style'"
+            [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
             [style.clip-path]="hexFloorClipPath()"
           ></div>
         }
@@ -92,8 +92,8 @@
           ></canvas>
         </div>
       }
-      @if (hasWall() && 0 < wallImage().url.length) {
-        @if (isHexSlope() && hexSlopeSteps().walls.length > 0) {
+      @if (hasWall()) {
+        @if (isHexSlope() && hexSlopeSteps().walls.length > 0 && 0 < wallImage().url.length) {
           @for (wall of hexSlopeSteps().walls; track $index) {
             <div
               class="chrome-smooth-image-trick absolute top-0 left-0 origin-top-left bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
@@ -116,7 +116,7 @@
               }"
             ></div>
           }
-        } @else if (isHex()) {
+        } @else if (isHex() && 0 < wallImage().url.length) {
           @for (wall of hexWalls(); track $index) {
             <div
               class="chrome-smooth-image-trick absolute top-0 left-0 origin-top-left bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
@@ -140,7 +140,7 @@
         }
         @if (!isHex()) {
           @if (slopeDirection() !== slopeDirectionState.TOP) {
-            @if (isVisibleWallTopBottom()) {
+            @if (isVisibleWallTopBottom() && 0 < northFaceImage().url.length) {
               <div
                 [class.blinking-animation]="!isLocked()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.LEFT"
@@ -152,7 +152,7 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.3 : 1)"
-                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                  [style.background-image]="'url(' + northFaceImage().url + ')' | safe: 'style'"
                 ></div>
                 <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                   @for (pool of faceLights('north'); track $index) {
@@ -174,7 +174,7 @@
             }
           }
           @if (slopeDirection() !== slopeDirectionState.BOTTOM) {
-            @if (isVisibleWallTopBottom()) {
+            @if (isVisibleWallTopBottom() && 0 < southFaceImage().url.length) {
               <div
                 [class.blinking-animation]="!isLocked()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.LEFT"
@@ -186,7 +186,7 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [style.filter]="faceFilter(1)"
-                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                  [style.background-image]="'url(' + southFaceImage().url + ')' | safe: 'style'"
                 ></div>
                 <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                   @for (pool of faceLights('south'); track $index) {
@@ -208,7 +208,7 @@
             }
           }
           @if (slopeDirection() !== slopeDirectionState.LEFT) {
-            @if (isVisibleWallLeftRight()) {
+            @if (isVisibleWallLeftRight() && 0 < westFaceImage().url.length) {
               <div
                 [class.blinking-animation]="!isLocked()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.BOTTOM"
@@ -220,7 +220,7 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.5 : 1)"
-                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                  [style.background-image]="'url(' + westFaceImage().url + ')' | safe: 'style'"
                 ></div>
                 <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                   @for (pool of faceLights('west'); track $index) {
@@ -242,7 +242,7 @@
             }
           }
           @if (slopeDirection() !== slopeDirectionState.RIGHT) {
-            @if (isVisibleWallLeftRight()) {
+            @if (isVisibleWallLeftRight() && 0 < eastFaceImage().url.length) {
               <div
                 [class.blinking-animation]="!isLocked()"
                 [class.[clip-path:polygon(100%_0%,0%_100%,100%_100%)]]="slopeDirection() === slopeDirectionState.BOTTOM"
@@ -254,7 +254,7 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.8 : 1)"
-                  [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                  [style.background-image]="'url(' + eastFaceImage().url + ')' | safe: 'style'"
                 ></div>
                 <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                   @for (pool of faceLights('east'); track $index) {

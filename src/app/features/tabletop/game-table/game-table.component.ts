@@ -25,6 +25,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
 import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
@@ -33,6 +34,7 @@ import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.com
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
@@ -69,6 +71,24 @@ interface ActiveWall {
   surfaceBackground: string;
   surfaceBackgroundSize: string;
   surfaceBackgroundRepeat: string;
+}
+
+interface BeamTopGrid {
+  identifier: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  z: number;
+  dataUrl: string;
+}
+
+interface BeamWallGrid {
+  identifier: string;
+  matrix3d: string;
+  width: number;
+  height: number;
+  dataUrl: string;
 }
 
 @Component({
@@ -490,6 +510,97 @@ export class GameTableComponent {
   readonly textNotesBySurface = computed(() => GameTableComponent.bySurface(this.textNotes()));
   readonly diceSymbolsBySurface = computed(() => GameTableComponent.bySurface(this.diceSymbols()));
   readonly terrainsBySurface = computed(() => GameTableComponent.bySurface(this.terrains()));
+
+  readonly beamTopGrids = computed<readonly BeamTopGrid[]>(() => {
+    const table = this.currentTable;
+    this.objectChangeService.versionOf(table.identifier)();
+    this.objectChangeService.versionOf(this.tableSelecter.identifier)();
+    if (!table.gridShow) return [];
+    const grid = table.gridSize;
+    const dims: SurfaceDims = {
+      widthPx: table.width * grid,
+      depthPx: table.height * grid,
+      wallHeightPx: table.wallHeight * grid,
+    };
+    const result: BeamTopGrid[] = [];
+    for (const terrain of this.terrains()) {
+      this.objectChangeService.versionOf(terrain.identifier)();
+      const geo = beamTopGridGeometry(terrain, dims, grid);
+      if (!geo) continue;
+      result.push({
+        identifier: terrain.identifier,
+        ...geo,
+        dataUrl: this.beamTopGridDataUrl(geo.width, geo.height, geo.left, geo.top, table),
+      });
+    }
+    return result;
+  });
+
+  private beamTopGridDataUrl(
+    widthPx: number,
+    heightPx: number,
+    offsetLeftPx: number,
+    offsetTopPx: number,
+    table: GameTable
+  ): string {
+    return this.gridFaceDataUrl(widthPx, heightPx, offsetLeftPx, offsetTopPx, table, '');
+  }
+
+  readonly beamWallGrids = computed<readonly BeamWallGrid[]>(() => {
+    const table = this.currentTable;
+    this.objectChangeService.versionOf(table.identifier)();
+    this.objectChangeService.versionOf(this.tableSelecter.identifier)();
+    if (!table.gridShow) return [];
+    const grid = table.gridSize;
+    const dims: SurfaceDims = {
+      widthPx: table.width * grid,
+      depthPx: table.height * grid,
+      wallHeightPx: table.wallHeight * grid,
+    };
+    const result: BeamWallGrid[] = [];
+    for (const terrain of this.terrains()) {
+      this.objectChangeService.versionOf(terrain.identifier)();
+      const face = beamWallFaceGrid(terrain, dims, grid);
+      if (!face) continue;
+      result.push({
+        identifier: terrain.identifier,
+        matrix3d: face.matrix3d,
+        width: face.width,
+        height: face.height,
+        dataUrl: this.gridFaceDataUrl(face.width, face.height, face.offsetLeft, face.offsetTop, table, face.prefix),
+      });
+    }
+    return result;
+  });
+
+  private gridFaceDataUrl(
+    widthPx: number,
+    heightPx: number,
+    offsetLeftPx: number,
+    offsetTopPx: number,
+    table: GameTable,
+    prefix: string
+  ): string {
+    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
+    try {
+      const canvas = document.createElement('canvas');
+      new GridLineRender(canvas).renderViewport(
+        widthPx,
+        heightPx,
+        table.gridSize,
+        table.gridType,
+        table.gridColor,
+        table.gridFontColor,
+        offsetTopPx,
+        offsetLeftPx,
+        true,
+        prefix
+      );
+      return canvas.toDataURL();
+    } catch {
+      return '';
+    }
+  }
 
   onContextMenu(e: MouseEvent) {
     if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;

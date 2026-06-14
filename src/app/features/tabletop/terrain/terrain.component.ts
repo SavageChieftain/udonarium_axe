@@ -36,7 +36,7 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
-import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
+import { SlopeDirection, Terrain, TerrainFace } from '@axe/domain/tabletop/terrain';
 import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
@@ -110,7 +110,7 @@ export class TerrainComponent {
     effect(() => {
       this.uiSignalService.terrainGridShowVersion();
       let opacity: number = 0.0;
-      if (this.terrain().isGrid) {
+      if (this.terrain().isGrid && !this.onWall()) {
         opacity = 1.0;
       }
       this.setGridCanvasOpacity(opacity);
@@ -118,7 +118,7 @@ export class TerrainComponent {
     effect(() => {
       this.uiSignalService.terrainGridEndVersion();
       let opacity: number = 0.0;
-      if (this.terrain().isGrid) {
+      if (this.terrain().isGrid && !this.onWall()) {
         if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;
         }
@@ -231,6 +231,17 @@ export class TerrainComponent {
     },
     { equal: imageFileEqual() }
   );
+
+  private faceImageOf(face: TerrainFace) {
+    this.objectChange.fileVersion();
+    this.terrainVersion();
+    return this.imageService.getSkeletonOr(this.terrain().faceImage(face));
+  }
+  readonly topFaceImage = computed(() => this.faceImageOf('top'), { equal: imageFileEqual() });
+  readonly northFaceImage = computed(() => this.faceImageOf('north'), { equal: imageFileEqual() });
+  readonly southFaceImage = computed(() => this.faceImageOf('south'), { equal: imageFileEqual() });
+  readonly eastFaceImage = computed(() => this.faceImageOf('east'), { equal: imageFileEqual() });
+  readonly westFaceImage = computed(() => this.faceImageOf('west'), { equal: imageFileEqual() });
 
   readonly height = computed(() => {
     this.terrainVersion();
@@ -735,7 +746,7 @@ export class TerrainComponent {
     }
     let opacity: number = 0.0;
     setTimeout(() => {
-      if (this.terrain().isGrid) {
+      if (this.terrain().isGrid && !this.onWall()) {
         if (this.tableSelecter.viewTable?.gridShow) {
           opacity = 1.0;
         }
