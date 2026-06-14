@@ -1,3 +1,23 @@
+## [1.17.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.16.0...v1.17.0) (2026-06-14)
+
+### ✨ Features
+
+* **tabletop:** drop and drag floor objects onto wall-terrain beams ([4aef877](https://github.com/SavageChieftain/udonarium_axe/commit/4aef877f454697c9bfdb95ac7ca4d5e9606f96c1))
+* **tabletop:** label game table wall grid cells with a direction prefix ([0d9b37c](https://github.com/SavageChieftain/udonarium_axe/commit/0d9b37c6beb7c4fc32915abee0e62133312c24dc))
+* **tabletop:** let floor objects rest on wall terrains across surfaces ([47a89a0](https://github.com/SavageChieftain/udonarium_axe/commit/47a89a00bde4bb40fff5bb1d7aabcf42c0f7bec8))
+* **tabletop:** show the grid on game table walls for all grid types ([582218a](https://github.com/SavageChieftain/udonarium_axe/commit/582218ae761efb9b2eb503cfeea0b783513ecb3a))
+* **terrain:** add per-face (6-sided) image model ([02535e8](https://github.com/SavageChieftain/udonarium_axe/commit/02535e89fb1053d5f072d386832a07da9c6df051))
+* **terrain:** add per-face image pickers to the terrain sheet ([52ec8cd](https://github.com/SavageChieftain/udonarium_axe/commit/52ec8cdfaec706d125fec47b5c2a7f30925162c6))
+* **terrain:** render world grids on beam faces and draw each face image ([f348276](https://github.com/SavageChieftain/udonarium_axe/commit/f3482762ddf15dabcf8f1f228f6c8be7450fbea8))
+
+### 🐛 Bug Fixes
+
+* **tabletop:** correct west/east surface frames to match real rendering ([5d042d1](https://github.com/SavageChieftain/udonarium_axe/commit/5d042d1238f1c8a05bace105ec676072c8122eef))
+
+### 📝 Documentation
+
+* **website:** add v1.16.0 release notes ([263b14b](https://github.com/SavageChieftain/udonarium_axe/commit/263b14b3f4defa48aa849f5aa6d85aeec98e961e))
+
 ## [1.16.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.15.0...v1.16.0) (2026-06-13)
 
 ### ✨ Features
