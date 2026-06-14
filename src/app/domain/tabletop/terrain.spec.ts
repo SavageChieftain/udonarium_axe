@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 
@@ -267,6 +269,51 @@ describe('Terrain', () => {
       terrain.setLocation('graveyard');
       expect(terrain.location.name).toBe('graveyard');
       expect(terrain.isVisibleOnTable).toBe(false);
+    });
+  });
+
+  describe('6面個別画像 (faceImage / setFaceImage)', () => {
+    beforeEach(() => {
+      vi.spyOn(ImageStorage.instance, 'get').mockImplementation((id: string) =>
+        id ? ({ identifier: id } as ImageFile) : null
+      );
+    });
+
+    it('top/bottom は未設定なら floor 画像にフォールバックする', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
+      expect(terrain.topImage?.identifier).toBe('F');
+      expect(terrain.bottomImage?.identifier).toBe('F');
+    });
+
+    it('north/south/east/west は未設定なら wall 画像にフォールバックする', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
+      expect(terrain.northImage?.identifier).toBe('W');
+      expect(terrain.southImage?.identifier).toBe('W');
+      expect(terrain.eastImage?.identifier).toBe('W');
+      expect(terrain.westImage?.identifier).toBe('W');
+    });
+
+    it('setFaceImage は対象の面だけ上書きし、他面のフォールバックは保つ', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
+      terrain.setFaceImage('top', 'T');
+      expect(terrain.topImage?.identifier).toBe('T');
+      expect(terrain.bottomImage?.identifier).toBe('F');
+      expect(terrain.northImage?.identifier).toBe('W');
+    });
+
+    it('setFaceImage は既存の面画像を更新する', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
+      terrain.setFaceImage('east', 'E1');
+      terrain.setFaceImage('east', 'E2');
+      expect(terrain.eastImage?.identifier).toBe('E2');
+    });
+
+    it('faceImage(face) は各 getter と一致する', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
+      terrain.setFaceImage('east', 'E');
+      expect(terrain.faceImage('east')?.identifier).toBe('E');
+      expect(terrain.faceImage('top')?.identifier).toBe('F');
+      expect(terrain.faceImage('north')?.identifier).toBe('W');
     });
   });
 });

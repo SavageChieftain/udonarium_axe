@@ -25,6 +25,10 @@ export enum SlopeDirection {
   RIGHT = 4,
 }
 
+export type TerrainFace = 'top' | 'bottom' | 'north' | 'south' | 'east' | 'west';
+
+export const TERRAIN_FACES: readonly TerrainFace[] = ['top', 'bottom', 'north', 'south', 'east', 'west'] as const;
+
 @SyncObject('terrain')
 export class Terrain extends TabletopObject {
   @SyncVar() isLocked: boolean = false;
@@ -91,6 +95,53 @@ export class Terrain extends TabletopObject {
   }
   get floorImage(): ImageFile | null {
     return this.getImageFile('floor');
+  }
+
+  get topImage(): ImageFile | null {
+    return this.getImageFile('top') ?? this.floorImage;
+  }
+  get bottomImage(): ImageFile | null {
+    return this.getImageFile('bottom') ?? this.floorImage;
+  }
+  get northImage(): ImageFile | null {
+    return this.getImageFile('north') ?? this.wallImage;
+  }
+  get southImage(): ImageFile | null {
+    return this.getImageFile('south') ?? this.wallImage;
+  }
+  get eastImage(): ImageFile | null {
+    return this.getImageFile('east') ?? this.wallImage;
+  }
+  get westImage(): ImageFile | null {
+    return this.getImageFile('west') ?? this.wallImage;
+  }
+
+  faceImage(face: TerrainFace): ImageFile | null {
+    switch (face) {
+      case 'top':
+        return this.topImage;
+      case 'bottom':
+        return this.bottomImage;
+      case 'north':
+        return this.northImage;
+      case 'south':
+        return this.southImage;
+      case 'east':
+        return this.eastImage;
+      case 'west':
+        return this.westImage;
+    }
+  }
+
+  setFaceImage(face: TerrainFace, imageIdentifier: string): void {
+    const imageEl = this.imageDataElement;
+    if (!imageEl) return;
+    const existing = this.getElement(face, imageEl);
+    if (existing) {
+      existing.value = imageIdentifier;
+      return;
+    }
+    imageEl.appendChild(DataElement.create(face, imageIdentifier, { type: 'image' }, `${face}_${this.identifier}`));
   }
 
   get hasWall(): boolean {
