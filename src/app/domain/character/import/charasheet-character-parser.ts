@@ -221,7 +221,7 @@ export function parseCharasheetCharacter(parsed: unknown): ImportedCharacter | n
   return character;
 }
 
-function normalizeImage(record: Record<string, unknown>): string {
+export function normalizeImage(record: Record<string, unknown>): string {
   const raw = asString(record['base64Image']).trim();
   if (raw === '') return '';
   return raw.startsWith('data:') ? raw : `data:image/png;base64,${raw}`;

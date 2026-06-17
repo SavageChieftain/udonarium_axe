@@ -2,6 +2,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { parseImportedCharacterText } from '@axe/domain/character/import/character-import-format';
 import { createEmptyImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-character-factory';
+import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
@@ -102,6 +103,29 @@ describe('ImportedCharacterFactory', () => {
     });
     expect(character.detailDataElement!.getFirstElementByName('値')).toBeTruthy();
     expect(character.detailDataElement!.getFirstElementByName('値_2')).toBeTruthy();
+  });
+
+  it('保管所 CoC6 取り込みで dicebot と能力値・SAN・技能のパレット参照が解決できる', () => {
+    const imported = buildCoc6CharasheetCharacter({
+      pc_name: '探索者',
+      game: 'coc',
+      NA1: 11,
+      NA9: 12,
+      NA10: 8,
+      SAN_Max: 99,
+      SAN_Left: '80',
+      TBAD: ['34', '25', '25', '50'],
+      TBAP: ['74', '25', '25', '60'],
+    })!;
+    const character = ImportedCharacterFactory.create(imported, '');
+    const palette = character.chatPalette!;
+    const detail = character.detailDataElement!;
+
+    expect(palette.dicebot).toBe('Cthulhu');
+    expect(palette.evaluate('CCB<={STR}*5', detail)).toBe('CCB<=11*5');
+    expect(palette.evaluate('CCB<={正気度}', detail)).toBe('CCB<=80');
+    expect(palette.evaluate('CCB<={回避}', detail)).toBe('CCB<=74');
+    expect(palette.evaluate('CCB<={こぶし(パンチ)}', detail)).toBe('CCB<=60');
   });
 
   it('色指定があれば chatColorCode の先頭に入る', () => {

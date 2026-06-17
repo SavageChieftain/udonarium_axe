@@ -1,10 +1,8 @@
 import { isAppspotCharacter, parseAppspotCharacter } from '@axe/domain/character/import/appspot-character-parser';
 import { isCcfoliaCharacter, parseCcfoliaCharacter } from '@axe/domain/character/import/ccfolia-character-parser';
-import {
-  isCharasheetCharacter,
-  parseCharasheetCharacter,
-} from '@axe/domain/character/import/charasheet-character-parser';
+import { isCharasheetCharacter } from '@axe/domain/character/import/charasheet-character-parser';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
+import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
 
 /**
  * 貼り付けテキスト（JSON）から取り込みフォーマットを自動判別して正規化モデルへ変換する。
@@ -16,7 +14,7 @@ import { ImportedCharacter } from '@axe/domain/character/import/imported-charact
  */
 export function parseImportedCharacterJson(json: unknown): ImportedCharacter | null {
   if (isCcfoliaCharacter(json)) return parseCcfoliaCharacter(json);
-  if (isCharasheetCharacter(json)) return parseCharasheetCharacter(json);
+  if (isCharasheetCharacter(json)) return parseCharasheetCharacterForSystem(json);
   if (isAppspotCharacter(json)) return parseAppspotCharacter(json);
   return null;
 }
