@@ -9,6 +9,7 @@ import {
   DataElementType,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
+import { createSkillGapTableElement, DEFAULT_SKILL_TABLE_ROW_NAMES } from '@axe/domain/data/skill-gap-table';
 
 export class CharacterTemplateFactory {
   static createDefault(character: GameCharacter, name: string, size: number, imageIdentifier: string): void {
@@ -460,16 +461,6 @@ export class CharacterTemplateFactory {
   }
 
   private static createGenericSkillTableElement(character: GameCharacter): DataElement {
-    const tableElement = DataElement.create(
-      '技能表',
-      '',
-      {
-        'cs-colspan': '2',
-        [DataElementAttribute.ROLE]: DataElementRole.SECTION,
-        [DataElementAttribute.VIEW_MODE]: DataElementViewMode.TABLE,
-      },
-      `技能表${character.identifier}`
-    );
     const categories = [
       {
         name: '技巧',
@@ -508,84 +499,17 @@ export class CharacterTemplateFactory {
         skills: ['霊感', '感応', '予見', '護符', '幻視', '結界', '浄化', '変化', '念動', '呼応', '呪印'],
       },
     ];
-    const rowNames = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-
-    const gapRowElement = CharacterTemplateFactory.createGroupElement(
-      'ギャップ',
-      `技能表ギャップ_${character.identifier}`
+    const checked = categories.map((_, categoryIndex) =>
+      DEFAULT_SKILL_TABLE_ROW_NAMES.map((__, rowIndex) => categoryIndex === 0 && rowIndex === 0)
     );
-    tableElement.appendChild(gapRowElement);
-    const wrapGapIndex = categories.length;
-    const wrapGapFromCategory = categories[categories.length - 1];
-    const wrapGapToCategory = categories[0];
-    gapRowElement.appendChild(
-      CharacterTemplateFactory.createFieldElement(
-        `ギャップ${wrapGapIndex}`,
-        0,
-        {
-          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
-          [DataElementAttribute.CELL_TEXT]: `${wrapGapFromCategory.name}-${wrapGapToCategory.name}`,
-          [DataElementAttribute.COLUMN_LABEL]: 'G',
-          [DataElementAttribute.CELL_KIND]: 'gap',
-          type: DataElementType.CHECK,
-        },
-        `技能表ギャップ${wrapGapIndex}_${character.identifier}`
-      )
-    );
-    for (const [categoryIndex, category] of categories.entries()) {
-      gapRowElement.appendChild(
-        CharacterTemplateFactory.createFieldElement(
-          category.name,
-          '',
-          {
-            [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
-            [DataElementAttribute.COLUMN_LABEL]: category.name,
-          },
-          `技能表ギャップ_${category.name}_${character.identifier}`
-        )
-      );
-      const nextCategory = categories[categoryIndex + 1];
-      if (!nextCategory) continue;
-      gapRowElement.appendChild(
-        CharacterTemplateFactory.createFieldElement(
-          `ギャップ${categoryIndex + 1}`,
-          0,
-          {
-            [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
-            [DataElementAttribute.CELL_TEXT]: `${category.name}-${nextCategory.name}`,
-            [DataElementAttribute.COLUMN_LABEL]: 'G',
-            [DataElementAttribute.CELL_KIND]: 'gap',
-            type: DataElementType.CHECK,
-          },
-          `技能表ギャップ${categoryIndex + 1}_${character.identifier}`
-        )
-      );
-    }
 
-    for (const [rowIndex, rowName] of rowNames.entries()) {
-      const rowElement = CharacterTemplateFactory.createGroupElement(
-        rowName,
-        `技能表${rowName}_${character.identifier}`
-      );
-      tableElement.appendChild(rowElement);
-      for (const [categoryIndex, category] of categories.entries()) {
-        rowElement.appendChild(
-          CharacterTemplateFactory.createFieldElement(
-            category.name,
-            rowName === '2' && categoryIndex === 0 ? 1 : 0,
-            {
-              [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.CHECK,
-              [DataElementAttribute.CELL_TEXT]: category.skills[rowIndex],
-              [DataElementAttribute.COLUMN_LABEL]: category.name,
-              type: DataElementType.CHECK,
-            },
-            `技能表${rowName}_${category.name}_${character.identifier}`
-          )
-        );
-      }
-    }
-
-    return tableElement;
+    return createSkillGapTableElement({
+      name: '技能表',
+      idSuffix: character.identifier,
+      categories: categories.map((category) => category.name),
+      skillsByCategory: categories.map((category) => category.skills),
+      checked,
+    });
   }
 
   private static createSkillTableType2Element(character: GameCharacter): DataElement {
