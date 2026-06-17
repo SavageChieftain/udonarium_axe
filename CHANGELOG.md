@@ -1,3 +1,14 @@
+## [1.18.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.18.0...v1.18.1) (2026-06-17)
+
+### 🐛 Bug Fixes
+
+* **network:** auto-reconnect on server-error with a bounded retry ([c781323](https://github.com/SavageChieftain/udonarium_axe/commit/c781323e8ee7dc5f2ec6e5ff71c5fb79fdbb2d75))
+* **network:** retry SkyWay token fetch to survive backend cold starts ([0364c69](https://github.com/SavageChieftain/udonarium_axe/commit/0364c69328445baf487d9bb9963b864ddd0a9d93))
+
+### 📝 Documentation
+
+* **website:** add v1.18.0 release notes ([003bc3c](https://github.com/SavageChieftain/udonarium_axe/commit/003bc3cebee839c144d36208c0f7164337e56192))
+
 ## [1.18.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.17.0...v1.18.0) (2026-06-17)
 
 ### ✨ Features
