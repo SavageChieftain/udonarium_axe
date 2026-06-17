@@ -1,3 +1,19 @@
+## [1.18.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.17.0...v1.18.0) (2026-06-17)
+
+### ✨ Features
+
+* **character:** import characters from ccfolia, charasheet and the sheet vault ([270a07e](https://github.com/SavageChieftain/udonarium_axe/commit/270a07e2724ba6059f212e27d2f4398abd60b6c4))
+
+### 📝 Documentation
+
+* mention character import in feature lists, FAQ and README ([6d1e7bf](https://github.com/SavageChieftain/udonarium_axe/commit/6d1e7bfb57edb440f7527749d1888cdd874284e1))
+* **website:** add v1.17.0 release notes and document walls, beams and 6-face terrain ([ec45db5](https://github.com/SavageChieftain/udonarium_axe/commit/ec45db5f7a8aec56df5e85ca4c6aee78cb7a886c))
+* **website:** document the character import feature ([a11b640](https://github.com/SavageChieftain/udonarium_axe/commit/a11b640b9abe497dfae08dee668ab7dc7383e28b))
+
+### ♻️ Refactor
+
+* **character:** extract skill/gap table builder into a reusable module ([ec82cc9](https://github.com/SavageChieftain/udonarium_axe/commit/ec82cc95d8144097f1207f259d90ac719115dd31))
+
 ## [1.17.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.16.0...v1.17.0) (2026-06-14)
 
 ### ✨ Features
