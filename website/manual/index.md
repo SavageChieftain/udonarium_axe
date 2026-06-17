@@ -47,7 +47,8 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 **オブジェクト**
 
 - [オブジェクトの基本操作](/manual/objects) — 移動・回転・高度・複数選択
-- [キャラクターコマ](/manual/character) / [バフ・デバフ](/manual/buff)
+- [キャラクターコマ](/manual/character) / [キャラクターの取り込み](/manual/character-import) — 他サービスのデータからコマを生成
+- [バフ・デバフ](/manual/buff)
 - [カード](/manual/cards) / [ダイス](/manual/dice) / [共有メモ](/manual/notes) / [射程範囲](/manual/range)
 
 **チャット**
