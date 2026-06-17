@@ -37,7 +37,8 @@
       "cutInList": "カットインリスト",
       "characterGenerator": "キャラクタージェネレーター",
       "inventory": "インベントリ",
-      "objectList": "オブジェクト一覧"
+      "objectList": "オブジェクト一覧",
+      "characterImport": "キャラクター取り込み"
     }
   },
   "feature": {
@@ -590,7 +591,8 @@
         "createCharacter": "キャラクターを作る",
         "createMask": "マップマスクを作る",
         "defaultName": "ゲームキャラクター",
-        "defaultMaskName": "マップマスク"
+        "defaultMaskName": "マップマスク",
+        "importCharacter": "キャラを取り込む"
       },
       "buff": {
         "count": "バフ{{count}}個",
@@ -609,6 +611,24 @@
         "registeredCount": "登録枚数:{{count}}",
         "import": "インポート実行",
         "cancel": "キャンセル"
+      },
+      "import": {
+        "panel": "キャラクター取り込み",
+        "description": "ココフォリアのコマや各種キャラクター管理サービスのデータ（JSONまたはURL）を貼り付けて、AXEのキャラコマを生成します。",
+        "sourceCcfolia": "ココフォリアのコマJSON（いあきゃら・Charaeno・ゆとシート・CharaXiv等の「ココフォリア用コピー」出力に対応）",
+        "sourceCharasheet": "キャラクター保管所：JSONまたはキャラURLを貼り付け（自動取得）",
+        "placeholder": "コマJSON、または保管所・キャラクターシート倉庫のURLを貼り付け",
+        "submit": "取り込む",
+        "close": "閉じる",
+        "empty": "データを貼り付けてください。",
+        "unrecognized": "対応していない形式です。ココフォリアのコマJSONか保管所のJSONを貼り付けてください。",
+        "failed": "取り込みに失敗しました。",
+        "success": "キャラコマを生成しました。",
+        "successNoImage": "キャラコマを生成しました（画像は取得できなかったため、後から設定してください）。",
+        "sourceAppspot": "キャラクターシート倉庫(character-sheets.appspot.com)：JSONまたはキャラURLを貼り付け（自動取得）",
+        "unsupported": "対応していないURLです。ココフォリアのコマJSONを貼り付けてください。",
+        "unsupportedCharaxiv": "CharaXivのURL取得には未対応です。CharaXivの「ココフォリア用コピー」で出力したJSONを貼り付けてください。",
+        "fetchFailed": "取得に失敗しました。通信エラーかURLが正しくない可能性があります。生JSONの貼り付けもお試しください。"
       }
     },
     "light": {
@@ -1428,7 +1448,8 @@
       "releaseOwnership": "オフラインの所有を解放（途中復帰用）",
       "releaseOwnershipConfirm": "オフラインのオーナーが持つ所有 {{count}} 件を解放しますか？（解放後は各自で再取得できます）",
       "zipLoad": "ZIP読込",
-      "save": "保存"
+      "save": "保存",
+      "importCharacter": "キャラ取り込み"
     },
     "roomDataDefault": "ルームデータ"
   },

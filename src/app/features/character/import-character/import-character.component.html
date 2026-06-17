@@ -1,0 +1,43 @@
+<div class="flex size-full flex-col gap-2 p-2 text-sm">
+  <p class="text-xs opacity-80">{{ 'feature.character.import.description' | transloco }}</p>
+  <ul class="list-inside list-disc text-xs opacity-70">
+    <li>{{ 'feature.character.import.sourceCcfolia' | transloco }}</li>
+    <li>{{ 'feature.character.import.sourceCharasheet' | transloco }}</li>
+    <li>{{ 'feature.character.import.sourceAppspot' | transloco }}</li>
+  </ul>
+
+  <textarea
+    class="min-h-40 w-full flex-1 resize-none rounded-sm border border-gray-400 bg-white/90 p-2 font-mono text-xs text-gray-900"
+    [(ngModel)]="text"
+    name="import-text"
+    [disabled]="busy()"
+    [placeholder]="'feature.character.import.placeholder' | transloco"
+  ></textarea>
+
+  @if (feedback(); as message) {
+    <p
+      class="rounded-sm px-2 py-1 text-xs"
+      [class.bg-green-200]="message.kind === 'success'"
+      [class.text-green-900]="message.kind === 'success'"
+      [class.bg-yellow-200]="message.kind === 'warning'"
+      [class.text-yellow-900]="message.kind === 'warning'"
+      [class.bg-red-200]="message.kind === 'error'"
+      [class.text-red-900]="message.kind === 'error'"
+    >
+      {{ message.text }}
+    </p>
+  }
+
+  <div class="flex gap-2">
+    <button
+      class="rounded-sm bg-blue-600 px-3 py-1 text-white disabled:opacity-50"
+      (click)="importCharacter()"
+      [disabled]="busy() || !canEdit"
+    >
+      {{ 'feature.character.import.submit' | transloco }}
+    </button>
+    <button class="rounded-sm bg-gray-400 px-3 py-1 text-white" (click)="close()">
+      {{ 'feature.character.import.close' | transloco }}
+    </button>
+  </div>
+</div>
