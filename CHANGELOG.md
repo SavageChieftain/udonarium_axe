@@ -1,3 +1,13 @@
+## [1.18.2](https://github.com/SavageChieftain/udonarium_axe/compare/v1.18.1...v1.18.2) (2026-06-17)
+
+### 🐛 Bug Fixes
+
+* **network:** replay loaded config so the peer id no longer sticks at '???' ([0ae7660](https://github.com/SavageChieftain/udonarium_axe/commit/0ae76609500ee3b0a05b6337d5a9190e705e7a26))
+
+### 📝 Documentation
+
+* **website:** add v1.18.1 release notes ([be6e8d0](https://github.com/SavageChieftain/udonarium_axe/commit/be6e8d094a96dffbb1065877bac72d59b08fa353))
+
 ## [1.18.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.18.0...v1.18.1) (2026-06-17)
 
 ### 🐛 Bug Fixes
