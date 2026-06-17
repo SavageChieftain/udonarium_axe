@@ -74,14 +74,77 @@ describe('NetworkEventHandlerService', () => {
     expect(openStandbySpy).not.toHaveBeenCalled();
   });
 
-  it('networkError: server-error はメッセージ送信のみで再接続しない', () => {
-    const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
+  it('networkError: server-error は上限内ならバックオフ後に自動再接続する', async () => {
+    vi.useFakeTimers();
+    try {
+      const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
 
-    stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'oops' });
+      stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'oops' });
 
-    expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(1);
-    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.errors.skywayServer');
-    expect(openStandbySpy).not.toHaveBeenCalled();
+      // 即時は再接続案内のみで、再接続はバックオフ後
+      expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(1);
+      expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.errors.reconnecting');
+      expect(openStandbySpy).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(openStandbySpy).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('networkError: server-error が上限を超えると打ち切り、サーバエラーを通知する', async () => {
+    vi.useFakeTimers();
+    try {
+      const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
+
+      // 上限（3回）まで再接続。各回バックオフを流して openStandby を発火
+      for (let i = 0; i < 3; i++) {
+        stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
+        await vi.advanceTimersByTimeAsync(20000);
+      }
+      expect(openStandbySpy).toHaveBeenCalledTimes(3);
+
+      // 4 回目は打ち切り：サーバエラー通知のみ、再接続はしない
+      stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
+      await vi.advanceTimersByTimeAsync(20000);
+
+      expect(openStandbySpy).toHaveBeenCalledTimes(3);
+      const lastMessage = chatStub.sendSystemMessage.mock.calls.at(-1)?.[0] as string;
+      expect(lastMessage).toContain('feature.lobby.errors.skywayServer');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('networkError: 接続成功(networkOpen)で server-error の再接続回数がリセットされる', async () => {
+    vi.useFakeTimers();
+    try {
+      PeerCursor.myCursor = new PeerCursor();
+      vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({
+        peerId: 'p',
+        userId: 'u',
+        roomId: '',
+        roomName: '',
+        isRoom: false,
+      } as never);
+      const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
+
+      for (let i = 0; i < 3; i++) {
+        stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
+        await vi.advanceTimersByTimeAsync(20000);
+      }
+      expect(openStandbySpy).toHaveBeenCalledTimes(3);
+
+      stubChange.networkOpen$.emit({ peerId: 'p' });
+
+      // リセット後は再び再接続できる（打ち切られない）
+      stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
+      await vi.advanceTimersByTimeAsync(20000);
+      expect(openStandbySpy).toHaveBeenCalledTimes(4);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('networkError: token-expired はメッセージ + 再接続', () => {

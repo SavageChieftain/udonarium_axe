@@ -12,12 +12,23 @@ export class NetworkEventHandlerService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly chatMessageService = inject(ChatMessageService);
 
+  /**
+   * server-error（トークンバックエンドに到達できない）時の自動再接続の上限とバックオフ。
+   * トークン取得側のリトライで吸収しきれない長いコールドスタートに備えつつ、
+   * 恒久障害での無限再接続ループ（システムメッセージ連発）を上限で防ぐ。
+   */
+  private static readonly MAX_SERVER_ERROR_RECONNECTS = 3;
+  private static readonly SERVER_ERROR_RECONNECT_BACKOFF_MS = [3000, 8000, 15000];
+  private serverErrorReconnectAttempts = 0;
+  private serverErrorReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     this.objectChange.loadConfig$.subscribe((event) => {
       Network.configure(event.config as Record<string, unknown>);
       Network.openStandby(loadIdentity()?.userId);
     }, this.destroyRef);
     this.objectChange.networkOpen$.subscribe(() => {
+      this.resetServerErrorReconnect();
       const peer = Network.peerContext;
       PeerCursor.myCursor.peerId = peer.peerId;
       PeerCursor.myCursor.userId = peer.userId;
@@ -34,12 +45,14 @@ export class NetworkEventHandlerService {
       const quietErrorTypes = ['peer-unavailable'];
       if (quietErrorTypes.includes(errorType)) return;
 
-      const userMessage = this.resolveNetworkErrorMessage(errorType, errorMessage);
-      this.chatMessageService.sendSystemMessage(userMessage);
+      // server-error はコールドスタートの遅延を見込み、回数上限つきでバックオフ再接続する。
+      // 上限を超えたら恒久障害とみなして通知し、無限ループを避けて打ち切る。
+      if (errorType === 'server-error') {
+        this.handleServerErrorReconnect();
+        return;
+      }
 
-      const noReconnectErrorTypes = ['server-error'];
-      if (noReconnectErrorTypes.includes(errorType)) return;
-
+      this.chatMessageService.sendSystemMessage(this.resolveNetworkErrorMessage(errorType, errorMessage));
       this.chatMessageService.sendSystemMessage(encodeI18nMessage('feature.lobby.errors.reconnecting'));
       Network.openStandby(loadIdentity()?.userId);
     }, this.destroyRef);
@@ -63,6 +76,33 @@ export class NetworkEventHandlerService {
       },
       this.destroyRef
     );
+  }
+
+  private handleServerErrorReconnect(): void {
+    if (this.serverErrorReconnectAttempts >= NetworkEventHandlerService.MAX_SERVER_ERROR_RECONNECTS) {
+      this.chatMessageService.sendSystemMessage(encodeI18nMessage('feature.lobby.errors.skywayServer'));
+      return;
+    }
+
+    const backoff = NetworkEventHandlerService.SERVER_ERROR_RECONNECT_BACKOFF_MS;
+    const delayMs = backoff[this.serverErrorReconnectAttempts] ?? backoff[backoff.length - 1];
+    this.serverErrorReconnectAttempts++;
+
+    this.chatMessageService.sendSystemMessage(encodeI18nMessage('feature.lobby.errors.reconnecting'));
+
+    if (this.serverErrorReconnectTimer != null) clearTimeout(this.serverErrorReconnectTimer);
+    this.serverErrorReconnectTimer = setTimeout(() => {
+      this.serverErrorReconnectTimer = null;
+      Network.openStandby(loadIdentity()?.userId);
+    }, delayMs);
+  }
+
+  private resetServerErrorReconnect(): void {
+    this.serverErrorReconnectAttempts = 0;
+    if (this.serverErrorReconnectTimer != null) {
+      clearTimeout(this.serverErrorReconnectTimer);
+      this.serverErrorReconnectTimer = null;
+    }
   }
 
   private resolveNetworkErrorMessage(errorType: string, _errorMessage: string): string {
