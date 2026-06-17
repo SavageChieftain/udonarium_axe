@@ -145,4 +145,58 @@ describe('SkyWayBackend', () => {
     const calledUrl = (fetchSpy.mock.calls[0][0] as URL).toString();
     expect(calledUrl).toBe('https://example.com/backend/v1/status');
   });
+
+  describe('createSkyWayAuthToken のコールドスタート向けリトライ', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('5xx（コールドスタート）が一度起きてもリトライして成功する', async () => {
+      fetchSpy
+        .mockResolvedValueOnce(new Response('', { status: 503 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify({ token: 'warm-token' }), { status: 200 }));
+      const backend = new SkyWayBackend('http://localhost:3000');
+
+      const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).resolves.toBe('warm-token');
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('通信エラーが一度起きてもリトライして成功する', async () => {
+      fetchSpy
+        .mockRejectedValueOnce(new Error('ECONNREFUSED'))
+        .mockResolvedValueOnce(new Response(JSON.stringify({ token: 'warm-token' }), { status: 200 }));
+      const backend = new SkyWayBackend('http://localhost:3000');
+
+      const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).resolves.toBe('warm-token');
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('一時失敗（5xx）が続くと全試行後に空文字を返す', async () => {
+      fetchSpy.mockResolvedValue(new Response('', { status: 503 }));
+      const backend = new SkyWayBackend('http://localhost:3000');
+
+      const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).resolves.toBe('');
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('4xx（設定ミス）は即失敗しリトライしない', async () => {
+      fetchSpy.mockResolvedValue(new Response('', { status: 404 }));
+      const backend = new SkyWayBackend('http://localhost:3000');
+
+      await expect(backend.createSkyWayAuthToken('channel', 'peer-1')).resolves.toBe('');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });
