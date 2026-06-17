@@ -37,7 +37,8 @@
       "cutInList": "Cut-ins",
       "characterGenerator": "Character generator",
       "inventory": "Inventory",
-      "objectList": "Object list"
+      "objectList": "Object list",
+      "characterImport": "Import Character"
     }
   },
   "feature": {
@@ -590,7 +591,8 @@
         "createCharacter": "Create character",
         "createMask": "Create map mask",
         "defaultName": "Game character",
-        "defaultMaskName": "Map mask"
+        "defaultMaskName": "Map mask",
+        "importCharacter": "Import Character"
       },
       "buff": {
         "count": "{{count}} buff(s)",
@@ -609,6 +611,24 @@
         "registeredCount": "Registered: {{count}}",
         "import": "Import",
         "cancel": "Cancel"
+      },
+      "import": {
+        "panel": "Import Character",
+        "description": "Paste data (JSON or URL) from CCFOLIA or other character-management services to generate an AXE character piece.",
+        "sourceCcfolia": "CCFOLIA character JSON (covers \"Copy for CCFOLIA\" output from iachara, Charaeno, Yuto-sheet, CharaXiv, etc.)",
+        "sourceCharasheet": "Character Storage (charasheet): paste JSON or the character URL (auto-fetched)",
+        "placeholder": "Paste character JSON, or a charasheet / character-sheets.appspot.com URL",
+        "submit": "Import",
+        "close": "Close",
+        "empty": "Please paste data first.",
+        "unrecognized": "Unsupported format. Paste a CCFOLIA character JSON or a charasheet JSON.",
+        "failed": "Import failed.",
+        "success": "Character piece created.",
+        "successNoImage": "Character piece created (image could not be fetched; set it manually later).",
+        "sourceAppspot": "Character Sheet Vault (character-sheets.appspot.com): paste JSON or the character URL (auto-fetched)",
+        "unsupported": "Unsupported URL. Paste a CCFOLIA character JSON instead.",
+        "unsupportedCharaxiv": "CharaXiv URL fetching is not supported. Paste the JSON from CharaXiv’s \"Copy for CCFOLIA\" output.",
+        "fetchFailed": "Fetch failed. A network error or invalid URL may be the cause. Try pasting the raw JSON instead."
       }
     },
     "light": {
@@ -1428,7 +1448,8 @@
       "releaseOwnership": "Release offline ownership (for rejoining players)",
       "releaseOwnershipConfirm": "Release ownership held by {{count}} offline owner(s)? (anyone can re-claim afterwards)",
       "zipLoad": "Load ZIP",
-      "save": "Save"
+      "save": "Save",
+      "importCharacter": "Import Character"
     },
     "roomDataDefault": "Room data"
   },

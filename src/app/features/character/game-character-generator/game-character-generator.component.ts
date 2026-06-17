@@ -13,6 +13,7 @@ import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -78,5 +79,9 @@ export class GameCharacterGeneratorComponent {
 
   openModal() {
     this.modalService.open(FileSelecterComponent);
+  }
+
+  openImportCharacter() {
+    this.panelService.open(ImportCharacterComponent, { width: 480, height: 460, left: 100, top: 100 });
   }
 }

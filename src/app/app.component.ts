@@ -30,6 +30,7 @@ import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handle
 import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
+import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
@@ -153,6 +154,7 @@ export class AppComponent {
       | 'JukeboxComponent'
       | 'CutInListComponent'
       | 'GameCharacterGeneratorComponent'
+      | 'ImportCharacterComponent'
       | 'GameObjectInventoryComponent'
       | 'GameObjectListPanelComponent'
   ) {
@@ -193,6 +195,10 @@ export class AppComponent {
       case 'GameCharacterGeneratorComponent':
         component = GameCharacterGeneratorComponent;
         option = { width: 500, height: 300, left: 100, title: this.t('common.panel.characterGenerator') };
+        break;
+      case 'ImportCharacterComponent':
+        component = ImportCharacterComponent;
+        option = { width: 480, height: 460, left: 100, title: this.t('common.panel.characterImport') };
         break;
       case 'GameObjectInventoryComponent':
         component = GameObjectInventoryComponent;
