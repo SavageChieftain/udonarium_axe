@@ -1,4 +1,4 @@
-import { EventChannel } from '@axe/core/event/event-channel';
+import { EventChannel, ReplayEventChannel } from '@axe/core/event/event-channel';
 
 describe('EventChannel', () => {
   it('emit でリスナーが呼ばれる', () => {
@@ -98,5 +98,58 @@ describe('EventChannel', () => {
     ch.emit();
 
     expect(order).toEqual([1, 2, 3]);
+  });
+});
+
+describe('ReplayEventChannel', () => {
+  it('emit より後に subscribe しても最後の値を受け取る（取りこぼさない）', () => {
+    const ch = new ReplayEventChannel<number>();
+    const received: number[] = [];
+
+    ch.emit(42);
+    ch.subscribe((v) => received.push(v));
+
+    expect(received).toEqual([42]);
+  });
+
+  it('emit より前に subscribe したリスナーは emit 時に一度だけ受け取る', () => {
+    const ch = new ReplayEventChannel<number>();
+    const received: number[] = [];
+
+    ch.subscribe((v) => received.push(v));
+    ch.emit(7);
+
+    expect(received).toEqual([7]);
+  });
+
+  it('複数回 emit したあとに subscribe すると最後の値が届く', () => {
+    const ch = new ReplayEventChannel<string>();
+    const received: string[] = [];
+
+    ch.emit('a');
+    ch.emit('b');
+    ch.subscribe((v) => received.push(v));
+
+    expect(received).toEqual(['b']);
+  });
+
+  it('emit がまだなければ subscribe しても何も届かない', () => {
+    const ch = new ReplayEventChannel<number>();
+    const received: number[] = [];
+
+    ch.subscribe((v) => received.push(v));
+
+    expect(received).toEqual([]);
+  });
+
+  it('再配信を受けた購読者は以後の emit も受け取る', () => {
+    const ch = new ReplayEventChannel<number>();
+    const received: number[] = [];
+
+    ch.emit(1);
+    ch.subscribe((v) => received.push(v));
+    ch.emit(2);
+
+    expect(received).toEqual([1, 2]);
   });
 });

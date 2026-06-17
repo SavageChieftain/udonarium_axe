@@ -1,4 +1,4 @@
-import { EventChannel } from '@axe/core/event/event-channel';
+import { EventChannel, ReplayEventChannel } from '@axe/core/event/event-channel';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 
 export interface SendMessageEvent {
@@ -80,7 +80,9 @@ export const alarmTimeUp$ = new EventChannel<AlarmTimeUpEvent>();
 export const alarmPop$ = new EventChannel<AlarmPopEvent>();
 export const fileLoaded$ = new EventChannel<void>();
 export const xmlLoaded$ = new EventChannel<XmlLoadedEvent>();
-export const loadConfig$ = new EventChannel<LoadConfigEvent>();
+// APP_INITIALIZER の設定ロード(emit)が AppComponent 生成時の購読より先に走り得るため、
+// 取りこぼし（= openStandby 未実行で peerId が '???' のまま固定）を防ぐ replay チャネルにする。
+export const loadConfig$ = new ReplayEventChannel<LoadConfigEvent>();
 export const fileResourceUpdated$ = new EventChannel<void>();
 
 export function emitSendMessage(event: SendMessageEvent) {
