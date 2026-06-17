@@ -44,6 +44,12 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **スキルテーブル** — GAP 判定モード、判定候補ロジック
 - **端数サイズ対応** — マルチヘクスの頂点スナップ、端数サイズ向けの頂点クラスタ台座
 
+## キャラクターの取り込み
+
+- **取り込みパイプライン** — ココフォリア コマ JSON / キャラクター保管所 / キャラクターシート倉庫 / CharaXiv からキャラコマを生成（`domain/character/import`、`application/character/character-import.service`、`features/character/import-character`）
+- **取得経路** — 保管所は直 fetch（`Access-Control-Allow-Origin: *`）、倉庫は JSONP（CORS 不可のため script タグ注入）。CharaXiv はココフォリア形式の貼り付け
+- **正規化モデル** — `ImportedCharacter`（statuses / params / system 固有 sections）へ正規化し、`ImportedCharacterFactory` が data-element ツリーを構築。保管所 CoC は `NA1..NA14` を能力値・SAN へ写像、倉庫は `base` / 配列（技能・コンボ・武器）をセクションへ展開
+
 ## データ要素（ゲームデータ）
 
 - **`RANGE_SHAPE` フィールド型** — 射程シェイプをサムネイル付きで保持
