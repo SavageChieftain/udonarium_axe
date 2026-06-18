@@ -1,6 +1,5 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedField,
@@ -11,6 +10,15 @@ import {
   normalizeHexColor,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
+import {
+  asArray,
+  asString,
+  buildOtherSection,
+  buildParallelSection,
+  isNonEmptyScalar,
+  ITEM_COLUMNS,
+  WEAPON_COLUMNS,
+} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 interface SkillCategory {
   prefix: string;
@@ -109,23 +117,6 @@ const DERIVED: { key: string; label: string }[] = [
   { key: 'NA14', label: '知識' },
 ];
 
-const WEAPON_COLUMNS: { key: string; label: string }[] = [
-  { key: 'arms_hit', label: '成功率' },
-  { key: 'arms_damage', label: 'ダメージ' },
-  { key: 'arms_range', label: '射程' },
-  { key: 'arms_attack_count', label: '攻撃回数' },
-  { key: 'arms_last_shot', label: '装弾数' },
-  { key: 'arms_vitality', label: '耐久力' },
-  { key: 'arms_sonota', label: 'その他' },
-];
-
-const ITEM_COLUMNS: { key: string; label: string }[] = [
-  { key: 'item_tanka', label: '単価' },
-  { key: 'item_num', label: '個数' },
-  { key: 'item_price', label: '価格' },
-  { key: 'item_memo', label: 'メモ' },
-];
-
 const EXCLUDED_KEYS = new Set([
   'pc_name',
   'color',
@@ -146,21 +137,6 @@ interface CocSkill {
   category: string;
   name: string;
   value: number;
-}
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
-}
-
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
-}
-
-function asArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
 }
 
 function isStructuredKey(key: string): boolean {
@@ -247,39 +223,6 @@ function buildSkillSection(skills: CocSkill[]): ImportedSection | null {
   return { label: '技能', groups };
 }
 
-function buildParallelSection(
-  label: string,
-  nameKey: string,
-  columns: { key: string; label: string }[],
-  record: Record<string, unknown>
-): ImportedSection | null {
-  const names = asArray(record[nameKey]);
-  const groups: ImportedGroup[] = [];
-  names.forEach((rawName, index) => {
-    const name = asString(rawName).trim();
-    if (name === '') return;
-    const fields: ImportedField[] = [];
-    for (const column of columns) {
-      const cell = asArray(record[column.key])[index];
-      if (!isNonEmptyScalar(cell)) continue;
-      const classified = classifyScalar(cell);
-      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
-    }
-    groups.push({ label: name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
-}
-
-function buildOtherSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const [key, raw] of Object.entries(record)) {
-    if (isStructuredKey(key) || Array.isArray(raw) || !isNonEmptyScalar(raw)) continue;
-    const classified = classifyScalar(raw);
-    fields.push({ label: key, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'その他', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(
   params: ImportedParam[],
   statuses: ImportedStatus[],
@@ -329,7 +272,7 @@ export function buildCoc6CharasheetCharacter(parsed: unknown): ImportedCharacter
     buildSkillSection(skills),
     buildParallelSection('武器', 'arms_name', WEAPON_COLUMNS, record),
     buildParallelSection('所持品', 'item_name', ITEM_COLUMNS, record),
-    buildOtherSection(record),
+    buildOtherSection(record, isStructuredKey),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(params, statuses, skills, record);
