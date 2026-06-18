@@ -14,10 +14,19 @@ describe('parseCharasheetCharacterForSystem', () => {
     expect(result.sections.some((section) => section.label === '技能')).toBe(true);
   });
 
-  it('プロファイル未対応でも dicebot だけは補完する（coc7 → Cthulhu7th）', () => {
-    const result = parseCharasheetCharacterForSystem({ pc_name: 'X', game: 'coc7', NA1: 11 })!;
-    expect(result.sourceFormat).toBe('charasheet');
+  it('game="coc7" は CoC7 プロファイルへ委譲する', () => {
+    const result = parseCharasheetCharacterForSystem({
+      pc_name: 'X',
+      game: 'coc7',
+      NA1: 60,
+      SAN_Max: 99,
+      SKAN: ['目星'],
+      SKAP: ['50'],
+      SKTP: ['1'],
+    })!;
     expect(result.dicebot).toBe('Cthulhu7th');
+    expect(result.params).toContainEqual({ label: 'STR', value: '60' });
+    expect(result.sections.some((section) => section.label === '技能')).toBe(true);
   });
 
   it('未対応 game は汎用パースのまま dicebot 空', () => {

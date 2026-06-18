@@ -3,6 +3,7 @@ import { parseImportedCharacterText } from '@axe/domain/character/import/charact
 import { createEmptyImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-character-factory';
 import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
+import { buildCoc7CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
@@ -126,6 +127,32 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('CCB<={正気度}', detail)).toBe('CCB<=80');
     expect(palette.evaluate('CCB<={回避}', detail)).toBe('CCB<=74');
     expect(palette.evaluate('CCB<={こぶし(パンチ)}', detail)).toBe('CCB<=60');
+  });
+
+  it('保管所 CoC7 取り込みで dicebot=Cthulhu7th と能力値(×5なし)・SAN・技能のパレット参照が解決できる', () => {
+    const imported = buildCoc7CharasheetCharacter({
+      pc_name: '探索者',
+      game: 'coc7',
+      NA1: 65,
+      NA10: 16,
+      NA11: 15,
+      SAN_Max: 99,
+      SAN_Left: '61',
+      Luck_Left: '39',
+      Luck_start: '39',
+      SKAN: ['目星'],
+      SKAP: ['50'],
+      SKTP: ['1'],
+    })!;
+    const character = ImportedCharacterFactory.create(imported, '');
+    const palette = character.chatPalette!;
+    const detail = character.detailDataElement!;
+
+    expect(palette.dicebot).toBe('Cthulhu7th');
+    expect(palette.evaluate('CC<={STR}', detail)).toBe('CC<=65');
+    expect(palette.evaluate('CC<={正気度}', detail)).toBe('CC<=61');
+    expect(palette.evaluate('CC<={幸運}', detail)).toBe('CC<=39');
+    expect(palette.evaluate('CC<={目星}', detail)).toBe('CC<=50');
   });
 
   it('色指定があれば chatColorCode の先頭に入る', () => {
