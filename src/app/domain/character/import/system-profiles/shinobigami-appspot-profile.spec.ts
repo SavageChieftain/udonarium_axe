@@ -30,6 +30,8 @@ describe('buildShinobigamiAppspotCharacter', () => {
       { name: '', type: null, targetSkill: null },
     ],
     background: [{ name: '整備班', type: '長所', point: '3', effect: 'サポート忍法を自動成功にさせられる。' }],
+    learned: [{ id: 'skills.row10.name0' }, { id: 'skills.row3.name3' }],
+    skills: { a: '1', b: null, c: null, d: null, e: null, f: '1' },
     outline: '設定テキスト',
   };
 
@@ -80,5 +82,20 @@ describe('buildShinobigamiAppspotCharacter', () => {
     const result = buildShinobigamiAppspotCharacter(sg)!;
     expect(result.commands).toContain('2D6>=5 【判定】');
     expect(result.commands).toContain('2D6>=5 【接近戦攻撃／掘削術】');
+  });
+
+  it('特技表（GAP表）を正式特技表で構築し、learned から習得・a-f からギャップを反映する', () => {
+    const result = buildShinobigamiAppspotCharacter(sg)!;
+    const table = result.skillTables[0];
+    expect(table.name).toBe('特技表');
+    expect(table.categories).toEqual(['器術', '体術', '忍術', '謀術', '戦術', '妖術']);
+    // 器術の12行目（row10）＝掘削術
+    expect(table.skillsByCategory[0][10]).toBe('掘削術');
+    // learned: skills.row10.name0（器術=掘削術）/ skills.row3.name3（謀術=調査術）
+    expect(table.checked![0][10]).toBe(true);
+    expect(table.checked![3][3]).toBe(true);
+    expect(table.checked![0][0]).toBe(false);
+    // gaps a-f → [器-体, 体-忍, 忍-謀, 謀-戦, 戦-妖, 妖-器(wrap)]
+    expect(table.gaps).toEqual([true, false, false, false, false, true]);
   });
 });

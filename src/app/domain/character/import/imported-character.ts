@@ -33,12 +33,27 @@ export interface ImportedSection {
   groups: ImportedGroup[];
 }
 
+/**
+ * サイコフィクション系の「ギャップ付き特技表」を運ぶための入力。
+ * [カテゴリ][行] でセル名・習得フラグを持ち、factory が createSkillGapTableElement で
+ * テーブル表示の CHECK_TABLE セクションへ展開する。
+ */
+export interface ImportedSkillTable {
+  name: string;
+  categories: string[];
+  skillsByCategory: string[][];
+  checked?: boolean[][];
+  gaps?: boolean[];
+  rowNames?: string[];
+}
+
 export interface ImportedCharacter {
   name: string;
   size: number;
   statuses: ImportedStatus[];
   params: ImportedParam[];
   sections: ImportedSection[];
+  skillTables: ImportedSkillTable[];
   memo: string;
   initiative: number | null;
   externalUrl: string;
@@ -57,6 +72,7 @@ export function createEmptyImportedCharacter(sourceFormat: ImportSourceFormat): 
     statuses: [],
     params: [],
     sections: [],
+    skillTables: [],
     memo: '',
     initiative: null,
     externalUrl: '',

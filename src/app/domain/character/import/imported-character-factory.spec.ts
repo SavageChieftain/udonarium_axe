@@ -5,6 +5,7 @@ import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-
 import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
 import { buildCoc7CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
+import { buildShinobigamiAppspotCharacter } from '@axe/domain/character/import/system-profiles/shinobigami-appspot-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
@@ -170,6 +171,21 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.dicebot).toBe('DoubleCross');
     expect(palette.evaluate('{肉体}DX', detail)).toBe('5DX');
     expect(palette.evaluate('{肉体}DX+2', detail)).toBe('5DX+2');
+  });
+
+  it('シノビガミ取り込みで特技表（GAP表）がテーブル表示セクションとして detail に追加される', () => {
+    const imported = buildShinobigamiAppspotCharacter({
+      base: { name: '忍' },
+      ninpou: [{ name: '接近戦攻撃', targetSkill: '掘削術' }],
+      learned: [{ id: 'skills.row10.name0' }],
+      skills: { a: '1' },
+    })!;
+    const character = ImportedCharacterFactory.create(imported, '');
+    const table = character.detailDataElement!.getFirstElementByName('特技表')!;
+    expect(table).toBeTruthy();
+    expect(table.fieldRole).toBe(DataElementRole.SECTION);
+    const gapRow = table.getFirstElementByName('ギャップ');
+    expect(gapRow).toBeTruthy();
   });
 
   it('色指定があれば chatColorCode の先頭に入る', () => {

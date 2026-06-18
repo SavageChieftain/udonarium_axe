@@ -4,6 +4,7 @@ import {
   ImportedField,
   ImportedParam,
   ImportedSection,
+  ImportedSkillTable,
   ImportedStatus,
 } from '@axe/domain/character/import/imported-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
@@ -15,6 +16,7 @@ import {
   DataElementRole,
   DataElementType,
 } from '@axe/domain/data/data-element';
+import { createSkillGapTableElement } from '@axe/domain/data/skill-gap-table';
 
 const SECTION_RESOURCE = 'リソース';
 const SECTION_PARAM = 'パラメータ';
@@ -52,6 +54,7 @@ export class ImportedCharacterFactory {
     ImportedCharacterFactory.appendStatuses(character, imported.statuses, usedNames);
     ImportedCharacterFactory.appendParams(character, imported, usedNames);
     ImportedCharacterFactory.appendSections(character, imported.sections);
+    ImportedCharacterFactory.appendSkillTables(character, imported.skillTables);
 
     if (imported.color !== '') character.chatColorCode = [imported.color, ...DEFAULT_CHAT_COLOR_CODES];
 
@@ -152,6 +155,27 @@ export class ImportedCharacterFactory {
           groupElement.appendChild(ImportedCharacterFactory.createImportedField(field));
         }
       }
+    }
+  }
+
+  /**
+   * サイコフィクション系の特技表（ギャップ付き）を CHECK_TABLE のテーブル表示セクションとして展開する。
+   * 既存の createSkillGapTableElement を流用し、サンプルキャラの技能表と同じ構造に揃える。
+   */
+  private static appendSkillTables(character: GameCharacter, skillTables: ImportedSkillTable[]): void {
+    for (const skillTable of skillTables) {
+      if (skillTable.categories.length === 0) continue;
+      character.detailDataElement!.appendChild(
+        createSkillGapTableElement({
+          name: skillTable.name,
+          categories: skillTable.categories,
+          skillsByCategory: skillTable.skillsByCategory,
+          checked: skillTable.checked,
+          gaps: skillTable.gaps,
+          rowNames: skillTable.rowNames,
+          idSuffix: character.identifier,
+        })
+      );
     }
   }
 

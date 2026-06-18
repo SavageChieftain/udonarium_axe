@@ -5,12 +5,28 @@ import {
   ImportedField,
   ImportedGroup,
   ImportedSection,
+  ImportedSkillTable,
 } from '@axe/domain/character/import/imported-character';
 
 interface FieldLabel {
   key: string;
   label: string;
 }
+
+// シノビガミ基本ルールブックの特技表（6分野×11行＝2〜12）。bcdice ShinobiGami の SaiFicSkillTable と同一。
+// appspot の skills.row{r}.check{c} / learned[].id="skills.row{r}.name{c}" の (列c, 行r) と一致する。
+const SHINOBIGAMI_CATEGORIES = ['器術', '体術', '忍術', '謀術', '戦術', '妖術'];
+
+const SHINOBIGAMI_SKILLS: string[][] = [
+  ['絡繰術', '火術', '水術', '針術', '仕込み', '衣装術', '縄術', '登術', '拷問術', '壊器術', '掘削術'],
+  ['騎乗術', '砲術', '手裏剣術', '手練', '身体操術', '歩法', '走法', '飛術', '骨法術', '刀術', '怪力'],
+  ['生存術', '潜伏術', '遁走術', '盗聴術', '腹話術', '隠形術', '変装術', '香術', '分身の術', '隠蔽術', '第六感'],
+  ['医術', '毒術', '罠術', '調査術', '詐術', '対人術', '遊芸', '九ノ一の術', '傀儡の術', '流言の術', '経済力'],
+  ['兵糧術', '鳥獣術', '野戦術', '地の利', '意気', '用兵術', '記憶術', '見敵術', '暗号術', '伝達術', '人脈'],
+  ['異形化', '召喚術', '死霊術', '結界術', '封術', '言霊術', '幻術', '瞳術', '千里眼の術', '憑依術', '呪術'],
+];
+
+const GAP_KEYS = ['a', 'b', 'c', 'd', 'e', 'f'];
 
 const NINPOU_FIELDS: FieldLabel[] = [
   { key: 'type', label: '種別' },
@@ -101,6 +117,35 @@ function buildProfileSection(base: Record<string, unknown> | null): ImportedSect
   return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
 }
 
+function isChecked(value: unknown): boolean {
+  const text = asString(value).trim();
+  return text !== '' && text !== '0';
+}
+
+function buildSkillTable(root: Record<string, unknown>): ImportedSkillTable {
+  const checked = SHINOBIGAMI_CATEGORIES.map(() => new Array<boolean>(SHINOBIGAMI_SKILLS[0].length).fill(false));
+
+  for (const element of asArray(root['learned'])) {
+    const record = asRecord(element);
+    const match = /skills\.row(\d+)\.name(\d+)/.exec(asString(record?.['id']));
+    if (!match) continue;
+    const row = Number(match[1]);
+    const column = Number(match[2]);
+    if (checked[column]?.[row] !== undefined) checked[column][row] = true;
+  }
+
+  const skills = asRecord(root['skills']) ?? {};
+  const gaps = GAP_KEYS.map((key) => isChecked(skills[key]));
+
+  return {
+    name: '特技表',
+    categories: SHINOBIGAMI_CATEGORIES,
+    skillsByCategory: SHINOBIGAMI_SKILLS,
+    checked,
+    gaps,
+  };
+}
+
 function buildPalette(ninpou: unknown): string {
   const lines: string[] = ['2D6>=5 【判定】'];
   for (const element of asArray(ninpou)) {
@@ -129,6 +174,8 @@ export function buildShinobigamiAppspotCharacter(parsed: unknown): ImportedChara
     labeledSection('背景', root['background'], BACKGROUND_FIELDS),
     buildProfileSection(base),
   ].filter((section): section is ImportedSection => section != null);
+
+  character.skillTables = [buildSkillTable(root)];
 
   const outline = asString(root['outline']).trim();
   if (outline !== '') {
