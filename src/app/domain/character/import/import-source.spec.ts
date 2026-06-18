@@ -31,6 +31,7 @@ describe('detectImportFetchPlan', () => {
       service: 'appspot',
       url: 'https://character-sheets.appspot.com/dx3/display?ajax=1&base64Image=1&key=ABC123',
       callbackParam: 'callback',
+      system: 'dx3',
     });
   });
 

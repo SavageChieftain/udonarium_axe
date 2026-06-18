@@ -47,7 +47,7 @@ export class CharacterImportService {
       return { character: null, error: 'fetch-failed', imageResolved: false, service: serviceOf(plan) };
     }
 
-    const imported = parseImportedCharacterJson(json);
+    const imported = parseImportedCharacterJson(json, plan.kind === 'jsonp' ? plan.system : undefined);
     if (!imported) {
       return { character: null, error: 'unrecognized', imageResolved: false, service: serviceOf(plan) };
     }

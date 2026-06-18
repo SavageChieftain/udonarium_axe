@@ -1,7 +1,7 @@
 export type ImportFetchPlan =
   | { kind: 'json' }
   | { kind: 'fetch'; service: 'charasheet'; url: string }
-  | { kind: 'jsonp'; service: 'appspot'; url: string; callbackParam: string }
+  | { kind: 'jsonp'; service: 'appspot'; url: string; callbackParam: string; system: string }
   | { kind: 'unsupported'; service: 'charaxiv' | 'unknown' };
 
 const CHARASHEET_HOST = 'charasheet.vampire-blood.net';
@@ -54,7 +54,7 @@ export function detectImportFetchPlan(text: string): ImportFetchPlan {
     const key = url.searchParams.get('key') ?? '';
     if (system === '' || key === '') return { kind: 'unsupported', service: 'unknown' };
     const fetchUrl = `https://${APPSPOT_HOST}/${system}/display?ajax=1&base64Image=1&key=${encodeURIComponent(key)}`;
-    return { kind: 'jsonp', service: 'appspot', url: fetchUrl, callbackParam: 'callback' };
+    return { kind: 'jsonp', service: 'appspot', url: fetchUrl, callbackParam: 'callback', system };
   }
 
   if (CHARAXIV_HOSTS.includes(host)) return { kind: 'unsupported', service: 'charaxiv' };

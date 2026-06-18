@@ -1,7 +1,8 @@
-import { isAppspotCharacter, parseAppspotCharacter } from '@axe/domain/character/import/appspot-character-parser';
+import { isAppspotCharacter } from '@axe/domain/character/import/appspot-character-parser';
 import { isCcfoliaCharacter, parseCcfoliaCharacter } from '@axe/domain/character/import/ccfolia-character-parser';
 import { isCharasheetCharacter } from '@axe/domain/character/import/charasheet-character-parser';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
+import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
 import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
 
 /**
@@ -12,10 +13,10 @@ import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/
  * いあきゃら・Charaeno・ゆとシート・TRPGスタジオ・CharaXiv 等の作成系サービスは
  * ココフォリア形式を出力するため、本ディスパッチャ 1 本で広範にカバーできる。
  */
-export function parseImportedCharacterJson(json: unknown): ImportedCharacter | null {
+export function parseImportedCharacterJson(json: unknown, systemHint?: string): ImportedCharacter | null {
   if (isCcfoliaCharacter(json)) return parseCcfoliaCharacter(json);
   if (isCharasheetCharacter(json)) return parseCharasheetCharacterForSystem(json);
-  if (isAppspotCharacter(json)) return parseAppspotCharacter(json);
+  if (isAppspotCharacter(json)) return parseAppspotCharacterForSystem(json, systemHint);
   return null;
 }
 

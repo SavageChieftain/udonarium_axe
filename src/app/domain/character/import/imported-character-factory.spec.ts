@@ -4,6 +4,7 @@ import { createEmptyImportedCharacter } from '@axe/domain/character/import/impor
 import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-character-factory';
 import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
 import { buildCoc7CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
+import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
@@ -153,6 +154,22 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('CC<={正気度}', detail)).toBe('CC<=61');
     expect(palette.evaluate('CC<={幸運}', detail)).toBe('CC<=39');
     expect(palette.evaluate('CC<={目星}', detail)).toBe('CC<=50');
+  });
+
+  it('倉庫 DX3 取り込みで dicebot=DoubleCross と能力値・技能の nDX パレット参照が解決できる', () => {
+    const imported = buildDx3AppspotCharacter({
+      base: { name: 'DX' },
+      baseAbility: { body: { total: '5' }, sense: { total: '2' } },
+      subAbility: { hp: { total: '31' }, erotion: { total: '30' } },
+      skills: { hak: { A: { lv: '2' } } },
+    })!;
+    const character = ImportedCharacterFactory.create(imported, '');
+    const palette = character.chatPalette!;
+    const detail = character.detailDataElement!;
+
+    expect(palette.dicebot).toBe('DoubleCross');
+    expect(palette.evaluate('{肉体}DX', detail)).toBe('5DX');
+    expect(palette.evaluate('{肉体}DX+2', detail)).toBe('5DX+2');
   });
 
   it('色指定があれば chatColorCode の先頭に入る', () => {
