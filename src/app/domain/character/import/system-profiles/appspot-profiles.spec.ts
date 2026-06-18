@@ -13,10 +13,19 @@ describe('parseAppspotCharacterForSystem', () => {
     expect(result.params).toContainEqual({ label: '肉体', value: '5' });
   });
 
-  it('プロファイル未対応 slug でも dicebot は補完する（shinobigami → ShinobiGami）', () => {
-    const result = parseAppspotCharacterForSystem(dx3, 'shinobigami')!;
-    expect(result.sourceFormat).toBe('appspot');
+  it('slug="shinobigami" は シノビガミ プロファイルへ委譲する', () => {
+    const result = parseAppspotCharacterForSystem(
+      { base: { name: 'かり' }, ninpou: [{ name: '接近戦攻撃', targetSkill: '掘削術' }] },
+      'shinobigami'
+    )!;
     expect(result.dicebot).toBe('ShinobiGami');
+    expect(result.sections.some((section) => section.label === '忍法')).toBe(true);
+  });
+
+  it('プロファイル未対応 slug でも dicebot は補完する（insane → Insane）', () => {
+    const result = parseAppspotCharacterForSystem(dx3, 'insane')!;
+    expect(result.sourceFormat).toBe('appspot');
+    expect(result.dicebot).toBe('Insane');
     // プロファイル未対応なので汎用パース（英語ラベル）
     expect(result.params.some((param) => param.label === 'body')).toBe(true);
   });
