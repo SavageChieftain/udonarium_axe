@@ -26,6 +26,8 @@ export interface PsychoFictionConfig {
   abilitySectionLabel: string;
   abilityFields: FieldLabel[];
   profileFields: FieldLabel[];
+  /** 異能配列の「指定特技」を持つキー（既定 'targetSkill'。マギカロギア/カードランカーは 'skill' 等）。 */
+  targetSkillKey?: string;
 }
 
 const BACKGROUND_FIELDS: FieldLabel[] = [
@@ -132,14 +134,14 @@ function buildSkillTable(root: Record<string, unknown>, config: PsychoFictionCon
   };
 }
 
-function buildPalette(abilities: unknown): string {
+function buildPalette(abilities: unknown, targetSkillKey: string): string {
   const lines: string[] = ['2D6>=5 【判定】'];
   for (const element of asArray(abilities)) {
     const record = asRecord(element);
     if (!record) continue;
     const name = asString(record['name']).trim();
     if (name === '') continue;
-    const targetSkill = asString(record['targetSkill']).trim();
+    const targetSkill = asString(record[targetSkillKey]).trim();
     lines.push(`2D6>=5 【${name}${targetSkill === '' ? '' : `／${targetSkill}`}】`);
   }
   return lines.join('\n');
@@ -170,7 +172,7 @@ export function buildPsychoFictionCharacter(parsed: unknown, config: PsychoFicti
   }
 
   character.skillTables = [buildSkillTable(root, config)];
-  character.commands = buildPalette(root[config.abilityKey]);
+  character.commands = buildPalette(root[config.abilityKey], config.targetSkillKey ?? 'targetSkill');
 
   return character;
 }
