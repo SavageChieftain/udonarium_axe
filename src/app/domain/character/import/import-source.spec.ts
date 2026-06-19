@@ -40,6 +40,27 @@ describe('detectImportFetchPlan', () => {
     expect(plan).toEqual({ kind: 'unsupported', service: 'unknown' });
   });
 
+  it('ゆとシートのURLは mode=json の直fetchプランになる', () => {
+    expect(detectImportFetchPlan('https://yutorize.work/ytsheet/sw2.5/?id=YrTkD0')).toEqual({
+      kind: 'fetch',
+      service: 'ytsheet',
+      url: 'https://yutorize.work/ytsheet/sw2.5/?id=YrTkD0&mode=json',
+    });
+    // 短縮パス（/ytsheet/ 無し）や別ホストも同じ取得URLへ正規化
+    expect(detectImportFetchPlan('https://yutorize.2-d.jp/sw2.5/?id=abc123')).toEqual({
+      kind: 'fetch',
+      service: 'ytsheet',
+      url: 'https://yutorize.work/ytsheet/sw2.5/?id=abc123&mode=json',
+    });
+  });
+
+  it('ゆとシートURLにidが無ければ未対応', () => {
+    expect(detectImportFetchPlan('https://yutorize.work/ytsheet/sw2.5/')).toEqual({
+      kind: 'unsupported',
+      service: 'unknown',
+    });
+  });
+
   it('CharaXivのURLはCharaXivとして未対応', () => {
     const plan = detectImportFetchPlan('https://charaxiv.app/c/abcdef');
     expect(plan).toEqual({ kind: 'unsupported', service: 'charaxiv' });

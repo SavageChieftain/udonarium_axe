@@ -1,12 +1,13 @@
 export type ImportFetchPlan =
   | { kind: 'json' }
-  | { kind: 'fetch'; service: 'charasheet'; url: string }
+  | { kind: 'fetch'; service: 'charasheet' | 'ytsheet'; url: string }
   | { kind: 'jsonp'; service: 'appspot'; url: string; callbackParam: string; system: string }
   | { kind: 'unsupported'; service: 'charaxiv' | 'unknown' };
 
 const CHARASHEET_HOST = 'charasheet.vampire-blood.net';
 const APPSPOT_HOST = 'character-sheets.appspot.com';
 const CHARAXIV_HOSTS = ['charaxiv.app', 'charaxiv.com'];
+const YTSHEET_HOSTS = ['yutorize.work', 'yutorize.2-d.jp'];
 
 function parseUrl(text: string): URL | null {
   if (!/^https?:\/\//i.test(text)) return null;
@@ -33,6 +34,7 @@ function firstPathSegment(pathname: string): string {
  * 実測した CORS 可否に基づく:
  *   - charasheet: `Access-Control-Allow-Origin: *` のため `{id}.js` を直 fetch できる
  *   - appspot: CORS 不可のため JSONP (callback) で取得する
+ *   - ゆとシート: `?mode=json` が `Access-Control-Allow-Origin: *` を返すため直 fetch できる
  *   - CharaXiv: 公開 API が不安定 / CORS 閉のため未対応（ココフォリア形式の貼り付けへ誘導）
  * URL でなければ JSON テキストとして扱う。
  */
@@ -55,6 +57,18 @@ export function detectImportFetchPlan(text: string): ImportFetchPlan {
     if (system === '' || key === '') return { kind: 'unsupported', service: 'unknown' };
     const fetchUrl = `https://${APPSPOT_HOST}/${system}/display?ajax=1&base64Image=1&key=${encodeURIComponent(key)}`;
     return { kind: 'jsonp', service: 'appspot', url: fetchUrl, callbackParam: 'callback', system };
+  }
+
+  if (YTSHEET_HOSTS.includes(host)) {
+    const segments = url.pathname.split('/').filter((part) => part.length > 0);
+    const system = segments[0] === 'ytsheet' ? (segments[1] ?? '') : (segments[0] ?? '');
+    const id = url.searchParams.get('id') ?? '';
+    if (system === '' || id === '') return { kind: 'unsupported', service: 'unknown' };
+    return {
+      kind: 'fetch',
+      service: 'ytsheet',
+      url: `https://yutorize.work/ytsheet/${system}/?id=${encodeURIComponent(id)}&mode=json`,
+    };
   }
 
   if (CHARAXIV_HOSTS.includes(host)) return { kind: 'unsupported', service: 'charaxiv' };

@@ -626,6 +626,7 @@
         "success": "Character piece created.",
         "successNoImage": "Character piece created (image could not be fetched; set it manually later).",
         "sourceAppspot": "Character Sheet Vault (character-sheets.appspot.com): paste JSON or the character URL (auto-fetched)",
+        "sourceYtsheet": "Yuto-sheet II (SW2.5): paste the character URL (auto-fetched), or its ?mode=json JSON",
         "unsupported": "Unsupported URL. Paste a CCFOLIA character JSON instead.",
         "unsupportedCharaxiv": "CharaXiv URL fetching is not supported. Paste the JSON from CharaXiv’s \"Copy for CCFOLIA\" output.",
         "fetchFailed": "Fetch failed. A network error or invalid URL may be the cause. Try pasting the raw JSON instead."

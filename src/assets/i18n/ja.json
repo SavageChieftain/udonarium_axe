@@ -626,6 +626,7 @@
         "success": "キャラコマを生成しました。",
         "successNoImage": "キャラコマを生成しました（画像は取得できなかったため、後から設定してください）。",
         "sourceAppspot": "キャラクターシート倉庫(character-sheets.appspot.com)：JSONまたはキャラURLを貼り付け（自動取得）",
+        "sourceYtsheet": "ゆとシートⅡ(SW2.5)：キャラURLを貼り付け（自動取得）、または ?mode=json のJSONを貼り付け",
         "unsupported": "対応していないURLです。ココフォリアのコマJSONを貼り付けてください。",
         "unsupportedCharaxiv": "CharaXivのURL取得には未対応です。CharaXivの「ココフォリア用コピー」で出力したJSONを貼り付けてください。",
         "fetchFailed": "取得に失敗しました。通信エラーかURLが正しくない可能性があります。生JSONの貼り付けもお試しください。"
