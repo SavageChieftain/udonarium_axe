@@ -3,6 +3,7 @@ const CHARASHEET_DICEBOT: Record<string, string> = {
   coc7: 'Cthulhu7th',
   ara2: 'Arianrhod',
   swordworld2: 'SwordWorld2.0',
+  swordworld: 'SwordWorld',
 };
 
 const APPSPOT_DICEBOT: Record<string, string> = {
