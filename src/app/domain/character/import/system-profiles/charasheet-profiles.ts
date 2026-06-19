@@ -13,6 +13,10 @@ import {
   isCoc7CharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 import { resolveCharasheetDicebot } from '@axe/domain/character/import/system-profiles/dicebot-map';
+import {
+  buildSwordWorld2CharasheetCharacter,
+  isSwordWorld2CharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/swordworld2-charasheet-profile';
 
 function asString(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -24,6 +28,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isCoc6CharasheetCharacter(parsed)) return buildCoc6CharasheetCharacter(parsed);
   if (isCoc7CharasheetCharacter(parsed)) return buildCoc7CharasheetCharacter(parsed);
   if (isAra2CharasheetCharacter(parsed)) return buildAra2CharasheetCharacter(parsed);
+  if (isSwordWorld2CharasheetCharacter(parsed)) return buildSwordWorld2CharasheetCharacter(parsed);
 
   const character = parseCharasheetCharacter(parsed);
   if (character && character.dicebot.trim() === '') {
