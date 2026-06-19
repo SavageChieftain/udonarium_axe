@@ -22,10 +22,19 @@ describe('parseAppspotCharacterForSystem', () => {
     expect(result.sections.some((section) => section.label === '忍法')).toBe(true);
   });
 
-  it('プロファイル未対応 slug でも dicebot は補完する（insane → Insane）', () => {
-    const result = parseAppspotCharacterForSystem(dx3, 'insane')!;
-    expect(result.sourceFormat).toBe('appspot');
+  it('slug="insane" は インセイン プロファイルへ委譲する', () => {
+    const result = parseAppspotCharacterForSystem(
+      { base: { name: '深夜' }, ability: [{ name: '基本攻撃', targetSkill: '殴打' }] },
+      'insane'
+    )!;
     expect(result.dicebot).toBe('Insane');
+    expect(result.sections.some((section) => section.label === 'アビリティ')).toBe(true);
+  });
+
+  it('プロファイル未対応 slug でも dicebot は補完する（mglg → MagicaLogia）', () => {
+    const result = parseAppspotCharacterForSystem(dx3, 'mglg')!;
+    expect(result.sourceFormat).toBe('appspot');
+    expect(result.dicebot).toBe('MagicaLogia');
     // プロファイル未対応なので汎用パース（英語ラベル）
     expect(result.params.some((param) => param.label === 'body')).toBe(true);
   });
