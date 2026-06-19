@@ -4,6 +4,10 @@ import { isCharasheetCharacter } from '@axe/domain/character/import/charasheet-c
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
 import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
+import {
+  buildYtsheetSw25Character,
+  isYtsheetSw25Character,
+} from '@axe/domain/character/import/system-profiles/ytsheet-sw25-profile';
 
 /**
  * 貼り付けテキスト（JSON）から取り込みフォーマットを自動判別して正規化モデルへ変換する。
@@ -17,6 +21,7 @@ export function parseImportedCharacterJson(json: unknown, systemHint?: string): 
   if (isCcfoliaCharacter(json)) return parseCcfoliaCharacter(json);
   if (isCharasheetCharacter(json)) return parseCharasheetCharacterForSystem(json);
   if (isAppspotCharacter(json)) return parseAppspotCharacterForSystem(json, systemHint);
+  if (isYtsheetSw25Character(json)) return buildYtsheetSw25Character(json);
   return null;
 }
 

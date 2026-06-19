@@ -6,6 +6,7 @@ import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/syste
 import { buildCoc7CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
 import { buildShinobigamiAppspotCharacter } from '@axe/domain/character/import/system-profiles/shinobigami-appspot-profile';
+import { buildYtsheetSw25Character } from '@axe/domain/character/import/system-profiles/ytsheet-sw25-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
@@ -186,6 +187,25 @@ describe('ImportedCharacterFactory', () => {
     expect(table.fieldRole).toBe(DataElementRole.SECTION);
     const gapRow = table.getFirstElementByName('ギャップ');
     expect(gapRow).toBeTruthy();
+  });
+
+  it('ゆとシート SW2.5 取り込みで dicebot=SwordWorld2.5 と能力ボーナスのパレット参照が解決できる', () => {
+    const imported = buildYtsheetSw25Character({
+      characterName: 'SW',
+      sttStr: 20,
+      bonusStr: 6,
+      sttDex: 18,
+      bonusDex: 5,
+      hpTotal: 60,
+      mpTotal: 20,
+    })!;
+    const character = ImportedCharacterFactory.create(imported, '');
+    const palette = character.chatPalette!;
+    const detail = character.detailDataElement!;
+
+    expect(palette.dicebot).toBe('SwordWorld2.5');
+    expect(palette.evaluate('2d6+{筋力B}', detail)).toBe('2d6+6');
+    expect(palette.evaluate('2d6+{器用B}', detail)).toBe('2d6+5');
   });
 
   it('色指定があれば chatColorCode の先頭に入る', () => {

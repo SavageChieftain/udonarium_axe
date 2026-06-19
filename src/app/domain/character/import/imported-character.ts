@@ -1,4 +1,4 @@
-export type ImportSourceFormat = 'ccfolia' | 'charasheet' | 'appspot' | 'udonarium' | 'unknown';
+export type ImportSourceFormat = 'ccfolia' | 'charasheet' | 'appspot' | 'ytsheet' | 'udonarium' | 'unknown';
 
 export interface ImportedStatus {
   label: string;
