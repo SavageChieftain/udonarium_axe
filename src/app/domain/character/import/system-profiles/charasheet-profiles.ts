@@ -18,6 +18,10 @@ import {
   isDx3CharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/dx3-charasheet-profile';
 import {
+  buildGracreCharasheetCharacter,
+  isGracreCharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/gracre-charasheet-profile';
+import {
   buildSwordWorldCharasheetCharacter,
   isSwordWorldCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/swordworld-charasheet-profile';
@@ -37,6 +41,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isCoc7CharasheetCharacter(parsed)) return buildCoc7CharasheetCharacter(parsed);
   if (isAra2CharasheetCharacter(parsed)) return buildAra2CharasheetCharacter(parsed);
   if (isDx3CharasheetCharacter(parsed)) return buildDx3CharasheetCharacter(parsed);
+  if (isGracreCharasheetCharacter(parsed)) return buildGracreCharasheetCharacter(parsed);
   if (isSwordWorld2CharasheetCharacter(parsed)) return buildSwordWorld2CharasheetCharacter(parsed);
   if (isSwordWorldCharasheetCharacter(parsed)) return buildSwordWorldCharasheetCharacter(parsed);
 
