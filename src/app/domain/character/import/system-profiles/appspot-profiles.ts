@@ -2,8 +2,8 @@ import { parseAppspotCharacter } from '@axe/domain/character/import/appspot-char
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { resolveAppspotDicebot } from '@axe/domain/character/import/system-profiles/dicebot-map';
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
-import { buildInsaneAppspotCharacter } from '@axe/domain/character/import/system-profiles/insane-appspot-profile';
-import { buildShinobigamiAppspotCharacter } from '@axe/domain/character/import/system-profiles/shinobigami-appspot-profile';
+import { buildPsychoFictionCharacter } from '@axe/domain/character/import/system-profiles/psychofiction-appspot';
+import { PF_APPSPOT_SYSTEMS } from '@axe/domain/character/import/system-profiles/psychofiction-systems';
 
 export function parseAppspotCharacterForSystem(parsed: unknown, systemHint?: string): ImportedCharacter | null {
   const slug = (systemHint ?? '').trim().toLowerCase();
@@ -12,12 +12,9 @@ export function parseAppspotCharacterForSystem(parsed: unknown, systemHint?: str
     const profile = buildDx3AppspotCharacter(parsed);
     if (profile) return profile;
   }
-  if (slug === 'shinobigami') {
-    const profile = buildShinobigamiAppspotCharacter(parsed);
-    if (profile) return profile;
-  }
-  if (slug === 'insane') {
-    const profile = buildInsaneAppspotCharacter(parsed);
+  const pfConfig = PF_APPSPOT_SYSTEMS[slug];
+  if (pfConfig) {
+    const profile = buildPsychoFictionCharacter(parsed, pfConfig);
     if (profile) return profile;
   }
 
