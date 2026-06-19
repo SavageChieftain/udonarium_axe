@@ -4,12 +4,17 @@ import { resolveAppspotDicebot } from '@axe/domain/character/import/system-profi
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
 import { buildPsychoFictionCharacter } from '@axe/domain/character/import/system-profiles/psychofiction-appspot';
 import { PF_APPSPOT_SYSTEMS } from '@axe/domain/character/import/system-profiles/psychofiction-systems';
+import { buildStellarAppspotCharacter } from '@axe/domain/character/import/system-profiles/stellar-appspot-profile';
 
 export function parseAppspotCharacterForSystem(parsed: unknown, systemHint?: string): ImportedCharacter | null {
   const slug = (systemHint ?? '').trim().toLowerCase();
 
   if (slug === 'dx3') {
     const profile = buildDx3AppspotCharacter(parsed);
+    if (profile) return profile;
+  }
+  if (slug === 'stellar') {
+    const profile = buildStellarAppspotCharacter(parsed);
     if (profile) return profile;
   }
   const pfConfig = PF_APPSPOT_SYSTEMS[slug];

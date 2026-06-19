@@ -1,0 +1,161 @@
+import {
+  classifyScalar,
+  createEmptyImportedCharacter,
+  ImportedCharacter,
+  ImportedField,
+  ImportedGroup,
+  ImportedParam,
+  ImportedSection,
+  ImportedStatus,
+  toFiniteNumber,
+} from '@axe/domain/character/import/imported-character';
+
+interface FieldLabel {
+  key: string;
+  label: string;
+}
+
+const STATUS_PARAMS: FieldLabel[] = [
+  { key: 'defense', label: '防御' },
+  { key: 'charge', label: 'チャージ' },
+  { key: 'resonance', label: '共鳴' },
+  { key: 'medal', label: 'メダル' },
+];
+
+const SKILL_FIELDS: FieldLabel[] = [
+  { key: 'type', label: '種別' },
+  { key: 'timing', label: 'タイミング' },
+  { key: 'effect', label: '効果' },
+];
+
+const SHEATH_FIELDS: FieldLabel[] = [
+  { key: 'type', label: '種別' },
+  { key: 'timing', label: 'タイミング' },
+  { key: 'effect', label: '効果' },
+];
+
+const PROFILE_FIELDS: FieldLabel[] = [
+  { key: 'knight', label: '騎士' },
+  { key: 'organization', label: '所属' },
+  { key: 'character', label: '種別' },
+  { key: 'keyword', label: 'キーワード' },
+  { key: 'wish', label: '願い' },
+  { key: 'hopedespair', label: '希望／絶望' },
+  { key: 'personalflower', label: '花' },
+  { key: 'age', label: '年齢' },
+  { key: 'sex', label: '性別' },
+  { key: 'player', label: 'PL' },
+];
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function asString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return '';
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function isNonEmptyScalar(value: unknown): value is string | number {
+  if (typeof value === 'number') return Number.isFinite(value);
+  return typeof value === 'string' && value.trim() !== '';
+}
+
+function resolveRoot(record: Record<string, unknown>): Record<string, unknown> {
+  if (asRecord(record['base']) != null) return record;
+  return asRecord(record['data']) ?? record;
+}
+
+export function isStellarAppspotCharacter(parsed: unknown): boolean {
+  const record = asRecord(parsed);
+  if (!record) return false;
+  const root = resolveRoot(record);
+  const base = asRecord(root['base']);
+  return base != null && typeof base['name'] === 'string' && asRecord(root['status']) != null;
+}
+
+function labeledSection(label: string, array: unknown, fieldLabels: FieldLabel[]): ImportedSection | null {
+  const groups: ImportedGroup[] = [];
+  asArray(array).forEach((element, index) => {
+    const record = asRecord(element);
+    if (!record) return;
+    const name = asString(record['name']).trim();
+    const fields: ImportedField[] = [];
+    for (const field of fieldLabels) {
+      const raw = record[field.key];
+      if (!isNonEmptyScalar(raw)) continue;
+      const classified = classifyScalar(raw);
+      fields.push({ label: field.label, value: classified.value, kind: classified.kind });
+    }
+    if (name === '' && fields.length === 0) return;
+    groups.push({ label: name === '' ? `${label} ${index + 1}` : name, fields });
+  });
+  return groups.length > 0 ? { label, groups } : null;
+}
+
+function buildProfileSection(base: Record<string, unknown> | null): ImportedSection | null {
+  if (!base) return null;
+  const fields: ImportedField[] = [];
+  for (const field of PROFILE_FIELDS) {
+    const raw = base[field.key];
+    if (!isNonEmptyScalar(raw)) continue;
+    const classified = classifyScalar(raw);
+    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
+  }
+  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
+}
+
+export function buildStellarAppspotCharacter(parsed: unknown): ImportedCharacter | null {
+  if (!isStellarAppspotCharacter(parsed)) return null;
+  const root = resolveRoot(asRecord(parsed)!);
+  const base = asRecord(root['base']);
+  const status = asRecord(root['status']) ?? {};
+
+  const character = createEmptyImportedCharacter('appspot');
+  character.name = asString(base?.['name']).trim();
+  character.dicebot = 'StellarKnights';
+
+  const statuses: ImportedStatus[] = [];
+  if (isNonEmptyScalar(status['hp'])) {
+    const hp = toFiniteNumber(status['hp'], 0);
+    statuses.push({ label: 'HP', value: hp, max: hp });
+  }
+  character.statuses = statuses;
+
+  const params: ImportedParam[] = [];
+  for (const field of STATUS_PARAMS) {
+    if (isNonEmptyScalar(status[field.key])) params.push({ label: field.label, value: asString(status[field.key]) });
+  }
+  character.params = params;
+
+  character.sections = [
+    labeledSection('スキル', root['skills'], SKILL_FIELDS),
+    labeledSection('鞘', root['sheath'], SHEATH_FIELDS),
+    buildProfileSection(base),
+  ].filter((section): section is ImportedSection => section != null);
+
+  const story = [asString(base?.['yourstory']).trim(), asString(root['outline']).trim()].filter((text) => text !== '');
+  if (story.length > 0) {
+    character.sections.push({
+      label: '設定',
+      groups: [{ label: '基本', fields: [{ label: '設定', value: story.join('\n'), kind: 'note' }] }],
+    });
+  }
+
+  character.commands = [
+    '◆アタック判定（nSK[防御力]）',
+    '2SK 【アタック判定:2ダイス】',
+    '3SK 【アタック判定:3ダイス】',
+    '4SK 【アタック判定:4ダイス】',
+    '5SK 【アタック判定:5ダイス】',
+  ].join('\n');
+
+  return character;
+}
