@@ -55,4 +55,19 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
     expect(result.skillTables[0].skillsByCategory[0][0]).toBe('白竜');
     expect(result.commands).toContain('2D6>=5 【白竜ブレス／白竜】');
   });
+
+  it('starrydolls（スタリィドール）は spells/skill を指定特技として扱う', () => {
+    const result = parseAppspotCharacterForSystem(
+      {
+        base: { name: '星子' },
+        spells: [{ name: '光の矢', skill: '光', timing: 'メジャー' }],
+        learned: [{ id: 'skills.row0.name1' }],
+      },
+      'starrydolls'
+    )!;
+    expect(result.dicebot).toBe('StarryDolls');
+    expect(result.sections.some((section) => section.label === '呪文')).toBe(true);
+    expect(result.skillTables[0].skillsByCategory[1][0]).toBe('光'); // 元素 row0
+    expect(result.commands).toContain('2D6>=5 【光の矢／光】');
+  });
 });

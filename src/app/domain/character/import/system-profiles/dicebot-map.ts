@@ -19,6 +19,7 @@ const APPSPOT_DICEBOT: Record<string, string> = {
   kancolle: 'KanColle',
   stellar: 'StellarKnights',
   bbt: 'BeastBindTrinity',
+  starrydolls: 'StarryDolls',
 };
 
 export function resolveCharasheetDicebot(game: string): string {
