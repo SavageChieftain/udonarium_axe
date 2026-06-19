@@ -7,6 +7,7 @@ const APPSPOT_DICEBOT: Record<string, string> = {
   dx3: 'DoubleCross',
   shinobigami: 'ShinobiGami',
   insane: 'Insane',
+  helltv: 'KillDeathBusiness',
   mglg: 'MagicaLogia',
   kancolle: 'KanColle',
   stellar: 'StellarKnights',
