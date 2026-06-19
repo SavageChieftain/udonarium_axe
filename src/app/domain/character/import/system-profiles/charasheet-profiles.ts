@@ -1,6 +1,10 @@
 import { parseCharasheetCharacter } from '@axe/domain/character/import/charasheet-character-parser';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import {
+  buildAra2CharasheetCharacter,
+  isAra2CharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/ara2-charasheet-profile';
+import {
   buildCoc6CharasheetCharacter,
   isCoc6CharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
@@ -19,6 +23,7 @@ function asString(value: unknown): string {
 export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedCharacter | null {
   if (isCoc6CharasheetCharacter(parsed)) return buildCoc6CharasheetCharacter(parsed);
   if (isCoc7CharasheetCharacter(parsed)) return buildCoc7CharasheetCharacter(parsed);
+  if (isAra2CharasheetCharacter(parsed)) return buildAra2CharasheetCharacter(parsed);
 
   const character = parseCharasheetCharacter(parsed);
   if (character && character.dicebot.trim() === '') {

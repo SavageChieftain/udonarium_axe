@@ -1,0 +1,152 @@
+import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
+import {
+  classifyScalar,
+  createEmptyImportedCharacter,
+  ImportedCharacter,
+  ImportedField,
+  ImportedGroup,
+  ImportedParam,
+  ImportedSection,
+  normalizeHexColor,
+} from '@axe/domain/character/import/imported-character';
+import {
+  asArray,
+  asString,
+  isNonEmptyScalar,
+} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+
+// アリアンロッド2E の能力値（標準順）。NK{i}=能力値（現在値）、NB{i}=能力ボーナス（判定に使用）。
+const ABILITIES: { value: string; bonus: string; label: string }[] = [
+  { value: 'NK1', bonus: 'NB1', label: '器用' },
+  { value: 'NK2', bonus: 'NB2', label: '敏捷' },
+  { value: 'NK3', bonus: 'NB3', label: '筋力' },
+  { value: 'NK4', bonus: 'NB4', label: '感覚' },
+  { value: 'NK5', bonus: 'NB5', label: '知力' },
+  { value: 'NK6', bonus: 'NB6', label: '精神' },
+];
+
+const SKILL_COLUMNS: { suffix: string; label: string }[] = [
+  { suffix: 'lv', label: 'レベル' },
+  { suffix: 'timing', label: 'タイミング' },
+  { suffix: 'hantei', label: '判定' },
+  { suffix: 'taisho', label: '対象' },
+  { suffix: 'range', label: '射程' },
+  { suffix: 'cost', label: 'コスト' },
+  { suffix: 'shozoku', label: '所属' },
+];
+
+const PROFILE_FIELDS: { key: string; label: string }[] = [
+  { key: 'shuzoku', label: '種族' },
+  { key: 'main_class', label: 'メインクラス' },
+  { key: 'support_class', label: 'サポートクラス' },
+  { key: 'age', label: '年齢' },
+  { key: 'sex', label: '性別' },
+];
+
+export function isAra2CharasheetCharacter(parsed: unknown): boolean {
+  if (parsed == null || typeof parsed !== 'object') return false;
+  const record = parsed as Record<string, unknown>;
+  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'ara2';
+}
+
+function buildParams(record: Record<string, unknown>): ImportedParam[] {
+  const params: ImportedParam[] = [];
+  for (const ability of ABILITIES) {
+    if (isNonEmptyScalar(record[ability.value]))
+      params.push({ label: ability.label, value: asString(record[ability.value]) });
+    if (isNonEmptyScalar(record[ability.bonus]))
+      params.push({ label: `${ability.label}B`, value: asString(record[ability.bonus]) });
+  }
+  for (const [key, label] of [
+    ['V_level', 'レベル'],
+    ['V_fate', 'フェイト'],
+  ] as const) {
+    if (isNonEmptyScalar(record[key])) params.push({ label, value: asString(record[key]) });
+  }
+  return params;
+}
+
+function buildSkillSection(label: string, prefix: string, record: Record<string, unknown>): ImportedSection | null {
+  const names = asArray(record[`${prefix}_name`]);
+  const groups: ImportedGroup[] = [];
+  names.forEach((rawName, index) => {
+    const name = asString(rawName).trim();
+    if (name === '') return;
+    const fields: ImportedField[] = [];
+    for (const column of SKILL_COLUMNS) {
+      const cell = asArray(record[`${prefix}_${column.suffix}`])[index];
+      if (!isNonEmptyScalar(cell)) continue;
+      const classified = classifyScalar(cell);
+      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
+    }
+    groups.push({ label: name, fields });
+  });
+  return groups.length > 0 ? { label, groups } : null;
+}
+
+function buildItemSection(record: Record<string, unknown>): ImportedSection | null {
+  const names = asArray(record['item_name']);
+  const columns: [string, string][] = [
+    ['item_weight', '重量'],
+    ['item_price', '価格'],
+    ['item_memo', 'メモ'],
+  ];
+  const groups: ImportedGroup[] = [];
+  names.forEach((rawName, index) => {
+    const name = asString(rawName).trim();
+    if (name === '') return;
+    const fields: ImportedField[] = [];
+    for (const [key, label] of columns) {
+      const cell = asArray(record[key])[index];
+      if (!isNonEmptyScalar(cell)) continue;
+      const classified = classifyScalar(cell);
+      fields.push({ label, value: classified.value, kind: classified.kind });
+    }
+    groups.push({ label: name, fields });
+  });
+  return groups.length > 0 ? { label: '所持品', groups } : null;
+}
+
+function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
+  const fields: ImportedField[] = [];
+  for (const field of PROFILE_FIELDS) {
+    if (!isNonEmptyScalar(record[field.key])) continue;
+    const classified = classifyScalar(record[field.key] as string | number);
+    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
+  }
+  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
+}
+
+function buildPalette(params: ImportedParam[]): string {
+  const abilityLines = ABILITIES.filter((ability) => params.some((param) => param.label === `${ability.label}B`)).map(
+    (ability) => `2d6+{${ability.label}B} 【${ability.label}判定】`
+  );
+  return ['2d6 【判定】', ...abilityLines].join('\n');
+}
+
+export function buildAra2CharasheetCharacter(parsed: unknown): ImportedCharacter | null {
+  if (!isAra2CharasheetCharacter(parsed)) return null;
+  const record = parsed as Record<string, unknown>;
+
+  const character = createEmptyImportedCharacter('charasheet');
+  character.name = asString(record['pc_name']).trim();
+  character.color = normalizeHexColor(record['color']);
+  character.iconUrl = normalizeImage(record);
+  character.memo = asString(record['pc_making_environ']);
+  character.dicebot = 'Arianrhod';
+  const url = asString(record['url']).trim();
+  if (url !== '') character.externalUrl = url;
+
+  const params = buildParams(record);
+  character.params = params;
+  character.sections = [
+    buildSkillSection('スキル', 'skill', record),
+    buildSkillSection('一般スキル', 'ippanskill', record),
+    buildItemSection(record),
+    buildProfileSection(record),
+  ].filter((section): section is ImportedSection => section != null);
+
+  character.commands = buildPalette(params);
+
+  return character;
+}
