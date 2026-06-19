@@ -18,6 +18,7 @@ const APPSPOT_DICEBOT: Record<string, string> = {
   mglg: 'MagicaLogia',
   kancolle: 'KanColle',
   stellar: 'StellarKnights',
+  bbt: 'BeastBindTrinity',
 };
 
 export function resolveCharasheetDicebot(game: string): string {

@@ -1,5 +1,6 @@
 import { parseAppspotCharacter } from '@axe/domain/character/import/appspot-character-parser';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
+import { buildBbtAppspotCharacter } from '@axe/domain/character/import/system-profiles/bbt-appspot-profile';
 import { resolveAppspotDicebot } from '@axe/domain/character/import/system-profiles/dicebot-map';
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
 import { buildPsychoFictionCharacter } from '@axe/domain/character/import/system-profiles/psychofiction-appspot';
@@ -15,6 +16,10 @@ export function parseAppspotCharacterForSystem(parsed: unknown, systemHint?: str
   }
   if (slug === 'stellar') {
     const profile = buildStellarAppspotCharacter(parsed);
+    if (profile) return profile;
+  }
+  if (slug === 'bbt') {
+    const profile = buildBbtAppspotCharacter(parsed);
     if (profile) return profile;
   }
   const pfConfig = PF_APPSPOT_SYSTEMS[slug];
