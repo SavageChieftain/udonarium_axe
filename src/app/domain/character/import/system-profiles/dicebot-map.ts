@@ -15,6 +15,13 @@ const CHARASHEET_DICEBOT: Record<string, string> = {
   ryutama: 'Ryutama',
   sengen: 'Sengensyou',
   utakaze: 'Utakaze',
+  gobusla: 'GoblinSlayer',
+  aeng: 'AssaultEngine',
+  kmgkr: 'Kamigakari',
+  araguild: 'Arianrhod',
+  gracreland: 'GranCrest',
+  ryutamad: 'Ryutama',
+  utakazecal: 'Utakaze',
 };
 
 const APPSPOT_DICEBOT: Record<string, string> = {
