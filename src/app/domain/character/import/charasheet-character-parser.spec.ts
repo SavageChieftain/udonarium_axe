@@ -89,4 +89,25 @@ describe('parseCharasheetCharacter', () => {
     expect(data.groups[0].fields).toContainEqual({ label: 'NA1', value: 99, kind: 'number' });
     expect(result.sections.some((section) => section.label === 'skillName')).toBe(true);
   });
+
+  it('{family}_name を持つ配列ファミリを、行名＋日本語列名の節へ展開する（保管所共通フォーマット）', () => {
+    const other = {
+      pc_name: 'リーフ',
+      game: 'somesystem',
+      skill_name: ['ファイアボルト', '応急手当', ''],
+      skill_timing: ['メジャー', 'マイナー', ''],
+      skill_hantei: ['知力', '感覚', ''],
+      skill_id: ['1', '2', ''],
+      item_name: ['杖'],
+      item_price: ['100'],
+    };
+    const result = parseCharasheetCharacter(other)!;
+    const skill = findSection(result.sections, '技能')!;
+    // 行ラベルは skill_name（番号ではない）、列は suffix を日本語化、空行と内部キー(id)は除外
+    expect(skill.groups.map((group) => group.label)).toEqual(['ファイアボルト', '応急手当']);
+    expect(skill.groups[0].fields).toContainEqual({ label: 'タイミング', value: 'メジャー', kind: 'text' });
+    expect(skill.groups[0].fields).toContainEqual({ label: '判定', value: '知力', kind: 'text' });
+    expect(skill.groups[0].fields.some((field) => field.label === 'id' || field.label === 'skill_id')).toBe(false);
+    expect(findSection(result.sections, '所持品')!.groups[0].label).toBe('杖');
+  });
 });

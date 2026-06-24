@@ -82,6 +82,81 @@ const COC_SKILL_COLUMN: Record<string, string> = {
   G: '成長',
 };
 
+/**
+ * 保管所 JSON は全システム共通で `{family}_name` 配列（＝行名）と一貫した列サフィックスを持つ。
+ * family 接頭辞 → 節見出し。未知の family は接頭辞をそのまま使う。
+ */
+const FAMILY_LABELS: Record<string, string> = {
+  skill: '技能',
+  ippanskill: '一般技能',
+  effect: '特技',
+  easyeffect: 'コンボ',
+  Power: '特技',
+  power: '特技',
+  ginou: '技能',
+  jobginou: 'ジョブ技能',
+  arms: '武器',
+  item: '所持品',
+  cls: 'クラス能力',
+  spell: '呪文',
+  magic: '魔法',
+  acts: '行動',
+  evades: '回避',
+  roice: '未練',
+  conne: 'コネ',
+  friend: '仲間',
+  implant: 'インプラント',
+  ability: 'アビリティ',
+};
+
+/** 配列ファミリの列サフィックス → 列名。ホワイトリスト（未知の列は内部用とみなし出さない）。 */
+const COLUMN_LABELS: Record<string, string> = {
+  lv: 'レベル',
+  Lv: 'レベル',
+  Level: 'レベル',
+  sl: 'レベル',
+  tlv: '技能レベル',
+  timing: 'タイミング',
+  hantei: '判定',
+  taisho: '対象',
+  taishou: '対象',
+  range: '射程',
+  cost: 'コスト',
+  memo: '効果',
+  kouka: '効果',
+  shozoku: '所属',
+  zentei: '前提',
+  eishou: '詠唱',
+  attr: '属性',
+  zokusei: '属性',
+  keitou: '系統',
+  nanido: '難易度',
+  power: '威力',
+  iryoku: '威力',
+  critical: 'C値',
+  damage: 'ダメージ',
+  cate: 'カテゴリ',
+  yoho: '用法',
+  hit: '命中',
+  type: '種別',
+  Type: '種別',
+  limit: '制限',
+  price: '価格',
+  tanka: '単価',
+  weight: '重量',
+  num: '個数',
+  life: '耐久',
+  mp: 'MP',
+  dest: '部位',
+  neg: '負の感情',
+  pos: '対象',
+  like: '好意',
+  dislike: '敵意',
+  page: 'ページ',
+  total: '合計',
+  sonota: 'その他',
+};
+
 export function isCharasheetCharacter(parsed: unknown): boolean {
   if (parsed == null || typeof parsed !== 'object') return false;
   return typeof (parsed as Record<string, unknown>)['pc_name'] === 'string';
@@ -126,8 +201,65 @@ function arrayPrefix(key: string): string {
 }
 
 /**
+ * `{family}_name` を持つ配列ファミリを、行名つきの節へ展開する（保管所フォーマットの共通規約）。
+ * 行ラベル = `{family}_name[i]`、列ラベル = サフィックスを {@link COLUMN_LABELS} で日本語化。
+ * 処理したキーは `handled` に追加し、CoC 等の名前なし配列は後段の {@link buildArraySections} へ回す。
+ */
+function buildNamedFamilySections(
+  arrays: [string, unknown[]][],
+  handled: Set<string>,
+  uniqueSectionLabel: (base: string) => string
+): ImportedSection[] {
+  const families = arrays
+    .filter(([key]) => key.endsWith('_name'))
+    .map(([key]) => key.slice(0, -'_name'.length))
+    .filter((family) => family.length > 0)
+    .sort((a, b) => b.length - a.length);
+  if (families.length === 0) return [];
+
+  const arrayMap = new Map(arrays);
+  const sections: ImportedSection[] = [];
+
+  for (const family of families) {
+    const names = arrayMap.get(`${family}_name`);
+    if (!names) continue;
+    handled.add(`${family}_name`);
+
+    const columns: { key: string; label: string }[] = [];
+    for (const [key, array] of arrays) {
+      if (handled.has(key) || key === `${family}_name` || !key.startsWith(`${family}_`)) continue;
+      if (array.length !== names.length) continue;
+      const suffix = key.slice(family.length + 1);
+      const label = COLUMN_LABELS[suffix];
+      if (label == null) continue;
+      columns.push({ key, label });
+      handled.add(key);
+    }
+
+    const groups: ImportedGroup[] = [];
+    names.forEach((rawName, index) => {
+      const name = asString(rawName).trim();
+      if (name === '') return;
+      const fields: ImportedField[] = [];
+      for (const column of columns) {
+        const cell = (arrayMap.get(column.key) ?? [])[index];
+        if (!isNonEmptyScalar(cell)) continue;
+        const classified = classifyScalar(cell);
+        fields.push({ label: column.label, value: classified.value, kind: classified.kind });
+      }
+      groups.push({ label: name, fields });
+    });
+
+    if (groups.length > 0) {
+      sections.push({ label: uniqueSectionLabel(FAMILY_LABELS[family] ?? family), groups });
+    }
+  }
+  return sections;
+}
+
+/**
  * 並列配列（技能の使用/初期値/ポイント…）を、接頭辞＋長さでグループ化し、
- * インデックスごとの行（group）へ zip する。技能名は保管所 JSON に無いため行番号で表す。
+ * インデックスごとの行（group）へ zip する。行名を持たない CoC 系などのフォールバック。
  * 全列が空の行はスキップする。
  */
 function buildArraySections(
@@ -208,11 +340,16 @@ export function parseCharasheetCharacter(parsed: unknown): ImportedCharacter | n
     return label;
   };
 
+  // 行名（{family}_name）を持つファミリを名前付き節へ。残りは従来どおりインデックス節へ。
+  const namedSections = buildNamedFamilySections(arrayEntries, handled, uniqueSectionLabel);
+  const remainingArrays = arrayEntries.filter(([key]) => !handled.has(key));
+
   const sections: ImportedSection[] = [];
   if (scalarFields.length > 0) {
     sections.push({ label: uniqueSectionLabel('データ'), groups: [{ label: '基本', fields: scalarFields }] });
   }
-  sections.push(...buildArraySections(arrayEntries, isCoc, uniqueSectionLabel));
+  sections.push(...namedSections);
+  sections.push(...buildArraySections(remainingArrays, isCoc, uniqueSectionLabel));
   character.sections = sections;
 
   const url = asString(record['url']).trim();
