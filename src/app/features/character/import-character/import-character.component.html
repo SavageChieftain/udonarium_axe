@@ -41,4 +41,65 @@
       {{ 'feature.character.import.close' | transloco }}
     </button>
   </div>
+
+  <details class="text-xs">
+    <summary class="cursor-pointer opacity-80">
+      {{ 'feature.character.import.capability.title' | transloco }}
+    </summary>
+    <div class="mt-2 overflow-x-auto">
+      <table class="border-collapse text-center text-[11px]">
+        <thead>
+          <tr>
+            <th class="border border-gray-300 px-1 py-0.5"></th>
+            @for (source of sources; track source.id) {
+              <th class="border border-gray-300 px-1 py-0.5 font-normal">{{ source.labelKey | transloco }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (dataType of dataTypes; track dataType.id) {
+            <tr>
+              <th class="border border-gray-300 px-1 py-0.5 text-left font-normal whitespace-nowrap">
+                {{ dataType.labelKey | transloco }}
+              </th>
+              @for (source of sources; track source.id) {
+                <td
+                  class="border border-gray-300 px-1 py-0.5"
+                  [title]="levelLabelKey(source.id, dataType.id) | transloco"
+                >
+                  {{ levelSymbol(source.id, dataType.id) }}
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-1 opacity-70">{{ 'feature.character.import.capability.legend' | transloco }}</p>
+  </details>
+
+  <details class="text-xs">
+    <summary class="cursor-pointer opacity-80">
+      {{ 'feature.character.import.capability.systemsTitle' | transloco }}
+    </summary>
+    <p class="mt-1 opacity-70">{{ 'feature.character.import.capability.verifiedNote' | transloco }}</p>
+    <div class="mt-2 max-h-60 overflow-y-auto">
+      @for (source of sources; track source.id) {
+        <div class="mb-2">
+          <div class="font-semibold">{{ source.labelKey | transloco }}</div>
+          <div class="opacity-70">{{ source.systemsCoverageKey | transloco }}</div>
+          <div class="leading-relaxed">
+            @for (system of source.systems; track $index) {
+              <span class="mr-1 inline-block">
+                {{ system.verified ? '★' : '' }}{{ system.name }}
+                @if (!$last) {
+                  <span class="opacity-40">,</span>
+                }
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </details>
 </div>

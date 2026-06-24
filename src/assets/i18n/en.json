@@ -629,7 +629,46 @@
         "sourceYtsheet": "Yuto-sheet II (SW2.5): paste the character URL (auto-fetched), or its ?mode=json JSON",
         "unsupported": "Unsupported URL. Paste a CCFOLIA character JSON instead.",
         "unsupportedCharaxiv": "CharaXiv URL fetching is not supported. Paste the JSON from CharaXiv’s \"Copy for CCFOLIA\" output.",
-        "fetchFailed": "Fetch failed. A network error or invalid URL may be the cause. Try pasting the raw JSON instead."
+        "fetchFailed": "Fetch failed. A network error or invalid URL may be the cause. Try pasting the raw JSON instead.",
+        "capability": {
+          "title": "Support matrix (service × data type)",
+          "systemsTitle": "Supported game systems",
+          "legend": "✅ supported / 🔸 partial / 🔁 via CCFOLIA / ✖ unsupported",
+          "verifiedNote": "★ = systems with a dedicated profile (optimized import). Others use generic import (name, key fields and data preserved structurally).",
+          "source": {
+            "ccfolia": "CCFOLIA format",
+            "charasheet": "Character Storage",
+            "appspot": "Character Sheet Vault",
+            "ytsheet": "Yuto-sheet",
+            "charaxiv": "CharaXiv"
+          },
+          "dataType": {
+            "name": "Name",
+            "icon": "Icon image",
+            "resource": "Resource (cur/max)",
+            "ability": "Ability scores",
+            "skillTable": "Skill table (Saikoro Fiction)",
+            "systemData": "System-specific data",
+            "chatPalette": "Chat palette",
+            "dicebot": "Dicebot",
+            "color": "Chat color",
+            "memo": "Memo",
+            "externalUrl": "External URL"
+          },
+          "level": {
+            "full": "Supported",
+            "partial": "Partial",
+            "viaCcfolia": "Via CCFOLIA",
+            "none": "Unsupported"
+          },
+          "coverage": {
+            "ccfolia": "System-agnostic (depends on the exporting service)",
+            "charasheet": "All hosted systems via generic import (★ optimized)",
+            "appspot": "All hosted systems via generic import (★ optimized; Saikoro Fiction gets a skill table)",
+            "ytsheet": "Dedicated import for Sword World 2.5",
+            "charaxiv": "Imported via \"Copy for CCFOLIA\""
+          }
+        }
       }
     },
     "light": {

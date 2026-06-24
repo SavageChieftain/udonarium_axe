@@ -629,7 +629,46 @@
         "sourceYtsheet": "ゆとシートⅡ(SW2.5)：キャラURLを貼り付け（自動取得）、または ?mode=json のJSONを貼り付け",
         "unsupported": "対応していないURLです。ココフォリアのコマJSONを貼り付けてください。",
         "unsupportedCharaxiv": "CharaXivのURL取得には未対応です。CharaXivの「ココフォリア用コピー」で出力したJSONを貼り付けてください。",
-        "fetchFailed": "取得に失敗しました。通信エラーかURLが正しくない可能性があります。生JSONの貼り付けもお試しください。"
+        "fetchFailed": "取得に失敗しました。通信エラーかURLが正しくない可能性があります。生JSONの貼り付けもお試しください。",
+        "capability": {
+          "title": "対応状況（サービス×データ種別）",
+          "systemsTitle": "対応ゲームシステム一覧",
+          "legend": "✅対応 / 🔸部分 / 🔁ココフォリア経由 / ✖非対応",
+          "verifiedNote": "★＝専用プロファイルで最適化取り込みできる系統。無印は汎用取り込み（名前・主要項目とデータを構造保持で取り込み）。",
+          "source": {
+            "ccfolia": "ココフォリア形式",
+            "charasheet": "キャラクター保管所",
+            "appspot": "キャラクターシート倉庫",
+            "ytsheet": "ゆとシート",
+            "charaxiv": "CharaXiv"
+          },
+          "dataType": {
+            "name": "名前",
+            "icon": "アイコン画像",
+            "resource": "リソース(現在/最大)",
+            "ability": "能力値",
+            "skillTable": "特技表(サイフィク)",
+            "systemData": "システム固有データ",
+            "chatPalette": "チャットパレット",
+            "dicebot": "ダイスボット",
+            "color": "発言色",
+            "memo": "メモ",
+            "externalUrl": "外部URL"
+          },
+          "level": {
+            "full": "対応",
+            "partial": "部分対応",
+            "viaCcfolia": "ココフォリア経由",
+            "none": "非対応"
+          },
+          "coverage": {
+            "ccfolia": "システム非依存（出力元サービスのシステムに依存）",
+            "charasheet": "全ホストシステムを汎用取り込み（★は専用最適化）",
+            "appspot": "全ホストシステムを汎用取り込み（★は専用最適化・サイフィク系は特技表）",
+            "ytsheet": "ソード・ワールド2.5 専用取り込み",
+            "charaxiv": "ココフォリア用コピー経由で取り込み"
+          }
+        }
       }
     },
     "light": {

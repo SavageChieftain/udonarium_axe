@@ -4,6 +4,15 @@ import { CharacterImportService } from '@axe/application/character/character-imp
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import {
+  capabilityOf,
+  IMPORT_DATA_TYPES,
+  IMPORT_SOURCES,
+  ImportDataTypeId,
+  ImportSourceId,
+  SUPPORT_LEVEL_LABEL_KEYS,
+  SUPPORT_LEVEL_SYMBOLS,
+} from '@axe/domain/character/import/import-capability';
 import { TranslocoModule } from '@jsverse/transloco';
 
 type ImportFeedback = { kind: 'success' | 'warning' | 'error'; text: string } | null;
@@ -23,6 +32,17 @@ export class ImportCharacterComponent {
   text = '';
   readonly busy = signal(false);
   readonly feedback = signal<ImportFeedback>(null);
+
+  readonly sources = IMPORT_SOURCES;
+  readonly dataTypes = IMPORT_DATA_TYPES;
+
+  levelSymbol(source: ImportSourceId, dataType: ImportDataTypeId): string {
+    return SUPPORT_LEVEL_SYMBOLS[capabilityOf(source, dataType)];
+  }
+
+  levelLabelKey(source: ImportSourceId, dataType: ImportDataTypeId): string {
+    return SUPPORT_LEVEL_LABEL_KEYS[capabilityOf(source, dataType)];
+  }
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = this.t('feature.character.import.panel')));
