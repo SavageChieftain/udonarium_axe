@@ -18,6 +18,10 @@ import {
   isDx3CharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/dx3-charasheet-profile';
 import {
+  buildElysionCharasheetCharacter,
+  isElysionCharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/elysion-charasheet-profile';
+import {
   buildGorderCharasheetCharacter,
   isGorderCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/gorder-charasheet-profile';
@@ -65,6 +69,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isCoc7CharasheetCharacter(parsed)) return buildCoc7CharasheetCharacter(parsed);
   if (isAra2CharasheetCharacter(parsed)) return buildAra2CharasheetCharacter(parsed);
   if (isDx3CharasheetCharacter(parsed)) return buildDx3CharasheetCharacter(parsed);
+  if (isElysionCharasheetCharacter(parsed)) return buildElysionCharasheetCharacter(parsed);
   if (isGracreCharasheetCharacter(parsed)) return buildGracreCharasheetCharacter(parsed);
   if (isGorderCharasheetCharacter(parsed)) return buildGorderCharasheetCharacter(parsed);
   if (isMkCharasheetCharacter(parsed)) return buildMkCharasheetCharacter(parsed);

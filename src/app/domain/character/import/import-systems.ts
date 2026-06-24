@@ -41,7 +41,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'konosuba', name: 'このすばTRPG' },
   { id: 'oct', name: 'オクトパストラベラーTRPG' },
   { id: 'mk', name: '迷宮キングダム', verified: true },
-  { id: 'elysion', name: 'エリュシオン' },
+  { id: 'elysion', name: 'エリュシオン', verified: true },
   { id: 'nechro', name: '永い後日談のネクロニカ', verified: true },
   { id: 'yukoya', name: 'ゆうやけこやけ' },
   { id: 'dnd4', name: 'D&D4' },
