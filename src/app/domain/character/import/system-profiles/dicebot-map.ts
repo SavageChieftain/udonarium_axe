@@ -4,6 +4,7 @@ const CHARASHEET_DICEBOT: Record<string, string> = {
   ara2: 'Arianrhod',
   dx3: 'DoubleCross',
   gracre: 'GranCrest',
+  gorder: 'GardenOrder',
   swordworld2: 'SwordWorld2.0',
   swordworld: 'SwordWorld',
   nechro: 'Nechronica',
