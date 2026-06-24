@@ -4,6 +4,7 @@ import { isCharasheetCharacter } from '@axe/domain/character/import/charasheet-c
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
 import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
+import { isYtsheetCharacter, parseYtsheetCharacter } from '@axe/domain/character/import/ytsheet-character-parser';
 import {
   buildYtsheetSw25Character,
   isYtsheetSw25Character,
@@ -22,6 +23,7 @@ export function parseImportedCharacterJson(json: unknown, systemHint?: string): 
   if (isCharasheetCharacter(json)) return parseCharasheetCharacterForSystem(json);
   if (isAppspotCharacter(json)) return parseAppspotCharacterForSystem(json, systemHint);
   if (isYtsheetSw25Character(json)) return buildYtsheetSw25Character(json);
+  if (isYtsheetCharacter(json)) return parseYtsheetCharacter(json);
   return null;
 }
 
