@@ -40,7 +40,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'nw3', name: 'ナイトウィザード３' },
   { id: 'konosuba', name: 'このすばTRPG' },
   { id: 'oct', name: 'オクトパストラベラーTRPG' },
-  { id: 'mk', name: '迷宮キングダム' },
+  { id: 'mk', name: '迷宮キングダム', verified: true },
   { id: 'elysion', name: 'エリュシオン' },
   { id: 'nechro', name: '永い後日談のネクロニカ', verified: true },
   { id: 'yukoya', name: 'ゆうやけこやけ' },
