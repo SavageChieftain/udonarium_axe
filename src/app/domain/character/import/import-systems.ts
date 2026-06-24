@@ -36,7 +36,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'parabla', name: 'パラサイトブラッド' },
   { id: 'gobusla', name: 'ゴブスレTRPG' },
   { id: 'pugmire', name: 'パグマイア' },
-  { id: 'gorder', name: 'ガーデンオーダー' },
+  { id: 'gorder', name: 'ガーデンオーダー', verified: true },
   { id: 'nw3', name: 'ナイトウィザード３' },
   { id: 'konosuba', name: 'このすばTRPG' },
   { id: 'oct', name: 'オクトパストラベラーTRPG' },
