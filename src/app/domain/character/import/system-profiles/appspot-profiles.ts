@@ -1,4 +1,5 @@
 import { parseAppspotCharacter } from '@axe/domain/character/import/appspot-character-parser';
+import { APPSPOT_LABEL_MAPS } from '@axe/domain/character/import/appspot-label-maps.generated';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { buildBbtAppspotCharacter } from '@axe/domain/character/import/system-profiles/bbt-appspot-profile';
 import { resolveAppspotDicebot } from '@axe/domain/character/import/system-profiles/dicebot-map';
@@ -28,7 +29,7 @@ export function parseAppspotCharacterForSystem(parsed: unknown, systemHint?: str
     if (profile) return profile;
   }
 
-  const character = parseAppspotCharacter(parsed);
+  const character = parseAppspotCharacter(parsed, APPSPOT_LABEL_MAPS[slug] ?? {});
   if (character && character.dicebot.trim() === '') {
     character.dicebot = resolveAppspotDicebot(slug);
   }

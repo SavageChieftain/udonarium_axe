@@ -29,6 +29,7 @@ function isScalar(value: unknown): value is string | number {
 /** トップレベルキー → 日本語見出し。未知のシステム/キーは原文キーのまま見出しにする（情報は落とさない）。 */
 const SECTION_LABELS: Record<string, string> = {
   base: 'プロフィール',
+  ability: '能力値',
   skills: '技能',
   skill: '技能',
   combo: 'コンボ',
@@ -135,22 +136,28 @@ function arrayToGroups(keyLabel: string, array: unknown[]): ImportedGroup[] {
 }
 
 /** オブジェクト（プロフィール等）をセクションへ。スカラーは「基本」グループ、入れ子は個別グループ。 */
-function objectToSection(label: string, source: Record<string, unknown>): ImportedSection | null {
+function objectToSection(
+  label: string,
+  source: Record<string, unknown>,
+  sectionKey: string,
+  labelMap: Record<string, string>
+): ImportedSection | null {
   const baseFields: ImportedField[] = [];
   const groups: ImportedGroup[] = [];
   for (const [key, raw] of Object.entries(source)) {
     if (raw == null) continue;
+    const keyLabel = labelMap[`${sectionKey}.${key}`] ?? key;
     if (Array.isArray(raw)) {
-      groups.push(...arrayToGroups(key, raw));
+      groups.push(...arrayToGroups(keyLabel, raw));
     } else if (isScalar(raw)) {
       if (typeof raw === 'string' && raw.trim() === '') continue;
       const classified = classifyScalar(raw);
-      baseFields.push({ label: key, value: classified.value, kind: classified.kind });
+      baseFields.push({ label: keyLabel, value: classified.value, kind: classified.kind });
     } else {
       const child = asRecord(raw);
       if (!child) continue;
       const fields = flattenFields(child, '');
-      if (fields.length > 0) groups.push({ label: key, fields });
+      if (fields.length > 0) groups.push({ label: keyLabel, fields });
     }
   }
   if (baseFields.length > 0) groups.unshift({ label: '基本', fields: baseFields });
@@ -176,14 +183,14 @@ function collectTotals(container: unknown): { label: string; value: number }[] {
   return result;
 }
 
-function buildSections(root: Record<string, unknown>): ImportedSection[] {
+function buildSections(root: Record<string, unknown>, labelMap: Record<string, string>): ImportedSection[] {
   const sections: ImportedSection[] = [];
 
   const base = asRecord(root['base']);
   if (base) {
     const profile: Record<string, unknown> = { ...base };
     delete profile['name'];
-    const section = objectToSection(sectionLabel('base'), profile);
+    const section = objectToSection(sectionLabel('base'), profile, 'base', labelMap);
     if (section) sections.push(section);
   }
 
@@ -199,7 +206,7 @@ function buildSections(root: Record<string, unknown>): ImportedSection[] {
     } else {
       const child = asRecord(raw);
       if (!child) continue;
-      const section = objectToSection(label, child);
+      const section = objectToSection(label, child, key, labelMap);
       if (section) sections.push(section);
     }
   }
@@ -207,7 +214,10 @@ function buildSections(root: Record<string, unknown>): ImportedSection[] {
   return sections;
 }
 
-export function parseAppspotCharacter(parsed: unknown): ImportedCharacter | null {
+export function parseAppspotCharacter(
+  parsed: unknown,
+  labelMap: Record<string, string> = {}
+): ImportedCharacter | null {
   const record = asRecord(parsed);
   if (!record || !isAppspotCharacter(record)) return null;
   const root = resolveRoot(record);
@@ -217,19 +227,19 @@ export function parseAppspotCharacter(parsed: unknown): ImportedCharacter | null
   character.name = asString(base?.['name'] ?? root['name']).trim();
 
   const statuses: ImportedStatus[] = collectTotals(root['subAbility']).map((entry) => ({
-    label: entry.label,
+    label: labelMap[`subAbility.${entry.label}`] ?? entry.label,
     value: entry.value,
     max: entry.value,
   }));
   character.statuses = statuses;
 
   const params: ImportedParam[] = collectTotals(root['baseAbility']).map((entry) => ({
-    label: entry.label,
+    label: labelMap[`baseAbility.${entry.label}`] ?? entry.label,
     value: String(entry.value),
   }));
   character.params = params;
 
-  character.sections = buildSections(root);
+  character.sections = buildSections(root, labelMap);
 
   return character;
 }

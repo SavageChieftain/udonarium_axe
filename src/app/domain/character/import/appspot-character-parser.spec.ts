@@ -53,6 +53,12 @@ describe('parseAppspotCharacter', () => {
     expect(result.params).toContainEqual({ label: 'body', value: '7' });
   });
 
+  it('labelMap が与えられたとき、能力値キーをフォーム由来ラベルへ写す', () => {
+    const result = parseAppspotCharacter(dx3, { 'baseAbility.body': '肉体' })!;
+    expect(result.params).toContainEqual({ label: '肉体', value: '7' });
+    expect(result.params.some((param) => param.label === 'body')).toBe(false);
+  });
+
   it('プロフィール（base）が入れ子を平坦化して反映される', () => {
     const result = parseAppspotCharacter(dx3)!;
     const profile = findSection(result.sections, 'プロフィール')!;
