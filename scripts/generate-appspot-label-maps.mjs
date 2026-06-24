@@ -61,6 +61,7 @@ const SLUGS = [
   'begidol',
   'pkboo',
   'mglg',
+  'monobeast',
 ];
 
 const norm = (t) =>

@@ -130,6 +130,7 @@ export const APPSPOT_SYSTEMS: ImportSystem[] = [
   { id: 'yu_myo_kishi', name: '幽冥鬼使' },
   { id: 'shuumatsukikou', name: '終末紀行RPG' },
   { id: 'ac6', name: 'ARMORED CORE VI（TRPG）' },
+  { id: 'monobeast', name: 'モノビースト' },
 ];
 
 /** CharaXiv（ccfolia 形式コピー経由）。 */
