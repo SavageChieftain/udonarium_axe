@@ -13,6 +13,7 @@ const CHARASHEET_DICEBOT: Record<string, string> = {
   nw3: 'NightWizard3rd',
   parabla: 'ParasiteBlood',
   ryutama: 'Ryutama',
+  sengen: 'Sengensyou',
   utakaze: 'Utakaze',
 };
 

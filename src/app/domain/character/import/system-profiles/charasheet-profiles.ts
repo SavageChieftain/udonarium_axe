@@ -50,6 +50,10 @@ import {
   isRyutamaCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/ryutama-charasheet-profile';
 import {
+  buildSengenCharasheetCharacter,
+  isSengenCharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/sengen-charasheet-profile';
+import {
   buildSwordWorldCharasheetCharacter,
   isSwordWorldCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/swordworld-charasheet-profile';
@@ -83,6 +87,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isNw3CharasheetCharacter(parsed)) return buildNw3CharasheetCharacter(parsed);
   if (isParablaCharasheetCharacter(parsed)) return buildParablaCharasheetCharacter(parsed);
   if (isRyutamaCharasheetCharacter(parsed)) return buildRyutamaCharasheetCharacter(parsed);
+  if (isSengenCharasheetCharacter(parsed)) return buildSengenCharasheetCharacter(parsed);
   if (isUtakazeCharasheetCharacter(parsed)) return buildUtakazeCharasheetCharacter(parsed);
 
   const character = parseCharasheetCharacter(parsed);
