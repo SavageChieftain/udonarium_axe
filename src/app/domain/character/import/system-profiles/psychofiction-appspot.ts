@@ -28,6 +28,8 @@ export interface PsychoFictionConfig {
   profileFields: FieldLabel[];
   /** 異能配列の「指定特技」を持つキー（既定 'targetSkill'。マギカロギア/カードランカーは 'skill' 等）。 */
   targetSkillKey?: string;
+  /** 異能・背景以外の追加配列（例: 艦これの装備・人物欄）をラベル付きセクションとして取り込む。 */
+  extraSections?: { key: string; label: string; fields: FieldLabel[] }[];
 }
 
 const BACKGROUND_FIELDS: FieldLabel[] = [
@@ -160,6 +162,7 @@ export function buildPsychoFictionCharacter(parsed: unknown, config: PsychoFicti
   character.sections = [
     labeledSection(config.abilitySectionLabel, root[config.abilityKey], config.abilityFields),
     labeledSection('背景', root['background'], BACKGROUND_FIELDS),
+    ...(config.extraSections ?? []).map((extra) => labeledSection(extra.label, root[extra.key], extra.fields)),
     buildProfileSection(base, config.profileFields),
   ].filter((section): section is ImportedSection => section != null);
 

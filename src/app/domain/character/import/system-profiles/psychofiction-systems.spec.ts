@@ -56,6 +56,34 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
     expect(result.commands).toContain('2D6>=5 【白竜ブレス／白竜】');
   });
 
+  it('kancolle（艦これRPG）を特技表・能力・装備つきで取り込み、装備配列を落とさない', () => {
+    const result = parseAppspotCharacterForSystem(
+      {
+        base: { name: '不知火', nameKana: '駆逐艦', level: '1', actionpoint: '17' },
+        ability: [{ name: '不知火に落ち度でも？', targetSkill: 'なし', type: '固有', effect: '再挑戦に+1' }],
+        outfits: [{ name: '小口径主砲', type: '装備', targetSkill: '古風', range: '短', aim: '0', fire: '2' }],
+        personality: [{ name: null, attribute: null, emotion: null, cheer: null }],
+        learned: [{ id: 'skills.row3.name0' }, { id: 'skills.row1.name1' }],
+        skills: { e: '1' },
+      },
+      'kancolle'
+    )!;
+    expect(result.dicebot).toBe('KanColle');
+    expect(result.name).toBe('不知火');
+
+    const table = result.skillTables[0];
+    expect(table.categories).toEqual(['背景', '魅力', '性格', '趣味', '航海', '戦闘']);
+    expect(table.skillsByCategory[0][3]).toBe('古風'); // 背景 row3
+    expect(table.checked![0][3]).toBe(true);
+    expect(table.checked![1][1]).toBe(true); // 魅力 row1
+    expect(table.gaps).toEqual([false, false, false, false, true, false]);
+
+    // 能力・装備の両方がセクション化され、装備（outfits）を取りこぼさない
+    expect(result.sections.some((section) => section.label === '能力')).toBe(true);
+    const outfits = result.sections.find((section) => section.label === '装備')!;
+    expect(outfits.groups[0].label).toBe('小口径主砲');
+  });
+
   it('starrydolls（スタリィドール）は spells/skill を指定特技として扱う', () => {
     const result = parseAppspotCharacterForSystem(
       {
