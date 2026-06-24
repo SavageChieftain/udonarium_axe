@@ -47,7 +47,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'dnd4', name: 'D&D4' },
   { id: 'aeng', name: 'アサルトエンジン' },
   { id: 'sengen', name: '千幻抄' },
-  { id: 'ryutama', name: 'りゅうたま' },
+  { id: 'ryutama', name: 'りゅうたま', verified: true },
   { id: 'ryutamad', name: 'りゅうたま（竜人）' },
   { id: 'horabre', name: 'ホライゾンブレイク' },
   { id: 'horabrevsp', name: 'ホライゾンブレイク（VSP）' },
