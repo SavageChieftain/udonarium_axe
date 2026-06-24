@@ -30,6 +30,10 @@ import {
   isNechroCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/nechro-charasheet-profile';
 import {
+  buildParablaCharasheetCharacter,
+  isParablaCharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/parabla-charasheet-profile';
+import {
   buildRyutamaCharasheetCharacter,
   isRyutamaCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/ryutama-charasheet-profile';
@@ -62,6 +66,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isSwordWorld2CharasheetCharacter(parsed)) return buildSwordWorld2CharasheetCharacter(parsed);
   if (isSwordWorldCharasheetCharacter(parsed)) return buildSwordWorldCharasheetCharacter(parsed);
   if (isNechroCharasheetCharacter(parsed)) return buildNechroCharasheetCharacter(parsed);
+  if (isParablaCharasheetCharacter(parsed)) return buildParablaCharasheetCharacter(parsed);
   if (isRyutamaCharasheetCharacter(parsed)) return buildRyutamaCharasheetCharacter(parsed);
   if (isUtakazeCharasheetCharacter(parsed)) return buildUtakazeCharasheetCharacter(parsed);
 

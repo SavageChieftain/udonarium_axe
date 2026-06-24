@@ -33,7 +33,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'gracre', name: 'グランクレスト', verified: true },
   { id: 'araguild', name: 'アリアンロッド（ギルド）' },
   { id: 'gracreland', name: 'グランクレスト（国）' },
-  { id: 'parabla', name: 'パラサイトブラッド' },
+  { id: 'parabla', name: 'パラサイトブラッド', verified: true },
   { id: 'gobusla', name: 'ゴブスレTRPG' },
   { id: 'pugmire', name: 'パグマイア' },
   { id: 'gorder', name: 'ガーデンオーダー', verified: true },

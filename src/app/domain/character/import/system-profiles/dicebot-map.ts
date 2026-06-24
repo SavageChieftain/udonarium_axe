@@ -8,6 +8,7 @@ const CHARASHEET_DICEBOT: Record<string, string> = {
   swordworld2: 'SwordWorld2.0',
   swordworld: 'SwordWorld',
   nechro: 'Nechronica',
+  parabla: 'ParasiteBlood',
   ryutama: 'Ryutama',
   utakaze: 'Utakaze',
 };
