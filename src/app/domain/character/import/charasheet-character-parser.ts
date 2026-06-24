@@ -300,7 +300,10 @@ function buildArraySections(
   return sections;
 }
 
-export function parseCharasheetCharacter(parsed: unknown): ImportedCharacter | null {
+export function parseCharasheetCharacter(
+  parsed: unknown,
+  labelMap: Record<string, string> = {}
+): ImportedCharacter | null {
   if (!isCharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
   const game = asString(record['game']);
@@ -327,7 +330,7 @@ export function parseCharasheetCharacter(parsed: unknown): ImportedCharacter | n
       if (raw.length > 0) arrayEntries.push([key, raw]);
     } else if (isNonEmptyScalar(raw)) {
       const classified = classifyScalar(raw);
-      scalarFields.push({ label: key, value: classified.value, kind: classified.kind });
+      scalarFields.push({ label: labelMap[key] ?? key, value: classified.value, kind: classified.kind });
     }
   }
 

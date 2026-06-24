@@ -1,4 +1,5 @@
 import { parseCharasheetCharacter } from '@axe/domain/character/import/charasheet-character-parser';
+import { CHARASHEET_LABEL_MAPS } from '@axe/domain/character/import/charasheet-label-maps.generated';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import {
   buildAra2CharasheetCharacter,
@@ -72,7 +73,10 @@ function asString(value: unknown): string {
   return '';
 }
 
-export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedCharacter | null {
+export function parseCharasheetCharacterForSystem(
+  parsed: unknown,
+  labelMap?: Record<string, string>
+): ImportedCharacter | null {
   if (isCoc6CharasheetCharacter(parsed)) return buildCoc6CharasheetCharacter(parsed);
   if (isCoc7CharasheetCharacter(parsed)) return buildCoc7CharasheetCharacter(parsed);
   if (isAra2CharasheetCharacter(parsed)) return buildAra2CharasheetCharacter(parsed);
@@ -90,9 +94,12 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isSengenCharasheetCharacter(parsed)) return buildSengenCharasheetCharacter(parsed);
   if (isUtakazeCharasheetCharacter(parsed)) return buildUtakazeCharasheetCharacter(parsed);
 
-  const character = parseCharasheetCharacter(parsed);
+  const game = asString((parsed as Record<string, unknown>)['game'])
+    .trim()
+    .toLowerCase();
+  const character = parseCharasheetCharacter(parsed, labelMap ?? CHARASHEET_LABEL_MAPS[game] ?? {});
   if (character && character.dicebot.trim() === '') {
-    character.dicebot = resolveCharasheetDicebot(asString((parsed as Record<string, unknown>)['game']));
+    character.dicebot = resolveCharasheetDicebot(game);
   }
   return character;
 }

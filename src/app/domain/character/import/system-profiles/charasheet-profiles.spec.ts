@@ -34,6 +34,17 @@ describe('parseCharasheetCharacterForSystem', () => {
     expect(result.dicebot).toBe('');
   });
 
+  it('汎用フォールバックでも生成ラベルマップで位置依存能力値をラベル付けする（このすば）', () => {
+    const result = parseCharasheetCharacterForSystem({ pc_name: 'X', game: 'konosuba', NK1: '10' })!;
+    const data = result.sections.find((section) => section.label === 'データ')!;
+    expect(data.groups[0].fields).toContainEqual({ label: '筋力', value: 10, kind: 'number' });
+  });
+
+  it('汎用フォールバックでも bcdice 収録系は正しい dicebot を付ける（ゴブスレ）', () => {
+    const result = parseCharasheetCharacterForSystem({ pc_name: 'X', game: 'gobusla', effect_name: ['x'] })!;
+    expect(result.dicebot).toBe('GoblinSlayer');
+  });
+
   it('保管所キャラでなければ null', () => {
     expect(parseCharasheetCharacterForSystem({ kind: 'character' })).toBeNull();
   });

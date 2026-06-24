@@ -90,6 +90,14 @@ describe('parseCharasheetCharacter', () => {
     expect(result.sections.some((section) => section.label === 'skillName')).toBe(true);
   });
 
+  it('labelMap が与えられたとき、位置依存スカラーのキーをページ由来ラベルへ置換する', () => {
+    const other = { pc_name: 'X', game: 'somesystem', S1: '4', S2: '3' };
+    const result = parseCharasheetCharacter(other, { S1: '筋力', S2: '器用' })!;
+    const data = findSection(result.sections, 'データ')!;
+    expect(data.groups[0].fields).toContainEqual({ label: '筋力', value: 4, kind: 'number' });
+    expect(data.groups[0].fields).toContainEqual({ label: '器用', value: 3, kind: 'number' });
+  });
+
   it('{family}_name を持つ配列ファミリを、行名＋日本語列名の節へ展開する（保管所共通フォーマット）', () => {
     const other = {
       pc_name: 'リーフ',
