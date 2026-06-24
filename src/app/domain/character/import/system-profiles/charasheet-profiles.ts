@@ -22,6 +22,10 @@ import {
   isGracreCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/gracre-charasheet-profile';
 import {
+  buildNechroCharasheetCharacter,
+  isNechroCharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/nechro-charasheet-profile';
+import {
   buildSwordWorldCharasheetCharacter,
   isSwordWorldCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/swordworld-charasheet-profile';
@@ -44,6 +48,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isGracreCharasheetCharacter(parsed)) return buildGracreCharasheetCharacter(parsed);
   if (isSwordWorld2CharasheetCharacter(parsed)) return buildSwordWorld2CharasheetCharacter(parsed);
   if (isSwordWorldCharasheetCharacter(parsed)) return buildSwordWorldCharasheetCharacter(parsed);
+  if (isNechroCharasheetCharacter(parsed)) return buildNechroCharasheetCharacter(parsed);
 
   const character = parseCharasheetCharacter(parsed);
   if (character && character.dicebot.trim() === '') {
