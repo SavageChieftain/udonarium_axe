@@ -9,6 +9,7 @@ const CHARASHEET_DICEBOT: Record<string, string> = {
   swordworld: 'SwordWorld',
   nechro: 'Nechronica',
   ryutama: 'Ryutama',
+  utakaze: 'Utakaze',
 };
 
 const APPSPOT_DICEBOT: Record<string, string> = {

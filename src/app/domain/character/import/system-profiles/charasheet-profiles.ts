@@ -41,6 +41,10 @@ import {
   buildSwordWorld2CharasheetCharacter,
   isSwordWorld2CharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/swordworld2-charasheet-profile';
+import {
+  buildUtakazeCharasheetCharacter,
+  isUtakazeCharasheetCharacter,
+} from '@axe/domain/character/import/system-profiles/utakaze-charasheet-profile';
 
 function asString(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -59,6 +63,7 @@ export function parseCharasheetCharacterForSystem(parsed: unknown): ImportedChar
   if (isSwordWorldCharasheetCharacter(parsed)) return buildSwordWorldCharasheetCharacter(parsed);
   if (isNechroCharasheetCharacter(parsed)) return buildNechroCharasheetCharacter(parsed);
   if (isRyutamaCharasheetCharacter(parsed)) return buildRyutamaCharasheetCharacter(parsed);
+  if (isUtakazeCharasheetCharacter(parsed)) return buildUtakazeCharasheetCharacter(parsed);
 
   const character = parseCharasheetCharacter(parsed);
   if (character && character.dicebot.trim() === '') {

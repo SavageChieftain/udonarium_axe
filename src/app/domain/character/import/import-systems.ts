@@ -52,7 +52,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'horabre', name: 'ホライゾンブレイク' },
   { id: 'horabrevsp', name: 'ホライゾンブレイク（VSP）' },
   { id: 'nheaven', name: 'ナイトメアヘヴン' },
-  { id: 'utakaze', name: 'ウタカゼ' },
+  { id: 'utakaze', name: 'ウタカゼ', verified: true },
   { id: 'utakazecal', name: 'ウタカゼ（キャラバン）' },
   { id: 'parats', name: 'パラノイア トラブルシューターズ' },
   { id: 'kmgkr', name: '神我狩' },
