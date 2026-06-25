@@ -87,11 +87,22 @@ const INTERNAL_KEY =
 
 const FAMILY_KEY = /^([a-z][a-zA-Z]*?)(\d+)([A-Z][a-zA-Z0-9]*)$/;
 
+// キャラクター名のキーは系統で異なる（characterName / aka …）。先頭から最初の非空を採る。
+const NAME_KEYS = ['characterName', 'aka', 'name', 'pcName'];
+
+function resolveName(record: Record<string, unknown>): string {
+  for (const key of NAME_KEYS) {
+    const value = asString(record[key]).trim();
+    if (value !== '') return value;
+  }
+  return '';
+}
+
 export function isYtsheetCharacter(parsed: unknown): boolean {
   if (parsed == null || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
   const record = parsed as Record<string, unknown>;
-  if (typeof record['characterName'] !== 'string') return false;
-  return asString(record['sheetURL']).includes('ytsheet') || isNonEmptyScalar(record['ver']);
+  if (asString(record['sheetURL']).includes('ytsheet')) return true;
+  return isNonEmptyScalar(record['ver']) && NAME_KEYS.some((key) => isNonEmptyScalar(record[key]));
 }
 
 function fieldLabel(suffix: string): string {
@@ -148,11 +159,11 @@ export function parseYtsheetCharacter(parsed: unknown): ImportedCharacter | null
   const record = parsed as Record<string, unknown>;
 
   const character = createEmptyImportedCharacter('ytsheet');
-  character.name = asString(record['characterName']).trim();
+  character.name = resolveName(record);
   character.color = normalizeHexColor(record['color']);
   character.memo = asString(record['sheetDescriptionM']);
 
-  const handled = new Set<string>(['characterName', 'color']);
+  const handled = new Set<string>([...NAME_KEYS, 'color']);
   const familySections = buildFamilySections(record, handled);
   const scalarSection = buildScalarSection(record, handled);
   character.sections = [...(scalarSection ? [scalarSection] : []), ...familySections];

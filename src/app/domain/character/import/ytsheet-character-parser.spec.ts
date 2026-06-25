@@ -34,6 +34,20 @@ describe('parseYtsheetCharacter', () => {
     expect(isYtsheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
+  it('characterName が無くても sheetURL マーカーと aka 名で取り込む（ar2e/dx3rd 型）', () => {
+    const ar2e = {
+      sheetURL: 'https://yutorize.work/ytsheet/ar2e/?id=i7Crz9',
+      ver: '1.29.001',
+      aka: '剣の冒険者',
+      race: 'ヒューリン',
+      skill1Name: 'オールラウンド',
+    };
+    expect(isYtsheetCharacter(ar2e)).toBe(true);
+    const result = parseYtsheetCharacter(ar2e)!;
+    expect(result.name).toBe('剣の冒険者');
+    expect(result.sections.some((section) => section.label === '技能')).toBe(true);
+  });
+
   it('名前・色・要約メモを取り込む', () => {
     const result = parseYtsheetCharacter(ytsheet)!;
     expect(result.sourceFormat).toBe('ytsheet');
