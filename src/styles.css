@@ -231,7 +231,7 @@ ruby.chat-ruby {
 
 ruby.chat-ruby rb {
   display: block;
-  font-weight: 600;
+  font-weight: inherit;
   line-height: 1.25;
 }
 
