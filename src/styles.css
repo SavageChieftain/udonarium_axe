@@ -240,7 +240,7 @@ ruby.chat-ruby rt {
   box-sizing: border-box;
   min-width: 100%;
   padding: 0 1px;
-  color: var(--ui-text);
+  color: inherit;
   font-size: 0.78em;
   font-weight: 700;
   line-height: 1.15;
