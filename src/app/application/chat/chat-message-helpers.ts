@@ -7,10 +7,7 @@ export interface DiceBotTagResolver {
 }
 
 export type PortraitCommand =
-  | { type: 'none' }
-  | { type: 'hide' }
-  | { type: 'index'; index: number }
-  | { type: 'name'; name: string };
+  { type: 'none' } | { type: 'hide' } | { type: 'index'; index: number } | { type: 'name'; name: string };
 
 export interface ImageNameEntry {
   label: string;

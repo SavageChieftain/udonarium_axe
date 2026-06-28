@@ -14,12 +14,4 @@ import { TextNote } from '@axe/domain/tabletop/text-note';
  * 9 種別の union 注釈を 3 箇所で繰り返さないようにここに集約する。
  */
 export type CharacterSheetTarget =
-  | GameCharacter
-  | DiceSymbol
-  | Card
-  | CardStack
-  | Terrain
-  | TextNote
-  | RangeArea
-  | GameTableMask
-  | GameTableScratchMask;
+  GameCharacter | DiceSymbol | Card | CardStack | Terrain | TextNote | RangeArea | GameTableMask | GameTableScratchMask;

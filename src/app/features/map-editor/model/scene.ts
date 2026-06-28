@@ -10,8 +10,7 @@ export const DEFAULT_SCENE_GRID_COLOR = '#00000059';
 export type LayerKind = 'cell' | 'shape' | 'stamp' | 'freehand' | 'text' | 'image';
 
 export type FillStyle =
-  | { type: 'solid'; color: string }
-  | { type: 'texture'; textureId: string; scale: number; rotation: number };
+  { type: 'solid'; color: string } | { type: 'texture'; textureId: string; scale: number; rotation: number };
 
 export type StrokeDash = 'solid' | 'dashed' | 'dotted' | 'dashdot' | 'longdash';
 
