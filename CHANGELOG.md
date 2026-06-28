@@ -1,3 +1,60 @@
+## [1.19.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.18.2...v1.19.0) (2026-06-28)
+
+### ✨ Features
+
+* **character:** add 7 more sheet-vault PF-series imports ([e67eece](https://github.com/SavageChieftain/udonarium_axe/commit/e67eece08dbf11a49db0ea6cb869e2de5d433d96))
+* **character:** add sheet-vault Starry Dolls to PF-series imports ([8e7ef7d](https://github.com/SavageChieftain/udonarium_axe/commit/8e7ef7d55efdaf2f22cf776705f97e0d36c75c04))
+* **character:** add the missing Monobeast sheet-vault system ([3c04093](https://github.com/SavageChieftain/udonarium_axe/commit/3c0409366624fc793bf2dc88b0960110a6422351))
+* **character:** auto-fetch ゆとシート SW2.5 from its URL ([edfff6e](https://github.com/SavageChieftain/udonarium_axe/commit/edfff6e22f01c546a6b587be85ac38301e90255b))
+* **character:** extract named array families in the generic charasheet parser ([97a6411](https://github.com/SavageChieftain/udonarium_axe/commit/97a641110a40c92787fca7730e7ccb1fe7f5d526))
+* **character:** import any ytsheet (yutorize) character generically ([8abcb1b](https://github.com/SavageChieftain/udonarium_axe/commit/8abcb1b99dca5dcfa42338c08c67944546e5f9b1))
+* **character:** label charasheet abilities from the sheet's own page headers ([10aab91](https://github.com/SavageChieftain/udonarium_axe/commit/10aab918be4aca1e9e278fd3c01ed3af9b785561))
+* **character:** label sheet-vault abilities from the edit form's own headers ([951b342](https://github.com/SavageChieftain/udonarium_axe/commit/951b3428472557403b775075b74874a454612ec6))
+* **character:** make charasheet Arianrhod 2E import playable ([211a4fe](https://github.com/SavageChieftain/udonarium_axe/commit/211a4feff64f8a8bb4bbed6e0d5680bef61b365c))
+* **character:** make charasheet CoC6 import playable ([4949e02](https://github.com/SavageChieftain/udonarium_axe/commit/4949e0209faef42b7af5cef184350d86ef07bdac))
+* **character:** make charasheet CoC7 (新クトゥルフ) import playable ([6beb5ea](https://github.com/SavageChieftain/udonarium_axe/commit/6beb5ea4f54fcabc42c67d0ef66c3dc4dcd11d97))
+* **character:** make charasheet Double Cross 3rd import playable ([730b347](https://github.com/SavageChieftain/udonarium_axe/commit/730b347827caa5a4d5ce334fca70d7eb6b1fa7c9))
+* **character:** make charasheet Elysion import playable ([a1a5e42](https://github.com/SavageChieftain/udonarium_axe/commit/a1a5e42d906cd4752f5e723b9ae57b84397c9279))
+* **character:** make charasheet Garden Order import playable ([573aadf](https://github.com/SavageChieftain/udonarium_axe/commit/573aadfcb4d0dea23d9a91ce7ad01c527be71e3f))
+* **character:** make charasheet Grancrest import playable ([7d9555b](https://github.com/SavageChieftain/udonarium_axe/commit/7d9555bea624118365c2d535a0694d40b9222689))
+* **character:** make charasheet Meikyu Kingdom import playable ([89d65de](https://github.com/SavageChieftain/udonarium_axe/commit/89d65de3c6e88f2e442e1f5c0bf7e76d0dd64464))
+* **character:** make charasheet Nechronica import playable ([26ec73c](https://github.com/SavageChieftain/udonarium_axe/commit/26ec73c96c80e608e8ea7161018b90617159709f))
+* **character:** make charasheet Night Wizard 3rd import playable ([1f625ec](https://github.com/SavageChieftain/udonarium_axe/commit/1f625ec90daabd04e5fc39902d0e448d588b6486))
+* **character:** make charasheet Parasite Blood import playable ([9208d66](https://github.com/SavageChieftain/udonarium_axe/commit/9208d66199d5c837fa3700c01002ef37feb364e0))
+* **character:** make charasheet Ryutama import playable ([7536544](https://github.com/SavageChieftain/udonarium_axe/commit/753654465f84dce392e5fe93f00f525265f9e002))
+* **character:** make charasheet Sengensyou import playable ([0785446](https://github.com/SavageChieftain/udonarium_axe/commit/07854460e7ac4522c982fc1f786aedf5ad32080f))
+* **character:** make charasheet Sword World (1.0) import playable ([0ceadb3](https://github.com/SavageChieftain/udonarium_axe/commit/0ceadb31ac0cc349938577711f385b4c5f0f8c93))
+* **character:** make charasheet Sword World 2.0 import playable ([1ed8a56](https://github.com/SavageChieftain/udonarium_axe/commit/1ed8a56c66db7b151202573c22dd39c4bdb075aa))
+* **character:** make charasheet Utakaze import playable ([e10f383](https://github.com/SavageChieftain/udonarium_axe/commit/e10f383a1db6ea173ddafe0fe176dfaee518f1ab))
+* **character:** make sheet-vault (appspot) Beast Bind Trinity import playable ([fb9a297](https://github.com/SavageChieftain/udonarium_axe/commit/fb9a2972e41d94556a82458408e7bb5d31654a8a))
+* **character:** make sheet-vault (appspot) DX3 import playable ([d2354e0](https://github.com/SavageChieftain/udonarium_axe/commit/d2354e0d4a59de9e87fe49de40a74b7576bfbb93))
+* **character:** make sheet-vault (appspot) Insane import playable ([9eb0890](https://github.com/SavageChieftain/udonarium_axe/commit/9eb0890fc232825a6e85ccddedc2476cafe16d77))
+* **character:** make sheet-vault (appspot) KanColle import playable ([4cedd6d](https://github.com/SavageChieftain/udonarium_axe/commit/4cedd6d373d8afc36c37453c1dcb9fed1e434cb6))
+* **character:** make sheet-vault (appspot) Kill Death Business import playable ([c6aaada](https://github.com/SavageChieftain/udonarium_axe/commit/c6aaada66e2741bf23e5f2932d4cdb7f8c3966e8))
+* **character:** make sheet-vault (appspot) Shinobigami import playable ([e84bf1f](https://github.com/SavageChieftain/udonarium_axe/commit/e84bf1f7043e74d480feabd3005b8c8def8a8d11))
+* **character:** make sheet-vault (appspot) Stellar Knights import playable ([c495c8f](https://github.com/SavageChieftain/udonarium_axe/commit/c495c8f8684ac6654bd5dbe800287fa478c32f5e))
+* **character:** make ゆとシート SW2.5 import playable (paste) ([da60548](https://github.com/SavageChieftain/udonarium_axe/commit/da605485a271e3cffc99841dc96158f5f6f6ab68))
+* **character:** map more charasheet game ids to their bcdice dicebots ([d402ed1](https://github.com/SavageChieftain/udonarium_axe/commit/d402ed11cc1b6a87ce1f926fbfcc95de0223c46d))
+* **character:** render Shinobigami 特技表 as a gap table on import ([240205f](https://github.com/SavageChieftain/udonarium_axe/commit/240205f1e6b2fdb0da83bbab599fccbb021b63c1))
+* **character:** show supported systems and capability matrix in the import panel ([f6c8d0b](https://github.com/SavageChieftain/udonarium_axe/commit/f6c8d0be2b0161005fd70a65304862e32269320a))
+
+### 🐛 Bug Fixes
+
+* **character:** detect ytsheet by its sheet marker, not a fixed name key ([6d84126](https://github.com/SavageChieftain/udonarium_axe/commit/6d841267f01983d791ab3a84a9bebfb0cf062fdf))
+* **chat:** keep ruby base text at the surrounding message weight ([c78b086](https://github.com/SavageChieftain/udonarium_axe/commit/c78b08635a2df06a24f5e509e8b00aaee3ae365b))
+* **chat:** make ruby furigana follow the dynamic message text color ([00f3037](https://github.com/SavageChieftain/udonarium_axe/commit/00f30374026abd358f0d09e465e0fe3558168459))
+
+### 📝 Documentation
+
+* **manual:** note that chat ruby follows the message text color and weight ([04d8f46](https://github.com/SavageChieftain/udonarium_axe/commit/04d8f46f65e16668a331e634c13a1654ce36ebfb))
+* **website:** add v1.18.2 release notes ([f42db4b](https://github.com/SavageChieftain/udonarium_axe/commit/f42db4b70cea8f158ffadad99b95be3b114577c7))
+
+### ♻️ Refactor
+
+* **character:** drive sheet-vault PF-series imports from a config registry ([efce59a](https://github.com/SavageChieftain/udonarium_axe/commit/efce59a45820abce138517c0faf406388c8049b7))
+* **character:** extract shared charasheet CoC import helpers ([b1409bc](https://github.com/SavageChieftain/udonarium_axe/commit/b1409bc0952ed22ec8cefcbd1bf7bc0ce34a56db))
+* **character:** extract shared sheet-vault psycho-fiction import builder ([5f90b70](https://github.com/SavageChieftain/udonarium_axe/commit/5f90b700c015811bb7a5584e13d6cc92bcb7055e))
+
 ## [1.18.2](https://github.com/SavageChieftain/udonarium_axe/compare/v1.18.1...v1.18.2) (2026-06-17)
 
 ### 🐛 Bug Fixes
