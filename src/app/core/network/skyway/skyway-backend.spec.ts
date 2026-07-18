@@ -118,6 +118,27 @@ describe('SkyWayBackend', () => {
     expect(token).toBe('test-token');
   });
 
+  it('createSkyWayAuthToken はまず Content-Type: application/json で送る', async () => {
+    fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ token: 'test-token' }), { status: 200 }));
+    const backend = new SkyWayBackend('http://localhost:3000');
+    await backend.createSkyWayAuthToken('channel', 'peer-1');
+    const init = fetchSpy.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(init.headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('fetch 例外時はヘッダ無しの単純リクエストへ即時フォールバックする（CORS プリフライト回避）', async () => {
+    fetchSpy
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token: 'fallback-token' }), { status: 200 }));
+    const backend = new SkyWayBackend('http://localhost:3000');
+    const token = await backend.createSkyWayAuthToken('channel', 'peer-1');
+    expect(token).toBe('fallback-token');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect((fetchSpy.mock.calls[0][1] as RequestInit).headers).toEqual({ 'Content-Type': 'application/json' });
+    expect((fetchSpy.mock.calls[1][1] as RequestInit).headers).toBeUndefined();
+  });
+
   it('createSkyWayAuthToken が空文字を返す（非200応答）', async () => {
     fetchSpy.mockResolvedValueOnce(new Response('', { status: 400 }));
     const backend = new SkyWayBackend('http://localhost:3000');
@@ -189,6 +210,22 @@ describe('SkyWayBackend', () => {
 
       await expect(promise).resolves.toBe('');
       expect(fetchSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('フォールバック後のリトライも単純リクエストのまま送る', async () => {
+      fetchSpy
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockResolvedValueOnce(new Response('', { status: 503 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify({ token: 'warm-token' }), { status: 200 }));
+      const backend = new SkyWayBackend('http://localhost:3000');
+
+      const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).resolves.toBe('warm-token');
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      expect((fetchSpy.mock.calls[1][1] as RequestInit).headers).toBeUndefined();
+      expect((fetchSpy.mock.calls[2][1] as RequestInit).headers).toBeUndefined();
     });
 
     it('4xx（設定ミス）は即失敗しリトライしない', async () => {

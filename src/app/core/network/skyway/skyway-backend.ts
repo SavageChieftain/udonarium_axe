@@ -58,11 +58,22 @@ async function fetchStatus(url: string): Promise<boolean> {
   }
 }
 
+function postTokenRequest(api: URL, body: string, simpleRequest: boolean): Promise<Response> {
+  const init: RequestInit = simpleRequest
+    ? { method: 'POST', body }
+    : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body };
+  return fetchWithTimeout(api, init, TOKEN_FETCH_TIMEOUT_MS);
+}
+
 /**
  * トークン発行バックエンドからトークンを取得する。
  *
  * 再起動直後やデプロイ直後はサーバレスバックエンドがコールドスタートし、初回リクエストが
  * 5xx / タイムアウト / 接続失敗になりやすい。タイムアウト付きで数回リトライし、その窓を吸収する。
+ *
+ * 本家 udonarium-backend (Cloudflare Workers) は CORS プリフライト (OPTIONS) 未対応で、
+ * `Content-Type: application/json` を付けるとブラウザ側で fetch が例外になる。
+ * その場合はヘッダ無しの単純リクエスト（プリフライト不要）へ即時フォールバックする。
  * 取得できなければ空文字を返す（呼び出し側は `server-error` として扱う）。
  */
 async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: string): Promise<string> {
@@ -73,17 +84,18 @@ async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: st
     peerId,
   });
 
+  let simpleRequest = false;
   for (let attempt = 0; attempt < TOKEN_FETCH_ATTEMPTS; attempt++) {
     try {
-      const response = await fetchWithTimeout(
-        api,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body,
-        },
-        TOKEN_FETCH_TIMEOUT_MS
-      );
+      let response: Response;
+      try {
+        response = await postTokenRequest(api, body, simpleRequest);
+      } catch (err) {
+        if (simpleRequest) throw err;
+        simpleRequest = true;
+        Logger.warn('[SkyWay] トークン取得に失敗。単純リクエストへフォールバックします', err);
+        response = await postTokenRequest(api, body, simpleRequest);
+      }
 
       if (response.status === 200) {
         const jsonObj = await response.json();
