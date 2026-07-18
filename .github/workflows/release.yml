@@ -82,3 +82,13 @@ jobs:
       environment: production
       ref: v${{ needs.release.outputs.version }}
     secrets: inherit
+
+  deploy-demo:
+    name: Demo
+    needs: [release, deploy-staging]
+    if: needs.release.outputs.released == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: demo
+      ref: v${{ needs.release.outputs.version }}
+    secrets: inherit

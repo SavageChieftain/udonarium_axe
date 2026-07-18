@@ -1,6 +1,6 @@
 name: Deploy
 
-# 環境ごと (staging / production) に S3 同期 + CloudFront invalidation を行う
+# 環境ごと (staging / production / demo) に S3 同期 + CloudFront invalidation を行う
 # reusable workflow。release.yml から workflow_call で呼び出される。
 #
 # `environment` input が GitHub Environments の名前と対応していて、
@@ -15,7 +15,7 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: 'GitHub Environment name (staging | production)'
+        description: 'GitHub Environment name (staging | production | demo)'
         required: true
         type: string
       ref:
