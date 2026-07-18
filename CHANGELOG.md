@@ -1,3 +1,13 @@
+## [1.19.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.19.0...v1.19.1) (2026-07-18)
+
+### 🐛 Bug Fixes
+
+* **core:** fall back to CORS simple request when token fetch fails ([15c7fbb](https://github.com/SavageChieftain/udonarium_axe/commit/15c7fbbb5df7c80b40e87861f7a187176770caef))
+
+### 📝 Documentation
+
+* **website:** add v1.19.0 release notes ([08df33c](https://github.com/SavageChieftain/udonarium_axe/commit/08df33c524a2f8c8e4a55bee04116a981efc23d3))
+
 ## [1.19.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.18.2...v1.19.0) (2026-06-28)
 
 ### ✨ Features
