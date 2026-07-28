@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  linkedSignal,
   signal,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -38,6 +39,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -162,6 +164,41 @@ export class CardStackComponent {
     },
     { equal: imageFileEqual() }
   );
+
+  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
+    source: () => this.imageFile().url,
+    computation: () => null,
+  });
+
+  onImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
+    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
+  }
+
+  private static readonly FRAME_BORDER_PX = 5;
+
+  private readonly imageBoxWidthPx = computed(() => this.size * this.gridSize - CardStackComponent.FRAME_BORDER_PX * 2);
+
+  readonly imageSupersample = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural) return 1;
+    return supersampleFactor(natural.width, this.imageBoxWidthPx());
+  });
+
+  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
+
+  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
+
+  readonly imageBoxHeightPx = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural || this.imageSupersample() <= 1) return null;
+    return (this.imageBoxWidthPx() * natural.height) / natural.width;
+  });
+
+  imageTransform(inner: string): string {
+    return supersampleTransform({ factor: this.imageSupersample(), anchor: 'top', inner });
+  }
 
   readonly animeState = signal<'active' | 'inactive'>('inactive');
   private readonly cardsVersion = signal(0);

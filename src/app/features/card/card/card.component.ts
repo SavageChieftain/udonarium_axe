@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  linkedSignal,
   signal,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -35,6 +36,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
@@ -148,6 +150,42 @@ export class CardComponent {
   get backImage(): ImageFile {
     return this.imageService.getSkeletonOr(this.card().backImage);
   }
+
+  private readonly displayedImageUrl = computed(() => {
+    this.objectChange.fileVersion();
+    const card = this.card();
+    this.objectChange.versionOf(card.identifier)();
+    return this.imageService.getSkeletonOr(card.isFront ? card.frontImage : card.backImage).url;
+  });
+
+  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
+    source: () => this.displayedImageUrl(),
+    computation: () => null,
+  });
+
+  onImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
+    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
+  }
+
+  readonly imageSupersample = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural) return 1;
+    return supersampleFactor(natural.width, this.size * this.gridSize);
+  });
+
+  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
+
+  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
+
+  readonly imageBoxHeightPx = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural || this.imageSupersample() <= 1) return null;
+    return (this.size * this.gridSize * natural.height) / natural.width;
+  });
+
+  readonly imageTransform = computed(() => supersampleTransform({ factor: this.imageSupersample(), anchor: 'top' }));
 
   private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);

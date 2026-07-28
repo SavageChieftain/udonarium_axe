@@ -10,6 +10,7 @@
 >
   <div
     class="pointer-events-auto box-border size-full backface-hidden transform-3d"
+    [style.height.px]="imageBoxHeightPx()"
     appRotable
     [rotable.option]="rotableOption()"
     [rotable.disable]="tabletopService.mode2d()"
@@ -19,6 +20,14 @@
     @if (imageFile()) {
       <img
         class="m-auto block h-auto w-full [transform-style:inherit]"
+        [ngStyle]="{
+          width: imageSupersamplePercent(),
+          maxWidth: 'none',
+          marginLeft: imageSupersampleInset(),
+          marginRight: imageSupersampleInset(),
+          transform: imageTransform(),
+        }"
+        (load)="onImageLoad($event)"
         [src]="(isFront ? frontImage.url : backImage.url) | safe: 'resourceUrl'"
       />
     }

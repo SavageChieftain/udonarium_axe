@@ -31,10 +31,21 @@
       [style.backface-visibility]="isPoster() ? 'visible' : null"
     >
       @if (topCard && imageFile()) {
-        <div [class.shuffling]="animeState() === 'active'" (animationend)="onShuffleDone()">
+        <div
+          [class.shuffling]="animeState() === 'active'"
+          [style.height.px]="imageBoxHeightPx()"
+          (animationend)="onShuffleDone()"
+        >
           <img
             class="chrome-smooth-image-trick inset-0 m-auto block h-auto w-full"
-            [ngStyle]="{ transform: 'rotateZ(' + topCard.rotate + 'deg)' }"
+            [ngStyle]="{
+              width: imageSupersamplePercent(),
+              maxWidth: 'none',
+              marginLeft: imageSupersampleInset(),
+              marginRight: imageSupersampleInset(),
+              transform: imageTransform('rotateZ(' + topCard.rotate + 'deg)'),
+            }"
+            (load)="onImageLoad($event)"
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         </div>
