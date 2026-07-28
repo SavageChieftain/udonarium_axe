@@ -97,6 +97,11 @@ export class PlToolbarComponent {
   }
 
   protected toggleRangeMenu(): void {
+    if (!this.activeCharacter()) {
+      this.rangeOpen.set(false);
+      this.openOwnedCharacterList();
+      return;
+    }
     this.rangeOpen.update((open) => !open);
   }
 

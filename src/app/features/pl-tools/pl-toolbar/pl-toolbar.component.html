@@ -31,11 +31,10 @@
     <div class="relative flex">
       <button
         type="button"
-        class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 items-center justify-center border-none bg-transparent transition-colors disabled:cursor-default disabled:opacity-35 [&_i]:text-[20px]!"
-        [class.cursor-pointer]="activeCharacter()"
+        class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
         [class.text-ui-accent]="rangeOpen()"
         [class.bg-ui-accent-bg]="rangeOpen()"
-        [disabled]="!activeCharacter()"
+        [class.opacity-45]="!activeCharacter()"
         [title]="(activeCharacter() ? 'feature.plTools.range.title' : 'feature.plTools.range.noActive') | transloco"
         (click)="toggleRangeMenu()"
       >

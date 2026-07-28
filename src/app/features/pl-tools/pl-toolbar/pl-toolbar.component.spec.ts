@@ -53,6 +53,18 @@ describe('PlToolbarComponent', () => {
     );
   });
 
+  it('操作対象が未設定なら範囲ボタンは一覧パネルを開き、形状メニューは出さない', () => {
+    const toolbar = component as unknown as { toggleRangeMenu: () => void; rangeOpen: () => boolean };
+
+    toolbar.toggleRangeMenu();
+
+    expect(toolbar.rangeOpen()).toBe(false);
+    expect(panelStub.open).toHaveBeenCalledWith(
+      OwnedCharacterListPanelComponent,
+      expect.objectContaining({ width: 420, height: 560 })
+    );
+  });
+
   it('PL のときだけツールバーを表示する', async () => {
     setRole(PeerRole.Player);
     fixture.detectChanges();

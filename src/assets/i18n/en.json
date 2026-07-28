@@ -88,7 +88,7 @@
       },
       "range": {
         "title": "Place a range on the active character",
-        "noActive": "Choose an active character first"
+        "noActive": "Pick the character to anchor the range on (opens the character list)"
       },
       "turn": {
         "title": "Turn order",
