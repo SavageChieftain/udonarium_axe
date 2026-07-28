@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  linkedSignal,
   signal,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -37,6 +38,7 @@ import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 @Component({
@@ -178,6 +180,52 @@ export class DiceSymbolComponent {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     return table.imageBillboard || table.mode2d;
   });
+
+  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
+    source: () => this.imageFile().url,
+    computation: () => null,
+  });
+
+  onImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
+    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
+  }
+
+  readonly imageSupersample = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural) return 1;
+    if (this.specifyImageFlag()) return supersampleFactor(natural.height, +this.imageHeignt());
+    return supersampleFactor(natural.width, this.size() * this.gridSize);
+  });
+
+  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
+
+  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
+
+  readonly imageBoxHeightPx = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural || this.imageSupersample() <= 1) return null;
+    if (this.specifyImageFlag()) return +this.imageHeignt();
+    return (this.size() * this.gridSize * natural.height) / natural.width;
+  });
+
+  readonly komaImageTransform = computed(() =>
+    supersampleTransform({
+      factor: this.imageSupersample(),
+      anchor: 'bottom',
+      outer: `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`,
+      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
+    })
+  );
+
+  readonly pieceImageTransform = computed(() =>
+    supersampleTransform({
+      factor: this.imageSupersample(),
+      anchor: 'bottom',
+      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
+    })
+  );
 
   readonly mode2dEnabled = computed(() => {
     if (this.isPoster()) return true;

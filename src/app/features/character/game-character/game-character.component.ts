@@ -8,6 +8,7 @@ import {
   ElementRef,
   inject,
   input,
+  linkedSignal,
   signal,
   viewChild,
 } from '@angular/core';
@@ -50,6 +51,7 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -305,6 +307,57 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     return table.imageBillboard || table.mode2d;
   });
+
+  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
+    source: () => this.imageFile().url,
+    computation: () => null,
+  });
+
+  onImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
+    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
+  }
+
+  readonly imageSupersample = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural) return 1;
+    if (this.isPoster()) return supersampleFactor(Math.min(natural.width, natural.height), this.size() * this.gridSize);
+    if (this.specifyKomaImageFlag()) return supersampleFactor(natural.height, this.komaImageHeightSignal());
+    return supersampleFactor(natural.width, this.size() * this.gridSize);
+  });
+
+  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
+
+  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
+
+  readonly imageBoxHeightPx = computed(() => {
+    const natural = this.imageNaturalSize();
+    if (!natural || this.imageSupersample() <= 1 || this.isPoster()) return null;
+    if (this.specifyKomaImageFlag()) return this.komaImageHeightSignal();
+    return (this.size() * this.gridSize * natural.height) / natural.width;
+  });
+
+  readonly posterImageTransform = computed(() =>
+    supersampleTransform({ factor: this.imageSupersample(), anchor: 'center' })
+  );
+
+  readonly komaImageTransform = computed(() =>
+    supersampleTransform({
+      factor: this.imageSupersample(),
+      anchor: 'bottom',
+      outer: `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`,
+      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
+    })
+  );
+
+  readonly pieceImageTransform = computed(() =>
+    supersampleTransform({
+      factor: this.imageSupersample(),
+      anchor: 'bottom',
+      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
+    })
+  );
 
   readonly mode2dEnabled = computed(() => {
     if (this.isPoster()) return true;

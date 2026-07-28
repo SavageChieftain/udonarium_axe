@@ -92,6 +92,14 @@
         @if (isPoster() && 0 < imageFile().url.length) {
           <img
             class="image chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain"
+            [ngStyle]="{
+              width: imageSupersamplePercent(),
+              height: imageSupersamplePercent(),
+              maxWidth: 'none',
+              margin: imageSupersampleInset(),
+              transform: posterImageTransform(),
+            }"
+            (load)="onImageLoad($event)"
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         }
@@ -116,7 +124,10 @@
             (rotable.ondragstart)="onMove()"
             (rotable.ondragend)="onMoved()"
           >
-            <div class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d">
+            <div
+              class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
+              [style.height.px]="imageBoxHeightPx()"
+            >
               @let buffEl = this.gameCharacter()!.buffDataElement;
               @if (buffEl && buffNum() > 0 && !hideBuff()) {
                 <div class="[-webkit-transform-style:preserve-3d] transform-3d">
@@ -247,18 +258,15 @@
                 <img
                   class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                   [ngStyle]="{
-                    height: komaImageHeightSignal() + 'px',
+                    height: komaImageHeightSignal() * imageSupersample() + 'px',
                     width: 'auto',
                     maxWidth: 'none',
                     display: 'inline-block',
                     left: 'auto',
                     right: 'auto',
-                    transform:
-                      'translateX(-50%) translateX(' +
-                      (size() * gridSize) / 2 +
-                      'px)' +
-                      (imageBillboardEnabled() ? ' ' + billboardTransformImage() : ''),
+                    transform: komaImageTransform(),
                   }"
+                  (load)="onImageLoad($event)"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
@@ -266,9 +274,13 @@
                 <img
                   class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                   [ngStyle]="{
-                    width: '100%',
-                    transform: imageBillboardEnabled() ? billboardTransformImage() : '',
+                    width: imageSupersamplePercent(),
+                    maxWidth: 'none',
+                    marginLeft: imageSupersampleInset(),
+                    marginRight: imageSupersampleInset(),
+                    transform: pieceImageTransform(),
                   }"
+                  (load)="onImageLoad($event)"
                   [src]="imageFile().url | safe: 'resourceUrl'"
                 />
               }
