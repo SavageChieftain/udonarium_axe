@@ -74,13 +74,25 @@
       }
     },
     "plTools": {
+      "active": {
+        "openChatPalette": "{{name}} のチャットパレットを開く"
+      },
+      "turn": {
+        "title": "行動順",
+        "round": "R{{n}}",
+        "roundStart": "ラウンド開始前",
+        "roundEnd": "ラウンド終了",
+        "unknown": "手番未設定"
+      },
       "ownedCharacters": {
         "chatPalette": "チャットパレットを開く",
         "sheet": "キャラクターシートを開く",
         "focus": "コマの位置へ視点を移す",
         "notOnTable": "テーブル上にいません",
         "unnamed": "（無名）",
-        "empty": "所有しているキャラクターがありません"
+        "empty": "所有しているキャラクターがありません",
+        "setActive": "操作対象にする",
+        "unsetActive": "操作対象を解除"
       }
     },
     "gmObjectList": {

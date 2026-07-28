@@ -18,5 +18,37 @@
     >
       <i class="material-icons">groups</i>
     </button>
+
+    @if (turnIndicator(); as turn) {
+      <span
+        class="border-ui-border-panel text-ui-muted flex h-8 max-w-52 items-center gap-1.5 border-l border-solid pl-2 text-[12px]"
+        [title]="'feature.plTools.turn.title' | transloco"
+      >
+        <span class="text-ui-accent shrink-0 font-semibold">{{
+          'feature.plTools.turn.round' | transloco: { n: turn.round }
+        }}</span>
+        @if (turn.statusKey) {
+          <span class="truncate">{{ turn.statusKey | transloco }}</span>
+        } @else {
+          <span class="text-ui-text truncate font-semibold">{{ turn.name }}</span>
+        }
+      </span>
+    }
+
+    @if (activeCharacter(); as character) {
+      <button
+        type="button"
+        class="rounded-ui-sm bg-ui-accent-bg text-ui-accent hover:bg-ui-menu-hover flex h-8 max-w-44 cursor-pointer items-center gap-1.5 border-none px-1.5 transition-colors"
+        [title]="'feature.plTools.active.openChatPalette' | transloco: { name: character.name }"
+        (click)="openActiveChatPalette()"
+      >
+        <span class="bg-ui-elevated size-6 shrink-0 overflow-hidden rounded-sm">
+          @if (activeImageUrl()) {
+            <img class="size-full object-contain" [src]="activeImageUrl() | safe: 'resourceUrl'" alt="" />
+          }
+        </span>
+        <span class="truncate text-[12px] font-semibold">{{ character.name }}</span>
+      </button>
+    }
   </div>
 }

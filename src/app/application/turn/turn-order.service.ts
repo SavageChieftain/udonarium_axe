@@ -6,7 +6,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { TurnState } from '@axe/domain/tabletop/turn-state';
+import { TurnPhase, TurnState } from '@axe/domain/tabletop/turn-state';
 
 @Injectable({ providedIn: 'root' })
 export class TurnOrderService {
@@ -39,6 +39,10 @@ export class TurnOrderService {
 
   get round(): number {
     return this.turnState.round;
+  }
+
+  get phase(): TurnPhase {
+    return this.turnState.phase;
   }
 
   orderedCharacters(includeHidden = false): GameCharacter[] {

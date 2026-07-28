@@ -14,6 +14,24 @@
       <button
         type="button"
         class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
+        [class.text-ui-accent]="activeCharacter.isActive(character.identifier)"
+        [class.bg-ui-accent-bg]="activeCharacter.isActive(character.identifier)"
+        [title]="
+          (activeCharacter.isActive(character.identifier)
+            ? 'feature.plTools.ownedCharacters.unsetActive'
+            : 'feature.plTools.ownedCharacters.setActive'
+          ) | transloco
+        "
+        (click)="setActive(character)"
+      >
+        <i class="material-icons">{{
+          activeCharacter.isActive(character.identifier) ? 'radio_button_checked' : 'radio_button_unchecked'
+        }}</i>
+      </button>
+
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
         [title]="'feature.plTools.ownedCharacters.chatPalette' | transloco"
         (click)="openChatPalette(character)"
       >

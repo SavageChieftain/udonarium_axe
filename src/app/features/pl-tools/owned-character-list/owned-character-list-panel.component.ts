@@ -5,6 +5,8 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
+import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { isOnTable, selectOwnedCharacters } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -22,6 +24,8 @@ export class OwnedCharacterListPanelComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly characterPanel = inject(CharacterPanelService);
+  private readonly registry = inject(ChatPaletteRegistryService);
+  protected readonly activeCharacter = inject(ActiveCharacterService);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly characters = computed<GameCharacter[]>(() => {
@@ -43,6 +47,12 @@ export class OwnedCharacterListPanelComponent {
 
   protected displayName(character: GameCharacter): string {
     return character.name.length ? character.name : this.t('feature.plTools.ownedCharacters.unnamed');
+  }
+
+  protected setActive(character: GameCharacter): void {
+    this.activeCharacter.toggle(character.identifier);
+    if (!this.activeCharacter.isActive(character.identifier)) return;
+    this.registry.active()?.setCharacterById(character.identifier);
   }
 
   protected openChatPalette(character: GameCharacter): void {

@@ -4,6 +4,7 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -92,5 +93,17 @@ describe('OwnedCharacterListPanelComponent', () => {
     expect(panelStub.openLazy).toHaveBeenCalledTimes(2);
     expect(panelStub.openLazy.mock.calls[0][1]).toEqual(expect.objectContaining({ width: 760, height: 500 }));
     expect(panelStub.openLazy.mock.calls[1][1]).toEqual(expect.objectContaining({ width: 800, height: 600 }));
+  });
+
+  it('setActive で操作対象を設定し、もう一度押すと解除する', () => {
+    const character = makeCharacter('自分のPC', 'me', 'table');
+    const active = TestBed.inject(ActiveCharacterService);
+    const setActive = (component as unknown as { setActive: (c: GameCharacter) => void }).setActive;
+
+    setActive.call(component, character);
+    expect(active.identifier()).toBe(character.identifier);
+
+    setActive.call(component, character);
+    expect(active.identifier()).toBeNull();
   });
 });

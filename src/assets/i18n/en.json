@@ -74,13 +74,25 @@
       }
     },
     "plTools": {
+      "active": {
+        "openChatPalette": "Open the chat palette for {{name}}"
+      },
+      "turn": {
+        "title": "Turn order",
+        "round": "R{{n}}",
+        "roundStart": "Before the round",
+        "roundEnd": "Round over",
+        "unknown": "No active turn"
+      },
       "ownedCharacters": {
         "chatPalette": "Open chat palette",
         "sheet": "Open character sheet",
         "focus": "Move the view to the piece",
         "notOnTable": "Not on the table",
         "unnamed": "(unnamed)",
-        "empty": "You do not own any characters"
+        "empty": "You do not own any characters",
+        "setActive": "Set as active character",
+        "unsetActive": "Clear active character"
       }
     },
     "gmObjectList": {
