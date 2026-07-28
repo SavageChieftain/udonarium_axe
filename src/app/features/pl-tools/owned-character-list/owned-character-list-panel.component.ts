@@ -1,0 +1,61 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
+import { isOnTable, selectOwnedCharacters } from '@axe/features/pl-tools/owned-character-list/owned-characters';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'owned-character-list-panel',
+  templateUrl: './owned-character-list-panel.component.html',
+  host: { class: 'block h-full' },
+  imports: [SafePipe, TranslocoModule],
+})
+export class OwnedCharacterListPanelComponent {
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly characterPanel = inject(CharacterPanelService);
+  private readonly t = inject(TRANSLATE_FN);
+
+  readonly characters = computed<GameCharacter[]>(() => {
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const userId = PeerCursor.myCursor?.userId ?? '';
+    const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
+    for (const character of all) this.objectChange.versionOf(character.identifier)();
+    return selectOwnedCharacters(all, userId);
+  });
+
+  protected imageUrl(character: GameCharacter): string {
+    return character.imageFile?.url ?? '';
+  }
+
+  protected canFocus(character: GameCharacter): boolean {
+    return isOnTable(character);
+  }
+
+  protected displayName(character: GameCharacter): string {
+    return character.name.length ? character.name : this.t('feature.plTools.ownedCharacters.unnamed');
+  }
+
+  protected openChatPalette(character: GameCharacter): void {
+    this.characterPanel.openChatPalette(character);
+  }
+
+  protected openSheet(character: GameCharacter): void {
+    this.characterPanel.openSheet(character);
+  }
+
+  protected focusToKoma(character: GameCharacter): void {
+    if (!this.canFocus(character)) return;
+    this.selectionSignalService.selectObject(character.identifier, character.aliasName);
+    this.selectionSignalService.focusToCoordinate(character.location.x, character.location.y);
+  }
+}

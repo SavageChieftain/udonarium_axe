@@ -38,7 +38,8 @@
       "characterGenerator": "Character generator",
       "inventory": "Inventory",
       "objectList": "Object list",
-      "characterImport": "Import Character"
+      "characterImport": "Import Character",
+      "ownedCharacters": "My characters"
     }
   },
   "feature": {
@@ -70,6 +71,16 @@
         "title": "Persona (review as a player)",
         "self": "GM view (myself)",
         "empty": "No players connected"
+      }
+    },
+    "plTools": {
+      "ownedCharacters": {
+        "chatPalette": "Open chat palette",
+        "sheet": "Open character sheet",
+        "focus": "Move the view to the piece",
+        "notOnTable": "Not on the table",
+        "unnamed": "(unnamed)",
+        "empty": "You do not own any characters"
       }
     },
     "gmObjectList": {
@@ -1481,6 +1492,8 @@
       "inventory": "Inventory",
       "visualNovel": "Novel mode",
       "gmTools": "GM tools",
+      "plTools": "PL tools",
+      "ownedCharacters": "My characters",
       "objectList": "Object list (GM)",
       "npcBar": "NPC bar",
       "darknessOn": "Darkness: on (click to turn off)",

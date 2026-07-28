@@ -38,7 +38,8 @@
       "characterGenerator": "キャラクタージェネレーター",
       "inventory": "インベントリ",
       "objectList": "オブジェクト一覧",
-      "characterImport": "キャラクター取り込み"
+      "characterImport": "キャラクター取り込み",
+      "ownedCharacters": "所有キャラクター一覧"
     }
   },
   "feature": {
@@ -70,6 +71,16 @@
         "title": "ペルソナ（プレイヤー視点でレビュー）",
         "self": "GM視点（自分）",
         "empty": "プレイヤーがいません"
+      }
+    },
+    "plTools": {
+      "ownedCharacters": {
+        "chatPalette": "チャットパレットを開く",
+        "sheet": "キャラクターシートを開く",
+        "focus": "コマの位置へ視点を移す",
+        "notOnTable": "テーブル上にいません",
+        "unnamed": "（無名）",
+        "empty": "所有しているキャラクターがありません"
       }
     },
     "gmObjectList": {
@@ -1481,6 +1492,8 @@
       "inventory": "インベントリ",
       "visualNovel": "ノベルモード",
       "gmTools": "GMツール",
+      "plTools": "PLツール",
+      "ownedCharacters": "所有キャラクター一覧",
       "objectList": "オブジェクト一覧（GM）",
       "npcBar": "NPCバー",
       "darknessOn": "暗闇: オン（クリックでオフ）",
