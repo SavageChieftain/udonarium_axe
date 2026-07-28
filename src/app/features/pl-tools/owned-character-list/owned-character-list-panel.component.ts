@@ -1,13 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
+import { resourceElementsOf, resourceMax } from '@axe/features/pl-tools/owned-character-list/character-resources';
 import { isOnTable, selectOwnedCharacters } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -17,7 +20,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'owned-character-list-panel',
   templateUrl: './owned-character-list-panel.component.html',
   host: { class: 'block h-full' },
-  imports: [SafePipe, TranslocoModule],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class OwnedCharacterListPanelComponent {
   private readonly objectStore = inject(ObjectStore);
@@ -45,6 +48,19 @@ export class OwnedCharacterListPanelComponent {
     return isOnTable(character);
   }
 
+  protected resources(character: GameCharacter): DataElement[] {
+    this.objectChange.versionOf(character.identifier)();
+    return resourceElementsOf(character);
+  }
+
+  protected resourceMax(element: DataElement): number {
+    return resourceMax(element);
+  }
+
+  protected onResourceChanged(character: GameCharacter): void {
+    this.objectChange.notifyChanged(character.identifier);
+  }
+
   protected displayName(character: GameCharacter): string {
     return character.name.length ? character.name : this.t('feature.plTools.ownedCharacters.unnamed');
   }
@@ -61,6 +77,10 @@ export class OwnedCharacterListPanelComponent {
 
   protected openSheet(character: GameCharacter): void {
     this.characterPanel.openSheet(character);
+  }
+
+  protected openRemoteController(character: GameCharacter): void {
+    this.characterPanel.openRemoteController(character);
   }
 
   protected focusToKoma(character: GameCharacter): void {

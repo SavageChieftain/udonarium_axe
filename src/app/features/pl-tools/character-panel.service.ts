@@ -35,6 +35,23 @@ export class CharacterPanelService {
     );
   }
 
+  openRemoteController(character: GameCharacter): void {
+    this.panelService.openLazy(
+      () =>
+        import('@axe/features/controller/remote-controller/remote-controller.component').then(
+          (m) => m.RemoteControllerComponent
+        ),
+      this.option(
+        this.t('feature.character.panel.remoteControllerWithName', { name: character.name }),
+        700,
+        600,
+        250,
+        175
+      ),
+      (component) => component.character.set(character)
+    );
+  }
+
   private option(title: string, width: number, height: number, offsetX: number, offsetY: number): PanelOption {
     const coordinate = this.pointerDeviceService.pointers[0];
     return { title, width, height, left: coordinate.x - offsetX, top: coordinate.y - offsetY };

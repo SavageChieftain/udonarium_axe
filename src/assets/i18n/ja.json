@@ -92,7 +92,8 @@
         "unnamed": "（無名）",
         "empty": "所有しているキャラクターがありません",
         "setActive": "操作対象にする",
-        "unsetActive": "操作対象を解除"
+        "unsetActive": "操作対象を解除",
+        "remoteController": "リモートコントローラを開く"
       }
     },
     "gmObjectList": {

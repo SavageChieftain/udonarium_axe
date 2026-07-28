@@ -92,7 +92,8 @@
         "unnamed": "(unnamed)",
         "empty": "You do not own any characters",
         "setActive": "Set as active character",
-        "unsetActive": "Clear active character"
+        "unsetActive": "Clear active character",
+        "remoteController": "Open remote controller"
       }
     },
     "gmObjectList": {
