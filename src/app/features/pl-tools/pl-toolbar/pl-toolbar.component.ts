@@ -1,14 +1,27 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { getRangeMenuItems } from '@axe/application/tabletop/tabletop-action-helpers';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
+import { HandCardListPanelComponent } from '@axe/features/pl-tools/hand-card-list/hand-card-list-panel.component';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { buildTurnIndicator } from '@axe/features/pl-tools/turn-indicator';
@@ -28,8 +41,12 @@ export class PlToolbarComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly characterPanel = inject(CharacterPanelService);
   private readonly turnOrder = inject(TurnOrderService);
+  private readonly tabletopAction = inject(TabletopActionService);
   protected readonly active = inject(ActiveCharacterService);
   private readonly t = inject(TRANSLATE_FN);
+
+  protected readonly rangeMenuItems = getRangeMenuItems();
+  protected readonly rangeOpen = signal(false);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
   private savedLeft: string | null = null;
@@ -60,6 +77,42 @@ export class PlToolbarComponent {
     return buildTurnIndicator(this.turnOrder.phase, this.turnOrder.round, name);
   });
 
+  protected activeImageUrl(): string {
+    return this.activeCharacter()?.imageFile?.url ?? '';
+  }
+
+  protected openActiveChatPalette(): void {
+    const character = this.activeCharacter();
+    if (character) this.characterPanel.openChatPalette(character);
+  }
+
+  protected openHandCardList(): void {
+    this.panelService.open(HandCardListPanelComponent, {
+      width: 380,
+      height: 520,
+      left: 140,
+      top: 80,
+      title: this.t('common.panel.handCards'),
+    });
+  }
+
+  protected toggleRangeMenu(): void {
+    this.rangeOpen.update((open) => !open);
+  }
+
+  protected createRange(typeName: string): void {
+    const character = this.activeCharacter();
+    this.rangeOpen.set(false);
+    if (!character) return;
+    const range = this.tabletopAction.createRangeArea(
+      { x: character.location.x, y: character.location.y, z: character.posZ },
+      typeName
+    );
+    range.followingCharctorIdentifier = character.identifier;
+    range.following();
+    SoundEffect.play(PresetSound.dicePut);
+  }
+
   constructor() {
     effect((onCleanup) => {
       const el = this.barRef()?.nativeElement;
@@ -76,15 +129,6 @@ export class PlToolbarComponent {
         this.savedTop = el.style.top;
       });
     });
-  }
-
-  protected activeImageUrl(): string {
-    return this.activeCharacter()?.imageFile?.url ?? '';
-  }
-
-  protected openActiveChatPalette(): void {
-    const character = this.activeCharacter();
-    if (character) this.characterPanel.openChatPalette(character);
   }
 
   protected openOwnedCharacterList(): void {
