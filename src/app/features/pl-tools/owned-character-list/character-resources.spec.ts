@@ -35,13 +35,20 @@ describe('character-resources', () => {
     expect(resourceElementsOf(character).map((element) => element.name)).toEqual(['HP', 'MP']);
   });
 
-  it('リソース型でもフィールド種別がリソースでない内部要素は除く', () => {
+  it('コマ画像・立ち絵位置の内部要素は除く', () => {
     const character = GameCharacter.create('テスト', 1, '');
-    character.detailDataElement!.appendChild(
-      DataElement.create('ICON', 0, { role: 'field', type: DataElementType.NUMBER_RESOURCE, currentValue: 0 })
-    );
+    character.addExtendData();
 
     expect(resourceElementsOf(character).map((element) => element.name)).toEqual(['HP', 'MP']);
+  });
+
+  it('fieldType 属性を持たない旧データのリソースも拾う', () => {
+    const character = GameCharacter.create('テスト', 1, '');
+    character.detailDataElement!.appendChild(
+      DataElement.create('SAN', 80, { type: DataElementType.NUMBER_RESOURCE, currentValue: 80 })
+    );
+
+    expect(resourceElementsOf(character).map((element) => element.name)).toEqual(['HP', 'MP', 'SAN']);
   });
 
   it('追加したリソースも拾う', () => {
