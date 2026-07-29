@@ -4,6 +4,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
+import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -63,6 +64,17 @@ describe('PlToolbarComponent', () => {
       OwnedCharacterListPanelComponent,
       expect.objectContaining({ width: 420, height: 560 })
     );
+  });
+
+  it('toggleHandRail で手札レールの開閉を切り替える', () => {
+    const rail = TestBed.inject(HandRailService);
+    const toolbar = component as unknown as { toggleHandRail: () => void };
+
+    expect(rail.isOpen()).toBe(false);
+    toolbar.toggleHandRail();
+    expect(rail.isOpen()).toBe(true);
+    toolbar.toggleHandRail();
+    expect(rail.isOpen()).toBe(false);
   });
 
   it('PL のときだけツールバーを表示する', async () => {

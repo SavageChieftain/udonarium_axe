@@ -21,7 +21,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
-import { HandCardListPanelComponent } from '@axe/features/pl-tools/hand-card-list/hand-card-list-panel.component';
+import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { buildTurnIndicator } from '@axe/features/pl-tools/turn-indicator';
@@ -42,6 +42,7 @@ export class PlToolbarComponent {
   private readonly characterPanel = inject(CharacterPanelService);
   private readonly turnOrder = inject(TurnOrderService);
   private readonly tabletopAction = inject(TabletopActionService);
+  protected readonly handRail = inject(HandRailService);
   protected readonly active = inject(ActiveCharacterService);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -86,14 +87,8 @@ export class PlToolbarComponent {
     if (character) this.characterPanel.openChatPalette(character);
   }
 
-  protected openHandCardList(): void {
-    this.panelService.open(HandCardListPanelComponent, {
-      width: 380,
-      height: 520,
-      left: 140,
-      top: 80,
-      title: this.t('common.panel.handCards'),
-    });
+  protected toggleHandRail(): void {
+    this.handRail.toggle();
   }
 
   protected toggleRangeMenu(): void {

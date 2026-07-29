@@ -39,8 +39,7 @@
       "inventory": "Inventory",
       "objectList": "Object list",
       "characterImport": "Import Character",
-      "ownedCharacters": "My characters",
-      "handCards": "My hand"
+      "ownedCharacters": "My characters"
     }
   },
   "feature": {
@@ -79,12 +78,11 @@
         "openChatPalette": "Open the chat palette for {{name}}"
       },
       "hand": {
+        "title": "Hand ({{count}})",
         "unnamed": "(unnamed)",
         "empty": "Your hand is empty",
-        "faceUp": "Reveal on the table",
-        "faceDown": "Return face down",
-        "focus": "Move the view to the card",
-        "notOnTable": "Not on the table"
+        "playFaceUp": "Play face up",
+        "playFaceDown": "Play face down"
       },
       "range": {
         "title": "Place a range on the active character",
@@ -1522,7 +1520,7 @@
       "gmTools": "GM tools",
       "plTools": "PL tools",
       "ownedCharacters": "My characters",
-      "handCards": "My hand",
+      "handCards": "Toggle my hand",
       "objectList": "Object list (GM)",
       "npcBar": "NPC bar",
       "darknessOn": "Darkness: on (click to turn off)",

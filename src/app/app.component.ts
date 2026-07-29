@@ -47,6 +47,8 @@ import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handl
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
+import { HandDragGhostComponent } from '@axe/features/pl-tools/hand-rail/hand-drag-ghost.component';
+import { HandRailComponent } from '@axe/features/pl-tools/hand-rail/hand-rail.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
@@ -70,6 +72,8 @@ import { version as APP_VERSION } from '@pkg';
     MiniJukeboxComponent,
     GmToolbarComponent,
     PlToolbarComponent,
+    HandRailComponent,
+    HandDragGhostComponent,
     NpcDragGhostComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,

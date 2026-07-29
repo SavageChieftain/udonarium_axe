@@ -39,8 +39,7 @@
       "inventory": "インベントリ",
       "objectList": "オブジェクト一覧",
       "characterImport": "キャラクター取り込み",
-      "ownedCharacters": "所有キャラクター一覧",
-      "handCards": "手札"
+      "ownedCharacters": "所有キャラクター一覧"
     }
   },
   "feature": {
@@ -79,12 +78,11 @@
         "openChatPalette": "{{name}} のチャットパレットを開く"
       },
       "hand": {
+        "title": "手札 {{count}}枚",
         "unnamed": "（無名）",
         "empty": "手札がありません",
-        "faceUp": "表にして場に出す",
-        "faceDown": "伏せて場に戻す",
-        "focus": "カードの位置へ視点を移す",
-        "notOnTable": "テーブル上にありません"
+        "playFaceUp": "表向きで場に出す",
+        "playFaceDown": "裏向きで場に出す"
       },
       "range": {
         "title": "操作対象のコマを基点に範囲を出す",
@@ -1522,7 +1520,7 @@
       "gmTools": "GMツール",
       "plTools": "PLツール",
       "ownedCharacters": "所有キャラクター一覧",
-      "handCards": "手札",
+      "handCards": "手札を開閉",
       "objectList": "オブジェクト一覧（GM）",
       "npcBar": "NPCバー",
       "darknessOn": "暗闇: オン（クリックでオフ）",
