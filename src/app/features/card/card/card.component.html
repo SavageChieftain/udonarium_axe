@@ -41,7 +41,7 @@
     }
     @if (isHand && frontImage) {
       <img
-        class="absolute m-auto block h-auto w-full scale-90 filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
+        class="pointer-events-none absolute inset-0 m-auto block size-full scale-90 object-contain filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
         [src]="frontImage.url | safe: 'resourceUrl'"
       />
     }
