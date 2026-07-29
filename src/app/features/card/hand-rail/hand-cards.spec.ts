@@ -1,7 +1,7 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { handLocationOf } from '@axe/domain/card/hand-location';
-import { isHandCardOf, reorderHandCards, selectHandCards } from '@axe/features/pl-tools/hand-rail/hand-cards';
+import { isHandCardOf, reorderHandCards, selectHandCards } from '@axe/features/card/hand-rail/hand-cards';
 import { afterEach, describe, expect, it } from 'vitest';
 
 function makeCard(locationName: string): Card {

@@ -77,13 +77,6 @@
       "active": {
         "openChatPalette": "Open the chat palette for {{name}}"
       },
-      "hand": {
-        "title": "Hand ({{count}})",
-        "unnamed": "(unnamed)",
-        "empty": "Your hand is empty",
-        "playFaceUp": "Play face up",
-        "playFaceDown": "Play face down"
-      },
       "range": {
         "title": "Place a range on the active character",
         "noActive": "Pick the character to anchor the range on (opens the character list)"
@@ -248,6 +241,13 @@
       }
     },
     "card": {
+      "hand": {
+        "title": "Hand ({{count}})",
+        "unnamed": "(unnamed)",
+        "empty": "Your hand is empty",
+        "playFaceUp": "Play face up",
+        "playFaceDown": "Play face down"
+      },
       "title": "Card",
       "settingTitle": "Card settings",
       "faceLabel": {

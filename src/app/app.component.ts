@@ -28,6 +28,8 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handler.service';
 import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
+import { HandDragGhostComponent } from '@axe/features/card/hand-rail/hand-drag-ghost.component';
+import { HandRailComponent } from '@axe/features/card/hand-rail/hand-rail.component';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
@@ -47,8 +49,6 @@ import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handl
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
-import { HandDragGhostComponent } from '@axe/features/pl-tools/hand-rail/hand-drag-ghost.component';
-import { HandRailComponent } from '@axe/features/pl-tools/hand-rail/hand-rail.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';

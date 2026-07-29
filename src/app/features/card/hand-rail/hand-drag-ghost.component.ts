@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { HandDragService } from '@axe/features/pl-tools/hand-rail/hand-drag.service';
+import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({

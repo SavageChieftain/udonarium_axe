@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
-import { HandDragService } from '@axe/features/pl-tools/hand-rail/hand-drag.service';
+import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe('HandDragService', () => {

@@ -77,13 +77,6 @@
       "active": {
         "openChatPalette": "{{name}} のチャットパレットを開く"
       },
-      "hand": {
-        "title": "手札 {{count}}枚",
-        "unnamed": "（無名）",
-        "empty": "手札がありません",
-        "playFaceUp": "表向きで場に出す",
-        "playFaceDown": "裏向きで場に出す"
-      },
       "range": {
         "title": "操作対象のコマを基点に範囲を出す",
         "noActive": "範囲の基点にするキャラを選ぶ（所有キャラクター一覧を開きます）"
@@ -248,6 +241,13 @@
       }
     },
     "card": {
+      "hand": {
+        "title": "手札 {{count}}枚",
+        "unnamed": "（無名）",
+        "empty": "手札がありません",
+        "playFaceUp": "表向きで場に出す",
+        "playFaceDown": "裏向きで場に出す"
+      },
       "title": "カード",
       "settingTitle": "カード設定",
       "faceLabel": {

@@ -18,9 +18,9 @@ import { Card } from '@axe/domain/card/card';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { canRoleEdit } from '@axe/domain/peer/peer-role';
-import { elementsAt } from '@axe/features/pl-tools/hand-rail/elements-at';
-import { reorderHandCards, selectHandCards } from '@axe/features/pl-tools/hand-rail/hand-cards';
-import { HandDragService } from '@axe/features/pl-tools/hand-rail/hand-drag.service';
+import { elementsAt } from '@axe/features/card/hand-rail/elements-at';
+import { reorderHandCards, selectHandCards } from '@axe/features/card/hand-rail/hand-cards';
+import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
 import {
   HAND_CARD_HEIGHT_PX,
   HAND_CARD_WIDTH_PX,
@@ -29,8 +29,8 @@ import {
   handFanDropIndex,
   handFanWidthPx,
   layoutHandFan,
-} from '@axe/features/pl-tools/hand-rail/hand-fan';
-import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
+} from '@axe/features/card/hand-rail/hand-fan';
+import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -141,7 +141,7 @@ export class HandRailComponent {
   }
 
   protected displayName(card: Card): string {
-    return card.name.length ? card.name : this.t('feature.plTools.hand.unnamed');
+    return card.name.length ? card.name : this.t('feature.card.hand.unnamed');
   }
 
   protected playFaceUp(card: Card, focus = true): void {

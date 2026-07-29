@@ -4,7 +4,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
-import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
+import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';

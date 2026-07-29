@@ -6,8 +6,8 @@ import { Card, CardState } from '@axe/domain/card/card';
 import { handLocationOf } from '@axe/domain/card/hand-location';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
-import { HandRailComponent } from '@axe/features/pl-tools/hand-rail/hand-rail.component';
-import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
+import { HandRailComponent } from '@axe/features/card/hand-rail/hand-rail.component';
+import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 

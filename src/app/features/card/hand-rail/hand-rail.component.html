@@ -20,7 +20,7 @@
         </button>
       </div>
       <div class="block truncate pr-8">
-        {{ 'feature.plTools.hand.title' | transloco: { count: cards().length } }}
+        {{ 'feature.card.hand.title' | transloco: { count: cards().length } }}
       </div>
     </div>
 
@@ -60,7 +60,7 @@
                 <div class="bg-ui-panel/90 absolute inset-x-0 bottom-0 flex justify-center gap-0.5 rounded-b-sm py-0.5">
                   <button
                     class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5 transform-none cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
-                    [title]="'feature.plTools.hand.playFaceUp' | transloco"
+                    [title]="'feature.card.hand.playFaceUp' | transloco"
                     (click)="playFaceUp(card)"
                   >
                     <i class="material-icons text-[13px]!">visibility</i>
@@ -68,7 +68,7 @@
 
                   <button
                     class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5 transform-none cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
-                    [title]="'feature.plTools.hand.playFaceDown' | transloco"
+                    [title]="'feature.card.hand.playFaceDown' | transloco"
                     (click)="playFaceDown(card)"
                   >
                     <i class="material-icons text-[13px]!">visibility_off</i>
@@ -84,7 +84,7 @@
           [style.width.px]="fanWidthPx"
           [style.height.px]="fanHeightPx"
         >
-          {{ 'feature.plTools.hand.empty' | transloco }}
+          {{ 'feature.card.hand.empty' | transloco }}
         </p>
       }
     </div>

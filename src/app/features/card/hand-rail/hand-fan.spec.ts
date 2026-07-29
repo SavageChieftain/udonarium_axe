@@ -5,7 +5,7 @@ import {
   handFanDropIndex,
   handFanWidthPx,
   layoutHandFan,
-} from '@axe/features/pl-tools/hand-rail/hand-fan';
+} from '@axe/features/card/hand-rail/hand-fan';
 import { describe, expect, it } from 'vitest';
 
 describe('handFanWidthPx', () => {
