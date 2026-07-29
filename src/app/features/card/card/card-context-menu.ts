@@ -9,6 +9,7 @@ export function buildCardContextMenu(
   gridSize: number,
   callbacks: {
     onCreateStack: () => void;
+    onOverlappingToHand: () => void;
     onShowDetail: () => void;
   },
   t: TranslateFn
@@ -108,6 +109,13 @@ export function buildCardContextMenu(
     action: () => {
       callbacks.onCreateStack();
       SoundEffect.play(PresetSound.cardPut);
+    },
+  });
+  menuArray.push({
+    name: t('feature.card.contextMenu.overlappingToHand'),
+    action: () => {
+      callbacks.onOverlappingToHand();
+      SoundEffect.play(PresetSound.cardDraw);
     },
   });
   menuArray.push({

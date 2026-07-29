@@ -277,6 +277,7 @@
         "showSelfOnly": "Show to self only",
         "toHand": "Take into hand",
         "createStack": "Create stack from overlapping cards",
+        "overlappingToHand": "Take overlapping cards into hand",
         "editCard": "Edit card"
       }
     },

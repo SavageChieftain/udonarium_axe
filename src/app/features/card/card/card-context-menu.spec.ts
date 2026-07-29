@@ -30,7 +30,7 @@ function makeCard(overrides: Partial<MutableCard> = {}): MutableCard {
 }
 
 const names = (a: { name: string }[]) => a.map((x) => x.name);
-const defaultCallbacks = () => ({ onCreateStack: vi.fn(), onShowDetail: vi.fn() });
+const defaultCallbacks = () => ({ onCreateStack: vi.fn(), onOverlappingToHand: vi.fn(), onShowDetail: vi.fn() });
 
 describe('buildCardContextMenu()', () => {
   it('isLock=false なら「固定する」「固定マーク」関連は出ない', () => {
@@ -81,7 +81,12 @@ describe('buildCardContextMenu()', () => {
 
   it('「重なったカードで山札を作る」が onCreateStack を呼ぶ', () => {
     const onCreateStack = vi.fn();
-    const menu = buildCardContextMenu(makeCard() as unknown as Card, 50, { onCreateStack, onShowDetail: vi.fn() }, t);
+    const menu = buildCardContextMenu(
+      makeCard() as unknown as Card,
+      50,
+      { onCreateStack, onOverlappingToHand: vi.fn(), onShowDetail: vi.fn() },
+      t
+    );
     menu.find((m) => m.name === '重なったカードで山札を作る')!.action!();
     expect(onCreateStack).toHaveBeenCalled();
   });
@@ -91,5 +96,18 @@ describe('buildCardContextMenu()', () => {
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), t);
     menu.find((m) => m.name === '削除する')!.action!();
     expect(card.destroy).toHaveBeenCalled();
+  });
+
+  it('重なったカードを手札に加える項目が山札作成の直後に出る', () => {
+    const card = makeCard({});
+    const callbacks = defaultCallbacks();
+    const menu = buildCardContextMenu(card as unknown as Card, 50, callbacks, t);
+    const stackIndex = names(menu).indexOf('重なったカードで山札を作る');
+
+    expect(stackIndex).toBeGreaterThanOrEqual(0);
+    expect(names(menu)[stackIndex + 1]).toBe('重なったカードを手札に加える');
+
+    menu[stackIndex + 1].action?.();
+    expect(callbacks.onOverlappingToHand).toHaveBeenCalledOnce();
   });
 });

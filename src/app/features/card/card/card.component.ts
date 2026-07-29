@@ -29,6 +29,9 @@ import { CardStack } from '@axe/domain/card/card-stack';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu';
+import { selectOverlappingCards } from '@axe/features/card/card/overlapping-cards';
+import { elementsAt } from '@axe/features/pl-tools/hand-rail/elements-at';
+import { HandDragService } from '@axe/features/pl-tools/hand-rail/hand-drag.service';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -187,6 +190,9 @@ export class CardComponent {
 
   readonly imageTransform = computed(() => supersampleTransform({ factor: this.imageSupersample(), anchor: 'top' }));
 
+  private readonly handDrag = inject(HandDragService);
+  private positionBeforeDrag: { x: number; y: number } | null = null;
+
   private iconHiddenTimer: NodeJS.Timeout | null = null;
   readonly isIconHidden = signal(false);
 
@@ -316,6 +322,7 @@ export class CardComponent {
       this.gridSize,
       {
         onCreateStack: () => this.createStack(),
+        onOverlappingToHand: () => this.overlappingToHand(),
         onShowDetail: () => this.showDetail(this.card()),
       },
       this.translateFn
@@ -330,11 +337,31 @@ export class CardComponent {
   onMove() {
     this.input!.cancel();
     SoundEffect.play(PresetSound.cardPick);
+    this.positionBeforeDrag = { x: this.card().location.x, y: this.card().location.y };
+    this.handDrag.armTableDrag(this.card());
   }
 
   onMoved() {
+    this.handDrag.disarmTableDrag();
+    const origin = this.positionBeforeDrag;
+    this.positionBeforeDrag = null;
+    if (origin && this.isDroppedOnHandRail()) {
+      const card = this.card();
+      card.location.x = origin.x;
+      card.location.y = origin.y;
+      card.toHand(PeerCursor.myCursor?.userId ?? '');
+      card.update();
+      this.objectChange.notifyChanged(card.identifier);
+      SoundEffect.play(PresetSound.cardDraw);
+      return;
+    }
     SoundEffect.play(PresetSound.cardPut);
     this.dispatchCardDropEvent();
+  }
+
+  private isDroppedOnHandRail(): boolean {
+    const pointer = this.pointerDeviceService.pointers[0];
+    return elementsAt(pointer.x, pointer.y).some((element) => element.closest('.hand-rail') != null);
   }
 
   private createStack() {
@@ -346,22 +373,22 @@ export class CardComponent {
     cardStack.rotate = this.rotate;
     cardStack.zindex = this.card().zindex;
 
-    const cards: Card[] = this.tabletopService.cards.filter((card) => {
-      const distance: number =
-        (card.location.x - this.card().location.x) ** 2 +
-        (card.location.y - this.card().location.y) ** 2 +
-        (card.posZ - this.card().posZ) ** 2;
-      return distance < 100 ** 2;
-    });
-
-    cards.sort((a, b) => {
-      if (a.zindex < b.zindex) return 1;
-      if (a.zindex > b.zindex) return -1;
-      return 0;
-    });
-
-    for (const card of cards) {
+    for (const card of this.overlappingCards()) {
       cardStack.putOnBottom(card);
+    }
+  }
+
+  private overlappingCards(): Card[] {
+    return selectOverlappingCards(this.tabletopService.cards, this.card());
+  }
+
+  private overlappingToHand(): void {
+    const userId = PeerCursor.myCursor?.userId ?? '';
+    if (!userId) return;
+    for (const card of this.overlappingCards()) {
+      card.toHand(userId);
+      card.update();
+      this.objectChange.notifyChanged(card.identifier);
     }
   }
 

@@ -277,6 +277,7 @@
         "showSelfOnly": "自分だけ見る",
         "toHand": "手札に加える",
         "createStack": "重なったカードで山札を作る",
+        "overlappingToHand": "重なったカードを手札に加える",
         "editCard": "カードを編集"
       }
     },
