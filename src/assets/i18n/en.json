@@ -88,13 +88,6 @@
         "title": "Place a range on the active character",
         "noActive": "Pick the character to anchor the range on (opens the character list)"
       },
-      "turn": {
-        "title": "Turn order",
-        "round": "R{{n}}",
-        "roundStart": "Before the round",
-        "roundEnd": "Round over",
-        "unknown": "No active turn"
-      },
       "ownedCharacters": {
         "chatPalette": "Open chat palette",
         "sheet": "Open character sheet",
@@ -387,6 +380,10 @@
     },
     "turnOrder": {
       "title": "Turn order",
+      "roundShort": "R{{n}}",
+      "beforeRound": "Before the round",
+      "afterRound": "Round over",
+      "noTurn": "No active turn",
       "announce": "It's {{name}}'s turn.",
       "next": "Next",
       "prev": "Prev",

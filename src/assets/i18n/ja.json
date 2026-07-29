@@ -88,13 +88,6 @@
         "title": "操作対象のコマを基点に範囲を出す",
         "noActive": "範囲の基点にするキャラを選ぶ（所有キャラクター一覧を開きます）"
       },
-      "turn": {
-        "title": "行動順",
-        "round": "R{{n}}",
-        "roundStart": "ラウンド開始前",
-        "roundEnd": "ラウンド終了",
-        "unknown": "手番未設定"
-      },
       "ownedCharacters": {
         "chatPalette": "チャットパレットを開く",
         "sheet": "キャラクターシートを開く",
@@ -387,6 +380,10 @@
     },
     "turnOrder": {
       "title": "行動順",
+      "roundShort": "R{{n}}",
+      "beforeRound": "ラウンド開始前",
+      "afterRound": "ラウンド終了",
+      "noTurn": "手番未設定",
       "announce": "{{name}} の行動です。",
       "next": "次へ",
       "prev": "前へ",

@@ -62,10 +62,10 @@
     @if (turnIndicator(); as turn) {
       <span
         class="border-ui-border-panel text-ui-muted flex h-8 max-w-52 items-center gap-1.5 border-l border-solid pl-2 text-[12px]"
-        [title]="'feature.plTools.turn.title' | transloco"
+        [title]="'feature.turnOrder.title' | transloco"
       >
         <span class="text-ui-accent shrink-0 font-semibold">{{
-          'feature.plTools.turn.round' | transloco: { n: turn.round }
+          'feature.turnOrder.roundShort' | transloco: { n: turn.round }
         }}</span>
         @if (turn.statusKey) {
           <span class="truncate">{{ turn.statusKey | transloco }}</span>

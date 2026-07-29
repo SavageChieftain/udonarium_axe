@@ -1,4 +1,4 @@
-@if (isPlayer() && rail.isOpen()) {
+@if (canHoldCards() && rail.isOpen()) {
   <div
     #rail
     class="hand-rail animate-fly-in rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text fixed top-0 left-0 z-140 box-border flex cursor-grab flex-col overflow-visible border border-solid p-0 shadow-[var(--ui-shadow-md),inset_0_1px_0_rgba(255,255,255,0.06)] [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"

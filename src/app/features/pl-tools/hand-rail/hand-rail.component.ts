@@ -17,7 +17,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { PeerRole } from '@axe/domain/peer/peer-role';
+import { canRoleEdit } from '@axe/domain/peer/peer-role';
 import { elementsAt } from '@axe/features/pl-tools/hand-rail/elements-at';
 import { reorderHandCards, selectHandCards } from '@axe/features/pl-tools/hand-rail/hand-cards';
 import { HandDragService } from '@axe/features/pl-tools/hand-rail/hand-drag.service';
@@ -77,9 +77,9 @@ export class HandRailComponent {
     });
   }
 
-  readonly isPlayer = computed(() => {
+  readonly canHoldCards = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
-    return PeerCursor.myRole === PeerRole.Player;
+    return canRoleEdit(PeerCursor.myRole);
   });
 
   readonly cards = computed<Card[]>(() => {

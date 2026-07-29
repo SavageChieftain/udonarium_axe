@@ -56,7 +56,7 @@ describe('HandRailComponent', () => {
     expect(component.cards()).toEqual([]);
   });
 
-  it('開いている PL のときだけレールを描画する', async () => {
+  it('開いていて卓を編集できる役割のときだけレールを描画する', async () => {
     const rail = TestBed.inject(HandRailService);
 
     fixture.detectChanges();
@@ -69,6 +69,12 @@ describe('HandRailComponent', () => {
     expect(fixture.nativeElement.querySelector('.hand-rail')).not.toBeNull();
 
     PeerCursor.myCursor.role = PeerRole.GameMaster;
+    TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.hand-rail')).not.toBeNull();
+
+    PeerCursor.myCursor.role = PeerRole.Guest;
     TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
     fixture.detectChanges();
     await fixture.whenStable();

@@ -11,12 +11,12 @@ export function buildTurnIndicator(phase: TurnPhase, round: number, currentName:
 
   switch (phase) {
     case 'roundStart':
-      return { round, statusKey: 'feature.plTools.turn.roundStart', name: '' };
+      return { round, statusKey: 'feature.turnOrder.beforeRound', name: '' };
     case 'roundEnd':
-      return { round, statusKey: 'feature.plTools.turn.roundEnd', name: '' };
+      return { round, statusKey: 'feature.turnOrder.afterRound', name: '' };
     default:
       return currentName.length
         ? { round, statusKey: null, name: currentName }
-        : { round, statusKey: 'feature.plTools.turn.unknown', name: '' };
+        : { round, statusKey: 'feature.turnOrder.noTurn', name: '' };
   }
 }

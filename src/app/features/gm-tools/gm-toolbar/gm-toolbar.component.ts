@@ -12,8 +12,10 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
@@ -21,7 +23,9 @@ import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.componen
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
+import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -38,6 +42,8 @@ export class GmToolbarComponent {
   private readonly tabletopService = inject(TabletopService);
   private readonly visionService = inject(VisionService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly turnOrder = inject(TurnOrderService);
+  protected readonly handRail = inject(HandRailService);
   private readonly t = inject(TRANSLATE_FN);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
@@ -61,6 +67,27 @@ export class GmToolbarComponent {
     if (!userId) return null;
     return this.personas().find((cursor) => cursor.userId === userId) ?? null;
   });
+
+  readonly turnIndicator = computed(() => {
+    this.objectChange.versionOf('TurnState')();
+    const currentIdentifier = this.turnOrder.currentIdentifier;
+    if (currentIdentifier) this.objectChange.versionOf(currentIdentifier)();
+    const current = currentIdentifier ? this.objectStore.get(currentIdentifier) : null;
+    const name = current instanceof GameCharacter ? current.name : '';
+    return buildTurnIndicator(this.turnOrder.phase, this.turnOrder.round, name);
+  });
+
+  protected turnPrev(): void {
+    this.turnOrder.prev();
+  }
+
+  protected turnNext(): void {
+    this.turnOrder.next();
+  }
+
+  protected toggleHandRail(): void {
+    this.handRail.toggle();
+  }
 
   protected readonly darknessEnabled = computed(() => {
     const table = this.tabletopService.currentTable;

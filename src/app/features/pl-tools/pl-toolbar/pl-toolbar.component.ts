@@ -24,9 +24,9 @@ import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.se
 import { HandRailService } from '@axe/features/pl-tools/hand-rail/hand-rail.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
-import { buildTurnIndicator } from '@axe/features/pl-tools/turn-indicator';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({

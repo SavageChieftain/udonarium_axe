@@ -57,11 +57,56 @@
     <button
       type="button"
       class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="handRail.isOpen()"
+      [class.bg-ui-accent-bg]="handRail.isOpen()"
+      [title]="'app.fab.handCards' | transloco"
+      (click)="toggleHandRail()"
+    >
+      <i class="material-icons">style</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
       [title]="'app.fab.releaseOwnership' | transloco"
       (click)="releaseOrphanedOwnership()"
     >
       <i class="material-icons">key_off</i>
     </button>
+
+    @if (turnIndicator(); as turn) {
+      <span
+        class="border-ui-border-panel text-ui-muted flex h-8 max-w-64 items-center gap-1 border-l border-solid pl-2 text-[12px]"
+        [title]="'feature.turnOrder.title' | transloco"
+      >
+        <button
+          type="button"
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text flex size-6 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[16px]!"
+          [title]="'feature.turnOrder.prev' | transloco"
+          (click)="turnPrev()"
+        >
+          <i class="material-icons">chevron_left</i>
+        </button>
+
+        <span class="text-ui-accent shrink-0 font-semibold">{{
+          'feature.turnOrder.roundShort' | transloco: { n: turn.round }
+        }}</span>
+        @if (turn.statusKey) {
+          <span class="truncate">{{ turn.statusKey | transloco }}</span>
+        } @else {
+          <span class="text-ui-text truncate font-semibold">{{ turn.name }}</span>
+        }
+
+        <button
+          type="button"
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text flex size-6 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[16px]!"
+          [title]="'feature.turnOrder.next' | transloco"
+          (click)="turnNext()"
+        >
+          <i class="material-icons">chevron_right</i>
+        </button>
+      </span>
+    }
 
     <div class="relative flex">
       <button
