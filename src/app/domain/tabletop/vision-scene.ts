@@ -35,12 +35,14 @@ export interface SceneVisionSource {
   type: VisionType;
   rangePx: number;
   owner: string;
+  partyId?: string;
 }
 
 export interface SceneViewer {
   userId: string;
   isGameMaster: boolean;
   visionOwnerIds?: readonly string[];
+  partyIds?: readonly string[];
 }
 
 export interface ShadowCaster {
@@ -304,8 +306,16 @@ export function viewerOwns(viewer: SceneViewer, ownerId: string): boolean {
   return viewer.visionOwnerIds ? viewer.visionOwnerIds.includes(ownerId) : ownerId === viewer.userId;
 }
 
+export function viewerShares(viewer: SceneViewer, ownerId: string, partyId: string | undefined): boolean {
+  if (viewerOwns(viewer, ownerId)) return true;
+  if (!partyId || !viewer.partyIds) return false;
+  return viewer.partyIds.includes(partyId);
+}
+
 function ownedSources(scene: VisionScene, viewer: SceneViewer): SceneVisionSource[] {
-  return scene.visionSources.filter((source) => viewerOwns(viewer, source.owner) && source.type !== VisionType.BLIND);
+  return scene.visionSources.filter(
+    (source) => viewerShares(viewer, source.owner, source.partyId) && source.type !== VisionType.BLIND
+  );
 }
 
 export function computeWallSilhouettes(scene: VisionScene, face: WallFace, casterHeightPx: number): WallSilhouette[] {

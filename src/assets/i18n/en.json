@@ -71,6 +71,23 @@
         "title": "Persona (review as a player)",
         "self": "GM view (myself)",
         "empty": "No players connected"
+      },
+      "party": {
+        "title": "Party",
+        "description": "Characters in the same party share their vision. Only the GM can edit parties.",
+        "add": "Add party",
+        "defaultName": "Party {{index}}",
+        "remove": "Delete party",
+        "removeConfirm": "Delete \"{{name}}\"? Its members return to unassigned.",
+        "unassign": "Remove from party",
+        "unassigned": "Unassigned",
+        "allAssigned": "Every character belongs to a party.",
+        "assignPlaceholder": "Choose a party",
+        "emptyMembers": "No members yet.",
+        "emptyParties": "No parties yet. Use \"Add party\" to create one.",
+        "unnamedParty": "Unnamed party",
+        "unnamedCharacter": "Unnamed",
+        "focus": "Focus on token"
       }
     },
     "plTools": {

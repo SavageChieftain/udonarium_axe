@@ -1,0 +1,113 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PartyService } from '@axe/application/party/party.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { Party } from '@axe/domain/party/party';
+import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+describe('PartyListPanelComponent', () => {
+  let component: PartyListPanelComponent;
+  let fixture: ComponentFixture<PartyListPanelComponent>;
+  let partyService: PartyService;
+  let store: ObjectStore;
+
+  interface Panel {
+    addParty: () => void;
+    removeParty: (party: Party) => void;
+    assign: (character: GameCharacter, partyIdentifier: string) => void;
+    members: (party: Party) => GameCharacter[];
+    recolorParty: (party: Party, color: string) => void;
+  }
+
+  function panel(): Panel {
+    return component as unknown as Panel;
+  }
+
+  function makeCharacter(name: string, owner: string): GameCharacter {
+    const character = GameCharacter.create(name, 1, '');
+    character.owner = owner;
+    return character;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [PartyListPanelComponent],
+      providers: [...TEST_PROVIDERS],
+    }).compileComponents();
+    fixture = TestBed.createComponent(PartyListPanelComponent);
+    component = fixture.componentInstance;
+    partyService = TestBed.inject(PartyService);
+    store = ObjectStore.instance;
+  });
+
+  afterEach(() => {
+    store.getObjects().forEach((object) => store.delete(object, false));
+    store.clearDeleteHistory();
+    vi.unstubAllGlobals();
+  });
+
+  function stubConfirm(answer: boolean): void {
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => answer)
+    );
+  }
+
+  it('パーティを追加すると一覧に載り、色が重複しない', () => {
+    panel().addParty();
+    panel().addParty();
+
+    const parties = partyService.parties();
+    expect(parties).toHaveLength(2);
+    expect(parties[0].color).not.toBe(parties[1].color);
+  });
+
+  it('未所属キャラをパーティへ入れると所属が切り替わる', () => {
+    panel().addParty();
+    const party = partyService.parties()[0];
+    const character = makeCharacter('斥候', 'me');
+
+    expect(partyService.unassigned()).toEqual([character]);
+
+    panel().assign(character, party.identifier);
+
+    expect(character.partyIdentifier).toBe(party.identifier);
+    expect(panel().members(party)).toEqual([character]);
+    expect(partyService.unassigned()).toEqual([]);
+  });
+
+  it('パーティを削除すると所属キャラは未所属に戻る', () => {
+    stubConfirm(true);
+    panel().addParty();
+    const party = partyService.parties()[0];
+    const character = makeCharacter('斥候', 'me');
+    panel().assign(character, party.identifier);
+
+    panel().removeParty(party);
+
+    expect(character.partyIdentifier).toBe('');
+    expect(partyService.parties()).toEqual([]);
+    expect(partyService.unassigned()).toEqual([character]);
+  });
+
+  it('確認を断ったらパーティを削除しない', () => {
+    stubConfirm(false);
+    panel().addParty();
+    const party = partyService.parties()[0];
+
+    panel().removeParty(party);
+
+    expect(partyService.parties()).toEqual([party]);
+  });
+
+  it('色を変えると同期用に通知される', () => {
+    panel().addParty();
+    const party = partyService.parties()[0];
+
+    panel().recolorParty(party, '#fcd34d');
+
+    expect(party.color).toBe('#fcd34d');
+  });
+});

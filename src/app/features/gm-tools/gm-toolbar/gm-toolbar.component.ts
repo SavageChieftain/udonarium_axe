@@ -24,6 +24,7 @@ import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
+import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
 import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
@@ -122,6 +123,16 @@ export class GmToolbarComponent {
       left: 100,
       top: 40,
       title: this.t('common.panel.objectList'),
+    });
+  }
+
+  protected openPartyList(): void {
+    this.panelService.open(PartyListPanelComponent, {
+      width: 460,
+      height: 620,
+      left: 120,
+      top: 60,
+      title: this.t('feature.gmTools.party.title'),
     });
   }
 

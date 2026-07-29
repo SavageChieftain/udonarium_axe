@@ -2,6 +2,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
@@ -23,7 +24,7 @@ import {
   type SceneViewer,
   type SceneVisionSource,
   type ShadowCaster,
-  viewerOwns,
+  viewerShares,
   type VisionScene,
   type WallFace,
   type WallLight,
@@ -70,18 +71,20 @@ export class VisionService {
   readonly viewer = computed<SceneViewer>(() => {
     this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
     this.objectChange.collectionOf('PeerCursor')();
+    this.geometryEpoch();
     const preview = this.previewAsUserId();
     if (preview) {
       const cursor = PeerCursor.findByUserId(preview);
       return cursor?.isGuest
         ? { userId: preview, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() }
-        : { userId: preview, isGameMaster: false };
+        : { userId: preview, isGameMaster: false, partyIds: this.partyIdsOf(preview) };
     }
     const my = PeerCursor.myCursor;
     if (my?.isGuest) {
       return { userId: my.userId, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() };
     }
-    return { userId: my?.userId ?? '', isGameMaster: my?.isGameMaster ?? false };
+    const userId = my?.userId ?? '';
+    return { userId, isGameMaster: my?.isGameMaster ?? false, partyIds: this.partyIdsOf(userId) };
   });
 
   private playerVisionOwnerIds(): string[] {
@@ -89,6 +92,10 @@ export class VisionService {
       .getObjects<PeerCursor>(PeerCursor)
       .filter((cursor) => cursor.isPlayer && cursor.userId.length > 0)
       .map((cursor) => cursor.userId);
+  }
+
+  private partyIdsOf(userId: string): string[] {
+    return partyIdsOwnedBy(this.objectStore.getObjects<GameCharacter>(GameCharacter), userId);
   }
 
   private currentTable(): GameTable | null {
@@ -188,7 +195,7 @@ export class VisionService {
     if (surfaceOf(character) !== 'floor') return true;
     const viewer = this.viewer();
     if (viewer.isGameMaster) return true;
-    if (viewerOwns(viewer, character.owner)) return true;
+    if (viewerShares(viewer, character.owner, character.partyIdentifier)) return true;
     const half = (scene.gridSize * (character.size || 1)) / 2;
     return isPointVisible(scene, character.location.x + half, character.location.y + half, viewer);
   }
@@ -365,6 +372,7 @@ export class VisionService {
         type: character.visionType as VisionType,
         rangePx: character.visionRange * gridSize,
         owner: character.owner,
+        partyId: character.partyIdentifier,
       });
     }
     return sources;

@@ -18,6 +18,7 @@ import {
   type SceneVisionSource,
   type ShadowCaster,
   viewerOwns,
+  viewerShares,
   type VisionScene,
   type WallFace,
   withinCone,
@@ -197,6 +198,49 @@ describe('vision-scene', () => {
 
     it('空の owner は所有とみなさない', () => {
       expect(viewerOwns(PLAYER, '')).toBe(false);
+    });
+  });
+
+  describe('viewerShares', () => {
+    const COMPANION: SceneViewer = { userId: 'p1', isGameMaster: false, partyIds: ['party-a'] };
+
+    it('同じパーティの他人のキャラを共有する', () => {
+      expect(viewerShares(COMPANION, 'p2', 'party-a')).toBe(true);
+    });
+
+    it('別パーティや未所属のキャラは共有しない', () => {
+      expect(viewerShares(COMPANION, 'p2', 'party-b')).toBe(false);
+      expect(viewerShares(COMPANION, 'p2', '')).toBe(false);
+      expect(viewerShares(COMPANION, 'p2', undefined)).toBe(false);
+    });
+
+    it('パーティに関係なく自分のキャラは共有する', () => {
+      expect(viewerShares(COMPANION, 'p1', '')).toBe(true);
+      expect(viewerShares(PLAYER, 'p1', 'party-a')).toBe(true);
+    });
+  });
+
+  describe('同行の視界共有', () => {
+    const alone: SceneViewer = { userId: 'p1', isGameMaster: false };
+    const companion: SceneViewer = { userId: 'p1', isGameMaster: false, partyIds: ['party-a'] };
+
+    it('同行者の暗視で照らされた点が見える', () => {
+      const shared = scene({
+        visionSources: [
+          source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'p2', partyId: 'party-a' }),
+        ],
+      });
+
+      expect(isPointVisible(shared, 820, 820, companion)).toBe(true);
+      expect(isPointVisible(shared, 820, 820, alone)).toBe(false);
+    });
+
+    it('同行していないキャラの視界は共有されない', () => {
+      const unshared = scene({
+        visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'p2' })],
+      });
+
+      expect(isPointVisible(unshared, 820, 820, companion)).toBe(false);
     });
   });
 
