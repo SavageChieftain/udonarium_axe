@@ -2,6 +2,17 @@ import { OverlayPlan, OverlayShape, ShadowShape } from '@axe/domain/tabletop/vis
 
 const TWO_PI = Math.PI * 2;
 
+export interface OverlaySurface {
+  originX: number;
+  originY: number;
+  cells?: { x: number; y: number }[][];
+}
+
+interface ResolvedSurface extends OverlaySurface {
+  widthPx: number;
+  heightPx: number;
+}
+
 export function hexToRgba(color: string, alpha: number): string {
   let hex = color.trim();
   if (hex.startsWith('#')) hex = hex.slice(1);
@@ -77,16 +88,28 @@ function carveReveal(ctx: CanvasRenderingContext2D, shape: OverlayShape): void {
   if (coned) ctx.restore();
 }
 
-function carveCells(ctx: CanvasRenderingContext2D, cells: { x: number; y: number }[][]): void {
-  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+function fillPolygons(ctx: CanvasRenderingContext2D, polygons: { x: number; y: number }[][]): void {
   ctx.beginPath();
-  for (const cell of cells) {
-    if (cell.length < 3) continue;
-    ctx.moveTo(cell[0].x, cell[0].y);
-    for (let i = 1; i < cell.length; i++) ctx.lineTo(cell[i].x, cell[i].y);
+  for (const polygon of polygons) {
+    if (polygon.length < 3) continue;
+    ctx.moveTo(polygon[0].x, polygon[0].y);
+    for (let i = 1; i < polygon.length; i++) ctx.lineTo(polygon[i].x, polygon[i].y);
     ctx.closePath();
   }
   ctx.fill();
+}
+
+function carveCells(ctx: CanvasRenderingContext2D, cells: { x: number; y: number }[][]): void {
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+  fillPolygons(ctx, cells);
+}
+
+function fillSurface(ctx: CanvasRenderingContext2D, surface: ResolvedSurface): void {
+  if (surface.cells && surface.cells.length > 0) {
+    fillPolygons(ctx, surface.cells);
+    return;
+  }
+  ctx.fillRect(surface.originX, surface.originY, surface.widthPx, surface.heightPx);
 }
 
 function drawGlow(ctx: CanvasRenderingContext2D, shape: OverlayShape, timeMs: number): void {
@@ -131,7 +154,13 @@ function drawShadow(ctx: CanvasRenderingContext2D, shadow: ShadowShape): void {
   if (clipped) ctx.restore();
 }
 
-function drawShadowImage(ctx: CanvasRenderingContext2D, shadow: ShadowShape, img: CanvasImageSource, margin = 0): void {
+function drawShadowImage(
+  ctx: CanvasRenderingContext2D,
+  shadow: ShadowShape,
+  img: CanvasImageSource,
+  offsetX = 0,
+  offsetY = 0
+): void {
   const ux = shadow.fx - shadow.x;
   const uy = shadow.fy - shadow.y;
   const len = Math.hypot(ux, uy);
@@ -150,8 +179,8 @@ function drawShadowImage(ctx: CanvasRenderingContext2D, shadow: ShadowShape, img
     (py * w) / iw,
     (shadow.x - shadow.fx) / ih,
     (shadow.y - shadow.fy) / ih,
-    shadow.fx - (px * w) / 2 + margin,
-    shadow.fy - (py * w) / 2 + margin
+    shadow.fx - (px * w) / 2 + offsetX,
+    shadow.fy - (py * w) / 2 + offsetY
   );
   ctx.drawImage(img, 0, 0);
   ctx.restore();
@@ -164,25 +193,36 @@ export function drawOverlayPlan(
   heightPx: number,
   timeMs = 0,
   images?: Map<string, HTMLImageElement>,
-  margin = 0
+  margin = 0,
+  surface?: OverlaySurface
 ): void {
+  const resolved: ResolvedSurface = {
+    originX: surface?.originX ?? 0,
+    originY: surface?.originY ?? 0,
+    widthPx,
+    heightPx,
+    cells: surface?.cells,
+  };
+  const offsetX = margin - resolved.originX;
+  const offsetY = margin - resolved.originY;
+
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
   ctx.clearRect(0, 0, widthPx + 2 * margin, heightPx + 2 * margin);
-  ctx.translate(margin, margin);
+  ctx.translate(offsetX, offsetY);
 
   if (plan.darknessAlpha > 0) {
     ctx.globalAlpha = plan.darknessAlpha;
     ctx.fillStyle = plan.darknessColor;
-    ctx.fillRect(0, 0, widthPx, heightPx);
+    fillSurface(ctx, resolved);
     ctx.globalAlpha = 1;
 
     ctx.globalCompositeOperation = 'destination-out';
     if (plan.baseRevealAlpha > 0) {
       ctx.globalAlpha = plan.baseRevealAlpha;
       ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-      ctx.fillRect(0, 0, widthPx, heightPx);
+      fillSurface(ctx, resolved);
       ctx.globalAlpha = 1;
     }
     const cells = plan.revealCells;
@@ -200,7 +240,7 @@ export function drawOverlayPlan(
   for (const shadow of plan.shadows) {
     const img = shadow.imageUrl && images ? images.get(shadow.imageUrl) : undefined;
     if (img && img.complete && img.naturalWidth > 0) {
-      drawShadowImage(ctx, shadow, img, margin);
+      drawShadowImage(ctx, shadow, img, offsetX, offsetY);
     } else {
       drawShadow(ctx, shadow);
     }

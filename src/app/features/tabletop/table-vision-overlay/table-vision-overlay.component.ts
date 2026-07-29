@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { HEX_SURFACE_INFLATE_PX, hexSurfaceCells, SurfacePoint } from '@axe/domain/tabletop/surface-cells';
 import { computeOverlayPlan, OverlayPlan } from '@axe/domain/tabletop/vision-scene';
+import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { drawOverlayPlan } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
 import { translateZCss, Z_OFFSET_DARKNESS_PX } from '@axe/ui/tabletop/z-offset';
 
@@ -19,8 +22,11 @@ export class TableVisionOverlayComponent {
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('overlayCanvas');
 
   private plan: OverlayPlan | null = null;
-  private planWidth = 0;
-  private planHeight = 0;
+  private surfaceWidth = 0;
+  private surfaceHeight = 0;
+  private surfaceOriginX = 0;
+  private surfaceOriginY = 0;
+  private surfaceCells: SurfacePoint[][] | undefined = undefined;
   private margin = 0;
   private animated = false;
   private rafId: number | null = null;
@@ -37,6 +43,7 @@ export class TableVisionOverlayComponent {
         this.plan = null;
         this.animated = false;
         this.margin = 0;
+        this.surfaceCells = undefined;
         this.stopLoop();
         if (canvas.width !== 0) canvas.width = 0;
         if (canvas.height !== 0) canvas.height = 0;
@@ -46,15 +53,26 @@ export class TableVisionOverlayComponent {
       }
       const maxDim = scene.lights.reduce((m, l) => Math.max(m, l.dimPx), 0);
       this.margin = Math.min(SPILL_MARGIN_CAP_PX, Math.ceil(maxDim));
-      const cw = scene.widthPx + 2 * this.margin;
-      const ch = scene.heightPx + 2 * this.margin;
+
+      const gridType = scene.gridType ?? GridType.SQUARE;
+      const cols = scene.gridSize > 0 ? Math.round(scene.widthPx / scene.gridSize) : 0;
+      const rows = scene.gridSize > 0 ? Math.round(scene.heightPx / scene.gridSize) : 0;
+      const hex = computeHexMaskGeometry(cols, rows, scene.gridSize, gridType);
+      this.surfaceOriginX = hex ? -hex.offsetX : 0;
+      this.surfaceOriginY = hex ? -hex.offsetY : 0;
+      this.surfaceWidth = hex ? hex.pixelW : scene.widthPx;
+      this.surfaceHeight = hex ? hex.pixelH : scene.heightPx;
+      this.surfaceCells = hex
+        ? hexSurfaceCells(cols, rows, scene.gridSize, gridType, HEX_SURFACE_INFLATE_PX)
+        : undefined;
+
+      const cw = this.surfaceWidth + 2 * this.margin;
+      const ch = this.surfaceHeight + 2 * this.margin;
       if (canvas.width !== cw) canvas.width = cw;
       if (canvas.height !== ch) canvas.height = ch;
-      canvas.style.left = -this.margin + 'px';
-      canvas.style.top = -this.margin + 'px';
+      canvas.style.left = this.surfaceOriginX - this.margin + 'px';
+      canvas.style.top = this.surfaceOriginY - this.margin + 'px';
       this.plan = computeOverlayPlan(scene, viewer);
-      this.planWidth = scene.widthPx;
-      this.planHeight = scene.heightPx;
       this.animated = scene.lights.some((light) => light.animation && light.animation !== 'none');
       this.ensureImages();
       this.draw(this.now());
@@ -81,7 +99,11 @@ export class TableVisionOverlayComponent {
   private draw(timeMs: number): void {
     const ctx = this.canvasRef().nativeElement.getContext('2d');
     if (!ctx || !this.plan) return;
-    drawOverlayPlan(ctx, this.plan, this.planWidth, this.planHeight, timeMs, this.images, this.margin);
+    drawOverlayPlan(ctx, this.plan, this.surfaceWidth, this.surfaceHeight, timeMs, this.images, this.margin, {
+      originX: this.surfaceOriginX,
+      originY: this.surfaceOriginY,
+      cells: this.surfaceCells,
+    });
   }
 
   private readonly loop = (): void => {

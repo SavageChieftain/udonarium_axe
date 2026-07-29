@@ -166,6 +166,46 @@ describe('vision-overlay-render', () => {
       expect(reveals[0].alpha).toBeCloseTo(0.4);
     });
 
+    it('surface の原点を translate と暗闇の矩形に反映する', () => {
+      const plan: OverlayPlan = {
+        darknessAlpha: 0.9,
+        darknessColor: '#05060a',
+        baseRevealAlpha: 0,
+        reveals: [],
+        glows: [],
+        shadows: [],
+      };
+      const { ctx, ops } = fakeContext();
+      drawOverlayPlan(ctx, plan, 800, 600, 0, undefined, 10, { originX: -25, originY: -30 });
+
+      expect(ops.find((o) => o.name === 'translate')?.args).toEqual([35, 40]);
+      expect(ops.find((o) => o.name === 'fillRect')?.args).toEqual([-25, -30, 800, 600]);
+    });
+
+    it('surface にセルがあれば矩形でなくセル形状で暗闇を塗る', () => {
+      const plan: OverlayPlan = {
+        darknessAlpha: 0.9,
+        darknessColor: '#05060a',
+        baseRevealAlpha: 0,
+        reveals: [],
+        glows: [],
+        shadows: [],
+      };
+      const cells = [
+        [
+          { x: 0, y: 0 },
+          { x: 10, y: 0 },
+          { x: 5, y: 10 },
+        ],
+      ];
+      const { ctx, ops } = fakeContext();
+      drawOverlayPlan(ctx, plan, 800, 600, 0, undefined, 0, { originX: -25, originY: -30, cells });
+
+      expect(ops.some((o) => o.name === 'fillRect')).toBe(false);
+      expect(ops.filter((o) => o.name === 'lineTo')).toHaveLength(2);
+      expect(ops.some((o) => o.name === 'fill' && o.composite === 'source-over')).toBe(true);
+    });
+
     it('コーン形状は save/clip/restore で囲う', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
