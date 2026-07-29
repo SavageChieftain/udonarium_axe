@@ -27,6 +27,7 @@ export default defineConfig({
           text: 'ロールと公開範囲',
           items: [
             { text: 'ロール（GM / PL / 見学）', link: '/manual/roles' },
+            { text: 'PL ツールバー', link: '/manual/pl-tools' },
             { text: '情報の公開範囲', link: '/manual/disclosure' },
             { text: 'オブジェクト一覧（GM）', link: '/manual/gm-object-list' },
             { text: 'マップエディター', link: '/manual/map-editor' },
