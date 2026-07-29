@@ -41,7 +41,15 @@
     }
     @if (isPeeking && frontImage) {
       <img
-        class="pointer-events-none absolute inset-0 m-auto block size-full scale-90 object-contain filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
+        class="pointer-events-none absolute inset-0 m-auto block size-full object-contain filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
+        [ngStyle]="{
+          width: peekSupersamplePercent(),
+          height: peekSupersamplePercent(),
+          maxWidth: 'none',
+          margin: peekSupersampleInset(),
+          transform: peekTransform(),
+        }"
+        (load)="onPeekImageLoad($event)"
         [src]="frontImage.url | safe: 'resourceUrl'"
       />
     }

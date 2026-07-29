@@ -190,6 +190,31 @@ export class CardComponent {
 
   readonly imageTransform = computed(() => supersampleTransform({ factor: this.imageSupersample(), anchor: 'top' }));
 
+  private readonly peekNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
+    source: () => this.frontImage.url,
+    computation: () => null,
+  });
+
+  onPeekImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
+    this.peekNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
+  }
+
+  readonly peekSupersample = computed(() => {
+    const natural = this.peekNaturalSize();
+    if (!natural) return 1;
+    return supersampleFactor(Math.min(natural.width, natural.height), this.size * this.gridSize);
+  });
+
+  readonly peekSupersamplePercent = computed(() => this.peekSupersample() * 100 + '%');
+
+  readonly peekSupersampleInset = computed(() => supersampleInsetPercent(this.peekSupersample()) + '%');
+
+  readonly peekTransform = computed(() =>
+    supersampleTransform({ factor: this.peekSupersample(), anchor: 'center', inner: 'scale(0.9)' })
+  );
+
   private readonly handDrag = inject(HandDragService);
   private positionBeforeDrag: { x: number; y: number } | null = null;
 
