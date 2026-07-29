@@ -77,6 +77,18 @@ function carveReveal(ctx: CanvasRenderingContext2D, shape: OverlayShape): void {
   if (coned) ctx.restore();
 }
 
+function carveCells(ctx: CanvasRenderingContext2D, cells: { x: number; y: number }[][]): void {
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+  ctx.beginPath();
+  for (const cell of cells) {
+    if (cell.length < 3) continue;
+    ctx.moveTo(cell[0].x, cell[0].y);
+    for (let i = 1; i < cell.length; i++) ctx.lineTo(cell[i].x, cell[i].y);
+    ctx.closePath();
+  }
+  ctx.fill();
+}
+
 function drawGlow(ctx: CanvasRenderingContext2D, shape: OverlayShape, timeMs: number): void {
   if (shape.dimPx <= 0) return;
   const coned = beginClips(ctx, shape);
@@ -173,7 +185,12 @@ export function drawOverlayPlan(
       ctx.fillRect(0, 0, widthPx, heightPx);
       ctx.globalAlpha = 1;
     }
-    for (const shape of plan.reveals) carveReveal(ctx, shape);
+    const cells = plan.revealCells;
+    if (cells && cells.length > 0) {
+      carveCells(ctx, cells);
+    } else {
+      for (const shape of plan.reveals) carveReveal(ctx, shape);
+    }
   }
 
   ctx.globalCompositeOperation = 'lighter';

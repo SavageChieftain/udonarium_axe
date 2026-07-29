@@ -37,6 +37,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() backgroundFilterType: FilterType = FilterType.NONE;
   @SyncVar() selected: boolean = false;
   @SyncVar() gridType: GridType = GridType.SQUARE;
+  @SyncVar() lightSnapToGrid: boolean = false;
   @SyncVar() gridColor: string = '#000000e6';
   @SyncVar() gridFontColor: string = '#000000e6';
   @SyncVar() gridShow: boolean = false;

@@ -981,6 +981,7 @@
         "mode2d": "2Dモード（俯瞰固定）",
         "sectionDarkness": "暗闇（視界・照明）",
         "darknessEnabled": "暗闇を有効化",
+        "lightSnapToGrid": "照明をマス目に沿わせる",
         "darknessLevel": "暗さ",
         "globalIllumination": "環境光",
         "ambientColor": "暗闇の色",

@@ -115,6 +115,8 @@ export class VisionService {
       ambientColor: table.ambientColor,
       globalIllumination: table.globalIllumination,
       gridSize,
+      gridType: table.gridType,
+      snapLightToGrid: table.lightSnapToGrid,
       widthPx,
       heightPx,
       lights: this.collectLights(table, gridSize),

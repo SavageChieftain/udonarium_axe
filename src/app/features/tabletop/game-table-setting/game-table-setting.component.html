@@ -400,6 +400,17 @@
           </label>
 
           @if (tableDarknessEnabled) {
+            <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+              <input
+                type="checkbox"
+                class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                [(ngModel)]="tableLightSnapToGrid"
+                name="tableLightSnapToGrid"
+                [attr.disabled]="!isEditable ? '' : null"
+              />
+              {{ 'feature.tabletop.tableSetting.lightSnapToGrid' | transloco }}
+            </label>
+
             <div class="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-x-3 gap-y-2.5">
               <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
                 'feature.tabletop.tableSetting.darknessLevel' | transloco

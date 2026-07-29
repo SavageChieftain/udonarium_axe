@@ -163,6 +163,13 @@ export class GameTableSettingComponent {
     if (this.isEditable && this.selectedTable) this.selectedTable.darknessEnabled = value;
   }
 
+  get tableLightSnapToGrid(): boolean {
+    return this.selectedTable?.lightSnapToGrid ?? false;
+  }
+  set tableLightSnapToGrid(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.lightSnapToGrid = value;
+  }
+
   get tableDarknessLevelPercent(): number {
     return Math.round((this.selectedTable?.darknessLevel ?? 0) * 100);
   }

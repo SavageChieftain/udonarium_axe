@@ -981,6 +981,7 @@
         "mode2d": "2D mode (top-down)",
         "sectionDarkness": "Darkness (vision & lighting)",
         "darknessEnabled": "Enable darkness",
+        "lightSnapToGrid": "Snap light to the grid",
         "darknessLevel": "Darkness",
         "globalIllumination": "Ambient light",
         "ambientColor": "Darkness color",

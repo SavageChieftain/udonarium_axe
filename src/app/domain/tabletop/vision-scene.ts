@@ -1,3 +1,5 @@
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { computeLitCells } from '@axe/domain/tabletop/lit-cells';
 import { Point, Segment, segmentClear } from '@axe/domain/tabletop/los/segments';
 import { computeVisibilityPolygon } from '@axe/domain/tabletop/los/visibility-polygon';
 import { surfaceFrame } from '@axe/domain/tabletop/surface-space';
@@ -95,6 +97,8 @@ export interface VisionScene {
   ambientColor: string;
   globalIllumination: number;
   gridSize: number;
+  gridType?: GridType;
+  snapLightToGrid?: boolean;
   widthPx: number;
   heightPx: number;
   lights: SceneLight[];
@@ -122,6 +126,7 @@ export interface OverlayPlan {
   darknessColor: string;
   baseRevealAlpha: number;
   reveals: OverlayShape[];
+  revealCells?: Point[][];
   glows: OverlayShape[];
   shadows: ShadowShape[];
 }
@@ -613,6 +618,12 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
     darknessColor: scene.ambientColor,
     baseRevealAlpha: global,
     reveals,
+    revealCells: scene.snapLightToGrid
+      ? computeLitCells(reveals, scene.gridSize, scene.gridType ?? GridType.SQUARE, {
+          widthPx: scene.widthPx,
+          heightPx: scene.heightPx,
+        })
+      : [],
     glows,
     shadows,
   };
