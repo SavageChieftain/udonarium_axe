@@ -277,6 +277,7 @@
         "faceUp": "Face up",
         "faceDown": "Face down",
         "showSelfOnly": "Show to self only",
+        "toHand": "Take into hand",
         "createStack": "Create stack from overlapping cards",
         "editCard": "Edit card"
       }
@@ -315,6 +316,7 @@
       },
       "contextMenu": {
         "drawOne": "Draw one",
+        "drawToHand": "Draw one into hand",
         "drawMany": "Draw N cards",
         "topFaceUp": "Top card face up",
         "topFaceDown": "Top card face down",

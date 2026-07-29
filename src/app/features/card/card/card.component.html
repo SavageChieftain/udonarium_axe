@@ -39,7 +39,7 @@
         <span class="transform-3d">{{ ownerName }}</span>
       </div>
     }
-    @if (isHand && frontImage) {
+    @if (isPeeking && frontImage) {
       <img
         class="pointer-events-none absolute inset-0 m-auto block size-full scale-90 object-contain filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
         [src]="frontImage.url | safe: 'resourceUrl'"

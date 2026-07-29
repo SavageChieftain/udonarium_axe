@@ -1,5 +1,7 @@
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
+import { handLocationOf, isHandLocation, isHandOf } from '@axe/domain/card/hand-location';
 import { DataElement } from '@axe/domain/data/data-element';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
@@ -18,6 +20,7 @@ export class Card extends OwnedTabletopObject {
   @SyncVar() rotate: number = 0;
   @SyncVar() owner: string = '';
   @SyncVar() zindex: number = 0;
+  @SyncVar() handOrder: number = 0;
   @SyncVar() disclosureMode: string = '';
   @SyncVar() disclosureUserIds: string[] = [];
 
@@ -45,14 +48,20 @@ export class Card extends OwnedTabletopObject {
     return this.isVisible ? (this.frontImage ?? ImageFile.Empty) : (this.backImage ?? ImageFile.Empty);
   }
 
-  get isHand(): boolean {
+  get isPeeking(): boolean {
     return this.isMine;
   }
   get isFront(): boolean {
     return this.state === CardState.FRONT;
   }
+  get isInMyHand(): boolean {
+    return isHandOf(this.location.name, getPeerContext().userId);
+  }
+  get isInAnyHand(): boolean {
+    return isHandLocation(this.location.name);
+  }
   get isVisible(): boolean {
-    return this.isHand || this.isFront;
+    return this.isPeeking || this.isFront || this.isInMyHand;
   }
 
   faceUp() {
@@ -63,6 +72,23 @@ export class Card extends OwnedTabletopObject {
   faceDown() {
     this.state = CardState.BACK;
     this.owner = '';
+  }
+
+  toHand(userId: string) {
+    this.owner = '';
+    this.state = CardState.BACK;
+    this.handOrder = Date.now();
+    this.setLocation(handLocationOf(userId));
+  }
+
+  playFaceUp() {
+    this.setLocation('table');
+    this.faceUp();
+  }
+
+  playFaceDown() {
+    this.setLocation('table');
+    this.faceDown();
   }
 
   toTopmost() {

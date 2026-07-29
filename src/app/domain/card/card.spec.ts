@@ -212,16 +212,64 @@ describe('Card', () => {
       vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ userId: mockUserId } as IPeerContext);
       card.owner = mockUserId;
 
-      expect(card.isHand).toBe(true);
+      expect(card.isPeeking).toBe(true);
     });
 
-    it('should return false for isHand when owned by different user', () => {
+    it('should return false for isPeeking when owned by different user', () => {
       const card = new Card();
 
       vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ userId: 'user1' } as IPeerContext);
       card.owner = 'user2';
 
-      expect(card.isHand).toBe(false);
+      expect(card.isPeeking).toBe(false);
+    });
+  });
+
+  describe('hand', () => {
+    it('手札に加えると置き場所が移り、伏せた状態で所有権は外れる', () => {
+      const card = new Card();
+      card.state = CardState.FRONT;
+      card.owner = 'me';
+
+      card.toHand('me');
+
+      expect(card.location.name).toBe('hand:me');
+      expect(card.state).toBe(CardState.BACK);
+      expect(card.owner).toBe('');
+    });
+
+    it('表向きで場に出すと卓上へ戻る', () => {
+      const card = new Card();
+      card.toHand('me');
+
+      card.playFaceUp();
+
+      expect(card.location.name).toBe('table');
+      expect(card.state).toBe(CardState.FRONT);
+      expect(card.isInAnyHand).toBe(false);
+    });
+
+    it('裏向きで場に出すと伏せたまま卓上へ戻る', () => {
+      const card = new Card();
+      card.toHand('me');
+
+      card.playFaceDown();
+
+      expect(card.location.name).toBe('table');
+      expect(card.state).toBe(CardState.BACK);
+      expect(card.owner).toBe('');
+    });
+
+    it('場に出しても座標は手札に入る前のまま', () => {
+      const card = new Card();
+      card.location.x = 320;
+      card.location.y = 240;
+
+      card.toHand('me');
+      card.playFaceUp();
+
+      expect(card.location.x).toBe(320);
+      expect(card.location.y).toBe(240);
     });
   });
 
@@ -240,6 +288,28 @@ describe('Card', () => {
       card.state = CardState.FRONT;
 
       expect(card.isVisible).toBe(true);
+    });
+
+    it('自分の手札にあるカードは表として見える', () => {
+      const card = new Card();
+      card.state = CardState.BACK;
+
+      vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ userId: 'me' } as IPeerContext);
+      card.toHand('me');
+
+      expect(card.isInMyHand).toBe(true);
+      expect(card.isVisible).toBe(true);
+    });
+
+    it('他人の手札にあるカードは見えない', () => {
+      const card = new Card();
+
+      vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ userId: 'me' } as IPeerContext);
+      card.toHand('other');
+
+      expect(card.isInMyHand).toBe(false);
+      expect(card.isInAnyHand).toBe(true);
+      expect(card.isVisible).toBe(false);
     });
 
     it('should not be visible when face down and not in hand', () => {

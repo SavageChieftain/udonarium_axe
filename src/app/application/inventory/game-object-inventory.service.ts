@@ -3,6 +3,7 @@ import { ObjectInventory } from '@axe/application/inventory/object-inventory';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { isHandLocation } from '@axe/domain/card/hand-location';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
@@ -192,6 +193,7 @@ export class GameObjectInventoryService {
   }
 
   private isAnyLocation(location: string): boolean {
+    if (isHandLocation(location)) return true;
     if (location === 'table' || location === Network.peerId || location === 'graveyard') return true;
     for (const conn of Network.peerContexts) {
       if (conn.isOpen && location === conn.peerId) {

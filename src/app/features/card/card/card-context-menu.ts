@@ -57,7 +57,7 @@ export function buildCardContextMenu(
   menuArray.push(ContextMenuSeparator);
 
   menuArray.push(
-    !card.isVisible || card.isHand
+    !card.isVisible || card.isPeeking
       ? {
           name: t('feature.card.contextMenu.faceUp'),
           action: () => {
@@ -75,7 +75,7 @@ export function buildCardContextMenu(
   );
 
   menuArray.push(
-    card.isHand
+    card.isPeeking
       ? {
           name: t('feature.card.contextMenu.faceDown'),
           action: () => {
@@ -92,6 +92,14 @@ export function buildCardContextMenu(
           },
         }
   );
+
+  menuArray.push({
+    name: t('feature.card.contextMenu.toHand'),
+    action: () => {
+      card.toHand(Network.peerContext.userId);
+      SoundEffect.play(PresetSound.cardDraw);
+    },
+  });
 
   menuArray.push(ContextMenuSeparator);
 

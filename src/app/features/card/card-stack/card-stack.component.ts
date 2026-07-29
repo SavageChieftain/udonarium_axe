@@ -22,6 +22,7 @@ import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-sel
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
+import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -348,6 +349,7 @@ export class CardStackComponent {
       this.cardStack(),
       this.gridSize,
       () => this.drawCard(),
+      () => this.drawCardToHand(),
       () => this.openDrawCardsDialog(),
       (n) => this.splitStack(n),
       () => this.breakStack(),
@@ -377,6 +379,12 @@ export class CardStackComponent {
 
   private drawCard(): Card | null {
     return this.drawCardAt(0);
+  }
+
+  private drawCardToHand(): Card | null {
+    const card = this.drawCard();
+    if (card) card.toHand(Network.peerContext.userId);
+    return card;
   }
 
   private drawCards(count: number): Card[] {

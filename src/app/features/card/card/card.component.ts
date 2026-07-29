@@ -116,8 +116,8 @@ export class CardComponent {
     return this.adjustMinBounds(this.card().size);
   }
 
-  get isHand(): boolean {
-    return this.card().isHand;
+  get isPeeking(): boolean {
+    return this.card().isPeeking;
   }
   get isFront(): boolean {
     return this.card().isFront;
@@ -272,8 +272,8 @@ export class CardComponent {
     const distance =
       (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
     if (distance < 10 ** 2) {
-      if (this.ownerIsOnline && !this.isHand) return;
-      this.state = this.isVisible && !this.isHand ? CardState.BACK : CardState.FRONT;
+      if (this.ownerIsOnline && !this.isPeeking) return;
+      this.state = this.isVisible && !this.isPeeking ? CardState.BACK : CardState.FRONT;
       this.owner = '';
       SoundEffect.play(PresetSound.cardDraw);
     }

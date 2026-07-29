@@ -8,7 +8,7 @@ interface MutableCard {
   isLock: boolean;
   dispLockMark: boolean;
   isVisible: boolean;
-  isHand: boolean;
+  isPeeking: boolean;
   faceUp: ReturnType<typeof vi.fn>;
   faceDown: ReturnType<typeof vi.fn>;
   destroy: ReturnType<typeof vi.fn>;
@@ -20,7 +20,7 @@ function makeCard(overrides: Partial<MutableCard> = {}): MutableCard {
     isLock: false,
     dispLockMark: true,
     isVisible: true,
-    isHand: false,
+    isPeeking: false,
     faceUp: vi.fn(),
     faceDown: vi.fn(),
     destroy: vi.fn(),
@@ -54,9 +54,9 @@ describe('buildCardContextMenu()', () => {
     expect(names(menu)).toContain('固定マーク表示');
   });
 
-  it('isVisible=true && !isHand で「裏にする」、isVisible=false で「表にする」が出る', () => {
+  it('isVisible=true && !isPeeking で「裏にする」、isVisible=false で「表にする」が出る', () => {
     const visible = buildCardContextMenu(
-      makeCard({ isVisible: true, isHand: false }) as unknown as Card,
+      makeCard({ isVisible: true, isPeeking: false }) as unknown as Card,
       50,
       defaultCallbacks(),
       t
@@ -64,7 +64,7 @@ describe('buildCardContextMenu()', () => {
     expect(names(visible)).toContain('裏にする');
 
     const hidden = buildCardContextMenu(
-      makeCard({ isVisible: false, isHand: false }) as unknown as Card,
+      makeCard({ isVisible: false, isPeeking: false }) as unknown as Card,
       50,
       defaultCallbacks(),
       t
@@ -72,8 +72,8 @@ describe('buildCardContextMenu()', () => {
     expect(names(hidden)).toContain('表にする');
   });
 
-  it('isHand=true なら「自分だけ見る」ではなく「裏にする」が出る', () => {
-    const card = makeCard({ isHand: true });
+  it('isPeeking=true なら「自分だけ見る」ではなく「裏にする」が出る', () => {
+    const card = makeCard({ isPeeking: true });
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), t);
     expect(names(menu).filter((n) => n === '裏にする').length).toBeGreaterThan(0);
     expect(names(menu)).not.toContain('自分だけ見る');

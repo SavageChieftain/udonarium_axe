@@ -10,6 +10,7 @@ export function buildCardStackContextMenu(
   cardStack: CardStack,
   gridSize: number,
   onDrawCard: () => unknown,
+  onDrawToHand: () => unknown,
   onDrawCards: () => unknown,
   onSplitStack: (n: number) => void,
   onBreakStack: () => void,
@@ -23,6 +24,14 @@ export function buildCardStackContextMenu(
       name: t('feature.cardStack.contextMenu.drawOne'),
       action: () => {
         if (onDrawCard() != null) {
+          SoundEffect.play(PresetSound.cardDraw);
+        }
+      },
+    },
+    {
+      name: t('feature.cardStack.contextMenu.drawToHand'),
+      action: () => {
+        if (onDrawToHand() != null) {
           SoundEffect.play(PresetSound.cardDraw);
         }
       },

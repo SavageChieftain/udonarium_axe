@@ -5,20 +5,34 @@ import { createSyncTranslate } from '@axe/testing/transloco-testing';
 const t = createSyncTranslate('ja');
 
 describe('buildCardStackContextMenu', () => {
-  it('１枚引くの直下にX枚を引くを追加し、選択時に複数枚ドロー処理を呼ぶこと', () => {
+  it('１枚引くの直下に手札へ引く・X枚を引くを並べ、選択時にそれぞれの処理を呼ぶこと', () => {
     const cardStack = CardStack.create('test stack');
     const onDrawCard = vi.fn();
+    const onDrawToHand = vi.fn();
     const onDrawCards = vi.fn();
 
     try {
-      const actions = buildCardStackContextMenu(cardStack, 50, onDrawCard, onDrawCards, vi.fn(), vi.fn(), vi.fn(), t);
+      const actions = buildCardStackContextMenu(
+        cardStack,
+        50,
+        onDrawCard,
+        onDrawToHand,
+        onDrawCards,
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        t
+      );
       const drawIndex = actions.findIndex((action) => action.name === '１枚引く');
 
       expect(drawIndex).toBeGreaterThanOrEqual(0);
-      expect(actions[drawIndex + 1].name).toBe('X枚を引く');
+      expect(actions[drawIndex + 1].name).toBe('１枚引いて手札に加える');
+      expect(actions[drawIndex + 2].name).toBe('X枚を引く');
 
       actions[drawIndex + 1].action?.();
+      actions[drawIndex + 2].action?.();
 
+      expect(onDrawToHand).toHaveBeenCalledOnce();
       expect(onDrawCards).toHaveBeenCalledOnce();
     } finally {
       cardStack.destroy();
@@ -28,7 +42,7 @@ describe('buildCardStackContextMenu', () => {
   it('カード一覧 entry is no longer present (folded into 詳細を表示)', () => {
     const cardStack = CardStack.create('test stack');
     try {
-      const actions = buildCardStackContextMenu(cardStack, 50, vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn(), t);
+      const actions = buildCardStackContextMenu(cardStack, 50, vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn(), t);
       expect(actions.some((action) => action.name === 'カード一覧')).toBe(false);
     } finally {
       cardStack.destroy();

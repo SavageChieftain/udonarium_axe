@@ -277,6 +277,7 @@
         "faceUp": "表にする",
         "faceDown": "裏にする",
         "showSelfOnly": "自分だけ見る",
+        "toHand": "手札に加える",
         "createStack": "重なったカードで山札を作る",
         "editCard": "カードを編集"
       }
@@ -315,6 +316,7 @@
       },
       "contextMenu": {
         "drawOne": "１枚引く",
+        "drawToHand": "１枚引いて手札に加える",
         "drawMany": "X枚を引く",
         "topFaceUp": "一番上を表にする",
         "topFaceDown": "一番上を裏にする",
