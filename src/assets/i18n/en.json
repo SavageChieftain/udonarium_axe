@@ -1514,6 +1514,8 @@
       "jukebox": "Jukebox",
       "cutIn": "Cut-in",
       "inventory": "Inventory",
+      "clock": "Clock",
+      "miniPlayer": "Mini player",
       "visualNovel": "Novel mode",
       "gmTools": "GM tools",
       "plTools": "PL tools",

@@ -14,6 +14,7 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { getRangeMenuItems } from '@axe/application/tabletop/tabletop-action-helpers';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -43,6 +44,7 @@ export class PlToolbarComponent {
   private readonly turnOrder = inject(TurnOrderService);
   private readonly tabletopAction = inject(TabletopActionService);
   protected readonly handRail = inject(HandRailService);
+  protected readonly widgets = inject(WidgetVisibilityService);
   protected readonly active = inject(ActiveCharacterService);
   private readonly t = inject(TRANSLATE_FN);
 

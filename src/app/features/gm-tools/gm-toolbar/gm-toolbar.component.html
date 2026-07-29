@@ -74,6 +74,28 @@
       <i class="material-icons">key_off</i>
     </button>
 
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="widgets.clock()"
+      [class.bg-ui-accent-bg]="widgets.clock()"
+      [title]="'app.fab.clock' | transloco"
+      (click)="widgets.toggleClock()"
+    >
+      <i class="material-icons">schedule</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="widgets.miniPlayer()"
+      [class.bg-ui-accent-bg]="widgets.miniPlayer()"
+      [title]="'app.fab.miniPlayer' | transloco"
+      (click)="widgets.toggleMiniPlayer()"
+    >
+      <i class="material-icons">play_circle</i>
+    </button>
+
     @if (turnIndicator(); as turn) {
       <span
         class="border-ui-border-panel text-ui-muted flex h-8 max-w-64 items-center gap-1 border-l border-solid pl-2 text-[12px]"

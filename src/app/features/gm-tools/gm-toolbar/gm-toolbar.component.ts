@@ -14,6 +14,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -44,6 +45,7 @@ export class GmToolbarComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly turnOrder = inject(TurnOrderService);
   protected readonly handRail = inject(HandRailService);
+  protected readonly widgets = inject(WidgetVisibilityService);
   private readonly t = inject(TRANSLATE_FN);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');

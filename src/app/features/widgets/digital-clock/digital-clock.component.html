@@ -1,0 +1,33 @@
+@if (widgets.clock()) {
+  <div
+    #clock
+    class="digital-clock group rounded-ui-lg text-ui-text hover:bg-ui-panel/65 hover:border-ui-border-panel fixed top-0 left-0 z-100 box-border flex cursor-grab items-start gap-2 border border-solid border-transparent py-2 pr-2 pl-3 transition-[background-color,border-color] select-none hover:[backdrop-filter:blur(20px)_saturate(1.4)] hover:[-webkit-backdrop-filter:blur(20px)_saturate(1.4)] active:cursor-grabbing"
+    appDraggable
+    [draggable.unhandle]="'button'"
+  >
+    <div
+      class="flex flex-col gap-1 [text-shadow:0_1px_2px_rgba(0,0,0,0.55),0_0_10px_rgba(0,0,0,0.35)] group-hover:text-shadow-none"
+    >
+      <div class="flex items-baseline gap-1.5">
+        <span class="font-mono text-[32px] leading-none font-bold tracking-wider [font-variant-numeric:tabular-nums]">{{
+          parts().hoursMinutes
+        }}</span>
+        <span
+          class="text-ui-accent font-mono text-[16px] leading-none font-semibold [font-variant-numeric:tabular-nums]"
+          >{{ parts().seconds }}</span
+        >
+      </div>
+
+      <span class="text-ui-muted font-mono text-[10px] leading-none tracking-[0.18em]">{{ parts().date }}</span>
+    </div>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 -mt-0.5 inline-flex h-5.5 cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none opacity-0 shadow-none transition-[color,background,opacity] outline-none group-hover:opacity-100 hover:border-transparent hover:shadow-none"
+      [title]="'app.fab.clock' | transloco"
+      (click)="close()"
+    >
+      <i class="material-icons text-[14px]!">close</i>
+    </button>
+  </div>
+}
