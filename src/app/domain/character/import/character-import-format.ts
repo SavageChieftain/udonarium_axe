@@ -4,11 +4,11 @@ import { isCharasheetCharacter } from '@axe/domain/character/import/charasheet-c
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
 import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
-import { isYtsheetCharacter, parseYtsheetCharacter } from '@axe/domain/character/import/ytsheet-character-parser';
 import {
   buildYtsheetSw25Character,
   isYtsheetSw25Character,
 } from '@axe/domain/character/import/system-profiles/ytsheet-sw25-profile';
+import { isYtsheetCharacter, parseYtsheetCharacter } from '@axe/domain/character/import/ytsheet-character-parser';
 
 /**
  * 貼り付けテキスト（JSON）から取り込みフォーマットを自動判別して正規化モデルへ変換する。
