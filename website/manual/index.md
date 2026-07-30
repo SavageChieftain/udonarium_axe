@@ -44,6 +44,8 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 
 - [視点とテーブル操作](/manual/tabletop) — 視点移動・ズーム・2D
 - [テーブル設定](/manual/table-setting) — グリッド・スナップ・背景
+- [暗闇・視界・光源](/manual/vision-lighting) — 暗闇の濃さ・キャラクターの視界・光源
+- [同行（パーティ）](/manual/party) — 仲間どうしの視界共有（GM 専用）
 - [地形](/manual/terrain) / [マップマスク](/manual/map-mask)
 
 **オブジェクト**
