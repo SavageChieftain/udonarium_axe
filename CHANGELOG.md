@@ -1,3 +1,43 @@
+## [1.20.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.19.1...v1.20.0) (2026-07-30)
+
+### ✨ Features
+
+* **card:** give cards a hand to be held in, separate from peeking ([6502797](https://github.com/SavageChieftain/udonarium_axe/commit/650279764a98e4a5a0b7cddc677e578c9b18a7f3))
+* **card:** hand cards over between the table and the rail ([85da948](https://github.com/SavageChieftain/udonarium_axe/commit/85da948b71d2a7027cdfd9cfcc9d731281273dc8))
+* **card:** supersample the face an owner peeks at ([45eca08](https://github.com/SavageChieftain/udonarium_axe/commit/45eca0841a91e370251b7a9d559c3074697fe03c))
+* **gm-tools:** share vision between characters in the same party ([d73a973](https://github.com/SavageChieftain/udonarium_axe/commit/d73a973ddf4d7ba41a7171bf71c4078d8b7fc95f))
+* **gm-tools:** show the turn order and let the GM hold a hand ([874268c](https://github.com/SavageChieftain/udonarium_axe/commit/874268c20d35b5697ef6776d4d712b3f4e03e74c))
+* **pl-tools:** add a PL toolbar with a list of owned characters ([ce33b72](https://github.com/SavageChieftain/udonarium_axe/commit/ce33b722495ef7030a5e8189dfb7e1fb7282f3e0))
+* **pl-tools:** add hand cards and a range shortcut ([237b5f5](https://github.com/SavageChieftain/udonarium_axe/commit/237b5f5942b9d954de2d811871ef0066fd53f809))
+* **pl-tools:** edit resources and open the remote controller ([223e4ac](https://github.com/SavageChieftain/udonarium_axe/commit/223e4ac21890f6b8c5b3156a5472e38d59fc06b1))
+* **pl-tools:** keep an active character and show the turn order ([e03adb4](https://github.com/SavageChieftain/udonarium_axe/commit/e03adb43597787cc322450e8df3ba7535d1f6057))
+* **pl-tools:** let both toolbars show and hide a clock and the player ([08f78e9](https://github.com/SavageChieftain/udonarium_axe/commit/08f78e9a91118bdb00ff800f0e8514b9f739b619))
+* **pl-tools:** show party membership in the owned character list ([798660d](https://github.com/SavageChieftain/udonarium_axe/commit/798660d9d674d2200e3acd641f57d6b66c5bce6d))
+* **pl-tools:** show the hand as a movable fanned rail ([f4e5faf](https://github.com/SavageChieftain/udonarium_axe/commit/f4e5faf4bec67ea46a7b7645af1e92d720101e4c))
+* **tabletop:** add an option to snap light to the grid ([2772331](https://github.com/SavageChieftain/udonarium_axe/commit/2772331fd38e94ec96f443a2f4d11a38758b530c))
+
+### 🐛 Bug Fixes
+
+* **card:** overlay the owner's peek on the card instead of below it ([6adffd0](https://github.com/SavageChieftain/udonarium_axe/commit/6adffd0048f051473251430996a9e411cc087866))
+* **gm-tools:** give the party button its own icon ([95ce628](https://github.com/SavageChieftain/udonarium_axe/commit/95ce6280cf572318fb5f6c44f0f54335ad25c257))
+* **party:** keep parties in the room save data ([cdff47b](https://github.com/SavageChieftain/udonarium_axe/commit/cdff47be0cd566d5a7120b69c108ab1a76eb42cf))
+* **pl-tools:** make the range button usable without an active character ([830a729](https://github.com/SavageChieftain/udonarium_axe/commit/830a7290cfd9665664a07719fb44c5ab4bfbf704))
+* **pl-tools:** show resources on characters that predate the fieldType attribute ([c436ea1](https://github.com/SavageChieftain/udonarium_axe/commit/c436ea1e3422c5a1d892549da0f25d3d66752389))
+* **tabletop:** fit the darkness overlay to the hex table outline ([ed01884](https://github.com/SavageChieftain/udonarium_axe/commit/ed018847bb92df18615feb165156b2d21fab4cf9))
+* **tabletop:** supersample card and card stack images for close-up zoom ([2a80c33](https://github.com/SavageChieftain/udonarium_axe/commit/2a80c337179662cdcf9b685e83ad7e529e5a7818))
+* **tabletop:** supersample character and dice images for close-up zoom ([ccd73aa](https://github.com/SavageChieftain/udonarium_axe/commit/ccd73aab57d9cc240465d9f800144491b71b8ab5))
+* **widgets:** render the clock and let the mini player be put away ([90365d2](https://github.com/SavageChieftain/udonarium_axe/commit/90365d2faf2f21a006b8b6627c99c82a208f5ce5))
+
+### 📝 Documentation
+
+* document parties and grid-snapped light ([09f1c99](https://github.com/SavageChieftain/udonarium_axe/commit/09f1c991e2d98167f2db61f62b1efd30f3a1fafc))
+* document the PL toolbar, the hand and the widgets ([1cf159e](https://github.com/SavageChieftain/udonarium_axe/commit/1cf159eea8790df9473ef00eb633683443ef1f17))
+* **website:** add v1.19.1 release notes ([21765c5](https://github.com/SavageChieftain/udonarium_axe/commit/21765c54c081734533e975b6b70f2275873e20bb))
+
+### ♻️ Refactor
+
+* **card:** move the hand rail out of the player tools ([f07e607](https://github.com/SavageChieftain/udonarium_axe/commit/f07e60759dfd6ec183038cd2c64ef20890b301f9))
+
 ## [1.19.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.19.0...v1.19.1) (2026-07-18)
 
 ### 🐛 Bug Fixes
