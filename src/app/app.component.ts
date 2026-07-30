@@ -21,6 +21,7 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
+import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -55,6 +56,7 @@ import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-set
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
+import { DigitalClockComponent } from '@axe/features/widgets/digital-clock/digital-clock.component';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 import { ModalComponent } from '@axe/ui/components/modal/modal.component';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
@@ -75,6 +77,7 @@ import { version as APP_VERSION } from '@pkg';
     HandRailComponent,
     HandDragGhostComponent,
     NpcDragGhostComponent,
+    DigitalClockComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,
     TranslocoModule,
@@ -84,6 +87,7 @@ export class AppComponent {
   readonly theme = inject(ThemeService);
   readonly language = inject(LanguageService);
   readonly visualNovel = inject(VisualNovelModeService);
+  readonly widgets = inject(WidgetVisibilityService);
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);

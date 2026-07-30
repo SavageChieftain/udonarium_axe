@@ -1,7 +1,8 @@
 <div id="app-table-layer" class="absolute size-full overflow-hidden">
   <game-table></game-table>
 </div>
-<app-mini-jukebox></app-mini-jukebox>
+<app-mini-jukebox [hidden]="!widgets.miniPlayer()"></app-mini-jukebox>
+<app-digital-clock></app-digital-clock>
 <app-gm-toolbar></app-gm-toolbar>
 <app-pl-toolbar></app-pl-toolbar>
 <app-hand-rail></app-hand-rail>
