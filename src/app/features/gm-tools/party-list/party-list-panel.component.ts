@@ -38,7 +38,7 @@ export class PartyListPanelComponent {
   }
 
   protected partyName(party: Party): string {
-    return party.name.length ? party.name : this.t('feature.gmTools.party.unnamedParty');
+    return party.name.length ? party.name : this.t('common.party.unnamed');
   }
 
   protected addParty(): void {

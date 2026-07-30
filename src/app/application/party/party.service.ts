@@ -35,6 +35,17 @@ export class PartyService {
     return membersOfParty(this.characters(), partyIdentifier);
   }
 
+  partyOf(character: GameCharacter): Party | null {
+    if (!character.partyIdentifier) return null;
+    return this.parties().find((party) => party.identifier === character.partyIdentifier) ?? null;
+  }
+
+  companionsOf(character: GameCharacter): GameCharacter[] {
+    const party = this.partyOf(character);
+    if (!party) return [];
+    return this.membersOf(party.identifier).filter((member) => member.identifier !== character.identifier);
+  }
+
   create(name: string): Party {
     const party = new Party();
     party.name = name;

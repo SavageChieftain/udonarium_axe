@@ -10,6 +10,16 @@
 
         <span class="min-w-0 flex-1 truncate text-[13px]">{{ displayName(character) }}</span>
 
+        @if (party(character); as party) {
+          <span
+            class="rounded-ui-sm bg-ui-elevated text-ui-muted flex max-w-28 shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px]"
+            [title]="partyTooltip(character)"
+          >
+            <span class="size-2 shrink-0 rounded-full" [style.background]="party.color"></span>
+            <span class="truncate">{{ partyName(party) }}</span>
+          </span>
+        }
+
         <button
           type="button"
           class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"

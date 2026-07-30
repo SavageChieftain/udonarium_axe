@@ -40,6 +40,9 @@
       "objectList": "Object list",
       "characterImport": "Import Character",
       "ownedCharacters": "My characters"
+    },
+    "party": {
+      "unnamed": "Unnamed party"
     }
   },
   "feature": {
@@ -85,7 +88,6 @@
         "assignPlaceholder": "Choose a party",
         "emptyMembers": "No members yet.",
         "emptyParties": "No parties yet. Use \"Add party\" to create one.",
-        "unnamedParty": "Unnamed party",
         "unnamedCharacter": "Unnamed",
         "focus": "Focus on token"
       }
@@ -107,7 +109,9 @@
         "empty": "You do not own any characters",
         "setActive": "Set as active character",
         "unsetActive": "Clear active character",
-        "remoteController": "Open remote controller"
+        "remoteController": "Open remote controller",
+        "partyWith": "{{party}} — with {{names}}",
+        "partyAlone": "{{party}} — no companions yet"
       }
     },
     "gmObjectList": {

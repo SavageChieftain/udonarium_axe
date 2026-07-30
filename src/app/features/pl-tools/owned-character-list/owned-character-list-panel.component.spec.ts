@@ -3,6 +3,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { Party } from '@axe/domain/party/party';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
@@ -57,6 +58,72 @@ describe('OwnedCharacterListPanelComponent', () => {
 
     expect(protectedComponent.canFocus(onTable)).toBe(true);
     expect(protectedComponent.canFocus(offTable)).toBe(false);
+  });
+
+  describe('同行の表示', () => {
+    interface PartyView {
+      party: (c: GameCharacter) => Party | null;
+      partyTooltip: (c: GameCharacter) => string;
+    }
+
+    function view(): PartyView {
+      return component as unknown as PartyView;
+    }
+
+    function makeParty(name: string, color: string): Party {
+      const party = new Party();
+      party.name = name;
+      party.color = color;
+      party.initialize();
+      return party;
+    }
+
+    it('未所属のキャラにはパーティを出さない', () => {
+      const character = makeCharacter('自分のPC', 'me', 'table');
+
+      expect(view().party(character)).toBeNull();
+      expect(view().partyTooltip(character)).toBe('');
+    });
+
+    it('所属しているパーティを返す', () => {
+      const party = makeParty('本隊', '#fcd34d');
+      const character = makeCharacter('自分のPC', 'me', 'table');
+      character.partyIdentifier = party.identifier;
+
+      expect(view().party(character)).toBe(party);
+    });
+
+    it('消えたパーティを指していても表示しない', () => {
+      const character = makeCharacter('自分のPC', 'me', 'table');
+      character.partyIdentifier = 'gone';
+
+      expect(view().party(character)).toBeNull();
+    });
+
+    it('同行者の名前を説明に並べ、自分自身は含めない', () => {
+      const party = makeParty('本隊', '#fcd34d');
+      const mine = makeCharacter('自分のPC', 'me', 'table');
+      const ally = makeCharacter('仲間のPC', 'other', 'table');
+      mine.partyIdentifier = party.identifier;
+      ally.partyIdentifier = party.identifier;
+
+      const tooltip = view().partyTooltip(mine);
+
+      expect(tooltip).toContain('本隊');
+      expect(tooltip).toContain('仲間のPC');
+      expect(tooltip).not.toContain('自分のPC');
+    });
+
+    it('同行者がいないときも所属だけは説明に出す', () => {
+      const party = makeParty('本隊', '#fcd34d');
+      const mine = makeCharacter('自分のPC', 'me', 'table');
+      mine.partyIdentifier = party.identifier;
+
+      const tooltip = view().partyTooltip(mine);
+
+      expect(tooltip).toContain('本隊');
+      expect(tooltip).not.toContain('自分のPC');
+    });
   });
 
   it('focusToKoma でコマの座標へ視点を移す', () => {

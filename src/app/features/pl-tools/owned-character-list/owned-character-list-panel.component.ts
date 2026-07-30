@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PartyService } from '@axe/application/party/party.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
+import { Party } from '@axe/domain/party/party';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
@@ -28,6 +30,7 @@ export class OwnedCharacterListPanelComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly characterPanel = inject(CharacterPanelService);
   private readonly registry = inject(ChatPaletteRegistryService);
+  private readonly partyService = inject(PartyService);
   protected readonly activeCharacter = inject(ActiveCharacterService);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -63,6 +66,24 @@ export class OwnedCharacterListPanelComponent {
 
   protected displayName(character: GameCharacter): string {
     return character.name.length ? character.name : this.t('feature.plTools.ownedCharacters.unnamed');
+  }
+
+  protected party(character: GameCharacter): Party | null {
+    return this.partyService.partyOf(character);
+  }
+
+  protected partyName(party: Party): string {
+    return party.name.length ? party.name : this.t('common.party.unnamed');
+  }
+
+  protected partyTooltip(character: GameCharacter): string {
+    const party = this.party(character);
+    if (!party) return '';
+    const companions = this.partyService.companionsOf(character).map((member) => this.displayName(member));
+    const params = { party: this.partyName(party), names: companions.join(', ') };
+    return companions.length
+      ? this.t('feature.plTools.ownedCharacters.partyWith', params)
+      : this.t('feature.plTools.ownedCharacters.partyAlone', params);
   }
 
   protected setActive(character: GameCharacter): void {

@@ -40,6 +40,9 @@
       "objectList": "オブジェクト一覧",
       "characterImport": "キャラクター取り込み",
       "ownedCharacters": "所有キャラクター一覧"
+    },
+    "party": {
+      "unnamed": "無名のパーティ"
     }
   },
   "feature": {
@@ -85,7 +88,6 @@
         "assignPlaceholder": "同行先を選択",
         "emptyMembers": "所属キャラクターはいません。",
         "emptyParties": "パーティがありません。「パーティ追加」から作成してください。",
-        "unnamedParty": "無名のパーティ",
         "unnamedCharacter": "名称未設定",
         "focus": "コマへ移動"
       }
@@ -107,7 +109,9 @@
         "empty": "所有しているキャラクターがありません",
         "setActive": "操作対象にする",
         "unsetActive": "操作対象を解除",
-        "remoteController": "リモートコントローラを開く"
+        "remoteController": "リモートコントローラを開く",
+        "partyWith": "{{party}} — 同行: {{names}}",
+        "partyAlone": "{{party}} — ほかに同行者はいません"
       }
     },
     "gmObjectList": {
