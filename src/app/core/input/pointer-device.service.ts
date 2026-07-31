@@ -11,6 +11,7 @@ export interface PointerData extends PointerCoordinate {
 }
 
 const MOUSE_IDENTIFIER = -9999;
+const LONG_PRESS_DELAY_MS = 500;
 
 @Injectable({
   providedIn: 'root',
@@ -75,6 +76,33 @@ export class PointerDeviceService {
     this.onPointerMove(e);
     this._isAllowedToOpenContextMenu = true;
     this.startPosition = this.pointers[0];
+    if ((e as TouchEvent).touches) this.startLongPress(e as TouchEvent);
+  }
+
+  private longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private longPressTarget: EventTarget | null = null;
+
+  private startLongPress(e: TouchEvent): void {
+    this.cancelLongPress();
+    if (e.touches.length !== 1) return;
+
+    this.longPressTarget = e.target;
+    const { pageX, pageY, clientX, clientY } = e.touches[0];
+    this.longPressTimer = setTimeout(() => {
+      this.longPressTimer = null;
+      if (!this._isAllowedToOpenContextMenu) return;
+
+      this.primeForContextMenu(pageX, pageY);
+      this.longPressTarget?.dispatchEvent(
+        new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX, clientY })
+      );
+    }, LONG_PRESS_DELAY_MS);
+  }
+
+  private cancelLongPress(): void {
+    if (this.longPressTimer !== null) clearTimeout(this.longPressTimer);
+    this.longPressTimer = null;
+    this.longPressTarget = null;
   }
 
   private onPointerMove(e: MouseEvent | TouchEvent): void {
@@ -87,6 +115,7 @@ export class PointerDeviceService {
   }
 
   private onPointerUp(e: MouseEvent | TouchEvent) {
+    this.cancelLongPress();
     this.resetDraggingState();
     this.onPointerMove(e);
   }
@@ -127,7 +156,10 @@ export class PointerDeviceService {
 
   private preventContextMenuIfNeeded(pointer: PointerCoordinate, threshold: number = 3) {
     const distance = (pointer.x - this.startPosition.x) ** 2 + (pointer.y - this.startPosition.y) ** 2;
-    if (threshold ** 2 < distance) this._isAllowedToOpenContextMenu = false;
+    if (threshold ** 2 < distance) {
+      this._isAllowedToOpenContextMenu = false;
+      this.cancelLongPress();
+    }
   }
 
   private isSyntheticEvent(mosuePointer: PointerData, threshold: number = 15): boolean {

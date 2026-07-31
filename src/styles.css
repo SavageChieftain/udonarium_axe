@@ -1965,3 +1965,12 @@ body.mobile-layout app-mobile-shell chat-tab-list,
 body.mobile-layout app-mobile-shell .chat-tab-pill {
   font-size: 11px;
 }
+
+body.mobile-layout ui-panel [class*='ui-resize-handler'] {
+  display: none;
+}
+
+body.mobile-layout ui-panel .grid-cols-\[6\.5rem_1fr\] {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
