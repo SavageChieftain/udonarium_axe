@@ -1,5 +1,11 @@
-<div class="text-ui-text grid h-full grid-cols-[170px_1fr] grid-rows-[1fr_auto] overflow-hidden text-[13px]">
-  <aside class="border-ui-border-panel bg-ui-panel row-[1/2] flex flex-col overflow-hidden border-r border-solid">
+<div
+  class="text-ui-text grid h-full overflow-hidden text-[13px]"
+  [ngClass]="isCompact() ? 'grid-cols-1 grid-rows-[auto_1fr_auto]' : 'grid-cols-[170px_1fr] grid-rows-[1fr_auto]'"
+>
+  <aside
+    class="border-ui-border-panel bg-ui-panel flex flex-col overflow-hidden border-solid"
+    [ngClass]="isCompact() ? 'max-h-[35vh] border-b' : 'row-[1/2] border-r'"
+  >
     <div class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid px-2.5 py-2">
       <span class="text-ui-muted text-[11px] font-semibold tracking-wider uppercase">{{
         'feature.tabletop.tableSetting.sidebarTitle' | transloco
@@ -30,7 +36,10 @@
     </ul>
   </aside>
 
-  <main class="bg-ui-elevated row-[1/2] flex flex-col gap-0 overflow-y-auto px-3.5 py-3">
+  <main
+    class="bg-ui-elevated flex min-h-0 flex-col gap-0 overflow-y-auto px-3.5 py-3"
+    [ngClass]="isCompact() ? '' : 'row-[1/2]'"
+  >
     @if (getGameTables().length === 0) {
       <div
         class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-[12px] [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
@@ -512,7 +521,8 @@
   </main>
 
   <footer
-    class="border-ui-border-panel bg-ui-panel col-span-full row-[2/3] flex shrink-0 items-center gap-2.5 border-t border-solid px-3.5 py-2.5"
+    class="border-ui-border-panel bg-ui-panel col-span-full flex shrink-0 items-center gap-2.5 border-t border-solid px-3.5 py-2.5"
+    [ngClass]="isCompact() ? '' : 'row-[2/3]'"
   >
     <span class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap uppercase">{{
       'feature.tabletop.tableSetting.defaultDiceBot' | transloco

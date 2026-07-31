@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
@@ -8,6 +9,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { emitSelectGameTable, triggerUpdateGameObject } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
@@ -31,9 +33,10 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   selector: 'game-table-setting',
   templateUrl: './game-table-setting.component.html',
   host: { class: 'block', '[attr.inert]': "isReadOnly() ? '' : null" },
-  imports: [FormsModule, NgSelectComponent, NgOptionComponent, SafePipe, TranslocoModule],
+  imports: [NgClass, FormsModule, NgSelectComponent, NgOptionComponent, SafePipe, TranslocoModule],
 })
 export class GameTableSettingComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
 
