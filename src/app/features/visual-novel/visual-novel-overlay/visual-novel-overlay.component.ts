@@ -17,6 +17,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -104,6 +105,13 @@ export interface VnStageCharacter {
   imports: [DatePipe, DraggableDirective, FormsModule, SafePipe, TranslocoModule],
 })
 export class VisualNovelOverlayComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
+  protected readonly isControlsOpen = signal(false);
+
+  protected toggleControls(): void {
+    this.isControlsOpen.update((open) => !open);
+  }
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);

@@ -1,13 +1,15 @@
 <div
   id="app-table-layer"
   class="absolute w-full overflow-hidden"
-  [class.h-full]="!mobile.isActive()"
-  [style.height]="mobile.isActive() ? mobile.tableRatio() * 100 + '%' : null"
+  [class.h-full]="!isTableSplit()"
+  [style.height]="isTableSplit() ? mobile.tableRatio() * 100 + '%' : null"
 >
   <game-table></game-table>
 </div>
 @if (mobile.isActive()) {
-  <app-mobile-shell />
+  @if (!visualNovel.active()) {
+    <app-mobile-shell />
+  }
 } @else {
   <app-mini-jukebox [hidden]="!widgets.miniPlayer()"></app-mini-jukebox>
   <app-digital-clock></app-digital-clock>

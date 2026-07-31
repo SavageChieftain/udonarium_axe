@@ -101,6 +101,8 @@ export class AppComponent {
   readonly widgets = inject(WidgetVisibilityService);
   readonly viewport = inject(ViewportService);
   readonly mobile = inject(MobileLayoutService);
+
+  readonly isTableSplit = computed(() => this.mobile.isActive() && !this.visualNovel.active());
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);

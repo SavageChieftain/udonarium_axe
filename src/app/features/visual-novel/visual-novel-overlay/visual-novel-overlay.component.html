@@ -405,461 +405,476 @@
   <div
     class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md pointer-events-auto mx-auto mt-2 flex max-w-4xl flex-col gap-1 border border-solid px-2 py-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
   >
-    <div class="flex w-full flex-wrap items-center gap-1">
-      <select
-        class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
-        [title]="'feature.visualNovel.diceBot' | transloco"
-        [(ngModel)]="gameType"
-      >
-        @for (diceBotInfo of diceBotInfos; track diceBotInfo.id) {
-          <option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</option>
-        }
-      </select>
-      <select
-        class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-36 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
-        [title]="'feature.visualNovel.speakerSelect' | transloco"
-        [(ngModel)]="sendFrom"
-      >
-        @for (character of speakerOptions(); track character.identifier) {
-          <option [value]="character.identifier">{{ character.name }}</option>
-        }
-      </select>
-      @if (speakerPortrait(); as portrait) {
-        <div
-          class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui flex h-8 items-center gap-0.5 border border-solid px-1"
-          [title]="'feature.visualNovel.portraitPattern' | transloco"
+    @if (!isCompact() || isControlsOpen()) {
+      <div class="flex w-full flex-wrap items-center gap-1">
+        <select
+          class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
+          [title]="'feature.visualNovel.diceBot' | transloco"
+          [(ngModel)]="gameType"
         >
-          <span class="rounded-ui-sm bg-ui-elevated size-6 shrink-0 overflow-hidden">
-            @if (portrait.url.length > 0) {
-              <img class="size-full object-cover object-top" [src]="portrait.url | safe: 'resourceUrl'" alt="" />
-            }
-          </span>
-          @if (portrait.count > 1) {
-            <button
-              type="button"
-              class="text-ui-dim hover:text-ui-accent flex cursor-pointer items-center border-0 bg-transparent p-0 transition-colors disabled:cursor-default disabled:opacity-40"
-              [disabled]="portrait.index <= 0"
-              (click)="stepSpeakerPortrait(-1)"
-            >
-              <i class="material-icons text-base!">chevron_left</i>
-            </button>
-            <span class="min-w-7 text-center text-[11px]">{{ portrait.index + 1 }}/{{ portrait.count }}</span>
-            <button
-              type="button"
-              class="text-ui-dim hover:text-ui-accent flex cursor-pointer items-center border-0 bg-transparent p-0 transition-colors disabled:cursor-default disabled:opacity-40"
-              [disabled]="portrait.index >= portrait.count - 1"
-              (click)="stepSpeakerPortrait(1)"
-            >
-              <i class="material-icons text-base!">chevron_right</i>
-            </button>
+          @for (diceBotInfo of diceBotInfos; track diceBotInfo.id) {
+            <option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</option>
           }
-        </div>
-      }
-      @if (speakerSlot() >= 0) {
-        <button
-          type="button"
-          class="border-ui-border-panel bg-ui-input text-ui-text hover:border-ui-accent rounded-ui flex h-8 cursor-pointer items-center gap-0.5 border border-solid px-1.5 text-[11px] transition-colors [&_i]:text-[15px]"
-          [class.border-ui-accent]="showSlotGuide()"
-          [class.text-ui-accent]="showSlotGuide()"
-          [title]="'feature.visualNovel.slot' | transloco"
-          (click)="toggleSlotGuide()"
+        </select>
+        <select
+          class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-36 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
+          [title]="'feature.visualNovel.speakerSelect' | transloco"
+          [(ngModel)]="sendFrom"
         >
-          <i class="material-icons">person_pin_circle</i>
-          {{ speakerSlot() + 1 }}/12
-        </button>
-      }
-      @if (speakerFlip() !== null) {
-        <button
-          type="button"
-          class="rounded-ui flex h-8 cursor-pointer items-center gap-1 border border-solid px-1.5 text-[11px] transition-colors [&_i]:text-[15px]"
-          [class]="
-            speakerFlip() === true
-              ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-              : 'border-ui-border-panel bg-ui-input text-ui-dim hover:border-ui-accent'
-          "
-          [title]="'feature.visualNovel.flip' | transloco"
-          (click)="toggleSpeakerFlip()"
-        >
-          <i class="material-icons" [class.-scale-x-100]="speakerFlip() === true">flip_camera_android</i>
-          {{ (speakerFlip() === true ? 'feature.visualNovel.flipOn' : 'feature.visualNovel.flipOff') | transloco }}
-        </button>
-      }
-      <button
-        type="button"
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui ml-auto flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-        [class.text-ui-accent]="autoPlay()"
-        [title]="'feature.visualNovel.autoPlay' | transloco"
-        (click)="toggleAutoPlay()"
-      >
-        <i class="material-icons">{{ autoPlay() ? 'pause_circle' : 'play_circle' }}</i>
-      </button>
-      <div class="text-ui-dim flex items-center gap-1 px-1" [title]="'feature.visualNovel.playbackSpeed' | transloco">
-        <i class="material-icons text-[15px]!">speed</i>
-        <input
-          type="range"
-          class="w-24 cursor-pointer"
-          min="0.5"
-          max="2"
-          step="0.25"
-          [style.--min]="0.5"
-          [style.--max]="2"
-          [style.--val]="settings.autoPlaySpeed()"
-          [ngModel]="settings.autoPlaySpeed()"
-          (ngModelChange)="settings.setAutoPlaySpeed(+$event)"
-        />
-        <span class="min-w-8 text-[10px]">×{{ settings.autoPlaySpeed() }}</span>
-      </div>
-      <button
-        type="button"
-        class="text-ui-dim hover:text-ui-danger rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] hover:bg-(--ui-danger-bg) [&_i]:text-[18px]"
-        [title]="'feature.visualNovel.exit' | transloco"
-        (click)="exit()"
-      >
-        <i class="material-icons">close</i>
-      </button>
-    </div>
-
-    <div class="flex w-full flex-wrap items-center gap-1">
-      <button
-        type="button"
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
-        [title]="'feature.visualNovel.prev' | transloco"
-        [disabled]="currentIndex() <= 0"
-        (click)="userBack()"
-      >
-        <i class="material-icons">chevron_left</i>
-      </button>
-      @if (messages().length > 0) {
-        <span class="text-ui-muted min-w-12 text-center text-xs"
-          >{{ currentIndex() + 1 }} / {{ messages().length }}</span
-        >
-      }
-      <button
-        type="button"
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
-        [title]="'feature.visualNovel.next' | transloco"
-        [disabled]="isLatest()"
-        (click)="userAdvance()"
-      >
-        <i class="material-icons">chevron_right</i>
-      </button>
-      @if (!isLatest()) {
-        <button
-          type="button"
-          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex h-8 cursor-pointer items-center gap-0.5 border-0 bg-transparent px-1.5 text-[11px] transition-[color,background] [&_i]:text-[16px]"
-          (click)="toLatest()"
-        >
-          <i class="material-icons">skip_next</i>
-          {{ 'feature.visualNovel.toLatest' | transloco }}
-        </button>
-      }
-      <button
-        type="button"
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-        [class.text-ui-accent]="showBacklog()"
-        [title]="'feature.visualNovel.log' | transloco"
-        (click)="toggleBacklog()"
-      >
-        <i class="material-icons">history</i>
-      </button>
-      <div class="relative">
-        <button
-          type="button"
-          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex h-8 cursor-pointer items-center gap-1 border-0 bg-transparent px-1.5 transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="showEmote() || hasEmoteSelection()"
-          [title]="'feature.visualNovel.emote.title' | transloco"
-          (click)="toggleEmote()"
-        >
-          <i class="material-icons">mood</i>
-          @if (selectedEmoteSuffix().length > 0) {
-            <span class="bg-ui-accent-bg text-ui-accent rounded-ui max-w-36 truncate px-1 text-[10px]">
-              {{ selectedEmoteSuffix() }}
-            </span>
+          @for (character of speakerOptions(); track character.identifier) {
+            <option [value]="character.identifier">{{ character.name }}</option>
           }
-        </button>
-        @if (showEmote()) {
+        </select>
+        @if (speakerPortrait(); as portrait) {
           <div
-            class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-[70vh] w-80 overflow-y-auto border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui flex h-8 items-center gap-0.5 border border-solid px-1"
+            [title]="'feature.visualNovel.portraitPattern' | transloco"
           >
-            <div class="mb-1 flex items-center justify-between">
-              <span class="text-ui-muted text-[11px] font-semibold">
-                {{ 'feature.visualNovel.emote.kind' | transloco }}
-              </span>
+            <span class="rounded-ui-sm bg-ui-elevated size-6 shrink-0 overflow-hidden">
+              @if (portrait.url.length > 0) {
+                <img class="size-full object-cover object-top" [src]="portrait.url | safe: 'resourceUrl'" alt="" />
+              }
+            </span>
+            @if (portrait.count > 1) {
               <button
                 type="button"
-                class="text-ui-dim hover:text-ui-accent cursor-pointer border-0 bg-transparent text-[11px] underline"
-                (click)="resetEmote()"
+                class="text-ui-dim hover:text-ui-accent flex cursor-pointer items-center border-0 bg-transparent p-0 transition-colors disabled:cursor-default disabled:opacity-40"
+                [disabled]="portrait.index <= 0"
+                (click)="stepSpeakerPortrait(-1)"
               >
-                {{ 'feature.visualNovel.emote.reset' | transloco }}
+                <i class="material-icons text-base!">chevron_left</i>
               </button>
-            </div>
-            <div class="mb-2 grid grid-cols-3 gap-1">
-              @for (kind of messageKindOptions(); track kind) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    selectedKind() === kind
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="selectedKind.set(kind)"
-                >
-                  {{ 'feature.visualNovel.kind.' + kind | transloco }}
-                </button>
-              }
-            </div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.emote.shape' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-4 gap-1">
-              @for (shape of bubbleShapeOptions; track shape) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    selectedShape() === shape
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="selectedShape.set(shape)"
-                >
-                  {{ 'feature.visualNovel.shape.' + shape | transloco }}
-                </button>
-              }
-            </div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.emote.bubbleAnim' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-4 gap-1">
-              @for (animation of bubbleAnimationOptions; track animation) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    selectedBubbleAnimation() === animation
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="selectedBubbleAnimation.set(animation)"
-                >
-                  {{ 'feature.visualNovel.bubbleAnim.' + animation | transloco }}
-                </button>
-              }
-            </div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.emote.portraitAnim' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-4 gap-1">
-              @for (emote of portraitEmoteOptions; track emote) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    selectedPortraitEmote() === emote
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="selectedPortraitEmote.set(emote)"
-                >
-                  {{ 'feature.visualNovel.portraitEmote.' + emote | transloco }}
-                </button>
-              }
-            </div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.emote.mark' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-4 gap-1">
-              @for (mark of emotionMarkOptions; track mark) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    selectedEmotionMark() === mark
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="selectedEmotionMark.set(mark)"
-                >
-                  @if (mark === 'none') {
-                    {{ 'feature.visualNovel.portraitEmote.none' | transloco }}
-                  } @else {
-                    {{ emotionMarkLabel(mark) }}
-                  }
-                </button>
-              }
-            </div>
-            <div class="border-ui-border-separator mb-2 border-t border-solid"></div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.settings.typewriter' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-4 gap-1">
-              @for (speed of typewriterSpeedOptions; track speed) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    settings.typewriterSpeed() === speed
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="settings.setTypewriterSpeed(speed)"
-                >
-                  {{ 'feature.visualNovel.speed.' + speed | transloco }}
-                </button>
-              }
-            </div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.settings.portrait' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-4 gap-1">
-              @for (animation of portraitAnimationOptions; track animation) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    settings.portraitAnimation() === animation
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="settings.setPortraitAnimation(animation)"
-                >
-                  {{ 'feature.visualNovel.anim.' + animation | transloco }}
-                </button>
-              }
-            </div>
-            <div class="text-ui-muted mb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.settings.textSize' | transloco }}
-            </div>
-            <div class="mb-2 grid grid-cols-3 gap-1">
-              @for (size of textSizeOptions; track size) {
-                <button
-                  type="button"
-                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
-                  [class]="
-                    settings.textSize() === size
-                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
-                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
-                  "
-                  (click)="settings.setTextSize(size)"
-                >
-                  {{ 'feature.visualNovel.textSize.' + size | transloco }}
-                </button>
-              }
-            </div>
-          </div>
-        }
-      </div>
-      <div class="relative">
-        <button
-          type="button"
-          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="showSoundBoard()"
-          [title]="'feature.visualNovel.soundBoard' | transloco"
-          (click)="toggleSoundBoard()"
-        >
-          <i class="material-icons">volume_up</i>
-        </button>
-        @if (showSoundBoard()) {
-          <div
-            class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-72 w-64 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
-          >
-            <div class="text-ui-muted px-1 pb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.soundBoardTitle' | transloco }}
-            </div>
-            @for (audio of soundEffects(); track audio.identifier) {
-              @let sePlaying = isSoundEffectPlaying(audio.identifier);
-              <div class="hover:bg-ui-hover rounded-ui flex w-full items-center gap-1 px-1 py-0.5 transition-colors">
-                <button
-                  type="button"
-                  class="text-ui-text rounded-ui flex min-w-0 grow cursor-pointer items-center gap-1.5 border-0 bg-transparent p-1 text-left text-[12px] [&_i]:text-[14px]"
-                  [title]="(sePlaying ? 'feature.visualNovel.seStop' : 'feature.visualNovel.soundBoard') | transloco"
-                  (click)="sePlaying ? stopSoundEffect(audio.identifier) : playSoundEffect(audio.identifier)"
-                >
-                  @if (sePlaying) {
-                    <i class="material-icons text-ui-accent">stop_circle</i>
-                  } @else {
-                    <i class="material-icons text-ui-dim">play_circle</i>
-                  }
-                  <span class="truncate">{{ audio.name }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="text-ui-dim hover:text-ui-accent flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-1 transition-colors [&_i]:text-[14px]"
-                  [title]="'feature.visualNovel.seAttach' | transloco"
-                  (click)="attachSe(audio.identifier, audio.name)"
-                >
-                  <i class="material-icons">attach_file</i>
-                </button>
-              </div>
-            } @empty {
-              <div class="text-ui-dim p-2 text-center text-[11px]">
-                {{ 'feature.visualNovel.soundBoardEmpty' | transloco }}
-              </div>
+              <span class="min-w-7 text-center text-[11px]">{{ portrait.index + 1 }}/{{ portrait.count }}</span>
+              <button
+                type="button"
+                class="text-ui-dim hover:text-ui-accent flex cursor-pointer items-center border-0 bg-transparent p-0 transition-colors disabled:cursor-default disabled:opacity-40"
+                [disabled]="portrait.index >= portrait.count - 1"
+                (click)="stepSpeakerPortrait(1)"
+              >
+                <i class="material-icons text-base!">chevron_right</i>
+              </button>
             }
           </div>
         }
-      </div>
-      @if (attachedSe(); as se) {
-        <span
-          class="bg-ui-accent-bg text-ui-accent rounded-ui flex max-w-32 items-center gap-0.5 px-1.5 py-1 text-[10px] [&_i]:text-[12px]"
-          [title]="'feature.visualNovel.seAttached' | transloco"
-        >
-          <i class="material-icons">music_note</i>
-          <span class="truncate">{{ se.name }}</span>
+        @if (speakerSlot() >= 0) {
           <button
             type="button"
-            class="text-ui-dim hover:text-ui-danger flex cursor-pointer items-center border-0 bg-transparent p-0 [&_i]:text-[12px]"
-            (click)="clearAttachedSe()"
+            class="border-ui-border-panel bg-ui-input text-ui-text hover:border-ui-accent rounded-ui flex h-8 cursor-pointer items-center gap-0.5 border border-solid px-1.5 text-[11px] transition-colors [&_i]:text-[15px]"
+            [class.border-ui-accent]="showSlotGuide()"
+            [class.text-ui-accent]="showSlotGuide()"
+            [title]="'feature.visualNovel.slot' | transloco"
+            (click)="toggleSlotGuide()"
           >
-            <i class="material-icons">close</i>
+            <i class="material-icons">person_pin_circle</i>
+            {{ speakerSlot() + 1 }}/12
           </button>
-        </span>
-      }
-      <div class="relative">
+        }
+        @if (speakerFlip() !== null) {
+          <button
+            type="button"
+            class="rounded-ui flex h-8 cursor-pointer items-center gap-1 border border-solid px-1.5 text-[11px] transition-colors [&_i]:text-[15px]"
+            [class]="
+              speakerFlip() === true
+                ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                : 'border-ui-border-panel bg-ui-input text-ui-dim hover:border-ui-accent'
+            "
+            [title]="'feature.visualNovel.flip' | transloco"
+            (click)="toggleSpeakerFlip()"
+          >
+            <i class="material-icons" [class.-scale-x-100]="speakerFlip() === true">flip_camera_android</i>
+            {{ (speakerFlip() === true ? 'feature.visualNovel.flipOn' : 'feature.visualNovel.flipOff') | transloco }}
+          </button>
+        }
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui ml-auto flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+          [class.text-ui-accent]="autoPlay()"
+          [title]="'feature.visualNovel.autoPlay' | transloco"
+          (click)="toggleAutoPlay()"
+        >
+          <i class="material-icons">{{ autoPlay() ? 'pause_circle' : 'play_circle' }}</i>
+        </button>
+        <div class="text-ui-dim flex items-center gap-1 px-1" [title]="'feature.visualNovel.playbackSpeed' | transloco">
+          <i class="material-icons text-[15px]!">speed</i>
+          <input
+            type="range"
+            class="w-24 cursor-pointer"
+            min="0.5"
+            max="2"
+            step="0.25"
+            [style.--min]="0.5"
+            [style.--max]="2"
+            [style.--val]="settings.autoPlaySpeed()"
+            [ngModel]="settings.autoPlaySpeed()"
+            (ngModelChange)="settings.setAutoPlaySpeed(+$event)"
+          />
+          <span class="min-w-8 text-[10px]">×{{ settings.autoPlaySpeed() }}</span>
+        </div>
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-danger rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] hover:bg-(--ui-danger-bg) [&_i]:text-[18px]"
+          [title]="'feature.visualNovel.exit' | transloco"
+          (click)="exit()"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+    }
+
+    <div class="flex w-full flex-wrap items-center gap-1">
+      @if (!isCompact() || isControlsOpen()) {
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
+          [title]="'feature.visualNovel.prev' | transloco"
+          [disabled]="currentIndex() <= 0"
+          (click)="userBack()"
+        >
+          <i class="material-icons">chevron_left</i>
+        </button>
+        @if (messages().length > 0) {
+          <span class="text-ui-muted min-w-12 text-center text-xs"
+            >{{ currentIndex() + 1 }} / {{ messages().length }}</span
+          >
+        }
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
+          [title]="'feature.visualNovel.next' | transloco"
+          [disabled]="isLatest()"
+          (click)="userAdvance()"
+        >
+          <i class="material-icons">chevron_right</i>
+        </button>
+        @if (!isLatest()) {
+          <button
+            type="button"
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex h-8 cursor-pointer items-center gap-0.5 border-0 bg-transparent px-1.5 text-[11px] transition-[color,background] [&_i]:text-[16px]"
+            (click)="toLatest()"
+          >
+            <i class="material-icons">skip_next</i>
+            {{ 'feature.visualNovel.toLatest' | transloco }}
+          </button>
+        }
         <button
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="showPalette()"
-          [title]="'feature.visualNovel.palette' | transloco"
-          (click)="togglePalette()"
+          [class.text-ui-accent]="showBacklog()"
+          [title]="'feature.visualNovel.log' | transloco"
+          (click)="toggleBacklog()"
         >
-          <i class="material-icons">menu_book</i>
+          <i class="material-icons">history</i>
         </button>
-        @if (showPalette()) {
-          <div
-            class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-80 w-80 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+        <div class="relative">
+          <button
+            type="button"
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex h-8 cursor-pointer items-center gap-1 border-0 bg-transparent px-1.5 transition-[color,background] [&_i]:text-[18px]"
+            [class.text-ui-accent]="showEmote() || hasEmoteSelection()"
+            [title]="'feature.visualNovel.emote.title' | transloco"
+            (click)="toggleEmote()"
           >
-            <div class="text-ui-muted px-1 pb-1 text-[11px] font-semibold">
-              {{ 'feature.visualNovel.palette' | transloco }}
-            </div>
-            @for (line of speakerPalette(); track $index) {
-              <button
-                type="button"
-                class="vn-palette-line text-ui-text hover:bg-ui-hover rounded-ui block w-full cursor-pointer truncate border-0 bg-transparent px-2 py-1 text-left text-[12px] transition-colors"
-                [title]="line"
-                (click)="pickPaletteLine(line)"
-              >
-                {{ line }}
-              </button>
-            } @empty {
-              <div class="text-ui-dim p-2 text-center text-[11px]">
-                {{ 'feature.visualNovel.paletteEmpty' | transloco }}
-              </div>
+            <i class="material-icons">mood</i>
+            @if (selectedEmoteSuffix().length > 0) {
+              <span class="bg-ui-accent-bg text-ui-accent rounded-ui max-w-36 truncate px-1 text-[10px]">
+                {{ selectedEmoteSuffix() }}
+              </span>
             }
-          </div>
+          </button>
+          @if (showEmote()) {
+            <div
+              class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-[70vh] w-80 overflow-y-auto border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+            >
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-ui-muted text-[11px] font-semibold">
+                  {{ 'feature.visualNovel.emote.kind' | transloco }}
+                </span>
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-accent cursor-pointer border-0 bg-transparent text-[11px] underline"
+                  (click)="resetEmote()"
+                >
+                  {{ 'feature.visualNovel.emote.reset' | transloco }}
+                </button>
+              </div>
+              <div class="mb-2 grid grid-cols-3 gap-1">
+                @for (kind of messageKindOptions(); track kind) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      selectedKind() === kind
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="selectedKind.set(kind)"
+                  >
+                    {{ 'feature.visualNovel.kind.' + kind | transloco }}
+                  </button>
+                }
+              </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.emote.shape' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-4 gap-1">
+                @for (shape of bubbleShapeOptions; track shape) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      selectedShape() === shape
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="selectedShape.set(shape)"
+                  >
+                    {{ 'feature.visualNovel.shape.' + shape | transloco }}
+                  </button>
+                }
+              </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.emote.bubbleAnim' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-4 gap-1">
+                @for (animation of bubbleAnimationOptions; track animation) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      selectedBubbleAnimation() === animation
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="selectedBubbleAnimation.set(animation)"
+                  >
+                    {{ 'feature.visualNovel.bubbleAnim.' + animation | transloco }}
+                  </button>
+                }
+              </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.emote.portraitAnim' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-4 gap-1">
+                @for (emote of portraitEmoteOptions; track emote) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      selectedPortraitEmote() === emote
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="selectedPortraitEmote.set(emote)"
+                  >
+                    {{ 'feature.visualNovel.portraitEmote.' + emote | transloco }}
+                  </button>
+                }
+              </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.emote.mark' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-4 gap-1">
+                @for (mark of emotionMarkOptions; track mark) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      selectedEmotionMark() === mark
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="selectedEmotionMark.set(mark)"
+                  >
+                    @if (mark === 'none') {
+                      {{ 'feature.visualNovel.portraitEmote.none' | transloco }}
+                    } @else {
+                      {{ emotionMarkLabel(mark) }}
+                    }
+                  </button>
+                }
+              </div>
+              <div class="border-ui-border-separator mb-2 border-t border-solid"></div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.settings.typewriter' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-4 gap-1">
+                @for (speed of typewriterSpeedOptions; track speed) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      settings.typewriterSpeed() === speed
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="settings.setTypewriterSpeed(speed)"
+                  >
+                    {{ 'feature.visualNovel.speed.' + speed | transloco }}
+                  </button>
+                }
+              </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.settings.portrait' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-4 gap-1">
+                @for (animation of portraitAnimationOptions; track animation) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      settings.portraitAnimation() === animation
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="settings.setPortraitAnimation(animation)"
+                  >
+                    {{ 'feature.visualNovel.anim.' + animation | transloco }}
+                  </button>
+                }
+              </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.settings.textSize' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-3 gap-1">
+                @for (size of textSizeOptions; track size) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      settings.textSize() === size
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="settings.setTextSize(size)"
+                  >
+                    {{ 'feature.visualNovel.textSize.' + size | transloco }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        <div class="relative">
+          <button
+            type="button"
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+            [class.text-ui-accent]="showSoundBoard()"
+            [title]="'feature.visualNovel.soundBoard' | transloco"
+            (click)="toggleSoundBoard()"
+          >
+            <i class="material-icons">volume_up</i>
+          </button>
+          @if (showSoundBoard()) {
+            <div
+              class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-72 w-64 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+            >
+              <div class="text-ui-muted px-1 pb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.soundBoardTitle' | transloco }}
+              </div>
+              @for (audio of soundEffects(); track audio.identifier) {
+                @let sePlaying = isSoundEffectPlaying(audio.identifier);
+                <div class="hover:bg-ui-hover rounded-ui flex w-full items-center gap-1 px-1 py-0.5 transition-colors">
+                  <button
+                    type="button"
+                    class="text-ui-text rounded-ui flex min-w-0 grow cursor-pointer items-center gap-1.5 border-0 bg-transparent p-1 text-left text-[12px] [&_i]:text-[14px]"
+                    [title]="(sePlaying ? 'feature.visualNovel.seStop' : 'feature.visualNovel.soundBoard') | transloco"
+                    (click)="sePlaying ? stopSoundEffect(audio.identifier) : playSoundEffect(audio.identifier)"
+                  >
+                    @if (sePlaying) {
+                      <i class="material-icons text-ui-accent">stop_circle</i>
+                    } @else {
+                      <i class="material-icons text-ui-dim">play_circle</i>
+                    }
+                    <span class="truncate">{{ audio.name }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="text-ui-dim hover:text-ui-accent flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-1 transition-colors [&_i]:text-[14px]"
+                    [title]="'feature.visualNovel.seAttach' | transloco"
+                    (click)="attachSe(audio.identifier, audio.name)"
+                  >
+                    <i class="material-icons">attach_file</i>
+                  </button>
+                </div>
+              } @empty {
+                <div class="text-ui-dim p-2 text-center text-[11px]">
+                  {{ 'feature.visualNovel.soundBoardEmpty' | transloco }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+        @if (attachedSe(); as se) {
+          <span
+            class="bg-ui-accent-bg text-ui-accent rounded-ui flex max-w-32 items-center gap-0.5 px-1.5 py-1 text-[10px] [&_i]:text-[12px]"
+            [title]="'feature.visualNovel.seAttached' | transloco"
+          >
+            <i class="material-icons">music_note</i>
+            <span class="truncate">{{ se.name }}</span>
+            <button
+              type="button"
+              class="text-ui-dim hover:text-ui-danger flex cursor-pointer items-center border-0 bg-transparent p-0 [&_i]:text-[12px]"
+              (click)="clearAttachedSe()"
+            >
+              <i class="material-icons">close</i>
+            </button>
+          </span>
         }
-      </div>
-      <button
-        type="button"
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
-        [class.text-ui-accent]="sheetOpen()"
-        [title]="'feature.visualNovel.sheet' | transloco"
-        [disabled]="speakerSlot() < 0"
-        (click)="toggleCharacterSheet()"
-      >
-        <i class="material-icons">assignment_ind</i>
-      </button>
+        <div class="relative">
+          <button
+            type="button"
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+            [class.text-ui-accent]="showPalette()"
+            [title]="'feature.visualNovel.palette' | transloco"
+            (click)="togglePalette()"
+          >
+            <i class="material-icons">menu_book</i>
+          </button>
+          @if (showPalette()) {
+            <div
+              class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-80 w-80 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+            >
+              <div class="text-ui-muted px-1 pb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.palette' | transloco }}
+              </div>
+              @for (line of speakerPalette(); track $index) {
+                <button
+                  type="button"
+                  class="vn-palette-line text-ui-text hover:bg-ui-hover rounded-ui block w-full cursor-pointer truncate border-0 bg-transparent px-2 py-1 text-left text-[12px] transition-colors"
+                  [title]="line"
+                  (click)="pickPaletteLine(line)"
+                >
+                  {{ line }}
+                </button>
+              } @empty {
+                <div class="text-ui-dim p-2 text-center text-[11px]">
+                  {{ 'feature.visualNovel.paletteEmpty' | transloco }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
+          [class.text-ui-accent]="sheetOpen()"
+          [title]="'feature.visualNovel.sheet' | transloco"
+          [disabled]="speakerSlot() < 0"
+          (click)="toggleCharacterSheet()"
+        >
+          <i class="material-icons">assignment_ind</i>
+        </button>
+      }
+      @if (isCompact()) {
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+          [class.text-ui-accent]="isControlsOpen()"
+          [attr.aria-expanded]="isControlsOpen()"
+          (click)="toggleControls()"
+        >
+          <i class="material-icons">{{ isControlsOpen() ? 'expand_more' : 'tune' }}</i>
+        </button>
+      }
       <input
         type="text"
         class="border-ui-border-panel bg-ui-input text-ui-text placeholder:text-ui-dim focus:border-ui-accent rounded-ui min-w-36 flex-1 border border-solid px-2.5 py-1.5 text-[13px] outline-none disabled:opacity-40"
