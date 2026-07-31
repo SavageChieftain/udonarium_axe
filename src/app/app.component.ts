@@ -43,6 +43,7 @@ import { NpcDragGhostComponent } from '@axe/features/gm-tools/npc-bar/npc-drag-g
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { LanguageSelectorComponent } from '@axe/features/language-selector/language-selector.component';
+import { InviteJoinComponent } from '@axe/features/lobby/invite-join/invite-join.component';
 import { NetworkEventHandlerService } from '@axe/features/lobby/network-event-handler.service';
 import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator/network-indicator.component';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
@@ -82,6 +83,7 @@ import { version as APP_VERSION } from '@pkg';
     NpcDragGhostComponent,
     DigitalClockComponent,
     RoomRestoreBannerComponent,
+    InviteJoinComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,
     TranslocoModule,

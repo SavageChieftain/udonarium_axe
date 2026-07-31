@@ -1,13 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
+import { Logger } from '@axe/core/logging/logger';
 import { saveIdentity } from '@axe/core/storage/identity-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { buildInviteLink } from '@axe/domain/peer/invite-link';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   ASSIGNABLE_PEER_ROLES,
@@ -36,6 +39,7 @@ export class PeerMenuComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly tableSelecter = inject(TableSelecter);
+  private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   networkService = Network;
   gameRoomService = this.objectStore;
@@ -46,6 +50,24 @@ export class PeerMenuComponent {
   readonly assignableRoles = ASSIGNABLE_PEER_ROLES;
   protected readonly roleShortLabelKey = roleShortLabelKey;
   protected readonly roleBadgeClass = roleBadgeClass;
+
+  protected readonly inviteRoles: readonly PeerRole[] = [PeerRole.Player, PeerRole.Guest];
+  protected readonly inviteRole = signal<PeerRole>(PeerRole.Player);
+  protected readonly includePasswordInInvite = signal(true);
+  protected readonly isInviteCopied = signal(false);
+
+  protected readonly inviteLink = computed(() => {
+    this.objectChange.networkVersion();
+    const peer = Network.peerContext;
+    if (!peer?.isRoom) return '';
+
+    return buildInviteLink(location.origin + location.pathname, {
+      roomId: peer.roomId,
+      roomName: peer.roomName,
+      password: this.includePasswordInInvite() ? peer.password : '',
+      role: this.inviteRole(),
+    });
+  });
 
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -84,6 +106,24 @@ export class PeerMenuComponent {
       role,
       reConnectPass: this.myPeer.reConnectPass,
     });
+  }
+
+  protected async copyInviteLink(): Promise<void> {
+    const link = this.inviteLink();
+    if (link.length < 1) return;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      this.isInviteCopied.set(true);
+      const timer = setTimeout(() => this.isInviteCopied.set(false), 2000);
+      this.destroyRef.onDestroy(() => clearTimeout(timer));
+    } catch (reason) {
+      Logger.warn('[PeerMenu] 招待リンクをクリップボードにコピーできませんでした', reason);
+    }
+  }
+
+  protected selectInviteLink(event: Event): void {
+    (event.target as HTMLInputElement | null)?.select();
   }
 
   reassignRole(peerId: string, role: PeerRole) {

@@ -3,6 +3,7 @@ import { RoomSnapshotService } from '@axe/application/file/room-snapshot.service
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/network/network';
+import { parseInviteLink } from '@axe/domain/peer/invite-link';
 import { formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -31,6 +32,7 @@ export class RoomRestoreBannerComponent {
     if (this.dismissed()) return false;
     if (!this.roomSnapshot.isSupported) return false;
     if (this.latest() === null) return false;
+    if (parseInviteLink(location.hash) !== null) return false;
     if (Network.peerContext?.roomName) return false;
     return this.rolePermission.canEditTabletop;
   });

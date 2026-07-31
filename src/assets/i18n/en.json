@@ -1049,7 +1049,11 @@
         "latencyUnit": "s",
         "roleLabel": "Role",
         "gmAssignOnlyByGm": "Only a GM can assign the GM role",
-        "showLobby": "Show lobby (room list)"
+        "showLobby": "Show lobby (room list)",
+        "inviteLabel": "Invite link",
+        "inviteIncludePassword": "Include password",
+        "inviteCopy": "Copy",
+        "inviteCopied": "Copied"
       },
       "lobby": {
         "title": "Lobby",
@@ -1112,6 +1116,13 @@
         "noSignal": "No keepalive signal from {{name}} for over {{seconds}}s. Connection may be unstable.",
         "reconnected": "Reconnected to {{name}}.",
         "loggedOut": "{{name}} logged out."
+      },
+      "invite": {
+        "joining": "Joining \"{{roomName}}\"…",
+        "notFound": "\"{{roomName}}\" was not found",
+        "failed": "Could not join \"{{roomName}}\"",
+        "openLobby": "Open lobby",
+        "dismiss": "Dismiss"
       }
     },
     "chat": {

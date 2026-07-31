@@ -83,6 +83,46 @@
         </button>
       </div>
     }
+    <div class="space-y-1.5 pt-1">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span>{{ 'feature.lobby.peerMenu.inviteLabel' | transloco }}</span>
+        @for (role of inviteRoles; track role) {
+          <button
+            class="rounded-sm px-1.5 py-0.5 text-[0.7rem]"
+            [class]="
+              inviteRole() === role ? roleBadgeClass(role) : 'border border-(--ui-panel-border) text-(--ui-text-muted)'
+            "
+            (click)="inviteRole.set(role)"
+          >
+            {{ roleShortLabelKey(role) | transloco }}
+          </button>
+        }
+        @if (networkService.peerContext.hasPassword) {
+          <label class="flex cursor-pointer items-center gap-1.5 text-xs">
+            <input
+              name="invite-include-password"
+              type="checkbox"
+              [ngModel]="includePasswordInInvite()"
+              (ngModelChange)="includePasswordInInvite.set($event)"
+            />
+            <span>{{ 'feature.lobby.peerMenu.inviteIncludePassword' | transloco }}</span>
+          </label>
+        }
+      </div>
+      <div class="flex items-center gap-1.5">
+        <input
+          class="min-w-0 flex-1 text-[0.7rem]"
+          readonly
+          [value]="inviteLink()"
+          (focus)="selectInviteLink($event)"
+        />
+        <button class="shrink-0 text-xs" (click)="copyInviteLink()">
+          {{
+            (isInviteCopied() ? 'feature.lobby.peerMenu.inviteCopied' : 'feature.lobby.peerMenu.inviteCopy') | transloco
+          }}
+        </button>
+      </div>
+    </div>
     @if (shouldShowReconnectButton) {
       <button (click)="showReConnect()" class="danger">{{ 'feature.lobby.peerMenu.reconnect' | transloco }}</button>
     }

@@ -1049,7 +1049,11 @@
         "latencyUnit": "秒",
         "roleLabel": "役割",
         "gmAssignOnlyByGm": "GM は GM のみが割り当てられます",
-        "showLobby": "ロビー（ルーム一覧）を表示"
+        "showLobby": "ロビー（ルーム一覧）を表示",
+        "inviteLabel": "招待リンク",
+        "inviteIncludePassword": "合言葉を含める",
+        "inviteCopy": "コピー",
+        "inviteCopied": "コピーしました"
       },
       "lobby": {
         "title": "ロビー",
@@ -1112,6 +1116,13 @@
         "noSignal": "{{name}} さんからあなたへの接続確認信号が{{seconds}}秒以上受信できません。通信障害の可能性があります。",
         "reconnected": "あなたと {{name}} さんの接続を確認しました。",
         "loggedOut": "{{name}} さんがログアウトしました。"
+      },
+      "invite": {
+        "joining": "「{{roomName}}」に参加しています…",
+        "notFound": "「{{roomName}}」が見つかりませんでした",
+        "failed": "「{{roomName}}」に参加できませんでした",
+        "openLobby": "ロビーを開く",
+        "dismiss": "閉じる"
       }
     },
     "chat": {
