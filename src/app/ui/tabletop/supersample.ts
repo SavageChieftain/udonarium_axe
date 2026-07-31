@@ -41,8 +41,7 @@ export function supersampleTransform(opts: SupersampleTransformOptions): string 
   if (opts.outer) parts.push(opts.outer);
 
   if (1 < opts.factor && opts.anchor !== 'center') {
-    const offset = supersampleOffsetPercent(opts.factor);
-    parts.push(`translateY(${trim(opts.anchor === 'bottom' ? offset : -offset, 4)}%)`);
+    parts.push(`translateY(${trim(-supersampleOffsetPercent(opts.factor), 4)}%)`);
   }
 
   if (opts.inner) parts.push(opts.inner);

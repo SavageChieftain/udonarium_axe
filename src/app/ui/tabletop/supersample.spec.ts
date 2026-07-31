@@ -63,10 +63,14 @@ describe('supersampleTransform', () => {
     ).toBe('translateX(-50%) rotateX(-50deg)');
   });
 
-  it('下端固定で上に伸びた箱は下へ戻す', () => {
+  it('高さを固定した親の中で下に伸びた箱を、縮小後に下端が揃うよう上へ戻す', () => {
     expect(
       supersampleTransform({ factor: 4, anchor: 'bottom', outer: 'translateX(-50%)', inner: 'rotateX(-50deg)' })
-    ).toBe('translateX(-50%) translateY(37.5%) rotateX(-50deg) scale(0.25)');
+    ).toBe('translateX(-50%) translateY(-37.5%) rotateX(-50deg) scale(0.25)');
+  });
+
+  it('倍率 2 でも縮小後に下端が揃う', () => {
+    expect(supersampleTransform({ factor: 2, anchor: 'bottom' })).toBe('translateY(-25%) scale(0.5)');
   });
 
   it('上端固定で下に伸びた箱は上へ戻す', () => {
