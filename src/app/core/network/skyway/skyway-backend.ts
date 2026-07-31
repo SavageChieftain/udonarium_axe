@@ -36,6 +36,12 @@ function isRetriableStatus(status: number): boolean {
   return status >= 500 || status === 408 || status === 429;
 }
 
+const UNSUPPORTED_MEDIA_TYPE = 415;
+
+function isAbortError(err: unknown): boolean {
+  return (err as { name?: string } | null)?.name === 'AbortError';
+}
+
 async function fetchWithTimeout(input: URL, init: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -74,6 +80,9 @@ function postTokenRequest(api: URL, body: string, simpleRequest: boolean): Promi
  * 本家 udonarium-backend (Cloudflare Workers) は CORS プリフライト (OPTIONS) 未対応で、
  * `Content-Type: application/json` を付けるとブラウザ側で fetch が例外になる。
  * その場合はヘッダ無しの単純リクエスト（プリフライト不要）へ即時フォールバックする。
+ * タイムアウトはプリフライトの可否と無関係なので、同じ形式のまま次の試行へ回す。
+ * 単純リクエストを 415 で拒否するバックエンド（JSON のみ受け付ける実装）には
+ * `Content-Type` 付きへ戻して再試行する。
  * 取得できなければ空文字を返す（呼び出し側は `server-error` として扱う）。
  */
 async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: string): Promise<string> {
@@ -91,7 +100,7 @@ async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: st
       try {
         response = await postTokenRequest(api, body, simpleRequest);
       } catch (err) {
-        if (simpleRequest) throw err;
+        if (simpleRequest || isAbortError(err)) throw err;
         simpleRequest = true;
         Logger.warn('[SkyWay] トークン取得に失敗。単純リクエストへフォールバックします', err);
         response = await postTokenRequest(api, body, simpleRequest);
@@ -100,6 +109,12 @@ async function fetchSkyWayAuthToken(url: string, channelName: string, peerId: st
       if (response.status === 200) {
         const jsonObj = await response.json();
         return jsonObj.token ?? '';
+      }
+
+      if (simpleRequest && response.status === UNSUPPORTED_MEDIA_TYPE) {
+        simpleRequest = false;
+        Logger.warn('[SkyWay] 単純リクエストが拒否されたため Content-Type 付きに戻します');
+        continue;
       }
 
       if (!isRetriableStatus(response.status)) return '';
