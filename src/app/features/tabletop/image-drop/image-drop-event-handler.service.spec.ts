@@ -5,6 +5,7 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { type ImageDroppedEvent } from '@axe/core/event/domain-events';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
   ImageDropEventHandlerService,
   isTabletopDropTarget,
@@ -41,6 +42,7 @@ describe('ImageDropEventHandlerService', () => {
   let createGameCharacterWith: ReturnType<typeof vi.fn>;
   let canEditTabletop: boolean;
   let dropTarget: Element | null;
+  let localCoordinate: { x: number; y: number; z: number };
 
   function setup(): void {
     TestBed.configureTestingModule({
@@ -48,7 +50,8 @@ describe('ImageDropEventHandlerService', () => {
         ...TEST_PROVIDERS,
         { provide: ObjectChangeService, useValue: { imageDropped$ } },
         { provide: TabletopActionService, useValue: { createGameCharacterWith } },
-        { provide: CoordinateService, useValue: { calcTabletopLocalCoordinate: () => ({ x: 100, y: 200, z: 0 }) } },
+        { provide: CoordinateService, useValue: { calcTabletopLocalCoordinate: () => localCoordinate } },
+        { provide: TableSelecter, useValue: { viewTable: { width: 20, height: 20, gridSize: 50 } } },
         {
           provide: RolePermissionService,
           useValue: {
@@ -71,6 +74,7 @@ describe('ImageDropEventHandlerService', () => {
     imageDropped$ = new EventChannel<ImageDroppedEvent>();
     createGameCharacterWith = vi.fn();
     canEditTabletop = true;
+    localCoordinate = { x: 100, y: 200, z: 0 };
     document.body.innerHTML = '<div id="app-table-layer"></div>';
     dropTarget = document.querySelector('#app-table-layer');
     vi.spyOn(document, 'elementFromPoint').mockImplementation(() => dropTarget);
@@ -104,6 +108,14 @@ describe('ImageDropEventHandlerService', () => {
     drop();
 
     expect(createGameCharacterWith).not.toHaveBeenCalled();
+  });
+
+  it('テーブルの外に落ちた座標はテーブルの中に収める', () => {
+    localCoordinate = { x: 4000, y: -300, z: 0 };
+    setup();
+    drop();
+
+    expect(createGameCharacterWith).toHaveBeenCalledWith({ x: 975, y: 25, z: 0 }, expect.anything(), 'image-1');
   });
 
   it('落とした先が取れないときは何も作らない', () => {
