@@ -6,7 +6,7 @@ const STORAGE_KEY = 'ui-mobile-layout';
 
 export const MIN_TABLE_RATIO = 0.2;
 export const MAX_TABLE_RATIO = 0.85;
-export const DEFAULT_TABLE_RATIO = 0.55;
+export const DEFAULT_TABLE_RATIO = 0.45;
 
 export interface MobileLayoutState {
   readonly prefersDesktop: boolean;

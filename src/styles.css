@@ -1954,3 +1954,14 @@ body.mobile-layout app-mobile-shell .chat-input {
 body.mobile-layout app-mobile-shell chat-window > div {
   height: 100%;
 }
+
+body.mobile-layout app-mobile-shell chat-input > div {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px;
+}
+
+body.mobile-layout app-mobile-shell chat-tab-list,
+body.mobile-layout app-mobile-shell .chat-tab-pill {
+  font-size: 11px;
+}
