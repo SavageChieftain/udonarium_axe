@@ -1565,7 +1565,11 @@
     "mobile": {
       "menu": "メニュー",
       "useDesktop": "パソコン版の画面を使う",
-      "useMobile": "スマホ版の画面に戻す"
+      "useMobile": "スマホ版の画面に戻す",
+      "darkness": "暗闇の切り替え",
+      "turnPrev": "手番を戻す",
+      "turnNext": "手番を進める",
+      "activePalette": "操作中のチャットパレット"
     }
   },
   "app": {

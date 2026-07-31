@@ -1565,7 +1565,11 @@
     "mobile": {
       "menu": "Menu",
       "useDesktop": "Switch to the desktop layout",
-      "useMobile": "Back to the mobile layout"
+      "useMobile": "Back to the mobile layout",
+      "darkness": "Toggle darkness",
+      "turnPrev": "Previous turn",
+      "turnNext": "Next turn",
+      "activePalette": "Active chat palette"
     }
   },
   "app": {

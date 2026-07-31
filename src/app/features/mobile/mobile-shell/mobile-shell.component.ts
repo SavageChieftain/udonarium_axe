@@ -2,9 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signa
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/network/network';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
@@ -22,7 +26,10 @@ import {
   type MobileMenuItem,
   visibleMobileMenuItems,
 } from '@axe/features/mobile/mobile-shell/mobile-menu-items';
+import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
+import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
+import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
@@ -40,6 +47,11 @@ export class MobileShellComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly visualNovel = inject(VisualNovelModeService);
   private readonly handRail = inject(HandRailService);
+  private readonly turnOrder = inject(TurnOrderService);
+  private readonly tabletopService = inject(TabletopService);
+  private readonly activeCharacter = inject(ActiveCharacterService);
+  private readonly characterPanel = inject(CharacterPanelService);
+  private readonly objectStore = inject(ObjectStore);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly layout = inject(MobileLayoutService);
   protected readonly t = inject(TRANSLATE_FN);
@@ -82,6 +94,22 @@ export class MobileShellComponent {
       this.handRail.toggle();
       return;
     }
+    if (action === 'darkness') {
+      this.toggleDarkness();
+      return;
+    }
+    if (action === 'turnPrev') {
+      this.turnOrder.prev();
+      return;
+    }
+    if (action === 'turnNext') {
+      this.turnOrder.next();
+      return;
+    }
+    if (action === 'activePalette') {
+      this.openActivePalette();
+      return;
+    }
     const opened = this.resolvePanel(action);
     if (opened) this.panelService.open(opened.component, opened.option);
   }
@@ -112,6 +140,23 @@ export class MobileShellComponent {
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
     this.destroyRef.onDestroy(onUp);
+  }
+
+  private toggleDarkness(): void {
+    const table = this.tabletopService.currentTable;
+    table.darknessEnabled = !table.darknessEnabled;
+    table.update();
+    this.objectChange.notifyChanged(table.identifier);
+  }
+
+  private openActivePalette(): void {
+    const identifier = this.activeCharacter.identifier();
+    const character = identifier ? this.objectStore.get(identifier) : null;
+    if (character instanceof GameCharacter && isOwnedByUser(character, PeerCursor.myCursor?.userId ?? '')) {
+      this.characterPanel.openChatPalette(character);
+      return;
+    }
+    this.openCharacterList();
   }
 
   private async saveRoom(): Promise<void> {

@@ -12,6 +12,10 @@ export type MobileMenuAction =
   | 'roomSnapshot'
   | 'visualNovel'
   | 'hand'
+  | 'darkness'
+  | 'turnPrev'
+  | 'turnNext'
+  | 'activePalette'
   | 'save';
 
 export interface MobileMenuItem {
@@ -30,10 +34,14 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
   { action: 'inventory', icon: 'folder_shared', labelKey: 'app.fab.inventory' },
   { action: 'objectList', icon: 'list_alt', labelKey: 'app.fab.objectList', gameMasterOnly: true },
   { action: 'party', icon: 'diversity_3', labelKey: 'feature.gmTools.party.title', gameMasterOnly: true },
+  { action: 'darkness', icon: 'dark_mode', labelKey: 'feature.mobile.darkness', gameMasterOnly: true },
+  { action: 'turnPrev', icon: 'skip_previous', labelKey: 'feature.mobile.turnPrev', gameMasterOnly: true },
+  { action: 'turnNext', icon: 'skip_next', labelKey: 'feature.mobile.turnNext', gameMasterOnly: true },
   { action: 'mapEditor', icon: 'edit_square', labelKey: 'feature.mapEditor.title', gameMasterOnly: true },
   { action: 'importCharacter', icon: 'person_add', labelKey: 'app.fab.importCharacter' },
   { action: 'roomSnapshot', icon: 'history', labelKey: 'app.fab.roomSnapshot' },
   { action: 'visualNovel', icon: 'auto_stories', labelKey: 'app.fab.visualNovel' },
+  { action: 'activePalette', icon: 'chat', labelKey: 'feature.mobile.activePalette' },
   { action: 'hand', icon: 'style', labelKey: 'app.fab.handCards' },
   { action: 'save', icon: 'sd_storage', labelKey: 'app.fab.save' },
 ];
