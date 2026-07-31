@@ -1,3 +1,31 @@
+## [1.21.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.20.0...v1.21.0) (2026-07-31)
+
+### ✨ Features
+
+* **lobby:** join a room straight from an invite link ([6be8375](https://github.com/SavageChieftain/udonarium_axe/commit/6be837529a969d8affc0ad7926e081662fa52e2e))
+* **room-archive:** auto-save room snapshots and restore them after a crash ([8292b3d](https://github.com/SavageChieftain/udonarium_axe/commit/8292b3df5dc3cd16454b13291c37d15d1816ccb0))
+* **tabletop:** turn an image dropped on the table into a character ([36821ad](https://github.com/SavageChieftain/udonarium_axe/commit/36821adee1b71cfc4b7c88bddc85e5d3b805f91a))
+
+### 🐛 Bug Fixes
+
+* **dice:** load bcdice without relying on the CJS require path ([0fe0519](https://github.com/SavageChieftain/udonarium_axe/commit/0fe05194056f6483a1177b92152977c7b2a006e5))
+* **file:** stop parsing dropped HTML as room data ([2318834](https://github.com/SavageChieftain/udonarium_axe/commit/2318834938fc79c1110c1c3ac12f59fb5b5cdf17))
+* **lobby:** stop putting the room password in the invite link as plain text ([fb7eb46](https://github.com/SavageChieftain/udonarium_axe/commit/fb7eb46d2fa1d48da44811fff05dfb2f96431b4a))
+* **network:** keep the JSON content type when a token request times out ([29b341e](https://github.com/SavageChieftain/udonarium_axe/commit/29b341e62407db29e05bef93fedacaad4ee0f503))
+* **tabletop:** keep a dropped image inside the table ([7f693bd](https://github.com/SavageChieftain/udonarium_axe/commit/7f693bd2ca0e93302e77bc3c6e2c64f7bdac9e27))
+* **tabletop:** stop supersampled piece images from sinking under the table ([7fc402e](https://github.com/SavageChieftain/udonarium_axe/commit/7fc402ecbcaf7ddbbeca59a31fab349f89dcab17))
+
+### 📝 Documentation
+
+* document auto-save, invite links and dropping images on the table ([5a0df24](https://github.com/SavageChieftain/udonarium_axe/commit/5a0df241e52d1dd7388db621f2f699cc935bff5c))
+* **website:** add v1.20.0 release notes ([e7fdc79](https://github.com/SavageChieftain/udonarium_axe/commit/e7fdc798f83f125604bd188069efe8983a98af66))
+
+### ♻️ Refactor
+
+* **chat:** stop assembling portrait classes by concatenation ([bc16030](https://github.com/SavageChieftain/udonarium_axe/commit/bc16030e792f95edf6c5f49024df3e4d0902c8a3))
+* **file:** separate zip archive creation from the download path ([10cff40](https://github.com/SavageChieftain/udonarium_axe/commit/10cff40bb02fa0ca0e6d6dd43a96394877fb2a79))
+* **lobby:** move room joining into a dedicated service ([f85a840](https://github.com/SavageChieftain/udonarium_axe/commit/f85a84040c925bbf83bde3ea8ff1bd8eb8623497))
+
 ## [1.20.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.19.1...v1.20.0) (2026-07-30)
 
 ### ✨ Features
