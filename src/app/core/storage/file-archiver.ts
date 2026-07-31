@@ -23,6 +23,15 @@ interface LoadGuard extends GameObject {
 
 const MEGA_BYTE = 1024 * 1024;
 const DROP_STACK_OFFSET = 20;
+const XML_MIME_TYPE = 'text/xml';
+
+export function isXmlCandidateFile(file: File): boolean {
+  if (!file.type.startsWith('text/')) return false;
+  if (file.type !== 'text/plain' && file.type !== XML_MIME_TYPE) return false;
+
+  const typeByName = MimeType.type(file.name);
+  return typeByName === '' || typeByName === XML_MIME_TYPE;
+}
 
 export class FileArchiver {
   private static _instance: FileArchiver;
@@ -139,7 +148,7 @@ export class FileArchiver {
   }
 
   private async handleText(file: File, dropPoint?: { x: number; y: number }): Promise<void> {
-    if (!file.type.startsWith('text/')) return;
+    if (!isXmlCandidateFile(file)) return;
 
     let isLoadOk = true;
     // data.xmlはここでは通過させ後段で中身が部屋データ更新だった場合更新確認をする

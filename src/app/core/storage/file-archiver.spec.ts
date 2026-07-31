@@ -1,10 +1,41 @@
 import { imageDropped$, type ImageDroppedEvent } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
-import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { FileArchiver, isXmlCandidateFile } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { strToU8, zip } from 'fflate';
+
+describe('isXmlCandidateFile', () => {
+  function file(name: string, type: string): File {
+    return new File(['<x />'], name, { type });
+  }
+
+  it('XML ファイルを受け入れる', () => {
+    expect(isXmlCandidateFile(file('data.xml', 'text/xml'))).toBe(true);
+    expect(isXmlCandidateFile(file('data.xml', 'text/plain'))).toBe(true);
+  });
+
+  it('拡張子が分からない text も受け入れる', () => {
+    expect(isXmlCandidateFile(file('data', 'text/plain'))).toBe(true);
+  });
+
+  it('HTML は受け付けない', () => {
+    expect(isXmlCandidateFile(file('page.html', 'text/html'))).toBe(false);
+    expect(isXmlCandidateFile(file('page.html', 'text/plain'))).toBe(false);
+    expect(isXmlCandidateFile(file('page.htm', 'text/plain'))).toBe(false);
+  });
+
+  it('XML ではない text は受け付けない', () => {
+    expect(isXmlCandidateFile(file('config.yaml', 'text/plain'))).toBe(false);
+    expect(isXmlCandidateFile(file('style.css', 'text/css'))).toBe(false);
+  });
+
+  it('text 以外は受け付けない', () => {
+    expect(isXmlCandidateFile(file('piece.png', 'image/png'))).toBe(false);
+    expect(isXmlCandidateFile(file('room.zip', 'application/zip'))).toBe(false);
+  });
+});
 
 describe('FileArchiver', () => {
   beforeEach(() => {
