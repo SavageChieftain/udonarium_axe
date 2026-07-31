@@ -1158,7 +1158,8 @@
         "replyingTo": "Replying to {{name}}",
         "cancelReply": "Cancel reply",
         "quoting": "Quoting {{name}}",
-        "cancelQuote": "Cancel quote"
+        "cancelQuote": "Cancel quote",
+        "textareaPlaceholderShort": "Type a message"
       },
       "tab": {
         "unnamedCharacter": "Unnamed character",

@@ -21,6 +21,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { BatchService } from '@axe/application/ui/batch.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { callWritingAMessage } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PeerContext } from '@axe/core/network/peer-context';
@@ -50,6 +51,13 @@ import GameSystemClass from 'bcdice/lib/game_system';
   imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe, TranslocoModule],
 })
 export class ChatInputComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
+  protected readonly isToolsOpen = signal(false);
+
+  protected toggleTools(): void {
+    this.isToolsOpen.update((open) => !open);
+  }
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly batchService = inject(BatchService);

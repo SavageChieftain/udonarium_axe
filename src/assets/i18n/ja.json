@@ -1158,7 +1158,8 @@
         "replyingTo": "{{name}} に返信",
         "cancelReply": "返信をキャンセル",
         "quoting": "{{name}} を引用",
-        "cancelQuote": "引用をキャンセル"
+        "cancelQuote": "引用をキャンセル",
+        "textareaPlaceholderShort": "メッセージを入力"
       },
       "tab": {
         "unnamedCharacter": "無名のキャラクター",
