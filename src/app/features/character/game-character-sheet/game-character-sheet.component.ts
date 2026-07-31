@@ -17,6 +17,7 @@ import { DataElementDragService } from '@axe/application/ui/data-element-drag.se
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -69,6 +70,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   ],
 })
 export class GameCharacterSheetComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly saveDataService = inject(SaveDataService);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);

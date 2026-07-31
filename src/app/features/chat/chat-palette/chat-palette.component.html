@@ -205,7 +205,7 @@
     <div
       class="text-ui-dim border-ui-border-panel grow-0 border-t border-solid px-1.5 py-0.5 text-center text-[0.68em] select-none"
     >
-      {{ 'feature.chat.palette.footerHint' | transloco }}
+      {{ (isCompact() ? 'feature.chat.palette.footerHintTouch' : 'feature.chat.palette.footerHint') | transloco }}
     </div>
   }
 </div>

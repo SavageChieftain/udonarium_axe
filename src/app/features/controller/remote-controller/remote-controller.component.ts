@@ -20,6 +20,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { getMyPeerId } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -67,6 +68,7 @@ interface PaletteRow {
   imports: [FormsModule, ControllerInputComponent, NgTemplateOutlet, SafePipe, TranslocoModule],
 })
 export class RemoteControllerComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   readonly chatMessageService = inject(ChatMessageService);
   private readonly panelService = inject(PanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);

@@ -190,7 +190,8 @@
         "note1": "* Audition plays once through your own speakers only.",
         "note2": "* BGM/SE plays for everyone in the room.",
         "note3": "* Music files are not included in save data (zip).",
-        "tagAll": "All"
+        "tagAll": "All",
+        "clickToSelectTouch": "or tap here to choose"
       },
       "miniJukebox": {
         "stopped": "— Stopped —",
@@ -545,7 +546,8 @@
         "imageCopyTitle": "Copy images to {{name}}",
         "defaultSectionName": "Section",
         "defaultGroupName": "Group",
-        "defaultTagName": "Tag"
+        "defaultTagName": "Tag",
+        "portraitClickHintTouch": "Tap to replace the image"
       },
       "settingsTab": {
         "inventorySetting": "Inventory settings",
@@ -609,7 +611,8 @@
         "maxSize": "Up to 2MB per file",
         "newTagPlaceholder": "New tag name",
         "changeTag": "Change tag",
-        "noImages": "No images in this category"
+        "noImages": "No images in this category",
+        "clickToSelectTouch": "or tap here to choose"
       }
     },
     "character": {
@@ -1206,7 +1209,8 @@
         "footerHint": "Click: input / Double-click: send",
         "indexTitle": "Index",
         "noTarget": "No target selected",
-        "headingBullet": "◆"
+        "headingBullet": "◆",
+        "footerHintTouch": "Tap: insert / Double tap: send"
       },
       "messageSetting": {
         "sectionPortrait": "Standing portrait",
@@ -1645,7 +1649,8 @@
       "addBuffMessage": "Applied buff {{buff}} > {{targets}}",
       "decBuffRoundMessage": "Decreased buff R {{targets}}",
       "deleteZeroBuffMessage": "Cleared 0R buffs {{targets}}",
-      "changeValueMessage": "[{{name}}] changed [{{sign}}{{value}}] > {{detail}}"
+      "changeValueMessage": "[{{name}}] changed [{{sign}}{{value}}] > {{detail}}",
+      "paletteHintTouch": "Tap: insert / Double tap: apply"
     }
   },
   "feature.alarm": {

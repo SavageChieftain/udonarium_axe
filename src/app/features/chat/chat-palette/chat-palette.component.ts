@@ -17,6 +17,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -51,6 +52,7 @@ export interface PaletteRow {
   imports: [FormsModule, BadgeComponent, ChatInputComponent, GameDataElementComponent, TranslocoModule],
 })
 export class ChatPaletteComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   chatMessageService = inject(ChatMessageService);

@@ -4,6 +4,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { emitSelectFile } from '@axe/core/event/domain-events';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -22,6 +23,7 @@ const ALL_TAG = '__all__';
   imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class FileStorageComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly panelService = inject(PanelService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly fileArchiver = inject(FileArchiver);

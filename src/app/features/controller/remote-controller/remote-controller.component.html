@@ -128,7 +128,10 @@
             <div
               class="bg-ui-elevated border-ui-border-panel text-ui-dim border-t px-2 py-0.75 text-center text-[11px] select-none"
             >
-              {{ 'feature.controller.remote.paletteHint' | transloco }}
+              {{
+                (isCompact() ? 'feature.controller.remote.paletteHintTouch' : 'feature.controller.remote.paletteHint')
+                  | transloco
+              }}
             </div>
           }
 

@@ -399,7 +399,9 @@
     >
       <i class="material-icons text-[36px]! opacity-50">playlist_add</i>
       <span class="text-[13px] font-medium">{{ 'feature.media.jukebox.dropMusic' | transloco }}</span>
-      <span class="text-[11px] opacity-70">{{ 'feature.media.jukebox.clickToSelect' | transloco }}</span>
+      <span class="text-[11px] opacity-70">{{
+        (isCompact() ? 'feature.media.jukebox.clickToSelectTouch' : 'feature.media.jukebox.clickToSelect') | transloco
+      }}</span>
       <input type="file" class="hidden" (change)="handleFileSelect($event)" multiple accept="audio/*" />
       <span class="text-[11px] opacity-45">{{ 'feature.media.jukebox.maxFileSize' | transloco }}</span>
     </label>

@@ -190,7 +190,8 @@
         "note1": "※「試聴」は自分のスピーカーだけで1回再生します。",
         "note2": "※「BGM/SE」はルーム内全員で再生します。",
         "note3": "※セーブデータ（zip）に音楽ファイルは含まれません。",
-        "tagAll": "全て"
+        "tagAll": "全て",
+        "clickToSelectTouch": "またはここをタップして選択"
       },
       "miniJukebox": {
         "stopped": "— 停止中 —",
@@ -545,7 +546,8 @@
         "defaultSectionName": "見出し",
         "defaultGroupName": "グループ",
         "defaultTagName": "タグ",
-        "imageCopyTitle": "{{name}}への画像複製"
+        "imageCopyTitle": "{{name}}への画像複製",
+        "portraitClickHintTouch": "タップして画像を差し替え"
       },
       "settingsTab": {
         "inventorySetting": "インベントリ設定",
@@ -609,7 +611,8 @@
         "maxSize": "１ファイルにつき2MBまで",
         "newTagPlaceholder": "新タグ名",
         "changeTag": "タグを変更",
-        "noImages": "この分類に画像はありません"
+        "noImages": "この分類に画像はありません",
+        "clickToSelectTouch": "またはここをタップして選択"
       }
     },
     "character": {
@@ -1206,7 +1209,8 @@
         "footerHint": "クリック: 入力 ／ 2回クリック: 送信",
         "indexTitle": "インデックス",
         "noTarget": "対象が未選択です",
-        "headingBullet": "◆"
+        "headingBullet": "◆",
+        "footerHintTouch": "タップ: 入力 ／ 2回タップ: 送信"
       },
       "messageSetting": {
         "sectionPortrait": "立ち絵",
@@ -1645,7 +1649,8 @@
       "addBuffMessage": "バフを付与 {{buff}} > {{targets}}",
       "decBuffRoundMessage": "バフのRを減少 {{targets}}",
       "deleteZeroBuffMessage": "0R以下のバフを消去 {{targets}}",
-      "changeValueMessage": "[{{name}}]変更[{{sign}}{{value}}]＞{{detail}}"
+      "changeValueMessage": "[{{name}}]変更[{{sign}}{{value}}]＞{{detail}}",
+      "paletteHintTouch": "タップ: 入力 ／ 2回タップ: 付与"
     }
   },
   "feature.alarm": {

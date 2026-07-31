@@ -87,7 +87,12 @@
             <div
               class="border-ui-border-panel bg-ui-elevated group rounded-ui-sm relative aspect-3/4 w-full shrink-0 cursor-pointer overflow-hidden border-2 border-solid"
               (click)="changePortrait(komaImageIndex())"
-              [title]="'feature.inventory.sheet.portraitClickHint' | transloco"
+              [title]="
+                (isCompact()
+                  ? 'feature.inventory.sheet.portraitClickHintTouch'
+                  : 'feature.inventory.sheet.portraitClickHint'
+                ) | transloco
+              "
             >
               @if (komaImageFile().url) {
                 <img
