@@ -45,7 +45,11 @@ export class TabletopActionService {
   constructor() {}
 
   createGameCharacter(position: PointerCoordinate): GameCharacter {
-    const character = GameCharacter.create(this.t('feature.tabletop.action.defaultCharacterName'), 1, '');
+    return this.createGameCharacterWith(position, this.t('feature.tabletop.action.defaultCharacterName'), '');
+  }
+
+  createGameCharacterWith(position: PointerCoordinate, name: string, imageIdentifier: string): GameCharacter {
+    const character = GameCharacter.create(name, 1, imageIdentifier);
     character.location.x = position.x - 25;
     character.location.y = position.y - 25;
     character.posZ = position.z;

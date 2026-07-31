@@ -57,6 +57,7 @@ import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-rest
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
+import { ImageDropEventHandlerService } from '@axe/features/tabletop/image-drop/image-drop-event-handler.service';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
@@ -132,6 +133,7 @@ export class AppComponent {
     inject(CutInEventHandlerService);
     inject(NetworkEventHandlerService);
     inject(RoomArchiveEventHandlerService);
+    inject(ImageDropEventHandlerService);
     inject(CutInService);
     inject(GravityService);
     inject(TurnOrderService);

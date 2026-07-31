@@ -1,4 +1,4 @@
-import { emitFileLoaded, emitXmlLoaded } from '@axe/core/event/domain-events';
+import { emitFileLoaded, emitImageDropped, emitXmlLoaded } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -22,6 +22,7 @@ interface LoadGuard extends GameObject {
 }
 
 const MEGA_BYTE = 1024 * 1024;
+const DROP_STACK_OFFSET = 20;
 
 export class FileArchiver {
   private static _instance: FileArchiver;
@@ -96,8 +97,10 @@ export class FileArchiver {
     if (!files) return;
     const loadFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 
+    let droppedImageCount = 0;
     for (const file of loadFiles) {
-      await this.handleImage(file);
+      const isImageDropped = await this.handleImage(file, this.offsetDropPoint(dropPoint, droppedImageCount));
+      if (isImageDropped) droppedImageCount++;
       await this.handleAudio(file);
       await this.handleText(file, dropPoint);
       await this.handleZip(file, dropPoint);
@@ -105,14 +108,25 @@ export class FileArchiver {
     }
   }
 
-  private async handleImage(file: File) {
-    if (!file.type.startsWith('image/')) return;
-    if (!this.reloadCheck.isLoadOk()) return;
+  private offsetDropPoint(
+    dropPoint: { x: number; y: number } | undefined,
+    index: number
+  ): { x: number; y: number } | undefined {
+    if (!dropPoint) return undefined;
+    const offset = index * DROP_STACK_OFFSET;
+    return { x: dropPoint.x + offset, y: dropPoint.y + offset };
+  }
+
+  private async handleImage(file: File, dropPoint?: { x: number; y: number }): Promise<boolean> {
+    if (!file.type.startsWith('image/')) return false;
+    if (!this.reloadCheck.isLoadOk()) return false;
     if (file.size > this.maxImageSize) {
       Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-      return;
+      return false;
     }
-    await ImageStorage.instance.addAsync(file);
+    const image = await ImageStorage.instance.addAsync(file);
+    if (dropPoint) emitImageDropped({ identifier: image.identifier, fileName: file.name, dropPoint });
+    return dropPoint != null;
   }
 
   private async handleAudio(file: File) {

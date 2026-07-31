@@ -55,6 +55,12 @@ export interface XmlLoadedEvent {
   dropPoint?: { x: number; y: number };
 }
 
+export interface ImageDroppedEvent {
+  identifier: string;
+  fileName: string;
+  dropPoint: { x: number; y: number };
+}
+
 export interface LoadConfigEvent {
   config: unknown;
 }
@@ -80,6 +86,7 @@ export const alarmTimeUp$ = new EventChannel<AlarmTimeUpEvent>();
 export const alarmPop$ = new EventChannel<AlarmPopEvent>();
 export const fileLoaded$ = new EventChannel<void>();
 export const xmlLoaded$ = new EventChannel<XmlLoadedEvent>();
+export const imageDropped$ = new EventChannel<ImageDroppedEvent>();
 // APP_INITIALIZER の設定ロード(emit)が AppComponent 生成時の購読より先に走り得るため、
 // 取りこぼし（= openStandby 未実行で peerId が '???' のまま固定）を防ぐ replay チャネルにする。
 export const loadConfig$ = new ReplayEventChannel<LoadConfigEvent>();
@@ -138,6 +145,9 @@ export function emitFileLoaded() {
 }
 export function emitXmlLoaded(event: XmlLoadedEvent) {
   xmlLoaded$.emit(event);
+}
+export function emitImageDropped(event: ImageDroppedEvent) {
+  imageDropped$.emit(event);
 }
 export function emitLoadConfig(event: LoadConfigEvent) {
   loadConfig$.emit(event);

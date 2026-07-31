@@ -1,5 +1,8 @@
+import { imageDropped$, type ImageDroppedEvent } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { strToU8, zip } from 'fflate';
 
@@ -46,6 +49,52 @@ describe('FileArchiver', () => {
         [Symbol.iterator]: function* () {},
       } as unknown as FileList;
       await FileArchiver.instance.load(fileList);
+    });
+  });
+
+  describe('画像ドロップ', () => {
+    function imageFile(name: string): File {
+      return new File([new Uint8Array([1, 2, 3])], name, { type: 'image/png' });
+    }
+
+    beforeEach(() => {
+      vi.spyOn(ImageStorage.instance, 'addAsync').mockImplementation((file) =>
+        Promise.resolve(ImageFile.createEmpty(`image-${(file as File).name}`))
+      );
+    });
+
+    it('ドロップ位置があれば画像ごとに imageDropped を発火する', async () => {
+      const dropped: ImageDroppedEvent[] = [];
+      const off = imageDropped$.subscribe((event) => dropped.push(event));
+
+      await FileArchiver.instance.load([imageFile('a.png')], { x: 10, y: 20 });
+      off();
+
+      expect(dropped).toHaveLength(1);
+      expect(dropped[0]).toMatchObject({ fileName: 'a.png', dropPoint: { x: 10, y: 20 } });
+    });
+
+    it('複数枚をまとめて落とすと重ならないようずらす', async () => {
+      const dropped: ImageDroppedEvent[] = [];
+      const off = imageDropped$.subscribe((event) => dropped.push(event));
+
+      await FileArchiver.instance.load([imageFile('a.png'), imageFile('b.png')], { x: 10, y: 20 });
+      off();
+
+      expect(dropped.map((event) => event.dropPoint)).toEqual([
+        { x: 10, y: 20 },
+        { x: 30, y: 40 },
+      ]);
+    });
+
+    it('ドロップ位置がなければ発火しない（パネルからの読み込み等）', async () => {
+      const dropped: ImageDroppedEvent[] = [];
+      const off = imageDropped$.subscribe((event) => dropped.push(event));
+
+      await FileArchiver.instance.load([imageFile('a.png')]);
+      off();
+
+      expect(dropped).toHaveLength(0);
     });
   });
 

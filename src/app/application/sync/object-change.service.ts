@@ -18,6 +18,7 @@ import {
   fileLoaded$,
   fileResourceUpdated$ as domainFileResourceUpdated$,
   finishVote$,
+  imageDropped$,
   loadConfig$,
   messageAdded$,
   selectFile$,
@@ -57,6 +58,7 @@ export type {
   CutInEvent,
   FileSelectedEvent,
   FinishVoteEvent,
+  ImageDroppedEvent,
   LoadConfigEvent,
   MessageAddedEvent,
   XmlLoadedEvent,
@@ -258,6 +260,7 @@ export class ObjectChangeService {
   readonly alarmPop$ = alarmPop$;
   readonly fileLoaded$ = fileLoaded$;
   readonly xmlLoaded$ = xmlLoaded$;
+  readonly imageDropped$ = imageDropped$;
   readonly loadConfig$ = loadConfig$;
   readonly domainFileResourceUpdated$ = domainFileResourceUpdated$;
 
