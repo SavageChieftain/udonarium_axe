@@ -2042,6 +2042,10 @@ body.mobile-layout ui-panel .grid-cols-\[56px_230px_1fr_210px\] > div:first-chil
   display: none;
 }
 
+body.mobile-layout ui-panel [data-testid='inventory-item'] {
+  align-items: flex-start;
+}
+
 body.mobile-layout ui-panel > div > .rounded-b-ui-lg {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
 }
