@@ -13,7 +13,9 @@ export function buildInviteLink(baseUrl: string, params: InviteLinkParams): stri
   const query = new URLSearchParams();
   query.set('r', params.roomId);
   query.set('n', params.roomName);
-  if (params.password.length > 0) query.set('p', params.password);
+  if (params.password.length > 0) {
+    query.set('p', encodeInvitePassword(params.password, params.roomId + params.roomName));
+  }
   if (params.role) query.set('role', params.role);
 
   return `${baseUrl}${INVITE_HASH_PREFIX}${query.toString()}`;
@@ -27,11 +29,56 @@ export function parseInviteLink(hash: string): InviteLinkParams | null {
   const roomName = query.get('n') ?? '';
   if (roomId.length < 1 || roomName.length < 1) return null;
 
+  const encodedPassword = query.get('p') ?? '';
   const role = query.get('role');
   return {
     roomId,
     roomName,
-    password: query.get('p') ?? '',
+    password: encodedPassword.length > 0 ? decodeInvitePassword(encodedPassword, roomId + roomName) : '',
     role: isPeerRole(role) ? role : null,
   };
+}
+
+export function encodeInvitePassword(password: string, salt: string): string {
+  const bytes = new TextEncoder().encode(password);
+  return toBase64Url(maskBytes(bytes, salt));
+}
+
+export function decodeInvitePassword(encoded: string, salt: string): string {
+  const bytes = fromBase64Url(encoded);
+  if (!bytes) return '';
+
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(maskBytes(bytes, salt));
+  } catch {
+    return '';
+  }
+}
+
+function maskBytes(bytes: Uint8Array, salt: string): Uint8Array {
+  const key = new TextEncoder().encode(salt);
+  if (key.length < 1) return bytes;
+
+  const masked = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) {
+    masked[i] = bytes[i] ^ key[i % key.length];
+  }
+  return masked;
+}
+
+function toBase64Url(bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function fromBase64Url(value: string): Uint8Array | null {
+  try {
+    const binary = atob(value.replace(/-/g, '+').replace(/_/g, '/'));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  } catch {
+    return null;
+  }
 }

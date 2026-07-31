@@ -4,6 +4,7 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { IRoomInfo, RoomInfo } from '@axe/core/network/room-info';
+import { buildInviteLink } from '@axe/domain/peer/invite-link';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { InviteJoinComponent } from '@axe/features/lobby/invite-join/invite-join.component';
@@ -119,7 +120,7 @@ describe('InviteJoinComponent', () => {
 
   it('リンクに合言葉があれば入力を求めない', async () => {
     findRoom.mockResolvedValue(createRoom(true));
-    await setup('#join?r=a1b&n=room&p=pw');
+    await setup(buildInviteLink('', { roomId: 'a1b', roomName: 'room', password: 'pw', role: null }));
 
     await eventually(() => expect(join).toHaveBeenCalledWith(expect.anything(), 'pw'));
     expect(modalOpen).not.toHaveBeenCalled();
