@@ -88,5 +88,12 @@
     "postcss": "8.5.25",
     "@hono/node-server": "2.0.12",
     "brace-expansion": "5.0.9"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "esbuild@0.28.1": true,
+    "lefthook@2.1.10": true,
+    "lmdb@3.5.6": true,
+    "msgpackr-extract@3.0.4": true
   }
 }
