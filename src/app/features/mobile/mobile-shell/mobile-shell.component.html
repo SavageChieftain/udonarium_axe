@@ -31,7 +31,7 @@
 
   @if (isMenuOpen()) {
     <div
-      class="border-ui-border-panel bg-ui-panel absolute inset-x-0 bottom-full max-h-[60vh] overflow-y-auto border-t border-solid [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+      class="border-ui-border-panel bg-ui-surface fixed inset-x-0 top-2 bottom-15 z-170 overflow-y-auto rounded-t-lg border-t border-solid shadow-[0_-8px_24px_rgba(0,0,0,0.35)]"
     >
       <ul class="m-0 grid list-none grid-cols-3 gap-1 p-2">
         @for (item of menuItems(); track item.action) {

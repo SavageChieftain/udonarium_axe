@@ -22,7 +22,13 @@ export default defineConfig({
     ],
     sidebar: {
       '/manual/': [
-        { text: 'はじめに', items: [{ text: '画面の見かた', link: '/manual/' }] },
+        {
+          text: 'はじめに',
+          items: [
+            { text: '画面の見かた', link: '/manual/' },
+            { text: 'スマートフォンで使う', link: '/manual/mobile' },
+          ],
+        },
         {
           text: 'ロールと公開範囲',
           items: [
