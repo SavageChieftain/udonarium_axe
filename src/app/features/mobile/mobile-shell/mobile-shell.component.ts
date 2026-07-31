@@ -6,11 +6,14 @@ import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/network/network';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
+import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
+import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MobileChatPaneComponent } from '@axe/features/mobile/mobile-chat-pane/mobile-chat-pane.component';
@@ -36,6 +39,7 @@ export class MobileShellComponent {
   private readonly saveDataService = inject(SaveDataService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly visualNovel = inject(VisualNovelModeService);
+  private readonly handRail = inject(HandRailService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly layout = inject(MobileLayoutService);
   protected readonly t = inject(TRANSLATE_FN);
@@ -72,6 +76,10 @@ export class MobileShellComponent {
     }
     if (action === 'visualNovel') {
       this.visualNovel.toggle();
+      return;
+    }
+    if (action === 'hand') {
+      this.handRail.toggle();
       return;
     }
     const opened = this.resolvePanel(action);
@@ -132,6 +140,10 @@ export class MobileShellComponent {
         return { component: GameObjectInventoryComponent, option: { title: this.t('common.panel.inventory') } };
       case 'objectList':
         return { component: GameObjectListPanelComponent, option: { title: this.t('common.panel.objectList') } };
+      case 'party':
+        return { component: PartyListPanelComponent, option: { title: this.t('feature.gmTools.party.title') } };
+      case 'mapEditor':
+        return { component: MapEditorPanelComponent, option: { title: this.t('feature.mapEditor.title') } };
       case 'importCharacter':
         return { component: ImportCharacterComponent, option: { title: this.t('common.panel.characterImport') } };
       case 'roomSnapshot':

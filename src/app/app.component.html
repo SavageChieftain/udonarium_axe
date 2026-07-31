@@ -9,6 +9,7 @@
 @if (mobile.isActive()) {
   @if (!visualNovel.active()) {
     <app-mobile-shell />
+    <app-hand-rail></app-hand-rail>
   }
 } @else {
   <app-mini-jukebox [hidden]="!widgets.miniPlayer()"></app-mini-jukebox>

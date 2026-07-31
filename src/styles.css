@@ -2014,3 +2014,11 @@ body.mobile-layout ui-panel .min-w-40,
 body.mobile-layout ui-panel .min-w-36 {
   min-width: 0;
 }
+
+body.mobile-layout ui-panel .grid-cols-\[56px_230px_1fr_210px\] {
+  min-width: 620px;
+}
+
+body.mobile-layout ui-panel .grid-cols-\[56px_230px_1fr_210px\] > div:first-child span {
+  display: none;
+}
