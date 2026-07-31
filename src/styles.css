@@ -2047,12 +2047,24 @@ body.mobile-layout ui-panel > div > .rounded-b-ui-lg {
 }
 
 body.mobile-layout ui-panel button,
-body.mobile-layout app-mobile-shell button {
+body.mobile-layout app-mobile-shell button,
+body.mobile-layout visual-novel-overlay button {
   -webkit-tap-highlight-color: transparent;
 }
 
-body.mobile-layout ui-panel button:active:not(:disabled) {
+body.mobile-layout ui-panel button:active:not(:disabled),
+body.mobile-layout visual-novel-overlay button:active:not(:disabled) {
   transform: scale(0.97);
+}
+
+body.mobile-layout visual-novel-overlay input[type='text'],
+body.mobile-layout visual-novel-overlay textarea {
+  min-height: 40px;
+  font-size: 16px;
+}
+
+body.mobile-layout visual-novel-overlay button:not(.material-icons) {
+  min-height: 40px;
 }
 
 body.mobile-layout :is(ui-panel, app-mobile-shell) {

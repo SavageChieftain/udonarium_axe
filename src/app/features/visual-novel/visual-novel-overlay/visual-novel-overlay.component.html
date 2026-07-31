@@ -393,7 +393,7 @@
   </div>
 }
 
-<div class="absolute inset-x-0 bottom-0 z-50 px-[4%] pb-3">
+<div class="absolute inset-x-0 bottom-0 z-50 px-[4%] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
   @if (!currentMessage()) {
     <div
       class="rounded-ui-xl pointer-events-auto mx-auto max-w-xl border border-solid border-white/25 bg-black/60 px-6 py-4 text-center text-sm text-white/80 backdrop-blur-md"
@@ -878,7 +878,10 @@
       <input
         type="text"
         class="border-ui-border-panel bg-ui-input text-ui-text placeholder:text-ui-dim focus:border-ui-accent rounded-ui min-w-36 flex-1 border border-solid px-2.5 py-1.5 text-[13px] outline-none disabled:opacity-40"
-        [placeholder]="'feature.visualNovel.inputPlaceholder' | transloco"
+        [placeholder]="
+          (isCompact() ? 'feature.visualNovel.inputPlaceholderCompact' : 'feature.visualNovel.inputPlaceholder')
+            | transloco
+        "
         [disabled]="!canSpeak()"
         [ngModel]="text()"
         (ngModelChange)="text.set($event)"
