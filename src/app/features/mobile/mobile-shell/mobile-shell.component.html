@@ -55,7 +55,7 @@
     </header>
 
     <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-      <ul class="m-0 grid list-none grid-cols-3 gap-1 p-0">
+      <ul class="m-0 grid list-none grid-cols-3 gap-1 p-0 min-[520px]:grid-cols-5">
         @for (item of sharedItems; track item.action) {
           <li>
             <button
@@ -74,7 +74,7 @@
           <p class="text-ui-muted m-0 px-2 pb-1 text-[0.65rem] font-semibold tracking-wider">
             {{ 'feature.mobile.gameMasterSection' | transloco }}
           </p>
-          <ul class="m-0 grid list-none grid-cols-3 gap-1 p-0">
+          <ul class="m-0 grid list-none grid-cols-3 gap-1 p-0 min-[520px]:grid-cols-5">
             @for (item of gameMasterItems; track item.action) {
               <li>
                 <button
