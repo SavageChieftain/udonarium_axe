@@ -14,6 +14,7 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { getRangeMenuItems } from '@axe/application/tabletop/tabletop-action-helpers';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -37,6 +38,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   imports: [DraggableDirective, SafePipe, TranslocoModule],
 })
 export class PlToolbarComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly panelService = inject(PanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);

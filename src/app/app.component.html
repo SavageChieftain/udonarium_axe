@@ -1,152 +1,172 @@
-<div id="app-table-layer" class="absolute size-full overflow-hidden">
+<div
+  id="app-table-layer"
+  class="absolute w-full overflow-hidden"
+  [class.h-full]="!mobile.isActive()"
+  [style.height]="mobile.isActive() ? mobile.tableRatio() * 100 + '%' : null"
+>
   <game-table></game-table>
 </div>
-<app-mini-jukebox [hidden]="!widgets.miniPlayer()"></app-mini-jukebox>
-<app-digital-clock></app-digital-clock>
-<app-gm-toolbar></app-gm-toolbar>
-<app-pl-toolbar></app-pl-toolbar>
-<app-hand-rail></app-hand-rail>
+@if (mobile.isActive()) {
+  <app-mobile-shell />
+} @else {
+  <app-mini-jukebox [hidden]="!widgets.miniPlayer()"></app-mini-jukebox>
+  <app-digital-clock></app-digital-clock>
+  <app-gm-toolbar></app-gm-toolbar>
+  <app-pl-toolbar></app-pl-toolbar>
+  <app-hand-rail></app-hand-rail>
+}
 <app-hand-drag-ghost></app-hand-drag-ghost>
 <app-npc-drag-ghost></app-npc-drag-ghost>
-<div class="group absolute top-3 left-3 z-200 flex w-14 justify-center" [class.open]="fabOpen()">
-  <nav
-    class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md pointer-events-none absolute top-[calc(100%+10px)] left-0 z-8 w-14 origin-top-left -translate-y-4 overflow-visible border border-solid opacity-0 [backdrop-filter:blur(24px)_saturate(1.5)] transition-[transform,opacity] duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:pointer-events-auto group-[.open]:translate-y-0 group-[.open]:opacity-100"
-  >
-    <ul class="m-0 list-none p-1.5">
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.peerMenu' | transloco"
-        (click)="open('PeerMenuComponent')"
-      >
-        <i class="material-icons">people</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.chat' | transloco"
-        (click)="open('ChatWindowComponent')"
-      >
-        <i class="material-icons">speaker_notes</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.tableSetting' | transloco"
-        (click)="open('GameTableSettingComponent')"
-      >
-        <i class="material-icons">layers</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.images' | transloco"
-        (click)="open('FileStorageComponent')"
-      >
-        <i class="material-icons">photo_library</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.jukebox' | transloco"
-        (click)="open('JukeboxComponent')"
-      >
-        <i class="material-icons">queue_music</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.cutIn' | transloco"
-        (click)="open('CutInListComponent')"
-      >
-        <i class="material-icons">slideshow</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.inventory' | transloco"
-        (click)="open('GameObjectInventoryComponent')"
-      >
-        <i class="material-icons">folder_shared</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.importCharacter' | transloco"
-        (click)="open('ImportCharacterComponent')"
-      >
-        <i class="material-icons">person_add</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [class.text-ui-accent]="visualNovel.active()"
-        [attr.data-label]="'app.fab.visualNovel' | transloco"
-        (click)="visualNovel.toggle()"
-      >
-        <i class="material-icons">auto_stories</i>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px] [&>label]:flex [&>label]:size-full [&>label]:cursor-pointer [&>label]:items-center [&>label]:justify-center [&>label]:text-inherit"
-        [attr.data-label]="'app.fab.zipLoad' | transloco"
-      >
-        <label>
-          <i class="material-icons">open_in_browser</i>
-          <input
-            type="file"
-            class="hidden"
-            (change)="handleFileSelect($event)"
-            multiple
-            accept="application/xml,text/xml,application/zip"
-          />
-        </label>
-      </li>
-      <li
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="'app.fab.roomSnapshot' | transloco"
-        (click)="open('RoomSnapshotPanelComponent')"
-      >
-        <i class="material-icons">history</i>
-      </li>
-    </ul>
-    <div class="flex flex-col gap-0 px-1.5 pb-1.5">
-      @if (!isSaving()) {
+@if (!mobile.isActive()) {
+  <div class="group absolute top-3 left-3 z-200 flex w-14 justify-center" [class.open]="fabOpen()">
+    <nav
+      class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md pointer-events-none absolute top-[calc(100%+10px)] left-0 z-8 max-h-[calc(100vh-5rem)] w-14 origin-top-left -translate-y-4 overflow-x-visible overflow-y-auto border border-solid opacity-0 [backdrop-filter:blur(24px)_saturate(1.5)] transition-[transform,opacity] duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:pointer-events-auto group-[.open]:translate-y-0 group-[.open]:opacity-100"
+    >
+      <ul class="m-0 list-none p-1.5">
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.peerMenu' | transloco"
+          (click)="open('PeerMenuComponent')"
+        >
+          <i class="material-icons">people</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.chat' | transloco"
+          (click)="open('ChatWindowComponent')"
+        >
+          <i class="material-icons">speaker_notes</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.tableSetting' | transloco"
+          (click)="open('GameTableSettingComponent')"
+        >
+          <i class="material-icons">layers</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.images' | transloco"
+          (click)="open('FileStorageComponent')"
+        >
+          <i class="material-icons">photo_library</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.jukebox' | transloco"
+          (click)="open('JukeboxComponent')"
+        >
+          <i class="material-icons">queue_music</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.cutIn' | transloco"
+          (click)="open('CutInListComponent')"
+        >
+          <i class="material-icons">slideshow</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.inventory' | transloco"
+          (click)="open('GameObjectInventoryComponent')"
+        >
+          <i class="material-icons">folder_shared</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.importCharacter' | transloco"
+          (click)="open('ImportCharacterComponent')"
+        >
+          <i class="material-icons">person_add</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [class.text-ui-accent]="visualNovel.active()"
+          [attr.data-label]="'app.fab.visualNovel' | transloco"
+          (click)="visualNovel.toggle()"
+        >
+          <i class="material-icons">auto_stories</i>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px] [&>label]:flex [&>label]:size-full [&>label]:cursor-pointer [&>label]:items-center [&>label]:justify-center [&>label]:text-inherit"
+          [attr.data-label]="'app.fab.zipLoad' | transloco"
+        >
+          <label>
+            <i class="material-icons">open_in_browser</i>
+            <input
+              type="file"
+              class="hidden"
+              (change)="handleFileSelect($event)"
+              multiple
+              accept="application/xml,text/xml,application/zip"
+            />
+          </label>
+        </li>
+        <li
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+          [attr.data-label]="'app.fab.roomSnapshot' | transloco"
+          (click)="open('RoomSnapshotPanelComponent')"
+        >
+          <i class="material-icons">history</i>
+        </li>
+      </ul>
+      <div class="flex flex-col gap-0 px-1.5 pb-1.5">
+        @if (!isSaving()) {
+          <div
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+            [attr.data-label]="'app.fab.save' | transloco"
+            (click)="save()"
+          >
+            <i class="material-icons">sd_storage</i>
+          </div>
+        }
+        @if (isSaving()) {
+          <div
+            class="text-ui-dim rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm pointer-events-none relative flex size-11 items-center justify-center opacity-60 after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
+            [attr.data-label]="progressPercent() + '%'"
+          >
+            <i class="material-icons vibration-amine">sd_storage</i>
+          </div>
+        }
+        @if (viewport.isCompact() && mobile.prefersDesktop()) {
+          <div
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] [&_i]:text-[22px]"
+            [attr.data-label]="'feature.mobile.useMobile' | transloco"
+            (click)="mobile.useMobileLayout()"
+          >
+            <i class="material-icons">smartphone</i>
+          </div>
+        }
         <div
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-          [attr.data-label]="'app.fab.save' | transloco"
-          (click)="save()"
+          [attr.data-label]="themeLabel()"
+          (click)="theme.cycle()"
         >
-          <i class="material-icons">sd_storage</i>
+          @switch (theme.theme()) {
+            @case ('auto') {
+              <i class="material-icons">brightness_auto</i>
+            }
+            @case ('dark') {
+              <i class="material-icons">dark_mode</i>
+            }
+            @case ('light') {
+              <i class="material-icons">light_mode</i>
+            }
+          }
         </div>
-      }
-      @if (isSaving()) {
-        <div
-          class="text-ui-dim rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm pointer-events-none relative flex size-11 items-center justify-center opacity-60 after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-          [attr.data-label]="progressPercent() + '%'"
-        >
-          <i class="material-icons vibration-amine">sd_storage</i>
-        </div>
-      }
-      <div
-        class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui after:bg-ui-panel after:border-ui-border-panel after:text-ui-text after:rounded-ui after:shadow-ui-sm relative flex size-11 cursor-pointer items-center justify-center transition-[color,background] after:pointer-events-none after:absolute after:top-1/2 after:left-[calc(100%+10px)] after:z-10000 after:-translate-y-1/2 after:border after:border-solid after:px-2.5 after:py-1 after:text-[11px] after:whitespace-nowrap after:opacity-0 after:[backdrop-filter:blur(24px)_saturate(1.5)] after:transition-opacity after:content-[attr(data-label)] after:[-webkit-backdrop-filter:blur(24px)_saturate(1.5)] hover:after:opacity-100 [&_i]:text-[22px]"
-        [attr.data-label]="themeLabel()"
-        (click)="theme.cycle()"
-      >
-        @switch (theme.theme()) {
-          @case ('auto') {
-            <i class="material-icons">brightness_auto</i>
-          }
-          @case ('dark') {
-            <i class="material-icons">dark_mode</i>
-          }
-          @case ('light') {
-            <i class="material-icons">light_mode</i>
-          }
-        }
+        <app-language-selector />
       </div>
-      <app-language-selector />
-    </div>
-  </nav>
-  <button
-    class="border-ui-border-panel bg-ui-panel shadow-ui-md text-ui-muted hover:text-ui-accent group-[.open]:bg-ui-elevated group-[.open]:text-ui-accent relative z-10 flex size-12 cursor-pointer items-center justify-center rounded-full border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] transition-[color,background,box-shadow,transform] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:shadow-[0_0_0_2px_var(--ui-accent-glow),var(--ui-shadow-md)] hover:shadow-[0_0_0_2px_var(--ui-accent-glow),var(--ui-shadow-md)] [&_i]:text-[24px] [&_i]:leading-none [&_i]:transition-transform [&_i]:duration-220 [&_i]:ease-in-out group-[.open]:[&_i]:rotate-90"
-    (click)="fabOpen.set(!fabOpen())"
-    [attr.aria-label]="fabOpen() ? ('app.fab.menuClose' | transloco) : ('app.fab.menuOpen' | transloco)"
-    [attr.aria-expanded]="fabOpen()"
-  >
-    <i class="material-icons">{{ fabOpen() ? 'close' : 'menu' }}</i>
-  </button>
-</div>
+    </nav>
+    <button
+      class="border-ui-border-panel bg-ui-panel shadow-ui-md text-ui-muted hover:text-ui-accent group-[.open]:bg-ui-elevated group-[.open]:text-ui-accent relative z-10 flex size-12 cursor-pointer items-center justify-center rounded-full border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] transition-[color,background,box-shadow,transform] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:shadow-[0_0_0_2px_var(--ui-accent-glow),var(--ui-shadow-md)] hover:shadow-[0_0_0_2px_var(--ui-accent-glow),var(--ui-shadow-md)] [&_i]:text-[24px] [&_i]:leading-none [&_i]:transition-transform [&_i]:duration-220 [&_i]:ease-in-out group-[.open]:[&_i]:rotate-90"
+      (click)="fabOpen.set(!fabOpen())"
+      [attr.aria-label]="fabOpen() ? ('app.fab.menuClose' | transloco) : ('app.fab.menuOpen' | transloco)"
+      [attr.aria-expanded]="fabOpen()"
+    >
+      <i class="material-icons">{{ fabOpen() ? 'close' : 'menu' }}</i>
+    </button>
+  </div>
+}
 <app-invite-join />
 <app-room-restore-banner />
 @if (visualNovel.active()) {

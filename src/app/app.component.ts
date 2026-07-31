@@ -18,9 +18,11 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
@@ -51,6 +53,7 @@ import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handl
 import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
+import { MobileShellComponent } from '@axe/features/mobile/mobile-shell/mobile-shell.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
@@ -83,6 +86,7 @@ import { version as APP_VERSION } from '@pkg';
     HandDragGhostComponent,
     NpcDragGhostComponent,
     DigitalClockComponent,
+    MobileShellComponent,
     RoomRestoreBannerComponent,
     InviteJoinComponent,
     LanguageSelectorComponent,
@@ -95,6 +99,8 @@ export class AppComponent {
   readonly language = inject(LanguageService);
   readonly visualNovel = inject(VisualNovelModeService);
   readonly widgets = inject(WidgetVisibilityService);
+  readonly viewport = inject(ViewportService);
+  readonly mobile = inject(MobileLayoutService);
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly saveDataService = inject(SaveDataService);
@@ -150,6 +156,8 @@ export class AppComponent {
         left: 80,
         top: 10,
       });
+      if (this.viewport.isCompact()) return;
+
       const chatHeight = 460;
       this.panelService.open(ChatWindowComponent, {
         title: this.t('common.panel.chatWindow'),

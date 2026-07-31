@@ -1,0 +1,60 @@
+<div
+  class="border-ui-border-panel bg-ui-panel text-ui-text fixed inset-x-0 bottom-0 z-160 flex flex-col border-t border-solid [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+  [style.top]="layout.tableRatio() * 100 + '%'"
+>
+  <div
+    class="bg-ui-titlebar flex h-5 shrink-0 cursor-row-resize touch-none items-center justify-center"
+    (pointerdown)="startResize($event)"
+  >
+    <div class="bg-ui-dim h-1 w-10 rounded-full opacity-60"></div>
+  </div>
+
+  <app-mobile-chat-pane />
+
+  <nav class="border-ui-border-panel flex shrink-0 items-stretch gap-1 border-t border-solid px-2 py-1.5">
+    <button
+      class="text-ui-muted hover:text-ui-accent rounded-ui flex flex-1 flex-col items-center gap-0.5 border-none bg-transparent p-1 text-[0.65rem] shadow-none"
+      (click)="openCharacterList()"
+    >
+      <i class="material-icons text-[20px]">groups</i>
+      {{ 'app.fab.ownedCharacters' | transloco }}
+    </button>
+    <button
+      class="text-ui-muted hover:text-ui-accent rounded-ui flex flex-1 flex-col items-center gap-0.5 border-none bg-transparent p-1 text-[0.65rem] shadow-none"
+      [class.text-ui-accent]="isMenuOpen()"
+      (click)="toggleMenu()"
+    >
+      <i class="material-icons text-[20px]">{{ isMenuOpen() ? 'close' : 'menu' }}</i>
+      {{ 'feature.mobile.menu' | transloco }}
+    </button>
+  </nav>
+
+  @if (isMenuOpen()) {
+    <div
+      class="border-ui-border-panel bg-ui-panel absolute inset-x-0 bottom-full max-h-[60vh] overflow-y-auto border-t border-solid [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+    >
+      <ul class="m-0 grid list-none grid-cols-3 gap-1 p-2">
+        @for (item of menuItems(); track item.action) {
+          <li>
+            <button
+              class="text-ui-muted hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex w-full flex-col items-center gap-1 border-none bg-transparent px-1 py-2.5 text-[0.68rem] shadow-none"
+              (click)="runMenuAction(item.action)"
+            >
+              <i class="material-icons text-[22px]">{{ item.icon }}</i>
+              <span class="text-center leading-tight">{{ item.labelKey | transloco }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+      <div class="border-ui-border-panel border-t border-solid p-2">
+        <button
+          class="text-ui-muted hover:text-ui-accent rounded-ui flex w-full items-center justify-center gap-1.5 border-none bg-transparent p-2 text-[0.72rem] shadow-none"
+          (click)="useDesktopLayout()"
+        >
+          <i class="material-icons text-[18px]">desktop_windows</i>
+          {{ 'feature.mobile.useDesktop' | transloco }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

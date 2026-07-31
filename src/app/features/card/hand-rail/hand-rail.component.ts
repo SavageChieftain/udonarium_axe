@@ -12,6 +12,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
@@ -42,6 +43,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   imports: [DraggableDirective, SafePipe, TranslocoModule],
 })
 export class HandRailComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly selectionSignalService = inject(SelectionSignalService);

@@ -1556,6 +1556,11 @@
         "removeConfirm": "{{savedAt}} のスナップショットを削除しますか？",
         "clearConfirm": "保存済みのスナップショットをすべて削除しますか？"
       }
+    },
+    "mobile": {
+      "menu": "メニュー",
+      "useDesktop": "パソコン版の画面を使う",
+      "useMobile": "スマホ版の画面に戻す"
     }
   },
   "app": {

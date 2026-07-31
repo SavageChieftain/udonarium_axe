@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
@@ -34,7 +35,10 @@ export class UIPanelComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly viewport = inject(ViewportService);
   private readonly t = inject(TRANSLATE_FN);
+
+  readonly isCompact = this.viewport.isCompact;
 
   get menuTitle(): string {
     return this.t('ui.panel.menuTitle');

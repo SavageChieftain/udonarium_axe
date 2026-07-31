@@ -1556,6 +1556,11 @@
         "removeConfirm": "Delete the snapshot from {{savedAt}}?",
         "clearConfirm": "Delete all stored snapshots?"
       }
+    },
+    "mobile": {
+      "menu": "Menu",
+      "useDesktop": "Switch to the desktop layout",
+      "useMobile": "Back to the mobile layout"
     }
   },
   "app": {

@@ -14,6 +14,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -37,6 +38,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   imports: [DraggableDirective, NpcBarComponent, TranslocoModule],
 })
 export class GmToolbarComponent {
+  protected readonly isCompact = inject(ViewportService).isCompact;
   protected readonly npcBar = inject(NpcBarService);
   protected readonly drag = inject(NpcDragService);
   private readonly panelService = inject(PanelService);

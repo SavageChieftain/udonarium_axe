@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
@@ -21,6 +22,44 @@ describe('UIPanelComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('狭い画面', () => {
+    function panel(): HTMLElement {
+      return fixture.nativeElement.querySelector('.draggable-panel');
+    }
+
+    function setCompact(isCompact: boolean): void {
+      const viewport = TestBed.inject(ViewportService);
+      (viewport as unknown as { _isCompact: { set(value: boolean): void } })._isCompact.set(isCompact);
+      fixture.detectChanges();
+    }
+
+    it('画面いっぱいに広げる', () => {
+      setCompact(true);
+
+      expect(panel().classList.contains('inset-0!')).toBe(true);
+      expect(panel().classList.contains('w-screen!')).toBe(true);
+      expect(panel().classList.contains('h-screen!')).toBe(true);
+    });
+
+    it('広い画面では広げない', () => {
+      setCompact(false);
+
+      expect(panel().classList.contains('inset-0!')).toBe(false);
+      expect(panel().classList.contains('w-screen!')).toBe(false);
+    });
+
+    it('最小化と全画面のボタンを出さない', () => {
+      setCompact(true);
+      const icons = [...fixture.nativeElement.querySelectorAll('.material-icons')].map((el) =>
+        (el as HTMLElement).textContent?.trim()
+      );
+
+      expect(icons).not.toContain('remove');
+      expect(icons).not.toContain('fullscreen');
+      expect(icons).toContain('close');
+    });
   });
 
   it('global dragging 中は panel を pointer-events-none にすること', () => {

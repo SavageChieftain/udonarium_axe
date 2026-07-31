@@ -1907,3 +1907,39 @@ game-data-element .elm-markdown-view,
     opacity: 1;
   }
 }
+
+/**************** mobile layout ****************/
+
+body.mobile-layout ui-panel input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+body.mobile-layout ui-panel select,
+body.mobile-layout ui-panel textarea {
+  min-height: 40px;
+  font-size: 16px;
+}
+
+body.mobile-layout ui-panel button:not(.material-icons) {
+  min-height: 36px;
+}
+
+body.mobile-layout ui-panel input[type='checkbox'],
+body.mobile-layout ui-panel input[type='radio'] {
+  width: 20px;
+  height: 20px;
+}
+
+body.mobile-layout ui-panel table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+body.mobile-layout ui-panel img,
+body.mobile-layout ui-panel canvas,
+body.mobile-layout ui-panel video {
+  max-width: 100%;
+}
+
+body.mobile-layout .modal-window,
+body.mobile-layout ui-panel {
+  -webkit-text-size-adjust: 100%;
+}
