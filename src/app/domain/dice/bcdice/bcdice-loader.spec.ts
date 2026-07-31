@@ -1,7 +1,7 @@
-import BCDiceLoader from '@axe/domain/dice/bcdice/bcdice-loader';
+import BCDiceLoader, { loadBCDiceGameSystems } from '@axe/domain/dice/bcdice/bcdice-loader';
 
 describe('BCDiceLoader', () => {
-  it('StaticLoaderを継承している', () => {
+  it('Loader を継承している', () => {
     const loader = new BCDiceLoader();
     expect(loader).toBeTruthy();
   });
@@ -9,5 +9,29 @@ describe('BCDiceLoader', () => {
   it('dynamicLoadがメソッドとして存在する', () => {
     const loader = new BCDiceLoader();
     expect(typeof loader.dynamicLoad).toBe('function');
+  });
+});
+
+describe('loadBCDiceGameSystems', () => {
+  it('読み込み後は同期的にゲームシステムクラスを取得できる', async () => {
+    await loadBCDiceGameSystems();
+    const loader = new BCDiceLoader();
+
+    expect(loader.getGameSystemClass('Cthulhu7th')).toBeTruthy();
+  });
+
+  it('二度呼んでも同じ読み込みを共有する', async () => {
+    const first = loadBCDiceGameSystems();
+    const second = loadBCDiceGameSystems();
+
+    expect(first).toBe(second);
+    await first;
+  });
+
+  it('i18n を使うシステムのヘルプが読み込まれている', async () => {
+    await loadBCDiceGameSystems();
+    const loader = new BCDiceLoader();
+
+    expect(loader.getGameSystemClass('Amadeus').HELP_MESSAGE.length).toBeGreaterThan(0);
   });
 });
