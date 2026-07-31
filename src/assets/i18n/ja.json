@@ -39,7 +39,8 @@
       "inventory": "インベントリ",
       "objectList": "オブジェクト一覧",
       "characterImport": "キャラクター取り込み",
-      "ownedCharacters": "所有キャラクター一覧"
+      "ownedCharacters": "所有キャラクター一覧",
+      "roomSnapshot": "自動保存"
     },
     "party": {
       "unnamed": "無名のパーティ"
@@ -1523,6 +1524,27 @@
         "cells": "{{n}}マス",
         "angle": "∠{{deg}}°"
       }
+    },
+    "roomArchive": {
+      "banner": {
+        "message": "前回の卓データがこのブラウザに残っています",
+        "restore": "復元する",
+        "dismiss": "あとで"
+      },
+      "panel": {
+        "hint": "テーブルの変更を検知して、このブラウザに自動でスナップショットを保存します（編集権限のある人のみ）。保存先はこのブラウザ内で、他の参加者には共有されません。",
+        "summary": "{{count}} 世代 ・ 合計 {{totalSize}}",
+        "captureNow": "今すぐ保存",
+        "clearAll": "すべて削除",
+        "empty": "まだスナップショットがありません",
+        "restore": "復元",
+        "remove": "削除",
+        "offlineRoom": "オフライン",
+        "unsupported": "このブラウザでは自動保存を利用できません（IndexedDB が使用できません）",
+        "restoreConfirm": "{{savedAt}} のスナップショットを読み込みます。現在の卓データは上書きされます。よろしいですか？",
+        "removeConfirm": "{{savedAt}} のスナップショットを削除しますか？",
+        "clearConfirm": "保存済みのスナップショットをすべて削除しますか？"
+      }
     }
   },
   "app": {
@@ -1551,7 +1573,8 @@
       "releaseOwnershipConfirm": "オフラインのオーナーが持つ所有 {{count}} 件を解放しますか？（解放後は各自で再取得できます）",
       "zipLoad": "ZIP読込",
       "save": "保存",
-      "importCharacter": "キャラ取り込み"
+      "importCharacter": "キャラ取り込み",
+      "roomSnapshot": "自動保存 / 復元"
     },
     "roomDataDefault": "ルームデータ"
   },

@@ -39,7 +39,8 @@
       "inventory": "Inventory",
       "objectList": "Object list",
       "characterImport": "Import Character",
-      "ownedCharacters": "My characters"
+      "ownedCharacters": "My characters",
+      "roomSnapshot": "Auto Save"
     },
     "party": {
       "unnamed": "Unnamed party"
@@ -1523,6 +1524,27 @@
         "cells": "{{n}} cells",
         "angle": "∠{{deg}}°"
       }
+    },
+    "roomArchive": {
+      "banner": {
+        "message": "A room from your last session is still stored in this browser",
+        "restore": "Restore",
+        "dismiss": "Later"
+      },
+      "panel": {
+        "hint": "Snapshots of the table are saved automatically in this browser when it changes (editors only). They stay on this browser and are never shared with other players.",
+        "summary": "{{count}} snapshots · {{totalSize}} total",
+        "captureNow": "Save now",
+        "clearAll": "Delete all",
+        "empty": "No snapshots yet",
+        "restore": "Restore",
+        "remove": "Delete",
+        "offlineRoom": "Offline",
+        "unsupported": "Auto save is unavailable in this browser (IndexedDB is not usable)",
+        "restoreConfirm": "Load the snapshot from {{savedAt}}? The current room data will be overwritten.",
+        "removeConfirm": "Delete the snapshot from {{savedAt}}?",
+        "clearConfirm": "Delete all stored snapshots?"
+      }
     }
   },
   "app": {
@@ -1551,7 +1573,8 @@
       "releaseOwnershipConfirm": "Release ownership held by {{count}} offline owner(s)? (anyone can re-claim afterwards)",
       "zipLoad": "Load ZIP",
       "save": "Save",
-      "importCharacter": "Import Character"
+      "importCharacter": "Import Character",
+      "roomSnapshot": "Auto save / restore"
     },
     "roomDataDefault": "Room data"
   },

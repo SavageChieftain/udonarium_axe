@@ -1,0 +1,25 @@
+@if (visible()) {
+  <div
+    class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md text-ui-text absolute top-3 left-1/2 z-200 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 border border-solid px-4 py-2.5 [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+  >
+    <i class="material-icons text-ui-accent text-[20px]">history</i>
+    <div class="flex min-w-0 flex-col">
+      <span class="truncate text-[0.82rem]">{{ 'feature.roomArchive.banner.message' | transloco }}</span>
+      <span class="text-ui-muted truncate text-[0.72rem]">{{ savedAtLabel() }}</span>
+    </div>
+    <button
+      class="rounded-ui-sm border-ui-accent bg-ui-accent hover:border-ui-accent-hover hover:bg-ui-accent-hover cursor-pointer border border-solid px-[1.1em] py-[0.4em] text-[0.8rem] text-white hover:shadow-[0_0_0_3px_var(--ui-accent-glow)]"
+      [disabled]="isRestoring()"
+      (click)="restore()"
+    >
+      {{ 'feature.roomArchive.banner.restore' | transloco }}
+    </button>
+    <button
+      class="rounded-ui-sm cursor-pointer px-[0.9em] py-[0.4em] text-[0.8rem]"
+      [disabled]="isRestoring()"
+      (click)="dismiss()"
+    >
+      {{ 'feature.roomArchive.banner.dismiss' | transloco }}
+    </button>
+  </div>
+}

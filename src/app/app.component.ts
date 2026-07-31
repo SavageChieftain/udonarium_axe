@@ -51,6 +51,9 @@ import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
+import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
+import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
+import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
@@ -78,6 +81,7 @@ import { version as APP_VERSION } from '@pkg';
     HandDragGhostComponent,
     NpcDragGhostComponent,
     DigitalClockComponent,
+    RoomRestoreBannerComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,
     TranslocoModule,
@@ -125,6 +129,7 @@ export class AppComponent {
     inject(VoteEventHandlerService);
     inject(CutInEventHandlerService);
     inject(NetworkEventHandlerService);
+    inject(RoomArchiveEventHandlerService);
     inject(CutInService);
     inject(GravityService);
     inject(TurnOrderService);
@@ -167,6 +172,7 @@ export class AppComponent {
       | 'ImportCharacterComponent'
       | 'GameObjectInventoryComponent'
       | 'GameObjectListPanelComponent'
+      | 'RoomSnapshotPanelComponent'
   ) {
     let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
@@ -218,6 +224,10 @@ export class AppComponent {
       case 'GameObjectListPanelComponent':
         component = GameObjectListPanelComponent;
         option = { width: 460, height: 620, left: 100, title: this.t('common.panel.objectList') };
+        break;
+      case 'RoomSnapshotPanelComponent':
+        component = RoomSnapshotPanelComponent;
+        option = { width: 460, height: 460, left: 100, title: this.t('common.panel.roomSnapshot') };
         break;
     }
     if (component) {

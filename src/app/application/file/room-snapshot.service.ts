@@ -1,0 +1,101 @@
+import { inject, Injectable, signal } from '@angular/core';
+import { SaveDataService } from '@axe/application/file/save-data.service';
+import { Logger } from '@axe/core/logging/logger';
+import { Network } from '@axe/core/network/network';
+import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { RoomSnapshotMeta, RoomSnapshotStore, selectExpiredSnapshots } from '@axe/core/storage/room-snapshot-store';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
+
+@Injectable({ providedIn: 'root' })
+export class RoomSnapshotService {
+  private readonly store = inject(RoomSnapshotStore);
+  private readonly saveDataService = inject(SaveDataService);
+  private readonly fileArchiver = inject(FileArchiver);
+  private readonly objectStore = inject(ObjectStore);
+
+  private readonly _snapshots = signal<readonly RoomSnapshotMeta[]>([]);
+  readonly snapshots = this._snapshots.asReadonly();
+
+  private readonly _isCapturing = signal(false);
+  readonly isCapturing = this._isCapturing.asReadonly();
+
+  private readonly _isRestoring = signal(false);
+  readonly isRestoring = this._isRestoring.asReadonly();
+
+  get isSupported(): boolean {
+    return this.store.isAvailable();
+  }
+
+  get latest(): RoomSnapshotMeta | null {
+    return this._snapshots()[0] ?? null;
+  }
+
+  async refresh(): Promise<readonly RoomSnapshotMeta[]> {
+    if (!this.isSupported) return [];
+    const metas = await this.store.list();
+    this._snapshots.set(metas);
+    return metas;
+  }
+
+  async capture(): Promise<RoomSnapshotMeta | null> {
+    if (!this.isSupported || this._isCapturing()) return null;
+    this._isCapturing.set(true);
+    try {
+      const blob = await this.saveDataService.createRoomArchiveAsync();
+      const id = await this.store.put({ roomName: this.currentRoomName(), savedAt: Date.now(), blob });
+      if (id == null) return null;
+      await this.prune();
+      const metas = await this.refresh();
+      return metas.find((meta) => meta.id === id) ?? null;
+    } catch (reason) {
+      Logger.warn('[RoomSnapshot] スナップショットの保存に失敗しました', reason);
+      return null;
+    } finally {
+      this._isCapturing.set(false);
+    }
+  }
+
+  async restore(id: number): Promise<boolean> {
+    if (!this.isSupported || this._isRestoring()) return false;
+    this._isRestoring.set(true);
+    try {
+      const record = await this.store.get(id);
+      if (!record) return false;
+
+      const reloadCheck = this.objectStore.get<ReloadCheck>('ReloadCheck');
+      reloadCheck?.reloadCheckStart(this.currentRoomName() !== '');
+
+      await this.fileArchiver.load([new File([record.blob], 'room-snapshot.zip', { type: 'application/zip' })]);
+      return true;
+    } catch (reason) {
+      Logger.warn('[RoomSnapshot] スナップショットの復元に失敗しました', reason);
+      return false;
+    } finally {
+      this._isRestoring.set(false);
+    }
+  }
+
+  async remove(id: number): Promise<void> {
+    if (!this.isSupported) return;
+    await this.store.remove(id);
+    await this.refresh();
+  }
+
+  async clear(): Promise<void> {
+    if (!this.isSupported) return;
+    await this.store.clear();
+    await this.refresh();
+  }
+
+  private async prune(): Promise<void> {
+    const expired = selectExpiredSnapshots(await this.store.list());
+    for (const id of expired) {
+      await this.store.remove(id);
+    }
+  }
+
+  private currentRoomName(): string {
+    return Network.peerContext?.roomName ?? '';
+  }
+}
