@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RoomJoinService } from '@axe/application/lobby/room-join.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { PeerContext } from '@axe/core/network/peer-context';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   PasswordCheckComponent,
@@ -27,7 +27,7 @@ export class LobbyComponent {
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
-  private readonly objectStore = inject(ObjectStore);
+  private readonly roomJoin = inject(RoomJoinService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -127,43 +127,9 @@ export class LobbyComponent {
 
     if (!(await context.verifyPassword(password))) return;
 
-    const userId = Network.peerContext ? Network.peerContext.userId : PeerContext.generateUserId();
-    Network.open(userId, context.roomId, context.roomName, password);
-    PeerCursor.myCursor.peerId = Network.peerId;
-
-    const triedPeer: string[] = [];
-    const offOpen = this.objectChange.networkOpen$.subscribe(() => {
-      offOpen();
-      this.objectStore.clearDeleteHistory();
-      for (const context of peerContexts) {
-        Network.connect(context);
-      }
-      this.objectChange.peerConnect$.subscribe((event) => {
-        triedPeer.push(event.peerId);
-        if (peerContexts.length <= triedPeer.length) {
-          this.resetNetwork();
-          this.closeIfConnected();
-        }
-      }, this.destroyRef);
-      this.objectChange.peerDisconnect$.subscribe((event) => {
-        triedPeer.push(event.peerId);
-        if (peerContexts.length <= triedPeer.length) {
-          this.resetNetwork();
-          this.closeIfConnected();
-        }
-      }, this.destroyRef);
-    }, this.destroyRef);
-  }
-
-  private resetNetwork() {
-    if (Network.peerContexts.length < 1) {
-      Network.openStandby();
-      PeerCursor.myCursor.peerId = Network.peerId;
-    }
-  }
-
-  private closeIfConnected() {
-    if (0 < Network.peerContexts.length) this.modalService.resolve();
+    void this.roomJoin.join(peerContexts, password).then((isJoined) => {
+      if (isJoined) this.modalService.resolve();
+    });
   }
 
   async showRoomSetting() {
