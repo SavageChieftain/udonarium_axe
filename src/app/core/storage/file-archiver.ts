@@ -172,8 +172,7 @@ export class FileArchiver {
     }
   }
 
-  async saveAsync(files: File[] | FileList, zipName: string, updateCallback?: UpdateCallback): Promise<void> {
-    if (!files) return;
+  async createZipBlobAsync(files: File[] | FileList, updateCallback?: UpdateCallback): Promise<Blob> {
     const saveFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 
     updateCallback?.({ percent: 0, currentFile: '' });
@@ -191,6 +190,12 @@ export class FileArchiver {
     });
 
     updateCallback?.({ percent: 100, currentFile: '' });
+    return blob;
+  }
+
+  async saveAsync(files: File[] | FileList, zipName: string, updateCallback?: UpdateCallback): Promise<void> {
+    if (!files) return;
+    const blob = await this.createZipBlobAsync(files, updateCallback);
     downloadBlob(blob, `${zipName}.zip`);
   }
 }

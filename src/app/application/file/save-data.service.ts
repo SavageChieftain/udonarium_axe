@@ -46,7 +46,15 @@ export class SaveDataService {
     return SaveDataService.queue.add(() => this._saveRoomAsync(fileName, updateCallback));
   }
 
+  createRoomArchiveAsync(): Promise<Blob> {
+    return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomFiles()));
+  }
+
   private _saveRoomAsync(fileName: string = '', updateCallback?: UpdateCallback): Promise<void> {
+    return this.saveAsync(this.buildRoomFiles(), this.appendTimestamp(fileName), updateCallback);
+  }
+
+  private buildRoomFiles(): File[] {
     const files: File[] = [];
     const roomXml = this.convertToXml(new Room());
     const chatXml = this.convertToXml(this.chatTabList);
@@ -70,7 +78,7 @@ export class SaveDataService {
     const audioTagXml = this.convertToXml(AudioTagList.create(audios));
     files.push(new File([audioTagXml], 'audiotag.xml', { type: 'text/plain' }));
 
-    return this.saveAsync(files, this.appendTimestamp(fileName), updateCallback);
+    return files;
   }
 
   saveGameObjectAsync(
