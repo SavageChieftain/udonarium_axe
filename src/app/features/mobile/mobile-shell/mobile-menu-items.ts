@@ -32,7 +32,7 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
   { action: 'jukebox', icon: 'queue_music', labelKey: 'app.fab.jukebox' },
   { action: 'cutIn', icon: 'slideshow', labelKey: 'app.fab.cutIn' },
   { action: 'inventory', icon: 'folder_shared', labelKey: 'app.fab.inventory' },
-  { action: 'objectList', icon: 'list_alt', labelKey: 'app.fab.objectList', gameMasterOnly: true },
+  { action: 'objectList', icon: 'list_alt', labelKey: 'feature.mobile.objectList', gameMasterOnly: true },
   { action: 'party', icon: 'diversity_3', labelKey: 'feature.gmTools.party.title', gameMasterOnly: true },
   { action: 'darkness', icon: 'dark_mode', labelKey: 'feature.mobile.darkness', gameMasterOnly: true },
   { action: 'turnPrev', icon: 'skip_previous', labelKey: 'feature.mobile.turnPrev', gameMasterOnly: true },
@@ -48,4 +48,12 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
 
 export function visibleMobileMenuItems(isGameMaster: boolean): MobileMenuItem[] {
   return MOBILE_MENU_ITEMS.filter((item) => !item.gameMasterOnly || isGameMaster);
+}
+
+export function sharedMobileMenuItems(): MobileMenuItem[] {
+  return MOBILE_MENU_ITEMS.filter((item) => !item.gameMasterOnly);
+}
+
+export function gameMasterMobileMenuItems(): MobileMenuItem[] {
+  return MOBILE_MENU_ITEMS.filter((item) => item.gameMasterOnly === true);
 }

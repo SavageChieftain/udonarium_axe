@@ -32,6 +32,11 @@
 >
   <div
     class="rounded-t-ui-lg border-ui-border-titlebar bg-ui-titlebar text-ui-muted relative box-border h-7 w-full border-b border-solid px-2 text-xs/7 font-medium tracking-[0.02em] select-none"
+    [ngClass]="
+      isCompact()
+        ? 'flex! h-[calc(2.75rem+env(safe-area-inset-top))]! items-center rounded-none! px-3! pt-[env(safe-area-inset-top)] text-[0.9rem]!'
+        : ''
+    "
     #titleBar
     [class.border-transparent!]="contentMinimized"
     [style.background]="contentMinimized ? 'color-mix(in srgb, var(--color-ui-titlebar) 55%, transparent)' : null"
@@ -40,7 +45,10 @@
     [style.display]="showTitle() ? '' : 'none'"
   >
     @if (title !== menuTitle) {
-      <div class="absolute top-0 right-0 flex h-7 items-center gap-0.5 px-1.5">
+      <div
+        class="absolute top-0 right-0 flex h-7 items-center gap-0.5 px-1.5"
+        [ngClass]="isCompact() ? 'top-[env(safe-area-inset-top)]! h-11! px-1!' : ''"
+      >
         @if (!isCompact()) {
           <button
             class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
@@ -59,6 +67,7 @@
         }
         <button
           class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+          [ngClass]="isCompact() ? 'size-10! rounded-full! [&>i]:text-[22px]!' : ''"
           (click)="close()"
         >
           <i class="material-icons text-[14px]!">close</i>
@@ -67,7 +76,7 @@
     }
     <div
       class="block truncate"
-      [ngClass]="isCompact() ? 'pr-8' : 'pr-21.5'"
+      [ngClass]="isCompact() ? 'min-w-0 flex-1 pr-11' : 'pr-21.5'"
       [class.invisible]="contentMinimized"
       [appTextTooltip]="panelService.titleTooltip"
     >
@@ -96,7 +105,7 @@
     [class.static!]="contentMinimized"
     [ngStyle]="{
       padding: padding_,
-      top: showTitle() ? '28px' : '0',
+      top: showTitle() ? (isCompact() ? 'calc(2.75rem + env(safe-area-inset-top))' : '28px') : '0',
       overflow: overflowVisible() || contentMinimized ? 'visible' : undefined,
     }"
     #scrollablePanel

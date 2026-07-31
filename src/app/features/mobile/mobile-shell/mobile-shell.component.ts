@@ -22,9 +22,10 @@ import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.
 import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MobileChatPaneComponent } from '@axe/features/mobile/mobile-chat-pane/mobile-chat-pane.component';
 import {
+  gameMasterMobileMenuItems,
   type MobileMenuAction,
   type MobileMenuItem,
-  visibleMobileMenuItems,
+  sharedMobileMenuItems,
 } from '@axe/features/mobile/mobile-shell/mobile-menu-items';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
@@ -63,7 +64,9 @@ export class MobileShellComponent {
     return PeerCursor.isMyselfGameMaster;
   });
 
-  protected readonly menuItems = computed<MobileMenuItem[]>(() => visibleMobileMenuItems(this.isGameMaster()));
+  protected readonly sharedItems: MobileMenuItem[] = sharedMobileMenuItems();
+  protected readonly gameMasterItems: MobileMenuItem[] = gameMasterMobileMenuItems();
+  protected readonly showGameMasterItems = computed(() => this.isGameMaster());
 
   private isResizing = false;
 

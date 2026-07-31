@@ -1569,7 +1569,11 @@
       "darkness": "Toggle darkness",
       "turnPrev": "Previous turn",
       "turnNext": "Next turn",
-      "activePalette": "Active chat palette"
+      "activePalette": "Active palette",
+      "objectList": "Objects",
+      "menuTitle": "Menu",
+      "gameMasterSection": "Game master",
+      "characters": "Characters"
     }
   },
   "app": {
