@@ -50,6 +50,10 @@ export class MobileLayoutService {
     });
 
     effect(() => {
+      this.document.body.classList.toggle('touch-input', this.viewport.isTouch());
+    });
+
+    effect(() => {
       const state: MobileLayoutState = {
         prefersDesktop: this.prefersDesktop(),
         tableRatio: this.tableRatio(),

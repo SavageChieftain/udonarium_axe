@@ -2001,16 +2001,10 @@ body.mobile-layout {
   overscroll-behavior: none;
 }
 
-body.mobile-layout context-menu li {
+body.touch-input context-menu li:not(:has(hr)) {
   padding-top: 0.6rem;
   padding-bottom: 0.6rem;
   font-size: 14px;
-}
-
-body.mobile-layout context-menu ul {
-  max-height: min(70dvh, 32rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 body.mobile-layout ui-panel .grid-cols-\[6\.5rem_1fr\] {
@@ -2018,30 +2012,27 @@ body.mobile-layout ui-panel .grid-cols-\[6\.5rem_1fr\] {
   gap: 4px;
 }
 
-body.mobile-layout .group-hover\:inline-flex,
-body.mobile-layout .hover\:inline-flex {
+body.touch-input .group-hover\:inline-flex {
   display: inline-flex;
 }
 
-body.mobile-layout .group-hover\:inline,
-body.mobile-layout .hover\:inline {
+body.touch-input .group-hover\:inline {
   display: inline;
 }
 
-body.mobile-layout .group-hover\:block,
-body.mobile-layout .hover\:block {
+body.touch-input .group-hover\:block,
+body.touch-input .hover\:block\! {
   display: block;
 }
 
-body.mobile-layout .group-hover\:flex,
-body.mobile-layout .hover\:flex {
+body.touch-input .group-hover\:flex {
   display: flex;
 }
 
-body.mobile-layout .group-hover\:opacity-50,
-body.mobile-layout .group-hover\:opacity-86,
-body.mobile-layout .group-hover\:opacity-90,
-body.mobile-layout .group-hover\:opacity-100 {
+body.touch-input .group-hover\:opacity-50,
+body.touch-input .group-hover\:opacity-86,
+body.touch-input .group-hover\:opacity-90,
+body.touch-input .group-hover\:opacity-100 {
   opacity: 1;
 }
 
@@ -2080,14 +2071,11 @@ body.mobile-layout ui-panel > div > .rounded-b-ui-lg {
   padding-left: max(0.5rem, env(safe-area-inset-left)) !important;
 }
 
-body.mobile-layout ui-panel button,
-body.mobile-layout app-mobile-shell button,
-body.mobile-layout visual-novel-overlay button {
+body.touch-input button {
   -webkit-tap-highlight-color: transparent;
 }
 
-body.mobile-layout ui-panel button:active:not(:disabled),
-body.mobile-layout visual-novel-overlay button:active:not(:disabled) {
+body.touch-input :is(ui-panel, app-mobile-shell, visual-novel-overlay) button:active:not(:disabled) {
   transform: scale(0.97);
 }
 
@@ -2101,7 +2089,7 @@ body.mobile-layout visual-novel-overlay button:not(.material-icons) {
   min-height: 40px;
 }
 
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) {
+body.touch-input :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) {
   -webkit-touch-callout: none;
 }
 
