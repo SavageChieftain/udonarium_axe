@@ -1293,6 +1293,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.cancelDraft();
   }
 
+  protected deleteSelectionPublic(): void {
+    if (!this.state.selection()) return;
+    this.state.deleteSelection();
+    this.bumpDraft();
+  }
+
   private eraseVectorAlong(pos: { x: number; y: number }): void {
     const radius = this.state.eraserSize();
     const from = this.lastErasePx ?? pos;

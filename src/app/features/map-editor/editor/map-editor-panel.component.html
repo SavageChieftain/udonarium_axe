@@ -783,6 +783,18 @@
           </button>
         </div>
       }
+      @if (editingText()) {
+        <div
+          class="bg-ui-panel border-ui-border-panel rounded-ui shadow-ui-md absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 border border-solid px-2 py-1"
+        >
+          <button class="bg-ui-accent-bg text-ui-accent rounded-ui-sm px-2 py-0.5" (click)="commitTextEdit()">
+            {{ 'feature.mapEditor.draft.finish' | transloco }}
+          </button>
+          <button class="bg-ui-input hover:bg-ui-hover rounded-ui-sm px-2 py-0.5" (click)="cancelTextEdit()">
+            {{ 'feature.mapEditor.draft.cancel' | transloco }}
+          </button>
+        </div>
+      }
       @if (notice()) {
         <div class="bg-ui-accent-bg text-ui-accent rounded-ui absolute top-2 left-2 px-3 py-1.5">{{ notice() }}</div>
       }
@@ -923,6 +935,15 @@
         (click)="state.redo()"
       >
         <i class="material-icons text-[16px]!">redo</i>
+      </button>
+
+      <button
+        class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 items-center justify-center disabled:opacity-40"
+        [disabled]="!state.selection()"
+        [title]="'feature.mapEditor.layers.delete' | transloco"
+        (click)="deleteSelectionPublic()"
+      >
+        <i class="material-icons text-[16px]!">delete</i>
       </button>
 
       <div class="bg-ui-border-panel h-5 w-px"></div>
