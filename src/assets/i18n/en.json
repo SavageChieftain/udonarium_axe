@@ -35,7 +35,7 @@
       "fileStorage": "Files",
       "jukebox": "Jukebox",
       "cutInList": "Cut-ins",
-      "characterGenerator": "Character generator",
+      "characterGenerator": "Create a piece",
       "inventory": "Inventory",
       "objectList": "Object list",
       "characterImport": "Import Character",
@@ -644,7 +644,7 @@
         "chatPaletteWithName": "{{name}} chat palette",
         "remoteControllerWithName": "{{name}} remote controller",
         "buffEditWithName": "{{name}} buffs",
-        "generator": "Character generator"
+        "generator": "Create a piece"
       },
       "generator": {
         "pickImage": "Pick image",
@@ -652,7 +652,10 @@
         "createMask": "Create map mask",
         "defaultName": "Game character",
         "defaultMaskName": "Map mask",
-        "importCharacter": "Import Character"
+        "importCharacter": "Import Character",
+        "nameLabel": "Name",
+        "sizeLabel": "Size (squares)",
+        "otherSection": "Other objects"
       },
       "buff": {
         "count": "{{count}} buff(s)",
@@ -1605,7 +1608,8 @@
       "zipLoad": "Load ZIP",
       "save": "Save",
       "importCharacter": "Import Character",
-      "roomSnapshot": "Auto save / restore"
+      "roomSnapshot": "Auto save / restore",
+      "createObject": "Create a piece"
     },
     "roomDataDefault": "Room data"
   },

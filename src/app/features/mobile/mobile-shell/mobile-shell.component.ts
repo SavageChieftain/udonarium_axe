@@ -17,6 +17,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
+import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
@@ -239,6 +240,11 @@ export class MobileShellComponent {
         return { component: PartyListPanelComponent, option: { title: this.t('feature.gmTools.party.title') } };
       case 'mapEditor':
         return { component: MapEditorPanelComponent, option: { title: this.t('feature.mapEditor.title') } };
+      case 'createObject':
+        return {
+          component: GameCharacterGeneratorComponent,
+          option: { title: this.t('common.panel.characterGenerator') },
+        };
       case 'importCharacter':
         return { component: ImportCharacterComponent, option: { title: this.t('common.panel.characterImport') } };
       case 'roomSnapshot':

@@ -35,7 +35,7 @@
       "fileStorage": "ファイル一覧",
       "jukebox": "ジュークボックス",
       "cutInList": "カットインリスト",
-      "characterGenerator": "キャラクタージェネレーター",
+      "characterGenerator": "コマを作る",
       "inventory": "インベントリ",
       "objectList": "オブジェクト一覧",
       "characterImport": "キャラクター取り込み",
@@ -644,7 +644,7 @@
         "chatPaletteWithName": "{{name}} のチャットパレット",
         "remoteControllerWithName": "{{name}} のリモコン",
         "buffEditWithName": "{{name}}のバフ編集",
-        "generator": "キャラクタージェネレーター"
+        "generator": "コマを作る"
       },
       "generator": {
         "pickImage": "画像を選ぶ",
@@ -652,7 +652,10 @@
         "createMask": "マップマスクを作る",
         "defaultName": "ゲームキャラクター",
         "defaultMaskName": "マップマスク",
-        "importCharacter": "キャラを取り込む"
+        "importCharacter": "キャラを取り込む",
+        "nameLabel": "名前",
+        "sizeLabel": "サイズ（マス）",
+        "otherSection": "その他の作成"
       },
       "buff": {
         "count": "バフ{{count}}個",
@@ -1605,7 +1608,8 @@
       "zipLoad": "ZIP読込",
       "save": "保存",
       "importCharacter": "キャラ取り込み",
-      "roomSnapshot": "自動保存 / 復元"
+      "roomSnapshot": "自動保存 / 復元",
+      "createObject": "コマを作る"
     },
     "roomDataDefault": "ルームデータ"
   },
