@@ -1179,7 +1179,7 @@
         "intro2": "All data lives in each participant's browser, so you must run \"Save\" to generate a save file (zip) if you want to keep the room state for later. Drop the zip into the browser window to load it.",
         "dm1": "Direct messages (private chat) are not recorded in save files.",
         "dm2": "Past direct messages also become invisible once your ID is renewed, even in the same room. Take care.",
-        "env": "Desktop Chrome is the recommended environment. Mobile browsers may not work properly for now.",
+        "env": "On a phone the app switches to a layout of its own: press and hold a piece for its menu, tap it for a summary.",
         "simple": "The simplified chat view becomes available once you send your first chat message.",
         "end": "End of tutorial. These messages disappear once you send your first chat message."
       },

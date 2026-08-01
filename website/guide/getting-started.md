@@ -8,7 +8,8 @@ Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッシ
 [Udonarium Lily](https://github.com/entyu/udonarium_lily)（entyu）の機能・コードを受け継いだうえで、
 Angular 21 / Zoneless + Signals による実装基盤の作り直しと独自機能を加えた派生プロジェクトです。
 
-> 動作推奨環境は **デスクトップ版 Chrome** です。スマートフォンからの操作は十分にサポートされていません。
+> 動作確認がもっとも厚いのは **デスクトップ版 Chrome** です。
+> スマートフォン・タブレットでも遊べます（画面に合わせて[専用のレイアウト](/manual/mobile)に切り替わります）。
 
 ## 次のステップ
 
