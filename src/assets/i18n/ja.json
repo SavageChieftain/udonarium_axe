@@ -1659,7 +1659,13 @@
       "decBuffRoundMessage": "バフのRを減少 {{targets}}",
       "deleteZeroBuffMessage": "0R以下のバフを消去 {{targets}}",
       "changeValueMessage": "[{{name}}]変更[{{sign}}{{value}}]＞{{detail}}",
-      "paletteHintTouch": "タップ: 入力 ／ 2回タップ: 付与"
+      "paletteHintTouch": "タップ: 入力 ／ 2回タップ: 付与",
+      "mobileTargetsTab": "対象",
+      "mobileBuffTab": "バフ",
+      "mobileResourceTab": "リソース",
+      "mobileTargetSummary": "対象 {{count}} 体：{{names}}",
+      "mobileNoTarget": "対象が未選択です。「対象」で選んでください",
+      "mobileAppliesTo": "選択中の {{count}} 体に実行します"
     }
   },
   "feature.alarm": {

@@ -1659,7 +1659,13 @@
       "decBuffRoundMessage": "Decreased buff R {{targets}}",
       "deleteZeroBuffMessage": "Cleared 0R buffs {{targets}}",
       "changeValueMessage": "[{{name}}] changed [{{sign}}{{value}}] > {{detail}}",
-      "paletteHintTouch": "Tap: insert / Double tap: apply"
+      "paletteHintTouch": "Tap: insert / Double tap: apply",
+      "mobileTargetsTab": "Targets",
+      "mobileBuffTab": "Buffs",
+      "mobileResourceTab": "Resources",
+      "mobileTargetSummary": "{{count}} target(s): {{names}}",
+      "mobileNoTarget": "No target selected. Pick one under \"Targets\".",
+      "mobileAppliesTo": "Applies to the {{count}} selected"
     }
   },
   "feature.alarm": {

@@ -1,6 +1,10 @@
-<div class="text-ui-text bg-ui-panel flex h-full text-[13px]">
+<div
+  class="text-ui-text bg-ui-panel flex h-full text-[13px]"
+  [ngClass]="isCompact() ? 'h-auto! min-h-full flex-col' : ''"
+>
   <div
     class="border-ui-border-panel bg-ui-panel flex h-full w-[22em] max-w-[22em] min-w-[18em] flex-col overflow-x-hidden overflow-y-auto border-r border-solid"
+    [ngClass]="isCompact() ? 'order-1 h-auto! w-full! max-w-full! min-w-0! shrink-0 border-r-0 border-b' : ''"
   >
     <div class="border-ui-border-panel flex shrink-0 flex-col border-b border-solid">
       <controller-input
@@ -38,10 +42,51 @@
       </div>
     </div>
 
-    <div class="border-ui-border-panel border-l-ui-accent shrink-0 border-b border-l-[3px] border-solid">
+    @if (isCompact()) {
+      @let selectedCount = getTargetCharacters(true).length;
+      <div
+        class="border-ui-border-panel bg-ui-panel sticky top-0 z-10 flex shrink-0 flex-col gap-1.5 border-b border-solid p-2"
+      >
+        <div class="bg-ui-input rounded-ui flex gap-0.5 p-0.5">
+          @for (section of mobileSections; track section.id) {
+            <button
+              class="text-ui-muted rounded-ui-sm flex flex-1 items-center justify-center gap-1 border-none bg-transparent p-2 text-[0.8rem] shadow-none transition-colors"
+              [ngClass]="mobileSection() === section.id ? 'bg-ui-panel! text-ui-accent! font-semibold' : ''"
+              type="button"
+              (click)="mobileSection.set(section.id)"
+            >
+              {{ section.labelKey | transloco }}
+              @if (section.id === 'targets' && selectedCount > 0) {
+                <span class="bg-ui-accent-bg text-ui-accent rounded-full px-1.5 text-[0.7rem] font-bold">{{
+                  selectedCount
+                }}</span>
+              }
+            </button>
+          }
+        </div>
+        @if (selectedCount > 0) {
+          <p class="text-ui-muted m-0 truncate text-[0.7rem]">
+            {{
+              'feature.controller.remote.mobileTargetSummary'
+                | transloco: { count: selectedCount, names: targetNames() }
+            }}
+          </p>
+        } @else {
+          <p class="text-ui-dim m-0 truncate text-[0.7rem]">
+            {{ 'feature.controller.remote.mobileNoTarget' | transloco }}
+          </p>
+        }
+      </div>
+    }
+
+    <div
+      class="border-ui-border-panel border-l-ui-accent shrink-0 border-b border-l-[3px] border-solid"
+      [hidden]="isCompact() && mobileSection() !== 'buff'"
+    >
       <button
         class="bg-ui-accent-bg flex w-full cursor-pointer items-center gap-1.5 border-none py-1.75 pr-2.5 pl-2 text-left transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-accent)_15%,transparent)]"
         type="button"
+        [hidden]="isCompact()"
         (click)="buffSectionOpen.set(!buffSectionOpen())"
       >
         <i class="material-icons shrink-0 text-base! opacity-60">{{
@@ -197,10 +242,14 @@
       }
     </div>
 
-    <div class="border-ui-border-panel border-l-ui-success shrink-0 border-b border-l-[3px] border-solid">
+    <div
+      class="border-ui-border-panel border-l-ui-success shrink-0 border-b border-l-[3px] border-solid"
+      [hidden]="isCompact() && mobileSection() !== 'resource'"
+    >
       <button
         class="flex w-full cursor-pointer items-center gap-1.5 border-none bg-[color-mix(in_srgb,var(--ui-success)_8%,transparent)] py-1.75 pr-2.5 pl-2 text-left transition-[background] hover:bg-[color-mix(in_srgb,var(--ui-success)_16%,transparent)]"
         type="button"
+        [hidden]="isCompact()"
         (click)="counterSectionOpen.set(!counterSectionOpen())"
       >
         <i class="material-icons shrink-0 text-base! opacity-60">{{
@@ -327,7 +376,11 @@
     </div>
   </div>
 
-  <div class="bg-ui-panel flex h-full flex-1 flex-col gap-1 overflow-y-auto p-1.5">
+  <div
+    class="bg-ui-panel flex h-full flex-1 flex-col gap-1 overflow-y-auto p-1.5"
+    [ngClass]="isCompact() ? 'order-2 h-auto! min-h-0 flex-1!' : ''"
+    [hidden]="isCompact() && mobileSection() !== 'targets'"
+  >
     <div class="border-ui-border-panel flex shrink-0 flex-wrap gap-0.75 border-b px-1 pt-1">
       @for (tab of inventoryTypes(); track tab) {
         <button
@@ -416,9 +469,19 @@
       @if (dataElm && dataElm.name !== newLineString) {
         @switch (dataElm.attributes['type']) {
           @case ('numberResource') {
-            <div class="flex min-w-0 flex-col items-center gap-px overflow-visible">
-              <span class="text-ui-muted max-w-[6em] truncate text-center text-[10px]">{{ dataElm.name }}</span>
-              <div class="grid w-full grid-cols-[1fr_auto_1fr] items-center">
+            <div
+              class="flex min-w-0 flex-col items-center gap-px overflow-visible"
+              [ngClass]="isCompact() ? 'flex-row! items-center gap-1.5' : ''"
+            >
+              <span
+                class="text-ui-muted max-w-[6em] truncate text-center text-[10px]"
+                [ngClass]="isCompact() ? 'shrink-0 text-[11px]' : ''"
+                >{{ dataElm.name }}</span
+              >
+              <div
+                class="grid w-full grid-cols-[1fr_auto_1fr] items-center"
+                [ngClass]="isCompact() ? 'mx-auto max-w-36 min-w-0' : ''"
+              >
                 <input
                   class="text-ui-text hover:border-b-ui-border-panel focus:border-b-ui-accent focus:bg-ui-input w-full min-w-0 [appearance:textfield] border-b border-none border-b-transparent bg-transparent px-0.5 py-px text-center font-[inherit] text-[13px] font-bold outline-none focus:appearance-auto"
                   [style]="'color:' + dataElm.nowValueColor"
@@ -426,7 +489,11 @@
                   name="data-current-value"
                   [(ngModel)]="dataElm.currentValue"
                 />
-                <span class="text-ui-dim self-end px-px pb-0.5 text-[12px]">/</span>
+                <span
+                  class="text-ui-dim self-end px-px pb-0.5 text-[12px]"
+                  [ngClass]="isCompact() ? 'self-center! pb-0' : ''"
+                  >/</span
+                >
                 <input
                   class="text-ui-text hover:border-b-ui-border-panel focus:border-b-ui-accent focus:bg-ui-input w-full min-w-0 [appearance:textfield] border-b border-none border-b-transparent bg-transparent px-0.5 py-px text-center font-[inherit] text-[13px] font-bold outline-none focus:appearance-auto"
                   type="number"
@@ -437,8 +504,15 @@
             </div>
           }
           @case ('check') {
-            <div class="flex min-w-0 flex-col items-center gap-px overflow-visible">
-              <span class="text-ui-muted max-w-[6em] truncate text-center text-[10px]">{{ dataElm.name }}</span>
+            <div
+              class="flex min-w-0 flex-col items-center gap-px overflow-visible"
+              [ngClass]="isCompact() ? 'flex-row! items-center gap-1.5' : ''"
+            >
+              <span
+                class="text-ui-muted max-w-[6em] truncate text-center text-[10px]"
+                [ngClass]="isCompact() ? 'shrink-0 text-[11px]' : ''"
+                >{{ dataElm.name }}</span
+              >
               @if (dataElm.isChecked) {
                 <input type="checkbox" checked (click)="dataElm.value = 0" />
               } @else {
@@ -449,8 +523,15 @@
           @case ('note') {}
           @case ('markdown') {}
           @default {
-            <div class="flex min-w-0 flex-col items-center gap-px overflow-visible">
-              <span class="text-ui-muted max-w-[6em] truncate text-center text-[10px]">{{ dataElm.name }}</span>
+            <div
+              class="flex min-w-0 flex-col items-center gap-px overflow-visible"
+              [ngClass]="isCompact() ? 'flex-row! items-center gap-1.5' : ''"
+            >
+              <span
+                class="text-ui-muted max-w-[6em] truncate text-center text-[10px]"
+                [ngClass]="isCompact() ? 'shrink-0 text-[11px]' : ''"
+                >{{ dataElm.name }}</span
+              >
               <input
                 class="text-ui-text hover:border-b-ui-border-panel focus:border-b-ui-accent focus:bg-ui-input w-full min-w-0 [appearance:textfield] border-b border-none border-b-transparent bg-transparent px-0.5 py-px text-center font-[inherit] text-[13px] font-bold outline-none focus:appearance-auto"
                 name="data-value"

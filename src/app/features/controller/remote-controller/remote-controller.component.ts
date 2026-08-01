@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -61,11 +61,13 @@ interface PaletteRow {
   headingName?: string;
 }
 
+export type MobileSection = 'targets' | 'buff' | 'resource';
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'remote-controller',
   templateUrl: './remote-controller.component.html',
-  imports: [FormsModule, ControllerInputComponent, NgTemplateOutlet, SafePipe, TranslocoModule],
+  imports: [FormsModule, ControllerInputComponent, NgClass, NgTemplateOutlet, SafePipe, TranslocoModule],
 })
 export class RemoteControllerComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -251,6 +253,19 @@ export class RemoteControllerComponent {
 
   readonly inventoryTypes = signal<string[]>(['table', 'common', 'graveyard']);
   readonly selectTab = signal('table');
+
+  readonly mobileSection = signal<MobileSection>('targets');
+  protected readonly mobileSections: readonly { readonly id: MobileSection; readonly labelKey: string }[] = [
+    { id: 'targets', labelKey: 'feature.controller.remote.mobileTargetsTab' },
+    { id: 'buff', labelKey: 'feature.controller.remote.mobileBuffTab' },
+    { id: 'resource', labelKey: 'feature.controller.remote.mobileResourceTab' },
+  ];
+
+  protected targetNames(): string {
+    return this.getTargetCharacters(true)
+      .map((character) => character.name)
+      .join('、');
+  }
 
   reverseValue() {
     this.remoteNumber = -this.remoteNumber;

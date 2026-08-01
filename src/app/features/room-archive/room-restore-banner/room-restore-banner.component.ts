@@ -1,7 +1,9 @@
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RoomSnapshotService } from '@axe/application/file/room-snapshot.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/network/network';
 import { parseInviteLink } from '@axe/domain/peer/invite-link';
 import { formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
@@ -11,12 +13,13 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-room-restore-banner',
   templateUrl: './room-restore-banner.component.html',
-  imports: [TranslocoModule],
+  imports: [NgClass, TranslocoModule],
 })
 export class RoomRestoreBannerComponent {
   private readonly roomSnapshot = inject(RoomSnapshotService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly objectChange = inject(ObjectChangeService);
+  protected readonly isCompact = inject(ViewportService).isCompact;
 
   private readonly dismissed = signal(false);
 
