@@ -59,10 +59,23 @@ describe('observeTap', () => {
     const handle = observeTap(element, (point) => taps.push(point));
 
     element.dispatchEvent(touchEvent('touchstart', 10, 20));
-    vi.advanceTimersByTime(600);
+    vi.advanceTimersByTime(400);
     element.dispatchEvent(touchEvent('touchend', 10, 20));
 
     expect(taps).toEqual([]);
+    handle.destroy();
+    vi.useRealTimers();
+  });
+
+  it('タップの上限は長押しの成立より短い', () => {
+    vi.useFakeTimers();
+    const handle = observeTap(element, (point) => taps.push(point));
+
+    element.dispatchEvent(touchEvent('touchstart', 10, 20));
+    vi.advanceTimersByTime(299);
+    element.dispatchEvent(touchEvent('touchend', 10, 20));
+
+    expect(taps).toHaveLength(1);
     handle.destroy();
     vi.useRealTimers();
   });

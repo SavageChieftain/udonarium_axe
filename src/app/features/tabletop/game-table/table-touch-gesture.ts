@@ -22,6 +22,7 @@ export const TABLE_LONG_PRESS_MS = 400;
 
 export class TableTouchGesture {
   shouldSynthesizeContextMenu: (() => boolean) | null = null;
+  onSynthesizeContextMenu: (() => void) | null = null;
 
   private activePointers = new Map<
     number,
@@ -303,6 +304,7 @@ export class TableTouchGesture {
     this.longPressTimer = setTimeout(() => {
       this.longPressTimer = null;
       if (this.shouldSynthesizeContextMenu && !this.shouldSynthesizeContextMenu()) return;
+      this.onSynthesizeContextMenu?.();
       const event = new MouseEvent('contextmenu', {
         bubbles: true,
         cancelable: true,

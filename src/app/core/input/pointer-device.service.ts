@@ -100,6 +100,10 @@ export class PointerDeviceService {
     }, LONG_PRESS_DELAY_MS);
   }
 
+  cancelPendingContextMenu(): void {
+    this.cancelLongPress();
+  }
+
   private cancelLongPress(): void {
     if (this.longPressTimer !== null) clearTimeout(this.longPressTimer);
     this.longPressTimer = null;

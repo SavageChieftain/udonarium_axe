@@ -12,7 +12,7 @@ export interface TapGestureHandle {
   destroy(): void;
 }
 
-const DEFAULT_MAX_DURATION_MS = 450;
+const DEFAULT_MAX_DURATION_MS = 300;
 const DEFAULT_MAX_MOVE_DISTANCE = 8;
 
 export function observeTap(
