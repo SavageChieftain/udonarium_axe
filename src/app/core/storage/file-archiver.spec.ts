@@ -1,9 +1,10 @@
-import { imageDropped$, type ImageDroppedEvent } from '@axe/core/event/domain-events';
+import { imageDropped$, type ImageDroppedEvent, xmlLoaded$ } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { FileArchiver, isXmlCandidateFile } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { zipSync } from 'fflate';
 import { strToU8, zip } from 'fflate';
 
 describe('isXmlCandidateFile', () => {
@@ -118,6 +119,21 @@ describe('FileArchiver', () => {
       ]);
     });
 
+    it('zip に入っている画像ではコマを作らない', async () => {
+      const dropped: ImageDroppedEvent[] = [];
+      const off = imageDropped$.subscribe((event) => dropped.push(event));
+
+      const zipped = zipSync({
+        'data.png': new Uint8Array([1, 2, 3]),
+        'nested/other.png': new Uint8Array([4, 5, 6]),
+      });
+      const zipFile = new File([zipped.slice()], 'room.zip', { type: 'application/zip' });
+      await FileArchiver.instance.load([zipFile], { x: 10, y: 20 });
+      off();
+
+      expect(dropped).toHaveLength(0);
+    });
+
     it('ドロップ位置がなければ発火しない（パネルからの読み込み等）', async () => {
       const dropped: ImageDroppedEvent[] = [];
       const off = imageDropped$.subscribe((event) => dropped.push(event));
@@ -130,7 +146,7 @@ describe('FileArchiver', () => {
   });
 
   describe('handleZip (ZIPファイル読み込み)', () => {
-    it('ZIPファイルの中身が load() を通じて処理される', async () => {
+    it('ZIPファイルの中身が展開されて処理される', async () => {
       // fflate でテスト用 ZIP を生成
       const zipBuffer = await new Promise<Uint8Array>((resolve, reject) => {
         zip({ 'data.xml': strToU8('<test />') }, (err, data) => {
@@ -140,14 +156,13 @@ describe('FileArchiver', () => {
       });
 
       const zipFile = new File([zipBuffer.slice()], 'test.zip', { type: 'application/zip' });
-      const loadSpy = vi.spyOn(FileArchiver.instance, 'load');
+      const loaded: Element[] = [];
+      const off = xmlLoaded$.subscribe((event) => loaded.push(event.xmlElement));
 
       await FileArchiver.instance.load([zipFile]);
+      off();
 
-      // load が再帰的に呼ばれる（ZIPの展開後にファイルが再 load される）
-      expect(loadSpy).toHaveBeenCalledTimes(2);
-      const innerCall = loadSpy.mock.calls[1][0] as File[];
-      expect(innerCall[0].name).toBe('data.xml');
+      expect(loaded.map((element) => element.tagName)).toEqual(['test']);
     });
 
     it('破損ZIPはエラーを投げずスキップする', async () => {

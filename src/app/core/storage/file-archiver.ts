@@ -103,12 +103,21 @@ export class FileArchiver {
   }
 
   async load(files: File[] | FileList, dropPoint?: { x: number; y: number }): Promise<void> {
+    await this.loadFiles(files, dropPoint, true);
+  }
+
+  private async loadFiles(
+    files: File[] | FileList,
+    dropPoint: { x: number; y: number } | undefined,
+    placesDroppedImages: boolean
+  ): Promise<void> {
     if (!files) return;
     const loadFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 
     let droppedImageCount = 0;
     for (const file of loadFiles) {
-      const isImageDropped = await this.handleImage(file, this.offsetDropPoint(dropPoint, droppedImageCount));
+      const imageDropPoint = placesDroppedImages ? this.offsetDropPoint(dropPoint, droppedImageCount) : undefined;
+      const isImageDropped = await this.handleImage(file, imageDropPoint);
       if (isImageDropped) droppedImageCount++;
       await this.handleAudio(file);
       await this.handleText(file, dropPoint);
@@ -188,7 +197,7 @@ export class FileArchiver {
     }
     for (const [name, data] of Object.entries(entries)) {
       try {
-        await this.load([new File([data.slice()], name, { type: MimeType.type(name) })], dropPoint);
+        await this.loadFiles([new File([data.slice()], name, { type: MimeType.type(name) })], dropPoint, false);
       } catch (reason) {
         Logger.warn('[FileArchiver] ZIP展開エラー', reason);
       }
