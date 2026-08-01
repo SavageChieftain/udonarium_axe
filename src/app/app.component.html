@@ -23,6 +23,7 @@
 @if (!mobile.isActive()) {
   <div
     class="group absolute top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))] z-200 flex w-14 justify-center"
+    data-testid="fab-menu"
     [class.open]="fabOpen()"
   >
     <nav

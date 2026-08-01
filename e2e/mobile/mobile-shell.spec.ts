@@ -21,7 +21,7 @@ test.describe('スマートフォンのシェル', () => {
 
   test('携帯レイアウトが有効で、卓とチャットが縦に並ぶこと', async ({ page }) => {
     await expect(page.locator('body')).toHaveClass(/mobile-layout/);
-    await expect(page.locator('app-fab-menu')).toHaveCount(0);
+    await expect(page.locator('[data-testid="fab-menu"]')).toHaveCount(0);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth

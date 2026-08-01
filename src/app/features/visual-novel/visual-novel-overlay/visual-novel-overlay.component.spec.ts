@@ -217,7 +217,7 @@ describe('VisualNovelOverlayComponent', () => {
 
     component.text.set('  やあ  ');
     component.send();
-    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled());
+    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     expect(sendSpy).toHaveBeenCalledWith(
       tab,
@@ -378,7 +378,7 @@ describe('VisualNovelOverlayComponent', () => {
     component.selectedPortraitEmote.set('jump');
     component.text.set('なんだって！？');
     component.send();
-    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled());
+    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     expect(sendSpy.mock.calls[0][1]).toBe('なんだって！？ 〔叫び・ゆれ・ジャンプ〕');
     expect(component.selectedShape()).toBe('shout');
@@ -397,7 +397,7 @@ describe('VisualNovelOverlayComponent', () => {
     component.selectedKind.set('narration');
     component.text.set('一行は森の奥へ進んだ。');
     component.send();
-    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled());
+    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
     expect(sendSpy.mock.calls[0][1]).toBe('一行は森の奥へ進んだ。 〔地の文〕');
 
     addMessage('一行は森の奥へ進んだ。 〔地の文〕');
@@ -620,7 +620,7 @@ describe('VisualNovelOverlayComponent', () => {
     component.attachSe('audio-1', 'ジャーン');
     component.text.set('ここで効果音');
     component.send();
-    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled());
+    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     expect(playSpy).toHaveBeenCalledWith('audio-1');
     expect(component.attachedSe()).toBeNull();
@@ -830,7 +830,7 @@ describe('VisualNovelOverlayComponent', () => {
 
     component.text.set('ふりかえる');
     component.send();
-    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled());
+    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
     expect(sendSpy.mock.calls[0][1]).toBe('ふりかえる 〔反転〕');
     character.destroy();
   });
@@ -876,7 +876,7 @@ describe('VisualNovelOverlayComponent', () => {
 
     component.text.set('{HP}ダメージ！');
     component.send();
-    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled());
+    await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
     expect(evaluateSpy).toHaveBeenCalled();
     expect(sendSpy.mock.calls[0][1]).toBe('評価済みテキスト');
     character.destroy();

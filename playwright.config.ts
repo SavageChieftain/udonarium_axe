@@ -14,6 +14,8 @@ export default defineConfig({
   timeout: 60000,
   use: {
     baseURL: 'http://localhost:4200',
+    // UI 文言を前提にしたアサーションが多いので言語を固定する
+    locale: 'ja-JP',
     trace: 'on-first-retry',
     // Action/navigation timeouts to prevent indefinite hangs.
     actionTimeout: 15000,
@@ -27,7 +29,7 @@ export default defineConfig({
     },
     {
       name: 'mobile',
-      use: { ...devices['Pixel 7'], locale: 'ja-JP', reducedMotion: 'reduce' },
+      use: { ...devices['Pixel 7'], reducedMotion: 'reduce' },
       testMatch: /mobile\/.*\.spec\.ts/,
     },
     // Firefox and WebKit are only run in CI to reduce local resource usage.
@@ -45,7 +47,7 @@ export default defineConfig({
           },
           {
             name: 'mobile-safari',
-            use: { ...devices['iPhone 14'], locale: 'ja-JP', reducedMotion: 'reduce' },
+            use: { ...devices['iPhone 14'], reducedMotion: 'reduce' },
             testMatch: /mobile\/.*\.spec\.ts/,
           },
         ]
