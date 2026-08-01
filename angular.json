@@ -46,6 +46,7 @@
               ],
               "assets": [
                 "src/favicon.svg",
+                "src/manifest.webmanifest",
                 {
                   "glob": "**/*",
                   "input": "src/assets",
