@@ -13,6 +13,7 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -25,11 +26,13 @@ import { elementsAt } from '@axe/features/card/hand-rail/elements-at';
 import { reorderHandCards, selectHandCards } from '@axe/features/card/hand-rail/hand-cards';
 import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
 import {
+  fitHandFanOptions,
   HAND_CARD_HEIGHT_PX,
   HAND_CARD_WIDTH_PX,
   HAND_FAN_ARC_PX,
   HandCardLayout,
   handFanDropIndex,
+  HandFanOptions,
   handFanWidthPx,
   layoutHandFan,
 } from '@axe/features/card/hand-rail/hand-fan';
@@ -47,6 +50,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 export class HandRailComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly viewport = inject(ViewportService);
+  private readonly mobileLayout = inject(MobileLayoutService);
   protected readonly isCompact = this.viewport.isCompact;
   protected readonly isTouch = this.viewport.isTouch;
   private readonly objectStore = inject(ObjectStore);
@@ -70,14 +74,26 @@ export class HandRailComponent {
     effect((onCleanup) => {
       const el = this.railRef()?.nativeElement;
       if (!el) return;
-      if (this.savedLeft !== null && this.savedTop !== null) {
-        el.style.left = this.savedLeft;
-        el.style.top = this.savedTop;
-      } else {
-        el.style.left = `${Math.max(8, (window.innerWidth - el.offsetWidth) / 2)}px`;
-        el.style.top = `${Math.max(8, window.innerHeight - el.offsetHeight - 8)}px`;
-      }
+      const { width: viewportWidth, height: viewportHeight } = this.viewportSize();
+      const isMobile = this.mobileLayout.isActive();
+      const bottom = isMobile ? viewportHeight * this.mobileLayout.tableRatio() : viewportHeight;
+
+      const place = () => {
+        if (!isMobile && this.savedLeft !== null && this.savedTop !== null) {
+          el.style.left = this.savedLeft;
+          el.style.top = this.savedTop;
+          return;
+        }
+        const centered = (viewportWidth - el.offsetWidth) / 2;
+        el.style.left = `${Math.max(0, Math.min(centered, viewportWidth - el.offsetWidth))}px`;
+        el.style.top = `${Math.max(8, bottom - el.offsetHeight - 8)}px`;
+      };
+
+      place();
+      const settle = requestAnimationFrame(place);
+
       onCleanup(() => {
+        cancelAnimationFrame(settle);
         this.savedLeft = el.style.left;
         this.savedTop = el.style.top;
       });
@@ -90,7 +106,13 @@ export class HandRailComponent {
       this.hovered.set(null);
     };
     document.addEventListener('pointerdown', clearTouchSelection, true);
-    this.destroyRef.onDestroy(() => document.removeEventListener('pointerdown', clearTouchSelection, true));
+
+    const onResize = () => this.viewportSize.set({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    this.destroyRef.onDestroy(() => {
+      document.removeEventListener('pointerdown', clearTouchSelection, true);
+      window.removeEventListener('resize', onResize);
+    });
   }
 
   readonly canHoldCards = computed(() => {
@@ -109,14 +131,18 @@ export class HandRailComponent {
 
   protected readonly cardWidthPx = HAND_CARD_WIDTH_PX;
   protected readonly cardHeightPx = HAND_CARD_HEIGHT_PX;
-  protected readonly fanWidthPx = handFanWidthPx();
   protected readonly fanHeightPx = HAND_CARD_HEIGHT_PX + HAND_FAN_ARC_PX;
+
+  private readonly viewportSize = signal({ width: window.innerWidth, height: window.innerHeight });
+
+  private readonly fanOptions = computed<HandFanOptions>(() => fitHandFanOptions(this.viewportSize().width));
+  protected readonly fanWidthPx = computed(() => handFanWidthPx(this.fanOptions()));
 
   protected readonly hovered = signal<string | null>(null);
   protected readonly draggingId = signal<string | null>(null);
   private readonly insertAt = signal<number | null>(null);
 
-  private readonly fanLayout = computed(() => layoutHandFan(this.cards().length));
+  private readonly fanLayout = computed(() => layoutHandFan(this.cards().length, this.fanOptions()));
 
   private readonly previewIndex = computed(() => {
     const cards = this.cards();
@@ -212,7 +238,7 @@ export class HandRailComponent {
     const fan = this.fanRef()?.nativeElement;
     if (!fan) return null;
     if (!elementsAt(clientX, clientY).some((element) => element.closest('.hand-rail'))) return null;
-    return handFanDropIndex(clientX - fan.getBoundingClientRect().left, this.cards().length);
+    return handFanDropIndex(clientX - fan.getBoundingClientRect().left, this.cards().length, this.fanOptions());
   }
 
   protected setHovered(card: Card | null): void {

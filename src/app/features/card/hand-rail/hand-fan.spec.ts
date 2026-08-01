@@ -1,7 +1,10 @@
 import {
+  fitHandFanOptions,
   HAND_CARD_WIDTH_PX,
   HAND_FAN_MAX_STEP_PX,
+  HAND_FAN_MIN_STEP_PX,
   HAND_FAN_VISIBLE_CARDS,
+  HAND_RAIL_CHROME_PX,
   handFanDropIndex,
   handFanWidthPx,
   layoutHandFan,
@@ -75,5 +78,27 @@ describe('handFanDropIndex', () => {
 
   it('手札が無ければ先頭を返す', () => {
     expect(handFanDropIndex(50, 0, options)).toBe(0);
+  });
+});
+
+describe('fitHandFanOptions', () => {
+  it('広い画面では既定のまま', () => {
+    expect(fitHandFanOptions(1200)).toEqual({});
+  });
+
+  it('狭い画面では扇の幅が収まるまで重ねる', () => {
+    const options = fitHandFanOptions(390);
+    expect(handFanWidthPx(options)).toBeLessThanOrEqual(390 - HAND_RAIL_CHROME_PX);
+  });
+
+  it('極端に狭くても最小の間隔は保つ', () => {
+    const options = fitHandFanOptions(120);
+    expect(options.maxStepPx).toBe(HAND_FAN_MIN_STEP_PX);
+  });
+
+  it('狭い画面でも札の並び順は保たれる', () => {
+    const layout = layoutHandFan(8, fitHandFanOptions(390));
+    const lefts = layout.map((entry) => entry.leftPx);
+    expect([...lefts].sort((a, b) => a - b)).toEqual(lefts);
   });
 });

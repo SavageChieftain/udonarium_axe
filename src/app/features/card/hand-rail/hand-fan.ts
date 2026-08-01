@@ -27,6 +27,22 @@ export function handFanWidthPx(options: HandFanOptions = {}): number {
   return cardWidth + maxStep * (visible - 1);
 }
 
+export const HAND_FAN_MIN_STEP_PX = 16;
+// レールの余白と枠、および傾けた札が左右にはみ出す分
+export const HAND_RAIL_CHROME_PX =
+  26 + 2 * Math.ceil(HAND_CARD_HEIGHT_PX * Math.sin((HAND_FAN_SPREAD_DEG / 2) * (Math.PI / 180)));
+
+export function fitHandFanOptions(availableWidthPx: number, options: HandFanOptions = {}): HandFanOptions {
+  const cardWidth = options.cardWidthPx ?? HAND_CARD_WIDTH_PX;
+  const maxStep = options.maxStepPx ?? HAND_FAN_MAX_STEP_PX;
+  const visible = Math.max(1, options.visibleCards ?? HAND_FAN_VISIBLE_CARDS);
+  const usable = availableWidthPx - HAND_RAIL_CHROME_PX;
+  if (visible <= 1 || usable >= handFanWidthPx(options)) return options;
+
+  const step = Math.max(HAND_FAN_MIN_STEP_PX, (usable - cardWidth) / (visible - 1));
+  return { ...options, maxStepPx: Math.min(maxStep, step) };
+}
+
 export function handFanDropIndex(offsetXPx: number, count: number, options: HandFanOptions = {}): number {
   const cardWidth = options.cardWidthPx ?? HAND_CARD_WIDTH_PX;
   const layout = layoutHandFan(count, options);

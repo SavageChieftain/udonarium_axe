@@ -1966,6 +1966,10 @@ body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand
   -webkit-text-size-adjust: 100%;
 }
 
+body.mobile-layout app-hand-rail .hand-rail {
+  max-width: 100vw;
+}
+
 body.mobile-layout app-mobile-shell .chat-input {
   height: auto !important;
   max-height: 22dvh;
