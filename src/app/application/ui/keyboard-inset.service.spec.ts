@@ -17,16 +17,19 @@ describe('measureKeyboardInset', () => {
   it('ページのずれ込みを含めて計算する', () => {
     expect(measureKeyboardInset({ height: 480, offsetTop: 60 }, 800)).toBe(260);
   });
+
+  it('ピンチで拡大している間は 0 を返す', () => {
+    expect(measureKeyboardInset({ height: 400, offsetTop: 0, scale: 2 }, 800)).toBe(0);
+  });
 });
 
 describe('KeyboardInsetService', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
-    document.documentElement.style.removeProperty('--keyboard-inset');
     Reflect.deleteProperty(window, 'visualViewport');
   });
 
-  it('visualViewport の変化を CSS 変数に反映する', () => {
+  it('visualViewport の変化を追いかける', () => {
     const listeners = new Map<string, () => void>();
     const viewport = {
       height: 800,
@@ -39,12 +42,30 @@ describe('KeyboardInsetService', () => {
 
     TestBed.configureTestingModule({ providers: [KeyboardInsetService] });
     const service = TestBed.inject(KeyboardInsetService);
+    service.initialize();
     expect(service.inset()).toBe(0);
 
     viewport.height = 500;
     listeners.get('resize')?.();
 
     expect(service.inset()).toBe(300);
-    expect(document.documentElement.style.getPropertyValue('--keyboard-inset')).toBe('300px');
+  });
+
+  it('initialize を重ねて呼んでも購読は 1 度だけになる', () => {
+    const listeners: string[] = [];
+    const viewport = {
+      height: 800,
+      offsetTop: 0,
+      addEventListener: (type: string) => listeners.push(type),
+      removeEventListener: () => undefined,
+    };
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+
+    TestBed.configureTestingModule({ providers: [KeyboardInsetService] });
+    const service = TestBed.inject(KeyboardInsetService);
+    service.initialize();
+    service.initialize();
+
+    expect(listeners).toEqual(['resize', 'scroll']);
   });
 });

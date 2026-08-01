@@ -40,7 +40,7 @@ describe('UIPanelComponent', () => {
 
       expect(panel().classList.contains('inset-0!')).toBe(true);
       expect(panel().classList.contains('w-screen!')).toBe(true);
-      expect(panel().classList.contains('h-dvh!')).toBe(true);
+      expect(panel().style.height).toContain('100dvh');
     });
 
     it('広い画面では広げない', () => {

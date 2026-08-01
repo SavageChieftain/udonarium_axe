@@ -54,7 +54,7 @@ export class AppInitializationService {
     ObjectSynchronizer.instance.initialize();
     this.appConfigService.initialize();
     this.pointerDeviceService.initialize();
-    this.keyboardInset.inset();
+    this.keyboardInset.initialize();
     this.ngSelectConfig.appendTo = 'body';
 
     this.tableSelecter.initialize();
