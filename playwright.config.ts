@@ -23,6 +23,12 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /mobile\/.*\.spec\.ts/,
+    },
+    {
+      name: 'mobile',
+      use: { ...devices['Pixel 7'], locale: 'ja-JP', reducedMotion: 'reduce' },
+      testMatch: /mobile\/.*\.spec\.ts/,
     },
     // Firefox and WebKit are only run in CI to reduce local resource usage.
     ...(isCI
@@ -30,10 +36,17 @@ export default defineConfig({
           {
             name: 'firefox',
             use: { ...devices['Desktop Firefox'] },
+            testIgnore: /mobile\/.*\.spec\.ts/,
           },
           {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
+            testIgnore: /mobile\/.*\.spec\.ts/,
+          },
+          {
+            name: 'mobile-safari',
+            use: { ...devices['iPhone 14'], locale: 'ja-JP', reducedMotion: 'reduce' },
+            testMatch: /mobile\/.*\.spec\.ts/,
           },
         ]
       : []),

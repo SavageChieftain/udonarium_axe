@@ -3,6 +3,8 @@ import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 
+const ORIENTATION_SETTLE_MS = 250;
+
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -21,6 +23,7 @@ export class DraggableDirective {
   readonly onend = output<MouseEvent | TouchEvent>({ alias: 'draggable.end' });
 
   private callbackOnResize = () => this.adjustPosition();
+  private callbackOnOrientationChange = () => setTimeout(() => this.adjustPosition(), ORIENTATION_SETTLE_MS);
 
   private input: InputHandler | null = null;
   private startPosition: PointerCoordinate = { x: 0, y: 0, z: 0 };
@@ -42,6 +45,7 @@ export class DraggableDirective {
   private initialize() {
     this.input = new InputHandler(this.elementRef.nativeElement);
     window.addEventListener('resize', this.callbackOnResize, false);
+    window.addEventListener('orientationchange', this.callbackOnOrientationChange, false);
     this.input.onStart = (e) => this.onInputStart(e);
     this.input.onMove = (e) => this.onInputMove(e);
     this.input.onEnd = (e) => this.onInputEnd(e);
@@ -54,6 +58,7 @@ export class DraggableDirective {
 
   destroy() {
     window.removeEventListener('resize', this.callbackOnResize, false);
+    window.removeEventListener('orientationchange', this.callbackOnOrientationChange, false);
     if (this.input) this.input.destroy();
   }
 

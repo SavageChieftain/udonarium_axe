@@ -1088,6 +1088,14 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-up,
+  .animate-fade-in,
+  .animate-fly-in {
+    animation: none;
+  }
+}
+
 @keyframes sheetUp {
   from {
     opacity: 0;
@@ -1987,6 +1995,10 @@ body.mobile-layout app-mobile-shell .chat-tab-pill {
 
 body.mobile-layout ui-panel [class*='ui-resize-handler'] {
   display: none;
+}
+
+body.mobile-layout {
+  overscroll-behavior: none;
 }
 
 body.mobile-layout context-menu li {
