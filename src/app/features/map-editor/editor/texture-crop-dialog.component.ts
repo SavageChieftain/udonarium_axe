@@ -11,6 +11,12 @@ export interface TextureCropDialogOption {
 
 export const TEXTURE_CROP_STAGE = 360;
 export const TEXTURE_CROP_FRAME = 288;
+export const TEXTURE_CROP_MIN_STAGE = 240;
+export const TEXTURE_CROP_MARGIN = 48;
+
+export function fitCropStage(viewportWidth: number): number {
+  return Math.max(TEXTURE_CROP_MIN_STAGE, Math.min(TEXTURE_CROP_STAGE, viewportWidth - TEXTURE_CROP_MARGIN));
+}
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,8 +32,8 @@ export class TextureCropDialogComponent {
   private readonly cropFn = cropImageRegion;
   private readonly loadImageFn = loadRasterImage;
 
-  protected readonly stage = TEXTURE_CROP_STAGE;
-  protected readonly frame = TEXTURE_CROP_FRAME;
+  protected readonly stage = fitCropStage(window.innerWidth);
+  protected readonly frame = Math.round(this.stage * (TEXTURE_CROP_FRAME / TEXTURE_CROP_STAGE));
   protected readonly objectUrl: string;
 
   protected readonly tx = signal(0);

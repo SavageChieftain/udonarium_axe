@@ -147,7 +147,7 @@ export class TooltipDirective {
     this.tooltipComponentRef.instance.top = this.pointerDeviceService.pointerY;
 
     if (this.viewport.isTouch()) {
-      (this.tooltipComponentRef.location.nativeElement as HTMLElement).style.pointerEvents = 'none';
+      (this.tooltipComponentRef.location.nativeElement as HTMLElement).classList.add('tooltip-passthrough');
     }
 
     this.addEventListeners(this.tooltipComponentRef.location.nativeElement);

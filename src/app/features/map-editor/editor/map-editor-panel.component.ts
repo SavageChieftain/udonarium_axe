@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -17,6 +17,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
@@ -138,10 +139,16 @@ export const TEXTURE_IMAGE_TAG = 'テクスチャ';
     '(keyup)': 'onKeyUp($event)',
   },
   providers: [MapEditorState],
-  imports: [FormsModule, NgTemplateOutlet, TranslocoModule],
+  imports: [FormsModule, NgClass, NgTemplateOutlet, TranslocoModule],
 })
 export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly state = inject(MapEditorState);
+  protected readonly isCompact = inject(ViewportService).isCompact;
+  protected readonly mobileDrawer = signal<'none' | 'props' | 'layers'>('none');
+
+  protected toggleMobileDrawer(drawer: 'props' | 'layers'): void {
+    this.mobileDrawer.update((current) => (current === drawer ? 'none' : drawer));
+  }
   private readonly panelService = inject(PanelService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly tabletopService = inject(TabletopService);

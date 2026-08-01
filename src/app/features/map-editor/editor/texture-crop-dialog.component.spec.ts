@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalService } from '@axe/application/ui/modal.service';
 import {
+  fitCropStage,
   TEXTURE_CROP_FRAME,
+  TEXTURE_CROP_MIN_STAGE,
   TEXTURE_CROP_STAGE,
   TextureCropDialogComponent,
 } from '@axe/features/map-editor/editor/texture-crop-dialog.component';
@@ -93,5 +95,19 @@ describe('TextureCropDialogComponent', () => {
     (component as unknown as { image: HTMLImageElement | null }).image = null;
     await (component as unknown as { apply: () => Promise<void> }).apply();
     expect(modalService.resolve).toHaveBeenCalledWith(null);
+  });
+});
+
+describe('fitCropStage', () => {
+  it('広い画面では既定の大きさ', () => {
+    expect(fitCropStage(1280)).toBe(TEXTURE_CROP_STAGE);
+  });
+
+  it('狭い画面では余白を残して縮む', () => {
+    expect(fitCropStage(360)).toBe(312);
+  });
+
+  it('極端に狭くても下限を保つ', () => {
+    expect(fitCropStage(200)).toBe(TEXTURE_CROP_MIN_STAGE);
   });
 });

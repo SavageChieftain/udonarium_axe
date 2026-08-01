@@ -2010,6 +2010,16 @@ body.mobile-layout {
   overscroll-behavior: none;
 }
 
+body.touch-input judgement-candidates-modal li {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+body.touch-input judgement-candidates-modal li button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
 body.touch-input context-menu li:not(:has(hr)) {
   padding-top: 0.6rem;
   padding-bottom: 0.6rem;
@@ -2056,6 +2066,18 @@ body.mobile-layout ui-panel .grid-cols-2 {
   grid-template-columns: minmax(0, 1fr);
 }
 
+body.mobile-layout ui-panel .grid-cols-\[180px_1fr\] > .w-45 {
+  width: 100%;
+}
+
+body.mobile-layout ui-panel card-stack-card-list li {
+  flex-wrap: wrap;
+}
+
+body.mobile-layout ui-panel card-stack-card-list li > div:nth-child(3) {
+  flex-basis: 100%;
+}
+
 body.mobile-layout ui-panel .grid-cols-3,
 body.mobile-layout ui-panel .grid-cols-4 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2066,14 +2088,6 @@ body.mobile-layout ui-panel .min-w-55,
 body.mobile-layout ui-panel .min-w-40,
 body.mobile-layout ui-panel .min-w-36 {
   min-width: 0;
-}
-
-body.mobile-layout ui-panel .grid-cols-\[56px_230px_1fr_210px\] {
-  min-width: 620px;
-}
-
-body.mobile-layout ui-panel .grid-cols-\[56px_230px_1fr_210px\] > div:first-child span {
-  display: none;
 }
 
 body.mobile-layout ui-panel [data-testid='inventory-item'] {
@@ -2088,6 +2102,11 @@ body.mobile-layout ui-panel > div > .rounded-b-ui-lg {
 
 body.touch-input button {
   -webkit-tap-highlight-color: transparent;
+}
+
+.tooltip-passthrough,
+.tooltip-passthrough * {
+  pointer-events: none !important;
 }
 
 body.touch-input :is(ui-panel, app-mobile-shell, visual-novel-overlay) button:active:not(:disabled) {

@@ -3,7 +3,10 @@
     {{ 'feature.mapEditor.gmOnly' | transloco }}
   </div>
 } @else {
-  <div class="text-ui-text grid h-full grid-cols-[56px_230px_1fr_210px] grid-rows-[1fr_auto] text-[12px]">
+  <div
+    class="text-ui-text relative grid h-full grid-cols-[56px_230px_1fr_210px] grid-rows-[1fr_auto] text-[12px]"
+    [ngClass]="isCompact() ? 'grid-cols-[66px_1fr]!' : ''"
+  >
     <div class="bg-ui-panel border-ui-border-panel row-span-2 flex flex-col gap-1 border-r border-solid p-1">
       <button
         class="hover:bg-ui-hover rounded-ui-sm flex w-full flex-col items-center gap-0.5 border border-solid py-1"
@@ -15,7 +18,9 @@
         (click)="setTool(settingsTool.tool)"
       >
         <i class="material-icons text-[18px]!">{{ settingsTool.icon }}</i>
-        <span class="text-[9px] leading-tight">{{ 'feature.mapEditor.tools.settings' | transloco }}</span>
+        <span class="text-[9px] leading-tight" [class.whitespace-nowrap]="isCompact()">{{
+          'feature.mapEditor.tools.settings' | transloco
+        }}</span>
       </button>
       <div class="bg-ui-border-panel mx-1 my-0.5 h-px"></div>
       @for (def of tools; track def.tool) {
@@ -33,12 +38,18 @@
           } @else {
             <i class="material-icons text-[18px]!">{{ def.icon }}</i>
           }
-          <span class="text-[9px] leading-tight">{{ 'feature.mapEditor.tools.' + def.tool | transloco }}</span>
+          <span class="text-[9px] leading-tight" [class.whitespace-nowrap]="isCompact()">{{
+            'feature.mapEditor.tools.' + def.tool | transloco
+          }}</span>
         </button>
       }
     </div>
 
-    <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-3 overflow-auto border-r border-solid p-2">
+    <div
+      class="bg-ui-panel border-ui-border-panel flex flex-col gap-3 overflow-auto border-r border-solid p-2"
+      [ngClass]="isCompact() ? 'shadow-ui-lg absolute inset-y-0 left-16.5 z-30 w-[min(19rem,74vw)]' : ''"
+      [hidden]="isCompact() && mobileDrawer() !== 'props'"
+    >
       @if (state.tool() === 'settings') {
         <div class="flex flex-col gap-1.5">
           <div class="font-semibold">{{ 'feature.mapEditor.props.mapSettings' | transloco }}</div>
@@ -805,7 +816,11 @@
       }
     </div>
 
-    <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-2 overflow-auto border-l border-solid p-2">
+    <div
+      class="bg-ui-panel border-ui-border-panel flex flex-col gap-2 overflow-auto border-l border-solid p-2"
+      [ngClass]="isCompact() ? 'shadow-ui-lg absolute inset-y-0 right-0 z-30 w-[min(17rem,72vw)]' : ''"
+      [hidden]="isCompact() && mobileDrawer() !== 'layers'"
+    >
       <div class="flex items-center justify-between">
         <span class="font-semibold">{{ 'feature.mapEditor.layers.title' | transloco }}</span>
         <div class="relative">
@@ -919,7 +934,29 @@
       }
     </div>
 
-    <div class="bg-ui-panel border-ui-border-panel col-span-3 flex items-center gap-2 border-t border-solid px-2 py-1">
+    <div
+      class="bg-ui-panel border-ui-border-panel col-span-3 flex items-center gap-2 border-t border-solid px-2 py-1"
+      [ngClass]="isCompact() ? 'col-span-1! overflow-x-auto' : ''"
+    >
+      @if (isCompact()) {
+        <button
+          class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 shrink-0 items-center justify-center"
+          [class.bg-ui-accent-bg]="mobileDrawer() === 'props'"
+          [title]="'feature.mapEditor.settings.title' | transloco"
+          (click)="toggleMobileDrawer('props')"
+        >
+          <i class="material-icons text-[16px]!">tune</i>
+        </button>
+        <button
+          class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 shrink-0 items-center justify-center"
+          [class.bg-ui-accent-bg]="mobileDrawer() === 'layers'"
+          [title]="'feature.mapEditor.layers.title' | transloco"
+          (click)="toggleMobileDrawer('layers')"
+        >
+          <i class="material-icons text-[16px]!">layers</i>
+        </button>
+        <div class="bg-ui-border-panel h-5 w-px shrink-0"></div>
+      }
       <button
         class="hover:bg-ui-hover rounded-ui-sm inline-flex size-7 items-center justify-center disabled:opacity-40"
         [disabled]="!state.canUndo()"

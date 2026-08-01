@@ -1377,7 +1377,8 @@
       "title": "Map editor",
       "gmOnly": "This tool is for the game master only",
       "settings": {
-        "transparent": "Transparent"
+        "transparent": "Transparent",
+        "title": "Tool settings"
       },
       "tools": {
         "select": "Select",
