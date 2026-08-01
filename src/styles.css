@@ -2007,6 +2007,12 @@ body.touch-input context-menu li:not(:has(hr)) {
   font-size: 14px;
 }
 
+body.touch-input context-menu:has(li:nth-child(13)) li:not(:has(hr)) {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  font-size: 13px;
+}
+
 body.mobile-layout ui-panel .grid-cols-\[6\.5rem_1fr\] {
   grid-template-columns: minmax(0, 1fr);
   gap: 4px;
