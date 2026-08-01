@@ -36,8 +36,7 @@
     "linkify-html": "^4.3.2",
     "linkifyjs": "^4.3.2",
     "rxjs": "^7.5.5",
-    "tslib": "^2.3.1",
-    "xml-formatter": "^3.7.0"
+    "tslib": "^2.3.1"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.0",

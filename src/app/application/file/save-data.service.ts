@@ -11,6 +11,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { GameObject } from '@axe/core/sync/game-object';
 import { downloadBlob } from '@axe/core/util/download-blob';
+import { formatXml } from '@axe/core/util/format-xml';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { xml2element } from '@axe/core/util/xml-util';
 import { ChatLogExporter, ChatLogImageSrcResolver, ChatLogTextDecoder } from '@axe/domain/chat/chat-log-exporter';
@@ -21,7 +22,6 @@ import { AudioTagList } from '@axe/domain/media/audio-tag-list';
 import { ImageTagList } from '@axe/domain/media/image-tag-list';
 import { Config } from '@axe/domain/peer/config';
 import { Room } from '@axe/domain/peer/room';
-import xmlFormat from 'xml-formatter';
 type UpdateCallback = (percent: number) => void;
 
 @Injectable({
@@ -133,11 +133,7 @@ export class SaveDataService {
 
   private convertToXml(gameObject: GameObject): string {
     const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
-    return xmlFormat(xmlDeclaration + gameObject.toXml(), {
-      indentation: '  ',
-      collapseContent: true,
-      lineSeparator: '\n',
-    });
+    return formatXml(xmlDeclaration + gameObject.toXml(), { indentation: '  ', lineSeparator: '\n' });
   }
   private searchImageFiles(xml: string): ImageFile[] {
     const xmlElement: Element | null = xml2element(xml);
