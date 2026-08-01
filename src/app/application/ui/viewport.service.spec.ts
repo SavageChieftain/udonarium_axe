@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { COMPACT_VIEWPORT_QUERY, ViewportService } from '@axe/application/ui/viewport.service';
+import { COMPACT_VIEWPORT_QUERY, TOUCH_POINTER_QUERY, ViewportService } from '@axe/application/ui/viewport.service';
 
 interface FakeMediaQueryList {
   matches: boolean;
@@ -9,19 +9,25 @@ interface FakeMediaQueryList {
 
 describe('ViewportService', () => {
   let mql: FakeMediaQueryList;
+  let listeners: Map<string, (event: MediaQueryListEvent) => void>;
   let listener: ((event: MediaQueryListEvent) => void) | null;
 
   function setup(matches: boolean): ViewportService {
-    listener = null;
-    mql = {
-      matches,
-      addEventListener: vi.fn((_: string, fn: (event: MediaQueryListEvent) => void) => (listener = fn)),
-      removeEventListener: vi.fn(),
-    };
-    vi.spyOn(window, 'matchMedia').mockReturnValue(mql as unknown as MediaQueryList);
+    listeners = new Map();
+    vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => {
+      const fake: FakeMediaQueryList = {
+        matches,
+        addEventListener: vi.fn((_: string, fn: (event: MediaQueryListEvent) => void) => listeners.set(query, fn)),
+        removeEventListener: vi.fn(),
+      };
+      mql = fake;
+      return fake as unknown as MediaQueryList;
+    });
 
     TestBed.configureTestingModule({ providers: [ViewportService] });
-    return TestBed.inject(ViewportService);
+    const service = TestBed.inject(ViewportService);
+    listener = listeners.get(COMPACT_VIEWPORT_QUERY) ?? null;
+    return service;
   }
 
   afterEach(() => {
@@ -52,6 +58,16 @@ describe('ViewportService', () => {
 
     listener?.({ matches: false } as MediaQueryListEvent);
     expect(service.isCompact()).toBe(false);
+  });
+
+  it('粗いポインタを問い合わせる', () => {
+    setup(false);
+    expect(window.matchMedia).toHaveBeenCalledWith(TOUCH_POINTER_QUERY);
+  });
+
+  it('横向きのスマートフォンもコンパクト扱いに含める', () => {
+    setup(false);
+    expect(COMPACT_VIEWPORT_QUERY).toContain('(max-height: 500px) and (pointer: coarse)');
   });
 
   it('破棄時に購読を解除する', () => {
