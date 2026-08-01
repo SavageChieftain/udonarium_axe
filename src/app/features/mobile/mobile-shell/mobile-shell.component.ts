@@ -1,12 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { ThemeService } from '@axe/application/ui/theme.service';
 import { Network } from '@axe/core/network/network';
+import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -53,8 +58,13 @@ export class MobileShellComponent {
   private readonly activeCharacter = inject(ActiveCharacterService);
   private readonly characterPanel = inject(CharacterPanelService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly fileArchiver = inject(FileArchiver);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly theme = inject(ThemeService);
+  protected readonly language = inject(LanguageService);
   protected readonly layout = inject(MobileLayoutService);
+  protected readonly keyboardInset = inject(KeyboardInsetService).inset;
   protected readonly t = inject(TRANSLATE_FN);
 
   protected readonly isMenuOpen = signal(false);
@@ -62,6 +72,14 @@ export class MobileShellComponent {
   protected readonly isGameMaster = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
     return PeerCursor.isMyselfGameMaster;
+  });
+
+  protected readonly themeLabel = computed(() => {
+    this.language.currentLang();
+    const theme = this.theme.theme();
+    if (theme === 'dark') return this.t('common.theme.dark');
+    if (theme === 'light') return this.t('common.theme.light');
+    return this.t('common.theme.auto');
   });
 
   protected readonly sharedItems: MobileMenuItem[] = sharedMobileMenuItems();
@@ -115,6 +133,26 @@ export class MobileShellComponent {
     }
     const opened = this.resolvePanel(action);
     if (opened) this.panelService.open(opened.component, opened.option);
+  }
+
+  protected loadRoomFiles(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.isMenuOpen.set(false);
+    if (!this.rolePermission.canEditTabletop) {
+      input.value = '';
+      return;
+    }
+    const files = input.files;
+    if (files && files.length) this.fileArchiver.load(files);
+    input.value = '';
+  }
+
+  protected cycleTheme(): void {
+    this.theme.cycle();
+  }
+
+  protected toggleLanguage(): void {
+    this.language.toggle();
   }
 
   protected useDesktopLayout(): void {

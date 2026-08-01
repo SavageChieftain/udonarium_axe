@@ -16,6 +16,7 @@ export type MobileMenuAction =
   | 'turnPrev'
   | 'turnNext'
   | 'activePalette'
+  | 'zipLoad'
   | 'save';
 
 export interface MobileMenuItem {
@@ -43,6 +44,7 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
   { action: 'visualNovel', icon: 'auto_stories', labelKey: 'app.fab.visualNovel' },
   { action: 'activePalette', icon: 'chat', labelKey: 'feature.mobile.activePalette' },
   { action: 'hand', icon: 'style', labelKey: 'app.fab.handCards' },
+  { action: 'zipLoad', icon: 'open_in_browser', labelKey: 'app.fab.zipLoad' },
   { action: 'save', icon: 'sd_storage', labelKey: 'app.fab.save' },
 ];
 

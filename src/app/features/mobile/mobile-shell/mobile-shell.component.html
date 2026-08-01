@@ -1,6 +1,7 @@
 <div
   class="border-ui-border-panel bg-ui-panel text-ui-text fixed inset-x-0 bottom-0 z-160 flex flex-col rounded-t-2xl border-t border-solid shadow-[0_-6px_20px_rgba(0,0,0,0.22)] [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
   [style.top]="layout.tableRatio() * 100 + '%'"
+  [style.bottom.px]="keyboardInset()"
 >
   <div
     class="group/handle flex h-6 shrink-0 cursor-row-resize touch-none items-center justify-center"
@@ -12,7 +13,7 @@
   <app-mobile-chat-pane />
 
   <nav
-    class="border-ui-border-panel flex shrink-0 items-stretch gap-1 border-t border-solid px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]"
+    class="border-ui-border-panel flex shrink-0 items-stretch gap-1 border-t border-solid pt-1.5 pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.375rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))]"
   >
     <button
       class="text-ui-muted active:bg-ui-accent-bg active:text-ui-accent rounded-ui flex flex-1 flex-col items-center gap-0.5 border-none bg-transparent px-1 py-1.5 text-[0.65rem] leading-none shadow-none transition-colors"
@@ -37,12 +38,13 @@
   <div class="animate-fade-in fixed inset-0 z-170 bg-black/45" (click)="toggleMenu()" role="presentation"></div>
   <div
     class="border-ui-border-panel bg-ui-elevated text-ui-text animate-sheet-up fixed inset-x-0 bottom-0 z-171 flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-t-2xl border-t border-solid shadow-[0_-12px_32px_rgba(0,0,0,0.4)]"
+    [style.bottom.px]="keyboardInset()"
   >
     <div class="flex shrink-0 justify-center pt-2 pb-1">
       <div class="bg-ui-dim h-1 w-10 rounded-full opacity-40"></div>
     </div>
     <header
-      class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid px-4 pt-1 pb-2.5"
+      class="border-ui-border-panel flex shrink-0 items-center justify-between border-b border-solid pt-1 pr-[max(1rem,env(safe-area-inset-right))] pb-2.5 pl-[max(1rem,env(safe-area-inset-left))]"
     >
       <span class="text-[0.85rem] font-semibold tracking-wide">{{ 'feature.mobile.menuTitle' | transloco }}</span>
       <button
@@ -54,17 +56,35 @@
       </button>
     </header>
 
-    <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+    <div
+      class="min-h-0 flex-1 overflow-y-auto overscroll-contain py-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))]"
+    >
       <ul class="m-0 grid list-none grid-cols-3 gap-1 p-0 min-[520px]:grid-cols-5">
         @for (item of sharedItems; track item.action) {
           <li>
-            <button
-              class="text-ui-text active:bg-ui-accent-bg active:text-ui-accent rounded-ui flex min-h-15 w-full flex-col items-center justify-center gap-1 border-none bg-transparent px-1 py-1.5 text-[0.68rem] leading-tight shadow-none transition-colors"
-              (click)="runMenuAction(item.action)"
-            >
-              <i class="material-icons text-ui-muted text-[22px]!">{{ item.icon }}</i>
-              <span class="text-center">{{ item.labelKey | transloco }}</span>
-            </button>
+            @if (item.action === 'zipLoad') {
+              <label
+                class="text-ui-text active:bg-ui-accent-bg active:text-ui-accent rounded-ui flex min-h-15 w-full cursor-pointer flex-col items-center justify-center gap-1 px-1 py-1.5 text-[0.68rem] leading-tight transition-colors"
+              >
+                <i class="material-icons text-ui-muted text-[22px]!">{{ item.icon }}</i>
+                <span class="text-center">{{ item.labelKey | transloco }}</span>
+                <input
+                  type="file"
+                  class="hidden"
+                  multiple
+                  accept="application/xml,text/xml,application/zip"
+                  (change)="loadRoomFiles($event)"
+                />
+              </label>
+            } @else {
+              <button
+                class="text-ui-text active:bg-ui-accent-bg active:text-ui-accent rounded-ui flex min-h-15 w-full flex-col items-center justify-center gap-1 border-none bg-transparent px-1 py-1.5 text-[0.68rem] leading-tight shadow-none transition-colors"
+                (click)="runMenuAction(item.action)"
+              >
+                <i class="material-icons text-ui-muted text-[22px]!">{{ item.icon }}</i>
+                <span class="text-center">{{ item.labelKey | transloco }}</span>
+              </button>
+            }
           </li>
         }
       </ul>
@@ -92,14 +112,40 @@
     </div>
 
     <footer
-      class="border-ui-border-panel shrink-0 border-t border-solid px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      class="border-ui-border-panel flex shrink-0 items-stretch gap-1.5 border-t border-solid pt-2 pr-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))]"
     >
       <button
-        class="border-ui-border-panel text-ui-muted active:bg-ui-hover active:text-ui-accent rounded-ui flex w-full items-center justify-center gap-1.5 border border-solid bg-transparent px-2 py-2.5 text-[0.75rem] shadow-none"
+        class="border-ui-border-panel text-ui-muted active:bg-ui-hover active:text-ui-accent rounded-ui flex flex-1 items-center justify-center gap-1.5 border border-solid bg-transparent px-2 py-2.5 text-[0.75rem] shadow-none"
         (click)="useDesktopLayout()"
       >
         <i class="material-icons text-[18px]!">desktop_windows</i>
         {{ 'feature.mobile.useDesktop' | transloco }}
+      </button>
+      <button
+        class="border-ui-border-panel text-ui-muted active:bg-ui-hover active:text-ui-accent rounded-ui flex w-12 shrink-0 items-center justify-center border border-solid bg-transparent shadow-none"
+        [attr.aria-label]="themeLabel()"
+        (click)="cycleTheme()"
+      >
+        <i class="material-icons text-[18px]!">
+          @switch (theme.theme()) {
+            @case ('auto') {
+              brightness_auto
+            }
+            @case ('dark') {
+              dark_mode
+            }
+            @default {
+              light_mode
+            }
+          }
+        </i>
+      </button>
+      <button
+        class="border-ui-border-panel text-ui-muted active:bg-ui-hover active:text-ui-accent rounded-ui flex w-12 shrink-0 items-center justify-center border border-solid bg-transparent text-[0.75rem] font-bold uppercase shadow-none"
+        [attr.aria-label]="'common.language.switchTooltip' | transloco"
+        (click)="toggleLanguage()"
+      >
+        {{ language.currentLang() === 'ja' ? 'JA' : 'EN' }}
       </button>
     </footer>
   </div>
