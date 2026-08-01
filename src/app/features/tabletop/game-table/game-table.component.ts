@@ -18,6 +18,7 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -134,6 +135,7 @@ export class GameTableComponent {
   private readonly tabletopActionService = inject(TabletopActionService);
   protected readonly visionService = inject(VisionService);
   private readonly modalService = inject(ModalService);
+  private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly uiSignalService = inject(UiSignalService);
@@ -613,6 +615,18 @@ export class GameTableComponent {
     const menuActions: ContextMenuAction[] = [];
 
     Array.prototype.push.apply(menuActions, this.tabletopActionService.makeDefaultContextMenuActions(objectPosition));
+    menuActions.push({
+      name: this.t('feature.tabletop.contextMenu.createWithOptions'),
+      action: () => {
+        void import('@axe/features/character/game-character-generator/game-character-generator.component').then((m) =>
+          this.panelService.open(m.GameCharacterGeneratorComponent, {
+            width: 460,
+            height: 420,
+            title: this.t('common.panel.characterGenerator'),
+          })
+        );
+      },
+    });
     menuActions.push(ContextMenuSeparator);
     menuActions.push({
       name: this.t('feature.tabletop.tableSetting.title'),

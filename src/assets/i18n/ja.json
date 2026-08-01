@@ -941,7 +941,8 @@
         "surfaceNorthWall": "北壁",
         "surfaceEastWall": "東壁",
         "surfaceSouthWall": "南壁",
-        "surfaceWestWall": "西壁"
+        "surfaceWestWall": "西壁",
+        "createWithOptions": "コマを作る…"
       },
       "tableSetting": {
         "title": "テーブル設定",

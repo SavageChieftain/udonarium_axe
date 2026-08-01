@@ -941,7 +941,8 @@
         "surfaceNorthWall": "North wall",
         "surfaceEastWall": "East wall",
         "surfaceSouthWall": "South wall",
-        "surfaceWestWall": "West wall"
+        "surfaceWestWall": "West wall",
+        "createWithOptions": "Create a piece…"
       },
       "tableSetting": {
         "title": "Table settings",
