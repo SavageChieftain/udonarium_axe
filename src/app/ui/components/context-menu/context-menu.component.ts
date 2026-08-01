@@ -17,6 +17,9 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TranslocoModule } from '@jsverse/transloco';
+
+const SUBMENU_OVERLAP_PX = 4;
+const SUBMENU_RISE_PX = 16;
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'context-menu',
@@ -154,26 +157,21 @@ export class ContextMenuComponent {
     const parentBox = parent.getBoundingClientRect();
     const submenuBox = submenu.getBoundingClientRect();
 
-    let diffLeft = 0;
-    let diffTop = 0;
+    let left = parentBox.right - SUBMENU_OVERLAP_PX;
+    if (window.innerWidth < left + submenuBox.width) {
+      left = parentBox.left - submenuBox.width + SUBMENU_OVERLAP_PX;
+    }
+    submenu.style.left = Math.max(0, Math.min(left, window.innerWidth - submenuBox.width)) + 'px';
+    submenu.style.top = Math.max(0, parentBox.top - SUBMENU_RISE_PX) + 'px';
 
-    if (window.innerWidth < submenuBox.right + diffLeft) {
-      diffLeft -= parentBox.width + submenuBox.width;
-      diffLeft += 8;
+    const placed = submenu.getBoundingClientRect();
+    if (window.innerHeight < placed.bottom) {
+      submenu.style.top = Math.max(0, window.innerHeight - placed.height) + 'px';
     }
-    if (submenuBox.left + diffLeft < 0) {
-      diffLeft += 0 - (submenuBox.left + diffLeft);
-    }
+  }
 
-    if (window.innerHeight < submenuBox.bottom + diffTop) {
-      diffTop += window.innerHeight - (submenuBox.bottom + diffTop);
-    }
-    if (submenuBox.top + diffTop < 0) {
-      diffTop += 0 - (submenuBox.top + diffTop);
-    }
-
-    submenu.style.left = submenu.offsetLeft + diffLeft + 'px';
-    submenu.style.top = submenu.offsetTop + diffTop + 'px';
+  onListScroll(): void {
+    if (this.subMenu()) this.subMenu.set(undefined);
   }
 
   indexAction(indexline: number, id: string) {

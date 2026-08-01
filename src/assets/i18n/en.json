@@ -1579,7 +1579,9 @@
       "objectList": "Objects",
       "menuTitle": "Menu",
       "gameMasterSection": "Game master",
-      "characters": "Characters"
+      "characters": "Characters",
+      "selectionCount": "{{count}} selected",
+      "clearSelection": "Clear selection"
     }
   },
   "app": {

@@ -1579,7 +1579,9 @@
       "objectList": "オブジェクト",
       "menuTitle": "メニュー",
       "gameMasterSection": "ゲームマスター",
-      "characters": "キャラクター"
+      "characters": "キャラクター",
+      "selectionCount": "{{count}} 個選択中",
+      "clearSelection": "選択を解除"
     }
   },
   "app": {

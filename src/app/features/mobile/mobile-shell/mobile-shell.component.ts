@@ -9,6 +9,7 @@ import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
 import { Network } from '@axe/core/network/network';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
@@ -67,6 +68,8 @@ export class MobileShellComponent {
   protected readonly language = inject(LanguageService);
   protected readonly layout = inject(MobileLayoutService);
   protected readonly keyboardInset = inject(KeyboardInsetService).inset;
+  private readonly selectionSignal = inject(SelectionSignalService);
+  protected readonly selectionCount = this.selectionSignal.selectionSize;
   protected readonly t = inject(TRANSLATE_FN);
 
   protected readonly isMenuOpen = signal(false);
@@ -79,7 +82,7 @@ export class MobileShellComponent {
   protected readonly paneTop = computed(() => {
     const ratio = this.layout.tableRatio() * 100;
     const inset = this.keyboardInset();
-    return inset > 0 ? `calc(${ratio}% - ${inset}px)` : `${ratio}%`;
+    return inset > 0 ? `max(0px, calc(${ratio}% - ${inset}px))` : `${ratio}%`;
   });
 
   protected readonly themeLabel = computed(() => {
@@ -155,6 +158,10 @@ export class MobileShellComponent {
     reloadCheck?.reloadCheckStart(Network.peerContext.roomName !== '');
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
+  }
+
+  protected clearSelection(): void {
+    this.selectionSignal.clearSelection();
   }
 
   protected cycleTheme(): void {

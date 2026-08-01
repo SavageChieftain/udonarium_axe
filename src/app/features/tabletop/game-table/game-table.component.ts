@@ -33,6 +33,7 @@ import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
+import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
@@ -618,13 +619,11 @@ export class GameTableComponent {
     menuActions.push({
       name: this.t('feature.tabletop.contextMenu.createWithOptions'),
       action: () => {
-        void import('@axe/features/character/game-character-generator/game-character-generator.component').then((m) =>
-          this.panelService.open(m.GameCharacterGeneratorComponent, {
-            width: 460,
-            height: 420,
-            title: this.t('common.panel.characterGenerator'),
-          })
-        );
+        this.panelService.open(GameCharacterGeneratorComponent, {
+          width: 460,
+          height: 420,
+          title: this.t('common.panel.characterGenerator'),
+        });
       },
     });
     menuActions.push(ContextMenuSeparator);

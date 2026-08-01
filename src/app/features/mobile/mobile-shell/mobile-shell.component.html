@@ -3,6 +3,17 @@
   [style.top]="paneTop()"
   [style.bottom.px]="keyboardInset()"
 >
+  @if (selectionCount() > 0) {
+    <button
+      class="border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md absolute -top-11 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-solid px-3 py-2 text-[0.75rem] whitespace-nowrap"
+      (click)="clearSelection()"
+    >
+      {{ 'feature.mobile.selectionCount' | transloco: { count: selectionCount() } }}
+      <i class="material-icons text-ui-muted text-[16px]!">close</i>
+      <span class="sr-only">{{ 'feature.mobile.clearSelection' | transloco }}</span>
+    </button>
+  }
+
   <div
     class="group/handle flex h-6 shrink-0 cursor-row-resize touch-none items-center justify-center"
     (pointerdown)="startResize($event)"

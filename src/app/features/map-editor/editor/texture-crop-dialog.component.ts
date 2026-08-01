@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { loadRasterImage } from '@axe/features/map-editor/render/raster-image';
@@ -27,13 +27,19 @@ export function fitCropStage(viewportWidth: number): number {
 })
 export class TextureCropDialogComponent {
   private readonly modalService = inject(ModalService);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly t = inject(TRANSLATE_FN);
 
   private readonly cropFn = cropImageRegion;
   private readonly loadImageFn = loadRasterImage;
 
-  protected readonly stage = fitCropStage(window.innerWidth);
-  protected readonly frame = Math.round(this.stage * (TEXTURE_CROP_FRAME / TEXTURE_CROP_STAGE));
+  private readonly stageSignal = signal(fitCropStage(window.innerWidth));
+  protected get stage(): number {
+    return this.stageSignal();
+  }
+  protected get frame(): number {
+    return Math.round(this.stage * (TEXTURE_CROP_FRAME / TEXTURE_CROP_STAGE));
+  }
   protected readonly objectUrl: string;
 
   protected readonly tx = signal(0);
@@ -53,6 +59,15 @@ export class TextureCropDialogComponent {
       this.modalService.title = this.t('feature.mapEditor.props.textureCropTitle');
     });
     void this.prepare();
+
+    const onResize = () => {
+      const next = fitCropStage(window.innerWidth);
+      if (next === this.stageSignal()) return;
+      this.stageSignal.set(next);
+      void this.prepare();
+    };
+    window.addEventListener('resize', onResize);
+    this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
   }
 
   private async prepare(): Promise<void> {

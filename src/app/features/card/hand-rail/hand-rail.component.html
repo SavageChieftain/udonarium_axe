@@ -60,7 +60,7 @@
               @if (hovered() === card.identifier) {
                 <div
                   class="bg-ui-panel/90 absolute inset-x-0 bottom-0 flex justify-center gap-0.5 rounded-b-sm py-0.5"
-                  [class.py-1]="isTouch()"
+                  [ngClass]="isTouch() ? 'shadow-ui-sm top-[calc(100%+2px)]! bottom-auto! rounded-sm! py-1' : ''"
                 >
                   <button
                     class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5 transform-none cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"

@@ -45,6 +45,10 @@
       }
     </div>
 
+    @if (isCompact() && mobileDrawer() !== 'none') {
+      <div class="absolute inset-0 z-20" (click)="mobileDrawer.set('none')"></div>
+    }
+
     <div
       class="bg-ui-panel border-ui-border-panel flex flex-col gap-3 overflow-auto border-r border-solid p-2"
       [ngClass]="isCompact() ? 'shadow-ui-lg absolute inset-y-0 left-16.5 z-30 w-[min(19rem,74vw)]' : ''"

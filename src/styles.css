@@ -5,10 +5,12 @@
 
 /* Tailwind v4 — フルインポート (@tailwindcss/postcss がユーティリティを生成するには @import 'tailwindcss' が必要)
    Preflight は @layer base に配置されるため、アンレイヤードの既存スタイルが優先される */
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
 
-/* Tailwind がスキャンするソースディレクトリ (このCSSファイルからの相対パス) */
+/* Tailwind がスキャンするソース (このCSSファイルからの相対パス)。
+   自動検出を切って docs や dist を拾わないようにする */
 @source './app/**/*.{ts,html}';
+@source './index.html';
 
 /* ── Tailwind デザイントークン (ユーティリティ生成用) ───────────── */
 @theme {
