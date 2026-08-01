@@ -1,3 +1,54 @@
+## [1.22.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.21.0...v1.22.0) (2026-08-01)
+
+### ✨ Features
+
+* **character:** make the piece creator reachable and dress it properly ([09f9f56](https://github.com/SavageChieftain/udonarium_axe/commit/09f9f56c24af83ffd20cb702017148296fea4bc5))
+* **controller:** give the remote controller a layout built for phones ([5015281](https://github.com/SavageChieftain/udonarium_axe/commit/501528126a57323534c0d5fb383a09f4112a5830))
+* **input:** open the context menu by holding a piece down ([34b6162](https://github.com/SavageChieftain/udonarium_axe/commit/34b616211e7e3906d701fc7b0557b5a278b09f04))
+* **map-editor:** reach delete and text editing without a keyboard ([3c6ac96](https://github.com/SavageChieftain/udonarium_axe/commit/3c6ac969a21d15866693e5ac5bc5a19e5b891bb0))
+* **mobile:** finish reaching the toolbars' own actions from the menu ([f82708d](https://github.com/SavageChieftain/udonarium_axe/commit/f82708da0283ec0710c57f5633e041f8d70e6d7b))
+* **mobile:** finish the phone pass over every panel and dialog ([59bd946](https://github.com/SavageChieftain/udonarium_axe/commit/59bd94649cbfe34ef51f77e6a745490e89d08690))
+* **mobile:** give narrow screens a layout of their own ([6b0043f](https://github.com/SavageChieftain/udonarium_axe/commit/6b0043f7c0f28874b3df856f04115799f9320459))
+* **mobile:** keep the phone layout in landscape and on touch devices ([7132479](https://github.com/SavageChieftain/udonarium_axe/commit/71324793cf449d80b9cb15daf3f03d71bba1d139))
+* **mobile:** open hover-only controls by touch ([4751513](https://github.com/SavageChieftain/udonarium_axe/commit/47515132de0ac6596031c36eb30707341e847a8f))
+* **mobile:** reach room loading, theme and language from the phone menu ([0021e2c](https://github.com/SavageChieftain/udonarium_axe/commit/0021e2c49a49f01776ad5041b0233cc9b0d554c5))
+* **mobile:** reach the rest of the room from the phone menu ([4e77211](https://github.com/SavageChieftain/udonarium_axe/commit/4e77211d2dd4e5dce72bc6445129c6eb0d9660ca))
+* **pwa:** add a web app manifest and home screen icons ([d1f25f8](https://github.com/SavageChieftain/udonarium_axe/commit/d1f25f8ec28b4b97e7fde61f6e98906e9355ace1))
+* **tabletop:** make long press and range select work the same on every phone ([e847988](https://github.com/SavageChieftain/udonarium_axe/commit/e847988b65cf817ff90df001e086d70d34128ca1))
+
+### 🐛 Bug Fixes
+
+* **card:** show the hand above the chat pane and fit it on screen ([596daf5](https://github.com/SavageChieftain/udonarium_axe/commit/596daf5f0da11629635f63f25f007911d6f9f3c0))
+* **chat:** fold the dice and colour row away on a phone ([37396c9](https://github.com/SavageChieftain/udonarium_axe/commit/37396c9ef8587189272a7ab4890c503e95d79e67))
+* **chat:** give the log room to breathe on a phone ([d2eb98e](https://github.com/SavageChieftain/udonarium_axe/commit/d2eb98e0ec197b316bdcba6959c649f1d1bb09d4))
+* **file:** stop a dropped zip from turning its images into pieces ([1febbdf](https://github.com/SavageChieftain/udonarium_axe/commit/1febbdfe578d714216a4912e93e9f0eebf38978b))
+* **i18n:** speak of taps rather than clicks on a touch screen ([86b201e](https://github.com/SavageChieftain/udonarium_axe/commit/86b201e02ae15d082f4a3c81268110fb511e9d41))
+* **mobile:** confirm before a room load, and keep the chat pane usable ([46c00f6](https://github.com/SavageChieftain/udonarium_axe/commit/46c00f641dbe134c851afcee01186b20dde91c83))
+* **mobile:** keep the interface clear of the keyboard and the notch ([013abd4](https://github.com/SavageChieftain/udonarium_axe/commit/013abd4f7424d02da21ae09e8963c62c4d691037))
+* **mobile:** keep the menu on screen and document the phone layout ([7ca96ca](https://github.com/SavageChieftain/udonarium_axe/commit/7ca96ca0434da7406e8c85136d6fdb17210c0ee0))
+* **mobile:** let panels actually shrink for the soft keyboard ([e2027bd](https://github.com/SavageChieftain/udonarium_axe/commit/e2027bdb9a7790f22821fc006a376b64f3cac565))
+* **mobile:** work through the second review of the phone pass ([a691bfa](https://github.com/SavageChieftain/udonarium_axe/commit/a691bfa6a51876a2e6e59b371b9084e50d59efde))
+* **pwa:** ship the manifest in the production build ([19c8c34](https://github.com/SavageChieftain/udonarium_axe/commit/19c8c349e8d5d36c5cf144e08bc40ffcb1f955dd))
+* **tabletop:** stack the table setting panel on a narrow screen ([68d719b](https://github.com/SavageChieftain/udonarium_axe/commit/68d719b0b5475f5f7a88d947062b01ebe153d4fb))
+* **tabletop:** stop a long press from also firing a tap ([2b1ab42](https://github.com/SavageChieftain/udonarium_axe/commit/2b1ab429fb1ac31ffd93743e26a8e7813ee57142))
+* **ui:** keep long context menus on screen for touch ([b7f5f82](https://github.com/SavageChieftain/udonarium_axe/commit/b7f5f82a5b02adb3ad66cc13dba15a4a53e33949))
+* **ui:** let the desktop menu labels escape the rail again ([4c3a7ee](https://github.com/SavageChieftain/udonarium_axe/commit/4c3a7eec89c23677d27d57cfb92daee87f8e01b4))
+* **ui:** make panel contents usable with a finger ([aacdbe0](https://github.com/SavageChieftain/udonarium_axe/commit/aacdbe05150e7759a2a2f3efe2ed32aa3fdb13a5))
+* **ui:** raise a full screen panel above the mobile chat ([2e2a23f](https://github.com/SavageChieftain/udonarium_axe/commit/2e2a23fba29b9d29dd04bcbf219502e36a49aa1b))
+* **ui:** stop context menus clipping their submenus on phones ([d108907](https://github.com/SavageChieftain/udonarium_axe/commit/d108907495c5454fee0dbb762b182b45918d521f))
+* **ui:** stop the desktop menu rail from scrolling and clipping its labels ([9aa7738](https://github.com/SavageChieftain/udonarium_axe/commit/9aa7738256255e53a842c095ded60aff189bc44c))
+* **visual-novel:** let novel mode own the screen on a phone ([787c3c7](https://github.com/SavageChieftain/udonarium_axe/commit/787c3c71f29614ffb5380be8d7595f0a89238353))
+
+### 📝 Documentation
+
+* **manual:** describe the phone pass and the new creation panel ([691dc7a](https://github.com/SavageChieftain/udonarium_axe/commit/691dc7acf27dd58fca9da074f6b312ea8c0072ee))
+* **manual:** describe the touch gestures and adding to the home screen ([3cb64e6](https://github.com/SavageChieftain/udonarium_axe/commit/3cb64e6bdfce9cbe1717a472823d5cd2cec79935))
+* **manual:** match the phone chapter to the new menu sheet ([c3a9c8a](https://github.com/SavageChieftain/udonarium_axe/commit/c3a9c8a34a8844c93c5835231b53ff6ed4895f62))
+* record the mobile layout in the feature list ([3e7e544](https://github.com/SavageChieftain/udonarium_axe/commit/3e7e544e2e12bf4bee0802fd47c64dc0abd50797))
+* retire the "phones are not supported" notice ([b3928a0](https://github.com/SavageChieftain/udonarium_axe/commit/b3928a0bd0140ba1d6807bca969cded9eb4fe8e3))
+* **website:** add v1.21.0 release notes ([38dc16d](https://github.com/SavageChieftain/udonarium_axe/commit/38dc16d260e56ec48679541da663c4df78d59253))
+* **website:** lead with the demo site on the landing page ([0f28273](https://github.com/SavageChieftain/udonarium_axe/commit/0f2827309bcb240026050563e27fb3ca240290b6))
+
 ## [1.21.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.20.0...v1.21.0) (2026-07-31)
 
 ### ✨ Features
