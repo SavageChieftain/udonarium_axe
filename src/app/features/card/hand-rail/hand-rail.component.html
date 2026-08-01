@@ -36,8 +36,8 @@
               [style.transform]="cardTransform(card)"
               [style.zIndex]="cardZIndex(card)"
               [class.opacity-40]="isDragging(card)"
-              (pointerenter)="hovered.set(card.identifier)"
-              (pointerleave)="hovered.set(null)"
+              (pointerenter)="setHovered(card)"
+              (pointerleave)="setHovered(null)"
               (pointerdown)="onCardPointerDown($event, card)"
               (pointermove)="onCardPointerMove($event)"
               (pointerup)="onCardPointerUp($event)"
@@ -58,21 +58,28 @@
               </div>
 
               @if (hovered() === card.identifier) {
-                <div class="bg-ui-panel/90 absolute inset-x-0 bottom-0 flex justify-center gap-0.5 rounded-b-sm py-0.5">
+                <div
+                  class="bg-ui-panel/90 absolute inset-x-0 bottom-0 flex justify-center gap-0.5 rounded-b-sm py-0.5"
+                  [class.py-1]="isTouch()"
+                >
                   <button
                     class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5 transform-none cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+                    [ngClass]="isTouch() ? 'h-8! px-3!' : ''"
                     [title]="'feature.card.hand.playFaceUp' | transloco"
                     (click)="playFaceUp(card)"
                   >
-                    <i class="material-icons text-[13px]!">visibility</i>
+                    <i class="material-icons text-[13px]!" [ngClass]="isTouch() ? 'text-[18px]!' : ''">visibility</i>
                   </button>
 
                   <button
                     class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5 transform-none cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+                    [ngClass]="isTouch() ? 'h-8! px-3!' : ''"
                     [title]="'feature.card.hand.playFaceDown' | transloco"
                     (click)="playFaceDown(card)"
                   >
-                    <i class="material-icons text-[13px]!">visibility_off</i>
+                    <i class="material-icons text-[13px]!" [ngClass]="isTouch() ? 'text-[18px]!' : ''"
+                      >visibility_off</i
+                    >
                   </button>
                 </div>
               }

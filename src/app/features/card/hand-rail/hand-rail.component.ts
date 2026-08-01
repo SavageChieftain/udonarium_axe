@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -40,10 +41,12 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-hand-rail',
   templateUrl: './hand-rail.component.html',
-  imports: [DraggableDirective, SafePipe, TranslocoModule],
+  imports: [DraggableDirective, NgClass, SafePipe, TranslocoModule],
 })
 export class HandRailComponent {
-  protected readonly isCompact = inject(ViewportService).isCompact;
+  private readonly viewport = inject(ViewportService);
+  protected readonly isCompact = this.viewport.isCompact;
+  protected readonly isTouch = this.viewport.isTouch;
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly selectionSignalService = inject(SelectionSignalService);
@@ -201,6 +204,11 @@ export class HandRailComponent {
     return handFanDropIndex(clientX - fan.getBoundingClientRect().left, this.cards().length);
   }
 
+  protected setHovered(card: Card | null): void {
+    if (this.isTouch()) return;
+    this.hovered.set(card?.identifier ?? null);
+  }
+
   protected onCardPointerUp(event: PointerEvent): void {
     const pending = this.dragPending;
     if (!pending || this.activePointerId !== event.pointerId) return;
@@ -208,8 +216,15 @@ export class HandRailComponent {
     this.activePointerId = null;
     this.releaseCapture(event);
     const insertAt = this.insertAt();
+    const wasDragging = pending.dragging;
+    const previousSelection = this.hovered();
     this.endDragState();
-    if (!pending.dragging) return;
+    if (!wasDragging) {
+      if (this.isTouch() && previousSelection !== pending.card.identifier) {
+        this.hovered.set(pending.card.identifier);
+      }
+      return;
+    }
 
     const targets = elementsAt(event.clientX, event.clientY);
     if (targets.some((element) => element.closest('.hand-rail'))) {

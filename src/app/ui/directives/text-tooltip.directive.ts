@@ -1,13 +1,20 @@
 import { afterNextRender, DestroyRef, Directive, ElementRef, inject, input } from '@angular/core';
+import { ViewportService } from '@axe/application/ui/viewport.service';
+import { observeTap, TapGestureHandle, TapPoint } from '@axe/core/input/tap-gesture';
+
+const TOUCH_VISIBLE_MS = 2500;
 
 @Directive({ selector: '[appTextTooltip]' })
 export class TextTooltipDirective {
   private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly viewport = inject(ViewportService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly appTextTooltip = input<string>('');
 
   private tooltipEl: HTMLElement | null = null;
+  private tapGesture: TapGestureHandle | null = null;
+  private hideTimer: ReturnType<typeof setTimeout> | null = null;
 
   private onMouseEnter = (e: MouseEvent) => this.show(e);
   private onMouseLeave = () => this.hide();
@@ -19,14 +26,25 @@ export class TextTooltipDirective {
       el.addEventListener('mouseenter', this.onMouseEnter);
       el.addEventListener('mouseleave', this.onMouseLeave);
       el.addEventListener('mousemove', this.onMouseMove);
+      this.tapGesture = observeTap(el, (point) => this.showAtPoint(point));
     });
     this.destroyRef.onDestroy(() => {
       const el = this.el.nativeElement;
       el.removeEventListener('mouseenter', this.onMouseEnter);
       el.removeEventListener('mouseleave', this.onMouseLeave);
       el.removeEventListener('mousemove', this.onMouseMove);
+      this.tapGesture?.destroy();
+      this.tapGesture = null;
       this.hide();
     });
+  }
+
+  private showAtPoint(point: TapPoint) {
+    if (!this.viewport.isTouch()) return;
+    this.show({ clientX: point.x, clientY: point.y } as MouseEvent);
+    if (!this.tooltipEl) return;
+    this.tooltipEl.style.pointerEvents = 'none';
+    this.hideTimer = setTimeout(() => this.hide(), TOUCH_VISIBLE_MS);
   }
 
   private show(e: MouseEvent) {
@@ -53,6 +71,10 @@ export class TextTooltipDirective {
   }
 
   private hide() {
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer);
+      this.hideTimer = null;
+    }
     if (this.tooltipEl) {
       this.tooltipEl.remove();
       this.tooltipEl = null;

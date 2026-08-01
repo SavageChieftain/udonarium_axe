@@ -10,7 +10,9 @@ import {
 } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { observeTap, TapGestureHandle } from '@axe/core/input/tap-gesture';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface TooltipPanelInstance {
@@ -24,6 +26,7 @@ export class TooltipDirective {
   private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly viewport = inject(ViewportService);
   private readonly destroyRef = inject(DestroyRef);
 
   static TooltipPanelComponentClass: Type<TooltipPanelInstance> | null = null;
@@ -41,17 +44,32 @@ export class TooltipDirective {
 
   private tooltipComponentRef: ComponentRef<TooltipPanelInstance> | null = null;
   private deleteOff?: () => void;
+  private tapGesture: TapGestureHandle | null = null;
 
   constructor() {
     afterNextRender(() => {
-      this.addEventListeners(this.viewContainerRef.element.nativeElement);
+      const element = this.viewContainerRef.element.nativeElement as Element;
+      this.addEventListeners(element);
+      this.tapGesture = observeTap(element, () => this.onTap());
     });
     this.destroyRef.onDestroy(() => {
       this.removeEventListeners(this.viewContainerRef.element.nativeElement);
+      this.tapGesture?.destroy();
+      this.tapGesture = null;
       this.clearTimer();
       this.close();
       this.deleteOff?.();
     });
+  }
+
+  private onTap() {
+    if (!this.viewport.isTouch()) return;
+    this.clearTimer();
+    if (this.tooltipComponentRef) {
+      this.closeAll();
+      return;
+    }
+    this.open();
   }
 
   private onMouseEnter(_e: MouseEvent) {
@@ -127,6 +145,10 @@ export class TooltipDirective {
     this.tooltipComponentRef.instance.tabletopObject = this.tabletopObject();
     this.tooltipComponentRef.instance.left = this.pointerDeviceService.pointerX;
     this.tooltipComponentRef.instance.top = this.pointerDeviceService.pointerY;
+
+    if (this.viewport.isTouch()) {
+      (this.tooltipComponentRef.location.nativeElement as HTMLElement).style.pointerEvents = 'none';
+    }
 
     this.addEventListeners(this.tooltipComponentRef.location.nativeElement);
     document.body.addEventListener('touchstart', this.callbackOnMouseDown, true);
