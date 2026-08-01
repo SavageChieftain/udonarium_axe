@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -44,6 +45,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   imports: [DraggableDirective, NgClass, SafePipe, TranslocoModule],
 })
 export class HandRailComponent {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly viewport = inject(ViewportService);
   protected readonly isCompact = this.viewport.isCompact;
   protected readonly isTouch = this.viewport.isTouch;
@@ -80,6 +82,15 @@ export class HandRailComponent {
         this.savedTop = el.style.top;
       });
     });
+
+    const clearTouchSelection = (event: Event) => {
+      if (!this.isTouch() || this.hovered() === null) return;
+      const rail = this.railRef()?.nativeElement;
+      if (rail && rail.contains(event.target as Node)) return;
+      this.hovered.set(null);
+    };
+    document.addEventListener('pointerdown', clearTouchSelection, true);
+    this.destroyRef.onDestroy(() => document.removeEventListener('pointerdown', clearTouchSelection, true));
   }
 
   readonly canHoldCards = computed(() => {

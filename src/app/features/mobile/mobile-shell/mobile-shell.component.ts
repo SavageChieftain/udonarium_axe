@@ -15,6 +15,7 @@ import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
@@ -72,6 +73,12 @@ export class MobileShellComponent {
   protected readonly isGameMaster = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
     return PeerCursor.isMyselfGameMaster;
+  });
+
+  protected readonly paneTop = computed(() => {
+    const ratio = this.layout.tableRatio() * 100;
+    const inset = this.keyboardInset();
+    return inset > 0 ? `calc(${ratio}% - ${inset}px)` : `${ratio}%`;
   });
 
   protected readonly themeLabel = computed(() => {
@@ -143,6 +150,8 @@ export class MobileShellComponent {
       return;
     }
     const files = input.files;
+    const reloadCheck = this.objectStore.get<ReloadCheck>('ReloadCheck');
+    reloadCheck?.reloadCheckStart(Network.peerContext.roomName !== '');
     if (files && files.length) this.fileArchiver.load(files);
     input.value = '';
   }
