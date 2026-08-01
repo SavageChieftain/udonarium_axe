@@ -9,7 +9,7 @@
   </div>
 }
 
-<div class="pointer-events-none absolute inset-x-0 top-[10vh] bottom-0 overflow-hidden">
+<div class="pointer-events-none absolute inset-x-0 top-[10dvh] bottom-0 overflow-hidden">
   @for (chara of stageCharacters(); track chara.name) {
     <div
       class="absolute bottom-0 -translate-x-1/2 transition-[left,scale,filter] duration-300"
@@ -22,7 +22,7 @@
     >
       <div [class]="portraitAnimationClass()">
         <img
-          class="h-[56vh] w-auto max-w-none drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+          class="h-[56dvh] w-auto max-w-none drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
           [class]="(chara.isActive ? speakClass() : '') + (chara.isFlipped ? ' -scale-x-100' : '')"
           [src]="chara.url | safe: 'resourceUrl'"
           [alt]="chara.name"
@@ -33,7 +33,7 @@
 </div>
 
 @if (showSlotGuide()) {
-  <div class="pointer-events-auto absolute inset-x-0 top-[10vh] bottom-[15vh] z-40 flex">
+  <div class="pointer-events-auto absolute inset-x-0 top-[10dvh] bottom-[15dvh] z-40 flex">
     @for (slotIndex of slotIndexes; track slotIndex) {
       <button
         type="button"
@@ -95,7 +95,7 @@
 
 @if (narrationKind(); as kind) {
   <div
-    class="pointer-events-auto absolute inset-x-0 top-[32vh] z-30 cursor-pointer select-none"
+    class="pointer-events-auto absolute inset-x-0 top-[32dvh] z-30 cursor-pointer select-none"
     (click)="userAdvance()"
     (wheel)="onMessageWheel($event)"
   >
@@ -143,7 +143,7 @@
 
 @if (diceCommand(); as command) {
   <div
-    class="pointer-events-auto absolute top-[6vh] left-1/2 z-30 -translate-x-1/2 cursor-pointer select-none"
+    class="pointer-events-auto absolute top-[6dvh] left-1/2 z-30 -translate-x-1/2 cursor-pointer select-none"
     (click)="userAdvance()"
     (wheel)="onMessageWheel($event)"
   >
@@ -166,14 +166,14 @@
 
 @if (systemSpeaker(); as system) {
   <div
-    class="pointer-events-auto absolute top-[4vh] left-1/2 z-30 -translate-x-1/2 cursor-pointer select-none"
+    class="pointer-events-auto absolute top-[4dvh] left-1/2 z-30 -translate-x-1/2 cursor-pointer select-none"
     (click)="userAdvance()"
     (wheel)="onMessageWheel($event)"
   >
     @for (message of currentMessageList(); track message.identifier) {
       <div class="vn-enter-system flex flex-col items-center">
         <img
-          class="h-[18vh] drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)]"
+          class="h-[18dvh] drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)]"
           [src]="system.imageUrl | safe: 'resourceUrl'"
           alt=""
         />
@@ -218,7 +218,7 @@
     appDraggable
     [draggable.handle]="'.vn-log-handle'"
     [draggable.unhandle]="'input,textarea,button,select,option'"
-    class="border-ui-border-panel bg-ui-panel shadow-ui-md rounded-ui-lg pointer-events-auto absolute top-[6vh] left-1/2 z-60 flex h-[62vh] w-[min(44rem,92vw)] -translate-x-1/2 flex-col overflow-hidden border border-solid [backdrop-filter:blur(24px)_saturate(1.5)]"
+    class="border-ui-border-panel bg-ui-panel shadow-ui-md rounded-ui-lg pointer-events-auto absolute top-[6dvh] left-1/2 z-60 flex h-[62dvh] w-[min(44rem,92vw)] -translate-x-1/2 flex-col overflow-hidden border border-solid [backdrop-filter:blur(24px)_saturate(1.5)]"
   >
     <div
       class="vn-log-handle border-ui-border-titlebar bg-ui-titlebar text-ui-muted flex h-9 shrink-0 cursor-grab items-center gap-2 border-b border-solid px-3 text-xs font-medium active:cursor-grabbing"
@@ -393,7 +393,10 @@
   </div>
 }
 
-<div class="absolute inset-x-0 bottom-0 z-50 px-[4%] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+<div
+  class="absolute inset-x-0 bottom-0 z-50 pr-[max(4%,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(4%,env(safe-area-inset-left))]"
+  [style.bottom.px]="keyboardInset()"
+>
   @if (!currentMessage()) {
     <div
       class="rounded-ui-xl pointer-events-auto mx-auto max-w-xl border border-solid border-white/25 bg-black/60 px-6 py-4 text-center text-sm text-white/80 backdrop-blur-md"
@@ -582,7 +585,7 @@
           </button>
           @if (showEmote()) {
             <div
-              class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-[70vh] w-80 overflow-y-auto border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+              class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-[70dvh] w-80 overflow-y-auto border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
             >
               <div class="mb-1 flex items-center justify-between">
                 <span class="text-ui-muted text-[11px] font-semibold">

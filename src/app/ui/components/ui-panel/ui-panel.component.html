@@ -4,7 +4,7 @@
     'pointer-events-none': isPointerDragging,
     'inset-0!': isCompact(),
     'w-screen!': isCompact(),
-    'h-screen!': isCompact(),
+    'h-dvh!': isCompact(),
     'rounded-none!': isCompact(),
   }"
   [class.bg-transparent!]="contentMinimized"
@@ -15,7 +15,7 @@
   [style.left.px]="left"
   [style.top.px]="top"
   [style.width.px]="width"
-  [style.height]="contentMinimized ? 'auto' : height + 'px'"
+  [style.height]="contentMinimized ? 'auto' : isCompact() ? 'calc(100dvh - ' + keyboardInset() + 'px)' : height + 'px'"
   [style.zIndex]="isFullScreen() || isCompact() ? '201' : null"
   [style.visibility]="panelService.invisible ? 'hidden' : ''"
   [style.pointer-events]="panelService.invisible ? 'none' : ''"
@@ -34,7 +34,7 @@
     class="rounded-t-ui-lg border-ui-border-titlebar bg-ui-titlebar text-ui-muted relative box-border h-7 w-full border-b border-solid px-2 text-xs/7 font-medium tracking-[0.02em] select-none"
     [ngClass]="
       isCompact()
-        ? 'flex! h-[calc(2.75rem+env(safe-area-inset-top))]! items-center rounded-none! px-3! pt-[env(safe-area-inset-top)] text-[0.9rem]!'
+        ? 'flex! h-[calc(2.75rem+env(safe-area-inset-top))]! items-center rounded-none! pt-[env(safe-area-inset-top)] pr-[max(0.75rem,env(safe-area-inset-right))]! pl-[max(0.75rem,env(safe-area-inset-left))]! text-[0.9rem]!'
         : ''
     "
     #titleBar

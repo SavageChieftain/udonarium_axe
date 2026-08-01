@@ -21,9 +21,12 @@
 <app-hand-drag-ghost></app-hand-drag-ghost>
 <app-npc-drag-ghost></app-npc-drag-ghost>
 @if (!mobile.isActive()) {
-  <div class="group absolute top-3 left-3 z-200 flex w-14 justify-center" [class.open]="fabOpen()">
+  <div
+    class="group absolute top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))] z-200 flex w-14 justify-center"
+    [class.open]="fabOpen()"
+  >
     <nav
-      class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md pointer-events-none absolute top-[calc(100%+10px)] left-0 z-8 max-h-[calc(100vh-5rem)] w-14 origin-top-left -translate-y-4 overflow-x-visible overflow-y-auto border border-solid opacity-0 [backdrop-filter:blur(24px)_saturate(1.5)] transition-[transform,opacity] duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:pointer-events-auto group-[.open]:translate-y-0 group-[.open]:opacity-100"
+      class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md pointer-events-none absolute top-[calc(100%+10px)] left-0 z-8 max-h-[calc(100dvh-5rem)] w-14 origin-top-left -translate-y-4 overflow-x-visible overflow-y-auto border border-solid opacity-0 [backdrop-filter:blur(24px)_saturate(1.5)] transition-[transform,opacity] duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] group-[.open]:pointer-events-auto group-[.open]:translate-y-0 group-[.open]:opacity-100"
     >
       <ul class="m-0 list-none p-1.5">
         <li

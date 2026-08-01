@@ -13,6 +13,7 @@ import {
   ViewContainerRef,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -39,6 +40,7 @@ export class UIPanelComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   readonly isCompact = this.viewport.isCompact;
+  readonly keyboardInset = inject(KeyboardInsetService).inset;
 
   get menuTitle(): string {
     return this.t('ui.panel.menuTitle');

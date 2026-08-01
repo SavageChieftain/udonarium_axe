@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { AppConfigService } from '@axe/composition/app-config.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { initializeNetworkMessaging } from '@axe/core/network/network-messaging';
@@ -43,6 +44,7 @@ export class AppInitializationService {
   private readonly config = inject(Config);
   private readonly dataSummarySetting = inject(DataSummarySetting);
   private readonly ngSelectConfig = inject(NgSelectConfig);
+  private readonly keyboardInset = inject(KeyboardInsetService);
 
   initialize(): void {
     initializeNetworkMessaging();
@@ -52,6 +54,7 @@ export class AppInitializationService {
     ObjectSynchronizer.instance.initialize();
     this.appConfigService.initialize();
     this.pointerDeviceService.initialize();
+    this.keyboardInset.inset();
     this.ngSelectConfig.appendTo = 'body';
 
     this.tableSelecter.initialize();

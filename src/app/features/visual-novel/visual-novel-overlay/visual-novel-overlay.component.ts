@@ -16,6 +16,7 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -106,6 +107,7 @@ export interface VnStageCharacter {
 })
 export class VisualNovelOverlayComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
+  protected readonly keyboardInset = inject(KeyboardInsetService).inset;
   protected readonly isControlsOpen = signal(false);
 
   protected toggleControls(): void {

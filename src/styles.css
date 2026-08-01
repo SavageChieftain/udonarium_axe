@@ -2063,7 +2063,9 @@ body.mobile-layout ui-panel [data-testid='inventory-item'] {
 }
 
 body.mobile-layout ui-panel > div > .rounded-b-ui-lg {
+  padding-right: max(0.5rem, env(safe-area-inset-right)) !important;
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
+  padding-left: max(0.5rem, env(safe-area-inset-left)) !important;
 }
 
 body.mobile-layout ui-panel button,
