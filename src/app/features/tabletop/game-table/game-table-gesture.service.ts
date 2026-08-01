@@ -75,6 +75,7 @@ export class GameTableGestureService {
     this.marqueeGesture.onMarqueeStart = (point, mods) => this.onMarqueeStart(point, mods);
     this.marqueeGesture.onMarqueeUpdate = (point) => this.onMarqueeUpdate(point);
     this.marqueeGesture.onMarqueeEnd = (rect, mods) => this.onMarqueeEnd(rect, mods);
+    this.touchGesture.shouldSynthesizeContextMenu = () => !(this.marqueeGesture?.isDragging ?? false);
   }
 
   cancelInput(): void {
@@ -259,7 +260,8 @@ export class GameTableGestureService {
     this.selectionSignalService.marqueeState.set(null);
     const candidates = this.collectSelectableObjects();
     const hits = selectByRect(candidates, rect);
-    if (modifiers.shift) {
+    const addsToSelection = modifiers.shift || (modifiers.touch && this.selectionSignalService.selectionSize() > 0);
+    if (addsToSelection) {
       for (const id of hits) this.selectionSignalService.addSelection(id);
     } else if (modifiers.ctrl) {
       for (const id of hits) this.selectionSignalService.toggleSelection(id);

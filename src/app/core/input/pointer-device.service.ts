@@ -11,7 +11,8 @@ export interface PointerData extends PointerCoordinate {
 }
 
 const MOUSE_IDENTIFIER = -9999;
-const LONG_PRESS_DELAY_MS = 500;
+const LONG_PRESS_DELAY_MS = 400;
+const TOUCH_CONTEXT_MENU_SLOP_PX = 12;
 
 @Injectable({
   providedIn: 'root',
@@ -138,7 +139,7 @@ export class PointerDeviceService {
     for (let i = 0; i < length; i++) {
       const touch = e.touches[i];
       const touchPointer: PointerData = { x: touch.pageX, y: touch.pageY, z: 0, identifier: touch.identifier };
-      if (this._isAllowedToOpenContextMenu) this.preventContextMenuIfNeeded(touchPointer);
+      if (this._isAllowedToOpenContextMenu) this.preventContextMenuIfNeeded(touchPointer, TOUCH_CONTEXT_MENU_SLOP_PX);
       this.pointers.push(touchPointer);
     }
     this.primaryPointer = this.pointers[0];

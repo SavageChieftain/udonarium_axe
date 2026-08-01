@@ -18,7 +18,11 @@ export enum TableTouchGestureEvent {
   ROTATE = 'rotate',
 }
 
+export const TABLE_LONG_PRESS_MS = 400;
+
 export class TableTouchGesture {
+  shouldSynthesizeContextMenu: (() => boolean) | null = null;
+
   private activePointers = new Map<
     number,
     {
@@ -294,15 +298,11 @@ export class TableTouchGesture {
   private startLongPressTimer(ev: PointerEvent) {
     this.clearLongPressTimer();
 
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isiOS =
-      ua.includes('iphone') || ua.includes('ipad') || (ua.includes('macintosh') && 'ontouchend' in document);
-    if (!isiOS) return;
-
     this.longPressTarget = ev.target;
     this.longPressPoint = { x: ev.clientX, y: ev.clientY };
     this.longPressTimer = setTimeout(() => {
       this.longPressTimer = null;
+      if (this.shouldSynthesizeContextMenu && !this.shouldSynthesizeContextMenu()) return;
       const event = new MouseEvent('contextmenu', {
         bubbles: true,
         cancelable: true,
@@ -312,7 +312,7 @@ export class TableTouchGesture {
       const target = this.longPressTarget as HTMLElement | null;
       if (!target) return;
       target.dispatchEvent(event);
-    }, 251);
+    }, TABLE_LONG_PRESS_MS);
   }
 
   private clearTappedPanTimer(needsSetNull: boolean = true) {

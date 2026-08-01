@@ -13,6 +13,7 @@ export interface MarqueeRect {
 export interface MarqueeModifiers {
   shift: boolean;
   ctrl: boolean;
+  touch: boolean;
 }
 
 export type MarqueeStartHandler = (point: MarqueePoint, modifiers: MarqueeModifiers) => void;
@@ -22,8 +23,9 @@ export type MarqueeEndHandler = (rect: MarqueeRect, modifiers: MarqueeModifiers)
 type ScreenToTablePoint = (screenX: number, screenY: number) => MarqueePoint;
 
 export const MARQUEE_MOUSE_LONG_PRESS_MS = 350;
-export const MARQUEE_TOUCH_LONG_PRESS_MS = 500;
+export const MARQUEE_TOUCH_LONG_PRESS_MS = 300;
 export const MARQUEE_MOVE_CANCEL_THRESHOLD_PX = 6;
+export const MARQUEE_DRAG_THRESHOLD_PX = 8;
 
 export class TableMarqueeGesture {
   onMarqueeStart: MarqueeStartHandler | null = null;
@@ -32,6 +34,8 @@ export class TableMarqueeGesture {
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private active = false;
+  private isTouchGesture = false;
+  private dragged = false;
   private startScreenX = 0;
   private startScreenY = 0;
   private startTablePoint: MarqueePoint | null = null;
@@ -39,16 +43,22 @@ export class TableMarqueeGesture {
 
   constructor(private readonly toTablePoint: ScreenToTablePoint) {}
 
+  get isDragging(): boolean {
+    return this.active && this.dragged;
+  }
+
   arm(event: PointerEvent | MouseEvent): boolean {
     this.cancel();
+    this.dragged = false;
     if (event.button !== 0) return false;
     if (event.ctrlKey || event.metaKey || event.altKey) return false;
     const pointerType = (event as PointerEvent).pointerType ?? 'mouse';
     const isTouchLike = pointerType === 'touch' || pointerType === 'pen';
+    this.isTouchGesture = isTouchLike;
     const delay = isTouchLike ? MARQUEE_TOUCH_LONG_PRESS_MS : MARQUEE_MOUSE_LONG_PRESS_MS;
     this.startScreenX = event.pageX;
     this.startScreenY = event.pageY;
-    const modifiers: MarqueeModifiers = { shift: event.shiftKey, ctrl: event.ctrlKey };
+    const modifiers: MarqueeModifiers = { shift: event.shiftKey, ctrl: event.ctrlKey, touch: isTouchLike };
     this.timer = setTimeout(() => {
       this.timer = null;
       this.fire(modifiers);
@@ -75,6 +85,9 @@ export class TableMarqueeGesture {
       }
       return;
     }
+    const dx = screenX - this.startScreenX;
+    const dy = screenY - this.startScreenY;
+    if (dx * dx + dy * dy > MARQUEE_DRAG_THRESHOLD_PX ** 2) this.dragged = true;
     const point = this.toTablePoint(screenX, screenY);
     this.currentTablePoint = point;
     this.onMarqueeUpdate?.(point);
@@ -94,6 +107,7 @@ export class TableMarqueeGesture {
     const modifiers: MarqueeModifiers = {
       shift: event?.shiftKey ?? false,
       ctrl: event?.ctrlKey ?? false,
+      touch: this.isTouchGesture,
     };
     const rect: MarqueeRect = { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
     this.reset();
@@ -111,6 +125,7 @@ export class TableMarqueeGesture {
 
   private reset(): void {
     this.active = false;
+    this.dragged = false;
     this.startTablePoint = null;
     this.currentTablePoint = null;
   }

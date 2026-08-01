@@ -58,19 +58,48 @@ describe('TableMarqueeGesture', () => {
     vi.advanceTimersByTime(MARQUEE_MOUSE_LONG_PRESS_MS);
 
     expect(gesture.isActive).toBe(true);
-    expect(start).toHaveBeenCalledWith({ x: 10, y: 20 }, { shift: false, ctrl: false });
+    expect(start).toHaveBeenCalledWith({ x: 10, y: 20 }, { shift: false, ctrl: false, touch: false });
   });
 
-  it('タッチ系では 500ms の長押しが必要', () => {
+  it('タッチで始めた範囲選択はタッチ印を付けて通知する', () => {
+    const gesture = new TableMarqueeGesture(identityScreenToTable);
+    const start = vi.fn();
+    const end = vi.fn();
+    gesture.onMarqueeStart = start;
+    gesture.onMarqueeEnd = end;
+
+    gesture.arm(makeEvent({ clientX: 10, clientY: 20, pointerType: 'touch' }));
+    vi.advanceTimersByTime(MARQUEE_TOUCH_LONG_PRESS_MS);
+    gesture.updatePointer(50, 80);
+    gesture.release(makeEvent({ pointerType: 'touch' }));
+
+    expect(start).toHaveBeenCalledWith({ x: 10, y: 20 }, { shift: false, ctrl: false, touch: true });
+    expect(end).toHaveBeenCalledWith({ x1: 10, y1: 20, x2: 50, y2: 80 }, { shift: false, ctrl: false, touch: true });
+  });
+
+  it('タッチ系はマウスより短い長押しで始まる', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const start = vi.fn();
     gesture.onMarqueeStart = start;
 
+    expect(MARQUEE_TOUCH_LONG_PRESS_MS).toBeLessThan(MARQUEE_MOUSE_LONG_PRESS_MS);
+
     gesture.arm(makeEvent({ pointerType: 'touch' }));
-    vi.advanceTimersByTime(MARQUEE_MOUSE_LONG_PRESS_MS);
+    vi.advanceTimersByTime(MARQUEE_TOUCH_LONG_PRESS_MS - 1);
     expect(start).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(MARQUEE_TOUCH_LONG_PRESS_MS - MARQUEE_MOUSE_LONG_PRESS_MS);
+    vi.advanceTimersByTime(1);
     expect(start).toHaveBeenCalled();
+  });
+
+  it('指を動かして初めて範囲選択の操作中になる', () => {
+    const gesture = new TableMarqueeGesture(identityScreenToTable);
+    gesture.arm(makeEvent({ clientX: 10, clientY: 20, pointerType: 'touch' }));
+    vi.advanceTimersByTime(MARQUEE_TOUCH_LONG_PRESS_MS);
+
+    expect(gesture.isDragging).toBe(false);
+
+    gesture.updatePointer(60, 20);
+    expect(gesture.isDragging).toBe(true);
   });
 
   it('button !== 0 では arm されない', () => {
@@ -120,7 +149,7 @@ describe('TableMarqueeGesture', () => {
 
     const released = gesture.release(makeEvent({ shift: true }));
     expect(released).toBe(true);
-    expect(end).toHaveBeenCalledWith({ x1: 10, y1: 20, x2: 50, y2: 80 }, { shift: true, ctrl: false });
+    expect(end).toHaveBeenCalledWith({ x1: 10, y1: 20, x2: 50, y2: 80 }, { shift: true, ctrl: false, touch: false });
     expect(gesture.isActive).toBe(false);
   });
 
