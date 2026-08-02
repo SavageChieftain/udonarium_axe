@@ -6,12 +6,12 @@ import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { isCcfoliaRoomArchive } from '@axe/core/storage/room-archive';
-import { zipCompressionLevel } from '@axe/core/storage/zip-compression';
+import { createZipBlob } from '@axe/core/storage/zip-archive';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import { xml2element } from '@axe/core/util/xml-util';
-import { type AsyncZippable, unzip, type Unzipped, zip } from 'fflate';
+import { unzip, type Unzipped } from 'fflate';
 
 type MetaData = { percent: number; currentFile: string };
 type UpdateCallback = (metadata: MetaData) => void;
@@ -216,18 +216,7 @@ export class FileArchiver {
 
     updateCallback?.({ percent: 0, currentFile: '' });
 
-    const zipData: AsyncZippable = {};
-    for (const file of saveFiles) {
-      const level = zipCompressionLevel(file.name, file.type);
-      zipData[file.name] = [new Uint8Array(await file.arrayBuffer()), { level }];
-    }
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      zip(zipData, (err, data) => {
-        if (err) reject(err);
-        else resolve(new Blob([data.slice()], { type: 'application/zip' }));
-      });
-    });
+    const blob = await createZipBlob(saveFiles);
 
     updateCallback?.({ percent: 100, currentFile: '' });
     return blob;
