@@ -120,6 +120,15 @@ export class GameObjectInventoryComponent {
     this.turnOrderService.reset();
   }
 
+  readonly buffDecay = computed<boolean>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return this.turnOrderService.buffDecay;
+  });
+
+  toggleBuffDecay(): void {
+    this.turnOrderService.setBuffDecay(!this.turnOrderService.buffDecay);
+  }
+
   get sortTag(): string {
     return this.inventoryService.sortTag;
   }

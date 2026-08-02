@@ -44,6 +44,23 @@ export class BuffManager {
     }
   }
 
+  /** 残ラウンドを 1 減らし、尽きたバフを消してその名前を返す。 */
+  expireOneRound(): string[] {
+    const container = this.container;
+    if (!container) return [];
+
+    const expired: string[] = [];
+    for (const data of [...container.children]) {
+      const round = parseInt(String(data.value)) - 1;
+      data.value = round;
+      if (round <= 0) {
+        expired.push(data.name);
+        data.destroy();
+      }
+    }
+    return expired;
+  }
+
   addRound(name: string, info: string = '', round: number = 3): void {
     if (!this.buffDataElement) return;
     const container =

@@ -416,7 +416,10 @@
       "reset": "Reset round",
       "resetAnnounce": "The round has been reset.",
       "empty": "No characters on the table",
-      "setCurrent": "Set as current turn"
+      "setCurrent": "Set as current turn",
+      "buffDecayOn": "Count down buff rounds automatically: on",
+      "buffDecayOff": "Count down buff rounds automatically: off",
+      "buffExpired": "Effects ended. {{detail}}"
     },
     "inventory": {
       "contextMenu": {

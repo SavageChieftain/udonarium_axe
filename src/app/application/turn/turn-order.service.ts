@@ -5,6 +5,7 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ExpiredBuffEntry, formatExpiredBuffs } from '@axe/domain/character/buff-expiry';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { TurnPhase, TurnState } from '@axe/domain/tabletop/turn-state';
 
@@ -45,6 +46,14 @@ export class TurnOrderService {
     return this.turnState.phase;
   }
 
+  get buffDecay(): boolean {
+    return this.turnState.buffDecay;
+  }
+
+  setBuffDecay(enabled: boolean): void {
+    this.turnState.buffDecay = enabled;
+  }
+
   orderedCharacters(includeHidden = false): GameCharacter[] {
     const characters = this.inventory.tableInventory.tabletopObjects as GameCharacter[];
     return includeHidden ? [...characters] : characters.filter((character) => !character.hideInventory);
@@ -68,14 +77,14 @@ export class TurnOrderService {
     }
     if (turnState.phase === 'roundStart') {
       if (order.length > 0) this.enterActing(order[0].identifier);
-      else this.endRound();
+      else this.finishRound();
       return;
     }
     const index = order.findIndex((character) => character.identifier === turnState.currentIdentifier);
     if (index >= 0 && index < order.length - 1) {
       this.enterActing(order[index + 1].identifier);
     } else {
-      this.endRound();
+      this.finishRound();
     }
   }
 
@@ -118,6 +127,26 @@ export class TurnOrderService {
     turnState.phase = 'acting';
     turnState.currentIdentifier = identifier;
     this.announceCharacter(identifier);
+  }
+
+  /**
+   * ラウンドを前へ進めて閉じる。巻き戻しでも endRound は通るため、バフの失効はこちらに置く。
+   * 進行操作をしたピアだけが実行するので、P2P でも減少は 1 回で済む。
+   */
+  private finishRound(): void {
+    this.endRound();
+    if (!this.turnState.buffDecay) return;
+
+    const entries: ExpiredBuffEntry[] = [];
+    for (const character of this.orderedCharacters(true)) {
+      const buffNames = character.buffs.expireOneRound();
+      if (buffNames.length > 0) entries.push({ characterName: character.name, buffNames });
+    }
+
+    const detail = formatExpiredBuffs(entries);
+    if (detail !== '') {
+      this.chat.sendSystemMessageToMainTab(this.t('feature.turnOrder.buffExpired', { detail }));
+    }
   }
 
   private endRound(round: number = this.turnState.round): void {

@@ -416,7 +416,10 @@
       "reset": "ラウンドをリセット",
       "resetAnnounce": "ラウンドがリセットされました。",
       "empty": "テーブルにキャラクターがいません",
-      "setCurrent": "この手番にする"
+      "setCurrent": "この手番にする",
+      "buffDecayOn": "バフの残ラウンドを自動で減らす: オン",
+      "buffDecayOff": "バフの残ラウンドを自動で減らす: オフ",
+      "buffExpired": "効果が切れました。{{detail}}"
     },
     "inventory": {
       "contextMenu": {

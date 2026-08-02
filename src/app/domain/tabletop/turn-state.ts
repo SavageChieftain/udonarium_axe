@@ -17,4 +17,5 @@ export class TurnState extends GameObject {
   @SyncVar() currentIdentifier: string = '';
   @SyncVar() round: number = 0;
   @SyncVar() phase: TurnPhase = 'idle';
+  @SyncVar() buffDecay: boolean = true;
 }

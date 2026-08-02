@@ -241,6 +241,16 @@
         </button>
         <button
           type="button"
+          class="hover:bg-ui-hover flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] hover:shadow-none [&_.material-icons]:text-[15px]!"
+          [class.text-ui-accent]="buffDecay()"
+          [class.text-ui-dim]="!buffDecay()"
+          [title]="(buffDecay() ? 'feature.turnOrder.buffDecayOn' : 'feature.turnOrder.buffDecayOff') | transloco"
+          (click)="toggleBuffDecay()"
+        >
+          <i class="material-icons">hourglass_bottom</i>
+        </button>
+        <button
+          type="button"
           class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           [disabled]="turnRound() === 0"
           [title]="'feature.turnOrder.reset' | transloco"
@@ -394,6 +404,16 @@
           (click)="turnNext()"
         >
           <i class="material-icons">keyboard_arrow_down</i>
+        </button>
+        <button
+          type="button"
+          class="hover:bg-ui-hover flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none [&_.material-icons]:text-[17px]!"
+          [class.text-ui-accent]="buffDecay()"
+          [class.text-ui-dim]="!buffDecay()"
+          [title]="(buffDecay() ? 'feature.turnOrder.buffDecayOn' : 'feature.turnOrder.buffDecayOff') | transloco"
+          (click)="toggleBuffDecay()"
+        >
+          <i class="material-icons">hourglass_bottom</i>
         </button>
         <button
           type="button"

@@ -115,6 +115,42 @@ describe('BuffManager', () => {
     });
   });
 
+  describe('expireOneRound', () => {
+    it('残ラウンドを1減らし、尽きたバフだけを消して名前を返す', () => {
+      manager.addRound('続く', '', 3);
+      manager.addRound('切れる', '', 1);
+
+      expect(manager.expireOneRound()).toEqual(['切れる']);
+      expect(container.getFirstElementByName('続く')!.value).toBe(2);
+      expect(container.getFirstElementByName('切れる')).toBeFalsy();
+    });
+
+    it('3ラウンドのバフはちょうど3回で切れる', () => {
+      manager.addRound('3R', '', 3);
+
+      expect(manager.expireOneRound()).toEqual([]);
+      expect(manager.expireOneRound()).toEqual([]);
+      expect(manager.expireOneRound()).toEqual(['3R']);
+    });
+
+    it('既に0以下のバフはその場で切れる', () => {
+      manager.addRound('0R', '', 0);
+
+      expect(manager.expireOneRound()).toEqual(['0R']);
+      expect(container.getFirstElementByName('0R')).toBeFalsy();
+    });
+
+    it('バフが無ければ空配列を返す', () => {
+      expect(manager.expireOneRound()).toEqual([]);
+    });
+
+    it('containerが無い場合でもエラーにならない', () => {
+      const emptyManager = new BuffManager(DataElement.create('空バフ', ''));
+      expect(() => emptyManager.expireOneRound()).not.toThrow();
+      expect(emptyManager.expireOneRound()).toEqual([]);
+    });
+  });
+
   describe('deleteZeroRound', () => {
     it('ラウンド数が0以下のバフを削除する', () => {
       manager.addRound('残る', '', 2);
