@@ -22,6 +22,7 @@ describe('buildCardStackContextMenu', () => {
         vi.fn(),
         vi.fn(),
         vi.fn(),
+        vi.fn(),
         t
       );
       const drawIndex = actions.findIndex((action) => action.name === '１枚引く');
@@ -53,6 +54,7 @@ describe('buildCardStackContextMenu', () => {
         vi.fn(),
         vi.fn(),
         vi.fn(),
+        vi.fn(),
         t
       );
       const dealIndex = actions.findIndex((action) => action.name === '全員に配り切る');
@@ -70,6 +72,7 @@ describe('buildCardStackContextMenu', () => {
       const actions = buildCardStackContextMenu(
         cardStack,
         50,
+        vi.fn(),
         vi.fn(),
         vi.fn(),
         vi.fn(),

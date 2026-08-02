@@ -22,9 +22,11 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
+import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -32,6 +34,7 @@ import { surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/ta
 import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
+import type { DeckBuilderResult } from '@axe/features/card/deck-builder-dialog/deck-builder-dialog.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
@@ -605,6 +608,16 @@ export class GameTableComponent {
     }
   }
 
+  private async openDeckBuilder(position: PointerCoordinate): Promise<void> {
+    const { DeckBuilderDialogComponent } =
+      await import('@axe/features/card/deck-builder-dialog/deck-builder-dialog.component');
+    const result = await this.modalService.open<DeckBuilderResult | null>(DeckBuilderDialogComponent);
+    if (!result) return;
+    if (this.tabletopActionService.createDeckFromTag(position, result.tag, result.useImageName)) {
+      SoundEffect.play(PresetSound.cardPut);
+    }
+  }
+
   onContextMenu(e: MouseEvent) {
     if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;
     e.preventDefault();
@@ -616,6 +629,12 @@ export class GameTableComponent {
     const menuActions: ContextMenuAction[] = [];
 
     Array.prototype.push.apply(menuActions, this.tabletopActionService.makeDefaultContextMenuActions(objectPosition));
+    menuActions.push({
+      name: this.t('feature.tabletop.action.createDeck'),
+      action: () => {
+        void this.openDeckBuilder(objectPosition);
+      },
+    });
     menuActions.push({
       name: this.t('feature.tabletop.contextMenu.createWithOptions'),
       action: () => {

@@ -29,6 +29,7 @@ import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
+import { copyDetailSchema } from '@axe/domain/card/deck-builder';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
@@ -356,6 +357,7 @@ export class CardStackComponent {
       (n) => this.splitStack(n),
       () => this.breakStack(),
       () => this.dealAll(),
+      () => this.copySchemaToAll(),
       (cs) => this.showDetail(cs),
       this.translateFn
     );
@@ -429,6 +431,18 @@ export class CardStackComponent {
     if (this.drawCards(count).length > 0) {
       SoundEffect.play(PresetSound.cardDraw);
     }
+  }
+
+  private copySchemaToAll() {
+    const stack = this.cardStack();
+    const sample = stack.topCard;
+    if (!sample) return;
+    let changed = 0;
+    for (const card of stack.cards) {
+      if (card === sample) continue;
+      if (copyDetailSchema(sample.detailDataElement, card.detailDataElement).length > 0) changed += 1;
+    }
+    if (changed > 0) SoundEffect.play(PresetSound.cardPut);
   }
 
   private dealAll() {

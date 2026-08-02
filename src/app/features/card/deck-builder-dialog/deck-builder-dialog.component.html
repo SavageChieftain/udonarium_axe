@@ -1,0 +1,45 @@
+<form class="box-border flex w-72 max-w-full flex-col gap-3 p-2" (ngSubmit)="confirm()">
+  <p class="text-ui-dim m-0 text-[11px]">{{ 'feature.card.deckDialog.hint' | transloco }}</p>
+
+  <label class="text-ui-muted grid grid-cols-[5em_minmax(0,1fr)] items-center gap-2 text-[12px]">
+    <span>{{ 'feature.card.deckDialog.tag' | transloco }}</span>
+    <select
+      class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full min-w-0 cursor-pointer border border-solid px-2 py-1.25 text-[13px]"
+      name="deck-tag"
+      [ngModel]="selectedTag()"
+      (ngModelChange)="selectedTag.set($event)"
+    >
+      <option value="">{{ 'feature.card.deckDialog.tagUnset' | transloco }}</option>
+      @for (tag of tags(); track tag) {
+        <option [value]="tag">{{ tag }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="text-ui-muted flex items-center gap-2 text-[12px]">
+    <input
+      type="checkbox"
+      name="deck-use-image-name"
+      [ngModel]="useImageName()"
+      (ngModelChange)="useImageName.set($event)"
+    />
+    {{ 'feature.card.deckDialog.useImageName' | transloco }}
+  </label>
+
+  <p class="text-ui-muted m-0 text-[12px]">
+    {{ 'feature.card.deckDialog.count' | transloco: { count: cardCount() } }}
+  </p>
+
+  <div class="flex justify-end gap-2">
+    <button class="px-2.5 py-1.25 text-[12px]" type="button" (click)="cancel()">
+      {{ 'feature.card.deckDialog.cancel' | transloco }}
+    </button>
+    <button
+      class="border-ui-accent bg-ui-accent px-2.5 py-1.25 text-[12px] text-white"
+      type="submit"
+      [disabled]="cardCount() < 1"
+    >
+      {{ 'feature.card.deckDialog.create' | transloco }}
+    </button>
+  </div>
+</form>

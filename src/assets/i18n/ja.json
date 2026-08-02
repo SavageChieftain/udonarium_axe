@@ -311,6 +311,15 @@
         "cardCount": "{{count}} 枚",
         "back": "相手を選び直す",
         "pickCard": "引くカードを選んでください"
+      },
+      "deckDialog": {
+        "hint": "同じタグを付けた画像 1 枚につきカード 1 枚を作り、1 つの山札にまとめます。",
+        "tag": "画像タグ",
+        "tagUnset": "（選択してください）",
+        "useImageName": "カード名を画像のファイル名から取る",
+        "count": "カード {{count}} 枚",
+        "create": "山札を作る",
+        "cancel": "キャンセル"
       }
     },
     "textNote": {
@@ -361,7 +370,8 @@
         "splitByPeers": "山札を人数分に分割する",
         "breakStack": "山札を崩す",
         "deleteStack": "山札を削除する",
-        "dealAll": "全員に配り切る"
+        "dealAll": "全員に配り切る",
+        "copySchema": "一番上のカードの項目を全カードにコピー"
       },
       "message": {
         "dealt": "カードを {{players}} 人に {{count}} 枚配りました",
@@ -894,7 +904,9 @@
         "rangeShapePentagon": "五角形",
         "rangeShapeHexagon": "六角形",
         "rangeShapeCircle": "円形",
-        "rangeShapeCustom": "任意マス"
+        "rangeShapeCustom": "任意マス",
+        "createDeck": "画像タグから山札を作成",
+        "defaultDeckName": "山札"
       },
       "panel": {
         "terrain": "地形設定",

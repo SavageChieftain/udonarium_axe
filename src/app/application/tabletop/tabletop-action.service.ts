@@ -18,6 +18,7 @@ import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
+import { toDeckCardSources } from '@axe/domain/card/deck-builder';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
@@ -301,6 +302,26 @@ export class TabletopActionService {
         SoundEffect.play(PresetSound.cardPut);
       },
     };
+  }
+
+  createDeckFromTag(position: PointerCoordinate, tag: string, useImageName: boolean): CardStack | null {
+    const images = this.imageStorage.images.filter((image) => (ImageTag.get(image.identifier)?.tag ?? '') === tag);
+    const sources = toDeckCardSources(images, this.t('feature.tabletop.action.defaultCardName'));
+    if (sources.length < 1) return null;
+
+    const cardStack = CardStack.create(tag.length > 0 ? tag : this.t('feature.tabletop.action.defaultDeckName'));
+    cardStack.location.x = position.x - 25;
+    cardStack.location.y = position.y - 25;
+    cardStack.posZ = position.z;
+
+    const back = TRUMP_BACK_IMAGE_PATH;
+    if (!this.imageStorage.get(back)) this.imageStorage.add(back);
+
+    for (const source of sources) {
+      const name = useImageName ? source.name : this.t('feature.tabletop.action.defaultCardName');
+      cardStack.putOnBottom(Card.create(name, source.identifier, back));
+    }
+    return cardStack;
   }
 
   private getCreateDiceSymbolMenu(position: PointerCoordinate): ContextMenuAction {

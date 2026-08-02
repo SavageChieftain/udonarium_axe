@@ -311,6 +311,15 @@
         "cardCount": "{{count}} cards",
         "back": "Pick another player",
         "pickCard": "Pick a card to draw"
+      },
+      "deckDialog": {
+        "hint": "Makes one card per image carrying the tag, gathered into a single deck.",
+        "tag": "Image tag",
+        "tagUnset": "(pick one)",
+        "useImageName": "Name cards after the image file",
+        "count": "{{count}} cards",
+        "create": "Create deck",
+        "cancel": "Cancel"
       }
     },
     "textNote": {
@@ -361,7 +370,8 @@
         "splitByPeers": "Split deck by peer count",
         "breakStack": "Break stack",
         "deleteStack": "Delete stack",
-        "dealAll": "Deal to everyone"
+        "dealAll": "Deal to everyone",
+        "copySchema": "Copy the top card fields to every card"
       },
       "message": {
         "dealt": "Dealt {{count}} cards to {{players}} players",
@@ -894,7 +904,9 @@
         "rangeShapePentagon": "Pentagon",
         "rangeShapeHexagon": "Hexagon",
         "rangeShapeCircle": "Circle",
-        "rangeShapeCustom": "Custom cells"
+        "rangeShapeCustom": "Custom cells",
+        "createDeck": "Create a deck from an image tag",
+        "defaultDeckName": "Deck"
       },
       "panel": {
         "terrain": "Terrain settings",

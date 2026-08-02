@@ -15,6 +15,7 @@ export function buildCardStackContextMenu(
   onSplitStack: (n: number) => void,
   onBreakStack: () => void,
   onDealAll: () => void,
+  onCopySchema: () => void,
   onShowDetail: (cs: CardStack) => void,
   t: TranslateFn
 ): ContextMenuAction[] {
@@ -110,6 +111,12 @@ export function buildCardStackContextMenu(
       },
     },
     ContextMenuSeparator,
+    {
+      name: t('feature.cardStack.contextMenu.copySchema'),
+      action: () => {
+        onCopySchema();
+      },
+    },
     {
       name: t('feature.cardStack.contextMenu.dealAll'),
       action: () => {
