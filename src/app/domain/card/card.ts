@@ -74,10 +74,10 @@ export class Card extends OwnedTabletopObject {
     this.owner = '';
   }
 
-  toHand(userId: string) {
+  toHand(userId: string, handOrder: number = Date.now()) {
     this.owner = '';
     this.state = CardState.BACK;
-    this.handOrder = Date.now();
+    this.handOrder = handOrder;
     this.setLocation(handLocationOf(userId));
   }
 
