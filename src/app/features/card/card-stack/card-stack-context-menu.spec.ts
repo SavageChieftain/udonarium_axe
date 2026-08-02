@@ -21,6 +21,7 @@ describe('buildCardStackContextMenu', () => {
         vi.fn(),
         vi.fn(),
         vi.fn(),
+        vi.fn(),
         t
       );
       const drawIndex = actions.findIndex((action) => action.name === '１枚引く');
@@ -39,10 +40,45 @@ describe('buildCardStackContextMenu', () => {
     }
   });
 
+  it('全員に配り切る entry が山札を分割する項目の前に並ぶこと', () => {
+    const cardStack = CardStack.create('test stack');
+    try {
+      const actions = buildCardStackContextMenu(
+        cardStack,
+        50,
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        t
+      );
+      const dealIndex = actions.findIndex((action) => action.name === '全員に配り切る');
+
+      expect(dealIndex).toBeGreaterThanOrEqual(0);
+      expect(actions[dealIndex + 1].name).toBe('山札を人数分に分割する');
+    } finally {
+      cardStack.destroy();
+    }
+  });
+
   it('カード一覧 entry is no longer present (folded into 詳細を表示)', () => {
     const cardStack = CardStack.create('test stack');
     try {
-      const actions = buildCardStackContextMenu(cardStack, 50, vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn(), t);
+      const actions = buildCardStackContextMenu(
+        cardStack,
+        50,
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        t
+      );
       expect(actions.some((action) => action.name === 'カード一覧')).toBe(false);
     } finally {
       cardStack.destroy();

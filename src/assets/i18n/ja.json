@@ -269,7 +269,10 @@
         "unnamed": "（無名）",
         "empty": "手札がありません",
         "playFaceUp": "表向きで場に出す",
-        "playFaceDown": "裏向きで場に出す"
+        "playFaceDown": "裏向きで場に出す",
+        "drawFromOther": "相手の手札から引く",
+        "discardPairs": "ペアを捨てる",
+        "noPairs": "同じ数字の組がありません"
       },
       "title": "カード",
       "settingTitle": "カード設定",
@@ -295,6 +298,19 @@
         "createStack": "重なったカードで山札を作る",
         "overlappingToHand": "重なったカードを手札に加える",
         "editCard": "カードを編集"
+      },
+      "discardStackName": "捨て札",
+      "message": {
+        "drewFromHand": "{{to}} が {{from}} の手札から 1 枚引きました",
+        "discardedPairs": "{{name}} が {{ranks}} のペアを捨てました"
+      },
+      "drawPanel": {
+        "title": "相手の手札から引く",
+        "pickPlayer": "引く相手を選んでください",
+        "noPlayers": "手札を持っている参加者がいません",
+        "cardCount": "{{count}} 枚",
+        "back": "相手を選び直す",
+        "pickCard": "引くカードを選んでください"
       }
     },
     "textNote": {
@@ -344,7 +360,12 @@
         "unifySize": "カードサイズを揃える",
         "splitByPeers": "山札を人数分に分割する",
         "breakStack": "山札を崩す",
-        "deleteStack": "山札を削除する"
+        "deleteStack": "山札を削除する",
+        "dealAll": "全員に配り切る"
+      },
+      "message": {
+        "dealt": "カードを {{players}} 人に {{count}} 枚配りました",
+        "noSeats": "配れる参加者がいません"
       }
     },
     "dice": {

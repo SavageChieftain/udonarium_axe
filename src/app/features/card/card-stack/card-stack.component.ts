@@ -10,6 +10,7 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
+import { CardGameService } from '@axe/application/card/card-game.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
@@ -57,6 +58,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   },
 })
 export class CardStackComponent {
+  private readonly cardGameService = inject(CardGameService);
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly panelService = inject(PanelService);
@@ -353,6 +355,7 @@ export class CardStackComponent {
       () => this.openDrawCardsDialog(),
       (n) => this.splitStack(n),
       () => this.breakStack(),
+      () => this.dealAll(),
       (cs) => this.showDetail(cs),
       this.translateFn
     );
@@ -426,6 +429,10 @@ export class CardStackComponent {
     if (this.drawCards(count).length > 0) {
       SoundEffect.play(PresetSound.cardDraw);
     }
+  }
+
+  private dealAll() {
+    this.cardGameService.dealAll(this.cardStack());
   }
 
   private breakStack() {

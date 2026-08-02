@@ -10,18 +10,22 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { CardGameService } from '@axe/application/card/card-game.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
+import { findTrumpPairs } from '@axe/domain/card/trump-card';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { canRoleEdit } from '@axe/domain/peer/peer-role';
+import { HandDrawPanelComponent } from '@axe/features/card/hand-draw/hand-draw-panel.component';
 import { elementsAt } from '@axe/features/card/hand-rail/elements-at';
 import { reorderHandCards, selectHandCards } from '@axe/features/card/hand-rail/hand-cards';
 import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
@@ -61,6 +65,8 @@ export class HandRailComponent {
   protected readonly rail = inject(HandRailService);
   protected readonly drag = inject(HandDragService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly panelService = inject(PanelService);
+  private readonly cardGame = inject(CardGameService);
 
   private dragPending: { card: Card; startX: number; startY: number; dragging: boolean } | null = null;
   private activePointerId: number | null = null;
@@ -123,7 +129,7 @@ export class HandRailComponent {
   readonly cards = computed<Card[]>(() => {
     this.objectChange.collectionOf(Card.aliasName)();
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
-    const userId = PeerCursor.myCursor?.userId ?? '';
+    const userId = this.cardGame.myUserId();
     const all = this.objectStore.getObjects<Card>(Card);
     for (const card of all) this.objectChange.versionOf(card.identifier)();
     return selectHandCards(all, userId);
@@ -204,6 +210,20 @@ export class HandRailComponent {
     this.objectChange.notifyChanged(card.identifier);
     this.selectionSignalService.selectObject(card.identifier, card.aliasName);
     if (focus) this.selectionSignalService.focusToCoordinate(card.location.x, card.location.y);
+  }
+
+  protected readonly pairCount = computed(() => findTrumpPairs(this.cards()).length);
+
+  protected openDrawPanel(): void {
+    this.panelService.open(HandDrawPanelComponent, {
+      title: this.t('feature.card.drawPanel.title'),
+      width: 420,
+      height: 380,
+    });
+  }
+
+  protected discardPairs(): void {
+    this.cardGame.discardPairs(this.cards());
   }
 
   protected close(): void {

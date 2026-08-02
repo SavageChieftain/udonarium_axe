@@ -14,6 +14,23 @@
       <div class="absolute top-0 right-0 flex h-7 items-center gap-0.5 px-1.5">
         <button
           class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+          [title]="'feature.card.hand.drawFromOther' | transloco"
+          [attr.aria-label]="'feature.card.hand.drawFromOther' | transloco"
+          (click)="openDrawPanel()"
+        >
+          <i class="material-icons text-[14px]!">back_hand</i>
+        </button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none disabled:cursor-default disabled:opacity-40"
+          [title]="(pairCount() > 0 ? 'feature.card.hand.discardPairs' : 'feature.card.hand.noPairs') | transloco"
+          [attr.aria-label]="'feature.card.hand.discardPairs' | transloco"
+          [disabled]="pairCount() < 1"
+          (click)="discardPairs()"
+        >
+          <i class="material-icons text-[14px]!">filter_2</i>
+        </button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
           [title]="'feature.gmTools.npcBar.close' | transloco"
           (click)="close()"
         >

@@ -14,6 +14,7 @@ export function buildCardStackContextMenu(
   onDrawCards: () => unknown,
   onSplitStack: (n: number) => void,
   onBreakStack: () => void,
+  onDealAll: () => void,
   onShowDetail: (cs: CardStack) => void,
   t: TranslateFn
 ): ContextMenuAction[] {
@@ -109,6 +110,12 @@ export function buildCardStackContextMenu(
       },
     },
     ContextMenuSeparator,
+    {
+      name: t('feature.cardStack.contextMenu.dealAll'),
+      action: () => {
+        onDealAll();
+      },
+    },
     {
       name: t('feature.cardStack.contextMenu.splitByPeers'),
       action: () => {

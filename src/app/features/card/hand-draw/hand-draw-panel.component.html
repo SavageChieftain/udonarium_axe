@@ -1,0 +1,42 @@
+@if (selected(); as target) {
+  <div class="mb-2 flex items-center gap-2">
+    <button
+      type="button"
+      class="border-ui-border-panel text-ui-dim hover:bg-ui-hover hover:text-ui-text rounded-ui cursor-pointer border border-solid bg-transparent px-2 py-1 text-xs transition-[background,color]"
+      (click)="clearSelection()"
+    >
+      {{ 'feature.card.drawPanel.back' | transloco }}
+    </button>
+    <span class="text-ui-muted text-xs">
+      {{ target.name }} — {{ 'feature.card.drawPanel.cardCount' | transloco: { count: target.count } }}
+    </span>
+  </div>
+  <p class="text-ui-dim m-0 mb-2 text-xs">{{ 'feature.card.drawPanel.pickCard' | transloco }}</p>
+  <div class="flex flex-wrap gap-2">
+    @for (card of cards(); track card.identifier) {
+      <button
+        type="button"
+        class="rounded-ui-sm border-ui-border-panel hover:border-ui-accent h-28 w-20 cursor-pointer overflow-hidden border border-solid bg-transparent p-0 transition-[border-color,transform] hover:-translate-y-1"
+        (click)="draw(card)"
+      >
+        <img class="size-full object-cover" [src]="backImageUrl(card) | safe: 'resourceUrl'" alt="" />
+      </button>
+    }
+  </div>
+} @else {
+  <p class="text-ui-dim m-0 mb-2 text-xs">{{ 'feature.card.drawPanel.pickPlayer' | transloco }}</p>
+  @for (target of targets(); track target.userId) {
+    <button
+      type="button"
+      class="border-ui-border-panel bg-ui-input text-ui-text hover:border-ui-accent rounded-ui mb-1 flex w-full cursor-pointer items-center justify-between border border-solid px-3 py-2 text-sm transition-colors"
+      (click)="select(target.userId)"
+    >
+      <span class="truncate">{{ target.name }}</span>
+      <span class="text-ui-dim shrink-0 text-xs">
+        {{ 'feature.card.drawPanel.cardCount' | transloco: { count: target.count } }}
+      </span>
+    </button>
+  } @empty {
+    <p class="text-ui-dim m-0 text-xs">{{ 'feature.card.drawPanel.noPlayers' | transloco }}</p>
+  }
+}

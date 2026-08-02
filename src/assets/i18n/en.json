@@ -269,7 +269,10 @@
         "unnamed": "(unnamed)",
         "empty": "Your hand is empty",
         "playFaceUp": "Play face up",
-        "playFaceDown": "Play face down"
+        "playFaceDown": "Play face down",
+        "drawFromOther": "Draw from a hand",
+        "discardPairs": "Discard pairs",
+        "noPairs": "No matching pair"
       },
       "title": "Card",
       "settingTitle": "Card settings",
@@ -295,6 +298,19 @@
         "createStack": "Create stack from overlapping cards",
         "overlappingToHand": "Take overlapping cards into hand",
         "editCard": "Edit card"
+      },
+      "discardStackName": "Discards",
+      "message": {
+        "drewFromHand": "{{to}} drew a card from {{from}}",
+        "discardedPairs": "{{name}} discarded pairs of {{ranks}}"
+      },
+      "drawPanel": {
+        "title": "Draw from a hand",
+        "pickPlayer": "Pick whose hand to draw from",
+        "noPlayers": "Nobody is holding cards",
+        "cardCount": "{{count}} cards",
+        "back": "Pick another player",
+        "pickCard": "Pick a card to draw"
       }
     },
     "textNote": {
@@ -344,7 +360,12 @@
         "unifySize": "Match card sizes",
         "splitByPeers": "Split deck by peer count",
         "breakStack": "Break stack",
-        "deleteStack": "Delete stack"
+        "deleteStack": "Delete stack",
+        "dealAll": "Deal to everyone"
+      },
+      "message": {
+        "dealt": "Dealt {{count}} cards to {{players}} players",
+        "noSeats": "Nobody can be dealt cards"
       }
     },
     "dice": {
