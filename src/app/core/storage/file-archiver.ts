@@ -1,10 +1,11 @@
-import { emitFileLoaded, emitImageDropped, emitXmlLoaded } from '@axe/core/event/domain-events';
+import { emitCcfoliaRoomDropped, emitFileLoaded, emitImageDropped, emitXmlLoaded } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
+import { isCcfoliaRoomArchive } from '@axe/core/storage/room-archive';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { downloadBlob } from '@axe/core/util/download-blob';
@@ -195,6 +196,11 @@ export class FileArchiver {
       Logger.warn('[FileArchiver] ZIP読み込みエラー', reason);
       return;
     }
+    if (isCcfoliaRoomArchive(Object.keys(entries))) {
+      emitCcfoliaRoomDropped({ entries });
+      return;
+    }
+
     for (const [name, data] of Object.entries(entries)) {
       try {
         await this.loadFiles([new File([data.slice()], name, { type: MimeType.type(name) })], dropPoint, false);

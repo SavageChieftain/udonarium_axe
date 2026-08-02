@@ -58,6 +58,7 @@ import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
+import { CcfoliaRoomImportEventHandlerService } from '@axe/features/tabletop/ccfolia-room-import/ccfolia-room-import-event-handler.service';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { ImageDropEventHandlerService } from '@axe/features/tabletop/image-drop/image-drop-event-handler.service';
@@ -142,6 +143,7 @@ export class AppComponent {
     inject(NetworkEventHandlerService);
     inject(RoomArchiveEventHandlerService);
     inject(ImageDropEventHandlerService);
+    inject(CcfoliaRoomImportEventHandlerService);
     inject(CutInService);
     inject(GravityService);
     inject(TurnOrderService);

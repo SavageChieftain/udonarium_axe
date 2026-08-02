@@ -1,5 +1,6 @@
 import { EventChannel, ReplayEventChannel } from '@axe/core/event/event-channel';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { ArchiveEntries } from '@axe/core/storage/room-archive';
 
 export interface SendMessageEvent {
   messageIdentifier: string;
@@ -61,6 +62,10 @@ export interface ImageDroppedEvent {
   dropPoint: { x: number; y: number };
 }
 
+export interface CcfoliaRoomDroppedEvent {
+  entries: ArchiveEntries;
+}
+
 export interface LoadConfigEvent {
   config: unknown;
 }
@@ -87,6 +92,7 @@ export const alarmPop$ = new EventChannel<AlarmPopEvent>();
 export const fileLoaded$ = new EventChannel<void>();
 export const xmlLoaded$ = new EventChannel<XmlLoadedEvent>();
 export const imageDropped$ = new EventChannel<ImageDroppedEvent>();
+export const ccfoliaRoomDropped$ = new EventChannel<CcfoliaRoomDroppedEvent>();
 // APP_INITIALIZER の設定ロード(emit)が AppComponent 生成時の購読より先に走り得るため、
 // 取りこぼし（= openStandby 未実行で peerId が '???' のまま固定）を防ぐ replay チャネルにする。
 export const loadConfig$ = new ReplayEventChannel<LoadConfigEvent>();
@@ -148,6 +154,9 @@ export function emitXmlLoaded(event: XmlLoadedEvent) {
 }
 export function emitImageDropped(event: ImageDroppedEvent) {
   imageDropped$.emit(event);
+}
+export function emitCcfoliaRoomDropped(event: CcfoliaRoomDroppedEvent) {
+  ccfoliaRoomDropped$.emit(event);
 }
 export function emitLoadConfig(event: LoadConfigEvent) {
   loadConfig$.emit(event);

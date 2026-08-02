@@ -822,6 +822,21 @@
       }
     },
     "tabletop": {
+      "ccfoliaImport": {
+        "tableName": "ココフォリアのルーム",
+        "imported": "ココフォリアのルームを取り込みました（テーブル {{tables}} 枚 / パネル {{panels}} 件 / コマ {{pieces}} 体）。「{{table}}」を表示しています。",
+        "hiddenPanels": "非表示のパネル {{count}} 件は取り込んでいません。",
+        "missingImages": "画像が見つからなかった要素が {{count}} 件あります。",
+        "skippedPanels": "画像を持たないパネル {{count}} 件は取り込んでいません。",
+        "skippedDecks": "カード {{count}} 件は未対応のため取り込んでいません。",
+        "skippedEffects": "カットイン {{count}} 件は未対応のため取り込んでいません。",
+        "bgmNotice": "BGM はココフォリアのルームデータに含まれないため取り込めません。",
+        "errors": {
+          "denied": "卓の編集権限がないため、ルームデータを取り込めません。",
+          "unrecognized": "ココフォリアのルームデータとして読めませんでした。",
+          "failed": "ルームデータの取り込みに失敗しました。"
+        }
+      },
       "selection": {
         "title": "選択中のオブジェクト",
         "countLabel": "{{count}} 件選択中",

@@ -1,4 +1,10 @@
-import { imageDropped$, type ImageDroppedEvent, xmlLoaded$ } from '@axe/core/event/domain-events';
+import {
+  ccfoliaRoomDropped$,
+  type CcfoliaRoomDroppedEvent,
+  imageDropped$,
+  type ImageDroppedEvent,
+  xmlLoaded$,
+} from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { FileArchiver, isXmlCandidateFile } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -168,6 +174,27 @@ describe('FileArchiver', () => {
     it('破損ZIPはエラーを投げずスキップする', async () => {
       const badFile = new File([new Uint8Array([0, 1, 2, 3])], 'broken.zip', { type: 'application/zip' });
       await expect(FileArchiver.instance.load([badFile])).resolves.toBeUndefined();
+    });
+
+    it('ココフォリアのルームZIPは展開せず ccfoliaRoomDropped を発火する', async () => {
+      const addAsync = vi
+        .spyOn(ImageStorage.instance, 'addAsync')
+        .mockImplementation(() => Promise.resolve(ImageFile.createEmpty('image')));
+      const zipped = zipSync({
+        '__data.json': strToU8('{"meta":{"version":"1.1.0"},"entities":{}}'),
+        '.token': strToU8('0.abc'),
+        'aaaa.png': new Uint8Array([1, 2, 3]),
+      });
+      const zipFile = new File([zipped.slice()], 'room.zip', { type: 'application/zip' });
+
+      const dropped: CcfoliaRoomDroppedEvent[] = [];
+      const off = ccfoliaRoomDropped$.subscribe((event) => dropped.push(event));
+      await FileArchiver.instance.load([zipFile]);
+      off();
+
+      expect(dropped).toHaveLength(1);
+      expect(Object.keys(dropped[0].entries)).toContain('__data.json');
+      expect(addAsync).not.toHaveBeenCalled();
     });
   });
 

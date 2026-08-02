@@ -14,6 +14,7 @@ import {
   alarmPop$,
   alarmTimeUp$,
   cardStackDecreased$,
+  ccfoliaRoomDropped$,
   endOldVote$,
   fileLoaded$,
   fileResourceUpdated$ as domainFileResourceUpdated$,
@@ -261,6 +262,7 @@ export class ObjectChangeService {
   readonly fileLoaded$ = fileLoaded$;
   readonly xmlLoaded$ = xmlLoaded$;
   readonly imageDropped$ = imageDropped$;
+  readonly ccfoliaRoomDropped$ = ccfoliaRoomDropped$;
   readonly loadConfig$ = loadConfig$;
   readonly domainFileResourceUpdated$ = domainFileResourceUpdated$;
 

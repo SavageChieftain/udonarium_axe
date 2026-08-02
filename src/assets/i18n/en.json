@@ -822,6 +822,21 @@
       }
     },
     "tabletop": {
+      "ccfoliaImport": {
+        "tableName": "CCFOLIA room",
+        "imported": "Imported the CCFOLIA room ({{tables}} tables / {{panels}} panels / {{pieces}} pieces). Now showing \"{{table}}\".",
+        "hiddenPanels": "{{count}} hidden panels were not imported.",
+        "missingImages": "{{count}} elements had no matching image.",
+        "skippedPanels": "{{count}} panels without an image were not imported.",
+        "skippedDecks": "{{count}} card decks are not supported yet and were not imported.",
+        "skippedEffects": "{{count}} cut-ins are not supported yet and were not imported.",
+        "bgmNotice": "CCFOLIA room data never contains audio, so BGM cannot be imported.",
+        "errors": {
+          "denied": "You do not have permission to edit this table, so the room data was not imported.",
+          "unrecognized": "This file could not be read as CCFOLIA room data.",
+          "failed": "Importing the room data failed."
+        }
+      },
       "selection": {
         "title": "Selected objects",
         "countLabel": "{{count}} selected",
