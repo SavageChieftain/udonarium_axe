@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { emitFileLoaded } from '@axe/core/event/domain-events';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -49,6 +50,42 @@ describe('ChatMessageComponent', () => {
       expect(attachment?.getAttribute('src')).toBe('stamp-image.png');
     } finally {
       ImageStorage.instance.delete(image.identifier);
+    }
+  });
+
+  it('あとから届いた立ち絵をサムネイルに反映すること', () => {
+    const identifier = 'late-arriving-image';
+    const message = new ChatMessage();
+    message.initialize();
+    message.from = 'test-user';
+    message.to = '';
+    message.name = 'テスト';
+    message.tag = '';
+    message.imageIdentifier = identifier;
+    message.messColor = '#000000';
+    message.text = 'まだ画像が届いていない';
+    fixture.componentRef.setInput('chatMessage', message);
+    fixture.detectChanges();
+
+    expect(component.imageFile().url).toBe('');
+
+    ImageStorage.instance.add({
+      identifier,
+      name: 'late.png',
+      type: '',
+      blob: null,
+      url: 'late-image.png',
+      thumbnail: { type: '', blob: null, url: '' },
+    });
+    try {
+      emitFileLoaded();
+      fixture.detectChanges();
+
+      expect(component.imageFile().url).toBe('late-image.png');
+      const thumbnail = fixture.nativeElement.querySelector('img') as HTMLImageElement | null;
+      expect(thumbnail?.getAttribute('src')).toBe('late-image.png');
+    } finally {
+      ImageStorage.instance.delete(identifier);
     }
   });
 

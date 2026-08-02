@@ -74,7 +74,13 @@ export class ChatMessageComponent {
   readonly simpleDispFlagUserId = input(false);
   readonly chatSimpleDispFlag = input(false);
 
-  readonly imageFile = signal<ImageFile>(ImageFile.Empty);
+  readonly imageFile = computed(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return ImageFile.Empty;
+    this.objectChange.versionOf(chatMessage.identifier)();
+    this.objectChange.fileVersion();
+    return chatMessage.image ?? ImageFile.Empty;
+  });
   readonly attachmentImageFiles = computed(() => {
     const chatMessage = this.chatMessageInput();
     if (!chatMessage) return [];
@@ -89,8 +95,6 @@ export class ChatMessageComponent {
   constructor() {
     effect(() => {
       const chatMessage = this.chatMessageInput();
-      const file = chatMessage.image;
-      if (file) this.imageFile.set(file);
       const time = this.chatMessageService.getTime();
       if (time - 10 * 1000 < chatMessage.timestamp) this.animeState.set('active');
     });
