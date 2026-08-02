@@ -185,8 +185,6 @@ export class VisualNovelOverlayComponent {
   readonly selectedEmotionMark = signal<VnEmotionMark>('none');
   readonly selectedExit = signal(false);
 
-  readonly backlogFilter = signal('');
-
   readonly typewriterSpeedOptions = VN_TYPEWRITER_SPEEDS;
   readonly portraitAnimationOptions = VN_PORTRAIT_ANIMATIONS;
   readonly textSizeOptions = VN_TEXT_SIZES;
@@ -616,7 +614,6 @@ export class VisualNovelOverlayComponent {
   }
 
   clearAttachedSe(): void {
-    if (this.selectedKind() === 'scene') this.scene.playTransition();
     this.attachedSe.set(null);
   }
 
@@ -682,13 +679,13 @@ export class VisualNovelOverlayComponent {
   }
 
   userAdvance(): void {
-    this.stopAutoPlay();
-    this.advance();
+    this.director.leaveFollowing();
+    this.playback.userAdvance();
   }
 
   userBack(): void {
-    this.stopAutoPlay();
-    this.back();
+    this.director.leaveFollowing();
+    this.playback.userBack();
   }
 
   exit(): void {
@@ -944,6 +941,7 @@ export class VisualNovelOverlayComponent {
       );
       if (attachedSe) this.jukebox?.play(attachedSe.identifier);
     });
+    if (this.selectedKind() === 'scene') this.scene.playTransition();
     this.attachedSe.set(null);
     this.text.set('');
     this.playback.followLatest();
