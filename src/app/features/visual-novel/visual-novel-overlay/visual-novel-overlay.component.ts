@@ -1,15 +1,12 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
   effect,
-  ElementRef,
   inject,
   signal,
   untracked,
-  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
@@ -23,8 +20,6 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
-import { ChatTab } from '@axe/domain/chat/chat-tab';
-import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
@@ -37,10 +32,10 @@ import {
   ChatPaletteHandle,
   ChatPaletteRegistryService,
 } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
+import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import {
   buildVnEmoteSuffix,
   parseVnEmote,
-  splitVnEmoteSuffix,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
   VN_EMOTION_MARK_CHARS,
@@ -54,24 +49,24 @@ import {
   VnPortraitEmote,
 } from '@axe/features/visual-novel/visual-novel-emote';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
+import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import {
   VisualNovelSettingsService,
   VN_PORTRAIT_ANIMATIONS,
   VN_TEXT_SIZES,
-  VN_TYPEWRITER_INTERVAL_MS,
   VN_TYPEWRITER_SPEEDS,
 } from '@axe/features/visual-novel/visual-novel-settings.service';
-import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import {
+  buildVnStage,
+  VN_STAGE_LOOKBACK,
+  VN_STAGE_SLOT_COUNT,
+  VnStageCharacter,
+  VnStageSource,
+} from '@axe/features/visual-novel/visual-novel-stage';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
-const STAGE_LOOKBACK = 60;
-const STAGE_MAX = 6;
-const STAGE_SLOT_COUNT = 12;
 const WHEEL_THROTTLE_MS = 160;
-const AUTO_PLAY_BASE_WAIT_MS = 1200;
-const AUTO_PLAY_PER_CHAR_MS = 35;
-const AUTO_PLAY_MAX_WAIT_MS = 4000;
 
 const SYSTEM_ICON_URL = 'assets/images/system_chang.png';
 const DICEBOT_ICON_URL = 'assets/images/system_chang_roll.png';
@@ -86,15 +81,6 @@ const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
   silence: 'text-gray-500',
 };
 
-export interface VnStageCharacter {
-  name: string;
-  url: string;
-  left: number;
-  slot: number;
-  isActive: boolean;
-  isFlipped: boolean;
-}
-
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'visual-novel-overlay',
@@ -103,7 +89,7 @@ export interface VnStageCharacter {
     class: 'pointer-events-none fixed inset-0 z-160 block',
     '(window:keydown)': 'onKeydown($event)',
   },
-  imports: [DatePipe, DraggableDirective, FormsModule, SafePipe, TranslocoModule],
+  imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent],
 })
 export class VisualNovelOverlayComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -126,17 +112,13 @@ export class VisualNovelOverlayComponent {
   private readonly vnMode = inject(VisualNovelModeService);
   readonly settings = inject(VisualNovelSettingsService);
 
-  private readonly renderVersion = signal(0);
+  private readonly playback = inject(VisualNovelPlaybackService);
+
   private readonly _seTick = signal(0);
-  private readonly cursor = signal(-1);
-  private readonly typedLength = signal(0);
-  private typingTimer: ReturnType<typeof setInterval> | null = null;
-  private revealInstantly = false;
   private lastWheelTime = 0;
 
   readonly text = signal('');
-  readonly autoPlay = signal(false);
-  private autoPlayTimer: ReturnType<typeof setTimeout> | null = null;
+  readonly autoPlay = this.playback.autoPlay;
   readonly showBacklog = signal(false);
   readonly showEmote = signal(false);
   readonly showSoundBoard = signal(false);
@@ -166,18 +148,13 @@ export class VisualNovelOverlayComponent {
   readonly bubbleAnimationOptions = VN_BUBBLE_ANIMATIONS;
   readonly portraitEmoteOptions = VN_PORTRAIT_EMOTES;
   readonly emotionMarkOptions = VN_EMOTION_MARKS;
-  readonly slotIndexes = Array.from({ length: STAGE_SLOT_COUNT }, (_, i) => i);
+  readonly slotIndexes = Array.from({ length: VN_STAGE_SLOT_COUNT }, (_, i) => i);
 
-  readonly backlogList = viewChild<ElementRef<HTMLDivElement>>('backlogList');
-
-  private readonly _chatTabIdentifier = signal('');
   get chatTabIdentifier(): string {
-    return this._chatTabIdentifier();
+    return this.playback.chatTabIdentifier();
   }
   set chatTabIdentifier(identifier: string) {
-    this.stopAutoPlay();
-    this._chatTabIdentifier.set(identifier);
-    this.cursor.set(-1);
+    this.playback.setChatTab(identifier);
   }
 
   private readonly _sendFrom = signal('');
@@ -199,41 +176,17 @@ export class VisualNovelOverlayComponent {
     return DiceBot.diceBotInfos;
   }
 
-  readonly chatTab = computed(() => {
-    this.objectChange.collectionOf(ChatTab.aliasName)();
-    this.objectChange.versionOf(this._chatTabIdentifier())();
-    return this.objectStore.get<ChatTab>(this._chatTabIdentifier()) ?? null;
-  });
+  readonly chatTab = this.playback.chatTab;
+  readonly messages = this.playback.messages;
+  readonly currentIndex = this.playback.currentIndex;
+  readonly currentMessage = this.playback.currentMessage;
+  readonly isLatest = this.playback.isLatest;
+  readonly displayedText = this.playback.displayedText;
+  readonly isTyping = this.playback.isTyping;
+  readonly currentFullText = this.playback.currentFullText;
+  readonly currentIsDiceCommand = this.playback.currentIsDiceCommand;
 
-  readonly messages = computed(() => {
-    this.renderVersion();
-    const tab = this.chatTab();
-    if (!tab) return [] as ChatMessage[];
-    return tab.chatMessages.filter((message) => message.isDisplayable);
-  });
-
-  readonly currentIndex = computed(() => {
-    const length = this.messages().length;
-    if (length < 1) return -1;
-    const cursor = this.cursor();
-    if (cursor < 0) return length - 1;
-    return Math.min(cursor, length - 1);
-  });
-
-  readonly currentMessage = computed(() => this.messages()[this.currentIndex()] ?? null);
-
-  readonly isLatest = computed(() => this.currentIndex() >= this.messages().length - 1);
-
-  private readonly currentText = computed(() => {
-    this.renderVersion();
-    return this.currentMessage()?.text ?? '';
-  });
-
-  private readonly currentEmote = computed(() => parseVnEmote(this.currentText()));
-
-  readonly displayedText = computed(() => this.currentEmote().text.slice(0, this.typedLength()));
-
-  readonly isTyping = computed(() => this.typedLength() < this.currentEmote().text.length);
+  private readonly currentEmote = this.playback.currentEmote;
 
   readonly speakerName = computed(() => this.currentMessage()?.name ?? '');
 
@@ -346,52 +299,21 @@ export class VisualNovelOverlayComponent {
     const messages = this.messages();
     const index = this.currentIndex();
     if (index < 0) return [];
-    const emote = this.currentEmote();
-    if (emote.kind === 'location' || emote.kind === 'scene') return [];
-    const found = new Map<string, { url: string; slot: number; isFlipped: boolean }>();
-    const lowerBound = Math.max(0, index - STAGE_LOOKBACK);
-    for (let i = index; i >= lowerBound && found.size < STAGE_MAX; i--) {
+    const window: VnStageSource[] = [];
+    for (let i = Math.max(0, index - VN_STAGE_LOOKBACK); i <= index; i++) {
       const message = messages[i];
-      if (message.isSystemMessage || message.isDicebot) continue;
-      if (this.isDiceCommandAt(i)) continue;
-      const parsedMessage = parseVnEmote(message.text ?? '');
-      if (parsedMessage.kind === 'scene') break;
-      if (!this.isGameCharacterSender(message.sendFrom ?? '')) continue;
-      const name = message.name ?? '';
-      const imageIdentifier = message.imageIdentifier ?? '';
-      if (name.length < 1 || imageIdentifier.length < 1) continue;
-      if (found.has(name)) continue;
-      const url = this.imageService.getEmptyOr(imageIdentifier).url;
-      if (url.length < 1) continue;
-      const pos = message.imagePos;
-      const slot = typeof pos === 'number' && pos >= 0 && pos < STAGE_SLOT_COUNT ? pos : 0;
-      found.set(name, { url, slot, isFlipped: parsedMessage.flipped });
+      window.push({
+        name: message.name ?? '',
+        imageIdentifier: message.imageIdentifier ?? '',
+        imagePos: typeof message.imagePos === 'number' ? message.imagePos : null,
+        isSystemMessage: message.isSystemMessage,
+        isDicebot: message.isDicebot,
+        isGameCharacter: this.isGameCharacterSender(message.sendFrom ?? ''),
+        isDiceCommand: this.playback.isDiceCommandAt(i),
+        emote: parseVnEmote(message.text ?? ''),
+      });
     }
-    if (found.size < 1) return [];
-    const current = this.currentMessage();
-    const activeName =
-      current &&
-      !current.isSystemMessage &&
-      !current.isDicebot &&
-      emote.kind === 'normal' &&
-      !this.currentIsDiceCommand()
-        ? current.name
-        : '';
-    const cast = [...found.entries()].sort(([nameA, a], [nameB, b]) => a.slot - b.slot || nameA.localeCompare(nameB));
-    const slotCounts = new Map<number, number>();
-    return cast.map(([name, info]) => {
-      const duplicates = slotCounts.get(info.slot) ?? 0;
-      slotCounts.set(info.slot, duplicates + 1);
-      const left = ((info.slot + 0.5) / STAGE_SLOT_COUNT) * 100 + duplicates * 4;
-      return {
-        name,
-        url: info.url,
-        left: Math.min(92, Math.max(8, left)),
-        slot: info.slot,
-        isActive: name === activeName,
-        isFlipped: info.isFlipped,
-      };
-    });
+    return buildVnStage(window, (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url);
   });
 
   private isGameCharacterSender(identifier: string): boolean {
@@ -402,17 +324,6 @@ export class VisualNovelOverlayComponent {
   readonly activeStageCharacter = computed(
     () => this.stageCharacters().find((character) => character.isActive) ?? null
   );
-
-  private isDiceCommandAt(index: number): boolean {
-    const messages = this.messages();
-    const message = messages[index];
-    const next = messages[index + 1];
-    if (!message || !next) return false;
-    if (message.isSystemMessage || message.isDicebot) return false;
-    return next.isDicebot && next.timestamp === message.timestamp + 1 && next.originFrom === message.from;
-  }
-
-  readonly currentIsDiceCommand = computed(() => this.isDiceCommandAt(this.currentIndex()));
 
   readonly diceCommand = computed(() => {
     if (!this.currentIsDiceCommand()) return null;
@@ -466,8 +377,6 @@ export class VisualNovelOverlayComponent {
     return { left: 50, bottom: '22vh' };
   });
 
-  readonly currentFullText = computed(() => this.currentEmote().text);
-
   readonly bubbleTextSizeClass = computed(() => {
     switch (this.settings.textSize()) {
       case 'small':
@@ -503,31 +412,6 @@ export class VisualNovelOverlayComponent {
       default:
         return '';
     }
-  });
-
-  readonly backlogEntries = computed(() => {
-    this.objectChange.fileVersion();
-    return this.messages().map((message, index) => {
-      const { text, suffix } = splitVnEmoteSuffix(message.text ?? '');
-      const hasPortrait = !message.isSystemMessage && !message.isDicebot;
-      return {
-        message,
-        index,
-        text,
-        suffix,
-        imageUrl: hasPortrait ? this.imageService.getEmptyOr(message.imageIdentifier).url : '',
-      };
-    });
-  });
-
-  readonly filteredBacklogEntries = computed(() => {
-    const keyword = this.backlogFilter().trim().toLowerCase();
-    const entries = this.backlogEntries();
-    if (keyword.length < 1) return entries;
-    return entries.filter(
-      (entry) =>
-        entry.text.toLowerCase().includes(keyword) || (entry.message.name ?? '').toLowerCase().includes(keyword)
-    );
   });
 
   readonly gameCharacters = computed(() => {
@@ -568,7 +452,7 @@ export class VisualNovelOverlayComponent {
     const element = object.detailDataElement?.getFirstElementByName('POS');
     if (!element) return -1;
     const value = Number(element.currentValue ?? 0);
-    return Number.isNaN(value) ? 0 : Math.min(STAGE_SLOT_COUNT - 1, Math.max(0, value));
+    return Number.isNaN(value) ? 0 : Math.min(VN_STAGE_SLOT_COUNT - 1, Math.max(0, value));
   });
 
   readonly speakerPortrait = computed(() => {
@@ -651,106 +535,16 @@ export class VisualNovelOverlayComponent {
     element.update();
   }
 
-  readonly editingIndex = signal(-1);
-  readonly editText = signal('');
-  readonly editKind = signal<VnMessageKind>('normal');
-  readonly editShape = signal<VnBubbleShape>('normal');
-  readonly editBubbleAnimation = signal<VnBubbleAnimation>('none');
-  readonly editPortraitEmote = signal<VnPortraitEmote>('none');
-  readonly editEmotionMark = signal<VnEmotionMark>('none');
-  readonly editFlipped = signal(false);
-  readonly editSlot = signal(-1);
-
-  startEditEntry(entry: { message: ChatMessage; index: number }): void {
-    if (!entry.message.changeable) return;
-    const parsed = parseVnEmote(entry.message.text ?? '');
-    this.editText.set(parsed.text);
-    this.editKind.set(parsed.kind);
-    this.editShape.set(parsed.shape);
-    this.editBubbleAnimation.set(parsed.bubbleAnimation);
-    this.editPortraitEmote.set(parsed.portraitEmote);
-    this.editEmotionMark.set(parsed.emotionMark);
-    this.editFlipped.set(parsed.flipped);
-    const pos = entry.message.imagePos;
-    this.editSlot.set(typeof pos === 'number' && pos >= 0 && pos < STAGE_SLOT_COUNT ? pos : -1);
-    this.editingIndex.set(entry.index);
-  }
-
-  cancelEditEntry(): void {
-    this.editingIndex.set(-1);
-  }
-
-  saveEditEntry(): void {
-    const message = this.messages()[this.editingIndex()];
-    if (!message?.changeable) {
-      this.editingIndex.set(-1);
-      return;
-    }
-    const text = this.editText().trim();
-    if (text.length < 1) return;
-    const next =
-      text +
-      buildVnEmoteSuffix({
-        kind: this.editKind(),
-        shape: this.editShape(),
-        bubbleAnimation: this.editBubbleAnimation(),
-        portraitEmote: this.editPortraitEmote(),
-        emotionMark: this.editEmotionMark(),
-        flipped: this.editFlipped(),
-      });
-    if (message.text !== next) {
-      message.text = next;
-      message.fixd = true;
-    }
-    if (this.editSlot() >= 0 && message.imagePos !== this.editSlot()) {
-      message.imagePos = this.editSlot();
-    }
-    this.editingIndex.set(-1);
-  }
-
   constructor() {
-    const tabs = this.chatMessageService.chatTabs;
-    this._chatTabIdentifier.set(tabs.length > 0 ? tabs[0].identifier : '');
     this._sendFrom.set(this.gameCharacters()[0]?.identifier ?? '');
+    this.playback.attach();
+    this.destroyRef.onDestroy(() => this.playback.detach());
 
     const seTimer = setInterval(() => {
       if (this.showSoundBoard()) this._seTick.update((v) => v + 1);
     }, 500);
     this.destroyRef.onDestroy(() => clearInterval(seTimer));
 
-    this.objectChange.messageAdded$.subscribe(() => {
-      this.renderVersion.update((version) => version + 1);
-    }, this.destroyRef);
-    this.objectChange.onObjectChangedForAlias(
-      [ChatMessage.aliasName],
-      () => this.renderVersion.update((version) => version + 1),
-      this.destroyRef
-    );
-    this.objectChange.onObjectChangedForAlias(
-      [ChatTab.aliasName, ChatTabList.aliasName],
-      () => {
-        if (this.objectStore.get<ChatTab>(this._chatTabIdentifier())) return;
-        const chatTabs = this.chatMessageService.chatTabs;
-        this._chatTabIdentifier.set(chatTabs.length > 0 ? chatTabs[0].identifier : '');
-      },
-      this.destroyRef
-    );
-
-    effect(() => {
-      const message = this.currentMessage();
-      untracked(() => this.restartTypewriter(message));
-    });
-    effect(() => {
-      if (!this.showBacklog()) return;
-      const list = this.backlogList()?.nativeElement;
-      if (!list) return;
-      const row = list.querySelector<HTMLElement>(`[data-vn-log-index="${this.currentIndex()}"]`);
-      if (row) {
-        row.scrollIntoView({ block: 'center' });
-      } else {
-        list.scrollTop = list.scrollHeight;
-      }
-    });
     effect(() => {
       const characters = this.gameCharacters();
       const current = untracked(() => this._sendFrom());
@@ -760,54 +554,15 @@ export class VisualNovelOverlayComponent {
     });
     this.paletteRegistry.register(this.paletteHandle);
     this.destroyRef.onDestroy(() => this.paletteRegistry.unregister(this.paletteHandle));
-    effect(() => {
-      const active = this.autoPlay();
-      const typing = this.isTyping();
-      const index = this.currentIndex();
-      untracked(() => {
-        if (this.autoPlayTimer != null) {
-          clearTimeout(this.autoPlayTimer);
-          this.autoPlayTimer = null;
-        }
-        if (!active || typing) return;
-        if (index < 0 || index >= this.messages().length - 1) {
-          this.autoPlay.set(false);
-          return;
-        }
-        const wait =
-          Math.min(
-            AUTO_PLAY_MAX_WAIT_MS,
-            AUTO_PLAY_BASE_WAIT_MS + this.currentEmote().text.length * AUTO_PLAY_PER_CHAR_MS
-          ) / this.settings.autoPlaySpeed();
-        this.autoPlayTimer = setTimeout(() => {
-          this.autoPlayTimer = null;
-          this.advance();
-        }, wait);
-      });
-    });
-    this.destroyRef.onDestroy(() => {
-      this.stopTypewriter();
-      this.stopAutoPlay();
-    });
   }
 
   toggleAutoPlay(): void {
-    if (this.autoPlay()) {
-      this.stopAutoPlay();
-      return;
-    }
-    this.closePopovers();
-    this.revealInstantly = false;
-    if (this.messages().length > 0) this.cursor.set(0);
-    this.autoPlay.set(true);
+    if (!this.autoPlay()) this.closePopovers();
+    this.playback.toggleAutoPlay();
   }
 
   stopAutoPlay(): void {
-    this.autoPlay.set(false);
-    if (this.autoPlayTimer != null) {
-      clearTimeout(this.autoPlayTimer);
-      this.autoPlayTimer = null;
-    }
+    this.playback.stopAutoPlay();
   }
 
   userAdvance(): void {
@@ -825,38 +580,19 @@ export class VisualNovelOverlayComponent {
   }
 
   advance(): void {
-    if (this.isTyping()) {
-      this.stopTypewriter();
-      this.typedLength.set(this.currentText().length);
-      return;
-    }
-    const index = this.currentIndex();
-    const lastIndex = this.messages().length - 1;
-    if (index < 0 || index >= lastIndex) {
-      this.cursor.set(-1);
-      return;
-    }
-    this.cursor.set(index + 1 >= lastIndex ? -1 : index + 1);
+    this.playback.advance();
   }
 
   back(): void {
-    const index = this.currentIndex();
-    if (index <= 0) return;
-    this.revealInstantly = true;
-    this.cursor.set(index - 1);
+    this.playback.back();
   }
 
   toLatest(): void {
-    this.stopAutoPlay();
-    this.cursor.set(-1);
+    this.playback.toLatest();
   }
 
   jumpTo(index: number): void {
-    this.stopAutoPlay();
-    const lastIndex = this.messages().length - 1;
-    if (index < 0 || lastIndex < 0) return;
-    this.revealInstantly = true;
-    this.cursor.set(index >= lastIndex ? -1 : index);
+    this.playback.jumpTo(index);
     this.showBacklog.set(false);
   }
 
@@ -872,7 +608,6 @@ export class VisualNovelOverlayComponent {
     const next = !this.showBacklog();
     this.closePopovers();
     this.showBacklog.set(next);
-    if (!next) this.editingIndex.set(-1);
   }
 
   toggleEmote(): void {
@@ -946,7 +681,7 @@ export class VisualNovelOverlayComponent {
     const object = this.objectStore.get(this._sendFrom());
     if (object instanceof GameCharacter) {
       const element = object.detailDataElement?.getFirstElementByName('POS');
-      if (element) element.currentValue = Math.min(STAGE_SLOT_COUNT - 1, Math.max(0, slot));
+      if (element) element.currentValue = Math.min(VN_STAGE_SLOT_COUNT - 1, Math.max(0, slot));
     }
     this.showSlotGuide.set(false);
   }
@@ -1046,7 +781,7 @@ export class VisualNovelOverlayComponent {
     });
     this.attachedSe.set(null);
     this.text.set('');
-    this.cursor.set(-1);
+    this.playback.followLatest();
   }
 
   private portraitIndexOf(sendFrom: string): number {
@@ -1058,36 +793,5 @@ export class VisualNovelOverlayComponent {
     const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) return object.chatColorCode[0];
     return PeerCursor.myCursor?.chatColorCode[0] ?? '#000000';
-  }
-
-  private restartTypewriter(message: ChatMessage | null): void {
-    this.stopTypewriter();
-    const parsed = parseVnEmote(message?.text ?? '');
-    const total = parsed.text.length;
-    const interval = VN_TYPEWRITER_INTERVAL_MS[this.settings.typewriterSpeed()];
-    const isDiceCommand = untracked(() => this.currentIsDiceCommand());
-    if (
-      this.revealInstantly ||
-      interval < 1 ||
-      parsed.kind === 'location' ||
-      parsed.kind === 'scene' ||
-      isDiceCommand
-    ) {
-      this.revealInstantly = false;
-      this.typedLength.set(total);
-      return;
-    }
-    this.typedLength.set(0);
-    if (total < 1) return;
-    this.typingTimer = setInterval(() => {
-      this.typedLength.update((length) => Math.min(total, length + 1));
-      if (this.typedLength() >= total) this.stopTypewriter();
-    }, interval);
-  }
-
-  private stopTypewriter(): void {
-    if (this.typingTimer == null) return;
-    clearInterval(this.typingTimer);
-    this.typingTimer = null;
   }
 }

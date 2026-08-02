@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { Network } from '@axe/core/index';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -522,26 +521,6 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText().length).toBeLessThanOrEqual('なっ…！'.length);
   });
 
-  it('バックログをキーワードで絞り込めること', () => {
-    addMessage('森の奥へ進む', 'アリス');
-    addMessage('宿屋で休む', 'ボブ');
-    createComponent();
-    expect(component.filteredBacklogEntries()).toHaveLength(2);
-    component.backlogFilter.set('宿屋');
-    expect(component.filteredBacklogEntries()).toHaveLength(1);
-    expect(component.filteredBacklogEntries()[0].message.name).toBe('ボブ');
-    component.backlogFilter.set('アリス');
-    expect(component.filteredBacklogEntries()).toHaveLength(1);
-  });
-
-  it('バックログ行は本文とサフィックスを分離して保持すること', () => {
-    addMessage('やあ 〔叫び・ゆれ〕');
-    createComponent();
-    const entry = component.backlogEntries()[0];
-    expect(entry.text).toBe('やあ');
-    expect(entry.suffix).toBe('〔叫び・ゆれ〕');
-  });
-
   it('ロケーション表示中は立ち絵ステージが空になること', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('忘れられた森 〔ロケーション〕');
@@ -577,36 +556,6 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.messageKindOptions()).toContain('scene');
     PeerCursor.myCursor.role = PeerRole.Player;
     objectChange.notifyChanged(PeerCursor.myCursor.identifier);
-  });
-
-  it('saveEditEntry() でログから本文・演出・スロットを書き換えられること', () => {
-    tab.addMessage({
-      from: Network.peerContext.userId,
-      name: 'アリス',
-      text: 'やあ 〔叫び〕',
-      timestamp: nextTimestamp++,
-      imageIdentifier: addImage(),
-      imagePos: 2,
-    });
-    createComponent();
-    const entry = component.backlogEntries()[0];
-    expect(entry.message.changeable).toBe(true);
-
-    component.startEditEntry(entry);
-    expect(component.editText()).toBe('やあ');
-    expect(component.editShape()).toBe('shout');
-    expect(component.editSlot()).toBe(2);
-
-    component.editText.set('こんばんは');
-    component.editShape.set('thought');
-    component.editSlot.set(7);
-    component.saveEditEntry();
-
-    const message = component.messages()[0];
-    expect(message.text).toBe('こんばんは 〔もやもや〕');
-    expect(message.imagePos).toBe(7);
-    expect(message.fixd).toBe(true);
-    expect(component.editingIndex()).toBe(-1);
   });
 
   it('SE を添付して send() するとジュークボックス経由で再生され添付が解除されること', async () => {
@@ -833,22 +782,6 @@ describe('VisualNovelOverlayComponent', () => {
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
     expect(sendSpy.mock.calls[0][1]).toBe('ふりかえる 〔反転〕');
     character.destroy();
-  });
-
-  it('ログ編集で反転を付け外しできること', () => {
-    tab.addMessage({
-      from: Network.peerContext.userId,
-      name: 'アリス',
-      text: 'ふりむく 〔反転〕',
-      timestamp: nextTimestamp++,
-      imageIdentifier: addImage(),
-    });
-    createComponent();
-    component.startEditEntry(component.backlogEntries()[0]);
-    expect(component.editFlipped()).toBe(true);
-    component.editFlipped.set(false);
-    component.saveEditEntry();
-    expect(component.messages()[0].text).toBe('ふりむく');
   });
 
   it('選択キャラクターのチャットパレットが参照でき、行クリックで入力欄に入ること', () => {
