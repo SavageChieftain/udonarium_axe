@@ -1,3 +1,18 @@
+## [1.23.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.23.0...v1.23.1) (2026-08-02)
+
+### 🐛 Bug Fixes
+
+* **chat:** show the portrait that arrives after the message is rendered ([7edef85](https://github.com/SavageChieftain/udonarium_axe/commit/7edef852a1df0d30dcb6fa1792dfe67b6d7d836e))
+
+### 📝 Documentation
+
+* **website:** add v1.23.0 release notes ([e463acd](https://github.com/SavageChieftain/udonarium_axe/commit/e463acda7cee872c0acd62da584ab4c86bc1dbfc))
+* **website:** describe how the auto snapshot stays out of the way ([f98d538](https://github.com/SavageChieftain/udonarium_axe/commit/f98d5380daa1d6626debbdd4f794508b85b4b9a0))
+
+### ♻️ Refactor
+
+* **dice:** drop the shadowed border width on the rotate handle ([b3886bd](https://github.com/SavageChieftain/udonarium_axe/commit/b3886bd6486988b8b39cbc470b6bc53e952f63fa))
+
 ## [1.23.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.22.0...v1.23.0) (2026-08-02)
 
 ### ✨ Features
