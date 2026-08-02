@@ -36,6 +36,8 @@ import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
+const BACKLOG_PAGE_SIZE = 200;
+
 export interface VnBacklogEntry {
   message: ChatMessage;
   index: number;
@@ -98,15 +100,52 @@ export class VisualNovelBacklogComponent {
     });
   });
 
+  readonly onlyMine = signal(false);
+  readonly onlyEmote = signal(false);
+
   readonly filteredEntries = computed(() => {
     const keyword = this.filter().trim().toLowerCase();
-    const entries = this.entries();
-    if (keyword.length < 1) return entries;
-    return entries.filter(
-      (entry) =>
-        entry.text.toLowerCase().includes(keyword) || (entry.message.name ?? '').toLowerCase().includes(keyword)
-    );
+    const onlyMine = this.onlyMine();
+    const onlyEmote = this.onlyEmote();
+    return this.entries().filter((entry) => {
+      if (onlyMine && !entry.message.isSendFromSelf) return false;
+      if (onlyEmote && entry.suffix.length < 1) return false;
+      if (keyword.length < 1) return true;
+      return entry.text.toLowerCase().includes(keyword) || (entry.message.name ?? '').toLowerCase().includes(keyword);
+    });
   });
+
+  toggleOnlyMine(): void {
+    this.onlyMine.update((only) => !only);
+  }
+
+  toggleOnlyEmote(): void {
+    this.onlyEmote.update((only) => !only);
+  }
+
+  scrollToCurrent(): void {
+    const list = this.listElement()?.nativeElement;
+    const row = list?.querySelector<HTMLElement>(`[data-vn-log-index="${this.currentIndex()}"]`);
+    row?.scrollIntoView({ block: 'center' });
+  }
+
+  readonly visibleCount = signal(BACKLOG_PAGE_SIZE);
+
+  readonly windowedEntries = computed(() => {
+    const entries = this.filteredEntries();
+    const count = this.visibleCount();
+    if (entries.length <= count) return entries;
+    let start = entries.length - count;
+    const position = entries.findIndex((entry) => entry.index === this.currentIndex());
+    if (position >= 0 && position < start) start = position;
+    return entries.slice(start);
+  });
+
+  readonly hiddenCount = computed(() => this.filteredEntries().length - this.windowedEntries().length);
+
+  loadMoreEntries(): void {
+    this.visibleCount.update((count) => count + BACKLOG_PAGE_SIZE);
+  }
 
   constructor() {
     effect(() => {

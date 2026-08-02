@@ -1412,7 +1412,11 @@
         "log": "Toggle log",
         "slot": "Slot guide",
         "close": "Close / exit"
-      }
+      },
+      "logOnlyMine": "Mine only",
+      "logOnlyEmote": "With emote",
+      "logToCurrent": "To current",
+      "logLoadMore": "Load {{count}} more"
     },
     "mapEditor": {
       "title": "Map editor",

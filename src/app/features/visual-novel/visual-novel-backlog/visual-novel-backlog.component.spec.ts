@@ -123,6 +123,21 @@ describe('VisualNovelBacklogComponent', () => {
     expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].text).toBe('そのまま');
   });
 
+  it('大量のログは直近だけを描画し、追加読み込みできること', () => {
+    for (let i = 0; i < 260; i++) addMessage(`ログ${i}`);
+    createComponent();
+
+    expect(component.entries()).toHaveLength(260);
+    expect(component.windowedEntries()).toHaveLength(200);
+    expect(component.windowedEntries()[0].text).toBe('ログ60');
+    expect(component.hiddenCount()).toBe(60);
+
+    component.loadMoreEntries();
+
+    expect(component.windowedEntries()).toHaveLength(260);
+    expect(component.hiddenCount()).toBe(0);
+  });
+
   it('行クリックでジャンプ先の位置を通知すること', () => {
     addMessage('m1');
     addMessage('m2');

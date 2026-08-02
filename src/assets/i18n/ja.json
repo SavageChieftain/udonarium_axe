@@ -1412,7 +1412,11 @@
         "log": "ログの開閉",
         "slot": "立ち位置ガイド",
         "close": "閉じる / 終了"
-      }
+      },
+      "logOnlyMine": "自分のみ",
+      "logOnlyEmote": "演出付き",
+      "logToCurrent": "現在地へ",
+      "logLoadMore": "さらに {{count}} 件を読み込む"
     },
     "mapEditor": {
       "title": "マップエディター",

@@ -24,10 +24,55 @@
       <i class="material-icons text-base!">close</i>
     </button>
   </div>
+  <div class="border-ui-border-separator flex shrink-0 items-center gap-1 border-b border-solid px-2 py-1">
+    <button
+      type="button"
+      class="rounded-ui cursor-pointer border border-solid px-1.5 py-0.5 text-[11px] transition-[background,color]"
+      [class]="
+        onlyMine()
+          ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+          : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+      "
+      [attr.aria-pressed]="onlyMine()"
+      (click)="toggleOnlyMine()"
+    >
+      {{ 'feature.visualNovel.logOnlyMine' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="rounded-ui cursor-pointer border border-solid px-1.5 py-0.5 text-[11px] transition-[background,color]"
+      [class]="
+        onlyEmote()
+          ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+          : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+      "
+      [attr.aria-pressed]="onlyEmote()"
+      (click)="toggleOnlyEmote()"
+    >
+      {{ 'feature.visualNovel.logOnlyEmote' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="text-ui-dim hover:text-ui-accent hover:bg-ui-hover rounded-ui ml-auto flex cursor-pointer items-center gap-0.5 border-0 bg-transparent px-1.5 py-0.5 text-[11px] transition-[background,color] [&_i]:text-[14px]"
+      (click)="scrollToCurrent()"
+    >
+      <i class="material-icons">my_location</i>
+      {{ 'feature.visualNovel.logToCurrent' | transloco }}
+    </button>
+  </div>
   <div #backlogList class="grow overflow-y-auto px-2 py-1.5">
-    @for (entry of filteredEntries(); track entry.message.identifier) {
+    @if (hiddenCount() > 0) {
+      <button
+        type="button"
+        class="border-ui-border-panel text-ui-dim hover:bg-ui-hover hover:text-ui-text rounded-ui mb-1 w-full cursor-pointer border border-solid bg-transparent px-2 py-1 text-[11px] transition-[background,color]"
+        (click)="loadMoreEntries()"
+      >
+        {{ 'feature.visualNovel.logLoadMore' | transloco: { count: hiddenCount() } }}
+      </button>
+    }
+    @for (entry of windowedEntries(); track entry.message.identifier) {
       <div
-        class="group/log rounded-ui hover:bg-ui-hover flex w-full gap-2 px-2.5 py-1.5 text-left transition-colors"
+        class="group/log rounded-ui hover:bg-ui-hover flex w-full gap-2 px-2.5 py-1.5 text-left transition-colors [contain-intrinsic-size:auto_3rem] [content-visibility:auto]"
         [class.bg-ui-accent-bg]="entry.index === currentIndex()"
         [class.cursor-pointer]="editingIndex() !== entry.index"
         [attr.data-vn-log-index]="entry.index"
