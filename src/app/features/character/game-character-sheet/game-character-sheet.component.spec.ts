@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -27,6 +28,26 @@ describe('GameCharacterSheetComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('カードでも編集トグルと項目の追加ができること', () => {
+    const card = Card.create('効果カード', 'front.png', 'back.png');
+    component.tabletopObject = card;
+
+    try {
+      fixture.detectChanges();
+      const labels = [...fixture.nativeElement.querySelectorAll('button')].map((button: HTMLButtonElement) =>
+        button.textContent?.trim()
+      );
+      expect(labels).toContain('編集切り替え');
+
+      const beforeCount = card.detailDataElement?.children.length ?? 0;
+      component.addDataElement();
+
+      expect(card.detailDataElement?.children.length).toBe(beforeCount + 1);
+    } finally {
+      card.destroy();
+    }
   });
 
   it('addDataElement() は見出し > グループ > フィールドの構造で追加すること', () => {

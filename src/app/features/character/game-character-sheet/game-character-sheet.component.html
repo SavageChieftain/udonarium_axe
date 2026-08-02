@@ -1,4 +1,4 @@
-@if (tabletopObject && !terrain && !cardStack && !card && !textNote) {
+@if (tabletopObject && !terrain && !cardStack && !textNote) {
   <div
     class="border-ui-border-panel [&_button]:bg-ui-elevated [&_button]:border-ui-border-panel [&_button]:text-ui-muted [&_button]:hover:bg-ui-hover [&_button]:hover:text-ui-text [&_button]:rounded-ui-sm mb-1 flex flex-wrap items-center gap-1 border-b border-solid px-1.5 pt-1.5 pb-1 [&_button]:inline-flex [&_button]:cursor-pointer [&_button]:items-center [&_button]:gap-0.75 [&_button]:border [&_button]:border-solid [&_button]:px-2 [&_button]:py-0.75 [&_button]:text-[0.8em] [&_button]:whitespace-nowrap [&_button]:transition-[background,color]"
   >
@@ -8,7 +8,7 @@
     @if (terrain) {
       <button (click)="openModal('floor')">{{ 'feature.inventory.sheet.changeFloorImage' | transloco }}</button>
       <button (click)="openModal('wall')">{{ 'feature.inventory.sheet.changeWallImage' | transloco }}</button>
-    } @else if (!(character || cardStack || rangeArea || scratchMask)) {
+    } @else if (!(character || card || cardStack || rangeArea || scratchMask)) {
       <button (click)="openModal('imageIdentifier', true)">
         {{ 'feature.inventory.sheet.changeImage' | transloco }}
       </button>
