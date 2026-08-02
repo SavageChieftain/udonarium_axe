@@ -6,12 +6,13 @@ import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { isCcfoliaRoomArchive } from '@axe/core/storage/room-archive';
-import { createZipBlob } from '@axe/core/storage/zip-archive';
+import { createZipBlob, readZipEntries } from '@axe/core/storage/zip-archive';
+import type { ZipEntry } from '@axe/core/storage/zip-archive-message';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import { xml2element } from '@axe/core/util/xml-util';
-import { unzip, type Unzipped } from 'fflate';
+import type { Unzipped } from 'fflate';
 
 type MetaData = { percent: number; currentFile: string };
 type UpdateCallback = (metadata: MetaData) => void;
@@ -184,27 +185,21 @@ export class FileArchiver {
 
   private async handleZip(file: File, dropPoint?: { x: number; y: number }) {
     if (!file.type.includes('application/') && file.type.length > 0) return;
-    let entries: Unzipped;
+    let entries: ZipEntry[];
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      entries = await new Promise<Unzipped>((resolve, reject) => {
-        unzip(new Uint8Array(arrayBuffer), (err, data) => {
-          if (err) reject(err);
-          else resolve(data);
-        });
-      });
+      entries = await readZipEntries(file);
     } catch (reason) {
       Logger.warn('[FileArchiver] ZIP読み込みエラー', reason);
       return;
     }
-    if (isCcfoliaRoomArchive(Object.keys(entries))) {
-      emitCcfoliaRoomDropped({ entries });
+    if (isCcfoliaRoomArchive(entries.map((entry) => entry.name))) {
+      emitCcfoliaRoomDropped({ entries: await toUnzipped(entries) });
       return;
     }
 
-    for (const [name, data] of Object.entries(entries)) {
+    for (const entry of entries) {
       try {
-        await this.loadFiles([new File([data.slice()], name, { type: MimeType.type(name) })], dropPoint, false);
+        await this.loadFiles([new File([entry.blob], entry.name, { type: entry.type })], dropPoint, false);
       } catch (reason) {
         Logger.warn('[FileArchiver] ZIP展開エラー', reason);
       }
@@ -227,6 +222,14 @@ export class FileArchiver {
     const blob = await this.createZipBlobAsync(files, updateCallback);
     downloadBlob(blob, `${zipName}.zip`);
   }
+}
+
+async function toUnzipped(entries: readonly ZipEntry[]): Promise<Unzipped> {
+  const unzipped: Unzipped = {};
+  for (const entry of entries) {
+    unzipped[entry.name] = new Uint8Array(await entry.blob.arrayBuffer());
+  }
+  return unzipped;
 }
 
 function toArrayOfFileList(fileList: FileList): File[] {

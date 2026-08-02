@@ -1,5 +1,8 @@
 import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { convertBlobToWebP } from '@axe/core/storage/image-downscale';
+import { createThumbnailInWorker } from '@axe/core/storage/image-thumbnail';
+
+const THUMBNAIL_MAX_SIZE = 128;
 
 export enum ImageState {
   NULL = 0,
@@ -103,15 +106,19 @@ export class ImageFile {
   private static readonly SAVE_DATA_FILENAME_RE = /^([0-9a-f]{64})\./;
 
   private static async _createAsync(blob: Blob, name?: string): Promise<ImageFile> {
-    const converted = await convertBlobToWebP(blob);
-    const arrayBuffer = await FileReaderUtil.readAsArrayBufferAsync(converted);
-
     const preservedId = name ? (ImageFile.SAVE_DATA_FILENAME_RE.exec(name)?.[1] ?? null) : null;
 
     const imageFile = new ImageFile();
-    imageFile.context.identifier = preservedId ?? (await FileReaderUtil.calcSHA256Async(arrayBuffer));
+    if (preservedId) {
+      imageFile.context.identifier = preservedId;
+      imageFile.context.blob = blob;
+    } else {
+      const converted = await convertBlobToWebP(blob);
+      const arrayBuffer = await FileReaderUtil.readAsArrayBufferAsync(converted);
+      imageFile.context.identifier = await FileReaderUtil.calcSHA256Async(arrayBuffer);
+      imageFile.context.blob = new Blob([arrayBuffer], { type: converted.type });
+    }
     imageFile.context.name = name ?? '';
-    imageFile.context.blob = new Blob([arrayBuffer], { type: converted.type });
     imageFile.context.url = window.URL.createObjectURL(imageFile.context.blob);
 
     imageFile.context.thumbnail = await ImageFile.createThumbnailAsync(imageFile.context);
@@ -171,11 +178,20 @@ export class ImageFile {
     window.URL.revokeObjectURL(this.context.thumbnail.url);
   }
 
-  private static createThumbnailAsync(context: ImageContext): Promise<ThumbnailContext> {
+  private static async createThumbnailAsync(context: ImageContext): Promise<ThumbnailContext> {
+    const type = context.blob?.type ?? '';
+    const fromWorker = context.blob ? await createThumbnailInWorker(context.blob, type, THUMBNAIL_MAX_SIZE) : null;
+    if (fromWorker) {
+      return { type: fromWorker.type, blob: fromWorker, url: window.URL.createObjectURL(fromWorker) };
+    }
+    return ImageFile.createThumbnailOnMainThread(context);
+  }
+
+  private static createThumbnailOnMainThread(context: ImageContext): Promise<ThumbnailContext> {
     return new Promise((resolve, reject) => {
       const image: HTMLImageElement = new Image();
       image.onload = () => {
-        const scale: number = Math.min(128 / Math.max(image.width, image.height), 1.0);
+        const scale: number = Math.min(THUMBNAIL_MAX_SIZE / Math.max(image.width, image.height), 1.0);
         const dstWidth = image.width * scale;
         const dstHeight = image.height * scale;
 

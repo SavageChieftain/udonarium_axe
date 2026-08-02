@@ -1,11 +1,12 @@
-export interface ZipWorkerEntry {
+export interface ZipEntry {
   name: string;
   type: string;
   blob: Blob;
 }
 
-export interface ZipWorkerRequest {
-  entries: ZipWorkerEntry[];
-}
+export type ZipWorkerRequest = { kind: 'zip'; entries: ZipEntry[] } | { kind: 'unzip'; blob: Blob };
 
-export type ZipWorkerResponse = { ok: true; buffer: ArrayBuffer } | { ok: false; message: string };
+export type ZipWorkerResponse =
+  | { kind: 'zip'; ok: true; buffer: ArrayBuffer }
+  | { kind: 'unzip'; ok: true; entries: ZipEntry[] }
+  | { kind: 'error'; ok: false; message: string };
