@@ -3,6 +3,7 @@ import { RoomSnapshotService } from '@axe/application/file/room-snapshot.service
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { EventChannel } from '@axe/core/event/event-channel';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -16,6 +17,8 @@ describe('RoomArchiveEventHandlerService', () => {
   let capture: ReturnType<typeof vi.fn>;
   let canEditTabletop: boolean;
   let isRestoring: boolean;
+  let isDragging: boolean;
+  let lastCaptureMs: number;
 
   function setup(): RoomArchiveEventHandlerService {
     TestBed.configureTestingModule({
@@ -30,7 +33,18 @@ describe('RoomArchiveEventHandlerService', () => {
             },
           },
         },
-        { provide: RoomSnapshotService, useValue: { isSupported: true, isRestoring: () => isRestoring, capture } },
+        {
+          provide: RoomSnapshotService,
+          useValue: { isSupported: true, isRestoring: () => isRestoring, lastCaptureMs: () => lastCaptureMs, capture },
+        },
+        {
+          provide: PointerDeviceService,
+          useValue: {
+            get isDragging() {
+              return isDragging;
+            },
+          },
+        },
         RoomArchiveEventHandlerService,
       ],
     });
@@ -49,6 +63,8 @@ describe('RoomArchiveEventHandlerService', () => {
     capture = vi.fn().mockResolvedValue(null);
     canEditTabletop = true;
     isRestoring = false;
+    isDragging = false;
+    lastCaptureMs = 0;
   });
 
   afterEach(() => {
@@ -107,6 +123,31 @@ describe('RoomArchiveEventHandlerService', () => {
 
     isRestoring = false;
     await vi.advanceTimersByTimeAsync(30_000);
+    expect(capture).toHaveBeenCalledOnce();
+  });
+
+  it('ドラッグ中は保存せず、手を離してから保存する', async () => {
+    setup();
+    isDragging = true;
+    emitChange();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(capture).not.toHaveBeenCalled();
+
+    isDragging = false;
+    await vi.advanceTimersByTimeAsync(6_000);
+    expect(capture).toHaveBeenCalledOnce();
+  });
+
+  it('保存に時間がかかる部屋では保存間隔を広げる', async () => {
+    lastCaptureMs = 3_500;
+    setup();
+    emitChange();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(capture).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(61_000);
     expect(capture).toHaveBeenCalledOnce();
   });
 

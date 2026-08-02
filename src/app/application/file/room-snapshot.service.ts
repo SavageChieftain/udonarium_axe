@@ -23,6 +23,9 @@ export class RoomSnapshotService {
   private readonly _isRestoring = signal(false);
   readonly isRestoring = this._isRestoring.asReadonly();
 
+  private readonly _lastCaptureMs = signal(0);
+  readonly lastCaptureMs = this._lastCaptureMs.asReadonly();
+
   get isSupported(): boolean {
     return this.store.isAvailable();
   }
@@ -41,6 +44,7 @@ export class RoomSnapshotService {
   async capture(): Promise<RoomSnapshotMeta | null> {
     if (!this.isSupported || this._isCapturing()) return null;
     this._isCapturing.set(true);
+    const startedAt = performance.now();
     try {
       const blob = await this.saveDataService.createRoomArchiveAsync();
       const id = await this.store.put({ roomName: this.currentRoomName(), savedAt: Date.now(), blob });
@@ -52,6 +56,7 @@ export class RoomSnapshotService {
       Logger.warn('[RoomSnapshot] スナップショットの保存に失敗しました', reason);
       return null;
     } finally {
+      this._lastCaptureMs.set(performance.now() - startedAt);
       this._isCapturing.set(false);
     }
   }

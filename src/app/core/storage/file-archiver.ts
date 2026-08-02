@@ -6,6 +6,7 @@ import * as FileReaderUtil from '@axe/core/storage/file-reader-util';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { isCcfoliaRoomArchive } from '@axe/core/storage/room-archive';
+import { zipCompressionLevel } from '@axe/core/storage/zip-compression';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { downloadBlob } from '@axe/core/util/download-blob';
@@ -217,7 +218,8 @@ export class FileArchiver {
 
     const zipData: AsyncZippable = {};
     for (const file of saveFiles) {
-      zipData[file.name] = [new Uint8Array(await file.arrayBuffer()), { level: 6 }];
+      const level = zipCompressionLevel(file.name, file.type);
+      zipData[file.name] = [new Uint8Array(await file.arrayBuffer()), { level }];
     }
 
     const blob = await new Promise<Blob>((resolve, reject) => {
