@@ -335,6 +335,27 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.bubbleAnchor()).toBeNull();
   });
 
+  it('文字送りの途中で絵文字が壊れないこと', () => {
+    vi.useFakeTimers();
+    TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('normal');
+    addMessage('あ🎉い👨‍👩‍👧う');
+    createComponent();
+
+    const seen: string[] = [];
+    for (let i = 0; i < 12; i++) {
+      seen.push(component.displayedText());
+      vi.advanceTimersByTime(30);
+      fixture.detectChanges();
+    }
+
+    for (const text of seen) {
+      expect(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/.test(text)).toBe(false);
+      expect(text).toBe('あ🎉い👨‍👩‍👧う'.slice(0, text.length));
+    }
+    expect(component.displayedText()).toBe('あ🎉い👨‍👩‍👧う');
+    expect(component.isTyping()).toBe(false);
+  });
+
   it('文字送り設定 off では全文が即時表示されること', () => {
     TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('off');
     addMessage('こんにちは');

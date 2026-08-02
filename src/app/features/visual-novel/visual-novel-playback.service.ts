@@ -10,6 +10,7 @@ import {
   VisualNovelSettingsService,
   VN_TYPEWRITER_INTERVAL_MS,
 } from '@axe/features/visual-novel/visual-novel-settings.service';
+import { toGraphemes } from '@axe/features/visual-novel/visual-novel-text';
 
 const AUTO_PLAY_BASE_WAIT_MS = 1200;
 const AUTO_PLAY_PER_CHAR_MS = 35;
@@ -69,9 +70,11 @@ export class VisualNovelPlaybackService {
 
   readonly currentFullText = computed(() => this.currentEmote().text);
 
-  readonly displayedText = computed(() => this.currentFullText().slice(0, this.typedLength()));
+  private readonly currentGraphemes = computed(() => toGraphemes(this.currentFullText()));
 
-  readonly isTyping = computed(() => this.typedLength() < this.currentFullText().length);
+  readonly displayedText = computed(() => this.currentGraphemes().slice(0, this.typedLength()).join(''));
+
+  readonly isTyping = computed(() => this.typedLength() < this.currentGraphemes().length);
 
   readonly currentIsDiceCommand = computed(() => this.isDiceCommandAt(this.currentIndex()));
 
@@ -153,7 +156,7 @@ export class VisualNovelPlaybackService {
   advance(): void {
     if (this.isTyping()) {
       this.stopTypewriter();
-      this.typedLength.set(this.currentFullText().length);
+      this.typedLength.set(this.currentGraphemes().length);
       return;
     }
     const index = this.currentIndex();
@@ -232,7 +235,7 @@ export class VisualNovelPlaybackService {
   private restartTypewriter(message: ChatMessage | null): void {
     this.stopTypewriter();
     const parsed = parseVnEmote(message?.text ?? '');
-    const total = parsed.text.length;
+    const total = toGraphemes(parsed.text).length;
     const interval = VN_TYPEWRITER_INTERVAL_MS[this.settings.typewriterSpeed()];
     const isDiceCommand = this.currentIsDiceCommand();
     if (
