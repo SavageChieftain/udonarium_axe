@@ -1315,7 +1315,8 @@
         "textSize": "Text size",
         "motion": "Motion",
         "readability": "Readability",
-        "background": "Background (GM)"
+        "background": "Background (GM)",
+        "layout": "Layout"
       },
       "speed": {
         "off": "Off",
@@ -1435,7 +1436,12 @@
       "backgroundPick": "Pick image",
       "backgroundClear": "Clear",
       "stageStay": "Stay",
-      "stageExit": "Leave"
+      "stageExit": "Leave",
+      "layout": {
+        "bubble": "Bubble",
+        "adv": "ADV",
+        "nvl": "Full"
+      }
     },
     "mapEditor": {
       "title": "Map editor",

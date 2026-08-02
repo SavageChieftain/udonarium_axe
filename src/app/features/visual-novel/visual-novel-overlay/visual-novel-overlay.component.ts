@@ -54,6 +54,7 @@ import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-no
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import {
   VisualNovelSettingsService,
+  VN_LAYOUTS,
   VN_PORTRAIT_ANIMATIONS,
   VN_READABILITY_LEVELS,
   VN_TEXT_SIZES,
@@ -187,6 +188,7 @@ export class VisualNovelOverlayComponent {
   readonly typewriterSpeedOptions = VN_TYPEWRITER_SPEEDS;
   readonly portraitAnimationOptions = VN_PORTRAIT_ANIMATIONS;
   readonly textSizeOptions = VN_TEXT_SIZES;
+  readonly layoutOptions = VN_LAYOUTS;
   readonly readabilityOptions = VN_READABILITY_LEVELS;
   readonly transitionOptions = VN_STAGE_TRANSITIONS;
   readonly messageKindOptions = computed(() =>
@@ -441,9 +443,13 @@ export class VisualNovelOverlayComponent {
     return kind === 'normal' ? null : kind;
   });
 
+  readonly speechVisible = computed(
+    () =>
+      this.currentMessage() != null && !this.systemSpeaker() && !this.narrationKind() && !this.currentIsDiceCommand()
+  );
+
   readonly bubbleAnchor = computed(() => {
-    if (!this.currentMessage() || this.systemSpeaker() || this.narrationKind() || this.currentIsDiceCommand())
-      return null;
+    if (!this.speechVisible() || this.settings.layout() !== 'bubble') return null;
     const active = this.activeStageCharacter();
     if (active) return { left: Math.min(83, Math.max(17, active.left)), bottom: '58vh' };
     return { left: 50, bottom: '22vh' };

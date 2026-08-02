@@ -9,6 +9,9 @@ export const VN_PORTRAIT_ANIMATIONS: readonly VnPortraitAnimation[] = ['none', '
 export const VN_TEXT_SIZES: readonly VnTextSize[] = ['small', 'normal', 'large'];
 
 export type VnReadability = 0 | 1 | 2 | 3;
+export type VnLayout = 'bubble' | 'adv' | 'nvl';
+
+export const VN_LAYOUTS: readonly VnLayout[] = ['bubble', 'adv', 'nvl'];
 
 export const VN_READABILITY_LEVELS: readonly VnReadability[] = [0, 1, 2, 3];
 
@@ -32,6 +35,7 @@ interface VnSettingsSnapshot {
   reduceMotion?: unknown;
   chatTabIdentifier?: unknown;
   readability?: unknown;
+  layout?: unknown;
 }
 
 function clampSpeed(value: unknown): number {
@@ -57,6 +61,7 @@ export class VisualNovelSettingsService {
   private readonly _reduceMotion = signal(false);
   private readonly _chatTabIdentifier = signal('');
   private readonly _readability = signal<VnReadability>(1);
+  private readonly _layout = signal<VnLayout>('bubble');
 
   readonly typewriterSpeed = this._typewriterSpeed.asReadonly();
   readonly portraitAnimation = this._portraitAnimation.asReadonly();
@@ -65,6 +70,7 @@ export class VisualNovelSettingsService {
   readonly reduceMotion = this._reduceMotion.asReadonly();
   readonly chatTabIdentifier = this._chatTabIdentifier.asReadonly();
   readonly readability = this._readability.asReadonly();
+  readonly layout = this._layout.asReadonly();
 
   constructor() {
     this.load();
@@ -104,6 +110,11 @@ export class VisualNovelSettingsService {
     this.save();
   }
 
+  setLayout(layout: VnLayout): void {
+    this._layout.set(layout);
+    this.save();
+  }
+
   setChatTabIdentifier(identifier: string): void {
     this._chatTabIdentifier.set(identifier);
     this.save();
@@ -125,6 +136,7 @@ export class VisualNovelSettingsService {
     this._reduceMotion.set(snapshot.reduceMotion === true);
     this._chatTabIdentifier.set(typeof snapshot.chatTabIdentifier === 'string' ? snapshot.chatTabIdentifier : '');
     this._readability.set(pickReadability(snapshot.readability));
+    this._layout.set(pick(snapshot.layout, VN_LAYOUTS, 'bubble'));
   }
 
   private save(): void {
@@ -139,6 +151,7 @@ export class VisualNovelSettingsService {
           reduceMotion: this._reduceMotion(),
           chatTabIdentifier: this._chatTabIdentifier(),
           readability: this._readability(),
+          layout: this._layout(),
         })
       );
     } catch {

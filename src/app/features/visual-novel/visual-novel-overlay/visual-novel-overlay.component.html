@@ -120,6 +120,68 @@
   </div>
 }
 
+@if (speechVisible() && settings.layout() === 'adv') {
+  <div
+    class="pointer-events-auto absolute inset-x-[4%] bottom-[15dvh] z-30 cursor-pointer select-none"
+    (click)="userAdvance()"
+    (wheel)="onMessageWheel($event)"
+  >
+    @for (message of currentMessageList(); track message.identifier) {
+      <div
+        class="rounded-ui-lg relative mx-auto max-w-4xl border border-solid border-white/25 bg-black/70 px-6 py-4 wrap-break-word text-white/95 shadow-xl backdrop-blur-md"
+        [class]="bubbleEnterClass() + ' ' + narrationTextSizeClass()"
+      >
+        @if (speakerName().length > 0) {
+          <span
+            class="rounded-ui bg-ui-accent absolute -top-3 left-4 px-2 py-0.5 text-[11px] font-bold text-white shadow-md"
+            >{{ speakerName() }}</span
+          >
+        }
+        @if (emotionMark(); as mark) {
+          <span
+            class="animate-vn-mark-in absolute -top-6 right-4 z-20 rotate-12 text-4xl font-black drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+            [class]="mark.colorClass"
+            >{{ mark.char }}</span
+          >
+        }
+        <span class="whitespace-pre-line">{{ displayedText() }}</span>
+        @if (isTyping()) {
+          <span class="animate-blinking">▏</span>
+        }
+        @if (!isTyping() && !isLatest()) {
+          <span class="ml-1 inline-block animate-bounce text-white/70">▼</span>
+        }
+      </div>
+    }
+  </div>
+}
+
+@if (speechVisible() && settings.layout() === 'nvl') {
+  <div
+    class="pointer-events-auto absolute inset-x-0 top-[8dvh] bottom-[14dvh] z-30 cursor-pointer px-[8%] select-none"
+    (click)="userAdvance()"
+    (wheel)="onMessageWheel($event)"
+  >
+    @for (message of currentMessageList(); track message.identifier) {
+      <div
+        class="rounded-ui-lg h-full overflow-y-auto border border-solid border-white/15 bg-black/65 px-8 py-6 wrap-break-word text-white/95 backdrop-blur-sm"
+        [class]="narrationTextSizeClass()"
+      >
+        @if (speakerName().length > 0) {
+          <span class="text-ui-accent mb-2 block text-sm font-bold">{{ speakerName() }}</span>
+        }
+        <span class="whitespace-pre-line">{{ displayedText() }}</span>
+        @if (isTyping()) {
+          <span class="animate-blinking">▏</span>
+        }
+        @if (!isTyping() && !isLatest()) {
+          <span class="ml-1 inline-block animate-bounce text-white/70">▼</span>
+        }
+      </div>
+    }
+  </div>
+}
+
 @if (narrationKind(); as kind) {
   <div
     class="pointer-events-auto absolute inset-x-0 top-[32dvh] z-30 cursor-pointer select-none"
@@ -629,6 +691,25 @@
                 </button>
               </div>
               <div class="border-ui-border-separator mb-2 border-t border-solid"></div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.settings.layout' | transloco }}
+              </div>
+              <div class="mb-2 grid grid-cols-3 gap-1">
+                @for (layout of layoutOptions; track layout) {
+                  <button
+                    type="button"
+                    class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                    [class]="
+                      settings.layout() === layout
+                        ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                        : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                    "
+                    (click)="settings.setLayout(layout)"
+                  >
+                    {{ 'feature.visualNovel.layout.' + layout | transloco }}
+                  </button>
+                }
+              </div>
               <div class="text-ui-muted mb-1 text-[11px] font-semibold">
                 {{ 'feature.visualNovel.settings.readability' | transloco }}
               </div>

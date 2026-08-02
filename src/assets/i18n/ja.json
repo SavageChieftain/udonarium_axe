@@ -1315,7 +1315,8 @@
         "textSize": "文字サイズ",
         "motion": "演出の強さ",
         "readability": "文字の読みやすさ",
-        "background": "背景（GM）"
+        "background": "背景（GM）",
+        "layout": "表示レイアウト"
       },
       "speed": {
         "off": "なし",
@@ -1435,7 +1436,12 @@
       "backgroundPick": "背景を選ぶ",
       "backgroundClear": "解除",
       "stageStay": "滞在",
-      "stageExit": "退場"
+      "stageExit": "退場",
+      "layout": {
+        "bubble": "吹き出し",
+        "adv": "ADV",
+        "nvl": "全画面"
+      }
     },
     "mapEditor": {
       "title": "マップエディター",
