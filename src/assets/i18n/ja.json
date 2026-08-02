@@ -1398,7 +1398,8 @@
       "motion": {
         "full": "ふつう",
         "reduced": "控えめ"
-      }
+      },
+      "playFromStart": "最初から再生"
     },
     "mapEditor": {
       "title": "マップエディター",

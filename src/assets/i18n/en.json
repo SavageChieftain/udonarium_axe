@@ -1398,7 +1398,8 @@
       "motion": {
         "full": "Full",
         "reduced": "Reduced"
-      }
+      },
+      "playFromStart": "Play from the start"
     },
     "mapEditor": {
       "title": "Map editor",

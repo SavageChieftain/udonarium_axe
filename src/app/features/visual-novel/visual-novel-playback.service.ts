@@ -207,8 +207,16 @@ export class VisualNovelPlaybackService {
       this.stopAutoPlay();
       return;
     }
+    if (this.isLatest()) return;
     this.revealInstantly = false;
-    if (this.messages().length > 0) this.cursor.set(0);
+    this.autoPlay.set(true);
+  }
+
+  playFromStart(): void {
+    this.stopAutoPlay();
+    if (this.messages().length < 1) return;
+    this.revealInstantly = false;
+    this.cursor.set(0);
     this.autoPlay.set(true);
   }
 

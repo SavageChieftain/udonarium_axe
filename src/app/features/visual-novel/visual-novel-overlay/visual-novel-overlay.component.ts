@@ -576,6 +576,11 @@ export class VisualNovelOverlayComponent {
     this.playback.toggleAutoPlay();
   }
 
+  playFromStart(): void {
+    this.closePopovers();
+    this.playback.playFromStart();
+  }
+
   stopAutoPlay(): void {
     this.playback.stopAutoPlay();
   }

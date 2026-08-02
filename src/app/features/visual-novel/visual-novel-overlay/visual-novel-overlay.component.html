@@ -328,9 +328,20 @@
           [class.text-ui-accent]="autoPlay()"
           [title]="'feature.visualNovel.autoPlay' | transloco"
           [attr.aria-label]="'feature.visualNovel.autoPlay' | transloco"
+          [disabled]="!autoPlay() && isLatest()"
           (click)="toggleAutoPlay()"
         >
           <i class="material-icons">{{ autoPlay() ? 'pause_circle' : 'play_circle' }}</i>
+        </button>
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
+          [title]="'feature.visualNovel.playFromStart' | transloco"
+          [attr.aria-label]="'feature.visualNovel.playFromStart' | transloco"
+          [disabled]="messages().length < 2"
+          (click)="playFromStart()"
+        >
+          <i class="material-icons">replay</i>
         </button>
         <div class="text-ui-dim flex items-center gap-1 px-1" [title]="'feature.visualNovel.playbackSpeed' | transloco">
           <i class="material-icons text-[15px]!">speed</i>

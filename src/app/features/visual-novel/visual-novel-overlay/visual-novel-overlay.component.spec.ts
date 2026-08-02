@@ -703,14 +703,43 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters().map((chara) => chara.name)).toEqual(['アリス']);
   });
 
-  it('オートプレイ開始で最古のメッセージへ巻き戻ること', () => {
+  it('オートプレイは現在地から再生されること', () => {
+    addMessage('m1');
+    addMessage('m2');
+    addMessage('m3');
+    createComponent();
+    component.jumpTo(1);
+    fixture.detectChanges();
+
+    component.toggleAutoPlay();
+    fixture.detectChanges();
+
+    expect(component.autoPlay()).toBe(true);
+    expect(component.currentIndex()).toBe(1);
+  });
+
+  it('最新を表示しているときはオートプレイを開始しないこと', () => {
+    addMessage('m1');
+    addMessage('m2');
+    createComponent();
+    expect(component.isLatest()).toBe(true);
+
+    component.toggleAutoPlay();
+    fixture.detectChanges();
+
+    expect(component.autoPlay()).toBe(false);
+  });
+
+  it('最初から再生では最古のメッセージへ巻き戻ること', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
     createComponent();
     expect(component.currentIndex()).toBe(2);
-    component.toggleAutoPlay();
+
+    component.playFromStart();
     fixture.detectChanges();
+
     expect(component.autoPlay()).toBe(true);
     expect(component.currentIndex()).toBe(0);
   });
@@ -721,7 +750,7 @@ describe('VisualNovelOverlayComponent', () => {
     addMessage('うえ');
     addMessage('おか');
     createComponent();
-    component.toggleAutoPlay();
+    component.playFromStart();
     fixture.detectChanges();
     expect(component.currentIndex()).toBe(0);
 
@@ -739,7 +768,7 @@ describe('VisualNovelOverlayComponent', () => {
     addMessage('あい');
     addMessage('うえ');
     createComponent();
-    component.toggleAutoPlay();
+    component.playFromStart();
     fixture.detectChanges();
 
     vi.advanceTimersByTime(100);
@@ -759,13 +788,13 @@ describe('VisualNovelOverlayComponent', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
-    component.toggleAutoPlay();
+    component.playFromStart();
     fixture.detectChanges();
     expect(component.autoPlay()).toBe(true);
     component.userAdvance();
     expect(component.autoPlay()).toBe(false);
 
-    component.toggleAutoPlay();
+    component.playFromStart();
     fixture.detectChanges();
     expect(component.autoPlay()).toBe(true);
     component.onKeydown(new KeyboardEvent('keydown', { key: ' ' }));
@@ -871,7 +900,7 @@ describe('VisualNovelOverlayComponent', () => {
     addMessage('うえ');
     addMessage('おか');
     createComponent();
-    component.toggleAutoPlay();
+    component.playFromStart();
     fixture.detectChanges();
     vi.advanceTimersByTime(100);
     fixture.detectChanges();
