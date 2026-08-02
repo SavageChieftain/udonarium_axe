@@ -73,3 +73,4 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 **管理・全体**
 
 - [インベントリ](/manual/inventory) / [保存と読み込み](/manual/save-load) / [テーマ](/manual/theme)
+- [ココフォリアのルーム取り込み](/manual/room-import) — 盤面ごと持ち込む（実験的機能）

@@ -59,6 +59,16 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **取得経路** — 保管所は直 fetch（`Access-Control-Allow-Origin: *`）、倉庫は JSONP（CORS 不可のため script タグ注入）。CharaXiv はココフォリア形式の貼り付け
 - **正規化モデル** — `ImportedCharacter`（statuses / params / system 固有 sections）へ正規化し、`ImportedCharacterFactory` が data-element ツリーを構築。保管所 CoC は `NA1..NA14` を能力値・SAN へ写像、倉庫は `base` / 配列（技能・コンボ・武器）をセクションへ展開
 
+## ルームの取り込み（実験的）
+
+- **ココフォリア ルームデータ zip** — `__data.json` を持つ zip をテーブルに落とすと、通常の zip 展開を止めて取り込みへ回す（`core/storage/room-archive`、`core/storage/file-archiver`、`features/tabletop/ccfolia-room-import`）
+- **場面 = テーブル** — `scenes` 1 件を `GameTable` 1 枚へ（名前はシーン名、`order` 順）。ココフォリアは場面を切り替えてもパネルとコマが残るため、パネルは全テーブルへ複製し、コマは 1 体ずつ生成する（AXE のコマはテーブル横断）。盤面サイズはコマ座標の基準を揃えるためルームの値で統一する
+- **画像レイヤー** — ココフォリアの前景が盤面サイズちょうどの絵なので `imageIdentifier`（テーブル面）へ、背景は盤面外の壁紙なので `backgroundImageIdentifier` へ写す
+- **写像** — `items` を床のみの `Terrain`（視界・光を遮らない）へ、`characters` を `ImportedCharacterFactory` 経由の `GameCharacter` へ。`faces` はコマ画像ギャラリーに追加し、`secret` / `invisible` は `DisclosureMode.GameMaster` にする
+- **座標** — 原点は盤面中央。パネルはマス単位、コマだけは 1 マス = 25 のピクセル単位（`domain/tabletop/import/ccfolia-room-layout`）。盤外配置は意図的な用法なのでクランプしない
+- **重なりパネル** — gravity が常時走るため、`z` 1 段ぶんの厚み（`PANEL_THICKNESS`）を与えて物理的に積む。0 厚だと支持面に落ちて z ファイティングする
+- **取りこぼしの明示** — BGM（仕様上 zip に非同梱）・`decks` / `effects` / 非表示パネルは写さず、件数をチャットのシステムメッセージで報告
+
 ## データ要素（ゲームデータ）
 
 - **`RANGE_SHAPE` フィールド型** — 射程シェイプをサムネイル付きで保持

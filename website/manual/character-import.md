@@ -107,6 +107,7 @@ CharaXiv は URL からの自動取得に対応していません。CharaXiv 側
 
 ## 関連
 
+- [ココフォリアのルーム取り込み](/manual/room-import) — 盤面ごと持ち込む（実験的機能）
 - [キャラクターコマ](/manual/character) — 作成・コンテキストメニュー・キャラクターシート
 - [チャットパレット](/manual/chat-palette) — 取り込んだコマンドの使い方
 - [画像](/manual/images) — アイコン・立ち絵の管理
