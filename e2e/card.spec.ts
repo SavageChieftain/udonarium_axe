@@ -25,7 +25,7 @@ test.describe('カードスタック (山札)', () => {
     const menu = await openCardStackMenu(page);
     await expect(menu.getByText('１枚引く')).toBeVisible();
     await expect(menu.getByText('シャッフル')).toBeVisible();
-    await expect(menu.getByText('カード一覧')).toBeVisible();
+    await expect(menu.getByText('詳細を表示')).toBeVisible();
   });
 
   test('シャッフルしてもクラッシュしないこと', async ({ page }) => {
