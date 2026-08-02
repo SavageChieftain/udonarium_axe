@@ -181,6 +181,15 @@
                   <option [ngValue]="false">{{ 'feature.visualNovel.flipOff' | transloco }}</option>
                   <option [ngValue]="true">{{ 'feature.visualNovel.flipOn' | transloco }}</option>
                 </select>
+                <select
+                  class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui cursor-pointer border border-solid px-1 py-0.5 text-[11px] outline-none"
+                  [title]="'feature.visualNovel.emote.stage' | transloco"
+                  [ngModel]="editExited()"
+                  (ngModelChange)="editExited.set($event === true || $event === 'true')"
+                >
+                  <option [ngValue]="false">{{ 'feature.visualNovel.stageStay' | transloco }}</option>
+                  <option [ngValue]="true">{{ 'feature.visualNovel.stageExit' | transloco }}</option>
+                </select>
                 @if (editSlot() >= 0) {
                   <select
                     class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui cursor-pointer border border-solid px-1 py-0.5 text-[11px] outline-none"

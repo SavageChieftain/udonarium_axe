@@ -34,6 +34,7 @@ export interface VnEmote {
   portraitEmote: VnPortraitEmote;
   emotionMark: VnEmotionMark;
   flipped: boolean;
+  exited: boolean;
 }
 
 export const VN_EMOTE_DEFAULT: VnEmote = {
@@ -43,9 +44,11 @@ export const VN_EMOTE_DEFAULT: VnEmote = {
   portraitEmote: 'none',
   emotionMark: 'none',
   flipped: false,
+  exited: false,
 };
 
 const FLIP_TOKEN = '反転';
+const EXIT_TOKEN = '退場';
 
 const MESSAGE_KIND_TOKENS: Record<Exclude<VnMessageKind, 'normal'>, string> = {
   narration: '地の文',
@@ -105,6 +108,7 @@ export function buildVnEmoteSuffix(emote: VnEmote): string {
   if (emote.portraitEmote !== 'none') tokens.push(PORTRAIT_EMOTE_TOKENS[emote.portraitEmote]);
   if (emote.emotionMark !== 'none') tokens.push(VN_EMOTION_MARK_CHARS[emote.emotionMark]);
   if (emote.flipped) tokens.push(FLIP_TOKEN);
+  if (emote.exited) tokens.push(EXIT_TOKEN);
   if (tokens.length < 1) return '';
   return ` 〔${tokens.join('・')}〕`;
 }
@@ -118,12 +122,18 @@ export function parseVnEmote(text: string): VnEmote & { text: string } {
   if (tokens.length < 1) return result;
 
   const parsed = { ...VN_EMOTE_DEFAULT };
-  const seen = new Set<'kind' | 'shape' | 'bubble' | 'portrait' | 'mark' | 'flip'>();
+  const seen = new Set<'kind' | 'shape' | 'bubble' | 'portrait' | 'mark' | 'flip' | 'exit'>();
   for (const token of tokens) {
     if (token === FLIP_TOKEN) {
       if (seen.has('flip')) return result;
       seen.add('flip');
       parsed.flipped = true;
+      continue;
+    }
+    if (token === EXIT_TOKEN) {
+      if (seen.has('exit')) return result;
+      seen.add('exit');
+      parsed.exited = true;
       continue;
     }
     const kind = MESSAGE_KIND_BY_TOKEN.get(token);

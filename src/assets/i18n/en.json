@@ -1336,7 +1336,9 @@
         "portraitAnim": "Portrait animation",
         "mark": "Emotion mark",
         "kind": "Message type",
-        "reset": "Reset"
+        "reset": "Reset",
+        "stage": "Stage",
+        "exit": "Leave the stage"
       },
       "shape": {
         "normal": "Normal",
@@ -1431,7 +1433,9 @@
         "wipe": "Wipe"
       },
       "backgroundPick": "Pick image",
-      "backgroundClear": "Clear"
+      "backgroundClear": "Clear",
+      "stageStay": "Stay",
+      "stageExit": "Leave"
     },
     "mapEditor": {
       "title": "Map editor",

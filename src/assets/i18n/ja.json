@@ -1336,7 +1336,9 @@
         "portraitAnim": "立ち絵演出",
         "mark": "漫符",
         "kind": "発言タイプ",
-        "reset": "リセット"
+        "reset": "リセット",
+        "stage": "立ち絵の出入り",
+        "exit": "この発言で退場する"
       },
       "shape": {
         "normal": "ふつう",
@@ -1431,7 +1433,9 @@
         "wipe": "ワイプ"
       },
       "backgroundPick": "背景を選ぶ",
-      "backgroundClear": "解除"
+      "backgroundClear": "解除",
+      "stageStay": "滞在",
+      "stageExit": "退場"
     },
     "mapEditor": {
       "title": "マップエディター",

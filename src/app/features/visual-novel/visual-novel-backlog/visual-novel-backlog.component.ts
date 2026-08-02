@@ -81,6 +81,7 @@ export class VisualNovelBacklogComponent {
   readonly editPortraitEmote = signal<VnPortraitEmote>('none');
   readonly editEmotionMark = signal<VnEmotionMark>('none');
   readonly editFlipped = signal(false);
+  readonly editExited = signal(false);
   readonly editSlot = signal(-1);
 
   private readonly listElement = viewChild<ElementRef<HTMLDivElement>>('backlogList');
@@ -174,6 +175,7 @@ export class VisualNovelBacklogComponent {
     this.editPortraitEmote.set(parsed.portraitEmote);
     this.editEmotionMark.set(parsed.emotionMark);
     this.editFlipped.set(parsed.flipped);
+    this.editExited.set(parsed.exited);
     const pos = entry.message.imagePos;
     this.editSlot.set(typeof pos === 'number' && pos >= 0 && pos < VN_STAGE_SLOT_COUNT ? pos : -1);
     this.editingIndex.set(entry.index);
@@ -200,6 +202,7 @@ export class VisualNovelBacklogComponent {
         portraitEmote: this.editPortraitEmote(),
         emotionMark: this.editEmotionMark(),
         flipped: this.editFlipped(),
+        exited: this.editExited(),
       });
     if (message.text !== next) {
       message.text = next;

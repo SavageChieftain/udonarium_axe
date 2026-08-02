@@ -610,6 +610,24 @@
                   </button>
                 }
               </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.emote.stage' | transloco }}
+              </div>
+              <div class="mb-2">
+                <button
+                  type="button"
+                  class="rounded-ui w-full cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                  [class]="
+                    selectedExit()
+                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                  "
+                  [attr.aria-pressed]="selectedExit()"
+                  (click)="toggleSelectedExit()"
+                >
+                  {{ 'feature.visualNovel.emote.exit' | transloco }}
+                </button>
+              </div>
               <div class="border-ui-border-separator mb-2 border-t border-solid"></div>
               <div class="text-ui-muted mb-1 text-[11px] font-semibold">
                 {{ 'feature.visualNovel.settings.readability' | transloco }}

@@ -42,6 +42,7 @@ export function buildVnStage(
   if (current.emote.kind === 'location' || current.emote.kind === 'scene') return [];
 
   const found = new Map<string, { url: string; slot: number; isFlipped: boolean }>();
+  const retired = new Set<string>();
   for (let i = window.length - 1; i >= 0 && found.size < VN_STAGE_MAX; i--) {
     const source = window[i];
     if (source.isSystemMessage || source.isDicebot) continue;
@@ -49,7 +50,11 @@ export function buildVnStage(
     if (source.emote.kind === 'scene') break;
     if (!source.isGameCharacter) continue;
     if (source.name.length < 1 || source.imageIdentifier.length < 1) continue;
-    if (found.has(source.name)) continue;
+    if (found.has(source.name) || retired.has(source.name)) continue;
+    if (source.emote.exited) {
+      retired.add(source.name);
+      continue;
+    }
     const url = resolveUrl(source.imageIdentifier);
     if (url.length < 1) continue;
     found.set(source.name, { url, slot: slotOf(source.imagePos), isFlipped: source.emote.flipped });

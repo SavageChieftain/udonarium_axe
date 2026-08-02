@@ -180,6 +180,7 @@ export class VisualNovelOverlayComponent {
   readonly selectedBubbleAnimation = signal<VnBubbleAnimation>('none');
   readonly selectedPortraitEmote = signal<VnPortraitEmote>('none');
   readonly selectedEmotionMark = signal<VnEmotionMark>('none');
+  readonly selectedExit = signal(false);
 
   readonly backlogFilter = signal('');
 
@@ -332,7 +333,8 @@ export class VisualNovelOverlayComponent {
       this.selectedShape() !== 'normal' ||
       this.selectedBubbleAnimation() !== 'none' ||
       this.selectedPortraitEmote() !== 'none' ||
-      this.selectedEmotionMark() !== 'none'
+      this.selectedEmotionMark() !== 'none' ||
+      this.selectedExit()
   );
 
   readonly selectedEmoteSuffix = computed(() =>
@@ -343,6 +345,7 @@ export class VisualNovelOverlayComponent {
       portraitEmote: this.selectedPortraitEmote(),
       emotionMark: this.selectedEmotionMark(),
       flipped: false,
+      exited: this.selectedExit(),
     }).trim()
   );
 
@@ -352,6 +355,11 @@ export class VisualNovelOverlayComponent {
     this.selectedBubbleAnimation.set('none');
     this.selectedPortraitEmote.set('none');
     this.selectedEmotionMark.set('none');
+    this.selectedExit.set(false);
+  }
+
+  toggleSelectedExit(): void {
+    this.selectedExit.update((exited) => !exited);
   }
 
   emotionMarkLabel(mark: VnEmotionMark): string {
@@ -886,6 +894,7 @@ export class VisualNovelOverlayComponent {
         portraitEmote: this.selectedPortraitEmote(),
         emotionMark: this.selectedEmotionMark(),
         flipped: this.speakerFlip() === true,
+        exited: this.selectedExit(),
       });
     const attachedSe = this.attachedSe();
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {

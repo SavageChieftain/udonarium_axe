@@ -19,6 +19,7 @@ describe('buildVnEmoteSuffix()', () => {
         portraitEmote: 'jump',
         emotionMark: 'anger',
         flipped: false,
+        exited: false,
       })
     ).toBe(' 〔叫び・ゆれ・ジャンプ・💢〕');
   });
@@ -32,6 +33,7 @@ describe('buildVnEmoteSuffix()', () => {
         portraitEmote: 'none',
         emotionMark: 'none',
         flipped: false,
+        exited: false,
       })
     ).toBe(' 〔ぽよん〕');
     expect(
@@ -42,6 +44,7 @@ describe('buildVnEmoteSuffix()', () => {
         portraitEmote: 'none',
         emotionMark: 'none',
         flipped: false,
+        exited: false,
       })
     ).toBe(' 〔もやもや〕');
     expect(
@@ -52,6 +55,7 @@ describe('buildVnEmoteSuffix()', () => {
         portraitEmote: 'none',
         emotionMark: 'surprise',
         flipped: false,
+        exited: false,
       })
     ).toBe(' 〔！〕');
   });
@@ -64,6 +68,7 @@ describe('buildVnEmoteSuffix()', () => {
       portraitEmote: 'nod',
       emotionMark: 'sweat',
       flipped: false,
+      exited: false,
     });
     expect(suffix).toBe(' 〔ささやき・ふわふわ・うなずき・💧〕');
     const parsed = parseVnEmote(`ねえ、聞いて${suffix}`);
@@ -84,6 +89,7 @@ describe('parseVnEmote()', () => {
       portraitEmote: 'none',
       emotionMark: 'none',
       flipped: false,
+      exited: false,
     });
     expect(narration).toBe(' 〔地の文〕');
     const parsedNarration = parseVnEmote(`一行は森の奥へ進んだ。${narration}`);
@@ -103,6 +109,7 @@ describe('parseVnEmote()', () => {
       portraitEmote: 'tremble',
       emotionMark: 'none',
       flipped: false,
+      exited: false,
     });
     const parsed = parseVnEmote(`考え中…${suffix}`);
     expect(parsed.text).toBe('考え中…');
@@ -152,6 +159,21 @@ describe('parseVnEmote() 反転トークン', () => {
     const parsed = parseVnEmote('ふりむく 〔反転〕');
     expect(parsed.flipped).toBe(true);
     expect(parsed.text).toBe('ふりむく');
+  });
+});
+
+describe('parseVnEmote() 退場トークン', () => {
+  it('退場トークンが往復できること', () => {
+    const suffix = buildVnEmoteSuffix({ ...VN_EMOTE_DEFAULT, flipped: true, exited: true });
+    expect(suffix).toBe(' 〔反転・退場〕');
+    const parsed = parseVnEmote(`またね${suffix}`);
+    expect(parsed.text).toBe('またね');
+    expect(parsed.flipped).toBe(true);
+    expect(parsed.exited).toBe(true);
+  });
+
+  it('退場を指定しない発言は exited が false であること', () => {
+    expect(parseVnEmote('やあ 〔叫び〕').exited).toBe(false);
   });
 });
 

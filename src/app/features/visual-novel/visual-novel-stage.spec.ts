@@ -126,6 +126,33 @@ describe('buildVnStage()', () => {
     expect(stage.every((chara) => !chara.isActive)).toBe(true);
   });
 
+  it('退場を指定した発言以降その立ち絵を出さないこと', () => {
+    const stage = buildVnStage(
+      [
+        source({ name: 'アリス', imagePos: 0 }),
+        source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 6 }),
+        source({ name: 'アリス', imagePos: 0, emote: emote({ exited: true }) }),
+        source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 6 }),
+      ],
+      resolveUrl
+    );
+
+    expect(stage.map((chara) => chara.name)).toEqual(['ボブ']);
+  });
+
+  it('退場したあとに再び発言すれば立ち絵が戻ること', () => {
+    const stage = buildVnStage(
+      [
+        source({ name: 'アリス', emote: emote({ exited: true }) }),
+        source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 6 }),
+        source({ name: 'アリス', imagePos: 0 }),
+      ],
+      resolveUrl
+    );
+
+    expect(stage.map((chara) => chara.name)).toEqual(['アリス', 'ボブ']);
+  });
+
   it('反転指定を立ち絵に引き継ぐこと', () => {
     const stage = buildVnStage([source({ emote: emote({ flipped: true }) })], resolveUrl);
 
