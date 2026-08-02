@@ -1,5 +1,7 @@
 <div class="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-linear-to-t from-black/55 to-transparent"></div>
 
+<div class="sr-only" aria-live="polite" aria-atomic="true">{{ announcedLine() }}</div>
+
 @if (autoPlay()) {
   <div
     class="vn-auto-badge bg-ui-accent animate-vn-pulse pointer-events-none absolute top-5 left-20 z-40 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg"
@@ -241,6 +243,7 @@
         <select
           class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
           [title]="'feature.visualNovel.diceBot' | transloco"
+          [attr.aria-label]="'feature.visualNovel.diceBot' | transloco"
           [(ngModel)]="gameType"
         >
           @for (diceBotInfo of diceBotInfos; track diceBotInfo.id) {
@@ -250,6 +253,7 @@
         <select
           class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-36 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
           [title]="'feature.visualNovel.speakerSelect' | transloco"
+          [attr.aria-label]="'feature.visualNovel.speakerSelect' | transloco"
           [(ngModel)]="sendFrom"
         >
           @for (character of speakerOptions(); track character.identifier) {
@@ -294,6 +298,7 @@
             [class.border-ui-accent]="showSlotGuide()"
             [class.text-ui-accent]="showSlotGuide()"
             [title]="'feature.visualNovel.slot' | transloco"
+            [attr.aria-label]="'feature.visualNovel.slot' | transloco"
             (click)="toggleSlotGuide()"
           >
             <i class="material-icons">person_pin_circle</i>
@@ -310,6 +315,7 @@
                 : 'border-ui-border-panel bg-ui-input text-ui-dim hover:border-ui-accent'
             "
             [title]="'feature.visualNovel.flip' | transloco"
+            [attr.aria-label]="'feature.visualNovel.flip' | transloco"
             (click)="toggleSpeakerFlip()"
           >
             <i class="material-icons" [class.-scale-x-100]="speakerFlip() === true">flip_camera_android</i>
@@ -321,6 +327,7 @@
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui ml-auto flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
           [class.text-ui-accent]="autoPlay()"
           [title]="'feature.visualNovel.autoPlay' | transloco"
+          [attr.aria-label]="'feature.visualNovel.autoPlay' | transloco"
           (click)="toggleAutoPlay()"
         >
           <i class="material-icons">{{ autoPlay() ? 'pause_circle' : 'play_circle' }}</i>
@@ -345,6 +352,7 @@
           type="button"
           class="text-ui-dim hover:text-ui-danger rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] hover:bg-(--ui-danger-bg) [&_i]:text-[18px]"
           [title]="'feature.visualNovel.exit' | transloco"
+          [attr.aria-label]="'feature.visualNovel.exit' | transloco"
           (click)="exit()"
         >
           <i class="material-icons">close</i>
@@ -358,6 +366,7 @@
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
           [title]="'feature.visualNovel.prev' | transloco"
+          [attr.aria-label]="'feature.visualNovel.prev' | transloco"
           [disabled]="currentIndex() <= 0"
           (click)="userBack()"
         >
@@ -372,6 +381,7 @@
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
           [title]="'feature.visualNovel.next' | transloco"
+          [attr.aria-label]="'feature.visualNovel.next' | transloco"
           [disabled]="isLatest()"
           (click)="userAdvance()"
         >
@@ -392,6 +402,7 @@
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
           [class.text-ui-accent]="showBacklog()"
           [title]="'feature.visualNovel.log' | transloco"
+          [attr.aria-label]="'feature.visualNovel.log' | transloco"
           (click)="toggleBacklog()"
         >
           <i class="material-icons">history</i>
@@ -402,6 +413,7 @@
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex h-8 cursor-pointer items-center gap-1 border-0 bg-transparent px-1.5 transition-[color,background] [&_i]:text-[18px]"
             [class.text-ui-accent]="showEmote() || hasEmoteSelection()"
             [title]="'feature.visualNovel.emote.title' | transloco"
+            [attr.aria-label]="'feature.visualNovel.emote.title' | transloco"
             (click)="toggleEmote()"
           >
             <i class="material-icons">mood</i>
@@ -581,6 +593,35 @@
                   </button>
                 }
               </div>
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.settings.motion' | transloco }}
+              </div>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  type="button"
+                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                  [class]="
+                    settings.reduceMotion()
+                      ? 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                      : 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                  "
+                  (click)="settings.setReduceMotion(false)"
+                >
+                  {{ 'feature.visualNovel.motion.full' | transloco }}
+                </button>
+                <button
+                  type="button"
+                  class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+                  [class]="
+                    settings.reduceMotion()
+                      ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+                      : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+                  "
+                  (click)="settings.setReduceMotion(true)"
+                >
+                  {{ 'feature.visualNovel.motion.reduced' | transloco }}
+                </button>
+              </div>
             </div>
           }
         </div>
@@ -590,6 +631,7 @@
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
             [class.text-ui-accent]="showSoundBoard()"
             [title]="'feature.visualNovel.soundBoard' | transloco"
+            [attr.aria-label]="'feature.visualNovel.soundBoard' | transloco"
             (click)="toggleSoundBoard()"
           >
             <i class="material-icons">volume_up</i>
@@ -608,6 +650,9 @@
                     type="button"
                     class="text-ui-text rounded-ui flex min-w-0 grow cursor-pointer items-center gap-1.5 border-0 bg-transparent p-1 text-left text-[12px] [&_i]:text-[14px]"
                     [title]="(sePlaying ? 'feature.visualNovel.seStop' : 'feature.visualNovel.soundBoard') | transloco"
+                    [attr.aria-label]="
+                      (sePlaying ? 'feature.visualNovel.seStop' : 'feature.visualNovel.soundBoard') | transloco
+                    "
                     (click)="sePlaying ? stopSoundEffect(audio.identifier) : playSoundEffect(audio.identifier)"
                   >
                     @if (sePlaying) {
@@ -621,6 +666,7 @@
                     type="button"
                     class="text-ui-dim hover:text-ui-accent flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-1 transition-colors [&_i]:text-[14px]"
                     [title]="'feature.visualNovel.seAttach' | transloco"
+                    [attr.aria-label]="'feature.visualNovel.seAttach' | transloco"
                     (click)="attachSe(audio.identifier, audio.name)"
                   >
                     <i class="material-icons">attach_file</i>
@@ -656,6 +702,7 @@
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
             [class.text-ui-accent]="showPalette()"
             [title]="'feature.visualNovel.palette' | transloco"
+            [attr.aria-label]="'feature.visualNovel.palette' | transloco"
             (click)="togglePalette()"
           >
             <i class="material-icons">menu_book</i>
@@ -689,6 +736,7 @@
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
           [class.text-ui-accent]="sheetOpen()"
           [title]="'feature.visualNovel.sheet' | transloco"
+          [attr.aria-label]="'feature.visualNovel.sheet' | transloco"
           [disabled]="speakerSlot() < 0"
           (click)="toggleCharacterSheet()"
         >

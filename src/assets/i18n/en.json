@@ -1312,7 +1312,8 @@
       "settings": {
         "typewriter": "Text speed",
         "portrait": "Portrait entrance",
-        "textSize": "Text size"
+        "textSize": "Text size",
+        "motion": "Motion"
       },
       "speed": {
         "off": "Off",
@@ -1393,7 +1394,11 @@
       "paletteEmpty": "Palette is empty",
       "playbackSpeed": "Playback speed",
       "sheet": "Open character sheet",
-      "inputPlaceholderCompact": "Type a message"
+      "inputPlaceholderCompact": "Type a message",
+      "motion": {
+        "full": "Full",
+        "reduced": "Reduced"
+      }
     },
     "mapEditor": {
       "title": "Map editor",

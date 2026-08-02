@@ -1312,7 +1312,8 @@
       "settings": {
         "typewriter": "文字送り",
         "portrait": "立ち絵の登場演出",
-        "textSize": "文字サイズ"
+        "textSize": "文字サイズ",
+        "motion": "演出の強さ"
       },
       "speed": {
         "off": "なし",
@@ -1393,7 +1394,11 @@
       "paletteEmpty": "パレットが空です",
       "playbackSpeed": "再生速度",
       "sheet": "キャラクターシート参照",
-      "inputPlaceholderCompact": "メッセージを入力"
+      "inputPlaceholderCompact": "メッセージを入力",
+      "motion": {
+        "full": "ふつう",
+        "reduced": "控えめ"
+      }
     },
     "mapEditor": {
       "title": "マップエディター",

@@ -190,6 +190,14 @@ export class VisualNovelOverlayComponent {
 
   readonly speakerName = computed(() => this.currentMessage()?.name ?? '');
 
+  readonly announcedLine = computed(() => {
+    if (this.isTyping()) return '';
+    const name = this.speakerName();
+    const text = this.currentFullText();
+    if (text.length < 1) return '';
+    return name.length > 0 ? `${name}: ${text}` : text;
+  });
+
   readonly currentMessageList = computed(() => {
     const message = this.currentMessage();
     return message ? [message] : [];
@@ -211,6 +219,7 @@ export class VisualNovelOverlayComponent {
   });
 
   readonly bubbleEnterClass = computed(() => {
+    if (this.settings.reduceMotion()) return '';
     if (this.currentEmote().bubbleAnimation === 'pop') return 'animate-vn-pop';
     switch (this.currentEmote().shape) {
       case 'thought':
@@ -225,6 +234,7 @@ export class VisualNovelOverlayComponent {
   });
 
   readonly bubbleAnimationClass = computed(() => {
+    if (this.settings.reduceMotion()) return '';
     switch (this.currentEmote().bubbleAnimation) {
       case 'shake':
         return 'animate-vn-shake';
@@ -238,6 +248,7 @@ export class VisualNovelOverlayComponent {
   });
 
   readonly portraitEmoteClass = computed(() => {
+    if (this.settings.reduceMotion()) return '';
     switch (this.currentEmote().portraitEmote) {
       case 'jump':
         return 'animate-vn-jump';
@@ -399,9 +410,13 @@ export class VisualNovelOverlayComponent {
     }
   });
 
-  readonly speakClass = computed(() => (this.currentIndex() % 2 === 0 ? 'animate-vn-speak-a' : 'animate-vn-speak-b'));
+  readonly speakClass = computed(() => {
+    if (this.settings.reduceMotion()) return '';
+    return this.currentIndex() % 2 === 0 ? 'animate-vn-speak-a' : 'animate-vn-speak-b';
+  });
 
   readonly portraitAnimationClass = computed(() => {
+    if (this.settings.reduceMotion()) return '';
     switch (this.settings.portraitAnimation()) {
       case 'fade':
         return 'animate-vn-fade-in';

@@ -25,6 +25,7 @@ interface VnSettingsSnapshot {
   portraitAnimation?: unknown;
   textSize?: unknown;
   autoPlaySpeed?: unknown;
+  reduceMotion?: unknown;
 }
 
 function clampSpeed(value: unknown): number {
@@ -43,11 +44,13 @@ export class VisualNovelSettingsService {
   private readonly _portraitAnimation = signal<VnPortraitAnimation>('slide');
   private readonly _textSize = signal<VnTextSize>('normal');
   private readonly _autoPlaySpeed = signal<number>(1);
+  private readonly _reduceMotion = signal(false);
 
   readonly typewriterSpeed = this._typewriterSpeed.asReadonly();
   readonly portraitAnimation = this._portraitAnimation.asReadonly();
   readonly textSize = this._textSize.asReadonly();
   readonly autoPlaySpeed = this._autoPlaySpeed.asReadonly();
+  readonly reduceMotion = this._reduceMotion.asReadonly();
 
   constructor() {
     this.load();
@@ -73,6 +76,15 @@ export class VisualNovelSettingsService {
     this.save();
   }
 
+  setReduceMotion(reduce: boolean): void {
+    this._reduceMotion.set(reduce);
+    this.save();
+  }
+
+  toggleReduceMotion(): void {
+    this.setReduceMotion(!this._reduceMotion());
+  }
+
   private load(): void {
     let snapshot: VnSettingsSnapshot | null = null;
     try {
@@ -86,6 +98,7 @@ export class VisualNovelSettingsService {
     this._portraitAnimation.set(pick(snapshot.portraitAnimation, VN_PORTRAIT_ANIMATIONS, 'slide'));
     this._textSize.set(pick(snapshot.textSize, VN_TEXT_SIZES, 'normal'));
     this._autoPlaySpeed.set(clampSpeed(snapshot.autoPlaySpeed));
+    this._reduceMotion.set(snapshot.reduceMotion === true);
   }
 
   private save(): void {
@@ -97,6 +110,7 @@ export class VisualNovelSettingsService {
           portraitAnimation: this._portraitAnimation(),
           textSize: this._textSize(),
           autoPlaySpeed: this._autoPlaySpeed(),
+          reduceMotion: this._reduceMotion(),
         })
       );
     } catch {

@@ -358,6 +358,22 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isTyping()).toBe(false);
   });
 
+  it('演出を控えめにすると立ち絵・吹き出しのアニメーションが外れること', () => {
+    addMessage('うわあ 〔叫び・ゆれ・ジャンプ〕', 'アリス', addImage());
+    createComponent();
+    expect(component.bubbleAnimationClass()).toBe('animate-vn-shake');
+    expect(component.portraitEmoteClass()).toBe('animate-vn-jump');
+
+    TestBed.inject(VisualNovelSettingsService).setReduceMotion(true);
+    fixture.detectChanges();
+
+    expect(component.bubbleAnimationClass()).toBe('');
+    expect(component.portraitEmoteClass()).toBe('');
+    expect(component.bubbleEnterClass()).toBe('');
+    expect(component.portraitAnimationClass()).toBe('');
+    expect(component.speakClass()).toBe('');
+  });
+
   it('文字送り設定 off では全文が即時表示されること', () => {
     TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('off');
     addMessage('こんにちは');
