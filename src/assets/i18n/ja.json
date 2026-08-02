@@ -297,7 +297,9 @@
         "toHand": "手札に加える",
         "createStack": "重なったカードで山札を作る",
         "overlappingToHand": "重なったカードを手札に加える",
-        "editCard": "カードを編集"
+        "editCard": "カードを編集",
+        "flipCutIn": "めくったときのカットイン",
+        "flipCutInNone": "（なし）"
       },
       "discardStackName": "捨て札",
       "message": {

@@ -40,11 +40,20 @@ export class CutInService {
     if (isSoundOnly) {
       launcher.startSoundOnlyCutIn(target, sendTo);
     } else {
-      if (this.isCutInBgmUploaded(target.audioIdentifier) && target.tagName === '') {
-        this.objectStore.get<Jukebox>('Jukebox')?.stop();
-      }
-      launcher.startCutIn(target, sendTo);
+      this.launch(target, sendTo);
     }
+  }
+
+  /** カットインを全員に流す。チャット起動と同じ BGM の扱いを共有する。 */
+  launch(cutIn: CutIn, sendTo = ''): boolean {
+    const launcher = this.objectStore.get<CutInLauncher>('CutInLauncher');
+    if (!launcher) return false;
+
+    if (this.isCutInBgmUploaded(cutIn.audioIdentifier) && cutIn.tagName === '') {
+      this.objectStore.get<Jukebox>('Jukebox')?.stop();
+    }
+    launcher.startCutIn(cutIn, sendTo);
+    return true;
   }
 
   private isCutInBgmUploaded(audioIdentifier: string): boolean {

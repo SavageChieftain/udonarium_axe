@@ -10,6 +10,7 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
+import { CardFlipCutInService } from '@axe/application/card/card-flip-cut-in.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
@@ -68,6 +69,7 @@ export class CardComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
+  private readonly flipCutIn = inject(CardFlipCutInService);
 
   readonly card = input.required<Card>();
 
@@ -304,9 +306,11 @@ export class CardComponent {
       (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
     if (distance < 10 ** 2) {
       if (this.ownerIsOnline && !this.isPeeking) return;
-      this.state = this.isVisible && !this.isPeeking ? CardState.BACK : CardState.FRONT;
+      const turnsToFront = !(this.isVisible && !this.isPeeking);
+      this.state = turnsToFront ? CardState.FRONT : CardState.BACK;
       this.owner = '';
       SoundEffect.play(PresetSound.cardDraw);
+      if (turnsToFront) this.flipCutIn.playFor(this.card());
     }
   }
 
@@ -349,7 +353,10 @@ export class CardComponent {
         onCreateStack: () => this.createStack(),
         onOverlappingToHand: () => this.overlappingToHand(),
         onShowDetail: () => this.showDetail(this.card()),
+        onFlipToFront: () => this.flipCutIn.playFor(this.card()),
+        onAssignCutIn: (cutInIdentifier: string) => this.flipCutIn.assign(this.card(), cutInIdentifier),
       },
+      this.flipCutIn.cutIns(),
       this.translateFn
     );
     this.contextMenuService.open(

@@ -297,7 +297,9 @@
         "toHand": "Take into hand",
         "createStack": "Create stack from overlapping cards",
         "overlappingToHand": "Take overlapping cards into hand",
-        "editCard": "Edit card"
+        "editCard": "Edit card",
+        "flipCutIn": "Cut-in when revealed",
+        "flipCutInNone": "(none)"
       },
       "discardStackName": "Discards",
       "message": {

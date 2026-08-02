@@ -11,7 +11,10 @@ export function buildCardContextMenu(
     onCreateStack: () => void;
     onOverlappingToHand: () => void;
     onShowDetail: () => void;
+    onFlipToFront: () => void;
+    onAssignCutIn: (cutInIdentifier: string) => void;
   },
+  cutIns: readonly { identifier: string; name: string }[],
   t: TranslateFn
 ): ContextMenuAction[] {
   const menuArray: ContextMenuAction[] = [];
@@ -64,6 +67,7 @@ export function buildCardContextMenu(
           action: () => {
             card.faceUp();
             SoundEffect.play(PresetSound.cardDraw);
+            callbacks.onFlipToFront();
           },
         }
       : {
@@ -117,6 +121,23 @@ export function buildCardContextMenu(
       callbacks.onOverlappingToHand();
       SoundEffect.play(PresetSound.cardDraw);
     },
+  });
+  menuArray.push({
+    name: t('feature.card.contextMenu.flipCutIn'),
+    subActions: [
+      {
+        name: t('feature.card.contextMenu.flipCutInNone'),
+        action: () => {
+          callbacks.onAssignCutIn('');
+        },
+      },
+      ...cutIns.map((cutIn) => ({
+        name: (card.cutInIdentifier === cutIn.identifier ? '✔ ' : '') + cutIn.name,
+        action: () => {
+          callbacks.onAssignCutIn(cutIn.identifier);
+        },
+      })),
+    ],
   });
   menuArray.push({
     name: t('feature.card.contextMenu.editCard'),
