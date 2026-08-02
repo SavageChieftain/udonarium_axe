@@ -1400,7 +1400,19 @@
         "reduced": "控えめ"
       },
       "playFromStart": "最初から再生",
-      "chatTab": "対象チャットタブ"
+      "chatTab": "対象チャットタブ",
+      "skipping": "スキップ中",
+      "shortcuts": {
+        "title": "キーボード操作",
+        "next": "次へ進む / 全文表示",
+        "prev": "前に戻る",
+        "skip": "押している間スキップ",
+        "edges": "最古 / 最新へ",
+        "autoPlay": "オートプレイ",
+        "log": "ログの開閉",
+        "slot": "立ち位置ガイド",
+        "close": "閉じる / 終了"
+      }
     },
     "mapEditor": {
       "title": "マップエディター",

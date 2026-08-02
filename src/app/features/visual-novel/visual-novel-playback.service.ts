@@ -17,6 +17,7 @@ import { toGraphemes } from '@axe/features/visual-novel/visual-novel-text';
 const AUTO_PLAY_BASE_WAIT_MS = 1200;
 const AUTO_PLAY_PER_CHAR_MS = 35;
 const AUTO_PLAY_MAX_WAIT_MS = 4000;
+const SKIP_INTERVAL_MS = 120;
 
 @Injectable({ providedIn: 'root' })
 export class VisualNovelPlaybackService {
@@ -34,9 +35,11 @@ export class VisualNovelPlaybackService {
 
   private typingTimer: ReturnType<typeof setInterval> | null = null;
   private autoPlayTimer: ReturnType<typeof setTimeout> | null = null;
+  private skipTimer: ReturnType<typeof setInterval> | null = null;
   private revealInstantly = false;
 
   readonly autoPlay = signal(false);
+  readonly isSkipping = signal(false);
 
   readonly chatTabIdentifier = this._chatTabIdentifier.asReadonly();
 
@@ -140,6 +143,7 @@ export class VisualNovelPlaybackService {
     this.destroyRef.onDestroy(() => {
       this.stopTypewriter();
       this.stopAutoPlay();
+      this.stopSkip();
     });
   }
 
@@ -150,6 +154,7 @@ export class VisualNovelPlaybackService {
   detach(): void {
     this.attached.set(false);
     this.stopAutoPlay();
+    this.stopSkip();
     this.stopTypewriter();
     this.revealInstantly = false;
     this.cursor.set(-1);
@@ -239,6 +244,30 @@ export class VisualNovelPlaybackService {
   stopAutoPlay(): void {
     this.autoPlay.set(false);
     this.clearAutoPlayTimer();
+  }
+
+  startSkip(): void {
+    if (this.skipTimer != null) return;
+    this.stopAutoPlay();
+    this.isSkipping.set(true);
+    this.skipStep();
+    this.skipTimer = setInterval(() => this.skipStep(), SKIP_INTERVAL_MS);
+  }
+
+  stopSkip(): void {
+    this.isSkipping.set(false);
+    if (this.skipTimer == null) return;
+    clearInterval(this.skipTimer);
+    this.skipTimer = null;
+  }
+
+  private skipStep(): void {
+    if (this.isLatest() && !this.isTyping()) {
+      this.stopSkip();
+      return;
+    }
+    this.revealInstantly = true;
+    this.advance();
   }
 
   isDiceCommandAt(index: number): boolean {

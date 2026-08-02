@@ -68,6 +68,17 @@ import { TranslocoModule } from '@jsverse/transloco';
 
 const WHEEL_THROTTLE_MS = 160;
 
+const SHORTCUT_HELP_ITEMS: readonly { keys: string; labelKey: string }[] = [
+  { keys: 'Enter / Space / → / ↓', labelKey: 'next' },
+  { keys: '← / ↑', labelKey: 'prev' },
+  { keys: 'Ctrl', labelKey: 'skip' },
+  { keys: 'Home / End', labelKey: 'edges' },
+  { keys: 'A', labelKey: 'autoPlay' },
+  { keys: 'L', labelKey: 'log' },
+  { keys: 'S', labelKey: 'slot' },
+  { keys: 'Esc', labelKey: 'close' },
+];
+
 const SYSTEM_ICON_URL = 'assets/images/system_chang.png';
 const DICEBOT_ICON_URL = 'assets/images/system_chang_roll.png';
 
@@ -88,6 +99,8 @@ const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
   host: {
     class: 'pointer-events-none fixed inset-0 z-160 block',
     '(window:keydown)': 'onKeydown($event)',
+    '(window:keyup)': 'onKeyup($event)',
+    '(window:blur)': 'stopSkip()',
   },
   imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent],
 })
@@ -124,6 +137,8 @@ export class VisualNovelOverlayComponent {
   readonly showSoundBoard = signal(false);
   readonly showSlotGuide = signal(false);
   readonly showPalette = signal(false);
+  readonly showShortcutHelp = signal(false);
+  readonly isSkipping = this.playback.isSkipping;
 
   readonly selectedKind = signal<VnMessageKind>('normal');
   readonly selectedShape = signal<VnBubbleShape>('normal');
@@ -149,6 +164,7 @@ export class VisualNovelOverlayComponent {
   readonly portraitEmoteOptions = VN_PORTRAIT_EMOTES;
   readonly emotionMarkOptions = VN_EMOTION_MARKS;
   readonly slotIndexes = Array.from({ length: VN_STAGE_SLOT_COUNT }, (_, i) => i);
+  readonly shortcutHelpItems = SHORTCUT_HELP_ITEMS;
 
   get chatTabIdentifier(): string {
     return this.playback.chatTabIdentifier();
@@ -624,6 +640,13 @@ export class VisualNovelOverlayComponent {
     this.showSoundBoard.set(false);
     this.showSlotGuide.set(false);
     this.showPalette.set(false);
+    this.showShortcutHelp.set(false);
+  }
+
+  toggleShortcutHelp(): void {
+    const next = !this.showShortcutHelp();
+    this.closePopovers();
+    this.showShortcutHelp.set(next);
   }
 
   toggleBacklog(): void {
@@ -739,13 +762,44 @@ export class VisualNovelOverlayComponent {
         event.preventDefault();
         this.userBack();
         break;
+      case 'Home':
+        event.preventDefault();
+        this.jumpTo(0);
+        break;
+      case 'End':
+        event.preventDefault();
+        this.toLatest();
+        break;
+      case 'Control':
+        this.playback.startSkip();
+        break;
+      case 'l':
+      case 'L':
+        event.preventDefault();
+        this.toggleBacklog();
+        break;
+      case 'a':
+      case 'A':
+        event.preventDefault();
+        this.toggleAutoPlay();
+        break;
+      case 's':
+      case 'S':
+        event.preventDefault();
+        this.toggleSlotGuide();
+        break;
+      case '?':
+        event.preventDefault();
+        this.toggleShortcutHelp();
+        break;
       case 'Escape':
         if (
           this.showBacklog() ||
           this.showEmote() ||
           this.showSoundBoard() ||
           this.showSlotGuide() ||
-          this.showPalette()
+          this.showPalette() ||
+          this.showShortcutHelp()
         ) {
           this.closePopovers();
         } else {
@@ -753,6 +807,14 @@ export class VisualNovelOverlayComponent {
         }
         break;
     }
+  }
+
+  onKeyup(event: KeyboardEvent): void {
+    if (event.key === 'Control') this.stopSkip();
+  }
+
+  stopSkip(): void {
+    this.playback.stopSkip();
   }
 
   onInputKeydown(event: KeyboardEvent): void {

@@ -1400,7 +1400,19 @@
         "reduced": "Reduced"
       },
       "playFromStart": "Play from the start",
-      "chatTab": "Chat tab"
+      "chatTab": "Chat tab",
+      "skipping": "Skipping",
+      "shortcuts": {
+        "title": "Keyboard",
+        "next": "Next / reveal all",
+        "prev": "Previous",
+        "skip": "Hold to skip",
+        "edges": "Oldest / latest",
+        "autoPlay": "Auto play",
+        "log": "Toggle log",
+        "slot": "Slot guide",
+        "close": "Close / exit"
+      }
     },
     "mapEditor": {
       "title": "Map editor",

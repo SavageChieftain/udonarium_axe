@@ -2,6 +2,15 @@
 
 <div class="sr-only" aria-live="polite" aria-atomic="true">{{ announcedLine() }}</div>
 
+@if (isSkipping()) {
+  <div
+    class="vn-auto-badge bg-ui-accent pointer-events-none absolute top-5 left-20 z-40 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg"
+  >
+    <i class="material-icons text-sm!">fast_forward</i>
+    {{ 'feature.visualNovel.skipping' | transloco }}
+  </div>
+}
+
 @if (autoPlay()) {
   <div
     class="vn-auto-badge bg-ui-accent animate-vn-pulse pointer-events-none absolute top-5 left-20 z-40 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg"
@@ -420,6 +429,33 @@
             {{ 'feature.visualNovel.toLatest' | transloco }}
           </button>
         }
+        <div class="relative">
+          <button
+            type="button"
+            class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+            [class.text-ui-accent]="showShortcutHelp()"
+            [title]="'feature.visualNovel.shortcuts.title' | transloco"
+            [attr.aria-label]="'feature.visualNovel.shortcuts.title' | transloco"
+            (click)="toggleShortcutHelp()"
+          >
+            <i class="material-icons">keyboard</i>
+          </button>
+          @if (showShortcutHelp()) {
+            <div
+              class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 w-64 border border-solid p-2 [backdrop-filter:blur(24px)_saturate(1.5)]"
+            >
+              <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.shortcuts.title' | transloco }}
+              </div>
+              <dl class="text-ui-text m-0 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-[11px]">
+                @for (item of shortcutHelpItems; track item.keys) {
+                  <dt class="text-ui-dim font-mono whitespace-nowrap">{{ item.keys }}</dt>
+                  <dd class="m-0">{{ 'feature.visualNovel.shortcuts.' + item.labelKey | transloco }}</dd>
+                }
+              </dl>
+            </div>
+          }
+        </div>
         <button
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"

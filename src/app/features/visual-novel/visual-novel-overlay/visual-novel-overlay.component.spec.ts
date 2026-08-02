@@ -718,6 +718,26 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(1);
   });
 
+  it('Ctrl を押している間はスキップで最新まで進むこと', () => {
+    vi.useFakeTimers();
+    addMessage('m1');
+    addMessage('m2');
+    addMessage('m3');
+    createComponent();
+    component.jumpTo(0);
+    fixture.detectChanges();
+
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Control' }));
+    fixture.detectChanges();
+    expect(component.isSkipping()).toBe(true);
+    vi.advanceTimersByTime(600);
+    fixture.detectChanges();
+
+    expect(component.currentIndex()).toBe(2);
+    component.onKeyup(new KeyboardEvent('keyup', { key: 'Control' }));
+    expect(component.isSkipping()).toBe(false);
+  });
+
   it('対象チャットタブを切り替えるとそのタブのメッセージを表示すること', () => {
     addMessage('メインの発言');
     const otherTab = ChatTabList.instance.addChatTab('サブタブ');
