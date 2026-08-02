@@ -1,12 +1,10 @@
 import { Card } from '@axe/domain/card/card';
-import { isHandOf } from '@axe/domain/card/hand-location';
+import { isHandCardOf, selectHandCardsOf } from '@axe/domain/card/hand-cards';
 
-export function isHandCardOf(card: Card, userId: string): boolean {
-  return isHandOf(card.location.name, userId);
-}
+export { isHandCardOf };
 
 export function selectHandCards(cards: readonly Card[], userId: string): Card[] {
-  return cards.filter((card) => isHandCardOf(card, userId)).sort((a, b) => a.handOrder - b.handOrder);
+  return selectHandCardsOf(cards, userId);
 }
 
 export function reorderHandCards(cards: readonly Card[], from: number, insertAt: number): Card[] {
