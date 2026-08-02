@@ -5,6 +5,8 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { parseVnEmote } from '@axe/features/visual-novel/visual-novel-emote';
 import {
   VisualNovelSettingsService,
@@ -78,9 +80,15 @@ export class VisualNovelPlaybackService {
 
   readonly currentIsDiceCommand = computed(() => this.isDiceCommandAt(this.currentIndex()));
 
+  readonly availableChatTabs = computed(() => {
+    this.objectChange.collectionOf(ChatTab.aliasName)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const role = PeerCursor.myRole;
+    return this.chatMessageService.chatTabs.filter((tab) => canRoleViewTab(tab, role));
+  });
+
   constructor() {
-    const tabs = this.chatMessageService.chatTabs;
-    this._chatTabIdentifier.set(tabs.length > 0 ? tabs[0].identifier : '');
+    this._chatTabIdentifier.set(this.initialChatTabIdentifier());
 
     this.objectChange.messageAdded$.subscribe(() => {
       this.renderVersion.update((version) => version + 1);
@@ -150,7 +158,15 @@ export class VisualNovelPlaybackService {
   setChatTab(identifier: string): void {
     this.stopAutoPlay();
     this._chatTabIdentifier.set(identifier);
+    this.settings.setChatTabIdentifier(identifier);
     this.cursor.set(-1);
+  }
+
+  private initialChatTabIdentifier(): string {
+    const tabs = this.chatMessageService.chatTabs;
+    const saved = this.settings.chatTabIdentifier();
+    if (saved.length > 0 && tabs.some((tab) => tab.identifier === saved)) return saved;
+    return tabs.length > 0 ? tabs[0].identifier : '';
   }
 
   advance(): void {

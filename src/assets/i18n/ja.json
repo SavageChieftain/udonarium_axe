@@ -1399,7 +1399,8 @@
         "full": "ふつう",
         "reduced": "控えめ"
       },
-      "playFromStart": "最初から再生"
+      "playFromStart": "最初から再生",
+      "chatTab": "対象チャットタブ"
     },
     "mapEditor": {
       "title": "マップエディター",

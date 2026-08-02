@@ -1399,7 +1399,8 @@
         "full": "Full",
         "reduced": "Reduced"
       },
-      "playFromStart": "Play from the start"
+      "playFromStart": "Play from the start",
+      "chatTab": "Chat tab"
     },
     "mapEditor": {
       "title": "Map editor",

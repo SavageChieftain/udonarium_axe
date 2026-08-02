@@ -718,6 +718,24 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(1);
   });
 
+  it('対象チャットタブを切り替えるとそのタブのメッセージを表示すること', () => {
+    addMessage('メインの発言');
+    const otherTab = ChatTabList.instance.addChatTab('サブタブ');
+    try {
+      otherTab.addMessage({ from: 'test-user', name: 'ボブ', text: 'サブの発言', timestamp: nextTimestamp++ });
+      createComponent();
+      expect(component.messages().map((message) => message.text)).toEqual(['メインの発言']);
+      expect(component.chatTabOptions().length).toBeGreaterThan(1);
+
+      component.chatTabIdentifier = otherTab.identifier;
+      fixture.detectChanges();
+
+      expect(component.messages().map((message) => message.text)).toEqual(['サブの発言']);
+    } finally {
+      otherTab.destroy();
+    }
+  });
+
   it('最新を表示しているときはオートプレイを開始しないこと', () => {
     addMessage('m1');
     addMessage('m2');

@@ -240,6 +240,18 @@
   >
     @if (!isCompact() || isControlsOpen()) {
       <div class="flex w-full flex-wrap items-center gap-1">
+        @if (chatTabOptions().length > 1) {
+          <select
+            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
+            [title]="'feature.visualNovel.chatTab' | transloco"
+            [attr.aria-label]="'feature.visualNovel.chatTab' | transloco"
+            [(ngModel)]="chatTabIdentifier"
+          >
+            @for (tab of chatTabOptions(); track tab.identifier) {
+              <option [value]="tab.identifier">{{ tab.name }}</option>
+            }
+          </select>
+        }
         <select
           class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
           [title]="'feature.visualNovel.diceBot' | transloco"

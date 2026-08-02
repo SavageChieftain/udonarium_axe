@@ -576,6 +576,8 @@ export class VisualNovelOverlayComponent {
     this.playback.toggleAutoPlay();
   }
 
+  readonly chatTabOptions = this.playback.availableChatTabs;
+
   playFromStart(): void {
     this.closePopovers();
     this.playback.playFromStart();

@@ -26,6 +26,7 @@ interface VnSettingsSnapshot {
   textSize?: unknown;
   autoPlaySpeed?: unknown;
   reduceMotion?: unknown;
+  chatTabIdentifier?: unknown;
 }
 
 function clampSpeed(value: unknown): number {
@@ -45,12 +46,14 @@ export class VisualNovelSettingsService {
   private readonly _textSize = signal<VnTextSize>('normal');
   private readonly _autoPlaySpeed = signal<number>(1);
   private readonly _reduceMotion = signal(false);
+  private readonly _chatTabIdentifier = signal('');
 
   readonly typewriterSpeed = this._typewriterSpeed.asReadonly();
   readonly portraitAnimation = this._portraitAnimation.asReadonly();
   readonly textSize = this._textSize.asReadonly();
   readonly autoPlaySpeed = this._autoPlaySpeed.asReadonly();
   readonly reduceMotion = this._reduceMotion.asReadonly();
+  readonly chatTabIdentifier = this._chatTabIdentifier.asReadonly();
 
   constructor() {
     this.load();
@@ -85,6 +88,11 @@ export class VisualNovelSettingsService {
     this.setReduceMotion(!this._reduceMotion());
   }
 
+  setChatTabIdentifier(identifier: string): void {
+    this._chatTabIdentifier.set(identifier);
+    this.save();
+  }
+
   private load(): void {
     let snapshot: VnSettingsSnapshot | null = null;
     try {
@@ -99,6 +107,7 @@ export class VisualNovelSettingsService {
     this._textSize.set(pick(snapshot.textSize, VN_TEXT_SIZES, 'normal'));
     this._autoPlaySpeed.set(clampSpeed(snapshot.autoPlaySpeed));
     this._reduceMotion.set(snapshot.reduceMotion === true);
+    this._chatTabIdentifier.set(typeof snapshot.chatTabIdentifier === 'string' ? snapshot.chatTabIdentifier : '');
   }
 
   private save(): void {
@@ -111,6 +120,7 @@ export class VisualNovelSettingsService {
           textSize: this._textSize(),
           autoPlaySpeed: this._autoPlaySpeed(),
           reduceMotion: this._reduceMotion(),
+          chatTabIdentifier: this._chatTabIdentifier(),
         })
       );
     } catch {
