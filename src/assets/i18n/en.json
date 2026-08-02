@@ -1441,7 +1441,10 @@
         "bubble": "Bubble",
         "adv": "ADV",
         "nvl": "Full"
-      }
+      },
+      "bgmTitle": "BGM",
+      "bgmStop": "Stop",
+      "bgmEmpty": "No BGM"
     },
     "mapEditor": {
       "title": "Map editor",

@@ -873,6 +873,37 @@
             <div
               class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-72 w-64 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
             >
+              <div class="text-ui-muted flex items-center px-1 pb-1 text-[11px] font-semibold">
+                {{ 'feature.visualNovel.bgmTitle' | transloco }}
+                @if (playingBgmIdentifier().length > 0) {
+                  <button
+                    type="button"
+                    class="text-ui-dim hover:text-ui-danger ml-auto flex cursor-pointer items-center gap-0.5 border-0 bg-transparent p-0 text-[11px] font-normal transition-colors [&_i]:text-[13px]"
+                    (click)="stopBgm()"
+                  >
+                    <i class="material-icons">stop_circle</i>
+                    {{ 'feature.visualNovel.bgmStop' | transloco }}
+                  </button>
+                }
+              </div>
+              @for (audio of bgmTracks(); track audio.identifier) {
+                <button
+                  type="button"
+                  class="hover:bg-ui-hover rounded-ui flex w-full cursor-pointer items-center gap-1.5 border-0 bg-transparent px-2 py-1 text-left text-[12px] transition-colors [&_i]:text-[14px]"
+                  [class]="audio.identifier === playingBgmIdentifier() ? 'text-ui-accent' : 'text-ui-text'"
+                  (click)="playBgm(audio.identifier)"
+                >
+                  <i class="material-icons">{{
+                    audio.identifier === playingBgmIdentifier() ? 'graphic_eq' : 'music_note'
+                  }}</i>
+                  <span class="truncate">{{ audio.name }}</span>
+                </button>
+              } @empty {
+                <div class="text-ui-dim p-2 text-center text-[11px]">
+                  {{ 'feature.visualNovel.bgmEmpty' | transloco }}
+                </div>
+              }
+              <div class="border-ui-border-separator my-1 border-t border-solid"></div>
               <div class="text-ui-muted px-1 pb-1 text-[11px] font-semibold">
                 {{ 'feature.visualNovel.soundBoardTitle' | transloco }}
               </div>

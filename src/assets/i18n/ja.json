@@ -1441,7 +1441,10 @@
         "bubble": "吹き出し",
         "adv": "ADV",
         "nvl": "全画面"
-      }
+      },
+      "bgmTitle": "BGM",
+      "bgmStop": "停止",
+      "bgmEmpty": "BGM がありません"
     },
     "mapEditor": {
       "title": "マップエディター",

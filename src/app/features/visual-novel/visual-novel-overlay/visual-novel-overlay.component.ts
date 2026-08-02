@@ -565,6 +565,30 @@ export class VisualNovelOverlayComponent {
     return this.audioStorage.audios.filter((audio) => !audio.isHidden && AudioTag.get(audio.identifier)?.tag === 'SE');
   });
 
+  readonly bgmTracks = computed(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf('audio-tag')();
+    return this.audioStorage.audios.filter(
+      (audio) => !audio.isHidden && (AudioTag.get(audio.identifier)?.tag ?? 'BGM') === 'BGM'
+    );
+  });
+
+  readonly playingBgmIdentifier = computed(() => {
+    this._seTick();
+    const jukebox = this.jukebox;
+    return jukebox?.isPlaying ? jukebox.audioIdentifier : '';
+  });
+
+  playBgm(identifier: string): void {
+    this.jukebox?.play(identifier);
+    this._seTick.update((tick) => tick + 1);
+  }
+
+  stopBgm(): void {
+    this.jukebox?.stop();
+    this._seTick.update((tick) => tick + 1);
+  }
+
   private get jukebox(): Jukebox | null {
     return this.objectStore.get<Jukebox>('Jukebox') ?? null;
   }
