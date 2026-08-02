@@ -1,3 +1,45 @@
+## [1.23.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.22.0...v1.23.0) (2026-08-02)
+
+### ✨ Features
+
+* **tabletop:** import a ccfolia room archive as tables ([f49b8cc](https://github.com/SavageChieftain/udonarium_axe/commit/f49b8cc226dc2b1d4c6e9b9be58802d57fa5b48a))
+* **turn:** count buff rounds down as the round ends ([c66bab4](https://github.com/SavageChieftain/udonarium_axe/commit/c66bab495898b7ce7ba6f5af0ec943b288d51c61))
+* **visual-novel:** add ADV and full-screen text layouts ([48e6177](https://github.com/SavageChieftain/udonarium_axe/commit/48e617707db5231066cfb02e6c39d00b832c9ad3))
+* **visual-novel:** add keyboard shortcuts with a help panel ([3b2839d](https://github.com/SavageChieftain/udonarium_axe/commit/3b2839df4a2d79e39bd8e245569bfb442d78a5bd))
+* **visual-novel:** add reduced motion and screen reader support ([3826ea8](https://github.com/SavageChieftain/udonarium_axe/commit/3826ea810325ed30152ed80d6c0c73bdabe8f5ba))
+* **visual-novel:** filter the backlog and load it lazily ([8251df8](https://github.com/SavageChieftain/udonarium_axe/commit/8251df8fd4707f571d7f4563b6d74f8021f4d365))
+* **visual-novel:** let a character leave the stage ([8479362](https://github.com/SavageChieftain/udonarium_axe/commit/84793621afa8f523fda35ea7817592fe3c1fabd2))
+* **visual-novel:** let the GM set a synced novel background ([9dab450](https://github.com/SavageChieftain/udonarium_axe/commit/9dab45069e2814251f8d9b10a81d0ef11d12d4c1))
+* **visual-novel:** play BGM from the sound board ([185581e](https://github.com/SavageChieftain/udonarium_axe/commit/185581e6cd57b32df2036a8778f11e93f19f24f9))
+* **visual-novel:** select which chat tab novel mode shows ([534ee71](https://github.com/SavageChieftain/udonarium_axe/commit/534ee715a73827020a27777ac5aeb72b34b2f1d7))
+* **visual-novel:** start auto play from the current position ([2be3ad3](https://github.com/SavageChieftain/udonarium_axe/commit/2be3ad3e25f799ea24d50d0f342ff1873948a34c))
+* **visual-novel:** sync playback for everyone in showcase mode ([6915974](https://github.com/SavageChieftain/udonarium_axe/commit/6915974956f6dfc35d0ae0be7210d4db17838b0b))
+
+### 🐛 Bug Fixes
+
+* **pwa:** send credentials when fetching the web app manifest ([e0a7e1e](https://github.com/SavageChieftain/udonarium_axe/commit/e0a7e1e75cccf101b032182f9af49b994d9cc8e3))
+* **visual-novel:** fit portraits and bubbles to compact viewports ([b69e1e4](https://github.com/SavageChieftain/udonarium_axe/commit/b69e1e45bef701bb6b1a8444cf6acc323c586241))
+* **visual-novel:** keep emoji intact while the text types out ([9851027](https://github.com/SavageChieftain/udonarium_axe/commit/98510271f95ef6df0ac880cbd7868f26693baba4))
+* **visual-novel:** trigger the scene transition from sending, not from clearing SE ([3d26946](https://github.com/SavageChieftain/udonarium_axe/commit/3d26946e8cf495de9ca2611d43f5b9abe9b1e5ee))
+
+### ⚡ Performance
+
+* **room-archive:** build the room zip inside a web worker ([2786e42](https://github.com/SavageChieftain/udonarium_axe/commit/2786e42043619fbcf0d1041c9bd1e8c4060dfd83))
+* **room-archive:** keep the auto snapshot out of the user's way ([950644b](https://github.com/SavageChieftain/udonarium_axe/commit/950644bd261c27a320d6d581ec4e7f4fe80628ab))
+* **storage:** speed up loading a room archive ([03360f7](https://github.com/SavageChieftain/udonarium_axe/commit/03360f76005256b9f9f35d62c10752000993ecf0))
+
+### 📝 Documentation
+
+* **website:** add v1.22.0 release notes ([7577b4a](https://github.com/SavageChieftain/udonarium_axe/commit/7577b4a97ab9d104da65978f8570b46fcb8ae7d0))
+* **website:** describe automatic buff round countdown ([8f614e5](https://github.com/SavageChieftain/udonarium_axe/commit/8f614e5593fdc33e3044cc2c1766a345982317c3))
+* **website:** describe the experimental ccfolia room import ([3698859](https://github.com/SavageChieftain/udonarium_axe/commit/369885969a7865f776ab267565028af490bb6357))
+* **website:** describe the novel mode improvements ([ba3dddb](https://github.com/SavageChieftain/udonarium_axe/commit/ba3dddb411e5c5f65819701dd2c64017a793c00e))
+
+### ♻️ Refactor
+
+* **file:** format saved xml without the xml-formatter dependency ([82e8b11](https://github.com/SavageChieftain/udonarium_axe/commit/82e8b11b394acee487c93f960eced6f388397802))
+* **visual-novel:** split the overlay into stage, playback and backlog units ([dd13348](https://github.com/SavageChieftain/udonarium_axe/commit/dd13348a74cb758e5fc4fc0f5ee789b69bd2b895))
+
 ## [1.22.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.21.0...v1.22.0) (2026-08-01)
 
 ### ✨ Features
