@@ -33,8 +33,12 @@
     >
       <div [class]="portraitAnimationClass()">
         <img
-          class="h-[56dvh] w-auto max-w-none drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
-          [class]="(chara.isActive ? speakClass() : '') + (chara.isFlipped ? ' -scale-x-100' : '')"
+          class="w-auto max-w-none drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+          [class]="
+            (isCompact() ? 'h-[46dvh] ' : 'h-[56dvh] ') +
+            (chara.isActive ? speakClass() : '') +
+            (chara.isFlipped ? ' -scale-x-100' : '')
+          "
           [src]="chara.url | safe: 'resourceUrl'"
           [alt]="chara.name"
         />
@@ -74,7 +78,7 @@
   >
     @for (message of currentMessageList(); track message.identifier) {
       <div
-        class="relative w-max max-w-104 min-w-32 wrap-break-word text-gray-900"
+        class="relative w-max max-w-[min(26rem,78vw)] min-w-32 wrap-break-word text-gray-900"
         [class]="bubbleBoxClass() + ' ' + bubbleEnterClass() + ' ' + bubbleTextSizeClass()"
       >
         @if (isShoutShape()) {
