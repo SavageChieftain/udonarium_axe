@@ -26,6 +26,7 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { VN_STAGE_TRANSITIONS } from '@axe/domain/visual-novel/vn-stage';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
 import {
@@ -50,9 +51,11 @@ import {
 } from '@axe/features/visual-novel/visual-novel-emote';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
+import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import {
   VisualNovelSettingsService,
   VN_PORTRAIT_ANIMATIONS,
+  VN_READABILITY_LEVELS,
   VN_TEXT_SIZES,
   VN_TYPEWRITER_SPEEDS,
 } from '@axe/features/visual-novel/visual-novel-settings.service';
@@ -126,6 +129,38 @@ export class VisualNovelOverlayComponent {
   readonly settings = inject(VisualNovelSettingsService);
 
   private readonly playback = inject(VisualNovelPlaybackService);
+  readonly scene = inject(VisualNovelSceneService);
+
+  readonly readabilityClass = computed(() => {
+    switch (this.settings.readability()) {
+      case 1:
+        return 'bg-black/25 backdrop-blur-[1px]';
+      case 2:
+        return 'bg-black/40 backdrop-blur-xs';
+      case 3:
+        return 'bg-black/55 backdrop-blur-sm';
+      default:
+        return '';
+    }
+  });
+
+  readonly backgroundFrames = computed(() => {
+    const url = this.scene.backgroundUrl();
+    if (url.length < 1) return [];
+    return [{ key: `${url}#${this.scene.transitionTrigger()}`, url }];
+  });
+
+  readonly backgroundTransitionClass = computed(() => {
+    if (this.settings.reduceMotion()) return '';
+    switch (this.scene.transition()) {
+      case 'wipe':
+        return 'vn-bg-wipe';
+      case 'fade':
+        return 'vn-bg-fade';
+      default:
+        return '';
+    }
+  });
 
   private readonly _seTick = signal(0);
   private lastWheelTime = 0;
@@ -151,6 +186,8 @@ export class VisualNovelOverlayComponent {
   readonly typewriterSpeedOptions = VN_TYPEWRITER_SPEEDS;
   readonly portraitAnimationOptions = VN_PORTRAIT_ANIMATIONS;
   readonly textSizeOptions = VN_TEXT_SIZES;
+  readonly readabilityOptions = VN_READABILITY_LEVELS;
+  readonly transitionOptions = VN_STAGE_TRANSITIONS;
   readonly messageKindOptions = computed(() =>
     this.isGameMaster() ? VN_MESSAGE_KINDS : VN_MESSAGE_KINDS.filter((kind) => kind !== 'scene')
   );
@@ -539,6 +576,7 @@ export class VisualNovelOverlayComponent {
   }
 
   clearAttachedSe(): void {
+    if (this.selectedKind() === 'scene') this.scene.playTransition();
     this.attachedSe.set(null);
   }
 

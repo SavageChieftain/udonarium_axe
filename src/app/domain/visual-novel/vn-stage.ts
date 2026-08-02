@@ -1,0 +1,28 @@
+import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
+import { GameObject } from '@axe/core/sync/game-object';
+
+export type VnStageTransition = 'none' | 'fade' | 'wipe';
+
+export const VN_STAGE_TRANSITIONS: readonly VnStageTransition[] = ['none', 'fade', 'wipe'];
+
+@SyncObject('vn-stage')
+export class VnStage extends GameObject {
+  @SyncVar() backgroundImageIdentifier = '';
+  @SyncVar() transition: VnStageTransition = 'fade';
+  @SyncVar() transitionTrigger = 0;
+
+  setBackground(imageIdentifier: string, transition: VnStageTransition = this.transition): void {
+    this.transition = transition;
+    this.backgroundImageIdentifier = imageIdentifier;
+    this.transitionTrigger = this.transitionTrigger + 1;
+  }
+
+  clearBackground(): void {
+    this.setBackground('');
+  }
+
+  playTransition(transition: VnStageTransition = this.transition): void {
+    this.transition = transition;
+    this.transitionTrigger = this.transitionTrigger + 1;
+  }
+}

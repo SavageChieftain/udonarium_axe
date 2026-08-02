@@ -1313,7 +1313,9 @@
         "typewriter": "文字送り",
         "portrait": "立ち絵の登場演出",
         "textSize": "文字サイズ",
-        "motion": "演出の強さ"
+        "motion": "演出の強さ",
+        "readability": "文字の読みやすさ",
+        "background": "背景（GM）"
       },
       "speed": {
         "off": "なし",
@@ -1416,7 +1418,20 @@
       "logOnlyMine": "自分のみ",
       "logOnlyEmote": "演出付き",
       "logToCurrent": "現在地へ",
-      "logLoadMore": "さらに {{count}} 件を読み込む"
+      "logLoadMore": "さらに {{count}} 件を読み込む",
+      "readability": {
+        "0": "なし",
+        "1": "弱",
+        "2": "中",
+        "3": "強"
+      },
+      "transition": {
+        "none": "切替なし",
+        "fade": "フェード",
+        "wipe": "ワイプ"
+      },
+      "backgroundPick": "背景を選ぶ",
+      "backgroundClear": "解除"
     },
     "mapEditor": {
       "title": "マップエディター",

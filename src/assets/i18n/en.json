@@ -1313,7 +1313,9 @@
         "typewriter": "Text speed",
         "portrait": "Portrait entrance",
         "textSize": "Text size",
-        "motion": "Motion"
+        "motion": "Motion",
+        "readability": "Readability",
+        "background": "Background (GM)"
       },
       "speed": {
         "off": "Off",
@@ -1416,7 +1418,20 @@
       "logOnlyMine": "Mine only",
       "logOnlyEmote": "With emote",
       "logToCurrent": "To current",
-      "logLoadMore": "Load {{count}} more"
+      "logLoadMore": "Load {{count}} more",
+      "readability": {
+        "0": "Off",
+        "1": "Low",
+        "2": "Mid",
+        "3": "High"
+      },
+      "transition": {
+        "none": "None",
+        "fade": "Fade",
+        "wipe": "Wipe"
+      },
+      "backgroundPick": "Pick image",
+      "backgroundClear": "Clear"
     },
     "mapEditor": {
       "title": "Map editor",

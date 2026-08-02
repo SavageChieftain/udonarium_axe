@@ -1117,7 +1117,9 @@ input[type='range']::-moz-range-thumb {
   .vn-enter-system,
   .vn-enter-narration,
   .vn-enter-location,
-  .vn-enter-scene {
+  .vn-enter-scene,
+  .vn-bg-fade,
+  .vn-bg-wipe {
     animation: none;
   }
 }
@@ -1940,6 +1942,32 @@ game-data-element .elm-markdown-view,
 
 .vn-enter-scene {
   animation: vnSceneIn 1100ms ease-out;
+}
+
+.vn-bg-fade {
+  animation: vnBgFade 700ms ease-out;
+}
+
+@keyframes vnBgFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.vn-bg-wipe {
+  animation: vnBgWipe 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes vnBgWipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 @keyframes vnSceneIn {

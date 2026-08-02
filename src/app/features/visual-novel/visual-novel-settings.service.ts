@@ -8,6 +8,10 @@ export const VN_TYPEWRITER_SPEEDS: readonly VnTypewriterSpeed[] = ['off', 'slow'
 export const VN_PORTRAIT_ANIMATIONS: readonly VnPortraitAnimation[] = ['none', 'fade', 'slide', 'bounce'];
 export const VN_TEXT_SIZES: readonly VnTextSize[] = ['small', 'normal', 'large'];
 
+export type VnReadability = 0 | 1 | 2 | 3;
+
+export const VN_READABILITY_LEVELS: readonly VnReadability[] = [0, 1, 2, 3];
+
 export const VN_AUTO_PLAY_SPEED_MIN = 0.5;
 export const VN_AUTO_PLAY_SPEED_MAX = 2;
 
@@ -27,12 +31,17 @@ interface VnSettingsSnapshot {
   autoPlaySpeed?: unknown;
   reduceMotion?: unknown;
   chatTabIdentifier?: unknown;
+  readability?: unknown;
 }
 
 function clampSpeed(value: unknown): number {
   const num = typeof value === 'number' ? value : NaN;
   if (Number.isNaN(num)) return 1;
   return Math.min(VN_AUTO_PLAY_SPEED_MAX, Math.max(VN_AUTO_PLAY_SPEED_MIN, num));
+}
+
+function pickReadability(value: unknown): VnReadability {
+  return VN_READABILITY_LEVELS.includes(value as VnReadability) ? (value as VnReadability) : 1;
 }
 
 function pick<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
@@ -47,6 +56,7 @@ export class VisualNovelSettingsService {
   private readonly _autoPlaySpeed = signal<number>(1);
   private readonly _reduceMotion = signal(false);
   private readonly _chatTabIdentifier = signal('');
+  private readonly _readability = signal<VnReadability>(1);
 
   readonly typewriterSpeed = this._typewriterSpeed.asReadonly();
   readonly portraitAnimation = this._portraitAnimation.asReadonly();
@@ -54,6 +64,7 @@ export class VisualNovelSettingsService {
   readonly autoPlaySpeed = this._autoPlaySpeed.asReadonly();
   readonly reduceMotion = this._reduceMotion.asReadonly();
   readonly chatTabIdentifier = this._chatTabIdentifier.asReadonly();
+  readonly readability = this._readability.asReadonly();
 
   constructor() {
     this.load();
@@ -88,6 +99,11 @@ export class VisualNovelSettingsService {
     this.setReduceMotion(!this._reduceMotion());
   }
 
+  setReadability(level: VnReadability): void {
+    this._readability.set(level);
+    this.save();
+  }
+
   setChatTabIdentifier(identifier: string): void {
     this._chatTabIdentifier.set(identifier);
     this.save();
@@ -108,6 +124,7 @@ export class VisualNovelSettingsService {
     this._autoPlaySpeed.set(clampSpeed(snapshot.autoPlaySpeed));
     this._reduceMotion.set(snapshot.reduceMotion === true);
     this._chatTabIdentifier.set(typeof snapshot.chatTabIdentifier === 'string' ? snapshot.chatTabIdentifier : '');
+    this._readability.set(pickReadability(snapshot.readability));
   }
 
   private save(): void {
@@ -121,6 +138,7 @@ export class VisualNovelSettingsService {
           autoPlaySpeed: this._autoPlaySpeed(),
           reduceMotion: this._reduceMotion(),
           chatTabIdentifier: this._chatTabIdentifier(),
+          readability: this._readability(),
         })
       );
     } catch {
