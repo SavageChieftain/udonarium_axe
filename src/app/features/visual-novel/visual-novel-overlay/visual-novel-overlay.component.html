@@ -14,6 +14,35 @@
 
 <div class="sr-only" aria-live="polite" aria-atomic="true">{{ announcedLine() }}</div>
 
+@if (director.isDirected()) {
+  <div
+    class="rounded-ui pointer-events-auto absolute top-5 right-5 z-40 flex items-center gap-1.5 border border-solid border-white/25 bg-black/70 px-3 py-1 text-xs text-white/90 shadow-lg backdrop-blur-md [&_i]:text-[15px]"
+  >
+    <i class="material-icons">co_present</i>
+    @if (director.isDirector()) {
+      {{ 'feature.visualNovel.showcase.directing' | transloco }}
+    } @else if (director.isFollowing()) {
+      {{ 'feature.visualNovel.showcase.following' | transloco }}
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid border-white/30 bg-transparent px-1.5 py-0.5 text-[11px] text-white/80 transition-colors hover:bg-white/15"
+        (click)="director.leaveFollowing()"
+      >
+        {{ 'feature.visualNovel.showcase.leave' | transloco }}
+      </button>
+    } @else {
+      {{ 'feature.visualNovel.showcase.detached' | transloco }}
+      <button
+        type="button"
+        class="rounded-ui bg-ui-accent cursor-pointer border-0 px-1.5 py-0.5 text-[11px] font-bold text-white transition-opacity hover:opacity-85"
+        (click)="director.rejoinFollowing()"
+      >
+        {{ 'feature.visualNovel.showcase.rejoin' | transloco }}
+      </button>
+    }
+  </div>
+}
+
 @if (isSkipping()) {
   <div
     class="vn-auto-badge bg-ui-accent pointer-events-none absolute top-5 left-20 z-40 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg"
@@ -458,6 +487,19 @@
           />
           <span class="min-w-8 text-[10px]">×{{ settings.autoPlaySpeed() }}</span>
         </div>
+        @if (director.canDirect()) {
+          <button
+            type="button"
+            class="rounded-ui hover:bg-ui-accent-bg flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+            [class]="director.isDirector() ? 'text-ui-accent' : 'text-ui-dim hover:text-ui-accent'"
+            [title]="'feature.visualNovel.showcase.title' | transloco"
+            [attr.aria-label]="'feature.visualNovel.showcase.title' | transloco"
+            [attr.aria-pressed]="director.isDirector()"
+            (click)="director.toggleDirecting()"
+          >
+            <i class="material-icons">co_present</i>
+          </button>
+        }
         <button
           type="button"
           class="text-ui-dim hover:text-ui-danger rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] hover:bg-(--ui-danger-bg) [&_i]:text-[18px]"

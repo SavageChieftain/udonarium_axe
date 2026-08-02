@@ -34,6 +34,7 @@ import {
   ChatPaletteRegistryService,
 } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
+import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
 import {
   buildVnEmoteSuffix,
   parseVnEmote,
@@ -131,6 +132,7 @@ export class VisualNovelOverlayComponent {
 
   private readonly playback = inject(VisualNovelPlaybackService);
   readonly scene = inject(VisualNovelSceneService);
+  readonly director = inject(VisualNovelDirectorService);
 
   readonly readabilityClass = computed(() => {
     switch (this.settings.readability()) {
@@ -702,10 +704,12 @@ export class VisualNovelOverlayComponent {
   }
 
   toLatest(): void {
+    this.director.leaveFollowing();
     this.playback.toLatest();
   }
 
   jumpTo(index: number): void {
+    this.director.leaveFollowing();
     this.playback.jumpTo(index);
     this.showBacklog.set(false);
   }

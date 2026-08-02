@@ -1444,7 +1444,15 @@
       },
       "bgmTitle": "BGM",
       "bgmStop": "停止",
-      "bgmEmpty": "BGM がありません"
+      "bgmEmpty": "BGM がありません",
+      "showcase": {
+        "title": "上映モード（全員の画面を同期）",
+        "directing": "上映中（あなたが進行）",
+        "following": "上映に追従中",
+        "leave": "自分で読む",
+        "detached": "自分で読んでいます",
+        "rejoin": "追従に戻る"
+      }
     },
     "mapEditor": {
       "title": "マップエディター",

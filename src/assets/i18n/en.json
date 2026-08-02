@@ -1444,7 +1444,15 @@
       },
       "bgmTitle": "BGM",
       "bgmStop": "Stop",
-      "bgmEmpty": "No BGM"
+      "bgmEmpty": "No BGM",
+      "showcase": {
+        "title": "Showcase mode (sync everyone)",
+        "directing": "Showcasing (you lead)",
+        "following": "Following showcase",
+        "leave": "Read on my own",
+        "detached": "Reading on your own",
+        "rejoin": "Rejoin"
+      }
     },
     "mapEditor": {
       "title": "Map editor",

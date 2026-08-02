@@ -223,6 +223,14 @@ export class VisualNovelPlaybackService {
     this.cursor.set(-1);
   }
 
+  jumpToIdentifier(identifier: string): void {
+    if (identifier.length < 1) return;
+    const messages = this.messages();
+    const index = messages.findIndex((message) => message.identifier === identifier);
+    if (index < 0) return;
+    this.cursor.set(index >= messages.length - 1 ? -1 : index);
+  }
+
   toggleAutoPlay(): void {
     if (this.autoPlay()) {
       this.stopAutoPlay();

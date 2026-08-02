@@ -10,6 +10,27 @@ export class VnStage extends GameObject {
   @SyncVar() backgroundImageIdentifier = '';
   @SyncVar() transition: VnStageTransition = 'fade';
   @SyncVar() transitionTrigger = 0;
+  @SyncVar() isDirected = false;
+  @SyncVar() directorPeerId = '';
+  @SyncVar() playheadTabIdentifier = '';
+  @SyncVar() playheadIdentifier = '';
+
+  startDirecting(peerId: string): void {
+    this.directorPeerId = peerId;
+    this.isDirected = true;
+  }
+
+  stopDirecting(): void {
+    this.isDirected = false;
+    this.directorPeerId = '';
+    this.playheadTabIdentifier = '';
+    this.playheadIdentifier = '';
+  }
+
+  setPlayhead(tabIdentifier: string, messageIdentifier: string): void {
+    this.playheadTabIdentifier = tabIdentifier;
+    this.playheadIdentifier = messageIdentifier;
+  }
 
   setBackground(imageIdentifier: string, transition: VnStageTransition = this.transition): void {
     this.transition = transition;
