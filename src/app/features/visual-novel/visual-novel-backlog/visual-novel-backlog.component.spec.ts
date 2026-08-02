@@ -44,6 +44,7 @@ describe('VisualNovelBacklogComponent', () => {
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
     tab = ChatTabList.instance.addChatTab('テストタブ');
+    TestBed.inject(VisualNovelPlaybackService).setChatTab(tab.identifier);
   });
 
   afterEach(() => {

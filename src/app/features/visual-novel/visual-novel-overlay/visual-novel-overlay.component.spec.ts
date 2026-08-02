@@ -17,6 +17,7 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
+import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import GameSystemClass from 'bcdice/lib/game_system';
@@ -85,6 +86,7 @@ describe('VisualNovelOverlayComponent', () => {
   }
 
   function createComponent(): void {
+    TestBed.inject(VisualNovelPlaybackService).setChatTab(tab.identifier);
     fixture = TestBed.createComponent(VisualNovelOverlayComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
