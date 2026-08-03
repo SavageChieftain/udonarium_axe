@@ -22,6 +22,7 @@ export class Card extends OwnedTabletopObject {
   @SyncVar() zindex: number = 0;
   @SyncVar() handOrder: number = 0;
   @SyncVar() cutInIdentifier: string = '';
+  @SyncVar() targetIdentifier: string = '';
   @SyncVar() disclosureMode: string = '';
   @SyncVar() disclosureUserIds: string[] = [];
 

@@ -299,8 +299,11 @@
         "overlappingToHand": "Take overlapping cards into hand",
         "editCard": "Edit card",
         "flipCutIn": "Cut-in when revealed",
-        "flipCutInNone": "(none)"
+        "flipCutInNone": "(none)",
+        "pickTarget": "Set target",
+        "clearTarget": "Clear target"
       },
+      "targetPickingHint": "Click the object to target (Esc to cancel)",
       "discardStackName": "Discards",
       "message": {
         "drewFromHand": "{{to}} drew a card from {{from}}",

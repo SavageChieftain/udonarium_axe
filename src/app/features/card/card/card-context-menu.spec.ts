@@ -10,6 +10,7 @@ interface MutableCard {
   isVisible: boolean;
   isPeeking: boolean;
   cutInIdentifier: string;
+  targetIdentifier: string;
   faceUp: ReturnType<typeof vi.fn>;
   faceDown: ReturnType<typeof vi.fn>;
   destroy: ReturnType<typeof vi.fn>;
@@ -23,6 +24,7 @@ function makeCard(overrides: Partial<MutableCard> = {}): MutableCard {
     isVisible: true,
     isPeeking: false,
     cutInIdentifier: '',
+    targetIdentifier: '',
     faceUp: vi.fn(),
     faceDown: vi.fn(),
     destroy: vi.fn(),
@@ -38,6 +40,8 @@ const defaultCallbacks = () => ({
   onShowDetail: vi.fn(),
   onFlipToFront: vi.fn(),
   onAssignCutIn: vi.fn(),
+  onPickTarget: vi.fn(),
+  onClearTarget: vi.fn(),
 });
 const noCutIns: { identifier: string; name: string }[] = [];
 
@@ -125,6 +129,26 @@ describe('buildCardContextMenu()', () => {
 
     menu.find((m) => m.name === '表にする')!.action!();
     expect(onFlipToFront).toHaveBeenCalled();
+  });
+
+  it('ターゲット未指定のカードには解除を出さないこと', () => {
+    const menu = buildCardContextMenu(makeCard() as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
+    expect(names(menu)).toContain('ターゲットを指定');
+    expect(names(menu)).not.toContain('ターゲットを解除');
+  });
+
+  it('ターゲット指定済みなら解除が onClearTarget を呼ぶこと', () => {
+    const onClearTarget = vi.fn();
+    const menu = buildCardContextMenu(
+      makeCard({ targetIdentifier: 'other' }) as unknown as Card,
+      50,
+      { ...defaultCallbacks(), onClearTarget },
+      noCutIns,
+      t
+    );
+
+    menu.find((m) => m.name === 'ターゲットを解除')!.action!();
+    expect(onClearTarget).toHaveBeenCalled();
   });
 
   it('「重なったカードで山札を作る」が onCreateStack を呼ぶ', () => {

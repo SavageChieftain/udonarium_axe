@@ -13,6 +13,8 @@ export function buildCardContextMenu(
     onShowDetail: () => void;
     onFlipToFront: () => void;
     onAssignCutIn: (cutInIdentifier: string) => void;
+    onPickTarget: () => void;
+    onClearTarget: () => void;
   },
   cutIns: readonly { identifier: string; name: string }[],
   t: TranslateFn
@@ -139,6 +141,20 @@ export function buildCardContextMenu(
       })),
     ],
   });
+  menuArray.push({
+    name: t('feature.card.contextMenu.pickTarget'),
+    action: () => {
+      callbacks.onPickTarget();
+    },
+  });
+  if (0 < card.targetIdentifier.length) {
+    menuArray.push({
+      name: t('feature.card.contextMenu.clearTarget'),
+      action: () => {
+        callbacks.onClearTarget();
+      },
+    });
+  }
   menuArray.push({
     name: t('feature.card.contextMenu.editCard'),
     action: () => {

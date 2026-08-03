@@ -299,8 +299,11 @@
         "overlappingToHand": "重なったカードを手札に加える",
         "editCard": "カードを編集",
         "flipCutIn": "めくったときのカットイン",
-        "flipCutInNone": "（なし）"
+        "flipCutInNone": "（なし）",
+        "pickTarget": "ターゲットを指定",
+        "clearTarget": "ターゲットを解除"
       },
+      "targetPickingHint": "ターゲットにする対象をクリックしてください（Esc で中止）",
       "discardStackName": "捨て札",
       "message": {
         "drewFromHand": "{{to}} が {{from}} の手札から 1 枚引きました",

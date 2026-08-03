@@ -10,6 +10,7 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
+import { CardTargetService } from '@axe/application/card/card-target.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -54,6 +55,7 @@ import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-set
 import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-source.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TableBeamOverlayComponent } from '@axe/features/tabletop/table-beam-overlay/table-beam-overlay.component';
+import { TableTargetOverlayComponent } from '@axe/features/tabletop/table-target-overlay/table-target-overlay.component';
 import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision-overlay/table-vision-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
@@ -63,6 +65,7 @@ import {
   wallSilhouetteStyle,
 } from '@axe/features/tabletop/wall-projection';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { TranslocoModule } from '@jsverse/transloco';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 interface ActiveWall {
@@ -119,6 +122,8 @@ interface BeamWallGrid {
     TableMarqueeOverlayComponent,
     TableVisionOverlayComponent,
     TableBeamOverlayComponent,
+    TableTargetOverlayComponent,
+    TranslocoModule,
     LightSourceComponent,
   ],
   host: {
@@ -142,6 +147,7 @@ export class GameTableComponent {
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
+  private readonly cardTargetService = inject(CardTargetService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -667,7 +673,10 @@ export class GameTableComponent {
       e.preventDefault();
   }
 
+  readonly isPickingTarget = computed(() => this.cardTargetService.isPicking());
+
   onEscapeKey(_e: Event) {
+    if (this.cardTargetService.cancelPicking()) return;
     this.selectionSignalService.clearSelection();
   }
 

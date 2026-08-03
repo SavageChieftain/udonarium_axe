@@ -11,6 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { CardFlipCutInService } from '@axe/application/card/card-flip-cut-in.service';
+import { CardTargetService } from '@axe/application/card/card-target.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
@@ -70,6 +71,7 @@ export class CardComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
   private readonly flipCutIn = inject(CardFlipCutInService);
+  private readonly cardTarget = inject(CardTargetService);
 
   readonly card = input.required<Card>();
 
@@ -355,6 +357,8 @@ export class CardComponent {
         onShowDetail: () => this.showDetail(this.card()),
         onFlipToFront: () => this.flipCutIn.playFor(this.card()),
         onAssignCutIn: (cutInIdentifier: string) => this.flipCutIn.assign(this.card(), cutInIdentifier),
+        onPickTarget: () => this.cardTarget.beginPicking(this.card()),
+        onClearTarget: () => this.cardTarget.clearTarget(this.card()),
       },
       this.flipCutIn.cutIns(),
       this.translateFn

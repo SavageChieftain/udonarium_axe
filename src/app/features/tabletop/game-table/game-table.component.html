@@ -245,6 +245,14 @@
       <table-marquee-overlay class="contents"></table-marquee-overlay>
       <table-vision-overlay class="contents"></table-vision-overlay>
       <table-beam-overlay class="contents"></table-beam-overlay>
+      <table-target-overlay class="contents"></table-target-overlay>
     </div>
   </div>
 </div>
+@if (isPickingTarget()) {
+  <div
+    class="bg-ui-panel pointer-events-none absolute top-4 left-1/2 z-20 -translate-x-1/2 rounded-full px-4 py-1.5 text-sm text-[whitesmoke] opacity-90"
+  >
+    {{ 'feature.card.targetPickingHint' | transloco }}
+  </div>
+}
