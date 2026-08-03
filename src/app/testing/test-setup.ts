@@ -5,6 +5,7 @@ import { ɵresolveComponentResources as resolveComponentResources } from '@angul
 import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
 import { Logger, LogLevel } from '@axe/core/logging/logger';
+import { resetPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 
@@ -233,6 +234,7 @@ try {
 }
 
 beforeEach(async () => {
+  resetPeerContextProvider();
   await resolveComponentResources(resourceResolver as Parameters<typeof resolveComponentResources>[0]);
   applyConfigureTestingModuleWrapper();
 });

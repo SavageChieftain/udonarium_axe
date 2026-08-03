@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Network } from '@axe/core/index';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { resetPeerContextProvider, setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -16,9 +17,11 @@ describe('VisualNovelBacklogComponent', () => {
   let nextTimestamp = 1000;
   let nextImageId = 0;
 
+  const TEST_USER_ID = 'vn-backlog-user';
+
   function addMessage(text: string, name = 'アリス', extra: Record<string, unknown> = {}): void {
     tab.addMessage({
-      from: Network.peerContext.userId,
+      from: TEST_USER_ID,
       name,
       text,
       timestamp: nextTimestamp++,
@@ -38,6 +41,12 @@ describe('VisualNovelBacklogComponent', () => {
   }
 
   beforeEach(async () => {
+    setPeerContextProvider({
+      peerContext: { userId: TEST_USER_ID } as IPeerContext,
+      peerContexts: [],
+      peerIds: [],
+      peerId: 'vn-backlog-peer',
+    });
     PeerCursor.createMyCursor();
     TestBed.configureTestingModule({
       imports: [VisualNovelBacklogComponent],
@@ -51,6 +60,7 @@ describe('VisualNovelBacklogComponent', () => {
     fixture?.destroy();
     tab?.destroy();
     vi.restoreAllMocks();
+    resetPeerContextProvider();
   });
 
   it('ログ行を本文とサフィックスに分離して保持すること', () => {
