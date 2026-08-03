@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
@@ -31,6 +32,27 @@ describe('GameTableComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('buildContextMenuActions', () => {
+    const position = { x: 0, y: 0, z: 0 };
+    const names = () => component.buildContextMenuActions(position).map((action) => action.name);
+
+    it('PC では「コマを作る…」を出さないこと', () => {
+      TestBed.inject(MobileLayoutService).prefersDesktop.set(true);
+
+      expect(names()).not.toContain('コマを作る…');
+      expect(names()).toContain('キャラクターを作成');
+      expect(names()).toContain('画像タグから山札を作成');
+    });
+
+    it('モバイルレイアウトなら「コマを作る…」を出すこと', () => {
+      const mobileLayout = TestBed.inject(MobileLayoutService);
+      mobileLayout.prefersDesktop.set(false);
+      Object.defineProperty(mobileLayout, 'isActive', { value: () => true, configurable: true });
+
+      expect(names()).toContain('コマを作る…');
+    });
   });
 
   describe('tableSurfaceStyle', () => {

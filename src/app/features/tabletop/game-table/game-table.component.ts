@@ -18,6 +18,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuAction, ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -150,6 +151,7 @@ export class GameTableComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly cardTargetService = inject(CardTargetService);
+  private readonly mobileLayout = inject(MobileLayoutService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChangeService = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -631,14 +633,7 @@ export class GameTableComponent {
     }
   }
 
-  onContextMenu(e: MouseEvent) {
-    if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;
-    e.preventDefault();
-
-    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
-
-    const menuPosition = this.pointerDeviceService.pointers[0];
-    const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
+  buildContextMenuActions(objectPosition: PointerCoordinate): ContextMenuAction[] {
     const menuActions: ContextMenuAction[] = [];
 
     Array.prototype.push.apply(menuActions, this.tabletopActionService.makeDefaultContextMenuActions(objectPosition));
@@ -648,16 +643,18 @@ export class GameTableComponent {
         void this.openDeckBuilder(objectPosition);
       },
     });
-    menuActions.push({
-      name: this.t('feature.tabletop.contextMenu.createWithOptions'),
-      action: () => {
-        this.panelService.open(GameCharacterGeneratorComponent, {
-          width: 460,
-          height: 420,
-          title: this.t('common.panel.characterGenerator'),
-        });
-      },
-    });
+    if (this.mobileLayout.isActive()) {
+      menuActions.push({
+        name: this.t('feature.tabletop.contextMenu.createWithOptions'),
+        action: () => {
+          this.panelService.open(GameCharacterGeneratorComponent, {
+            width: 460,
+            height: 420,
+            title: this.t('common.panel.characterGenerator'),
+          });
+        },
+      });
+    }
     menuActions.push(ContextMenuSeparator);
     menuActions.push({
       name: this.t('feature.tabletop.tableSetting.title'),
@@ -665,7 +662,18 @@ export class GameTableComponent {
         this.modalService.open(GameTableSettingComponent);
       },
     });
-    this.contextMenuService.open(menuPosition, menuActions, this.currentTable.name);
+    return menuActions;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    if (!document.activeElement?.contains(this.gameObjects().nativeElement)) return;
+    e.preventDefault();
+
+    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+
+    const menuPosition = this.pointerDeviceService.pointers[0];
+    const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
+    this.contextMenuService.open(menuPosition, this.buildContextMenuActions(objectPosition), this.currentTable.name);
   }
   onDocumentMouseDown(_e: MouseEvent) {
     this.gestureService.isTableTransformed = false;
