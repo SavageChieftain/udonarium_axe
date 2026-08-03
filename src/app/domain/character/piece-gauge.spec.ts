@@ -1,0 +1,72 @@
+import { gaugeColor, gaugeRatio, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
+
+describe('gaugeRatio()', () => {
+  it('現在値と最大値の比を 0〜1 で返すこと', () => {
+    expect(gaugeRatio(50, 200)).toBe(0.25);
+    expect(gaugeRatio(200, 200)).toBe(1);
+  });
+
+  it('範囲外や最大値 0 でも壊れないこと', () => {
+    expect(gaugeRatio(-10, 200)).toBe(0);
+    expect(gaugeRatio(300, 200)).toBe(1);
+    expect(gaugeRatio(10, 0)).toBe(0);
+    expect(gaugeRatio(Number.NaN, 200)).toBe(0);
+  });
+});
+
+describe('gaugeColor()', () => {
+  it('残量に応じて緑・黄・赤になること', () => {
+    expect(gaugeColor(1)).toBe(gaugeColor(0.51));
+    expect(gaugeColor(0.5)).toBe(gaugeColor(0.26));
+    expect(gaugeColor(0.25)).toBe(gaugeColor(0));
+    expect(new Set([gaugeColor(1), gaugeColor(0.5), gaugeColor(0.1)]).size).toBe(3);
+  });
+});
+
+describe('selectPieceGauges()', () => {
+  const created: DataElement[] = [];
+
+  function resource(name: string, current: number, max: number, onPiece: boolean): DataElement {
+    const element = DataElement.create(name, max, { type: DataElementType.NUMBER_RESOURCE, currentValue: current });
+    if (onPiece) element.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
+    created.push(element);
+    return element;
+  }
+
+  afterEach(() => {
+    for (const element of created.splice(0)) element.destroy();
+  });
+
+  it('コマに出す設定のリソースだけを拾うこと', () => {
+    const root = DataElement.create('detail', '', {});
+    created.push(root);
+    const section = DataElement.create('リソース', '', {});
+    created.push(section);
+    root.appendChild(section);
+    section.appendChild(resource('HP', 50, 200, true));
+    section.appendChild(resource('MP', 30, 40, true));
+    section.appendChild(resource('所持金', 1500, 9999, false));
+
+    const gauges = selectPieceGauges(root);
+
+    expect(gauges.map((gauge) => gauge.name)).toEqual(['HP', 'MP']);
+    expect(gauges[0]).toMatchObject({ initial: 'H', current: 50, max: 200, ratio: 0.25 });
+    expect(gauges[1].color).toBe(gaugeColor(0.75));
+  });
+
+  it('リソース以外は拾わないこと', () => {
+    const root = DataElement.create('detail', '', {});
+    created.push(root);
+    const note = DataElement.create('メモ', 'テキスト', {});
+    note.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
+    created.push(note);
+    root.appendChild(note);
+
+    expect(selectPieceGauges(root)).toEqual([]);
+  });
+
+  it('未設定なら空を返すこと', () => {
+    expect(selectPieceGauges(null)).toEqual([]);
+  });
+});
