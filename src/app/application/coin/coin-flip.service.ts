@@ -1,29 +1,41 @@
 import { inject, Injectable } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { callFlipCoin } from '@axe/core/event/domain-events';
-import { Coin, CoinFace } from '@axe/domain/coin/coin';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { Coin, CoinFace, pickCoinFace } from '@axe/domain/coin/coin';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+
+const RESULT_ANNOUNCE_DELAY_MS = 900;
 
 @Injectable({ providedIn: 'root' })
 export class CoinFlipService {
   private readonly chatMessageService = inject(ChatMessageService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly objectStore = inject(ObjectStore);
   private readonly t = inject(TRANSLATE_FN);
 
   flip(coin: Coin): CoinFace {
-    callFlipCoin(coin.identifier);
+    const face = pickCoinFace();
+
+    callFlipCoin(coin.identifier, face);
+    this.objectChange.notifyCoinFlipped(coin.identifier, face);
     SoundEffect.play(PresetSound.coinFlip);
 
-    const face = coin.flip();
+    coin.face = face;
     coin.toTopmost();
-    this.chatMessageService.sendSystemMessage(
-      this.t('feature.coin.message.flipped', {
-        who: PeerCursor.myCursor?.name ?? '',
-        name: coin.name,
-        face: this.faceLabel(face),
-      })
-    );
+
+    const text = this.t('feature.coin.message.flipped', {
+      who: PeerCursor.myCursor?.name ?? '',
+      name: coin.name,
+      face: this.faceLabel(face),
+    });
+    setTimeout(() => {
+      if (!this.objectStore.get(coin.identifier)) return;
+      this.chatMessageService.sendSystemMessage(text);
+    }, RESULT_ANNOUNCE_DELAY_MS);
     return face;
   }
 

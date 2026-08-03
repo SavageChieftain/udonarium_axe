@@ -17,7 +17,12 @@
     (rotable.ondragstart)="onMove()"
     (rotable.ondragend)="onMoved()"
   >
-    <div class="size-full transform-3d" [class.animate-coin-flip]="isSpinning()" (animationend)="onSpinEnd()">
+    <div
+      class="size-full transform-3d"
+      [class.animate-coin-flip]="isSpinning() && !landsOnOtherFace()"
+      [class.animate-coin-flip-turn]="isSpinning() && landsOnOtherFace()"
+      (animationend)="onSpinEnd()"
+    >
       <div class="size-full transform-3d" [style.transform]="faceTransform()">
         @for (segment of edgeSegments(); track $index) {
           <div class="pointer-events-none absolute top-1/2 left-1/2 backface-visible" [ngStyle]="segment"></div>

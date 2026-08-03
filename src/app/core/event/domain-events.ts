@@ -182,8 +182,8 @@ export function callRollDiceSymbol(identifier: string) {
   networkSend('ROLL_DICE_SYMBOL', { identifier });
 }
 
-export function callFlipCoin(identifier: string) {
-  networkSend('FLIP_COIN', { identifier });
+export function callFlipCoin(identifier: string, face: string) {
+  networkSend('FLIP_COIN', { identifier, face });
 }
 
 export function callShuffleCardStack(identifier: string) {

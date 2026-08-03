@@ -63,9 +63,15 @@ describe('CoinComponent', () => {
   });
 
   it('投げると面が決まること', () => {
-    component.flip();
+    vi.useFakeTimers();
+    try {
+      component.flip();
+      vi.runAllTimers();
 
-    expect(['front', 'back']).toContain(coin.face);
+      expect(['front', 'back']).toContain(coin.face);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('コインを投げた通知で回転が始まること', () => {
@@ -73,7 +79,7 @@ describe('CoinComponent', () => {
     try {
       expect(component.isSpinning()).toBe(false);
 
-      localDispatch('FLIP_COIN', { identifier: coin.identifier });
+      localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
       vi.runAllTimers();
 
       expect(component.isSpinning()).toBe(true);
@@ -85,10 +91,63 @@ describe('CoinComponent', () => {
   it('別のコインの通知では回転しないこと', () => {
     vi.useFakeTimers();
     try {
-      localDispatch('FLIP_COIN', { identifier: 'other-coin' });
+      localDispatch('FLIP_COIN', { identifier: 'other-coin', face: 'back' });
       vi.runAllTimers();
 
       expect(component.isSpinning()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('回っている間は結果を見せず、着地してから見せること', () => {
+    vi.useFakeTimers();
+    try {
+      localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
+      vi.runAllTimers();
+      coin.face = 'back';
+      TestBed.inject(ObjectChangeService).notifyChanged(coin.identifier);
+
+      expect(component.displayedFace()).toBe('front');
+      expect(component.faceTransform()).toContain('rotateY(0deg)');
+
+      component.onSpinEnd();
+
+      expect(component.displayedFace()).toBe('back');
+      expect(component.faceTransform()).toContain('rotateY(180deg)');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('面が変わる投げだけ半回転ぶん多く回すこと', () => {
+    vi.useFakeTimers();
+    try {
+      localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
+      vi.runAllTimers();
+      expect(component.landsOnOtherFace()).toBe(true);
+
+      component.onSpinEnd();
+      localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'front' });
+      vi.runAllTimers();
+      expect(component.landsOnOtherFace()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('自分の投げがネットワークから戻ってきても回し直さないこと', () => {
+    vi.useFakeTimers();
+    try {
+      localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
+      vi.runAllTimers();
+      component.isSpinning.set(true);
+
+      localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
+      vi.runAllTimers();
+
+      expect(component.isSpinning()).toBe(true);
+      expect(component.displayedFace()).toBe('front');
     } finally {
       vi.useRealTimers();
     }

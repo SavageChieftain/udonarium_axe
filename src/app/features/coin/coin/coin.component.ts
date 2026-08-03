@@ -8,6 +8,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
 } from '@angular/core';
 import { CoinFlipService } from '@axe/application/coin/coin-flip.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -23,7 +24,7 @@ import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switc
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { Coin } from '@axe/domain/coin/coin';
+import { Coin, CoinFace } from '@axe/domain/coin/coin';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { buildCoinContextMenu } from '@axe/features/coin/coin/coin-context-menu';
 import { laurelLeaves, starPoints } from '@axe/features/coin/coin/coin-emblem';
@@ -70,6 +71,8 @@ export class CoinComponent {
 
   readonly isSpinning = signal(false);
 
+  private readonly spin = signal<{ from: CoinFace; to: CoinFace } | null>(null);
+
   get isLock(): boolean {
     return this.coin().isLock;
   }
@@ -83,9 +86,18 @@ export class CoinComponent {
     return size > 0 ? size : 1;
   });
 
-  readonly isFront = computed(() => {
+  readonly modelFace = computed<CoinFace>(() => {
     this.objectChange.versionOf(this.coin().identifier)();
-    return this.coin().isFront;
+    return this.coin().face;
+  });
+
+  readonly displayedFace = computed<CoinFace>(() => this.spin()?.from ?? this.modelFace());
+
+  readonly isFront = computed(() => this.displayedFace() === 'front');
+
+  readonly landsOnOtherFace = computed(() => {
+    const spin = this.spin();
+    return spin !== null && spin.from !== spin.to;
   });
 
   readonly frontLabel = computed(() => this.translateFn('feature.coin.face.front'));
@@ -162,7 +174,7 @@ export class CoinComponent {
 
   constructor() {
     this.objectChange.flipCoin$.subscribe((event) => {
-      if (event.identifier === this.coin().identifier) this.startSpin();
+      if (event.identifier === this.coin().identifier) this.startSpin(event.face as CoinFace);
     }, this.destroyRef);
     setupMovableRotableForPiece(this, {
       target: this.coin,
@@ -174,6 +186,7 @@ export class CoinComponent {
 
   onSpinEnd() {
     this.isSpinning.set(false);
+    this.spin.set(null);
   }
 
   onDragstart(e: DragEvent) {
@@ -266,7 +279,11 @@ export class CoinComponent {
     SoundEffect.play(PresetSound.piecePut);
   }
 
-  private startSpin() {
+  private startSpin(to: CoinFace) {
+    const current = this.spin();
+    if (current && current.to === to) return;
+
+    this.spin.set({ from: current?.from ?? untracked(this.modelFace), to });
     this.isSpinning.set(false);
     setTimeout(() => this.isSpinning.set(true));
   }

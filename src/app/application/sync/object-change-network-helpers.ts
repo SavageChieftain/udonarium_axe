@@ -26,6 +26,11 @@ export interface IdentifierEvent {
   identifier: string;
 }
 
+export interface CoinFlipEvent {
+  identifier: string;
+  face: string;
+}
+
 export interface CursorMoveEvent {
   x: number;
   y: number;
@@ -56,7 +61,7 @@ export interface ObjectChangeNetworkTargets {
   writingMessage$: EventChannel<WritingMessageEvent>;
   shuffleCardStack$: EventChannel<IdentifierEvent>;
   rollDiceSymbol$: EventChannel<IdentifierEvent>;
-  flipCoin$: EventChannel<IdentifierEvent>;
+  flipCoin$: EventChannel<CoinFlipEvent>;
   cursorMove$: EventChannel<CursorMoveEvent>;
   heartBeat$: EventChannel<HeartBeatEvent>;
   localObjectUpdated$: EventChannel<void>;
@@ -124,9 +129,11 @@ export function subscribeNetworkBindings(
       case 'ROLL_DICE_SYMBOL':
         targets.rollDiceSymbol$.emit({ identifier: (msg.data as { identifier: string }).identifier });
         break;
-      case 'FLIP_COIN':
-        targets.flipCoin$.emit({ identifier: (msg.data as { identifier: string }).identifier });
+      case 'FLIP_COIN': {
+        const data = msg.data as { identifier: string; face: string };
+        targets.flipCoin$.emit({ identifier: data.identifier, face: data.face });
         break;
+      }
       case 'CURSOR_MOVE': {
         const data = msg.data as [number, number, number];
         targets.cursorMove$.emit({ x: data[0], y: data[1], z: data[2], sendFrom: msg.sendFrom });

@@ -8,6 +8,10 @@ export type CoinFace = 'front' | 'back';
 
 export const COIN_FACES: readonly CoinFace[] = ['front', 'back'];
 
+export function pickCoinFace(random: () => number = Math.random): CoinFace {
+  return random() < 0.5 ? 'front' : 'back';
+}
+
 @SyncObject('coin')
 export class Coin extends TabletopObject {
   @SyncVar() isLock: boolean = false;
@@ -38,7 +42,7 @@ export class Coin extends TabletopObject {
   }
 
   flip(random: () => number = Math.random): CoinFace {
-    this.face = random() < 0.5 ? 'front' : 'back';
+    this.face = pickCoinFace(random);
     return this.face;
   }
 

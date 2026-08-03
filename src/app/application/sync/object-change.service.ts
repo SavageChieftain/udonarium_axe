@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import {
+  type CoinFlipEvent,
   type CursorMoveEvent,
   type FileSyncEvent,
   type HeartBeatEvent,
@@ -43,6 +44,7 @@ import {
 } from '@axe/core/sync/object-event-extension';
 
 export type {
+  CoinFlipEvent,
   CursorMoveEvent,
   FileSyncEvent,
   HeartBeatEvent,
@@ -94,6 +96,11 @@ export class ObjectChangeService {
   }
 
   /** 非 @SyncVar プロパティの変更時に versionOf signal を手動で increment する。 */
+  /** 自分が投げたコインは、ネットワーク往復を待たずその場で回し始める。 */
+  notifyCoinFlipped(identifier: string, face: string): void {
+    this._flipCoin$.emit({ identifier, face });
+  }
+
   notifyChanged(identifier: string): void {
     this._versions.get(identifier)?.update((v) => v + 1);
   }
@@ -223,7 +230,7 @@ export class ObjectChangeService {
   private readonly _writingMessage$ = new EventChannel<WritingMessageEvent>();
   private readonly _shuffleCardStack$ = new EventChannel<IdentifierEvent>();
   private readonly _rollDiceSymbol$ = new EventChannel<IdentifierEvent>();
-  private readonly _flipCoin$ = new EventChannel<IdentifierEvent>();
+  private readonly _flipCoin$ = new EventChannel<CoinFlipEvent>();
   private readonly _cursorMove$ = new EventChannel<CursorMoveEvent>();
   private readonly _heartBeat$ = new EventChannel<HeartBeatEvent>();
   private readonly _eventActivity$ = new EventChannel<void>();
@@ -240,7 +247,7 @@ export class ObjectChangeService {
   readonly writingMessage$: ReadableChannel<WritingMessageEvent> = this._writingMessage$;
   readonly shuffleCardStack$: ReadableChannel<IdentifierEvent> = this._shuffleCardStack$;
   readonly rollDiceSymbol$: ReadableChannel<IdentifierEvent> = this._rollDiceSymbol$;
-  readonly flipCoin$: ReadableChannel<IdentifierEvent> = this._flipCoin$;
+  readonly flipCoin$: ReadableChannel<CoinFlipEvent> = this._flipCoin$;
   readonly selectFile$ = selectFile$;
   readonly cursorMove$: ReadableChannel<CursorMoveEvent> = this._cursorMove$;
   readonly heartBeat$: ReadableChannel<HeartBeatEvent> = this._heartBeat$;

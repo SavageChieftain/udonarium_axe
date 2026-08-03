@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { CoinFlipService } from '@axe/application/coin/coin-flip.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { Coin } from '@axe/domain/coin/coin';
@@ -36,6 +37,16 @@ describe('CoinFlipService', () => {
     for (const cursor of ObjectStore.instance.getObjects<PeerCursor>(PeerCursor)) cursor.destroy();
   });
 
+  it('回している間は結果を伝える面の通知が先に出ること', () => {
+    const coin = makeCoin();
+    const flips: { identifier: string; face: string }[] = [];
+    TestBed.inject(ObjectChangeService).flipCoin$.subscribe((event) => flips.push(event));
+
+    const face = service.flip(coin);
+
+    expect(flips).toEqual([{ identifier: coin.identifier, face }]);
+  });
+
   it('投げた結果がコインに残ること', () => {
     const coin = makeCoin();
 
@@ -45,16 +56,33 @@ describe('CoinFlipService', () => {
     expect(coin.face).toBe(face);
   });
 
-  it('結果と投げた人をチャットに流すこと', () => {
+  it('コインが着地してから結果をチャットに流すこと', () => {
+    vi.useFakeTimers();
     const coin = makeCoin();
 
     const face = service.flip(coin);
+    expect(sendSystemMessage).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+    vi.useRealTimers();
 
     expect(sendSystemMessage).toHaveBeenCalledOnce();
     const text = sendSystemMessage.mock.calls[0][0] as string;
     expect(text).toContain('わたし');
     expect(text).toContain('コイン');
     expect(text).toContain(service.faceLabel(face));
+  });
+
+  it('着地前にコインが消えていれば結果を流さないこと', () => {
+    vi.useFakeTimers();
+    const coin = makeCoin();
+
+    service.flip(coin);
+    coin.destroy();
+    vi.runAllTimers();
+    vi.useRealTimers();
+
+    expect(sendSystemMessage).not.toHaveBeenCalled();
   });
 
   it('面のラベルが表と裏になること', () => {
