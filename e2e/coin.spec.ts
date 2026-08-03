@@ -22,11 +22,12 @@ test.describe('コイン', () => {
     await createCoin(page);
   });
 
-  test('表と裏の両面が描かれること', async ({ page }) => {
+  test('両面に紋章が彫られ、縁に厚みがあること', async ({ page }) => {
     const coin = page.locator('coin').first();
 
-    await expect(coin).toContainText('表');
-    await expect(coin).toContainText('裏');
+    await expect(coin.locator('svg title')).toHaveText(['表', '裏']);
+    await expect(coin.locator('svg ellipse')).toHaveCount(12 * 2);
+    await expect(coin.locator('div[style*="rotateX(90deg)"]')).toHaveCount(24);
   });
 
   test('投げると結果がチャットに流れること', async ({ page }) => {

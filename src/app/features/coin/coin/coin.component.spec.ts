@@ -31,10 +31,14 @@ describe('CoinComponent', () => {
     coin.destroy();
   });
 
-  it('表と裏の両方を描き、向きで回転させること', () => {
+  it('両面に紋章を彫り、向きで回転させること', () => {
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('表');
-    expect(fixture.nativeElement.textContent).toContain('裏');
+    const titles = [...fixture.nativeElement.querySelectorAll('svg title')].map(
+      (title: SVGTitleElement) => title.textContent
+    );
+    expect(titles).toEqual(['表', '裏']);
+    expect(fixture.nativeElement.querySelectorAll('svg polygon').length).toBeGreaterThan(0);
+    expect(fixture.nativeElement.querySelectorAll('svg ellipse')).toHaveLength(component.laurelLeaves.length * 2);
     expect(component.faceTransform()).toContain('rotateY(0deg)');
 
     coin.face = 'back';

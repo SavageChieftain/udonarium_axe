@@ -33,11 +33,25 @@
               [alt]="frontLabel()"
             />
           } @else {
-            <span
-              class="font-serif font-bold text-[#7a5412] select-none [text-shadow:0_1px_0_rgba(255,245,205,0.85),0_-1px_0_rgba(90,60,10,0.45)]"
-              [style.font-size.px]="diameter() / 2.6"
-              >{{ frontLabel() }}</span
-            >
+            <svg class="pointer-events-none size-full" viewBox="0 0 100 100" aria-hidden="true">
+              <title>{{ frontLabel() }}</title>
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="rgba(120,82,16,0.5)"
+                stroke-width="2.4"
+                stroke-dasharray="1.3 4.4"
+                stroke-linecap="round"
+              />
+              <polygon [attr.points]="starRayPoints" fill="rgba(255,246,214,0.35)" transform="translate(0 1.1)" />
+              <polygon [attr.points]="starRayPoints" fill="rgba(146,100,22,0.26)" />
+              <polygon [attr.points]="starPoints" fill="rgba(255,246,214,0.55)" transform="translate(0 1.4)" />
+              <polygon [attr.points]="starPoints" fill="rgba(126,86,18,0.78)" />
+              <circle cx="50" cy="51" r="4.6" fill="rgba(255,246,214,0.5)" />
+              <circle cx="50" cy="50" r="4.2" fill="rgba(170,120,32,0.7)" />
+            </svg>
           }
         </div>
         <div
@@ -51,11 +65,40 @@
               [alt]="backLabel()"
             />
           } @else {
-            <span
-              class="font-serif font-bold text-[#6a4810] select-none [text-shadow:0_1px_0_rgba(245,228,180,0.8),0_-1px_0_rgba(80,52,8,0.5)]"
-              [style.font-size.px]="diameter() / 2.6"
-              >{{ backLabel() }}</span
-            >
+            <svg class="pointer-events-none size-full" viewBox="0 0 100 100" aria-hidden="true">
+              <title>{{ backLabel() }}</title>
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="rgba(102,68,12,0.5)"
+                stroke-width="2.4"
+                stroke-dasharray="1.3 4.4"
+                stroke-linecap="round"
+              />
+              @for (leaf of laurelLeaves; track $index) {
+                <ellipse
+                  [attr.cx]="leaf.cx"
+                  [attr.cy]="leaf.cy + 1.3"
+                  [attr.rx]="leaf.rx"
+                  [attr.ry]="leaf.ry"
+                  [attr.transform]="'rotate(' + leaf.rotate + ' ' + leaf.cx + ' ' + (leaf.cy + 1.3) + ')'"
+                  fill="rgba(250,236,190,0.5)"
+                />
+                <ellipse
+                  [attr.cx]="leaf.cx"
+                  [attr.cy]="leaf.cy"
+                  [attr.rx]="leaf.rx"
+                  [attr.ry]="leaf.ry"
+                  [attr.transform]="'rotate(' + leaf.rotate + ' ' + leaf.cx + ' ' + leaf.cy + ')'"
+                  fill="rgba(112,76,14,0.72)"
+                />
+              }
+              <polygon points="50,33 61,50 50,67 39,50" fill="rgba(250,236,190,0.5)" transform="translate(0 1.4)" />
+              <polygon points="50,33 61,50 50,67 39,50" fill="rgba(112,76,14,0.78)" />
+              <polygon points="50,41 55.5,50 50,59 44.5,50" fill="rgba(214,166,74,0.85)" />
+            </svg>
           }
         </div>
       </div>
