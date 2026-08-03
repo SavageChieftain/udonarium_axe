@@ -13,6 +13,12 @@ export class PresetSound {
   static diceRoll1: string = '';
   static diceRoll2: string = '';
   static coinFlip: string = '';
+  static damageSmall: string = '';
+  static damageMedium: string = '';
+  static damageLarge: string = '';
+  static healSmall: string = '';
+  static healMedium: string = '';
+  static healLarge: string = '';
   static cardDraw: string = '';
   static cardPick: string = '';
   static cardPut: string = '';
@@ -67,6 +73,13 @@ export class SoundEffect extends GameObject {
   static play(arg: string | AudioFile): void {
     const identifier = typeof arg === 'string' ? arg : arg.identifier;
     SoundEffect._play(identifier);
+  }
+
+  static playLocal(arg: string | AudioFile): void {
+    const identifier = typeof arg === 'string' ? arg : arg.identifier;
+    if (identifier.length < 1) return;
+    const audio = AudioStorage.instance.get(identifier);
+    if (audio) AudioPlayer.play(audio, 0.5);
   }
 
   private static _play(identifier: string) {
