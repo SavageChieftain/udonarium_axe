@@ -1,3 +1,37 @@
+## [1.24.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.23.1...v1.24.0) (2026-08-03)
+
+### ✨ Features
+
+* **card:** add the table operations old maid needs ([345ccc0](https://github.com/SavageChieftain/udonarium_axe/commit/345ccc07ae099e484f68c0cdf6a889022734360d))
+* **card:** build a deck from an image tag ([c153f73](https://github.com/SavageChieftain/udonarium_axe/commit/c153f73f74c47a6028b918dd91d0806ca98e2533))
+* **card:** deal, discard pairs and draw from another hand ([3373fbd](https://github.com/SavageChieftain/udonarium_axe/commit/3373fbd2a78d190f107cc0f3e1c99a0ee09cb24b))
+* **card:** let a card carry its own fields ([5624278](https://github.com/SavageChieftain/udonarium_axe/commit/56242785745fd0ff106343594a7736562e8e3095))
+* **card:** play a cut-in when a card is revealed ([bbd9bb3](https://github.com/SavageChieftain/udonarium_axe/commit/bbd9bb33f7f8bff46b5ebe0aba9fd3853d8a7dba))
+* **card:** point an arrow from a card to its target ([3783312](https://github.com/SavageChieftain/udonarium_axe/commit/3783312339dcd16f0d21f7b8663f06e5f2372870))
+* **card:** read trump ranks and plan an even deal ([2eb3849](https://github.com/SavageChieftain/udonarium_axe/commit/2eb3849e9b70ad4fcc66197f25adbda9fc85c718))
+* **coin:** add a coin that can be flipped ([add208d](https://github.com/SavageChieftain/udonarium_axe/commit/add208d8ea269cbd7e712bca8dfc9e8642717bb9))
+* **coin:** create coins from the table menu and keep them in the room ([4e3edd2](https://github.com/SavageChieftain/udonarium_axe/commit/4e3edd23b7807f0ca736a1454415d37bec69a7b1))
+* **coin:** give the coin a milled edge and real thickness ([0875b8a](https://github.com/SavageChieftain/udonarium_axe/commit/0875b8a7b9907e9939ac4fcdfbe773206804c35c))
+* **coin:** play a coin toss instead of the dice roll ([b488eaa](https://github.com/SavageChieftain/udonarium_axe/commit/b488eaa5a489e9d81126c961c26a914e7fd02fc3))
+* **coin:** spin the coin on the table when it is thrown ([ed5c6ae](https://github.com/SavageChieftain/udonarium_axe/commit/ed5c6ae31cd877ad54b9be0523c1edf0fcc39464))
+* **coin:** strike an emblem on each face instead of a kanji ([c695827](https://github.com/SavageChieftain/udonarium_axe/commit/c695827dc76afd82e933335c5fd416bb28a341aa))
+* **coin:** swap the face images from a coin sheet ([2ffda6a](https://github.com/SavageChieftain/udonarium_axe/commit/2ffda6a9fd29b6055008c456132410f5314db3a0))
+* **tabletop:** drop the piece builder from the desktop context menu ([d90fa16](https://github.com/SavageChieftain/udonarium_axe/commit/d90fa164f8d94e3d8c22f147bcf7a80f9534147c))
+
+### 🐛 Bug Fixes
+
+* **coin:** keep the coin solid while it is in the air ([02daef1](https://github.com/SavageChieftain/udonarium_axe/commit/02daef106897b908489f7736ec523ddf99c16d7a))
+* **coin:** keep the outcome hidden until the coin lands ([01af7db](https://github.com/SavageChieftain/udonarium_axe/commit/01af7db3781a2be51b7dfa43cdc973fd8f24ed6b))
+* **peer:** stop an empty id from matching a peer that has none ([cae37e6](https://github.com/SavageChieftain/udonarium_axe/commit/cae37e6db97dc9464c98b47378161e10c7955c7d))
+* **tabletop:** stop a coordinate-less pointer event from killing menus ([d092b33](https://github.com/SavageChieftain/udonarium_axe/commit/d092b331b321ee604c04319b6f04792088a49f49))
+
+### 📝 Documentation
+
+* **website:** add v1.23.1 release notes ([09ca469](https://github.com/SavageChieftain/udonarium_axe/commit/09ca469412d38b6e9553fbb806ea94a424a308b3))
+* **website:** describe how to play old maid with the card tools ([61b53d3](https://github.com/SavageChieftain/udonarium_axe/commit/61b53d360dc4fe892d1e329b64663213061cbcf1))
+* **website:** describe playing a TCG with the card tools ([1e31d29](https://github.com/SavageChieftain/udonarium_axe/commit/1e31d2952c2ca03661c52879a376fc884e0dd8a9))
+* **website:** describe the coin on the dice page ([0653fe9](https://github.com/SavageChieftain/udonarium_axe/commit/0653fe972335066a5858df03a77ed290afa3be38))
+
 ## [1.23.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.23.0...v1.23.1) (2026-08-02)
 
 ### 🐛 Bug Fixes
