@@ -56,6 +56,7 @@ export interface ObjectChangeNetworkTargets {
   writingMessage$: EventChannel<WritingMessageEvent>;
   shuffleCardStack$: EventChannel<IdentifierEvent>;
   rollDiceSymbol$: EventChannel<IdentifierEvent>;
+  flipCoin$: EventChannel<IdentifierEvent>;
   cursorMove$: EventChannel<CursorMoveEvent>;
   heartBeat$: EventChannel<HeartBeatEvent>;
   localObjectUpdated$: EventChannel<void>;
@@ -122,6 +123,9 @@ export function subscribeNetworkBindings(
         break;
       case 'ROLL_DICE_SYMBOL':
         targets.rollDiceSymbol$.emit({ identifier: (msg.data as { identifier: string }).identifier });
+        break;
+      case 'FLIP_COIN':
+        targets.flipCoin$.emit({ identifier: (msg.data as { identifier: string }).identifier });
         break;
       case 'CURSOR_MOVE': {
         const data = msg.data as [number, number, number];

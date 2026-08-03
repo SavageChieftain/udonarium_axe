@@ -130,6 +130,7 @@
       "typeCard": "Card",
       "typeCardStack": "Card stack",
       "typeDice": "Dice",
+      "typeCoin": "Coin",
       "typeNote": "Shared note",
       "typeTerrain": "Terrain",
       "typeRange": "Range",
@@ -381,6 +382,31 @@
       "message": {
         "dealt": "Dealt {{count}} cards to {{players}} players",
         "noSeats": "Nobody can be dealt cards"
+      }
+    },
+    "coin": {
+      "face": {
+        "front": "Heads",
+        "back": "Tails"
+      },
+      "contextMenu": {
+        "flip": "Flip the coin",
+        "faceUp": "Show heads",
+        "faceDown": "Show tails",
+        "editCoin": "Edit coin"
+      },
+      "sheet": {
+        "title": "Coin",
+        "name": "Name",
+        "size": "Size",
+        "currentFace": "Facing",
+        "changeFrontImage": "Change the heads image",
+        "changeBackImage": "Change the tails image",
+        "clearImage": "Remove the image",
+        "imageHint": "A face without an image is drawn as a gold coin."
+      },
+      "message": {
+        "flipped": "{{who}} flipped {{name}} → {{face}}"
       }
     },
     "dice": {
@@ -890,6 +916,7 @@
         "createNote": "Create shared note",
         "createTrump": "Create trump deck",
         "createDice": "Create dice",
+        "createCoin": "Create a coin",
         "createRange": "Create range",
         "createLight": "Create light source",
         "defaultCharacterName": "New character",
@@ -911,7 +938,8 @@
         "rangeShapeCircle": "Circle",
         "rangeShapeCustom": "Custom cells",
         "createDeck": "Create a deck from an image tag",
-        "defaultDeckName": "Deck"
+        "defaultDeckName": "Deck",
+        "defaultCoinName": "Coin"
       },
       "panel": {
         "terrain": "Terrain settings",
@@ -990,6 +1018,7 @@
         "aliasTextNote": "Note",
         "aliasRange": "Range",
         "aliasDiceSymbol": "Dice",
+        "aliasCoin": "Coin",
         "aliasCard": "Card",
         "aliasCardStack": "Deck",
         "moveToSurface": "Move to surface",

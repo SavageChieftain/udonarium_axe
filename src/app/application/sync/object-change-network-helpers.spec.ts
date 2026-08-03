@@ -24,6 +24,7 @@ function makeTargets(): ObjectChangeNetworkTargets {
     writingMessage$: new EventChannel<WritingMessageEvent>(),
     shuffleCardStack$: new EventChannel<IdentifierEvent>(),
     rollDiceSymbol$: new EventChannel<IdentifierEvent>(),
+    flipCoin$: new EventChannel<IdentifierEvent>(),
     cursorMove$: new EventChannel<CursorMoveEvent>(),
     heartBeat$: new EventChannel<HeartBeatEvent>(),
     localObjectUpdated$: new EventChannel<void>(),

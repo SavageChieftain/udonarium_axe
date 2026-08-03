@@ -223,6 +223,7 @@ export class ObjectChangeService {
   private readonly _writingMessage$ = new EventChannel<WritingMessageEvent>();
   private readonly _shuffleCardStack$ = new EventChannel<IdentifierEvent>();
   private readonly _rollDiceSymbol$ = new EventChannel<IdentifierEvent>();
+  private readonly _flipCoin$ = new EventChannel<IdentifierEvent>();
   private readonly _cursorMove$ = new EventChannel<CursorMoveEvent>();
   private readonly _heartBeat$ = new EventChannel<HeartBeatEvent>();
   private readonly _eventActivity$ = new EventChannel<void>();
@@ -239,6 +240,7 @@ export class ObjectChangeService {
   readonly writingMessage$: ReadableChannel<WritingMessageEvent> = this._writingMessage$;
   readonly shuffleCardStack$: ReadableChannel<IdentifierEvent> = this._shuffleCardStack$;
   readonly rollDiceSymbol$: ReadableChannel<IdentifierEvent> = this._rollDiceSymbol$;
+  readonly flipCoin$: ReadableChannel<IdentifierEvent> = this._flipCoin$;
   readonly selectFile$ = selectFile$;
   readonly cursorMove$: ReadableChannel<CursorMoveEvent> = this._cursorMove$;
   readonly heartBeat$: ReadableChannel<HeartBeatEvent> = this._heartBeat$;
@@ -302,6 +304,7 @@ export class ObjectChangeService {
       writingMessage$: this._writingMessage$,
       shuffleCardStack$: this._shuffleCardStack$,
       rollDiceSymbol$: this._rollDiceSymbol$,
+      flipCoin$: this._flipCoin$,
       cursorMove$: this._cursorMove$,
       heartBeat$: this._heartBeat$,
       localObjectUpdated$: this._localObjectUpdated$,

@@ -130,6 +130,7 @@
       "typeCard": "カード",
       "typeCardStack": "山札",
       "typeDice": "ダイス",
+      "typeCoin": "コイン",
       "typeNote": "共有メモ",
       "typeTerrain": "地形",
       "typeRange": "射程範囲",
@@ -381,6 +382,31 @@
       "message": {
         "dealt": "カードを {{players}} 人に {{count}} 枚配りました",
         "noSeats": "配れる参加者がいません"
+      }
+    },
+    "coin": {
+      "face": {
+        "front": "表",
+        "back": "裏"
+      },
+      "contextMenu": {
+        "flip": "コインを投げる",
+        "faceUp": "表にする",
+        "faceDown": "裏にする",
+        "editCoin": "コインを編集"
+      },
+      "sheet": {
+        "title": "コイン",
+        "name": "名前",
+        "size": "大きさ",
+        "currentFace": "今の面",
+        "changeFrontImage": "表面の画像を変更",
+        "changeBackImage": "裏面の画像を変更",
+        "clearImage": "画像を外す",
+        "imageHint": "画像を設定しない面は金色のコインで描かれます。"
+      },
+      "message": {
+        "flipped": "{{who}} が {{name}} を投げました → {{face}}"
       }
     },
     "dice": {
@@ -890,6 +916,7 @@
         "createNote": "共有メモを作成",
         "createTrump": "トランプの山札を作成",
         "createDice": "ダイスを作成",
+        "createCoin": "コインを作成",
         "createRange": "射程範囲を作成",
         "createLight": "光源を作成",
         "defaultCharacterName": "新しいキャラクター",
@@ -911,7 +938,8 @@
         "rangeShapeCircle": "円形",
         "rangeShapeCustom": "任意マス",
         "createDeck": "画像タグから山札を作成",
-        "defaultDeckName": "山札"
+        "defaultDeckName": "山札",
+        "defaultCoinName": "コイン"
       },
       "panel": {
         "terrain": "地形設定",
@@ -990,6 +1018,7 @@
         "aliasTextNote": "メモ",
         "aliasRange": "射程",
         "aliasDiceSymbol": "ダイス",
+        "aliasCoin": "コイン",
         "aliasCard": "カード",
         "aliasCardStack": "山札",
         "moveToSurface": "別の面へ移動",
