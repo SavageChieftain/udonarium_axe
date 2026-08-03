@@ -58,7 +58,7 @@ test.describe('個別カード (card) の操作', () => {
     // カード編集は game-character-sheet がホスト (card === true 経路) で
     // 「表面の画像を変更」「裏面の画像を変更」ボタンが現れる。
     await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('game-character-sheet').getByRole('button', { name: '表面の画像を変更' })).toBeVisible();
-    await expect(page.locator('game-character-sheet').getByRole('button', { name: '裏面の画像を変更' })).toBeVisible();
+    await expect(page.locator('game-character-sheet').locator('button[title="表面の画像を変更"]')).toBeVisible();
+    await expect(page.locator('game-character-sheet').locator('button[title="裏面の画像を変更"]')).toBeVisible();
   });
 });

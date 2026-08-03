@@ -13,28 +13,28 @@ async function openCardStackSheet(page: Page) {
   await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 10000 });
 }
 
-test.describe('card-stack の詳細シートと編集切替', () => {
+test.describe('card-stack の詳細シート', () => {
   test.beforeEach(async ({ page }) => {
     await openCardStackSheet(page);
   });
 
-  test('card-stack シートに「編集切り替え」「コピーを作る」「保存」ボタンがあること', async ({ page }) => {
+  test('card-stack シートに「コピーを作る」「保存」ボタンとタブがあること', async ({ page }) => {
     const sheet = page.locator('game-character-sheet');
-    await expect(sheet.getByRole('button', { name: '編集切り替え' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: 'コピーを作る' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '保存' })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: /カード一覧/ })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: /設定/ })).toBeVisible();
   });
 
-  test('「編集切り替え」を押してもボタンが消えず再クリック可能 (idempotent toggle)', async ({ page }) => {
-    // 編集モード遷移後も「編集切り替え」ボタン自体は残るので、2 連打しても
-    // クラッシュせず再度可視であることを確認する (具体的な UI badge は
-    // game-character-sheet 側で sub-component に依存し再検出が不安定)。
+  test('タブを往復してもシートが壊れないこと', async ({ page }) => {
     const sheet = page.locator('game-character-sheet');
-    const toggle = sheet.getByRole('button', { name: '編集切り替え' });
-    await toggle.click();
-    await expect(toggle).toBeVisible();
-    await toggle.click();
-    await expect(toggle).toBeVisible();
+    const settings = sheet.getByRole('button', { name: /設定/ });
+    const cards = sheet.getByRole('button', { name: /カード一覧/ });
+
+    await settings.dispatchEvent('click');
+    await expect(sheet).toContainText('基本情報');
+    await cards.dispatchEvent('click');
+    await expect(cards).toBeVisible();
   });
 
   test('保存ボタンで .xml データを含む zip がダウンロードされること', async ({ page }) => {
