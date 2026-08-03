@@ -4,7 +4,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
-import { targetArrowGeometry, TargetArrowGeometry, TargetArrowPoint } from '@axe/domain/card/target-arrow';
+import { TargetArrowGeometry, targetArrowGeometry, TargetArrowPoint } from '@axe/domain/card/target-arrow';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface TargetArrow extends TargetArrowGeometry {

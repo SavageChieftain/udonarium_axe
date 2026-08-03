@@ -65,8 +65,8 @@ import {
   wallSilhouetteStyle,
 } from '@axe/features/tabletop/wall-projection';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
-import { TranslocoModule } from '@jsverse/transloco';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
 
 interface ActiveWall {
   surface: TableSurface;
