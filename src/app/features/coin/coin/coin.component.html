@@ -1,0 +1,60 @@
+<div
+  class="group pointer-events-none absolute cursor-grab select-none [-moz-user-drag:none] [-webkit-user-drag:none] backface-hidden transform-3d"
+  [style.width.px]="size() * gridSize"
+  [style.height.px]="size() * gridSize"
+  appMovable
+  [movable.option]="movableOption()"
+  [movable.disable]="isLock"
+  [appSelectable]="coin()"
+  (movable.ondragstart)="onMove()"
+  (movable.ondragend)="onMoved()"
+>
+  <div
+    class="pointer-events-auto size-full transform-3d"
+    appRotable
+    [rotable.option]="rotableOption()"
+    [rotable.disable]="tabletopService.mode2d()"
+    (rotable.ondragstart)="onMove()"
+    (rotable.ondragend)="onMoved()"
+  >
+    <div
+      class="size-full transform-3d"
+      [class.animate-coin-flip]="isSpinning()"
+      (animationend)="onSpinEnd()"
+      [ngStyle]="{ filter: isSpinning() ? 'drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45))' : 'none' }"
+    >
+      <div class="size-full transform-3d" [style.transform]="faceTransform()">
+        <div
+          class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full border-2 border-solid border-[#8a5f18] bg-[radial-gradient(circle_at_30%_28%,#ffeeb4,#e0ac45_58%,#a97c22)] shadow-[inset_0_0_6px_rgba(120,80,10,0.5)] backface-hidden"
+        >
+          @if (frontImage().url) {
+            <img
+              class="pointer-events-none size-full object-cover"
+              [src]="frontImage().url | safe: 'resourceUrl'"
+              [alt]="frontLabel()"
+            />
+          } @else {
+            <span class="text-[#6b4a12] select-none" [style.font-size.px]="(size() * gridSize) / 2.6">{{
+              frontLabel()
+            }}</span>
+          }
+        </div>
+        <div
+          class="absolute inset-0 flex transform-[rotateY(180deg)] items-center justify-center overflow-hidden rounded-full border-2 border-solid border-[#6f4a12] bg-[radial-gradient(circle_at_30%_28%,#f3dda0,#c8933a_58%,#8d6519)] shadow-[inset_0_0_6px_rgba(90,60,8,0.55)] backface-hidden"
+        >
+          @if (backImage().url) {
+            <img
+              class="pointer-events-none size-full object-cover"
+              [src]="backImage().url | safe: 'resourceUrl'"
+              [alt]="backLabel()"
+            />
+          } @else {
+            <span class="text-[#5c3f0e] select-none" [style.font-size.px]="(size() * gridSize) / 2.6">{{
+              backLabel()
+            }}</span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
