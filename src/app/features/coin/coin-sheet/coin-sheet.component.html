@@ -1,0 +1,86 @@
+@if (coin) {
+  <div class="flex flex-col gap-4">
+    <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
+      <h3
+        class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
+      >
+        <i class="material-icons">savings</i>
+        {{ 'feature.coin.sheet.title' | transloco }}
+      </h3>
+      <div class="mb-2 flex items-center gap-2 last:mb-0">
+        <label class="text-ui-muted min-w-22.5 text-[12px]">{{ 'feature.coin.sheet.name' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border min-w-0 flex-1 border px-2 py-1 text-[13px]"
+          type="text"
+          [(ngModel)]="name"
+        />
+      </div>
+      <div class="mb-2 flex items-center gap-2 last:mb-0">
+        <label class="text-ui-muted min-w-22.5 text-[12px]">{{ 'feature.coin.sheet.size' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm text-ui-text box-border w-17.5 flex-none border px-2 py-1 text-[13px]"
+          type="number"
+          min="1"
+          max="10"
+          [(ngModel)]="size"
+        />
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-0.75 text-[0.78em] whitespace-nowrap transition-[background,color]"
+          type="button"
+          (click)="flip()"
+        >
+          {{ 'feature.coin.contextMenu.flip' | transloco }}
+        </button>
+      </div>
+    </section>
+
+    <section class="bg-ui-accent-bg border-ui-border-panel rounded-ui-sm box-border border p-3">
+      <h3
+        class="text-ui-accent border-ui-border-panel m-0 mb-2.5 flex items-center gap-1.5 border-b pb-1.5 text-[13px] font-semibold [&_.material-icons]:text-[16px]!"
+      >
+        <i class="material-icons">image</i>
+        {{ 'feature.coin.sheet.currentFace' | transloco }}
+      </h3>
+      <p class="text-ui-muted m-0 mb-2.5 text-[11px]">{{ 'feature.coin.sheet.imageHint' | transloco }}</p>
+      <div class="flex flex-wrap gap-3">
+        @for (entry of faces(); track entry.face) {
+          <div class="flex flex-col items-center gap-1.5">
+            <button
+              class="bg-ui-input border-ui-border-panel hover:border-ui-accent size-24 cursor-pointer overflow-hidden rounded-full border border-solid bg-contain bg-center bg-no-repeat p-0 transition-[border-color]"
+              type="button"
+              [class.border-ui-accent!]="entry.isCurrent"
+              [style.background-image]="entry.imageUrl ? ('url(' + entry.imageUrl + ')' | safe: 'style') : 'none'"
+              [attr.title]="
+                (entry.face === 'front' ? 'feature.coin.sheet.changeFrontImage' : 'feature.coin.sheet.changeBackImage')
+                  | transloco
+              "
+              (click)="openFaceImageModal(entry.face)"
+            >
+              @if (!entry.imageUrl) {
+                <span class="text-ui-muted text-[13px]">{{ faceLabel(entry.face) }}</span>
+              }
+            </button>
+            <div class="flex items-center gap-1.5">
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm cursor-pointer border border-solid px-2 py-0.5 text-[0.72em] whitespace-nowrap"
+                type="button"
+                (click)="selectFace(entry.face)"
+              >
+                {{ faceLabel(entry.face) }}
+              </button>
+              <button
+                class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm cursor-pointer border border-solid px-2 py-0.5 text-[0.72em] whitespace-nowrap"
+                type="button"
+                (click)="clearFaceImage(entry.face)"
+              >
+                {{ 'feature.coin.sheet.clearImage' | transloco }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}
