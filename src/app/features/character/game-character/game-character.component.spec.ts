@@ -22,11 +22,14 @@ describe('GameCharacterComponent', () => {
     component = fixture.componentInstance;
   });
 
-  beforeEach(() => {
+  const useFlatTable = () => {
     const table = TestBed.inject(TabletopService).currentTable;
     table.mode2d = false;
     table.imageBillboard = false;
-  });
+  };
+
+  beforeEach(useFlatTable);
+  afterEach(useFlatTable);
 
   it('should create', () => {
     expect(component).toBeTruthy();
