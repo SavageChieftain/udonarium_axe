@@ -13,7 +13,7 @@ export class CoinFlipService {
 
   flip(coin: Coin): CoinFace {
     callFlipCoin(coin.identifier);
-    SoundEffect.play(PresetSound.diceRoll1);
+    SoundEffect.play(PresetSound.coinFlip);
 
     const face = coin.flip();
     coin.toTopmost();

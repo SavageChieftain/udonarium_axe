@@ -124,6 +124,7 @@ export class AppInitializationService {
       dicePut: './assets/sounds/soundeffect-lab/book-stack1.mp3',
       diceRoll1: './assets/sounds/on-jin/spo_ge_saikoro_teburu01.mp3',
       diceRoll2: './assets/sounds/on-jin/spo_ge_saikoro_teburu02.mp3',
+      coinFlip: './assets/sounds/on-jin/cointoss.mp3',
       cardDraw: './assets/sounds/soundeffect-lab/card-turn-over1.mp3',
       cardPick: './assets/sounds/soundeffect-lab/shoulder-touch1.mp3',
       cardPut: './assets/sounds/soundeffect-lab/book-stack1.mp3',

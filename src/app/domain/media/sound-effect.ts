@@ -12,6 +12,7 @@ export class PresetSound {
   static dicePut: string = '';
   static diceRoll1: string = '';
   static diceRoll2: string = '';
+  static coinFlip: string = '';
   static cardDraw: string = '';
   static cardPick: string = '';
   static cardPut: string = '';
