@@ -22,6 +22,17 @@ describe('PointerDeviceService', () => {
     expect(service).toBeTruthy();
   }));
 
+  it('座標を持たないポインタイベントでは直前の位置を保つこと', () => {
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 120, clientY: 80 }));
+    const before = { ...service.pointers[0] };
+
+    document.body.dispatchEvent(new Event('contextmenu', { bubbles: true }));
+
+    expect(service.pointers[0]).toEqual(before);
+    expect(Number.isFinite(service.pointers[0].x)).toBe(true);
+    expect(Number.isFinite(service.pointers[0].y)).toBe(true);
+  });
+
   it('mouseup で dragging 状態を解除すること', () => {
     service.isDragging = true;
 

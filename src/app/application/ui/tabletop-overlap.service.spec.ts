@@ -31,6 +31,17 @@ describe('TabletopOverlapService', () => {
     service = TestBed.inject(TabletopOverlapService);
   });
 
+  it('座標が数値でなければ探索せず空を返すこと', () => {
+    const elementsFromPoint = vi.spyOn(document, 'elementsFromPoint').mockReturnValue([]);
+
+    expect(service.findAt(Number.NaN, 0)).toEqual([]);
+    expect(service.findAt(0, Number.POSITIVE_INFINITY)).toEqual([]);
+    expect(service.findAt(undefined as unknown as number, 0)).toEqual([]);
+    expect(elementsFromPoint).not.toHaveBeenCalled();
+
+    elementsFromPoint.mockRestore();
+  });
+
   it('register と unregister でレジストリが管理される', () => {
     const obj = makeObject('a');
     const el = makeElement({ x: 0, y: 0, w: 10, h: 10 });

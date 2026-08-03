@@ -32,6 +32,8 @@ export class TabletopOverlapService {
   }
 
   findAt(x: number, y: number): TabletopObject[] {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return [];
+
     const hits = document.elementsFromPoint(x, y);
     if (hits.length === 0) return [];
 

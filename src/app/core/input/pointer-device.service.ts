@@ -129,6 +129,7 @@ export class PointerDeviceService {
     if (this.isDragging && e.buttons === 0) {
       this.resetDraggingState();
     }
+    if (!Number.isFinite(e.pageX) || !Number.isFinite(e.pageY)) return;
     const mousePointer: PointerData = { x: e.pageX, y: e.pageY, z: 0, identifier: MOUSE_IDENTIFIER };
     if (this.isSyntheticEvent(mousePointer)) return;
     if (this._isAllowedToOpenContextMenu) this.preventContextMenuIfNeeded(mousePointer);
