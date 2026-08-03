@@ -38,6 +38,7 @@ import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.com
 import type { DeckBuilderResult } from '@axe/features/card/deck-builder-dialog/deck-builder-dialog.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
+import { CoinComponent } from '@axe/features/coin/coin/coin.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
@@ -123,6 +124,7 @@ interface BeamWallGrid {
     TableVisionOverlayComponent,
     TableBeamOverlayComponent,
     TableTargetOverlayComponent,
+    CoinComponent,
     TranslocoModule,
     LightSourceComponent,
   ],
@@ -496,6 +498,10 @@ export class GameTableComponent {
     this.objectChangeService.collectionOf('dice-symbol')();
     return this.tabletopService.diceSymbols;
   });
+  readonly coins = computed(() => {
+    this.objectChangeService.collectionOf('coin')();
+    return this.tabletopService.coins;
+  });
   readonly peerCursors = computed(() => {
     this.objectChangeService.collectionOf('PeerCursor')();
     return this.tabletopService.peerCursors;
@@ -521,6 +527,7 @@ export class GameTableComponent {
   readonly rangesBySurface = computed(() => GameTableComponent.bySurface(this.ranges()));
   readonly textNotesBySurface = computed(() => GameTableComponent.bySurface(this.textNotes()));
   readonly diceSymbolsBySurface = computed(() => GameTableComponent.bySurface(this.diceSymbols()));
+  readonly coinsBySurface = computed(() => GameTableComponent.bySurface(this.coins()));
   readonly terrainsBySurface = computed(() => GameTableComponent.bySurface(this.terrains()));
 
   readonly beamTopGrids = computed<readonly BeamTopGrid[]>(() => {

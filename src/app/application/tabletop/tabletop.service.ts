@@ -8,6 +8,7 @@ import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -82,6 +83,9 @@ export class TabletopService {
     return viewTable ? viewTable.terrains : [];
   });
   private textNoteCache = new TabletopCache<TextNote>(() => this.objectStore.getObjects(TextNote));
+  private coinCache = new TabletopCache<Coin>(() =>
+    this.objectStore.getObjects(Coin).filter((obj) => obj.isVisibleOnTable)
+  );
   private diceSymbolCache = new TabletopCache<DiceSymbol>(() => this.objectStore.getObjects(DiceSymbol));
 
   get characters(): GameCharacter[] {
@@ -113,6 +117,9 @@ export class TabletopService {
   }
   get diceSymbols(): DiceSymbol[] {
     return this.diceSymbolCache.objects;
+  }
+  get coins(): Coin[] {
+    return this.coinCache.objects;
   }
   get peerCursors(): PeerCursor[] {
     return this.objectStore.getObjects<PeerCursor>(PeerCursor);
@@ -222,6 +229,8 @@ export class TabletopService {
         return this.textNoteCache;
       case DiceSymbol.aliasName:
         return this.diceSymbolCache;
+      case Coin.aliasName:
+        return this.coinCache;
       default:
         return null;
     }
@@ -243,6 +252,7 @@ export class TabletopService {
     this.terrainCache.refresh();
     this.textNoteCache.refresh();
     this.diceSymbolCache.refresh();
+    this.coinCache.refresh();
     this.clearMap();
   }
 

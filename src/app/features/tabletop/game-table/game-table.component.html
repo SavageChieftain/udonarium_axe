@@ -95,6 +95,17 @@
               [appTooltip]="character"
             ></game-character>
           }
+          @for (coin of coinsBySurface()[wall.surface]; track coin.identifier) {
+            <coin
+              class="absolute will-change-transform backface-visible transform-3d"
+              [coin]="coin"
+              [appTooltip]="coin"
+              [ngStyle]="{
+                'z-index': coin.zindex,
+                transform: 'translateZ(' + coin.zindex * 0.001 + 'px)',
+              }"
+            ></coin>
+          }
           @for (diceSymbol of diceSymbolsBySurface()[wall.surface]; track diceSymbol.identifier) {
             <dice-symbol
               class="absolute will-change-transform backface-visible transform-3d"
@@ -182,6 +193,17 @@
             transform: 'translateZ(' + card.zindex * 0.001 + 'px)',
           }"
         ></card>
+      }
+      @for (coin of coinsBySurface().floor; track coin.identifier) {
+        <coin
+          class="absolute will-change-transform backface-visible transform-3d"
+          [coin]="coin"
+          [appTooltip]="coin"
+          [ngStyle]="{
+            'z-index': coin.zindex,
+            transform: 'translateZ(' + coin.zindex * 0.001 + 'px)',
+          }"
+        ></coin>
       }
       <div>
         <div

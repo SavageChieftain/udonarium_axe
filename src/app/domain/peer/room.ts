@@ -5,6 +5,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceTable } from '@axe/domain/dice/dice-table';
 import { CutIn } from '@axe/domain/media/cut-in';
@@ -45,6 +46,7 @@ export class Room extends GameObject implements InnerXml {
         return obj.parent === null;
       }),
       ...ObjectStore.instance.getObjects(DiceSymbol),
+      ...ObjectStore.instance.getObjects(Coin),
       ...ObjectStore.instance.getObjects(CutIn),
       ...ObjectStore.instance.getObjects(DiceTable),
     ];
@@ -69,6 +71,7 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(CardStack),
       ...ObjectStore.instance.getObjects(Card),
       ...ObjectStore.instance.getObjects(DiceSymbol),
+      ...ObjectStore.instance.getObjects(Coin),
       ...ObjectStore.instance.getObjects(CutIn),
       ...ObjectStore.instance.getObjects(DiceTable),
     ];

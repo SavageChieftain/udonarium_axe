@@ -20,6 +20,7 @@ import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { toDeckCardSources } from '@axe/domain/card/deck-builder';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { ImageTag } from '@axe/domain/media/image-tag';
@@ -248,6 +249,7 @@ export class TabletopActionService {
       this.getCreateTextNoteMenu(position),
       this.getCreateTrumpMenu(position),
       this.getCreateDiceSymbolMenu(position),
+      this.getCreateCoinMenu(position),
       this.getCreateRangeMenu(position),
       this.getCreateLightSourceMenu(position),
     ];
@@ -337,6 +339,26 @@ export class TabletopActionService {
       });
     });
     return { name: this.t('feature.tabletop.action.createDice'), action: undefined, subActions: subMenus };
+  }
+
+  createCoin(position: PointerCoordinate): Coin {
+    const coin = Coin.create(this.t('feature.tabletop.action.defaultCoinName'));
+    coin.location.x = position.x - 25;
+    coin.location.y = position.y - 25;
+    coin.posZ = position.z;
+    coin.toTopmost();
+    return coin;
+  }
+
+  private getCreateCoinMenu(position: PointerCoordinate): ContextMenuAction {
+    return {
+      name: this.t('feature.tabletop.action.createCoin'),
+      action: () => {
+        const coin = this.createCoin(position);
+        this.selectionSignalService.selectObject(coin.identifier, coin.aliasName);
+        SoundEffect.play(PresetSound.dicePut);
+      },
+    };
   }
 
   private getCreateLightSourceMenu(position: PointerCoordinate): ContextMenuAction {

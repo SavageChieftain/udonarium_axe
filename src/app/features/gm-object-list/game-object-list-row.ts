@@ -17,6 +17,7 @@ export const OBJECT_LIST_TYPES: readonly ObjectListTypeConfig[] = [
   { key: 'card', alias: 'card', icon: 'style', labelKey: 'feature.gmObjectList.typeCard' },
   { key: 'card-stack', alias: 'card-stack', icon: 'filter_none', labelKey: 'feature.gmObjectList.typeCardStack' },
   { key: 'dice-symbol', alias: 'dice-symbol', icon: 'casino', labelKey: 'feature.gmObjectList.typeDice' },
+  { key: 'coin', alias: 'coin', icon: 'savings', labelKey: 'feature.gmObjectList.typeCoin' },
   { key: 'text-note', alias: 'text-note', icon: 'sticky_note_2', labelKey: 'feature.gmObjectList.typeNote' },
   { key: 'terrain', alias: 'terrain', icon: 'terrain', labelKey: 'feature.gmObjectList.typeTerrain' },
   { key: 'range', alias: 'range', icon: 'radar', labelKey: 'feature.gmObjectList.typeRange' },
@@ -77,7 +78,7 @@ export function resolveObjectImageUrl(object: TabletopObject, typeKey: string): 
     const floor = view.floorImage;
     return urlOf(view.hasWall && wall ? wall : (floor ?? wall));
   }
-  if (typeKey === 'character' || typeKey === 'dice-symbol') return urlOf(view.imageFile);
+  if (typeKey === 'character' || typeKey === 'dice-symbol' || typeKey === 'coin') return urlOf(view.imageFile);
   return '';
 }
 

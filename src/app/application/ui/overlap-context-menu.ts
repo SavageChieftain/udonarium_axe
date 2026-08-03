@@ -11,6 +11,7 @@ const ALIAS_LABEL_KEY: Record<string, string> = {
   'text-note': 'feature.tabletop.contextMenu.aliasTextNote',
   range: 'feature.tabletop.contextMenu.aliasRange',
   'dice-symbol': 'feature.tabletop.contextMenu.aliasDiceSymbol',
+  coin: 'feature.tabletop.contextMenu.aliasCoin',
   card: 'feature.tabletop.contextMenu.aliasCard',
   'card-stack': 'feature.tabletop.contextMenu.aliasCardStack',
 };
