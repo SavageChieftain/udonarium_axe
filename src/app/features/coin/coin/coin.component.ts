@@ -33,6 +33,11 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
+const EDGE_SEGMENT_COUNT = 24;
+const EDGE_SEGMENT_OVERLAP = 1.06;
+const THICKNESS_RATIO = 0.11;
+const MIN_THICKNESS_PX = 5;
+
 @Component({
   selector: 'coin',
   templateUrl: './coin.component.html',
@@ -102,7 +107,36 @@ export class CoinComponent {
     { equal: imageFileEqual() }
   );
 
-  readonly faceTransform = computed(() => (this.isFront() ? 'rotateY(0deg)' : 'rotateY(180deg)'));
+  readonly diameter = computed(() => this.size() * this.gridSize);
+
+  readonly thickness = computed(() => Math.max(MIN_THICKNESS_PX, this.diameter() * THICKNESS_RATIO));
+
+  readonly faceTransform = computed(
+    () => `translateZ(${this.thickness() / 2}px) rotateY(${this.isFront() ? 0 : 180}deg)`
+  );
+
+  readonly frontFaceTransform = computed(() => `translateZ(${this.thickness() / 2}px)`);
+
+  readonly backFaceTransform = computed(() => `rotateY(180deg) translateZ(${this.thickness() / 2}px)`);
+
+  readonly edgeSegments = computed(() => {
+    const radius = this.diameter() / 2;
+    const thickness = this.thickness();
+    const width = ((2 * Math.PI * radius) / EDGE_SEGMENT_COUNT) * EDGE_SEGMENT_OVERLAP;
+
+    return Array.from({ length: EDGE_SEGMENT_COUNT }, (_, index) => {
+      const angle = (360 / EDGE_SEGMENT_COUNT) * index;
+      const lit = 0.5 + 0.5 * Math.cos(((angle - 45) * Math.PI) / 180);
+      return {
+        width: `${width}px`,
+        height: `${thickness}px`,
+        marginLeft: `${-width / 2}px`,
+        marginTop: `${-thickness / 2}px`,
+        background: `hsl(41, 58%, ${26 + 32 * lit}%)`,
+        transform: `rotateZ(${angle}deg) translateY(${-radius}px) rotateX(90deg)`,
+      };
+    });
+  });
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});

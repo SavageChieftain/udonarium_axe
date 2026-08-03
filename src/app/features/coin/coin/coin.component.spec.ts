@@ -35,11 +35,27 @@ describe('CoinComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('表');
     expect(fixture.nativeElement.textContent).toContain('裏');
-    expect(component.faceTransform()).toBe('rotateY(0deg)');
+    expect(component.faceTransform()).toContain('rotateY(0deg)');
 
     coin.face = 'back';
     TestBed.inject(ObjectChangeService).notifyChanged(coin.identifier);
-    expect(component.faceTransform()).toBe('rotateY(180deg)');
+    expect(component.faceTransform()).toContain('rotateY(180deg)');
+  });
+
+  it('厚みの分だけ両面を離し、縁を円周に並べること', () => {
+    fixture.detectChanges();
+    const half = component.thickness() / 2;
+
+    expect(component.thickness()).toBeGreaterThan(0);
+    expect(component.frontFaceTransform()).toBe(`translateZ(${half}px)`);
+    expect(component.backFaceTransform()).toBe(`rotateY(180deg) translateZ(${half}px)`);
+
+    const segments = component.edgeSegments();
+    expect(segments).toHaveLength(24);
+    expect(segments[0].transform).toBe(`rotateZ(0deg) translateY(${-component.diameter() / 2}px) rotateX(90deg)`);
+    expect(segments[6].transform).toContain('rotateZ(90deg)');
+    expect(segments.every((segment) => segment.height === `${component.thickness()}px`)).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('div[style*="rotateX(90deg)"]')).toHaveLength(24);
   });
 
   it('投げると面が決まること', () => {

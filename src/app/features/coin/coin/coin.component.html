@@ -1,7 +1,7 @@
 <div
   class="group pointer-events-none absolute cursor-grab select-none [-moz-user-drag:none] [-webkit-user-drag:none] backface-hidden transform-3d"
-  [style.width.px]="size() * gridSize"
-  [style.height.px]="size() * gridSize"
+  [style.width.px]="diameter()"
+  [style.height.px]="diameter()"
   appMovable
   [movable.option]="movableOption()"
   [movable.disable]="isLock"
@@ -21,11 +21,15 @@
       class="size-full transform-3d"
       [class.animate-coin-flip]="isSpinning()"
       (animationend)="onSpinEnd()"
-      [ngStyle]="{ filter: isSpinning() ? 'drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45))' : 'none' }"
+      [ngStyle]="{ filter: isSpinning() ? 'drop-shadow(0 8px 7px rgba(0, 0, 0, 0.45))' : 'none' }"
     >
       <div class="size-full transform-3d" [style.transform]="faceTransform()">
+        @for (segment of edgeSegments(); track $index) {
+          <div class="pointer-events-none absolute top-1/2 left-1/2 backface-visible" [ngStyle]="segment"></div>
+        }
         <div
-          class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full border-2 border-solid border-[#8a5f18] bg-[radial-gradient(circle_at_30%_28%,#ffeeb4,#e0ac45_58%,#a97c22)] shadow-[inset_0_0_6px_rgba(120,80,10,0.5)] backface-hidden"
+          class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full border-2 border-solid border-[#8a5f18] bg-[radial-gradient(circle_at_30%_28%,#ffeeb4,#e0ac45_58%,#a97c22)] shadow-[inset_0_0_0_3px_rgba(255,240,190,0.35),inset_0_0_10px_rgba(120,80,10,0.55)] backface-hidden"
+          [style.transform]="frontFaceTransform()"
         >
           @if (frontImage().url) {
             <img
@@ -34,13 +38,16 @@
               [alt]="frontLabel()"
             />
           } @else {
-            <span class="text-[#6b4a12] select-none" [style.font-size.px]="(size() * gridSize) / 2.6">{{
-              frontLabel()
-            }}</span>
+            <span
+              class="font-serif font-bold text-[#7a5412] select-none [text-shadow:0_1px_0_rgba(255,245,205,0.85),0_-1px_0_rgba(90,60,10,0.45)]"
+              [style.font-size.px]="diameter() / 2.6"
+              >{{ frontLabel() }}</span
+            >
           }
         </div>
         <div
-          class="absolute inset-0 flex transform-[rotateY(180deg)] items-center justify-center overflow-hidden rounded-full border-2 border-solid border-[#6f4a12] bg-[radial-gradient(circle_at_30%_28%,#f3dda0,#c8933a_58%,#8d6519)] shadow-[inset_0_0_6px_rgba(90,60,8,0.55)] backface-hidden"
+          class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full border-2 border-solid border-[#6f4a12] bg-[radial-gradient(circle_at_30%_28%,#f3dda0,#c8933a_58%,#8d6519)] shadow-[inset_0_0_0_3px_rgba(240,220,170,0.3),inset_0_0_10px_rgba(90,60,8,0.6)] backface-hidden"
+          [style.transform]="backFaceTransform()"
         >
           @if (backImage().url) {
             <img
@@ -49,9 +56,11 @@
               [alt]="backLabel()"
             />
           } @else {
-            <span class="text-[#5c3f0e] select-none" [style.font-size.px]="(size() * gridSize) / 2.6">{{
-              backLabel()
-            }}</span>
+            <span
+              class="font-serif font-bold text-[#6a4810] select-none [text-shadow:0_1px_0_rgba(245,228,180,0.8),0_-1px_0_rgba(80,52,8,0.5)]"
+              [style.font-size.px]="diameter() / 2.6"
+              >{{ backLabel() }}</span
+            >
           }
         </div>
       </div>
