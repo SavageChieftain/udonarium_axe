@@ -57,6 +57,7 @@ describe('VoteWindowComponent', () => {
     const myCursor = PeerCursor.createMyCursor();
 
     const peerA = new PeerCursor();
+    peerA.peerId = 'peer-a';
     peerA.isDisConnect = false;
     peerA.initialize();
     vote.targetPeerId = [peerA.peerId];

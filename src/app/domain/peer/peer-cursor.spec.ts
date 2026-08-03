@@ -213,6 +213,15 @@ describe('PeerCursor', () => {
       expect(PeerCursor.findByUserId('nonexistent')).toBeFalsy();
       expect(PeerCursor.findByPeerId('nonexistent')).toBeFalsy();
     });
+
+    it('空のIDは未設定のカーソルに一致しないこと', () => {
+      const cursor = new PeerCursor();
+      cursor.initialize();
+
+      expect(cursor.userId).toBe('');
+      expect(PeerCursor.findByUserId('')).toBeNull();
+      expect(PeerCursor.findByPeerId('')).toBeNull();
+    });
   });
 
   describe('isPeerAUdon', () => {

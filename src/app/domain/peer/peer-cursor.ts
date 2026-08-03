@@ -243,6 +243,8 @@ export class PeerCursor extends GameObject {
   }
 
   private static find(map: Map<string, string>, key: string, isUserId: boolean): PeerCursor | null {
+    if (key.length < 1) return null;
+
     const identifier = map.get(key);
     if (identifier != null && ObjectStore.instance.get(identifier))
       return ObjectStore.instance.get<PeerCursor>(identifier)!;
