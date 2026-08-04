@@ -227,6 +227,9 @@ export class Network {
     connection.callback.onDisconnect = (peer) => {
       if (this.callback.onDisconnect) this.callback.onDisconnect(peer);
     };
+    connection.callback.onReconnect = (peer, state) => {
+      if (this.callback.onReconnect) this.callback.onReconnect(peer, state);
+    };
     connection.callback.onData = (peer, data) => {
       if (this.callback.onData) this.callback.onData(peer, data);
     };

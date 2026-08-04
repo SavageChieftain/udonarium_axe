@@ -1,3 +1,5 @@
+import { PeerContext } from '@axe/core/network/peer-context';
+import { PeerReconnectScheduler } from '@axe/core/network/peer-reconnect-scheduler';
 import { SkyWayConnection } from '@axe/core/network/skyway/skyway-connection';
 
 function flushMicrotasks(): Promise<void> {
@@ -317,6 +319,125 @@ describe('SkyWayConnection', () => {
       await flushMicrotasks();
 
       expect(relayArgs).toEqual([1, 2, 3]);
+    });
+  });
+
+  describe('自動再接続', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+    let connAny: Record<string, any>;
+    let stream: { peer: PeerContext; disconnect: ReturnType<typeof vi.fn> };
+    let onReconnect: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      connAny = new SkyWayConnection() as any;
+      connAny.skyWay = { isOpen: true, close: vi.fn() };
+      connAny.notifyUserList = vi.fn();
+      connAny.reconnectScheduler = new PeerReconnectScheduler([10, 20]);
+
+      onReconnect = vi.fn();
+      connAny.callback.onReconnect = onReconnect;
+
+      stream = { peer: PeerContext.parse('peer-a'), disconnect: vi.fn() };
+      connAny.streams.remove = vi.fn().mockReturnValue(stream);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('予期しない切断は再接続を予約する', () => {
+      connAny.disconnectStream(stream, true);
+
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
+      expect(onReconnect).toHaveBeenCalledWith(stream.peer, 'retrying');
+    });
+
+    it('予約時間の経過後に接続を試みる', async () => {
+      const connectSpy = vi.spyOn(connAny, 'connect').mockResolvedValue(true);
+
+      connAny.disconnectStream(stream, true);
+      expect(connectSpy).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(10);
+
+      expect(connectSpy).toHaveBeenCalledTimes(1);
+      expect(connectSpy.mock.calls[0][0]).toMatchObject({ peerId: 'peer-a' });
+    });
+
+    it('明示的な切断は再接続を予約しない', () => {
+      connAny.disconnectStream(stream);
+
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(false);
+      expect(onReconnect).not.toHaveBeenCalled();
+    });
+
+    it('disconnect() は予約済みの再接続を取り消す', () => {
+      connAny.disconnectStream(stream, true);
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
+
+      connAny.disconnect(stream.peer);
+
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(false);
+      expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(0);
+    });
+
+    it('切断のたびに待ち時間が伸びる', async () => {
+      vi.spyOn(connAny, 'connect').mockResolvedValue(true);
+
+      connAny.disconnectStream(stream, true);
+      await vi.advanceTimersByTimeAsync(10);
+
+      connAny.disconnectStream(stream, true);
+      expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(2);
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
+    });
+
+    it('試行回数を使い切ったら失敗を通知して打ち切る', async () => {
+      vi.spyOn(connAny, 'connect').mockResolvedValue(true);
+
+      for (let i = 0; i < 2; i++) {
+        connAny.disconnectStream(stream, true);
+        await vi.advanceTimersByTimeAsync(20);
+      }
+      onReconnect.mockClear();
+
+      connAny.disconnectStream(stream, true);
+
+      expect(onReconnect).toHaveBeenCalledWith(stream.peer, 'failed');
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(false);
+      expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(0);
+    });
+
+    it('接続対象でなくなったピアは失敗として打ち切る', async () => {
+      vi.spyOn(connAny, 'connect').mockResolvedValue(false);
+
+      connAny.disconnectStream(stream, true);
+      onReconnect.mockClear();
+
+      await vi.advanceTimersByTimeAsync(10);
+
+      expect(onReconnect).toHaveBeenCalledWith(expect.objectContaining({ peerId: 'peer-a' }), 'failed');
+      expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(0);
+    });
+
+    it('ネットワークが閉じているときは予約しない', () => {
+      connAny.skyWay.isOpen = false;
+
+      connAny.disconnectStream(stream, true);
+
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(false);
+      expect(onReconnect).not.toHaveBeenCalled();
+    });
+
+    it('close() はすべての再接続予約を取り消す', () => {
+      connAny.disconnectStream(stream, true);
+      expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
+
+      connAny.close();
+
+      expect(connAny.reconnectScheduler.scheduledPeerIds).toEqual([]);
     });
   });
 });

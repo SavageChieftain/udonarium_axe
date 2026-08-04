@@ -1,6 +1,7 @@
 import { Logger } from '@axe/core/logging/logger';
 import { Connection, ConnectionCallback } from '@axe/core/network/connection';
 import { IPeerContext, PeerContext } from '@axe/core/network/peer-context';
+import { PeerReconnectScheduler } from '@axe/core/network/peer-reconnect-scheduler';
 import { IRoomInfo, RoomInfo } from '@axe/core/network/room-info';
 import { SkyWayDataStream } from '@axe/core/network/skyway/skyway-data-stream';
 import { SkyWayDataStreamList } from '@axe/core/network/skyway/skyway-data-stream-list';
@@ -43,6 +44,7 @@ export class SkyWayConnection implements Connection {
 
   private readonly skyWay: SkyWayFacade = new SkyWayFacade();
   private readonly streams: SkyWayDataStreamList = new SkyWayDataStreamList();
+  private readonly reconnectScheduler: PeerReconnectScheduler = new PeerReconnectScheduler();
 
   private listAllPeersCache: PeerId[] = [];
   private httpRequestInterval: number = performance.now() + 500;
@@ -67,6 +69,7 @@ export class SkyWayConnection implements Connection {
   }
 
   close() {
+    this.reconnectScheduler.cancelAll();
     this.disconnectAll();
     this.skyWay.close();
   }
@@ -119,6 +122,7 @@ export class SkyWayConnection implements Connection {
   }
 
   disconnect(peer: IPeerContext): boolean {
+    this.reconnectScheduler.reset(peer.peerId);
     const stream = this.streams.find(peer.peerId);
     if (!stream) return false;
     this.disconnectStream(stream);
@@ -249,22 +253,25 @@ export class SkyWayConnection implements Connection {
       this.onData(stream, data);
     });
     stream.on('open', () => {
+      const wasReconnecting = 0 < this.reconnectScheduler.attemptOf(stream.peer.peerId);
+      this.reconnectScheduler.reset(stream.peer.peerId);
       this.trustedPeerIds.add(stream.peer.peerId);
       this.maybeUnavailablePeerIds.delete(stream.peer.peerId);
       this.notifyUserList();
       this.callback.onConnect?.(stream.peer);
+      if (wasReconnecting) this.callback.onReconnect?.(stream.peer, 'recovered');
     });
     stream.on('close', () => {
-      this.disconnectStream(stream);
+      this.disconnectStream(stream, true);
     });
     stream.on('error', () => {
-      this.disconnectStream(stream);
+      this.disconnectStream(stream, true);
     });
 
     stream.connect();
   }
 
-  private disconnectStream(stream: SkyWayDataStream) {
+  private disconnectStream(stream: SkyWayDataStream, allowReconnect: boolean = false) {
     stream.disconnect();
     const closed = this.streams.remove(stream);
 
@@ -278,6 +285,41 @@ export class SkyWayConnection implements Connection {
     }
     this.notifyUserList();
     if (closed) this.callback.onDisconnect?.(closed.peer);
+    if (closed && allowReconnect) this.scheduleReconnect(closed.peer);
+  }
+
+  private scheduleReconnect(peer: PeerContext) {
+    if (!this.skyWay.isOpen) return;
+
+    const target = PeerContext.parse(peer.peerId);
+    target.userId = peer.userId;
+    target.password = peer.password;
+
+    const delayMs = this.reconnectScheduler.schedule(target.peerId, () => {
+      void this.tryReconnect(target);
+    });
+
+    if (delayMs === null) {
+      if (this.reconnectScheduler.attemptOf(target.peerId) > 0) {
+        this.reconnectScheduler.reset(target.peerId);
+        this.callback.onReconnect?.(target, 'failed');
+      }
+      return;
+    }
+
+    Logger.info(`[SkyWay] ${delayMs}ms後に再接続を試みます: ${target.peerId}`);
+    if (this.reconnectScheduler.attemptOf(target.peerId) === 1) {
+      this.callback.onReconnect?.(target, 'retrying');
+    }
+  }
+
+  private async tryReconnect(peer: PeerContext) {
+    if (await this.connect(peer)) return;
+
+    Logger.info(`[SkyWay] 再接続の対象外になりました: ${peer.peerId}`);
+    const gaveUp = 0 < this.reconnectScheduler.attemptOf(peer.peerId) && !this.peerIds.includes(peer.peerId);
+    this.reconnectScheduler.reset(peer.peerId);
+    if (gaveUp) this.callback.onReconnect?.(peer, 'failed');
   }
 
   private onData(stream: SkyWayDataStream, container: DataContainer) {

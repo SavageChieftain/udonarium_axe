@@ -1,11 +1,14 @@
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { IRoomInfo } from '@axe/core/network/room-info';
 
+export type PeerReconnectState = 'retrying' | 'recovered' | 'failed';
+
 export class ConnectionCallback {
   onOpen!: (peer: IPeerContext) => void;
   onClose!: (peer: IPeerContext) => void;
   onConnect!: (peer: IPeerContext) => void;
   onDisconnect!: (peer: IPeerContext) => void;
+  onReconnect!: (peer: IPeerContext, state: PeerReconnectState) => void;
   onData!: (peer: IPeerContext | null, data: unknown[]) => void;
   onError!: (peer: IPeerContext, errorType: string, errorMessage: string, errorObject: unknown) => void;
 }
