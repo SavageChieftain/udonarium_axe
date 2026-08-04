@@ -1,4 +1,5 @@
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { BuffAppearance, parseBuffAppearance } from '@axe/domain/character/buff-appearance';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import GameSystemClass from 'bcdice/lib/game_system';
@@ -14,6 +15,7 @@ export interface ParsedBuffInput {
   sub: string;
   round: number;
   bufftext: string;
+  appearance: BuffAppearance;
 }
 
 export function parseBuffInput(text: string): ParsedBuffInput | null {
@@ -32,12 +34,20 @@ export function parseBuffInput(text: string): ParsedBuffInput | null {
     if (Number.isNaN(round)) round = 3;
   }
   bufftext += '/' + round + 'R';
-  return { buffname, sub, round, bufftext };
+  const appearance = parseBuffAppearance(parts.slice(3));
+  for (const token of parts.slice(3)) bufftext += '/' + token;
+  return { buffname, sub, round, bufftext, appearance };
 }
 
-export function addBuffRound(characters: GameCharacter[], name: string, info: string, round: number): void {
+export function addBuffRound(
+  characters: GameCharacter[],
+  name: string,
+  info: string,
+  round: number,
+  appearance: BuffAppearance = {}
+): void {
   for (const character of characters) {
-    character.buffs.addRound(name, info, round);
+    character.buffs.addRound(name, info, round, appearance);
   }
 }
 

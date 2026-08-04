@@ -2,8 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { ObjectInventory } from '@axe/application/inventory/object-inventory';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { resolveBuffColor } from '@axe/domain/character/buff-appearance';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
+import { parseBuffInput } from '@axe/features/controller/remote-controller/remote-controller-buff';
 import {
   getCounterElements,
   getGameObjects,
@@ -45,6 +47,27 @@ describe('remote-controller-helpers', () => {
     createdChars.push(char);
     return char;
   }
+
+  describe('parseBuffInput', () => {
+    it('名前・情報・ラウンドを空白区切りで読むこと', () => {
+      expect(parseBuffInput('猛攻撃 攻撃+2 5')).toMatchObject({ buffname: '猛攻撃', sub: '攻撃+2', round: 5 });
+    });
+
+    it('4 つ目以降で色とアイコンを指定できること', () => {
+      const parsed = parseBuffInput('毒 継続2 3 red ☠️');
+
+      expect(parsed!.appearance).toEqual({ color: resolveBuffColor('red'), icon: '☠️' });
+      expect(parsed!.bufftext).toContain('red');
+    });
+
+    it('見た目の指定が無ければ空になること', () => {
+      expect(parseBuffInput('猛攻撃')!.appearance).toEqual({});
+    });
+
+    it('空文字では読まないこと', () => {
+      expect(parseBuffInput('')).toBeNull();
+    });
+  });
 
   describe('getTabTitle', () => {
     it('should return "テーブル" for "table" type', () => {

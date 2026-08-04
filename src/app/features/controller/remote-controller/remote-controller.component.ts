@@ -24,6 +24,7 @@ import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { getMyPeerId } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { BUFF_COLORS, resolveBuffColor } from '@axe/domain/character/buff-appearance';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -235,6 +236,8 @@ export class RemoteControllerComponent {
   readonly controllerAreaIsHide = signal(false);
 
   readonly buffSectionOpen = signal(true);
+  readonly buffColors = BUFF_COLORS;
+  readonly buffColorId = signal('');
   readonly counterSectionOpen = signal(true);
 
   readonly chatTabidentifier = signal('');
@@ -272,6 +275,10 @@ export class RemoteControllerComponent {
     this.remoteNumber = -this.remoteNumber;
   }
 
+  selectBuffColor(id: string): void {
+    this.buffColorId.update((current) => (current === id ? '' : id));
+  }
+
   sendBuffChat(event: KeyboardEvent | null): void {
     if (event) event.preventDefault();
     const textVal = this.text().trim();
@@ -285,10 +292,16 @@ export class RemoteControllerComponent {
     }
     const ci = this.controllerInputComponent();
     const parts = gameCharacters.map((o) => `[${o.name}]`).join('');
-    addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round);
+    const appearance = { ...parsed.appearance };
+    let bufftext = parsed.bufftext;
+    if (appearance.color === undefined && this.buffColorId().length > 0) {
+      appearance.color = resolveBuffColor(this.buffColorId());
+      bufftext += `/${this.buffColorId()}`;
+    }
+    addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round, appearance);
     this.chatMessageService.sendMessage(
       this.chatTab(),
-      this.t('feature.controller.remote.addBuffMessage', { buff: parsed.bufftext, targets: parts }),
+      this.t('feature.controller.remote.addBuffMessage', { buff: bufftext, targets: parts }),
       this._gameSystem,
       this.sendFrom,
       '',

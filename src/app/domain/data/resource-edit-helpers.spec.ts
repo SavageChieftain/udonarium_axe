@@ -1,4 +1,6 @@
+import { resolveBuffColor } from '@axe/domain/character/buff-appearance';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 import {
   applyBuffEdit,
   applyResourceEdit,
@@ -158,6 +160,17 @@ describe('resource-edit-helpers', () => {
 
       expect(text).toContain('バフを付与');
       expect(text).toContain('マッスルベアー');
+    });
+
+    it('applyBuffEdit は 4 つ目以降で見た目を指定できる', () => {
+      const buff: BuffEdit = { command: '&毒/継続2/3/red/☠️', object: character, targeted: false };
+
+      const text = applyBuffEdit(buff, character);
+      const data = character.buffDataElement!.children[0].children[0] as DataElement;
+
+      expect(text).toContain('red');
+      expect(data.getAttribute(DataElementAttribute.BUFF_COLOR)).toBe(resolveBuffColor('red'));
+      expect(data.getAttribute(DataElementAttribute.BUFF_ICON)).toBe('☠️');
     });
   });
 });

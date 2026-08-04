@@ -180,6 +180,31 @@
             </div>
           }
 
+          <div class="flex items-center gap-1 px-2 pt-1">
+            <span class="text-ui-muted min-w-[3em] text-[11px] select-none">{{
+              'feature.controller.remote.buffColor' | transloco
+            }}</span>
+            <button
+              class="border-ui-border-panel hover:border-ui-accent size-4.5 shrink-0 cursor-pointer rounded-full border border-solid bg-[rgba(0,0,0,0.7)] p-0 transition-[border-color,transform] select-none"
+              [class.border-ui-accent!]="buffColorId() === ''"
+              [class.scale-115]="buffColorId() === ''"
+              type="button"
+              (click)="selectBuffColor('')"
+              [title]="'feature.controller.remote.buffColorDefault' | transloco"
+            ></button>
+            @for (color of buffColors; track color.id) {
+              <button
+                class="border-ui-border-panel hover:border-ui-accent size-4.5 shrink-0 cursor-pointer rounded-full border border-solid p-0 transition-[border-color,transform] select-none"
+                [class.border-ui-accent!]="buffColorId() === color.id"
+                [class.scale-115]="buffColorId() === color.id"
+                [style.background]="color.hex"
+                type="button"
+                (click)="selectBuffColor(color.id)"
+                [title]="color.id"
+              ></button>
+            }
+          </div>
+
           <div class="flex items-start gap-1.25 px-2 py-1">
             <textarea
               class="bg-ui-input border-ui-border-input text-ui-text focus:border-ui-accent rounded-ui-sm max-h-20 min-h-10 flex-1 resize-y border border-solid px-1.5 py-1 font-[inherit] text-[12px] outline-none"

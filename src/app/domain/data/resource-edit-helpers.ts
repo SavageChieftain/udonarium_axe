@@ -1,4 +1,5 @@
 import { toHalfWidth } from '@axe/core/util/string-util';
+import { parseBuffAppearance } from '@axe/domain/character/buff-appearance';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 
@@ -307,7 +308,12 @@ export function applyBuffEdit(buff: BuffEdit, character: GameCharacter): string 
       bufftext = `${bufftext}/${round}R`;
     }
 
-    character.buffs.addRound(buffname, sub, round);
+    const appearance = parseBuffAppearance(splittext.slice(3));
+    for (const token of splittext.slice(3)) {
+      if (token) bufftext = `${bufftext}/${token}`;
+    }
+
+    character.buffs.addRound(buffname, sub, round, appearance);
     text += `バフを付与 ${bufftext}    `;
   }
 
