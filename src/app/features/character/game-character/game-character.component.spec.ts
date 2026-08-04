@@ -1,8 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -37,6 +40,162 @@ describe('GameCharacterComponent', () => {
 
   it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
+  });
+
+  describe('頭上の表示', () => {
+    it('既定のキャラクターは HP と MP をバーで出すこと', () => {
+      const character = GameCharacter.create('ゲージ', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.pieceGauges().map((gauge) => gauge.name)).toEqual(['HP', 'MP']);
+        expect(component.pieceGauges()[0]).toMatchObject({ initial: 'H', ratio: 1 });
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('バー表示を外したリソースはコマから消えること', () => {
+      const character = GameCharacter.create('ゲージ', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+
+      try {
+        expect(component.pieceGauges()).toHaveLength(2);
+
+        hp.removeAttribute(DataElementAttribute.PIECE_GAUGE);
+        objectChange.notifyChanged(hp.identifier);
+
+        expect(component.pieceGauges().map((gauge) => gauge.name)).toEqual(['MP']);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('バフをアイコンと強度のバッジに畳むこと', () => {
+      const character = GameCharacter.create('バフ', 1, '');
+      character.addExtendData();
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const buffRoot = character.buffDataElement!;
+      const container = DataElement.create('バフ', '', {});
+      buffRoot.appendChild(container);
+      const buff = DataElement.create('毒', 3, {
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: 'ダメージ2',
+      });
+      buff.setAttribute(DataElementAttribute.BUFF_ICON, '☠️');
+      container.appendChild(buff);
+      objectChange.notifyChanged(buffRoot.identifier);
+
+      try {
+        expect(component.buffBadges()).toEqual([
+          expect.objectContaining({ icon: '☠️', name: '毒', strength: '2', rounds: 3 }),
+        ]);
+      } finally {
+        character.destroy();
+      }
+    });
+  });
+
+  describe('リソースの増減演出', () => {
+    it('現在値が減ったら赤い数字とダメージの閃光を出すこと', async () => {
+      const character = GameCharacter.create('被弾', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+
+      try {
+        fixture.detectChanges();
+        expect(component.floatingChanges()).toEqual([]);
+
+        hp.currentValue = 170;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        expect(component.floatingChanges()).toEqual([
+          expect.objectContaining({ kind: 'damage', label: '-30', name: 'HP' }),
+        ]);
+        expect(component.hitFlash()).toBe('damage');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('現在値が増えたら緑の数字と回復の閃光を出すこと', async () => {
+      const character = GameCharacter.create('回復', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+      hp.currentValue = 100;
+
+      try {
+        fixture.detectChanges();
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+        component.floatingChanges.set([]);
+
+        hp.currentValue = 160;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        expect(component.floatingChanges()).toEqual([
+          expect.objectContaining({ kind: 'heal', label: '+60', name: 'HP' }),
+        ]);
+        expect(component.hitFlash()).toBe('heal');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('変化の大きさで鳴らす音を選ぶこと', async () => {
+      const character = GameCharacter.create('鳴り分け', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+      const played: string[] = [];
+      vi.spyOn(SoundEffect, 'playLocal').mockImplementation((arg) => {
+        played.push(typeof arg === 'string' ? arg : arg.identifier);
+      });
+
+      try {
+        fixture.detectChanges();
+
+        hp.currentValue = 190;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        hp.currentValue = 130;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        hp.currentValue = 10;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        expect(played).toEqual([PresetSound.damageSmall, PresetSound.damageMedium, PresetSound.damageLarge]);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('変化が無ければ何も出さないこと', async () => {
+      const character = GameCharacter.create('無変化', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+
+      try {
+        fixture.detectChanges();
+        objectChange.notifyChanged(character.identifier);
+        await fixture.whenStable();
+
+        expect(component.floatingChanges()).toEqual([]);
+        expect(component.hitFlash()).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
   });
 
   describe('viewRotateZ computed signal', () => {

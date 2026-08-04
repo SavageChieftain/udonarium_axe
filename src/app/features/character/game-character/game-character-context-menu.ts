@@ -33,6 +33,12 @@ export function collectRegisteredRangeShapes(char: GameCharacter): RegisteredRan
   return result;
 }
 
+const BUFF_VIEW_MENU_MODES = ['icon', 'detail', 'count'] as const;
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function buildGameCharacterContextMenu(
   char: GameCharacter,
   gridSize: number,
@@ -42,11 +48,13 @@ export function buildGameCharacterContextMenu(
     onShowChatPalette: () => void;
     onShowRemoteController: () => void;
     onShowBuffEdit: () => void;
+    onSelectBuffView?: (mode: string) => void;
     onShowLightSettings: () => void;
     onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
   },
   t: TranslateFn,
-  overlapEntries: ContextMenuAction[] = []
+  overlapEntries: ContextMenuAction[] = [],
+  buffViewMode = 'icon'
 ): ContextMenuAction[] {
   const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
 
@@ -68,6 +76,18 @@ export function buildGameCharacterContextMenu(
       name: t('feature.character.contextMenu.editBuff'),
       action: () => callbacks.onShowBuffEdit(),
     },
+    ...(callbacks.onSelectBuffView
+      ? [
+          {
+            name: t('feature.character.contextMenu.buffView'),
+            action: undefined,
+            subActions: BUFF_VIEW_MENU_MODES.map((mode) => ({
+              name: (buffViewMode === mode ? '✔ ' : '') + t(`feature.character.buff.view${capitalize(mode)}`),
+              action: () => callbacks.onSelectBuffView?.(mode),
+            })),
+          },
+        ]
+      : []),
     {
       name: t('feature.character.contextMenu.lightSettings'),
       action: () => callbacks.onShowLightSettings(),

@@ -99,6 +99,8 @@
   --animate-shuffling: shuffle 800ms ease;
   --animate-dice-rolling: diceRoll 800ms ease;
   --animate-coin-flip: coinFlip 900ms cubic-bezier(0.33, 0, 0.35, 1);
+  --animate-float-change: floatChange 1300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-hit-flash: hitFlash 420ms ease-out;
   --animate-coin-flip-turn: coinFlipTurn 900ms cubic-bezier(0.33, 0, 0.35, 1);
   --animate-chat-slide-in: chatSlideIn 200ms ease-out;
   --animate-chat-fade-in: chatFadeIn 200ms ease-out;
@@ -1217,6 +1219,36 @@ input[type='range']::-moz-range-thumb {
   }
   100% {
     transform: translateZ(0) rotateY(1800deg) scale3d(1, 1, 1);
+  }
+}
+
+@keyframes floatChange {
+  0% {
+    opacity: 0;
+    transform: translateY(0.6em) scale(0.85);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1.12);
+  }
+  32% {
+    transform: translateY(-0.15em) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1.9em) scale(1);
+  }
+}
+
+@keyframes hitFlash {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
   }
 }
 

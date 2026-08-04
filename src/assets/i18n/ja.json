@@ -701,7 +701,8 @@
         "npcOff": "☐ NPC にする",
         "moveCommon": "共有イベントリに移動",
         "movePersonal": "個人イベントリに移動",
-        "moveGraveyard": "墓場に移動"
+        "moveGraveyard": "墓場に移動",
+        "buffView": "バフの表示"
       },
       "panel": {
         "sheet": "キャラクターシート",
@@ -733,7 +734,10 @@
         "icon": "アイコン",
         "currentPlaceholder": "現在値",
         "maxPlaceholder": "最大",
-        "delete": "バフを削除"
+        "delete": "バフを削除",
+        "viewIcon": "アイコン",
+        "viewDetail": "詳細",
+        "viewCount": "個数"
       },
       "importImg": {
         "sourceLabel": "複製元＞",

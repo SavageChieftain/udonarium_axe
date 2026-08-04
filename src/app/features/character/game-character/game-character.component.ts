@@ -1,4 +1,4 @@
-import { NgStyle } from '@angular/common';
+import { NgClass, NgStyle } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,6 +10,7 @@ import {
   input,
   linkedSignal,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -31,8 +32,18 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import {
+  diffResourceSnapshots,
+  loudestChangeRatio,
+  ResourceChange,
+  resourceChangeSeverity,
+  ResourceSnapshot,
+} from '@axe/domain/character/resource-change';
 import { DataElement } from '@axe/domain/data/data-element';
+import { collectDataElements } from '@axe/domain/data/data-element-tree';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
@@ -55,6 +66,28 @@ import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
+const DECOR_SUPERSAMPLE = 3;
+const DECOR_BASE_FONT_PX = 10;
+const NAME_BASE_FONT_PX = 15;
+const GAUGE_ROW_HEIGHT_PX = 13;
+type BuffViewMode = 'icon' | 'detail' | 'count';
+
+function resourceChangeSound(kind: 'damage' | 'heal', ratio: number): string {
+  const severity = resourceChangeSeverity(ratio);
+  if (kind === 'damage') {
+    if (severity === 'small') return PresetSound.damageSmall;
+    return severity === 'large' ? PresetSound.damageLarge : PresetSound.damageMedium;
+  }
+  if (severity === 'small') return PresetSound.healSmall;
+  return severity === 'large' ? PresetSound.healLarge : PresetSound.healMedium;
+}
+
+const FLOATING_CHANGE_MS = 1300;
+const FLOATING_CHANGE_LIMIT = 6;
+const HIT_FLASH_MS = 420;
+const GAUGE_STACK_GAP_PX = 32;
+const BUFF_STACK_GAP_PX = 40;
+
 @Component({
   selector: 'game-character',
   templateUrl: './game-character.component.html',
@@ -63,6 +96,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     MovableDirective,
     RotableDirective,
     SelectableDirective,
+    NgClass,
     NgStyle,
     GameDataElementBuffComponent,
     SafePipe,
@@ -109,6 +143,18 @@ export class GameCharacterComponent {
 
   constructor() {
     effect(() => {
+      const snapshot = this.resourceSnapshot();
+      const previous = this.previousResources;
+      this.previousResources = snapshot;
+      if (!previous) return;
+
+      const names = untracked(this.resourceNames);
+      const changes = diffResourceSnapshots(previous, snapshot, (identifier) => names.get(identifier) ?? '');
+      if (changes.length < 1) return;
+      untracked(() => this.showResourceChanges(changes));
+    });
+
+    effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
       const char = this.gameCharacter();
       const root = this.rootElementRef();
@@ -144,6 +190,8 @@ export class GameCharacterComponent {
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.highlightTimer);
       clearTimeout(this.unhighlightTimer);
+      for (const timer of this.floatingTimers) clearTimeout(timer);
+      this.floatingTimers.clear();
     });
   }
 
@@ -270,7 +318,37 @@ export class GameCharacterComponent {
     if (char) char.isAltitudeIndicate = isAltitudeIndicate;
   }
 
-  protected readonly foldingBuff = signal(false);
+  protected readonly buffViewMode = signal<BuffViewMode>('icon');
+  protected readonly foldingBuff = computed(() => this.buffViewMode() !== 'detail');
+
+  protected readonly buffViewIcon = computed(() => {
+    switch (this.buffViewMode()) {
+      case 'count':
+        return 'unfold_less';
+      case 'detail':
+        return 'view_list';
+      default:
+        return 'apps';
+    }
+  });
+
+  protected readonly buffViewLabelKey = computed(() => {
+    switch (this.buffViewMode()) {
+      case 'count':
+        return 'feature.character.buff.viewCount';
+      case 'detail':
+        return 'feature.character.buff.viewDetail';
+      default:
+        return 'feature.character.buff.viewIcon';
+    }
+  });
+
+  protected onCycleBuffView(event: Event) {
+    event.stopPropagation();
+    event.preventDefault();
+    this.buffViewMode.update((mode) => (mode === 'icon' ? 'detail' : mode === 'detail' ? 'count' : 'icon'));
+  }
+
   get gridSize(): number {
     return this.tabletopService.gridSize();
   }
@@ -286,16 +364,10 @@ export class GameCharacterComponent {
     return char.rotate;
   });
 
-  private readonly buffPanelHeightEstimate = computed(() => {
-    if (this.foldingBuff()) return 25;
-    const n = this.buffNum();
-    return Math.max(25, n * 17 + 8);
-  });
-
   readonly billboardTransform = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(30)));
 
   readonly billboardTransformBuff = computed(() =>
-    this.isPoster() ? '' : this.makeBillboardTransform(40 + this.buffPanelHeightEstimate())
+    this.isPoster() ? '' : this.makeBillboardTransform(BUFF_STACK_GAP_PX + this.gaugePanelHeightEstimate())
   );
 
   readonly billboardTransformImage = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(0)));
@@ -376,13 +448,103 @@ export class GameCharacterComponent {
     });
   }
 
+  readonly pieceGauges = computed<PieceGauge[]>(() => {
+    const char = this.gameCharacter();
+    const detail = char?.detailDataElement;
+    if (!detail) return [];
+    this.objectChange.versionOf(detail.identifier)();
+    this.objectChange.collectionOf('data')();
+    for (const element of collectDataElements(detail)) this.objectChange.versionOf(element.identifier)();
+    return selectPieceGauges(detail);
+  });
+
+  readonly buffBadges = computed<BuffBadge[]>(() => {
+    const char = this.gameCharacter();
+    const buffEl = char?.buffDataElement;
+    if (!buffEl) return [];
+    this.objectChange.versionOf(buffEl.identifier)();
+    this.objectChange.collectionOf('data')();
+    for (const element of collectDataElements(buffEl)) this.objectChange.versionOf(element.identifier)();
+    return toBuffBadges(buffEl);
+  });
+
+  protected readonly decorFontSizePx = DECOR_BASE_FONT_PX * DECOR_SUPERSAMPLE;
+  protected readonly nameFontSizePx = NAME_BASE_FONT_PX * DECOR_SUPERSAMPLE;
+  private readonly decorScale = `scale(${(1 / DECOR_SUPERSAMPLE).toFixed(6)})`;
+
+  private readonly resourceSnapshot = computed<Map<string, ResourceSnapshot>>(() => {
+    const char = this.gameCharacter();
+    const detail = char?.detailDataElement;
+    const snapshot = new Map<string, ResourceSnapshot>();
+    if (!detail) return snapshot;
+
+    this.objectChange.versionOf(detail.identifier)();
+    this.objectChange.collectionOf('data')();
+    for (const element of collectDataElements(detail)) {
+      this.objectChange.versionOf(element.identifier)();
+      if (!element.isNumberResource) continue;
+      snapshot.set(element.identifier, { current: Number(element.currentValue), max: Number(element.value) });
+    }
+    return snapshot;
+  });
+
+  private readonly resourceNames = computed(() => {
+    const detail = this.gameCharacter()?.detailDataElement;
+    const names = new Map<string, string>();
+    if (!detail) return names;
+    for (const element of collectDataElements(detail)) names.set(element.identifier, element.name);
+    return names;
+  });
+
+  readonly floatingChanges = signal<(ResourceChange & { key: number })[]>([]);
+  readonly hitFlash = signal<'damage' | 'heal' | null>(null);
+
+  private previousResources: Map<string, ResourceSnapshot> | null = null;
+  private floatingKey = 0;
+  private readonly floatingTimers = new Set<NodeJS.Timeout>();
+
+  readonly gaugeStackTransform = computed(
+    () => `${this.billboardTransformGauge()} ${this.decorScale} translateX(-50%)`
+  );
+
+  readonly buffStackTransform = computed(() => `${this.billboardTransformBuff()} ${this.decorScale} translateX(-50%)`);
+
+  readonly nameStackTransform = computed(() => `${this.billboardTransform()} ${this.decorScale} translateX(-50%)`);
+
+  readonly floatStackTransform = computed(
+    () => `${this.isPoster() ? '' : this.makeBillboardTransform(56)} ${this.decorScale} translateX(-50%)`
+  );
+
+  readonly floatLabelOrbit = computed(() => {
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 20)}px)`;
+    return this.labelOrbitTransform(56, 96);
+  });
+
+  private readonly gaugePanelHeightEstimate = computed(() => this.pieceGauges().length * GAUGE_ROW_HEIGHT_PX);
+
+  readonly billboardTransformGauge = computed(() =>
+    this.isPoster() ? '' : this.makeBillboardTransform(GAUGE_STACK_GAP_PX + this.gaugePanelHeightEstimate() / 2)
+  );
+
+  readonly gaugeLabelOrbit = computed(() => {
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 8 + this.gaugePanelHeightEstimate())}px)`;
+    return this.labelOrbitTransform(
+      GAUGE_STACK_GAP_PX + this.gaugePanelHeightEstimate(),
+      64 + this.gaugePanelHeightEstimate()
+    );
+  });
+
   readonly nameLabelOrbit = computed(() => {
     if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 5)}px)`;
     return this.labelOrbitTransform(30, 60);
   });
   readonly buffLabelOrbit = computed(() => {
-    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 8)}px)`;
-    return this.labelOrbitTransform(40, 85 + this.buffPanelHeightEstimate() / 2);
+    if (this.isPoster())
+      return `translateY(${-(this.size() * this.gridSize + 12 + this.gaugePanelHeightEstimate())}px)`;
+    return this.labelOrbitTransform(
+      BUFF_STACK_GAP_PX + this.gaugePanelHeightEstimate(),
+      68 + this.gaugePanelHeightEstimate()
+    );
   });
 
   private makeBillboardTransform(verticalOffset3D: number): string {
@@ -542,17 +704,41 @@ export class GameCharacterComponent {
         onShowChatPalette: () => this.showChatPalette(char),
         onShowRemoteController: () => this.showRemoteController(char),
         onShowBuffEdit: () => this.showBuffEdit(char),
+        onSelectBuffView: (mode: string) => this.buffViewMode.set(mode as BuffViewMode),
         onShowLightSettings: () => this.showLightSettings(char),
         onInvokeRangeShape: (value) => this.rangeShapeInvoke.spawnForCharacter(char, value),
       },
       this.translateFn,
-      overlapEntries
+      overlapEntries,
+      this.buffViewMode()
     );
     this.contextMenuService.open(
       position,
       surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
       this.name()
     );
+  }
+
+  private showResourceChanges(changes: ResourceChange[]) {
+    const entries = changes.map((change) => ({ ...change, key: ++this.floatingKey }));
+    this.floatingChanges.update((current) => [...current, ...entries].slice(-FLOATING_CHANGE_LIMIT));
+
+    const damaged = entries.some((entry) => entry.kind === 'damage');
+    this.hitFlash.set(damaged ? 'damage' : 'heal');
+    SoundEffect.playLocal(resourceChangeSound(damaged ? 'damage' : 'heal', loudestChangeRatio(entries)));
+
+    const flashTimer = setTimeout(() => {
+      this.floatingTimers.delete(flashTimer);
+      this.hitFlash.set(null);
+    }, HIT_FLASH_MS);
+    this.floatingTimers.add(flashTimer);
+
+    const keys = new Set(entries.map((entry) => entry.key));
+    const floatTimer = setTimeout(() => {
+      this.floatingTimers.delete(floatTimer);
+      this.floatingChanges.update((current) => current.filter((entry) => !keys.has(entry.key)));
+    }, FLOATING_CHANGE_MS);
+    this.floatingTimers.add(floatTimer);
   }
 
   onMove() {
@@ -675,10 +861,6 @@ export class GameCharacterComponent {
     const component = this.panelService.open<LightSettingsComponent>(LightSettingsComponent, option);
     component.target = gameObject;
     component.showVision = true;
-  }
-
-  protected foldingBuffFlag(flag: boolean) {
-    this.foldingBuff.set(flag);
   }
 
   protected readonly buffChildren = computed<DataElement[]>(() => {

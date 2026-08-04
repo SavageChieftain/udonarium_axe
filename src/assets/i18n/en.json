@@ -701,7 +701,8 @@
         "npcOff": "☐ Mark as NPC",
         "moveCommon": "Move to shared inventory",
         "movePersonal": "Move to personal inventory",
-        "moveGraveyard": "Move to graveyard"
+        "moveGraveyard": "Move to graveyard",
+        "buffView": "Buff display"
       },
       "panel": {
         "sheet": "Character sheet",
@@ -733,7 +734,10 @@
         "icon": "Icon",
         "currentPlaceholder": "Current",
         "maxPlaceholder": "Max",
-        "delete": "Delete buff"
+        "delete": "Delete buff",
+        "viewIcon": "Icons",
+        "viewDetail": "Details",
+        "viewCount": "Count"
       },
       "importImg": {
         "sourceLabel": "Source:",
