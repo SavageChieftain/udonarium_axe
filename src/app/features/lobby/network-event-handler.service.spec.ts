@@ -1,7 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { type NetworkErrorEvent, type NetworkPeerEvent } from '@axe/application/sync/object-change-network-helpers';
+import {
+  type NetworkErrorEvent,
+  type NetworkPeerEvent,
+  type PeerReconnectEvent,
+} from '@axe/application/sync/object-change-network-helpers';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Network } from '@axe/core/network/network';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -18,6 +22,7 @@ class StubObjectChange {
   readonly networkOpen$ = new EventChannel<NetworkPeerEvent>();
   readonly networkError$ = new EventChannel<NetworkErrorEvent>();
   readonly peerConnect$ = new EventChannel<NetworkPeerEvent>();
+  readonly peerReconnect$ = new EventChannel<PeerReconnectEvent>();
   onObjectChangedForAlias(): () => void {
     return () => {};
   }
@@ -154,6 +159,31 @@ describe('NetworkEventHandlerService', () => {
 
     expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(2);
     expect(openStandbySpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('peerReconnect: retrying は再接続中を通知する', () => {
+    stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'retrying' });
+
+    expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(1);
+    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.peerReconnect.retrying');
+  });
+
+  it('peerReconnect: recovered は復旧を通知する', () => {
+    stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'recovered' });
+
+    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.peerReconnect.recovered');
+  });
+
+  it('peerReconnect: failed は失敗を通知する', () => {
+    stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'failed' });
+
+    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.peerReconnect.failed');
+  });
+
+  it('peerReconnect: 名前が分からないピアは peerId の先頭で表示する', () => {
+    stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'retrying' });
+
+    expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('abcdef');
   });
 
   it('loadConfig で Network.configure と openStandby が呼ばれる', () => {

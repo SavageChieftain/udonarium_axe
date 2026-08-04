@@ -1,4 +1,5 @@
 import { EventChannel, ReadableChannel } from '@axe/core/event/event-channel';
+import { PeerReconnectState } from '@axe/core/network/connection';
 import { NetworkMessage } from '@axe/core/network/network-messaging';
 
 export interface ObjectDeleteEvent {
@@ -13,6 +14,11 @@ export interface FileSyncEvent {
 
 export interface NetworkPeerEvent {
   peerId: string;
+}
+
+export interface PeerReconnectEvent {
+  peerId: string;
+  state: PeerReconnectState;
 }
 
 export interface WritingMessageEvent {
@@ -57,6 +63,7 @@ export interface ObjectChangeNetworkTargets {
   fileResourceUpdated$: EventChannel<FileSyncEvent>;
   peerConnect$: EventChannel<NetworkPeerEvent>;
   peerDisconnect$: EventChannel<NetworkPeerEvent>;
+  peerReconnect$: EventChannel<PeerReconnectEvent>;
   networkOpen$: EventChannel<NetworkPeerEvent>;
   writingMessage$: EventChannel<WritingMessageEvent>;
   shuffleCardStack$: EventChannel<IdentifierEvent>;
@@ -102,6 +109,11 @@ export function subscribeNetworkBindings(
       case 'DISCONNECT_PEER':
         targets.peerDisconnect$.emit({ peerId: (msg.data as { peerId: string }).peerId });
         break;
+      case 'PEER_RECONNECT': {
+        const data = msg.data as { peerId: string; state: PeerReconnectState };
+        targets.peerReconnect$.emit({ peerId: data.peerId, state: data.state });
+        break;
+      }
       case 'OPEN_NETWORK':
         targets.networkOpen$.emit({ peerId: (msg.data as { peerId: string }).peerId });
         break;

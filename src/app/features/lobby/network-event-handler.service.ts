@@ -2,6 +2,7 @@ import { DestroyRef, inject, Injectable } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PeerReconnectState } from '@axe/core/network/connection';
 import { Network } from '@axe/core/network/network';
 import { loadIdentity, saveIdentity } from '@axe/core/storage/identity-storage';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -19,6 +20,11 @@ export class NetworkEventHandlerService {
    */
   private static readonly MAX_SERVER_ERROR_RECONNECTS = 3;
   private static readonly SERVER_ERROR_RECONNECT_BACKOFF_MS = [3000, 8000, 15000];
+  private static readonly RECONNECT_MESSAGE_KEYS: Record<PeerReconnectState, string> = {
+    retrying: 'feature.lobby.peerReconnect.retrying',
+    recovered: 'feature.lobby.peerReconnect.recovered',
+    failed: 'feature.lobby.peerReconnect.failed',
+  };
   private serverErrorReconnectAttempts = 0;
   private serverErrorReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -58,6 +64,11 @@ export class NetworkEventHandlerService {
     }, this.destroyRef);
     this.objectChange.peerConnect$.subscribe(() => {
       this.chatMessageService.calibrateTimeOffset();
+    }, this.destroyRef);
+    this.objectChange.peerReconnect$.subscribe((event) => {
+      const key = NetworkEventHandlerService.RECONNECT_MESSAGE_KEYS[event.state];
+      if (!key) return;
+      this.chatMessageService.sendSystemMessage(encodeI18nMessage(key, { name: this.resolvePeerName(event.peerId) }));
     }, this.destroyRef);
     this.objectChange.onObjectChangedForAlias(
       ['PeerCursor'],
@@ -103,6 +114,13 @@ export class NetworkEventHandlerService {
       clearTimeout(this.serverErrorReconnectTimer);
       this.serverErrorReconnectTimer = null;
     }
+  }
+
+  private resolvePeerName(peerId: string): string {
+    const cursor = PeerCursor.findByPeerId(peerId);
+    if (cursor?.name) return cursor.name;
+    if (cursor?.userId) return cursor.userId.slice(0, 6);
+    return peerId.slice(0, 6);
   }
 
   private resolveNetworkErrorMessage(errorType: string, _errorMessage: string): string {

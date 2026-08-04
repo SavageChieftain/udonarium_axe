@@ -81,6 +81,11 @@ export function initializeNetworkMessaging(): void {
     localDispatch('DISCONNECT_PEER', { peerId: peer.peerId });
   };
 
+  callback.onReconnect = (peer, state) => {
+    Logger.debug('[NetworkMessaging]', `<${peer.peerId}> reconnect <${state}>`);
+    localDispatch('PEER_RECONNECT', { peerId: peer.peerId, state });
+  };
+
   callback.onData = (_peer, data) => {
     for (const ctx of data as EventContext[]) {
       networkMessage$.emit({

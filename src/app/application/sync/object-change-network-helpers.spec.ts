@@ -8,6 +8,7 @@ import {
   type NetworkPeerEvent,
   type ObjectChangeNetworkTargets,
   type ObjectDeleteEvent,
+  type PeerReconnectEvent,
   subscribeNetworkBindings,
   type WritingMessageEvent,
 } from '@axe/application/sync/object-change-network-helpers';
@@ -21,6 +22,7 @@ function makeTargets(): ObjectChangeNetworkTargets {
     fileResourceUpdated$: new EventChannel<FileSyncEvent>(),
     peerConnect$: new EventChannel<NetworkPeerEvent>(),
     peerDisconnect$: new EventChannel<NetworkPeerEvent>(),
+    peerReconnect$: new EventChannel<PeerReconnectEvent>(),
     networkOpen$: new EventChannel<NetworkPeerEvent>(),
     writingMessage$: new EventChannel<WritingMessageEvent>(),
     shuffleCardStack$: new EventChannel<IdentifierEvent>(),

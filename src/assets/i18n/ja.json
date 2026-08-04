@@ -1216,6 +1216,11 @@
         "reconnected": "あなたと {{name}} さんの接続を確認しました。",
         "loggedOut": "{{name}} さんがログアウトしました。"
       },
+      "peerReconnect": {
+        "retrying": "{{name}} さんとの接続が切れました。再接続しています…",
+        "recovered": "{{name}} さんとの接続を復旧しました。",
+        "failed": "{{name}} さんとの再接続に失敗しました。復帰しないときは接続情報から再接続してください。"
+      },
       "invite": {
         "joining": "「{{roomName}}」に参加しています…",
         "notFound": "「{{roomName}}」が見つかりませんでした",

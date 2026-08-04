@@ -1216,6 +1216,11 @@
         "reconnected": "Reconnected to {{name}}.",
         "loggedOut": "{{name}} logged out."
       },
+      "peerReconnect": {
+        "retrying": "Lost the connection to {{name}}. Reconnecting…",
+        "recovered": "Restored the connection to {{name}}.",
+        "failed": "Could not reconnect to {{name}}. Reconnect from the connection panel if it does not recover."
+      },
       "invite": {
         "joining": "Joining \"{{roomName}}\"…",
         "notFound": "\"{{roomName}}\" was not found",

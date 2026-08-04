@@ -8,6 +8,7 @@ import {
   type NetworkErrorEvent,
   type NetworkPeerEvent,
   type ObjectDeleteEvent,
+  type PeerReconnectEvent,
   subscribeNetworkBindings,
   type WritingMessageEvent,
 } from '@axe/application/sync/object-change-network-helpers';
@@ -52,6 +53,7 @@ export type {
   NetworkErrorEvent,
   NetworkPeerEvent,
   ObjectDeleteEvent,
+  PeerReconnectEvent,
   WritingMessageEvent,
 } from '@axe/application/sync/object-change-network-helpers';
 export type {
@@ -226,6 +228,7 @@ export class ObjectChangeService {
   private readonly _fileResourceUpdated$ = new EventChannel<FileSyncEvent>();
   private readonly _peerConnect$ = new EventChannel<NetworkPeerEvent>();
   private readonly _peerDisconnect$ = new EventChannel<NetworkPeerEvent>();
+  private readonly _peerReconnect$ = new EventChannel<PeerReconnectEvent>();
   private readonly _networkOpen$ = new EventChannel<NetworkPeerEvent>();
   private readonly _writingMessage$ = new EventChannel<WritingMessageEvent>();
   private readonly _shuffleCardStack$ = new EventChannel<IdentifierEvent>();
@@ -243,6 +246,7 @@ export class ObjectChangeService {
   readonly fileResourceUpdated$: ReadableChannel<FileSyncEvent> = this._fileResourceUpdated$;
   readonly peerConnect$: ReadableChannel<NetworkPeerEvent> = this._peerConnect$;
   readonly peerDisconnect$: ReadableChannel<NetworkPeerEvent> = this._peerDisconnect$;
+  readonly peerReconnect$: ReadableChannel<PeerReconnectEvent> = this._peerReconnect$;
   readonly networkOpen$: ReadableChannel<NetworkPeerEvent> = this._networkOpen$;
   readonly writingMessage$: ReadableChannel<WritingMessageEvent> = this._writingMessage$;
   readonly shuffleCardStack$: ReadableChannel<IdentifierEvent> = this._shuffleCardStack$;
@@ -307,6 +311,7 @@ export class ObjectChangeService {
       fileResourceUpdated$: this._fileResourceUpdated$,
       peerConnect$: this._peerConnect$,
       peerDisconnect$: this._peerDisconnect$,
+      peerReconnect$: this._peerReconnect$,
       networkOpen$: this._networkOpen$,
       writingMessage$: this._writingMessage$,
       shuffleCardStack$: this._shuffleCardStack$,
