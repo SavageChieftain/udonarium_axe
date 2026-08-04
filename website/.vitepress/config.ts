@@ -94,6 +94,7 @@ export default defineConfig({
           items: [
             { text: 'インベントリ', link: '/manual/inventory' },
             { text: '保存と読み込み', link: '/manual/save-load' },
+            { text: '接続が切れたとき', link: '/manual/connection' },
             { text: 'ココフォリアのルーム取り込み（実験的）', link: '/manual/room-import' },
             { text: 'テーマ', link: '/manual/theme' },
           ],
