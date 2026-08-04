@@ -42,6 +42,7 @@ import {
   sendDeleteZeroRoundBuffMessage,
 } from '@axe/features/controller/remote-controller/remote-controller-buff';
 import {
+  getCounterElements,
   getGameObjects,
   getInventory,
   getInventoryTags,
@@ -378,6 +379,14 @@ export class RemoteControllerComponent {
   canView(object: TabletopObject): boolean {
     return object instanceof GameCharacter ? this.disclosureService.canView(object) : true;
   }
+
+  readonly counterElements = computed<DataElement[]>(() => {
+    const character = this.character();
+    if (!character) return [];
+    this.objectChange.versionOf(character.identifier)();
+    this.objectChange.collectionOf('data')();
+    return getCounterElements(character, this.dataTags);
+  });
 
   getInventoryTags(gameObject: GameCharacter): (DataElement | null)[] {
     this.objectChange.versionOf(gameObject.identifier)();

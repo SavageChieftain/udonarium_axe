@@ -269,54 +269,50 @@
 
           @if (character()?.rootDataElement && canView(character()!)) {
             <div class="flex flex-wrap gap-1 px-2 pt-1 pb-0.5">
-              @for (data of character()?.detailDataElement?.children ?? []; track data.identifier) {
-                @for (dataElm of data.children; track dataElm.identifier) {
-                  @if (dataElm && dataTags.includes(dataElm.name)) {
-                    @switch (dataElm.type) {
-                      @case ('numberResource') {
-                        <label class="peer/r1 inline-flex cursor-pointer select-none">
-                          <input
-                            class="peer hidden"
-                            name="controller"
-                            type="radio"
-                            value="{{ dataElm.name + currentValueSuffix() }}"
-                            (click)="remoteSelect(dataElm.name, 'now', dataElm.name + currentValueSuffix())"
-                          />
-                          <span
-                            class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
-                            >{{ dataElm.name + currentValueSuffix() }}</span
-                          >
-                        </label>
-                        <label class="inline-flex cursor-pointer select-none">
-                          <input
-                            class="peer hidden"
-                            name="controller"
-                            type="radio"
-                            value="{{ dataElm.name + maxValueSuffix() }}"
-                            (click)="remoteSelect(dataElm.name, 'max', dataElm.name + maxValueSuffix())"
-                          />
-                          <span
-                            class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
-                            >{{ dataElm.name + maxValueSuffix() }}</span
-                          >
-                        </label>
-                      }
-                      @default {
-                        <label class="inline-flex cursor-pointer select-none">
-                          <input
-                            class="peer hidden"
-                            name="controller"
-                            type="radio"
-                            value="{{ dataElm.name }}"
-                            (click)="remoteSelect(dataElm.name, 'now', dataElm.name)"
-                          />
-                          <span
-                            class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
-                            >{{ dataElm.name }}</span
-                          >
-                        </label>
-                      }
-                    }
+              @for (dataElm of counterElements(); track dataElm.identifier) {
+                @switch (dataElm.type) {
+                  @case ('numberResource') {
+                    <label class="peer/r1 inline-flex cursor-pointer select-none">
+                      <input
+                        class="peer hidden"
+                        name="controller"
+                        type="radio"
+                        value="{{ dataElm.name + currentValueSuffix() }}"
+                        (click)="remoteSelect(dataElm.name, 'now', dataElm.name + currentValueSuffix())"
+                      />
+                      <span
+                        class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
+                        >{{ dataElm.name + currentValueSuffix() }}</span
+                      >
+                    </label>
+                    <label class="inline-flex cursor-pointer select-none">
+                      <input
+                        class="peer hidden"
+                        name="controller"
+                        type="radio"
+                        value="{{ dataElm.name + maxValueSuffix() }}"
+                        (click)="remoteSelect(dataElm.name, 'max', dataElm.name + maxValueSuffix())"
+                      />
+                      <span
+                        class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
+                        >{{ dataElm.name + maxValueSuffix() }}</span
+                      >
+                    </label>
+                  }
+                  @default {
+                    <label class="inline-flex cursor-pointer select-none">
+                      <input
+                        class="peer hidden"
+                        name="controller"
+                        type="radio"
+                        value="{{ dataElm.name }}"
+                        (click)="remoteSelect(dataElm.name, 'now', dataElm.name)"
+                      />
+                      <span
+                        class="bg-ui-input border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:border-ui-accent peer-checked:text-ui-accent inline-flex cursor-pointer items-center rounded-full border border-solid px-2.5 py-0.75 text-[12px] transition-[background,color,border-color]"
+                        >{{ dataElm.name }}</span
+                      >
+                    </label>
                   }
                 }
               }

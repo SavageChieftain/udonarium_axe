@@ -5,6 +5,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import {
+  getCounterElements,
   getGameObjects,
   getInventory,
   getInventoryTags,
@@ -93,6 +94,33 @@ describe('remote-controller-helpers', () => {
 
       const result = getInventoryTags(character, inventoryContext);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getCounterElements', () => {
+    it('階層の深いリソースでもタグ順に拾えること', () => {
+      const char = createChar('カウンター対象');
+
+      const elements = getCounterElements(char, ['HP', 'MP']);
+
+      expect(elements.map((element) => element.name)).toEqual(['HP', 'MP']);
+      expect(elements.every((element) => element.isNumberResource)).toBe(true);
+    });
+
+    it('存在しないタグは飛ばすこと', () => {
+      const char = createChar('カウンター対象');
+
+      expect(getCounterElements(char, ['HP', '架空の項目', 'MP']).map((element) => element.name)).toEqual(['HP', 'MP']);
+    });
+
+    it('同じ項目を重ねて返さないこと', () => {
+      const char = createChar('カウンター対象');
+
+      expect(getCounterElements(char, ['HP', 'HP'])).toHaveLength(1);
+    });
+
+    it('タグが空なら空を返すこと', () => {
+      expect(getCounterElements(createChar('カウンター対象'), [])).toEqual([]);
     });
   });
 
