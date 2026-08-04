@@ -1,6 +1,6 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffManager } from '@axe/domain/character/buff-manager';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 
 describe('BuffManager', () => {
   let store: ObjectStore;
@@ -54,6 +54,31 @@ describe('BuffManager', () => {
       expect(data).toBeTruthy();
       expect(data!.value).toBe(2);
       expect(data!.currentValue).toBe('B');
+    });
+
+    it('見た目を渡せばアイコンと色を持たせられる', () => {
+      manager.addRound('毒', '継続2', 3, { color: '#c62828', icon: '☠️' });
+
+      const added = container.getFirstElementByName('毒')!;
+      expect(added.getAttribute(DataElementAttribute.BUFF_COLOR)).toBe('#c62828');
+      expect(added.getAttribute(DataElementAttribute.BUFF_ICON)).toBe('☠️');
+    });
+
+    it('既にあるバフの見た目も塗り替える', () => {
+      manager.addRound('毒', '継続2', 3, { color: '#c62828', icon: '☠️' });
+      manager.addRound('毒', '継続1', 1, { color: '#2e7d32' });
+
+      const added = container.getFirstElementByName('毒')!;
+      expect(added.getAttribute(DataElementAttribute.BUFF_COLOR)).toBe('#2e7d32');
+      expect(added.getAttribute(DataElementAttribute.BUFF_ICON)).toBe('☠️');
+    });
+
+    it('空の色を渡せば既定に戻す', () => {
+      manager.addRound('毒', '継続2', 3, { color: '#c62828' });
+      manager.addRound('毒', '継続2', 3, { color: '' });
+
+      const added = container.getFirstElementByName('毒')!;
+      expect(added.getAttribute(DataElementAttribute.BUFF_COLOR)).toBe('');
     });
   });
 

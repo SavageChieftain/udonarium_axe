@@ -1,4 +1,5 @@
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { BuffAppearance } from '@axe/domain/character/buff-appearance';
+import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 export class BuffManager {
   constructor(private readonly buffDataElement: DataElement | null) {}
@@ -61,7 +62,7 @@ export class BuffManager {
     return expired;
   }
 
-  addRound(name: string, info: string = '', round: number = 3): void {
+  addRound(name: string, info: string = '', round: number = 3, appearance: BuffAppearance = {}): void {
     if (!this.buffDataElement) return;
     const container =
       this.container ??
@@ -74,13 +75,25 @@ export class BuffManager {
     if (data) {
       data.value = round;
       data.currentValue = info;
+      applyAppearance(data, appearance);
     } else {
-      container.appendChild(
-        DataElement.create(name, round, {
-          type: DataElementType.NUMBER_RESOURCE,
-          currentValue: info,
-        })
-      );
+      const created = DataElement.create(name, round, {
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: info,
+      });
+      applyAppearance(created, appearance);
+      container.appendChild(created);
     }
+  }
+}
+
+function applyAppearance(data: DataElement, appearance: BuffAppearance): void {
+  if (appearance.color !== undefined) {
+    if (appearance.color.length > 0) data.setAttribute(DataElementAttribute.BUFF_COLOR, appearance.color);
+    else data.removeAttribute(DataElementAttribute.BUFF_COLOR);
+  }
+  if (appearance.icon !== undefined) {
+    if (appearance.icon.length > 0) data.setAttribute(DataElementAttribute.BUFF_ICON, appearance.icon);
+    else data.removeAttribute(DataElementAttribute.BUFF_ICON);
   }
 }

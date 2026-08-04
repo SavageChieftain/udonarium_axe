@@ -1,3 +1,4 @@
+import { DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 
 export interface BuffBadge {
@@ -7,6 +8,7 @@ export interface BuffBadge {
   effect: string;
   strength: string;
   rounds: number;
+  color: string;
 }
 
 const DEFAULT_ICON = '✦';
@@ -19,6 +21,11 @@ export function parseBuffStrength(effect: string): string {
 
   const normalized = matched[0].replace('−', '-');
   return Number(normalized) === 0 ? '' : normalized;
+}
+
+export function buffColorOf(element: DataElement): string {
+  const color = (element.getAttribute(DataElementAttribute.BUFF_COLOR) ?? '').trim();
+  return color.length > 0 ? color : DEFAULT_BUFF_COLOR;
 }
 
 export function buffIconOf(element: DataElement): string {
@@ -49,6 +56,7 @@ export function toBuffBadges(buffRoot: DataElement | null): BuffBadge[] {
         effect,
         strength: parseBuffStrength(effect),
         rounds: Number.isFinite(rounds) ? rounds : 0,
+        color: buffColorOf(data),
       });
     }
   };
