@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { messageAdded$, selectGameTable$ } from '@axe/core/event/domain-events';
+import { Network } from '@axe/core/network/network';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
@@ -25,6 +26,56 @@ describe('ObjectSynchronizer', () => {
       ObjectSynchronizer.instance.initialize();
       ObjectSynchronizer.instance.destroy();
       expect(true).toBe(true);
+    });
+  });
+
+  describe('requestFullSync', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('接続中のピアそれぞれにカタログ送信とカタログ要求を出す', () => {
+      vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([
+        { peerId: 'peer-a', isOpen: true },
+        { peerId: 'peer-b', isOpen: true },
+      ] as never);
+      const sendSpy = vi.spyOn(Network.instance, 'send').mockImplementation(() => {});
+
+      const count = ObjectSynchronizer.instance.requestFullSync();
+
+      expect(count).toBe(2);
+      const requested = sendSpy.mock.calls
+        .filter(([data]) => (data as { eventName: string }).eventName === 'REQUEST_CATALOG')
+        .map(([, sendTo]) => sendTo);
+      expect(requested).toEqual(['peer-a', 'peer-b']);
+    });
+
+    it('未接続のピアは対象にしない', () => {
+      vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([{ peerId: 'peer-a', isOpen: false }] as never);
+      const sendSpy = vi.spyOn(Network.instance, 'send').mockImplementation(() => {});
+
+      expect(ObjectSynchronizer.instance.requestFullSync()).toBe(0);
+      expect(sendSpy).not.toHaveBeenCalled();
+    });
+
+    it('他ピアからの REQUEST_CATALOG にカタログを返す', () => {
+      ObjectSynchronizer.instance.initialize();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      const sendCatalogSpy = vi.spyOn(ObjectSynchronizer.instance as any, 'sendCatalog').mockImplementation(() => {});
+
+      localDispatch('REQUEST_CATALOG', {}, 'peer-a');
+
+      expect(sendCatalogSpy).toHaveBeenCalledWith('peer-a');
+    });
+
+    it('自分が送った REQUEST_CATALOG には応答しない', () => {
+      ObjectSynchronizer.instance.initialize();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      const sendCatalogSpy = vi.spyOn(ObjectSynchronizer.instance as any, 'sendCatalog').mockImplementation(() => {});
+
+      localDispatch('REQUEST_CATALOG', {});
+
+      expect(sendCatalogSpy).not.toHaveBeenCalled();
     });
   });
 

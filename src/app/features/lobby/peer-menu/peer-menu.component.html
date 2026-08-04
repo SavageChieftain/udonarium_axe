@@ -123,6 +123,10 @@
         </button>
       </div>
     </div>
+    @if (canRequestFullSync) {
+      <button (click)="requestFullSync()">{{ 'feature.lobby.peerMenu.fullSync' | transloco }}</button>
+      <p class="px-1 text-xs text-(--ui-text-muted)">{{ 'feature.lobby.peerMenu.fullSyncHint' | transloco }}</p>
+    }
     @if (shouldShowReconnectButton) {
       <button (click)="showReConnect()" class="danger">{{ 'feature.lobby.peerMenu.reconnect' | transloco }}</button>
     }

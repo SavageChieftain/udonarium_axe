@@ -36,6 +36,10 @@ export class ObjectSynchronizer {
           case 'DISCONNECT_PEER':
             this.removePeerMap((msg as NetworkMessage<{ peerId: string }>).data.peerId);
             break;
+          case 'REQUEST_CATALOG':
+            if (msg.isSendFromSelf) break;
+            this.sendCatalog(msg.sendFrom);
+            break;
           case 'SYNCHRONIZE_GAME_OBJECT': {
             if (msg.isSendFromSelf) break;
             const catalog: CatalogItem[] = msg.data as CatalogItem[];
@@ -91,6 +95,16 @@ export class ObjectSynchronizer {
   destroy() {
     this.cleanups.forEach((c) => c());
     this.cleanups = [];
+  }
+
+  requestFullSync(): number {
+    const peerIds = Network.peerContexts.filter((peer) => peer.isOpen).map((peer) => peer.peerId);
+    for (const peerId of peerIds) {
+      this.sendCatalog(peerId);
+      networkSend('REQUEST_CATALOG', {}, peerId);
+    }
+    Logger.info(`[ObjectSync] ${peerIds.length}ピアへ再同期を要求しました`);
+    return peerIds.length;
   }
 
   private updateObject(object: GameObject, context: ObjectContext): GameObject {

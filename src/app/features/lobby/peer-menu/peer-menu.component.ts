@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
@@ -10,6 +12,7 @@ import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { saveIdentity } from '@axe/core/storage/identity-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 import { buildInviteLink } from '@axe/domain/peer/invite-link';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
@@ -40,6 +43,7 @@ export class PeerMenuComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly chatMessageService = inject(ChatMessageService);
   private readonly destroyRef = inject(DestroyRef);
   networkService = Network;
   gameRoomService = this.objectStore;
@@ -168,6 +172,17 @@ export class PeerMenuComponent {
 
   get shouldShowReconnectButton(): boolean {
     return this.networkService.peerIds.length > 1;
+  }
+
+  get canRequestFullSync(): boolean {
+    return 0 < this.networkService.peerIds.length;
+  }
+
+  requestFullSync() {
+    const peerCount = ObjectSynchronizer.instance.requestFullSync();
+    this.chatMessageService.sendSystemMessage(
+      encodeI18nMessage('feature.lobby.peerMenu.fullSyncRequested', { count: peerCount })
+    );
   }
 
   togglePasswordVisibility() {
