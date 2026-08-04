@@ -315,8 +315,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       }
     }
 
-    const peerConnection = this.getPeerConnection();
-    this.stats = peerConnection ? new WebRTCStats(peerConnection) : null;
+    this.stats = this.createStats();
 
     if (isOpen) {
       this.startMonitoring();
@@ -386,10 +385,8 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
   }
 
   async updateStatsAsync() {
-    if (this.stats == null) return;
+    if (this.stats == null) this.stats = this.createStats();
     this.sendPing();
-    await this.stats.updateAsync();
-    this.candidateType = this.stats.candidateType;
 
     const deltaTime = performance.now() - this.timestamp;
 
@@ -399,6 +396,11 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       this.state = 'disconnected';
       this.emit('close');
       return;
+    }
+
+    if (this.stats != null) {
+      await this.stats.updateAsync();
+      this.candidateType = this.stats.candidateType;
     }
 
     const healthRate = deltaTime <= 10000 ? 1 : 5000 / (deltaTime - 10000 + 5000);
@@ -419,7 +421,12 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.peer.session.grade = gradeByCandidate[this.candidateType];
     this.peer.session.description = this.candidateType;
 
-    this.emit('stats', this.stats);
+    if (this.stats != null) this.emit('stats', this.stats);
+  }
+
+  private createStats(): WebRTCStats | null {
+    const peerConnection = this.getPeerConnection();
+    return peerConnection ? new WebRTCStats(peerConnection) : null;
   }
 
   sendPing() {

@@ -116,6 +116,53 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(stream.peer.session.health).toBeLessThan(1);
   });
 
+  it('統計が取れないリンクでも無通信判定が走る', async () => {
+    const { stream, streamAny } = createStream();
+    streamAny['stats'] = null;
+    const onClose = vi.fn();
+    stream.on('close', onClose);
+
+    streamAny['_timestamp'] = performance.now() - SkyWayDataStream.STALE_TIMEOUT_MS - 1;
+    await stream.updateStatsAsync();
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('統計が取れないリンクでも ping と health を更新する', async () => {
+    const { stream, streamAny } = createStream();
+    streamAny['stats'] = null;
+
+    streamAny['_timestamp'] = performance.now();
+    await stream.updateStatsAsync();
+
+    expect(stream.peer.session.health).toBe(1);
+    expect(stream.peer.session.speed).toBeGreaterThan(0);
+  });
+
+  it('統計が取れないリンクは毎回取得を試みる', async () => {
+    const { stream, streamAny } = createStream();
+    streamAny['stats'] = null;
+    const getPeerConnection = vi.spyOn(stream, 'getPeerConnection').mockReturnValue(undefined);
+
+    streamAny['_timestamp'] = performance.now();
+    await stream.updateStatsAsync();
+    await stream.updateStatsAsync();
+
+    expect(getPeerConnection).toHaveBeenCalledTimes(2);
+    expect(streamAny['stats']).toBeNull();
+  });
+
+  it('あとから統計が取れるようになったら計測を始める', async () => {
+    const { stream, streamAny } = createStream();
+    streamAny['stats'] = null;
+    vi.spyOn(stream, 'getPeerConnection').mockReturnValue({ getStats: vi.fn().mockResolvedValue(new Map()) } as never);
+
+    streamAny['_timestamp'] = performance.now();
+    await stream.updateStatsAsync();
+
+    expect(streamAny['stats']).not.toBeNull();
+  });
+
   it('開通時にタイムスタンプがリセットされる', () => {
     const { stream, streamAny } = createStream();
 
