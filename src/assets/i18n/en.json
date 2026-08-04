@@ -732,6 +732,8 @@
         "defaultName": "New buff",
         "namePlaceholder": "Buff name",
         "icon": "Icon",
+        "color": "Colour",
+        "colorDefault": "Default",
         "currentPlaceholder": "Current",
         "maxPlaceholder": "Max",
         "delete": "Delete buff",

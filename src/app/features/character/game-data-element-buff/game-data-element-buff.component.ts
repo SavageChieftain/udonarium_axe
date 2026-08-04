@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { FormsModule } from '@angular/forms';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
+import { BUFF_COLORS, DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
+import { buffColorOf, buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -72,12 +73,28 @@ export class GameDataElementBuffComponent {
     return buffIconOf(element);
   });
 
+  readonly colorChoices = BUFF_COLORS;
+  readonly defaultColor = DEFAULT_BUFF_COLOR;
+
+  readonly color = computed(() => {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return buffColorOf(element);
+  });
+
   readonly strength = computed(() => parseBuffStrength(`${this.currentValue ?? ''}`));
 
   selectIcon(icon: string): void {
     const element = this.gameDataElement();
     if (buffIconOf(element) === icon) element.removeAttribute(DataElementAttribute.BUFF_ICON);
     else element.setAttribute(DataElementAttribute.BUFF_ICON, icon);
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  selectColor(color: string): void {
+    const element = this.gameDataElement();
+    if (color.length < 1 || buffColorOf(element) === color) element.removeAttribute(DataElementAttribute.BUFF_COLOR);
+    else element.setAttribute(DataElementAttribute.BUFF_COLOR, color);
     this.objectChange.notifyChanged(element.identifier);
   }
 

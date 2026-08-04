@@ -215,19 +215,20 @@
                                       [attr.title]="badge.name + (badge.effect ? ' / ' + badge.effect : '')"
                                     >
                                       <span
-                                        class="relative inline-flex size-[1.5em] items-center justify-center rounded-[0.25em] border border-solid border-white/35 bg-black/70 text-[0.95em] leading-none shadow-[0_0.1em_0.25em_rgba(0,0,0,0.6)]"
+                                        class="relative inline-flex size-[1.5em] items-center justify-center rounded-full border border-solid border-white/35 text-[0.95em] leading-none shadow-[0_0.1em_0.25em_rgba(0,0,0,0.6)]"
+                                        [style.background]="badge.color"
                                       >
                                         {{ badge.icon }}
                                         @if (badge.strength) {
                                           <span
-                                            class="bg-ui-accent pointer-events-none absolute top-[-0.5em] left-[-0.55em] rounded-[0.3em] px-[0.18em] text-[0.45em] leading-tight font-bold text-white shadow-[0_0.1em_0.2em_rgba(0,0,0,0.7)]"
+                                            class="bg-ui-accent pointer-events-none absolute top-[-0.35em] left-[-0.4em] rounded-[0.3em] px-[0.18em] text-[0.45em] leading-tight font-bold text-white shadow-[0_0.1em_0.2em_rgba(0,0,0,0.7)]"
                                             >{{ badge.strength }}</span
                                           >
                                         }
                                       </span>
                                       <span
                                         data-testid="buff-rounds"
-                                        class="pointer-events-none absolute right-[-0.5em] bottom-[-0.45em] rounded-[0.25em] border border-solid border-white/30 bg-black/90 px-[0.2em] text-[0.52em] leading-tight font-bold text-white tabular-nums"
+                                        class="pointer-events-none absolute right-[-0.35em] bottom-[-0.3em] rounded-[0.25em] border border-solid border-white/30 bg-black/90 px-[0.2em] text-[0.52em] leading-tight font-bold text-white tabular-nums"
                                         >{{ badge.rounds }}</span
                                       >
                                     </span>

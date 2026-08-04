@@ -54,6 +54,31 @@ test.describe('バフ編集ビュー (game-character-buff-view)', () => {
     await expect(first).toHaveValue('猛攻撃');
   });
 
+  test('バッジの色を選ぶとコマの丸いバッジがその色になること', async ({ page }) => {
+    await page
+      .locator('game-character-buff-view')
+      .getByRole('button', { name: /バフを追加/ })
+      .click();
+
+    const view = page.locator('game-character-buff-view');
+    const picker = view.locator('details').first();
+    await picker.locator('summary').click();
+    await picker.locator('button[title="red"]').click();
+    await expect(picker.locator('summary')).toHaveCSS('background-color', 'rgb(198, 40, 40)', { timeout: 5000 });
+
+    const badge = page.locator('game-character').first().locator('[data-testid="buff-badge"] > span').first();
+    await expect(badge).toBeAttached({ timeout: 5000 });
+
+    await expect(badge).toHaveCSS('background-color', 'rgb(198, 40, 40)', { timeout: 5000 });
+
+    const shape = await badge.evaluate((element) => {
+      const computed = getComputedStyle(element as HTMLElement);
+      return { radius: parseFloat(computed.borderRadius), width: element.clientWidth };
+    });
+
+    expect(shape.radius, 'バッジが丸くない').toBeGreaterThanOrEqual(shape.width / 2 - 1);
+  });
+
   test('「バフを削除」ボタンで該当行が消えること', async ({ page }) => {
     const before = await page.locator('game-character-buff-view [game-data-element-buff]').count();
     // 最初のバフのゴミ箱アイコン (title="バフを削除")

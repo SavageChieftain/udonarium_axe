@@ -10,24 +10,50 @@
               @if (!isTagLocked()) {
                 <details class="relative shrink-0">
                   <summary
-                    class="border-ui-border-panel bg-ui-elevated hover:border-ui-accent flex size-6 cursor-pointer list-none items-center justify-center rounded-full border border-solid text-[13px] leading-none [&::-webkit-details-marker]:hidden"
+                    class="border-ui-border-panel hover:border-ui-accent flex size-6 cursor-pointer list-none items-center justify-center rounded-full border border-solid text-[13px] leading-none [&::-webkit-details-marker]:hidden"
+                    [style.background]="color()"
                     [title]="'feature.character.buff.icon' | transloco"
                   >
                     {{ icon() }}
                   </summary>
                   <div
-                    class="bg-ui-panel border-ui-border-panel rounded-ui-sm absolute top-7 left-0 z-10 grid w-40 grid-cols-6 gap-0.5 border border-solid p-1 shadow-md"
+                    class="bg-ui-panel border-ui-border-panel rounded-ui-sm absolute top-7 left-0 z-10 w-40 border border-solid p-1 shadow-md"
                   >
-                    @for (choice of iconChoices; track choice) {
+                    <div class="grid grid-cols-6 gap-0.5">
+                      @for (choice of iconChoices; track choice) {
+                        <button
+                          class="hover:bg-ui-hover flex size-6 cursor-pointer items-center justify-center rounded-xs border-none bg-transparent p-0 text-[13px] leading-none"
+                          [class.bg-ui-accent-bg]="icon() === choice"
+                          type="button"
+                          (click)="selectIcon(choice)"
+                        >
+                          {{ choice }}
+                        </button>
+                      }
+                    </div>
+                    <div class="text-ui-muted mt-1 mb-0.5 px-0.5 text-[10px] tracking-[0.06em] uppercase select-none">
+                      {{ 'feature.character.buff.color' | transloco }}
+                    </div>
+                    <div class="grid grid-cols-6 gap-0.5">
                       <button
-                        class="hover:bg-ui-hover flex size-6 cursor-pointer items-center justify-center rounded-xs border-none bg-transparent p-0 text-[13px] leading-none"
-                        [class.bg-ui-accent-bg]="icon() === choice"
+                        class="border-ui-border-panel hover:border-ui-accent size-6 cursor-pointer rounded-full border border-solid p-0"
+                        [style.background]="defaultColor"
+                        [class.border-ui-accent!]="color() === defaultColor"
                         type="button"
-                        (click)="selectIcon(choice)"
-                      >
-                        {{ choice }}
-                      </button>
-                    }
+                        (click)="selectColor('')"
+                        [title]="'feature.character.buff.colorDefault' | transloco"
+                      ></button>
+                      @for (choice of colorChoices; track choice.id) {
+                        <button
+                          class="border-ui-border-panel hover:border-ui-accent size-6 cursor-pointer rounded-full border border-solid p-0"
+                          [style.background]="choice.hex"
+                          [class.border-ui-accent!]="color() === choice.hex"
+                          type="button"
+                          (click)="selectColor(choice.hex)"
+                          [title]="choice.id"
+                        ></button>
+                      }
+                    </div>
                   </div>
                 </details>
               } @else {

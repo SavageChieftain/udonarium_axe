@@ -732,6 +732,8 @@
         "defaultName": "新しいバフ",
         "namePlaceholder": "バフ名",
         "icon": "アイコン",
+        "color": "色",
+        "colorDefault": "既定",
         "currentPlaceholder": "現在値",
         "maxPlaceholder": "最大",
         "delete": "バフを削除",
