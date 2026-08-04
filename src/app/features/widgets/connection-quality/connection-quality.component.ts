@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Network } from '@axe/core/index';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
@@ -11,6 +12,7 @@ import {
   PeerLinkQuality,
   worstLinkQuality,
 } from '@axe/domain/peer/peer-link-quality';
+import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export interface PeerLinkView {
@@ -25,13 +27,15 @@ export interface PeerLinkView {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-connection-quality',
   templateUrl: './connection-quality.component.html',
-  host: { class: 'contents' },
-  imports: [TranslocoModule],
+  imports: [DraggableDirective, TranslocoModule],
 })
 export class ConnectionQualityComponent {
+  protected readonly widgets = inject(WidgetVisibilityService);
   private readonly objectChange = inject(ObjectChangeService);
 
-  protected readonly isOpen = signal(false);
+  private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panel');
+  private savedLeft: string | null = null;
+  private savedTop: string | null = null;
 
   protected readonly links = computed<PeerLinkView[]>(() => {
     this.objectChange.peerStatsVersion();
@@ -55,9 +59,26 @@ export class ConnectionQualityComponent {
 
   protected readonly qualityIcon = linkQualityIcon;
   protected readonly qualityColorClass = linkQualityColorClass;
-  protected readonly qualityLabelKey = linkQualityLabelKey;
 
-  protected toggle(): void {
-    this.isOpen.update((open) => !open);
+  constructor() {
+    effect((onCleanup) => {
+      const el = this.panelRef()?.nativeElement;
+      if (!el) return;
+      if (this.savedLeft !== null && this.savedTop !== null) {
+        el.style.left = this.savedLeft;
+        el.style.top = this.savedTop;
+      } else {
+        el.style.left = `${Math.max(8, window.innerWidth - el.offsetWidth - 8)}px`;
+        el.style.top = '96px';
+      }
+      onCleanup(() => {
+        this.savedLeft = el.style.left;
+        this.savedTop = el.style.top;
+      });
+    });
+  }
+
+  protected close(): void {
+    this.widgets.connectionQuality.set(false);
   }
 }

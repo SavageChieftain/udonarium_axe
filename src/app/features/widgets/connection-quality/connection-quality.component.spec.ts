@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Network } from '@axe/core/index';
 import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
 import { PeerLinkQuality } from '@axe/domain/peer/peer-link-quality';
-import { ConnectionQualityComponent } from '@axe/features/lobby/connection-quality/connection-quality.component';
+import { ConnectionQualityComponent } from '@axe/features/widgets/connection-quality/connection-quality.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 interface ComponentInternals {
   links: () => { peerId: string; name: string; quality: PeerLinkQuality; ping: number; isRelayed: boolean }[];
   worst: () => PeerLinkQuality;
   hasRelayedLink: () => boolean;
-  isOpen: () => boolean;
-  toggle: () => void;
+  close: () => void;
 }
 
 function peerContext(peerId: string, overrides: Record<string, unknown> = {}) {
@@ -34,15 +34,23 @@ describe('ConnectionQualityComponent', () => {
   let fixture: ComponentFixture<ConnectionQualityComponent>;
   let internals: ComponentInternals;
   let objectChange: ObjectChangeService;
+  let widgets: WidgetVisibilityService;
 
-  function create() {
+  function panel(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('.connection-quality');
+  }
+
+  function create(visible = true) {
     fixture = TestBed.createComponent(ConnectionQualityComponent);
     internals = fixture.componentInstance as unknown as ComponentInternals;
     objectChange = TestBed.inject(ObjectChangeService);
+    widgets = TestBed.inject(WidgetVisibilityService);
+    widgets.connectionQuality.set(visible);
     fixture.detectChanges();
   }
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [ConnectionQualityComponent],
       providers: [...TEST_PROVIDERS],
@@ -53,6 +61,31 @@ describe('ConnectionQualityComponent', () => {
     vi.restoreAllMocks();
   });
 
+  it('ウィジェットが非表示のときは何も描画しない', () => {
+    vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
+    create(false);
+
+    expect(panel()).toBeNull();
+  });
+
+  it('ウィジェットが表示のときはパネルを描画する', () => {
+    vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
+    create();
+
+    expect(panel()).not.toBeNull();
+  });
+
+  it('閉じるとウィジェットの表示状態が false になる', () => {
+    vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
+    create();
+
+    internals.close();
+    fixture.detectChanges();
+
+    expect(widgets.connectionQuality()).toBe(false);
+    expect(panel()).toBeNull();
+  });
+
   it('接続中のピアごとに1行を作る', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a'), peerContext('peer-b')] as never);
     create();
@@ -60,15 +93,15 @@ describe('ConnectionQualityComponent', () => {
     expect(internals.links().map((link) => link.peerId)).toEqual(['peer-a', 'peer-b']);
   });
 
-  it('ピアが居なければ何も表示しない', () => {
+  it('ピアが居なくてもパネル自体は開いたままにする', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([] as never);
     create();
 
     expect(internals.links()).toEqual([]);
-    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(panel()).not.toBeNull();
   });
 
-  it('バッジは最も悪いリンクを示す', () => {
+  it('見出しは最も悪いリンクを示す', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([
       peerContext('peer-a'),
       peerContext('peer-b', { session: { ping: 800 } }),
@@ -105,16 +138,5 @@ describe('ConnectionQualityComponent', () => {
     objectChange.peerStatsVersion.update((v) => v + 1);
 
     expect(internals.worst()).toBe(PeerLinkQuality.Poor);
-  });
-
-  it('クリックで詳細の開閉が切り替わる', () => {
-    vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
-    create();
-
-    expect(internals.isOpen()).toBe(false);
-    internals.toggle();
-    expect(internals.isOpen()).toBe(true);
-    internals.toggle();
-    expect(internals.isOpen()).toBe(false);
   });
 });

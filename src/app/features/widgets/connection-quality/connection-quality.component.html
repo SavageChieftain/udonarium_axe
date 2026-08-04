@@ -1,0 +1,57 @@
+@if (widgets.connectionQuality()) {
+  <div
+    #panel
+    class="connection-quality rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-100 box-border flex w-60 cursor-grab flex-col border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
+    appDraggable
+    [draggable.unhandle]="'button'"
+  >
+    <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-2.5 py-1.5">
+      <i class="material-icons text-[18px]!" [class]="colorClass()">{{ icon() }}</i>
+      <span class="min-w-0 flex-1 truncate text-[12px] font-semibold">{{
+        'feature.lobby.linkQuality.widgetTitle' | transloco
+      }}</span>
+      <span class="text-ui-muted shrink-0 text-[11px]">{{ labelKey() | transloco }}</span>
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text inline-flex h-5.5 cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+        [title]="'app.fab.connectionQuality' | transloco"
+        (click)="close()"
+      >
+        <i class="material-icons text-[14px]!">close</i>
+      </button>
+    </div>
+
+    <ul class="max-h-64 overflow-y-auto p-1">
+      @for (link of links(); track link.peerId) {
+        <li class="flex items-center gap-2 px-1.5 py-1 text-[12px]">
+          <i class="material-icons text-[16px]!" [class]="qualityColorClass(link.quality)">{{
+            qualityIcon(link.quality)
+          }}</i>
+          <span class="min-w-0 flex-1 truncate" [title]="link.name">{{ link.name }}</span>
+          @if (link.isRelayed) {
+            <i
+              class="material-icons text-[14px]! text-amber-500"
+              [title]="'feature.lobby.linkQuality.relayed' | transloco"
+              >alt_route</i
+            >
+          }
+          <span class="text-ui-dim shrink-0 tabular-nums">
+            @if (link.ping > 0) {
+              {{ link.ping }}{{ 'feature.lobby.linkQuality.pingUnit' | transloco }}
+            } @else {
+              --
+            }
+          </span>
+        </li>
+      } @empty {
+        <li class="text-ui-dim px-1.5 py-2 text-[11px]">{{ 'feature.lobby.linkQuality.noPeers' | transloco }}</li>
+      }
+    </ul>
+
+    @if (hasRelayedLink()) {
+      <p class="text-ui-dim border-ui-border-panel border-t border-solid px-2.5 py-1.5 text-[11px]">
+        {{ 'feature.lobby.linkQuality.relayedHint' | transloco }}
+      </p>
+    }
+  </div>
+}

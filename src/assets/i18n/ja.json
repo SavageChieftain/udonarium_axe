@@ -1227,6 +1227,8 @@
         "poor": "不安定",
         "lost": "切断",
         "pingUnit": "ms",
+        "widgetTitle": "通信品質",
+        "noPeers": "接続中の参加者はいません。",
         "relayed": "中継サーバー経由",
         "relayedHint": "中継サーバー経由の接続があります。直接つながらない回線のため、遅くなりやすい状態です。"
       },
@@ -1766,6 +1768,7 @@
       "cutIn": "カットイン",
       "inventory": "インベントリ",
       "clock": "時計",
+      "connectionQuality": "通信品質",
       "miniPlayer": "ミニプレイヤー",
       "visualNovel": "ノベルモード",
       "gmTools": "GMツール",

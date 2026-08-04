@@ -26,7 +26,6 @@ import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.componen
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
-import { ConnectionQualityComponent } from '@axe/features/lobby/connection-quality/connection-quality.component';
 import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
@@ -36,7 +35,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-gm-toolbar',
   templateUrl: './gm-toolbar.component.html',
-  imports: [ConnectionQualityComponent, DraggableDirective, NpcBarComponent, TranslocoModule],
+  imports: [DraggableDirective, NpcBarComponent, TranslocoModule],
 })
 export class GmToolbarComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;

@@ -1227,6 +1227,8 @@
         "poor": "Unstable",
         "lost": "Disconnected",
         "pingUnit": "ms",
+        "widgetTitle": "Connection quality",
+        "noPeers": "No one else is connected.",
         "relayed": "Via relay server",
         "relayedHint": "Some links go through a relay server. Those peers could not connect directly, so they tend to be slower."
       },
@@ -1766,6 +1768,7 @@
       "cutIn": "Cut-in",
       "inventory": "Inventory",
       "clock": "Clock",
+      "connectionQuality": "Connection quality",
       "miniPlayer": "Mini player",
       "visualNovel": "Novel mode",
       "gmTools": "GM tools",

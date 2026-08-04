@@ -99,6 +99,17 @@
     <button
       type="button"
       class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="widgets.connectionQuality()"
+      [class.bg-ui-accent-bg]="widgets.connectionQuality()"
+      [title]="'app.fab.connectionQuality' | transloco"
+      (click)="widgets.toggleConnectionQuality()"
+    >
+      <i class="material-icons">network_check</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
       [class.text-ui-accent]="widgets.miniPlayer()"
       [class.bg-ui-accent-bg]="widgets.miniPlayer()"
       [title]="'app.fab.miniPlayer' | transloco"
@@ -185,8 +196,6 @@
         </ul>
       }
     </div>
-
-    <app-connection-quality></app-connection-quality>
 
     <app-npc-bar></app-npc-bar>
   </div>

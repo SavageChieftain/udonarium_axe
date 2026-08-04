@@ -5,9 +5,10 @@ const STORAGE_KEY = 'ui-widgets';
 export interface WidgetVisibility {
   readonly clock: boolean;
   readonly miniPlayer: boolean;
+  readonly connectionQuality: boolean;
 }
 
-const DEFAULT_VISIBILITY: WidgetVisibility = { clock: false, miniPlayer: true };
+const DEFAULT_VISIBILITY: WidgetVisibility = { clock: false, miniPlayer: true, connectionQuality: false };
 
 export function parseWidgetVisibility(raw: string | null): WidgetVisibility {
   if (!raw) return DEFAULT_VISIBILITY;
@@ -16,6 +17,8 @@ export function parseWidgetVisibility(raw: string | null): WidgetVisibility {
     return {
       clock: typeof parsed.clock === 'boolean' ? parsed.clock : DEFAULT_VISIBILITY.clock,
       miniPlayer: typeof parsed.miniPlayer === 'boolean' ? parsed.miniPlayer : DEFAULT_VISIBILITY.miniPlayer,
+      connectionQuality:
+        typeof parsed.connectionQuality === 'boolean' ? parsed.connectionQuality : DEFAULT_VISIBILITY.connectionQuality,
     };
   } catch {
     return DEFAULT_VISIBILITY;
@@ -28,10 +31,15 @@ export class WidgetVisibilityService {
 
   readonly clock = signal(this.restored.clock);
   readonly miniPlayer = signal(this.restored.miniPlayer);
+  readonly connectionQuality = signal(this.restored.connectionQuality);
 
   constructor() {
     effect(() => {
-      const state: WidgetVisibility = { clock: this.clock(), miniPlayer: this.miniPlayer() };
+      const state: WidgetVisibility = {
+        clock: this.clock(),
+        miniPlayer: this.miniPlayer(),
+        connectionQuality: this.connectionQuality(),
+      };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     });
   }
@@ -42,5 +50,9 @@ export class WidgetVisibilityService {
 
   toggleMiniPlayer(): void {
     this.miniPlayer.update((visible) => !visible);
+  }
+
+  toggleConnectionQuality(): void {
+    this.connectionQuality.update((visible) => !visible);
   }
 }
