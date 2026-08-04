@@ -1,15 +1,20 @@
 import { defineConfig } from 'vitepress';
 
 const repo = 'https://github.com/SavageChieftain/udonarium_axe';
+const base = '/udonarium_axe/';
 
 export default defineConfig({
   lang: 'ja-JP',
   title: 'Udonarium Axe',
   description: 'ブラウザで動く TRPG オンラインセッション支援ツール — 利用ガイド',
-  base: '/udonarium_axe/',
+  base,
   cleanUrls: true,
   lastUpdated: true,
-  head: [['meta', { name: 'theme-color', content: '#8b7cf6' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
+    ['link', { rel: 'apple-touch-icon', href: `${base}icon-180.png` }],
+    ['meta', { name: 'theme-color', content: '#8b7cf6' }],
+  ],
   vite: {
     css: { postcss: { plugins: [] } },
   },

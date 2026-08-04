@@ -5,7 +5,10 @@
   "type": "module",
   "description": "Udonarium Axe 利用ガイド (VitePress)",
   "scripts": {
+    "sync:icons": "node scripts/sync-app-icons.mjs",
+    "predev": "npm run sync:icons",
     "dev": "vitepress dev",
+    "prebuild": "npm run sync:icons",
     "build": "vitepress build",
     "preview": "vitepress preview"
   },
