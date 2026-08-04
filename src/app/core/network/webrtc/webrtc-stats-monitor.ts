@@ -1,3 +1,4 @@
+import { peerStatsUpdated$ } from '@axe/core/network/peer-stats-events';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';
 
 export interface WebRTCConnection {
@@ -32,9 +33,11 @@ export class WebRTCStatsMonitor {
 
   private static async doMonitoringAsync() {
     const toRemove: WebRTCConnection[] = [];
+    let updated = false;
     for (const connection of this.monitoringConnections) {
       if (connection.open) {
         await connection.updateStatsAsync();
+        updated = true;
       } else {
         toRemove.push(connection);
       }
@@ -42,6 +45,7 @@ export class WebRTCStatsMonitor {
     for (const connection of toRemove) {
       this.remove(connection);
     }
+    if (updated || toRemove.length > 0) peerStatsUpdated$.emit();
     if (this.monitoringConnections.size === 0) {
       this.updateWebRTCStatsTimer = null;
       return;

@@ -1,0 +1,52 @@
+@if (links().length > 0) {
+  <div class="relative flex">
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.bg-ui-accent-bg]="isOpen()"
+      [title]="'feature.lobby.linkQuality.title' | transloco: { state: labelKey() | transloco }"
+      (click)="toggle()"
+    >
+      <i class="material-icons" [class]="colorClass()">{{ icon() }}</i>
+      @if (hasRelayedLink()) {
+        <span class="bg-ui-panel absolute right-1 bottom-1 rounded-full text-[10px] leading-none text-amber-500">
+          <i class="material-icons text-[10px]!">alt_route</i>
+        </span>
+      }
+    </button>
+
+    @if (isOpen()) {
+      <ul
+        class="rounded-ui-md border-ui-border-panel bg-ui-panel shadow-ui-md absolute top-9 left-0 z-10 max-h-72 min-w-56 overflow-y-auto border border-solid p-1 [backdrop-filter:blur(24px)_saturate(1.5)]"
+      >
+        @for (link of links(); track link.peerId) {
+          <li class="flex items-center gap-2 px-2 py-1.5 text-[12px]">
+            <i class="material-icons text-[16px]!" [class]="qualityColorClass(link.quality)">{{
+              qualityIcon(link.quality)
+            }}</i>
+            <span class="min-w-0 flex-1 truncate" [title]="link.name">{{ link.name }}</span>
+            @if (link.isRelayed) {
+              <i
+                class="material-icons text-[14px]! text-amber-500"
+                [title]="'feature.lobby.linkQuality.relayed' | transloco"
+                >alt_route</i
+              >
+            }
+            <span class="text-ui-dim shrink-0 tabular-nums">
+              @if (link.ping > 0) {
+                {{ link.ping }}{{ 'feature.lobby.linkQuality.pingUnit' | transloco }}
+              } @else {
+                --
+              }
+            </span>
+          </li>
+        }
+        @if (hasRelayedLink()) {
+          <li class="text-ui-dim border-ui-border-panel mt-1 border-t border-solid px-2 py-1.5 text-[11px]">
+            {{ 'feature.lobby.linkQuality.relayedHint' | transloco }}
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}

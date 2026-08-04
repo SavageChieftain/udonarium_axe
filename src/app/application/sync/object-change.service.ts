@@ -34,6 +34,7 @@ import {
 } from '@axe/core/event/domain-events';
 import { EventChannel, ReadableChannel } from '@axe/core/event/event-channel';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
+import { peerStatsUpdated$ } from '@axe/core/network/peer-stats-events';
 import {
   childrenChanged$,
   type ChildrenChangeEvent,
@@ -285,6 +286,9 @@ export class ObjectChangeService {
   /** Signal that updates when network peer events occur (debounced 100ms). */
   readonly networkVersion = signal<number>(0);
 
+  /** Signal that updates when WebRTC link statistics are refreshed (every 2-8s while connected). */
+  readonly peerStatsVersion = signal<number>(0);
+
   constructor() {
     objectChanged$.subscribe((e) => {
       this._versions.get(e.identifier)?.update((v) => v + 1);
@@ -366,6 +370,7 @@ export class ObjectChangeService {
     this._networkOpen$.subscribe(bumpNetworkVersion, this.destroyRef);
     this._peerConnect$.subscribe(bumpNetworkVersion, this.destroyRef);
     this._peerDisconnect$.subscribe(bumpNetworkVersion, this.destroyRef);
+    peerStatsUpdated$.subscribe(() => this.peerStatsVersion.update((v) => v + 1), this.destroyRef);
     this.destroyRef.onDestroy(() => {
       if (netTimer !== null) clearTimeout(netTimer);
     });

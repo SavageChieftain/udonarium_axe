@@ -1219,6 +1219,17 @@
         "reconnected": "Reconnected to {{name}}.",
         "loggedOut": "{{name}} logged out."
       },
+      "linkQuality": {
+        "title": "Connection quality: {{state}}",
+        "unknown": "Measuring",
+        "good": "Good",
+        "fair": "Unsteady",
+        "poor": "Unstable",
+        "lost": "Disconnected",
+        "pingUnit": "ms",
+        "relayed": "Via relay server",
+        "relayedHint": "Some links go through a relay server. Those peers could not connect directly, so they tend to be slower."
+      },
       "peerReconnect": {
         "retrying": "Lost the connection to {{name}}. Reconnecting…",
         "recovered": "Restored the connection to {{name}}.",

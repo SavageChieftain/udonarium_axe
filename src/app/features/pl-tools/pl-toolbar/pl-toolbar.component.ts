@@ -22,6 +22,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
+import { ConnectionQualityComponent } from '@axe/features/lobby/connection-quality/connection-quality.component';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
@@ -35,7 +36,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-pl-toolbar',
   templateUrl: './pl-toolbar.component.html',
-  imports: [DraggableDirective, SafePipe, TranslocoModule],
+  imports: [ConnectionQualityComponent, DraggableDirective, SafePipe, TranslocoModule],
 })
 export class PlToolbarComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;

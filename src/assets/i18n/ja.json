@@ -1219,6 +1219,17 @@
         "reconnected": "あなたと {{name}} さんの接続を確認しました。",
         "loggedOut": "{{name}} さんがログアウトしました。"
       },
+      "linkQuality": {
+        "title": "通信品質: {{state}}",
+        "unknown": "測定中",
+        "good": "良好",
+        "fair": "やや不安定",
+        "poor": "不安定",
+        "lost": "切断",
+        "pingUnit": "ms",
+        "relayed": "中継サーバー経由",
+        "relayedHint": "中継サーバー経由の接続があります。直接つながらない回線のため、遅くなりやすい状態です。"
+      },
       "peerReconnect": {
         "retrying": "{{name}} さんとの接続が切れました。再接続しています…",
         "recovered": "{{name}} さんとの接続を復旧しました。",
