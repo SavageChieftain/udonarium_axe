@@ -1,3 +1,34 @@
+## [1.25.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.24.0...v1.25.0) (2026-08-04)
+
+### ✨ Features
+
+* **character:** choose on the sheet what a piece shows ([7a5f189](https://github.com/SavageChieftain/udonarium_axe/commit/7a5f189dc7e2f25980da71d7be94a6d9ed9e8836))
+* **character:** give a buff a colour of its own ([82a5ec3](https://github.com/SavageChieftain/udonarium_axe/commit/82a5ec317d31acd7c018237d12a50374d97416d8))
+* **character:** give every piece a plate with bars, buffs and reactions ([1a81e2c](https://github.com/SavageChieftain/udonarium_axe/commit/1a81e2c693a57cee20884c03b2a948f322f339c5))
+* **character:** let a resource mean the opposite ([6337b86](https://github.com/SavageChieftain/udonarium_axe/commit/6337b86629a1844e9640733ec1f80163d03fc80b))
+* **character:** model gauges, buff badges and resource changes ([6aab7cd](https://github.com/SavageChieftain/udonarium_axe/commit/6aab7cd6608231b34104f546d31480aecc307757))
+* **character:** round the buff badge and paint it ([b38a2fd](https://github.com/SavageChieftain/udonarium_axe/commit/b38a2fd276a5be708e3e26fa38b681e29ef7e7dc))
+* **character:** widen the bars and react to damage and healing in place ([0e6b6da](https://github.com/SavageChieftain/udonarium_axe/commit/0e6b6dad5b5e50fff3f9bc66fd8a627db1237429))
+* **controller:** grant a coloured buff from the remote and from chat ([10961d0](https://github.com/SavageChieftain/udonarium_axe/commit/10961d0129558da842977aab42c42fc86c7ef98d))
+* **media:** add damage and heal sounds, and a way to play them locally ([8cbbdfa](https://github.com/SavageChieftain/udonarium_axe/commit/8cbbdfa6f71bb9f55ba2e63c38a82eb7567b7210))
+
+### 🐛 Bug Fixes
+
+* **controller:** find resources however deep the sheet nests them ([18c0435](https://github.com/SavageChieftain/udonarium_axe/commit/18c043545dec6ca6e01eb0adfb580d9d6d890e81))
+* **data-element:** keep a resource row's controls on one line ([6520612](https://github.com/SavageChieftain/udonarium_axe/commit/6520612f5b6599c0ee550d5930d06be84028d4fd))
+* **data-element:** move the bar toggle into a row's advanced options ([5e26b95](https://github.com/SavageChieftain/udonarium_axe/commit/5e26b952bb80638bf02818e19642e6a51552511d))
+
+### 📝 Documentation
+
+* **website:** add v1.24.0 release notes ([4bf82c1](https://github.com/SavageChieftain/udonarium_axe/commit/4bf82c11a8db3328f5366217639bf3cb019da80d))
+* **website:** describe buff badge colours ([d9a4f83](https://github.com/SavageChieftain/udonarium_axe/commit/d9a4f8363c600164c1419c2dd5a43d9ec4ef3c72))
+* **website:** describe the piece plate in the manual ([a086cc2](https://github.com/SavageChieftain/udonarium_axe/commit/a086cc2dc02dc280127ceee053eeab6484f83450))
+
+### ♻️ Refactor
+
+* **character:** call the inverted resource a negative resource ([3b360e2](https://github.com/SavageChieftain/udonarium_axe/commit/3b360e251447cfb2239cd2c59366216aeb0bb16f))
+* **character:** switch the buff view from the context menu only ([0e80bd8](https://github.com/SavageChieftain/udonarium_axe/commit/0e80bd89a147aa37d1bbf4faa3507eacc47d083f))
+
 ## [1.24.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.23.1...v1.24.0) (2026-08-03)
 
 ### ✨ Features
