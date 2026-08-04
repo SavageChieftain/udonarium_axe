@@ -378,7 +378,7 @@
       </div>
       @if (isEdit() && !isImage()) {
         <div
-          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[74px_repeat(5,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
+          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[74px_repeat(6,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
         >
           <ng-select
             class="ud-select min-h-5.5! w-18.5 min-w-18.5 text-[0.68em]! [&_.ng-select-container]:h-5.5! [&_.ng-select-container]:min-h-5.5! [&_.ng-select-container]:items-center [&_.ng-select-container_.ng-arrow-wrapper]:self-center [&_.ng-select-container_.ng-arrow-wrapper]:pb-0"
@@ -418,6 +418,15 @@
               type="button"
               (click)="togglePieceGauge($event)"
               [title]="'feature.dataElement.action.pieceGauge' | transloco"
+            >
+              <i class="material-icons">signal_cellular_alt</i>
+            </button>
+          } @else {
+            <button
+              class="pointer-events-none invisible inline-flex h-5.5 w-5 shrink-0 items-center justify-center rounded-(--gde-radius-control) [&_.material-icons]:text-[14px]"
+              type="button"
+              aria-hidden="true"
+              tabindex="-1"
             >
               <i class="material-icons">signal_cellular_alt</i>
             </button>
@@ -729,18 +738,6 @@
               >
                 <i class="material-icons">open_in_new</i>
               </button>
-              @if (canShowPieceGauge()) {
-                <button
-                  class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"
-                  [class.bg-ui-accent-bg]="isPieceGauge()"
-                  [class.text-ui-accent!]="isPieceGauge()"
-                  type="button"
-                  (click)="togglePieceGauge($event)"
-                  [title]="'feature.dataElement.action.pieceGauge' | transloco"
-                >
-                  <i class="material-icons">signal_cellular_alt</i>
-                </button>
-              }
               @if (isImage()) {
                 <button
                   class="text-ui-muted hover:bg-ui-hover hover:text-ui-text disabled:text-ui-dim inline-flex h-5.5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-(--gde-radius-control) border-none bg-transparent p-0 disabled:cursor-default disabled:bg-transparent disabled:opacity-[0.36] [&_.material-icons]:text-[14px]"

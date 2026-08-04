@@ -69,6 +69,31 @@ test.describe('コマの頭上表示', () => {
     await expect(gauges).toHaveCount(1, { timeout: 5000 });
   });
 
+  test('リソース行の操作ボタンが 1 段に収まること', async ({ page }) => {
+    const sheet = await openSheet(page);
+    await sheet.locator('button[title="編集"]').first().dispatchEvent('click');
+    await expect(sheet.locator('button[title="コマにバーを表示"]').first()).toBeVisible({ timeout: 5000 });
+
+    const actions = sheet
+      .locator('.elm-row-actions')
+      .filter({ has: page.locator('button[title="コマにバーを表示"]') })
+      .first();
+    const cluster = await box(actions);
+    const buttons = actions.locator('button:visible');
+    const count = await buttons.count();
+    expect(count).toBeGreaterThan(3);
+
+    const tops: number[] = [];
+    for (let i = 0; i < count; i++) tops.push((await box(buttons.nth(i))).y);
+    expect(Math.max(...tops) - Math.min(...tops), '操作ボタンが 2 段に折り返している').toBeLessThan(6);
+    expect(cluster.height, '操作ボタンの帯が 2 段ぶんの高さになっている').toBeLessThan(34);
+
+    const panel = await box(sheet);
+    expect(cluster.x + cluster.width, '操作ボタンがシートからはみ出している').toBeLessThanOrEqual(
+      panel.x + panel.width + 1
+    );
+  });
+
   test('バフ・バー・名前がコマの真上に詰めて積まれること', async ({ page }) => {
     await addBuff(page);
     const piece = newCharacterPiece(page);
