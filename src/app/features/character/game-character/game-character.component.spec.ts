@@ -180,7 +180,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('増えるほど悪いリソースでは増加をダメージとして扱うこと', async () => {
+    it('マイナスリソースでは増加をダメージとして扱うこと', async () => {
       const character = GameCharacter.create('狂気', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);

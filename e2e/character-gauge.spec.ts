@@ -316,7 +316,7 @@ test.describe('コマの頭上表示', () => {
     await expect(piece.locator('[data-testid="resource-change"]')).toHaveCount(0, { timeout: 5000 });
   });
 
-  test('増えるほど悪いリソースでは増減の意味が裏返ること', async ({ page }) => {
+  test('マイナスリソースでは増減の意味が裏返ること', async ({ page }) => {
     const piece = newCharacterPiece(page);
     const sheet = await openSheet(page);
     await sheet.locator('button[title="編集"]').first().dispatchEvent('click');

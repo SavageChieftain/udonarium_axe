@@ -1920,7 +1920,7 @@
       "formula": "Formula",
       "imagePopupOriginal": "Show full size in popup",
       "pieceGauge": "Show a bar on the piece",
-      "gaugeInverted": "Higher is worse",
+      "gaugeInverted": "Negative resource",
       "columnLabel": "Column label",
       "columnLabelPlaceholder": "Empty: use name",
       "columnGroup": "Column group",

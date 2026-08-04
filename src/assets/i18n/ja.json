@@ -1920,7 +1920,7 @@
       "formula": "計算式",
       "imagePopupOriginal": "ポップアップで原寸表示",
       "pieceGauge": "コマにバーを表示",
-      "gaugeInverted": "増えるほど悪い",
+      "gaugeInverted": "マイナスリソース",
       "columnLabel": "列表示",
       "columnLabelPlaceholder": "空なら名前",
       "columnGroup": "列グループ",

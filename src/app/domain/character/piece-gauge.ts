@@ -34,7 +34,7 @@ export function isGaugeShownOnPiece(element: DataElement): boolean {
   return element.getAttribute(DataElementAttribute.PIECE_GAUGE) === 'true';
 }
 
-/** 増えるほど悪くなるリソース（狂気度・汚染度など）。 */
+/** マイナスリソース。増えるほど悪くなる（狂気度・汚染度など）。 */
 export function isGaugeInverted(element: DataElement): boolean {
   return element.getAttribute(DataElementAttribute.GAUGE_INVERTED) === 'true';
 }

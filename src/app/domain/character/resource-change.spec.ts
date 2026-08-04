@@ -48,7 +48,7 @@ describe('diffResourceSnapshots()', () => {
     expect(diffResourceSnapshots(before, after, nameOf)[0].label).toBe('-20');
   });
 
-  it('増えるほど悪いリソースでは意味を裏返すこと', () => {
+  it('マイナスリソースでは増減の意味を裏返すこと', () => {
     const before = snapshot({ san: { current: 10, max: 100, inverted: true } });
 
     expect(

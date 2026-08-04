@@ -23,7 +23,7 @@ describe('gaugeColor()', () => {
     expect(new Set([gaugeColor(1), gaugeColor(0.5), gaugeColor(0.1)]).size).toBe(3);
   });
 
-  it('反転したリソースでは満タンほど危険になること', () => {
+  it('マイナスリソースでは満タンほど危険になること', () => {
     expect(gaugeColor(1, true)).toBe(gaugeColor(0));
     expect(gaugeColor(0, true)).toBe(gaugeColor(1));
     expect(gaugeColor(0.6, true)).toBe(gaugeColor(0.4));
@@ -62,7 +62,7 @@ describe('selectPieceGauges()', () => {
     expect(gauges[1].color).toBe(gaugeColor(0.75));
   });
 
-  it('反転したリソースは色を裏返して持つこと', () => {
+  it('マイナスリソースは色を裏返して持つこと', () => {
     const root = DataElement.create('detail', '', {});
     created.push(root);
     const madness = resource('狂気度', 150, 200, true, true);
