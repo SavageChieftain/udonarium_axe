@@ -69,6 +69,63 @@ it('プライベートフィールドが null で初期化されること', () =
   expect(s['onConnectionStateChanged']).toBeNull();
 });
 
+describe('SkyWayDataStream 無通信検知', () => {
+  function createStream() {
+    const stream = SkyWayDataStream.createSubscription(
+      { room: undefined, peer: { peerId: 'local-peer' } } as never,
+      { peerId: 'peer-a', userId: 'user-a', password: '' } as never
+    );
+    const streamAny = stream as unknown as Record<string, unknown>;
+    streamAny['stats'] = { updateAsync: vi.fn().mockResolvedValue(undefined), candidateType: 'host' };
+    return { stream, streamAny };
+  }
+
+  it('無通信が閾値を超えたら close を発火する', async () => {
+    const { stream, streamAny } = createStream();
+    const onClose = vi.fn();
+    stream.on('close', onClose);
+
+    streamAny['_timestamp'] = performance.now() - SkyWayDataStream.STALE_TIMEOUT_MS - 1;
+    await stream.updateStatsAsync();
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(stream.peer.isOpen).toBe(false);
+  });
+
+  it('閾値内なら close を発火せず health を更新する', async () => {
+    const { stream, streamAny } = createStream();
+    const onClose = vi.fn();
+    stream.on('close', onClose);
+
+    streamAny['_timestamp'] = performance.now();
+    await stream.updateStatsAsync();
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(stream.peer.session.health).toBe(1);
+  });
+
+  it('閾値の手前では health だけが劣化する', async () => {
+    const { stream, streamAny } = createStream();
+    const onClose = vi.fn();
+    stream.on('close', onClose);
+
+    streamAny['_timestamp'] = performance.now() - (SkyWayDataStream.STALE_TIMEOUT_MS - 5000);
+    await stream.updateStatsAsync();
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(stream.peer.session.health).toBeLessThan(1);
+  });
+
+  it('開通時にタイムスタンプがリセットされる', () => {
+    const { stream, streamAny } = createStream();
+
+    streamAny['_timestamp'] = performance.now() - 60000;
+    stream.resetTimestamp();
+
+    expect(performance.now() - stream.timestamp).toBeLessThan(1000);
+  });
+});
+
 describe('SkyWayDataStream receivedMap クリーンアップ', () => {
   it('dispose 時に receivedMap がクリアされる', () => {
     const receivedMap = new Map<

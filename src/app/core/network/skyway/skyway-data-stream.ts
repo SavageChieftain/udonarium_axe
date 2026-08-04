@@ -26,6 +26,8 @@ interface Ping {
 }
 
 export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
+  static readonly STALE_TIMEOUT_MS = 25000;
+
   readonly peer: PeerContext;
 
   private chunkSize = 15.5 * 1024;
@@ -304,6 +306,7 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
       if (isOpen) {
         this.isOpened = true;
         this.state = 'connected';
+        this.resetTimestamp();
         this.emit('open');
       } else {
         this.subscription = null;
@@ -389,6 +392,15 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     this.candidateType = this.stats.candidateType;
 
     const deltaTime = performance.now() - this.timestamp;
+
+    if (SkyWayDataStream.STALE_TIMEOUT_MS <= deltaTime) {
+      Logger.warn(`[SkyWay] ${Math.round(deltaTime / 1000)}秒間無通信のため切断とみなします: ${this.peer.peerId}`);
+      this.peer.isOpen = false;
+      this.state = 'disconnected';
+      this.emit('close');
+      return;
+    }
+
     const healthRate = deltaTime <= 10000 ? 1 : 5000 / (deltaTime - 10000 + 5000);
     const ping = healthRate < 1 ? deltaTime : this.ping;
     const pingRate = 500 / (ping + 500);
