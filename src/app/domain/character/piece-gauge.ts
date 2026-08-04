@@ -7,6 +7,7 @@ export interface PieceGauge {
   current: number;
   max: number;
   ratio: number;
+  inverted: boolean;
   color: string;
 }
 
@@ -22,14 +23,20 @@ export function gaugeRatio(current: number, max: number): number {
   return Math.min(1, Math.max(0, current / max));
 }
 
-export function gaugeColor(ratio: number): string {
-  if (ratio <= LOW_THRESHOLD) return LOW_COLOR;
-  if (ratio <= HALF_THRESHOLD) return HALF_COLOR;
+export function gaugeColor(ratio: number, inverted = false): string {
+  const remaining = inverted ? 1 - ratio : ratio;
+  if (remaining <= LOW_THRESHOLD) return LOW_COLOR;
+  if (remaining <= HALF_THRESHOLD) return HALF_COLOR;
   return FULL_COLOR;
 }
 
 export function isGaugeShownOnPiece(element: DataElement): boolean {
   return element.getAttribute(DataElementAttribute.PIECE_GAUGE) === 'true';
+}
+
+/** 増えるほど悪くなるリソース（狂気度・汚染度など）。 */
+export function isGaugeInverted(element: DataElement): boolean {
+  return element.getAttribute(DataElementAttribute.GAUGE_INVERTED) === 'true';
 }
 
 /** コマに出す設定のリソースだけを、上から順に拾う。 */
@@ -49,6 +56,7 @@ export function selectPieceGauges(root: DataElement | null): PieceGauge[] {
       const current = Number(data.currentValue);
       const max = Number(data.value);
       const ratio = gaugeRatio(current, max);
+      const inverted = isGaugeInverted(data);
       gauges.push({
         identifier: data.identifier,
         name: data.name,
@@ -56,7 +64,8 @@ export function selectPieceGauges(root: DataElement | null): PieceGauge[] {
         current: Number.isFinite(current) ? current : 0,
         max: Number.isFinite(max) ? max : 0,
         ratio,
-        color: gaugeColor(ratio),
+        inverted,
+        color: gaugeColor(ratio, inverted),
       });
     }
   };

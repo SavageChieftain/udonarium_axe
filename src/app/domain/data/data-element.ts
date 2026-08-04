@@ -73,6 +73,7 @@ export const DataElementAttribute = {
   IMAGE_POPUP_ORIGINAL: 'cs-image-popup-original',
   JUDGE_MODE: 'cs-judge-mode',
   PIECE_GAUGE: 'cs-piece-gauge',
+  GAUGE_INVERTED: 'cs-gauge-inverted',
   BUFF_ICON: 'cs-buff-icon',
   GAP_DISTANCE: 'cs-gap-distance',
   LOOP_HORIZONTAL: 'cs-loop-horizontal',

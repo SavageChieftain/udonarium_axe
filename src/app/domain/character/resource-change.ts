@@ -8,6 +8,7 @@ const LARGE_RATIO = 0.4;
 export interface ResourceSnapshot {
   current: number;
   max: number;
+  inverted?: boolean;
 }
 
 export interface ResourceChange {
@@ -45,10 +46,11 @@ export function diffResourceSnapshots(
     if (delta === 0) continue;
 
     const max = Math.max(previous.max, next.max);
+    const worse = next.inverted ? delta > 0 : delta < 0;
     changes.push({
       identifier,
       name: nameOf(identifier),
-      kind: delta < 0 ? 'damage' : 'heal',
+      kind: worse ? 'damage' : 'heal',
       delta,
       label: `${delta < 0 ? '' : '+'}${trim(delta)}`,
       ratio: Number.isFinite(max) && max > 0 ? Math.abs(delta) / max : 0,

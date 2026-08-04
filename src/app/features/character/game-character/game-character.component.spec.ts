@@ -180,6 +180,34 @@ describe('GameCharacterComponent', () => {
       }
     });
 
+    it('増えるほど悪いリソースでは増加をダメージとして扱うこと', async () => {
+      const character = GameCharacter.create('狂気', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+      hp.setAttribute(DataElementAttribute.GAUGE_INVERTED, 'true');
+      const played: string[] = [];
+      vi.spyOn(SoundEffect, 'playLocal').mockImplementation((arg) => {
+        played.push(typeof arg === 'string' ? arg : arg.identifier);
+      });
+
+      try {
+        fixture.detectChanges();
+
+        hp.currentValue = 260;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        expect(component.floatingChanges()).toEqual([
+          expect.objectContaining({ kind: 'damage', label: '+60', name: 'HP' }),
+        ]);
+        expect(component.hitFlash()).toBe('damage');
+        expect(played).toEqual([PresetSound.damageLarge]);
+      } finally {
+        character.destroy();
+      }
+    });
+
     it('変化が無ければ何も出さないこと', async () => {
       const character = GameCharacter.create('無変化', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);

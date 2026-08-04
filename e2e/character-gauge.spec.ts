@@ -316,6 +316,26 @@ test.describe('コマの頭上表示', () => {
     await expect(piece.locator('[data-testid="resource-change"]')).toHaveCount(0, { timeout: 5000 });
   });
 
+  test('増えるほど悪いリソースでは増減の意味が裏返ること', async ({ page }) => {
+    const piece = newCharacterPiece(page);
+    const sheet = await openSheet(page);
+    await sheet.locator('button[title="編集"]').first().dispatchEvent('click');
+
+    const row = resourceRows(sheet, page).first();
+    await row.locator('button[title="詳細設定"]').first().dispatchEvent('click');
+    await row.locator('input[name="data-gauge-inverted"]').check();
+
+    const current = sheet.locator('input[name="data-current-value"]').first();
+    await current.fill('150');
+    await current.blur();
+
+    const change = piece.locator('[data-testid="resource-change"]').first();
+    await expect(change).toBeVisible({ timeout: 5000 });
+    await expect(change).toHaveText('-50');
+    await expect(change).toHaveAttribute('data-kind', 'heal');
+    await expect(piece.locator('[data-testid="heal-aura"]')).toBeAttached();
+  });
+
   test('リソースが増えると緑の数字が飛び出すこと', async ({ page }) => {
     const piece = newCharacterPiece(page);
     const sheet = await openSheet(page);

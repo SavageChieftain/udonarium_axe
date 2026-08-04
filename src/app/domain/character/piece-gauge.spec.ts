@@ -1,4 +1,4 @@
-import { gaugeColor, gaugeRatio, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import { gaugeColor, gaugeRatio, isGaugeInverted, selectPieceGauges } from '@axe/domain/character/piece-gauge';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('gaugeRatio()', () => {
@@ -22,14 +22,21 @@ describe('gaugeColor()', () => {
     expect(gaugeColor(0.25)).toBe(gaugeColor(0));
     expect(new Set([gaugeColor(1), gaugeColor(0.5), gaugeColor(0.1)]).size).toBe(3);
   });
+
+  it('反転したリソースでは満タンほど危険になること', () => {
+    expect(gaugeColor(1, true)).toBe(gaugeColor(0));
+    expect(gaugeColor(0, true)).toBe(gaugeColor(1));
+    expect(gaugeColor(0.6, true)).toBe(gaugeColor(0.4));
+  });
 });
 
 describe('selectPieceGauges()', () => {
   const created: DataElement[] = [];
 
-  function resource(name: string, current: number, max: number, onPiece: boolean): DataElement {
+  function resource(name: string, current: number, max: number, onPiece: boolean, inverted = false): DataElement {
     const element = DataElement.create(name, max, { type: DataElementType.NUMBER_RESOURCE, currentValue: current });
     if (onPiece) element.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
+    if (inverted) element.setAttribute(DataElementAttribute.GAUGE_INVERTED, 'true');
     created.push(element);
     return element;
   }
@@ -53,6 +60,19 @@ describe('selectPieceGauges()', () => {
     expect(gauges.map((gauge) => gauge.name)).toEqual(['HP', 'MP']);
     expect(gauges[0]).toMatchObject({ initial: 'H', current: 50, max: 200, ratio: 0.25 });
     expect(gauges[1].color).toBe(gaugeColor(0.75));
+  });
+
+  it('反転したリソースは色を裏返して持つこと', () => {
+    const root = DataElement.create('detail', '', {});
+    created.push(root);
+    const madness = resource('狂気度', 150, 200, true, true);
+    root.appendChild(madness);
+
+    const [gauge] = selectPieceGauges(root);
+
+    expect(isGaugeInverted(madness)).toBe(true);
+    expect(gauge).toMatchObject({ ratio: 0.75, inverted: true });
+    expect(gauge.color).toBe(gaugeColor(0.25));
   });
 
   it('リソース以外は拾わないこと', () => {

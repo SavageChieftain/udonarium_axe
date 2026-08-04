@@ -817,6 +817,20 @@ export class GameDataElementComponent {
     return this.gameDataElement().isNumberResource;
   }
 
+  isGaugeInverted(): boolean {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return element.getAttribute(DataElementAttribute.GAUGE_INVERTED) === 'true';
+  }
+
+  toggleGaugeInverted(): void {
+    if (!this.canShowPieceGauge()) return;
+    const element = this.gameDataElement();
+    if (this.isGaugeInverted()) element.removeAttribute(DataElementAttribute.GAUGE_INVERTED);
+    else element.setAttribute(DataElementAttribute.GAUGE_INVERTED, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
   togglePieceGauge(event?: MouseEvent): void {
     event?.stopPropagation();
     if (!this.canShowPieceGauge()) return;

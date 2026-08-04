@@ -48,6 +48,17 @@ describe('diffResourceSnapshots()', () => {
     expect(diffResourceSnapshots(before, after, nameOf)[0].label).toBe('-20');
   });
 
+  it('増えるほど悪いリソースでは意味を裏返すこと', () => {
+    const before = snapshot({ san: { current: 10, max: 100, inverted: true } });
+
+    expect(
+      diffResourceSnapshots(before, snapshot({ san: { current: 40, max: 100, inverted: true } }), nameOf)[0]
+    ).toMatchObject({ kind: 'damage', label: '+30' });
+    expect(
+      diffResourceSnapshots(before, snapshot({ san: { current: 4, max: 100, inverted: true } }), nameOf)[0]
+    ).toMatchObject({ kind: 'heal', label: '-6' });
+  });
+
   it('変化が無ければ何も返さないこと', () => {
     const same = snapshot({ hp: { current: 100, max: 200 }, mp: { current: 10, max: 10 } });
 

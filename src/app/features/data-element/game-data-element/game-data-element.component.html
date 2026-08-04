@@ -500,6 +500,15 @@
               <span>{{ 'feature.dataElement.field.pieceGauge' | transloco }}</span>
               <input type="checkbox" name="data-piece-gauge" [checked]="isPieceGauge()" (change)="togglePieceGauge()" />
             </label>
+            <label class="grid-cols-[auto_auto] justify-start">
+              <span>{{ 'feature.dataElement.field.gaugeInverted' | transloco }}</span>
+              <input
+                type="checkbox"
+                name="data-gauge-inverted"
+                [checked]="isGaugeInverted()"
+                (change)="toggleGaugeInverted()"
+              />
+            </label>
           }
           @if (gameDataElement().fieldType === 'resource') {
             <label class="grid-cols-[auto_minmax(3.8rem,1fr)]">

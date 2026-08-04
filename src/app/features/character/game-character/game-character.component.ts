@@ -34,7 +34,7 @@ import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import { isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
 import {
   diffResourceSnapshots,
   loudestChangeRatio,
@@ -456,7 +456,11 @@ export class GameCharacterComponent {
     for (const element of collectDataElements(detail)) {
       this.objectChange.versionOf(element.identifier)();
       if (!element.isNumberResource) continue;
-      snapshot.set(element.identifier, { current: Number(element.currentValue), max: Number(element.value) });
+      snapshot.set(element.identifier, {
+        current: Number(element.currentValue),
+        max: Number(element.value),
+        inverted: isGaugeInverted(element),
+      });
     }
     return snapshot;
   });
