@@ -113,6 +113,10 @@ test.describe('コマの頭上表示', () => {
     expect(badge.width).toBeGreaterThan(8);
     expect(badge.width).toBeLessThan(22);
     expect(name.height).toBeLessThan(34);
+
+    expect(Math.abs(badge.x - gauge.x), 'バフがリソースバーの開始位置から始まっていない').toBeLessThan(6);
+    expect(gauge.width, 'リソースバーがキャラ名に比べて細すぎる').toBeGreaterThan(name.width * 0.7);
+    expect(gauge.width, 'リソースバーがキャラ名に比べて広すぎる').toBeLessThan(name.width * 1.6);
   });
 
   test('右クリックメニューから表示を切り替えられること', async ({ page }) => {
@@ -298,6 +302,7 @@ test.describe('コマの頭上表示', () => {
 
     const change = piece.locator('[data-testid="resource-change"]').first();
     await expect(change).toBeVisible({ timeout: 5000 });
+    await expect(piece.locator('[data-testid="piece-body"]')).toHaveClass(/animate-hit-shake/);
     await expect(change).toHaveText('-50');
     await expect(change).toHaveAttribute('data-kind', 'damage');
     await expect(piece.locator('[data-testid="hit-flash"]')).toBeAttached();
@@ -323,5 +328,6 @@ test.describe('コマの頭上表示', () => {
     await expect(change).toBeVisible({ timeout: 5000 });
     await expect(change).toHaveText('+60');
     await expect(change).toHaveAttribute('data-kind', 'heal');
+    await expect(piece.locator('[data-testid="heal-aura"]')).toBeAttached();
   });
 });

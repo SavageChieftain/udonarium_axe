@@ -85,6 +85,7 @@ function resourceChangeSound(kind: 'damage' | 'heal', ratio: number): string {
 const FLOATING_CHANGE_MS = 1300;
 const FLOATING_CHANGE_LIMIT = 6;
 const HIT_FLASH_MS = 420;
+const HEAL_AURA_MS = 760;
 const GAUGE_STACK_GAP_PX = 32;
 const BUFF_STACK_GAP_PX = 40;
 
@@ -695,14 +696,17 @@ export class GameCharacterComponent {
     const entries = changes.map((change) => ({ ...change, key: ++this.floatingKey }));
     this.floatingChanges.update((current) => [...current, ...entries].slice(-FLOATING_CHANGE_LIMIT));
 
-    const damaged = entries.some((entry) => entry.kind === 'damage');
-    this.hitFlash.set(damaged ? 'damage' : 'heal');
-    SoundEffect.playLocal(resourceChangeSound(damaged ? 'damage' : 'heal', loudestChangeRatio(entries)));
+    const kind = entries.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
+    this.hitFlash.set(kind);
+    SoundEffect.playLocal(resourceChangeSound(kind, loudestChangeRatio(entries)));
 
-    const flashTimer = setTimeout(() => {
-      this.floatingTimers.delete(flashTimer);
-      this.hitFlash.set(null);
-    }, HIT_FLASH_MS);
+    const flashTimer = setTimeout(
+      () => {
+        this.floatingTimers.delete(flashTimer);
+        this.hitFlash.set(null);
+      },
+      kind === 'damage' ? HIT_FLASH_MS : HEAL_AURA_MS
+    );
     this.floatingTimers.add(flashTimer);
 
     const keys = new Set(entries.map((entry) => entry.key));
