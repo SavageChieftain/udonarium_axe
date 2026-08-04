@@ -807,6 +807,25 @@ export class GameDataElementComponent {
     this.objectChange.notifyChanged(element.identifier);
   }
 
+  isPieceGauge(): boolean {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return element.getAttribute(DataElementAttribute.PIECE_GAUGE) === 'true';
+  }
+
+  canShowPieceGauge(): boolean {
+    return this.gameDataElement().isNumberResource;
+  }
+
+  togglePieceGauge(event?: MouseEvent): void {
+    event?.stopPropagation();
+    if (!this.canShowPieceGauge()) return;
+    const element = this.gameDataElement();
+    if (this.isPieceGauge()) element.removeAttribute(DataElementAttribute.PIECE_GAUGE);
+    else element.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
   isImagePopupOriginal(): boolean {
     const element = this.gameDataElement();
     this.objectChange.versionOf(element.identifier)();

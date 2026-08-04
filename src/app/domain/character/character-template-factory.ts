@@ -36,6 +36,7 @@ export class CharacterTemplateFactory {
       200,
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        [DataElementAttribute.PIECE_GAUGE]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '200',
       },
@@ -46,6 +47,7 @@ export class CharacterTemplateFactory {
       100,
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        [DataElementAttribute.PIECE_GAUGE]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '100',
       },
@@ -89,6 +91,7 @@ export class CharacterTemplateFactory {
       200,
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        [DataElementAttribute.PIECE_GAUGE]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '200',
       },
@@ -99,6 +102,7 @@ export class CharacterTemplateFactory {
       100,
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+        [DataElementAttribute.PIECE_GAUGE]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '100',
       },

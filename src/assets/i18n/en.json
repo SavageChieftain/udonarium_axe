@@ -730,6 +730,7 @@
         "add": "Add buff",
         "defaultName": "New buff",
         "namePlaceholder": "Buff name",
+        "icon": "Icon",
         "currentPlaceholder": "Current",
         "maxPlaceholder": "Max",
         "delete": "Delete buff"
@@ -1944,6 +1945,7 @@
       "dragGroup": "Drag handle",
       "copyReference": "Copy reference name",
       "popupShow": "Show in popup",
+      "pieceGauge": "Show a bar on the piece",
       "fieldOptions": "Advanced options",
       "tableSettings": "Table settings",
       "addRow": "Add row below",

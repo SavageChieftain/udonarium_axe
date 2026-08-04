@@ -6,22 +6,50 @@
           <div
             class="border-ui-border-panel grid grid-cols-[1fr_auto_auto] items-center gap-x-1.5 gap-y-1 border-b border-solid px-0.5 py-1.5"
           >
-            <div class="relative min-w-0">
+            <div class="relative flex min-w-0 items-center gap-1">
               @if (!isTagLocked()) {
-                <div
-                  class="invisible box-border h-0 max-w-80 overflow-hidden px-0.75 font-[Cambria,Georgia] text-[0.9rem]"
-                >
-                  {{ name }}
-                </div>
-                <input
-                  class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-0 rounded-xs border-none bg-transparent px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem] outline-none"
-                  name="data-elm-name"
-                  [(ngModel)]="name"
-                  [placeholder]="'feature.character.buff.namePlaceholder' | transloco"
-                />
+                <details class="relative shrink-0">
+                  <summary
+                    class="border-ui-border-panel bg-ui-elevated hover:border-ui-accent flex size-6 cursor-pointer list-none items-center justify-center rounded-full border border-solid text-[13px] leading-none [&::-webkit-details-marker]:hidden"
+                    [title]="'feature.character.buff.icon' | transloco"
+                  >
+                    {{ icon() }}
+                  </summary>
+                  <div
+                    class="bg-ui-panel border-ui-border-panel rounded-ui-sm absolute top-7 left-0 z-10 grid w-40 grid-cols-6 gap-0.5 border border-solid p-1 shadow-md"
+                  >
+                    @for (choice of iconChoices; track choice) {
+                      <button
+                        class="hover:bg-ui-hover flex size-6 cursor-pointer items-center justify-center rounded-xs border-none bg-transparent p-0 text-[13px] leading-none"
+                        [class.bg-ui-accent-bg]="icon() === choice"
+                        type="button"
+                        (click)="selectIcon(choice)"
+                      >
+                        {{ choice }}
+                      </button>
+                    }
+                  </div>
+                </details>
               } @else {
-                <span class="text-ui-text block px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem]">{{ name }}</span>
+                <span class="shrink-0 text-[13px] leading-none">{{ icon() }}</span>
               }
+              <div class="relative min-w-0 flex-1">
+                @if (!isTagLocked()) {
+                  <div
+                    class="invisible box-border h-0 max-w-80 overflow-hidden px-0.75 font-[Cambria,Georgia] text-[0.9rem]"
+                  >
+                    {{ name }}
+                  </div>
+                  <input
+                    class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-0 rounded-xs border-none bg-transparent px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem] outline-none"
+                    name="data-elm-name"
+                    [(ngModel)]="name"
+                    [placeholder]="'feature.character.buff.namePlaceholder' | transloco"
+                  />
+                } @else {
+                  <span class="text-ui-text block px-0.75 py-0.5 font-[Cambria,Georgia] text-[0.9rem]">{{ name }}</span>
+                }
+              </div>
             </div>
             <div class="flex items-center gap-0.75 whitespace-nowrap">
               <input
@@ -88,7 +116,8 @@
     @switch (gameDataElement().type) {
       @case ('numberResource') {
         <span
-          class="text-ui-text font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] text-[12px] [-webkit-font-smoothing:antialiased]"
+          class="text-ui-text block font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] text-[1.2em] whitespace-nowrap [-webkit-font-smoothing:antialiased]"
+          ><span class="mr-[0.2em]">{{ icon() }}</span
           >{{ name }} / {{ currentValue }} / {{ value }}R</span
         >
       }
@@ -97,6 +126,7 @@
   @if (childrenCount()) {
     @for (childElement of gameDataElement().children; track childElement.identifier) {
       <div
+        class="block w-max"
         game-data-element-buff
         [gameDataElement]="childElement"
         [isEdit]="isEdit()"
