@@ -38,6 +38,13 @@ async function addBuff(page: Page, count = 1) {
   await expect(view.locator('[game-data-element-buff]').first()).toBeVisible({ timeout: 5000 });
 }
 
+function resourceRows(sheet: Locator, page: Page) {
+  return sheet
+    .locator('game-data-element, [game-data-element]')
+    .filter({ has: page.locator('input[name="data-current-value"]') })
+    .filter({ hasNot: page.locator('game-data-element, [game-data-element]') });
+}
+
 function overlaps(a: { x: number; y: number; width: number; height: number }, b: typeof a): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
@@ -61,23 +68,22 @@ test.describe('コマの頭上表示', () => {
 
     const sheet = await openSheet(page);
     await sheet.locator('button[title="編集"]').first().dispatchEvent('click');
-    const gaugeToggle = sheet.locator('button[title="コマにバーを表示"]').first();
-    await expect(gaugeToggle).toBeVisible({ timeout: 5000 });
+    const row = resourceRows(sheet, page).first();
+    await row.locator('button[title="詳細設定"]').first().dispatchEvent('click');
 
-    await gaugeToggle.dispatchEvent('click');
-    await expect(gaugeToggle).not.toHaveClass(/bg-ui-accent-bg/, { timeout: 5000 });
+    const gaugeToggle = row.locator('input[name="data-piece-gauge"]');
+    await expect(gaugeToggle).toBeChecked({ timeout: 5000 });
+
+    await gaugeToggle.uncheck();
     await expect(gauges).toHaveCount(1, { timeout: 5000 });
   });
 
   test('リソース行の操作ボタンが 1 段に収まること', async ({ page }) => {
     const sheet = await openSheet(page);
     await sheet.locator('button[title="編集"]').first().dispatchEvent('click');
-    await expect(sheet.locator('button[title="コマにバーを表示"]').first()).toBeVisible({ timeout: 5000 });
 
-    const actions = sheet
-      .locator('.elm-row-actions')
-      .filter({ has: page.locator('button[title="コマにバーを表示"]') })
-      .first();
+    const actions = resourceRows(sheet, page).first().locator('.elm-row-actions').first();
+    await expect(actions).toBeVisible({ timeout: 5000 });
     const cluster = await box(actions);
     const buttons = actions.locator('button:visible');
     const count = await buttons.count();
