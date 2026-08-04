@@ -321,34 +321,6 @@ export class GameCharacterComponent {
   protected readonly buffViewMode = signal<BuffViewMode>('icon');
   protected readonly foldingBuff = computed(() => this.buffViewMode() !== 'detail');
 
-  protected readonly buffViewIcon = computed(() => {
-    switch (this.buffViewMode()) {
-      case 'count':
-        return 'unfold_less';
-      case 'detail':
-        return 'view_list';
-      default:
-        return 'apps';
-    }
-  });
-
-  protected readonly buffViewLabelKey = computed(() => {
-    switch (this.buffViewMode()) {
-      case 'count':
-        return 'feature.character.buff.viewCount';
-      case 'detail':
-        return 'feature.character.buff.viewDetail';
-      default:
-        return 'feature.character.buff.viewIcon';
-    }
-  });
-
-  protected onCycleBuffView(event: Event) {
-    event.stopPropagation();
-    event.preventDefault();
-    this.buffViewMode.update((mode) => (mode === 'icon' ? 'detail' : mode === 'detail' ? 'count' : 'icon'));
-  }
-
   get gridSize(): number {
     return this.tabletopService.gridSize();
   }

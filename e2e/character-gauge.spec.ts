@@ -254,11 +254,11 @@ test.describe('コマの頭上表示', () => {
     expect(overlaps(plate, gauge), '詳細パネルがリソースバーに重なっている').toBe(false);
     expect(overlaps(plate, name), '詳細パネルが名前に重なっている').toBe(false);
 
-    const caret = await box(piece.locator('[data-testid="buff-fold-toggle"]'));
+    const first = await box(rows.first());
     for (let i = 0; i < count; i++) {
       const row = await box(rows.nth(i));
-      expect(overlaps(row, caret), `詳細 ${i} 行目が切り替えボタンに接している`).toBe(false);
-      expect(row.x - (caret.x + caret.width)).toBeGreaterThan(2);
+      expect(Math.abs(row.x - first.x), `詳細 ${i} 行目の左端が揃っていない`).toBeLessThan(2);
+      expect(row.x - plate.x, `詳細 ${i} 行目が左に寄りすぎている`).toBeGreaterThan(-2);
     }
   });
 

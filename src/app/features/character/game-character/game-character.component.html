@@ -161,16 +161,7 @@
                       >
                         <img src="./assets/images/target/target.png" />
                       </div>
-                      <div class="flex w-full items-end justify-start gap-[0.5em]">
-                        <button
-                          data-testid="buff-fold-toggle"
-                          class="border-ui-muted bg-ui-elevated text-ui-text hover:border-ui-accent hover:bg-ui-accent-bg hover:text-ui-accent pointer-events-auto relative z-1 m-0 flex size-[1.7em] shrink-0 cursor-pointer items-center justify-center rounded-[0.25em] border border-solid p-0 text-[0.8em] leading-none opacity-60 transition-[opacity,background,border-color] duration-150 select-none hover:opacity-100 hover:shadow-none"
-                          (mousedown)="onCycleBuffView($event)"
-                          [title]="buffViewLabelKey() | transloco"
-                        >
-                          <i class="material-icons text-[1.15em]! leading-none">{{ buffViewIcon() }}</i>
-                        </button>
-
+                      <div class="flex w-full items-end justify-start">
                         <div
                           class="flex w-max flex-none justify-start rounded-[1.2em] border border-solid px-[0.5em] py-[0.15em]"
                           [ngClass]="
