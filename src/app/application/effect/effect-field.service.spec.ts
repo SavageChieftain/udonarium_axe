@@ -67,4 +67,17 @@ describe('EffectFieldService', () => {
 
     expect(service.renderables(0)).toHaveLength(0);
   });
+
+  it('視差効果を減らす設定では描かないこと', () => {
+    service.place(preset, 0, 0, 0);
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({ matches: query.includes('reduce') })) as never;
+
+    try {
+      // 場は消えないので、描き続けると設定を無視したままになる。
+      expect(service.renderables(0)).toHaveLength(0);
+    } finally {
+      window.matchMedia = original;
+    }
+  });
 });

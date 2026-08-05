@@ -230,7 +230,9 @@ export class EffectLibraryPanelComponent {
     if (preset.effectTargeting === 'self') {
       const targets = this.castService.resolveTargets(preset);
       if (targets.length < 1) {
+        // 黙って何も起きないと、壊れているのか対象がいないのか分からない。
         this.lastFired.set('');
+        this.notice.set(this.t('feature.effect.previewNoTarget'));
         return;
       }
       this.castService.fire(preset, targets);

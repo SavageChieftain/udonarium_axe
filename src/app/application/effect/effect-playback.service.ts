@@ -137,7 +137,8 @@ function clock(): number {
   return typeof performance === 'object' ? performance.now() : Date.now();
 }
 
-function prefersReducedMotion(): boolean {
+/** OS の「視差効果を減らす」。演出を描かず SE だけにする判断に使う。 */
+export function prefersReducedMotion(): boolean {
   if (typeof matchMedia !== 'function') return false;
   return matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

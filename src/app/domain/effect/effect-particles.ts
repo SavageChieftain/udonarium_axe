@@ -996,32 +996,37 @@ function emitBreath(
   base: number,
   ramp: ColorRamp
 ): void {
-  const life = fadeInOut(progress, 0.2);
-  if (life <= 0) return;
+  // この層は対象の上にある。届く前から出すと、吹き付ける前に燃えていることになる。
+  const arrived = clamp01((progress - 0.24) / 0.76);
+  if (arrived <= 0) return;
 
-  for (let index = 0; index < 30; index++) {
+  const life = progress > 0.74 ? 1 - (progress - 0.74) / 0.26 : 1;
+
+  // 当たった面で割れて外へ巻く気体。立ち上るだけだと焚き火に見える。
+  for (let index = 0; index < 34; index++) {
     const phase = random();
     const angle = random() * Math.PI * 2;
-    const local = (progress * 2.2 + phase) % 1;
-    const radius = base * (0.2 + local * 1.4);
+    const local = (progress * 2.4 + phase) % 1;
+    const spread = base * (0.3 + local * 2.1);
+    const curl = Math.sin(phase * Math.PI * 2 + local * Math.PI * 1.6) * base * 0.3 * local;
     particles.push({
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius * 0.6 - base * (0.4 + local * 0.9),
-      size: base * (0.5 + random() * 0.5) * (1 - local * 0.35),
+      x: Math.cos(angle) * spread + curl,
+      y: Math.sin(angle) * spread * 0.55 - base * (0.3 + local * local * 1.5),
+      size: base * (0.45 + random() * 0.5) * (1 - local * 0.3),
       angle: 0,
-      stretch: 1,
+      stretch: 1 + local * 0.5,
       color: flameColor(local, ramp),
-      alpha: life * (1 - local) * 0.75,
+      alpha: life * (1 - local) * 0.7,
       shape: 'glow',
     });
   }
 
-  for (let index = 0; index < 8; index++) {
+  for (let index = 0; index < 10; index++) {
     const local = (progress * 1.2 + random()) % 1;
     particles.push({
-      x: (random() - 0.5) * base * 1.8,
-      y: -base * (0.8 + local * 2),
-      size: base * (0.7 + local * 1.1),
+      x: (random() - 0.5) * base * 2.4,
+      y: -base * (0.8 + local * 2.2),
+      size: base * (0.8 + local * 1.2),
       angle: 0,
       stretch: 1,
       color: '#2f2823',

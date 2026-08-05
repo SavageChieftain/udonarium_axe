@@ -81,7 +81,19 @@ const BOLT_STRIKE_END = 0.45;
 const FROST_SHARD_COUNT = 8;
 const FROST_SPIKE_COUNT = 6;
 const UPHEAVAL_SLAB_COUNT = 7;
-const BREATH_STEP_COUNT = 9;
+const BREATH_SEGMENT_COUNT = 10;
+/** 口元から対象まで届くまで。 */
+const BREATH_REACH_END = 0.3;
+/** 息が切れはじめる位置。 */
+const BREATH_RELEASE_AT = 0.74;
+const BREATH_LOBE_COUNT = 8;
+const BREATH_SPLASH_ANGLES = [-64, -34, 0, 34, 64];
+/** 円錐の層。外は薄く広く、芯は白熱して先へ行くほど冷める。 */
+const BREATH_LAYERS = [
+  { key: 'haze', width: 1.45, opacity: 0.3, fade: 0.15 },
+  { key: 'body', width: 1, opacity: 0.72, fade: 0.3 },
+  { key: 'core', width: 0.42, opacity: 0.95, fade: 0.72 },
+];
 const DRAIN_MOTE_COUNT = 10;
 const CURSE_RING_COUNT = 3;
 const ARC_NODE_COUNT = 10;
@@ -307,11 +319,29 @@ export function effectSprites(
       return;
     }
     if (preset.effectKind === 'breath') {
-      appendBreath(sprites, prefix, center, base, progress, preset, projectileOrigin(cast, center, base));
+      appendBreath(
+        sprites,
+        prefix,
+        center,
+        base,
+        progress,
+        preset,
+        projectileOrigin(cast, center, base),
+        options.viewRotation
+      );
       return;
     }
     if (preset.effectKind === 'drain') {
-      appendDrain(sprites, prefix, center, base, progress, preset, projectileOrigin(cast, center, base));
+      appendDrain(
+        sprites,
+        prefix,
+        center,
+        base,
+        progress,
+        preset,
+        projectileOrigin(cast, center, base),
+        options.viewRotation
+      );
       return;
     }
     if (preset.effectKind === 'projectile') {
@@ -1107,7 +1137,13 @@ function appendArc(
   if (progress < 0.4) appendFlareSpikes(sprites, prefix, center, base, progress / 0.4, preset, 3.2, base * 0.5);
 }
 
-/** ブレス。発射元から対象へ向かって、広がりながら吹き付ける。 */
+/**
+ * ブレス。口元から対象へ、広がりながら吹き付ける。
+ *
+ * 丸を等間隔に並べると数珠になって「吹き付け」に見えないので、
+ * 経路上の区間で 1 本の円錐を組み、縁に渦を転がして乱れを出す。
+ * 区間ごとに自分の奥行きを持つので、間に立つコマと正しく前後する。
+ */
 function appendBreath(
   sprites: EffectSprite[],
   prefix: string,
@@ -1115,31 +1151,118 @@ function appendBreath(
   base: number,
   progress: number,
   preset: EffectPreset,
-  origin: Point3
+  origin: Point3,
+  view: ViewRotation | null | undefined
 ): void {
-  const life = fadeInOut(progress, 0.18);
+  const mouth = { x: origin.x, y: origin.y, z: origin.z + base * 0.15 };
+  const impact = { x: center.x, y: center.y, z: center.z + base * 0.5 };
+  const link = projectDirection(impact.x - mouth.x, impact.y - mouth.y, impact.z - mouth.z, view);
+  const radians = (link.angle * Math.PI) / 180;
+  const acrossX = -Math.sin(radians);
+  const acrossY = Math.cos(radians);
 
-  for (let step = 0; step <= BREATH_STEP_COUNT; step++) {
-    const along = step / BREATH_STEP_COUNT;
-    // 先端から順に届く。全部同時に出すと「線」になって吹き付けに見えない。
-    const reach = normalize((progress - along * 0.28) / 0.5);
-    if (reach <= 0) continue;
+  // 吹き始め → 吹き続け → 息が切れる。
+  const front = Math.min(1, progress / BREATH_REACH_END);
+  const release = normalize((progress - BREATH_RELEASE_AT) / (1 - BREATH_RELEASE_AT));
+  // 口元から順に切れる。息を止めたぶんが先へ流れていくように見える。
+  const tail = clamp01(release) ** 1.4;
+  const life = 1 - clamp01(release) * 0.25;
+  const swell = 1 + Math.sin(progress * 17) * 0.06;
 
-    const puff = base * (0.5 + along * 1.5);
-    const wobble = Math.sin(progress * Math.PI * 6 + step) * base * 0.12 * along;
+  for (let segment = 0; segment < BREATH_SEGMENT_COUNT; segment++) {
+    const from = Math.max(segment / BREATH_SEGMENT_COUNT, tail);
+    const to = Math.min((segment + 1) / BREATH_SEGMENT_COUNT, front);
+    if (to <= from) continue;
+
+    const mid = (from + to) / 2;
+    const anchor = pointBetween(mouth, impact, mid);
+    const length = link.length * (to - from) + base * 0.08;
+    const spread = breathSpread(mid) * base * swell;
+
+    for (const layer of BREATH_LAYERS) {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-breath-${segment}-${layer.key}`,
+        x: anchor.x,
+        y: anchor.y,
+        z: anchor.z,
+        width: length,
+        height: spread * layer.width,
+        rotate: link.angle,
+        // 芯は口元だけ白熱し、先へ行くほど散って冷める。
+        opacity: life * layer.opacity * (1 - mid * layer.fade),
+        background: breathPaint(layer.key, preset),
+        borderRadius: '0',
+      });
+    }
+  }
+
+  // 縁を転がる渦。まっすぐな円錐に乱れが出て、気体らしく見える。
+  for (let lobe = 0; lobe < BREATH_LOBE_COUNT; lobe++) {
+    const at = (progress * 1.6 + lobe / BREATH_LOBE_COUNT) % 1;
+    if (at < tail || at > front) continue;
+
+    const spread = breathSpread(at) * base * swell;
+    const side = lobe % 2 === 0 ? 1 : -1;
+    const shift = side * spread * (0.34 + Math.sin(progress * 9 + lobe) * 0.12);
+    const anchor = pointBetween(mouth, impact, at);
+    const size = spread * (0.5 + at * 0.25);
     sprites.push({
       ...blank(),
-      key: `${prefix}-breath-${step}`,
-      x: origin.x + (center.x - origin.x) * along,
-      y: origin.y + (center.y - origin.y) * along,
-      z: origin.z + (center.z + base * 0.5 - origin.z) * along + wobble,
-      width: puff,
-      height: puff,
-      opacity: life * Math.min(reach, 1) * (0.75 - along * 0.25),
-      background: `radial-gradient(circle, #ffffff 0%, ${preset.colorPrimary} 32%, ${preset.colorSecondary} 62%, transparent 78%)`,
+      key: `${prefix}-breath-lobe-${lobe}`,
+      x: anchor.x,
+      y: anchor.y,
+      z: anchor.z,
+      offsetX: acrossX * shift,
+      offsetY: acrossY * shift,
+      width: size,
+      height: size,
+      opacity: life * (0.5 - at * 0.28),
+      background: `radial-gradient(circle, ${preset.colorPrimary} 0%, ${preset.colorSecondary} 55%, transparent 76%)`,
       borderRadius: '50%',
-      shadow: glow(base * 0.3, preset.colorSecondary),
     });
+  }
+
+  if (tail <= 0) {
+    const flare = base * (0.7 + Math.sin(progress * 21) * 0.1);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-breath-mouth`,
+      x: mouth.x,
+      y: mouth.y,
+      z: mouth.z,
+      width: flare,
+      height: flare,
+      opacity: life * 0.9,
+      background: `radial-gradient(circle, #ffffff 0%, ${preset.colorPrimary} 45%, transparent 78%)`,
+      borderRadius: '50%',
+      shadow: glow(base * 0.5, preset.colorPrimary),
+    });
+  }
+
+  if (front >= 1) {
+    // 当たった面で気体が割れて、撃った側へ巻き返す。
+    for (let splash = 0; splash < BREATH_SPLASH_ANGLES.length; splash++) {
+      const wave = (progress * 2.1 + splash / BREATH_SPLASH_ANGLES.length) % 1;
+      const spray = link.angle + 180 + BREATH_SPLASH_ANGLES[splash];
+      const sprayRadians = (spray * Math.PI) / 180;
+      const reach = base * (0.6 + wave * 2);
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-breath-splash-${splash}`,
+        x: impact.x,
+        y: impact.y,
+        z: impact.z,
+        offsetX: Math.cos(sprayRadians) * reach * 0.5,
+        offsetY: Math.sin(sprayRadians) * reach * 0.5,
+        width: reach,
+        height: base * 0.5 * (1 - wave * 0.5),
+        rotate: spray,
+        opacity: life * (1 - wave) * 0.5,
+        background: `linear-gradient(90deg, ${preset.colorPrimary}, ${preset.colorSecondary} 55%, transparent)`,
+        borderRadius: '50%',
+      });
+    }
   }
 
   const scorch = base * (1 + easeOutCubic(progress) * 1.6);
@@ -1158,6 +1281,21 @@ function appendBreath(
   });
 }
 
+/** 口元から先端へ向かう広がり。根元は細く、先ほど大きく散る。 */
+function breathSpread(at: number): number {
+  return 0.4 + at ** 0.8 * 2.1;
+}
+
+function breathPaint(layer: string, preset: EffectPreset): string {
+  if (layer === 'core') {
+    return `linear-gradient(180deg, transparent, ${preset.colorPrimary} 22%, #ffffff 50%, ${preset.colorPrimary} 78%, transparent)`;
+  }
+  if (layer === 'body') {
+    return `linear-gradient(180deg, transparent, ${preset.colorSecondary} 16%, ${preset.colorPrimary} 50%, ${preset.colorSecondary} 84%, transparent)`;
+  }
+  return `linear-gradient(180deg, transparent, ${preset.colorSecondary} 30%, ${preset.colorPrimary} 50%, ${preset.colorSecondary} 70%, transparent)`;
+}
+
 /** 吸収。対象から発射元へ、光が繰り返し流れ戻る。 */
 function appendDrain(
   sprites: EffectSprite[],
@@ -1166,9 +1304,17 @@ function appendDrain(
   base: number,
   progress: number,
   preset: EffectPreset,
-  origin: Point3
+  origin: Point3,
+  view: ViewRotation | null | undefined
 ): void {
   const life = fadeInOut(progress, 0.2);
+  const source = { x: center.x, y: center.y, z: center.z + base * 0.6 };
+  const link = projectDirection(origin.x - source.x, origin.y - source.y, origin.z - source.z, view);
+  const radians = (link.angle * Math.PI) / 180;
+  // 膨らみは経路と直交させる。ワールドの y でずらすと、向きによっては
+  // 経路に沿って前後するだけになって弧を描かない。
+  const acrossX = -Math.sin(radians);
+  const acrossY = Math.cos(radians);
 
   for (let mote = 0; mote < DRAIN_MOTE_COUNT; mote++) {
     // 位相をずらした粒が繰り返し流れることで、吸われ続けている感じになる。
@@ -1178,13 +1324,17 @@ function appendDrain(
     sprites.push({
       ...blank(),
       key: `${prefix}-drain-${mote}`,
-      x: center.x + (origin.x - center.x) * along,
-      y: center.y + (origin.y - center.y) * along + swing,
-      z: center.z + base * 0.6 + (origin.z - center.z - base * 0.6) * along,
-      width: size,
+      x: source.x + (origin.x - source.x) * along,
+      y: source.y + (origin.y - source.y) * along,
+      z: source.z + (origin.z - source.z) * along,
+      offsetX: acrossX * swing,
+      offsetY: acrossY * swing,
+      // 流れる向きへ引き伸ばす。丸のままだと点滅しているように見える。
+      width: size * 2.2,
       height: size,
+      rotate: link.angle,
       opacity: life * (1 - along * 0.4),
-      background: `radial-gradient(circle, #ffffff 0%, ${preset.colorPrimary} 50%, transparent 80%)`,
+      background: `linear-gradient(90deg, transparent, ${preset.colorPrimary} 45%, #ffffff 70%, transparent)`,
       borderRadius: '50%',
       shadow: glow(base * 0.26, preset.colorSecondary),
     });

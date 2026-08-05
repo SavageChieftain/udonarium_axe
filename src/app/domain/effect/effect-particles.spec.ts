@@ -25,6 +25,12 @@ describe('effectParticles()', () => {
     }
   });
 
+  it('ブレスは届くまで対象側に何も出さないこと', () => {
+    // 吹き付ける前から燃えていると嘘になる。
+    expect(effectParticles(makePreset('breath'), 7, 0.1, base).particles).toHaveLength(0);
+    expect(effectParticles(makePreset('breath'), 7, 0.5, base).particles.length).toBeGreaterThan(0);
+  });
+
   it('レーザーは届くまで対象側に何も出さないこと', () => {
     // この層は対象の上にある。溜めているあいだに出すと、撃つ前から着弾していることになる。
     expect(effectParticles(makePreset('beam'), 7, 0.15, base).particles).toHaveLength(0);

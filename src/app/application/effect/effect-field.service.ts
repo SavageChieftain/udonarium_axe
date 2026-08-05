@@ -1,5 +1,5 @@
 import { computed, effect, inject, Injectable } from '@angular/core';
-import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
+import { EffectPlaybackService, prefersReducedMotion } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -66,6 +66,9 @@ export class EffectFieldService {
 
   /** 描画用の 1 コマ。尺で折り返して繰り返す。 */
   renderables(now: number): EffectFieldRenderable[] {
+    // 発動と同じく、視差効果を減らす設定では描かない。場は消えないので特に効く。
+    if (prefersReducedMotion()) return [];
+
     const gridSize = this.tabletopService.gridSize();
     const renderables: EffectFieldRenderable[] = [];
 

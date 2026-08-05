@@ -391,6 +391,72 @@ describe('effectSprites()', () => {
     });
   });
 
+  describe('ブレス', () => {
+    const breathCast: EffectCast = {
+      presetIdentifier: 'preset',
+      casterIdentifier: 'caster',
+      origin: { x: -400, y: 0, z: 0 },
+      seed: 7,
+      targets: [{ identifier: 'char0', x: 0, y: 0, z: 0 }],
+    };
+
+    function breathAt(elapsed: number) {
+      return effectSprites(makePreset('breath'), breathCast, elapsed, options);
+    }
+
+    function bodyAt(elapsed: number) {
+      return breathAt(elapsed).filter((sprite) => /-breath-\d+-body$/.test(sprite.key));
+    }
+
+    it('口元から先へ広がる円錐にすること', () => {
+      const body = bodyAt(500);
+      expect(body.length).toBeGreaterThan(3);
+
+      // 同じ丸を並べると数珠になるので、区間の端は丸めず太さで広がりを出す。
+      for (const segment of body) expect(segment.borderRadius).toBe('0');
+      for (let index = 1; index < body.length; index++) {
+        expect(body[index].height).toBeGreaterThan(body[index - 1].height);
+      }
+    });
+
+    it('吹き始めは先端まで届いていないこと', () => {
+      expect(bodyAt(60).length).toBeLessThan(bodyAt(500).length);
+    });
+
+    it('息が切れると口元から消えること', () => {
+      const mouthSide = (elapsed: number) =>
+        bodyAt(elapsed).filter((sprite) => sprite.x < breathCast.origin!.x / 2).length;
+
+      expect(mouthSide(500)).toBeGreaterThan(0);
+      expect(mouthSide(980)).toBe(0);
+      expect(bodyAt(980).length).toBeGreaterThan(0);
+    });
+
+    it('縁に渦と、当たった面の巻き返しを出すこと', () => {
+      const sprites = breathAt(500);
+
+      expect(sprites.some((sprite) => sprite.key.endsWith('-breath-lobe-0'))).toBe(true);
+      expect(sprites.some((sprite) => sprite.key.endsWith('-breath-splash-0'))).toBe(true);
+    });
+  });
+
+  it('吸収の膨らみを経路と直交させること', () => {
+    // 発射元が対象の真上（画面の縦方向）にいる場合。
+    const cast: EffectCast = {
+      presetIdentifier: 'preset',
+      casterIdentifier: 'caster',
+      origin: { x: 0, y: -400, z: 0 },
+      seed: 7,
+      targets: [{ identifier: 'char0', x: 0, y: 0, z: 0 }],
+    };
+    const motes = effectSprites(makePreset('drain'), cast, 400, options).filter((sprite) =>
+      /-drain-\d+$/.test(sprite.key)
+    );
+
+    // ワールドの y でずらすと、この向きでは経路に沿って前後するだけになる。
+    expect(motes.some((mote) => Math.abs(mote.offsetX) > 1)).toBe(true);
+  });
+
   it('縦に伸ばす演出を足元へ揃えること', () => {
     const column = effectSprites(makePreset('warp'), makeCast(), 300, options).find((sprite) =>
       sprite.key.endsWith('-warp-column')

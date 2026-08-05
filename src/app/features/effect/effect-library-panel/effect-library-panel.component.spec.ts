@@ -91,4 +91,18 @@ describe('EffectLibraryPanelComponent', () => {
 
     expect(fixture.componentInstance.lastFired()).toBe('');
   });
+
+  it('自分にかけるものは対象がいないと案内を出すこと', () => {
+    fixture.detectChanges();
+    const preset = fixture.componentInstance.groups()[0].presets[0];
+    preset.targeting = 'self';
+
+    const tile = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('爆炎')
+    )!;
+    tile.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.notice()).toContain('対象がいません');
+  });
 });
