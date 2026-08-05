@@ -22,6 +22,7 @@ import {
   usesTargetLimit,
 } from '@axe/domain/effect/effect-preset-form';
 import { kindGlyphSvg } from '@axe/domain/effect/effect-shapes';
+import { presetSoundLabelKey, soundFileName } from '@axe/domain/media/preset-sound-labels';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -80,11 +81,15 @@ export class EffectPresetEditorComponent {
 
   readonly notice = signal('');
 
+  /** 音の identifier はファイルのパス。そのまま出しても何の音か分からない。 */
   protected readonly sounds = computed<SoundOption[]>(() => {
     this.objectChange.fileVersion();
     return [...this.audioStorage.audios]
-      .map((audio) => ({ identifier: audio.identifier, name: audio.name }))
-      .sort((left, right) => left.name.localeCompare(right.name));
+      .map((audio) => {
+        const labelKey = presetSoundLabelKey(audio.identifier);
+        return { identifier: audio.identifier, name: labelKey ? this.t(labelKey) : soundFileName(audio.name) };
+      })
+      .sort((left, right) => left.name.localeCompare(right.name, 'ja'));
   });
 
   /** 系統の候補。既にある系統から拾って入力を助ける。 */
